@@ -129,7 +129,7 @@
         <header class="ir-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><h2 id="itemRequestModalTitle">New Item Request</h2><p>Request parts listed on an approved Job Order</p></div>
+                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review the approved Job Order before submitting to Warehouse</p></div>
             </div>
             <button type="button" class="ir-icon-button" id="closeItemRequestModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
@@ -137,7 +137,7 @@
             @csrf
             <div class="ir-modal-body">
                 <div class="ir-form-section">
-                    <h3><span>01</span> Job Order Information</h3>
+                    <h3><span>01</span> Job Order Information <small>Source details</small></h3>
                     <div class="ir-field">
                         <label for="item_request_job_order">Approved Job Order <span>*</span></label>
                         <select id="item_request_job_order" name="job_order_id" required>
@@ -148,12 +148,12 @@
                         </select>
                     </div>
                     <div class="ir-preview-grid">
-                        <div><span>Bus Number</span><strong id="ir-preview-bus">Select a JO</strong></div>
-                        <div><span>Assigned Mechanic</span><strong id="ir-preview-mechanic">Select a JO</strong></div>
+                        <div><span class="ir-preview-card-icon"><i class="fa-solid fa-bus-simple"></i></span><span>Bus Number</span><strong id="ir-preview-bus">Select a JO</strong></div>
+                        <div><span class="ir-preview-card-icon"><i class="fa-solid fa-user-gear"></i></span><span>Assigned Mechanics</span><strong id="ir-preview-mechanic">Select a JO</strong></div>
                     </div>
                 </div>
                 <div class="ir-form-section">
-                    <h3><span>02</span> Requested Items</h3>
+                    <h3><span>02</span> Requested Items <small>Automatically sourced from the JO</small></h3>
                     <p class="ir-form-hint">Read-only items and quantities from the approved JO. Stock availability is an estimate; Warehouse confirms it at issuance.</p>
                     <div class="ir-preview-table-wrap">
                         <table class="ir-preview-table">
@@ -163,18 +163,18 @@
                     </div>
                 </div>
                 <div class="ir-form-section">
-                    <h3><span>03</span> Request Details</h3>
+                    <h3><span>03</span> Request Details <small>Optional instructions</small></h3>
                     <div class="ir-field">
                         <label for="item_request_remarks">Remarks <small>(Optional)</small></label>
                         <textarea id="item_request_remarks" name="remarks" rows="3" maxlength="2000" placeholder="Additional instructions for Warehouse...">{{ old('remarks') }}</textarea>
                     </div>
                 </div>
-                <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>Submission does not issue or deduct inventory. Warehouse will verify stock and record the actual handover.</span></div>
+                <div class="ir-note"><i class="fa-solid fa-shield-halved"></i><span><strong>Warehouse verification required.</strong> Submitting an IR does not reserve, issue, or deduct inventory. Availability is checked again during fulfillment.</span></div>
             </div>
             <script type="application/json" id="ir-job-previews">@json($jobOrderPreviews)</script>
             <footer class="ir-modal-footer">
                 <button type="button" class="ir-secondary-button" id="cancelItemRequestModal">Cancel</button>
-                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit Item Request</button>
+                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit to Warehouse</button>
             </footer>
         </form>
     </div>
