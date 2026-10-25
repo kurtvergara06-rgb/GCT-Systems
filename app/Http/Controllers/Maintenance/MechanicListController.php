@@ -22,6 +22,7 @@ class MechanicListController extends Controller
         $activeJobs = JobOrder::query()->with('mechanicAssignments')
             ->where('status', 'On Going')
             ->where('review_status', 'Approved')
+            ->whereNotNull('actual_started_at')
             ->latest('start_date')
             ->latest('id')
             ->get()
@@ -131,6 +132,7 @@ class MechanicListController extends Controller
 
         $onDutyMechanics = $allMechanics->filter(
             fn (Mechanic $mechanic) => $activeAssignedNames->contains(Str::lower(trim($mechanic->mechanic_name)))
+                && in_array($attendanceByMechanic->get($mechanic->mechanic_id)?->status, ['Present', 'Late', 'On Duty'], true)
         )->count();
 
         $notAvailableMechanics = max(0, $totalMechanics - $availableMechanics - $onDutyMechanics);
