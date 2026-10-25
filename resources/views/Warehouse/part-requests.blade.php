@@ -54,7 +54,6 @@
         <div class="warehouse-list-controls">
 
           <nav class="warehouse-record-tabs" aria-label="Warehouse request type" role="tablist">
-            <a href="{{ route('part-requests', ['view' => 'jo']) }}" class="warehouse-record-tab {{ $isJo ? 'is-active' : '' }}" role="tab" aria-selected="{{ $isJo ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-wrench"></i> JO Requests</a>
             <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ !$isJo && !$isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> PR Requests</a>
             <a href="{{ route('part-requests', ['view' => 'history']) }}" class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ $isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
           </nav>
