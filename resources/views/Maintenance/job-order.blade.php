@@ -576,61 +576,6 @@
                                                 </details>
                                             @endif
 
-                                            @if($canCreatePr)
-                                                <form
-                                                    action="{{ route('job-orders.create-pr', $jobOrder->id) }}"
-                                                    method="POST"
-                                                    class="create-pr-form"
-                                                    data-confirm-form
-                                                    data-confirm-title="Create Purchase Request?"
-                                                    data-confirm-message="Are you sure you want to create a Purchase Request from job order {{ $jobOrder->job_order_no }}?"
-                                                    data-confirm-button="Yes, Create PR"
-                                                    data-confirm-type="create"
-                                                >
-                                                    @csrf
-                                                    <button type="submit" class="action-btn create-pr-btn" title="Create Purchase Request">
-                                                        <i class="fa-solid fa-file-circle-plus"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-
-                                            @if($isRejectedPr)
-                                                <a
-                                                    href="{{ route('purchase-requests', ['search' => $jobOrder->job_order_no]) }}"
-                                                    class="action-btn create-pr-btn"
-                                                    title="Revise Rejected Purchase Request"
-                                                >
-                                                    <i class="fa-solid fa-rotate"></i>
-                                                </a>
-                                            @endif
-
-                                            @if($recordView !== 'history' && !$isCompleted && !$isPendingReview && !$isRejectedReview && (!$isApprovedReview || $hasLinkedPr))
-                                                <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    @if($hasLinkedPr && !$allLinkedPrsRejected)
-                                                        <button
-                                                            type="button"
-                                                            class="action-btn delete disabled-action-btn"
-                                                            title="Cannot delete: this Job Order has an active linked Purchase Request."
-                                                            disabled
-                                                        >
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    @else
-                                                        <button
-                                                            type="button"
-                                                            class="action-btn delete open-delete-modal"
-                                                            title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
-                                                            data-id="{{ $jobOrder->id }}"
-                                                            data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                            data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
-                                                        >
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    @endif
-                                                </form>
-                                            @endif
 
 
                                         </div>
