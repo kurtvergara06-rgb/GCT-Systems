@@ -5937,3 +5937,10 @@ body.jo-readonly-open { overflow: hidden; }
     justify-self: start;
   }
 }
+
+
+/* Multi-select Maintenance Job: keep four items in the visible dropdown and scroll the rest. */
+#jobModal .jo-maintenance-job-options{max-height:184px;overflow-y:auto;overscroll-behavior:contain}
+#jobModal .jo-maintenance-job-label{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+#jobModal .jo-maintenance-job-option.is-selected{background:#edf4ff;color:#124e9e}
+#jobModal .jo-maintenance-job-option.is-selected .fa-check{opacity:1}
