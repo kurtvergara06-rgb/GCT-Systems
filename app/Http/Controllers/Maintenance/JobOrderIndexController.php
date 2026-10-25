@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Operation\Mechanic;
 use App\Services\Maintenance\JobOrderDurationService;
@@ -77,6 +78,15 @@ class JobOrderIndexController extends Controller
             ->paginate($recordView === 'history' ? 20 : 1000)
             ->withQueryString();
 
+        // Batch linked IR statuses for the visible JOs. Older requests may
+        // exist while their JO part_status still reads "Not Requested".
+        $existingIrStatuses = ItemRequest::query()
+            ->whereIn('job_order_id', $jobOrders->getCollection()->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+
         // Batch PR records once for the visible page instead of querying per row.
         $visibleJoNumbers = $jobOrders->getCollection()->pluck('job_order_no')->filter()->unique()->values();
         $linkedPrsByJobOrderNo = $visibleJoNumbers->isEmpty()
@@ -143,6 +153,7 @@ class JobOrderIndexController extends Controller
         }
 
         return view('Maintenance.job-order', compact(
+            'existingIrStatuses',
             'jobOrders',
             'onHold',
             'onGoing',
