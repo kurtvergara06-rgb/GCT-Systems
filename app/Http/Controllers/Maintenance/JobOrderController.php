@@ -818,7 +818,9 @@ class JobOrderController extends Controller
                 'bus_no' => $lockedJobOrder->bus_no,
                 'item' => $this->partParser->formatParts($parts),
                 'quantity' => $this->partParser->calculateTotalQuantity($parts),
-                'status' => 'Submitted',
+                // The signed JO already authorizes this PR; Warehouse must see it immediately.
+                'status' => 'Approved',
+                'approved_at' => $lockedJobOrder->approved_at ?? now(),
                 'source_type' => 'Maintenance Request',
                 'remarks' => 'Created from Job Order ' . $lockedJobOrder->job_order_no,
                 'purpose' => $lockedJobOrder->work_to_perform,
@@ -826,13 +828,13 @@ class JobOrderController extends Controller
                 'date_requested' => now(),
             ]);
 
-            $lockedJobOrder->update(['part_status' => 'Submitted']);
+            $lockedJobOrder->update(['part_status' => 'Approved']);
 
             return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
         });
 
         $this->broadcastSystemDataUpdated('Maintenance', 'PurchaseRequest', 'created', $purchaseRequest->id, 'A purchase request was created from a job order.');
-        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Submitted.');
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Approved.');
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
