@@ -111,11 +111,15 @@ class JobOrder extends Model
 
     public function getEstimatedDueAtAttribute(): ?Carbon
     {
-        if (! $this->start_date || ! $this->estimated_duration_value || ! $this->estimated_duration_unit) {
+        // Parts-dependent repairs are not timed until Warehouse confirms issuance.
+        if ((trim((string) $this->part_needed) !== '' && $this->part_status !== 'Issued')
+            || ! $this->actual_started_at
+            || ! $this->estimated_duration_value
+            || ! $this->estimated_duration_unit) {
             return null;
         }
 
-        $dueAt = $this->start_date->copy();
+        $dueAt = $this->actual_started_at->copy();
         $value = (float) $this->estimated_duration_value;
 
         return match ($this->estimated_duration_unit) {
