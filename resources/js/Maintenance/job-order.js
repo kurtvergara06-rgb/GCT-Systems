@@ -2751,11 +2751,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       );
 
 
-    // Never display stale or unqualified mechanics while checking new JO tasks.
+    // Snapshot the selection BEFORE clearing stale choices. Otherwise opening
+    // the combobox again removes the first mechanic from a multi-assignment.
+    const selectedMechanics = new Set(
+      Array.from(newJobMechanicSelect?.selectedOptions || []).map(option => String(option.value))
+    );
     if (newJobMechanicSelect) {
       newJobMechanicSelect.dataset.lookupStatus = 'loading';
       newJobMechanicSelect.replaceChildren();
-      newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     try {
@@ -2807,9 +2810,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
       if (newJobMechanicSelect) {
 
-        const selectedMechanics = new Set(Array.from(newJobMechanicSelect.selectedOptions).map((option) => String(option.value)));
-
-
         newJobMechanicSelect
           .innerHTML =
           '';
@@ -2852,6 +2852,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         );
 
 
+        // Notify the UI once, after all eligible options and retained selections
+        // have been restored. This also removes previously selected mechanics who
+        // no longer pass attendance or specialization validation.
+        newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
         updateNewJoPartsState();
       }
 
