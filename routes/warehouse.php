@@ -33,6 +33,7 @@ Route::middleware([
         Route::get('/warehouse/item-requests', [ItemRequestController::class, 'index'])->name('warehouse.item-requests');
         Route::get('/warehouse/item-requests/{itemRequest}/verify', [ItemRequestController::class, 'verify'])->name('warehouse.item-requests.verify');
         Route::post('/warehouse/item-requests/{itemRequest}/issue', [ItemRequestController::class, 'issue'])->middleware('system.permission:warehouse,edit')->name('warehouse.item-requests.issue');
+        Route::get('/warehouse/item-requests/{itemRequest}/signed-slip', [ItemRequestController::class, 'signedSlip'])->name('warehouse.item-requests.signed-slip');
 
         Route::controller(WarehousePartRequestController::class)
             ->prefix('part-requests')
