@@ -82,6 +82,16 @@ class PurchaseRequestIndexController extends Controller
                 ->whereIn('job_order_no', $visibleJobOrderNumbers)
                 ->pluck('work_to_perform', 'job_order_no');
 
+        // This is the actual /purchase-requests page controller. Supply the
+        // linked JO authorization data used by the read-only PR details modal.
+        $prJobApprovals = $visibleJobOrderNumbers->isEmpty()
+            ? collect()
+            : JobOrder::query()
+                ->with('approver')
+                ->whereIn('job_order_no', $visibleJobOrderNumbers)
+                ->get()
+                ->keyBy('job_order_no');
+
         $submitted = $this->maintenancePurchaseRequestQuery()->where('status', 'Submitted')->count();
         $approved = $this->maintenancePurchaseRequestQuery()->where('status', 'Approved')->count();
         $rejected = $this->maintenancePurchaseRequestQuery()->where('status', 'Rejected')->count();
@@ -123,7 +133,8 @@ class PurchaseRequestIndexController extends Controller
             'statuses',
             'isMaintenanceAdmin',
             'recordView',
-            'workToPerformByJobOrder'
+            'workToPerformByJobOrder',
+            'prJobApprovals'
         ));
     }
 
