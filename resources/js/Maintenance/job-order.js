@@ -3284,7 +3284,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               const label = document.createElement('span');
               label.textContent = item.name;
               const hint = document.createElement('small');
-              hint.textContent = item.unit ? (item.unit + ' · ' + item.available + ' on hand') : 'Unit not configured';
+              hint.textContent = item.unit || 'Unit not configured';
               button.append(label, hint);
               button.addEventListener('click', () => {
                 const choice = Array.from(picker.options).find((option) => option.dataset.itemId === String(item.id));
