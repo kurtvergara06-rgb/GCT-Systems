@@ -5,9 +5,35 @@ namespace App\Http\Controllers\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
 use Illuminate\Http\Request;
+use App\Services\Maintenance\JobOrderWorkflowService;
 
 class ItemRequestController extends Controller
 {
+
+    /**
+     * Read-only, up-to-date snapshot. Never reserve or deduct stock from a preview.
+     */
+    public function verify(ItemRequest $itemRequest, JobOrderWorkflowService $workflow)
+    {
+        $parts = $itemRequest->requested_parts ?? [];
+        $snapshot = $workflow->inventoryAvailability($parts);
+
+        return response()->json([
+            'request_id' => $itemRequest->id,
+            'status' => $snapshot['status'],
+            'parts' => collect($snapshot['parts'])->map(fn (array $part) => [
+                'name' => $part['name'],
+                'quantity' => $part['quantity'],
+                'unit' => $part['unit'],
+                'available' => $part['available'],
+                'shortage' => $part['shortage'],
+                'fulfillable' => $part['fulfillable'],
+            ])->values(),
+            'checked_at' => now(config('app.business_timezone', 'Asia/Manila'))->toIso8601String(),
+            'note' => 'Availability is informational. Verify again during actual issuance.',
+        ]);
+    }
+
     public function index(Request $request)
     {
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
