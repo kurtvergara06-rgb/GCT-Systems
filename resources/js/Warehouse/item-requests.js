@@ -178,6 +178,13 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     const msg = document.getElementById('ir-slip-message');
     const printButton = document.getElementById('ir-slip-print');
     printButton.disabled = true;
+    const form = document.getElementById('warehouseIrSignedIssueForm');
+    const confirm = document.getElementById('ir-slip-confirm');
+    const lines = document.getElementById('ir-slip-quantities');
+    form?.reset();
+    if (form) form.action = trigger.dataset.irIssueUrl || '#';
+    if (confirm) confirm.disabled = true;
+    if (lines) lines.replaceChildren();
     tbody.replaceChildren();
     const pending = document.createElement('tr');
     appendCell(pending, 'Checking inventory...', 'warehouse-ir-stock-empty').colSpan = 7;
@@ -205,6 +212,27 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         tbody.appendChild(tr);
       }
       if (!data.parts?.length) throw Error('This request has no recorded parts.');
+      if (data.status === 'sufficient' && form && lines) {
+        (data.parts || []).forEach((part, index) => {
+          const label = document.createElement('label');
+          label.textContent = part.name + ' — Qty Issued (' + part.unit + ')';
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.name = 'issued_quantities[' + index + ']';
+          input.min = String(part.quantity);
+          input.max = String(part.quantity);
+          input.step = '1';
+          input.value = String(part.quantity);
+          input.required = true;
+          label.appendChild(input);
+          lines.appendChild(label);
+        });
+        confirm.disabled = false;
+      } else {
+        const notice = document.createElement('p');
+        notice.textContent = 'Partial/unavailable IR: issuance confirmation is disabled pending a Head-approved partial release.';
+        if (lines) lines.appendChild(notice);
+      }
       msg.querySelector('span').textContent = data.status === 'sufficient'
         ? 'Stock is currently available. This preview does not reserve or issue items. Signatures and confirmed handover are required before inventory deduction.'
         : 'Some items are unavailable or short. This slip is a draft only: quantities to issue must be decided and approved before handover. Nothing has been deducted.';
@@ -218,6 +246,14 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       msg.querySelector('span').textContent = 'Unable to prepare the slip until stock verification succeeds.';
     }
   };
+  document.getElementById('warehouseIrSignedIssueForm')?.addEventListener('submit', (event) => {
+    const button = document.getElementById('ir-slip-confirm');
+    if (button.disabled || !window.confirm('Confirm signed physical handover? This will deduct Warehouse stock and move the IR to History.')) {
+      event.preventDefault();
+      return;
+    }
+    button.disabled = true;
+  });
   document.addEventListener('click', (event) => {
     const prepare = event.target.closest('[data-ir-prepare]');
     if (prepare && document.querySelector('.warehouse-ir-page')?.contains(prepare)) void openSlip(prepare);
