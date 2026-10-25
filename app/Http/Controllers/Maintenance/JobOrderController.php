@@ -290,7 +290,7 @@ class JobOrderController extends Controller
     {
         $jobs = $request->input('maintenance_jobs', [$request->input('maintenance_job', '')]);
         $jobs = is_array($jobs) ? $jobs : [];
-        $selectedSkills = collect($jobs)->filter('is_string')->flatMap(
+        $selectedSkills = collect($jobs)->filter(fn ($job) => is_string($job))->flatMap(
             fn ($job) => $this->requiredSpecializations(trim($job), (array) $request->input('specializations', []))
         )->unique()->values()->all();
         $workText = implode(' ', $selectedSkills);
