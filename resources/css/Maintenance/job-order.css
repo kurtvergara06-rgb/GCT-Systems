@@ -5690,3 +5690,106 @@ body.jo-readonly-open { overflow: hidden; }
   font-size: 12px;
   line-height: 1.5;
 }
+
+
+/* Balanced read-only JO sections: avoid narrow columns, bullets and oversized whitespace. */
+#jobModal .jo-view-warehouse-section .jo-view-warehouse-grid {
+  display: grid;
+  grid-template-columns: minmax(155px, .75fr) minmax(0, 1.65fr);
+  gap: 18px;
+  align-items: start;
+  padding: 16px 18px;
+}
+#jobModal .jo-view-warehouse-grid > div,
+#jobModal .jo-view-approval-grid > div {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+#jobModal .jo-view-warehouse-grid .jo-view-parts-cell {
+  padding: 0;
+}
+#jobModal .jo-view-warehouse-grid .jo-view-parts-list {
+  margin-top: 10px;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+#jobModal .jo-view-warehouse-grid .jo-view-parts-list li {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: #f3f7fc;
+  font-size: 13px;
+  line-height: 1.45;
+}
+#jobModal .jo-view-warehouse-grid .jo-view-parts-list li::marker { content: ""; }
+#jobModal .jo-view-warehouse-grid .jo-view-part-name { font-size: 13px; font-weight: 700; }
+#jobModal .jo-view-warehouse-grid .jo-view-part-quantity { font-size: 13px; font-weight: 800; }
+#jobModal .jo-view-head-approval-section .jo-view-approval-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 17px 18px 8px;
+}
+#jobModal .jo-view-head-approval-section .jo-view-approval-grid > div {
+  padding: 12px 15px;
+  background: #f4f8fd;
+  border-radius: 10px;
+}
+#jobModal .jo-view-head-approval-section .jo-view-approval-grid strong {
+  margin-top: 6px;
+  font-size: 14px;
+}
+#jobModal .jo-view-head-approval-section .jo-view-signature {
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px 19px;
+}
+#jobModal .jo-view-head-approval-section .jo-view-signature > span {
+  width: 100%;
+  max-width: 480px;
+  color: #48607f;
+  font-size: 12px;
+  font-weight: 750;
+}
+#jobModal .jo-view-head-approval-section .jo-view-signature img {
+  box-sizing: border-box;
+  display: block;
+  width: min(100%, 480px);
+  height: 118px;
+  padding: 10px 18px;
+  border: 1px solid #dce6f3;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #f9fbfe;
+}
+#jobModal .jo-view-audit-compact {
+  padding: 12px 16px;
+  border-radius: 11px;
+}
+#jobModal .jo-view-audit-compact summary {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 13px;
+}
+#jobModal .jo-view-audit-compact .jo-view-audit-count {
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  #jobModal .jo-view-warehouse-section .jo-view-warehouse-grid,
+  #jobModal .jo-view-head-approval-section .jo-view-approval-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+  #jobModal .jo-view-warehouse-grid .jo-view-parts-list li { gap: 9px; }
+  #jobModal .jo-view-head-approval-section .jo-view-signature { padding: 10px 14px 16px; }
+}
