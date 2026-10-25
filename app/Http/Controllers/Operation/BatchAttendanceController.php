@@ -26,7 +26,8 @@ class BatchAttendanceController extends Controller
         'Afternoon' => '14:00:00',
     ];
 
-    private const GRACE_MINUTES = 10;
+    private const MECHANIC_SHIFT_START = '08:00:00';
+    private const MECHANIC_SHIFT_END = '17:00:00';
 
     public function roster(Request $request, string $type): JsonResponse
     {
@@ -224,7 +225,7 @@ class BatchAttendanceController extends Controller
                         }
 
                         $status = $type === 'mechanic'
-                            ? $this->attendanceStatus($row['shift'], $timeIn)
+                            ? $this->attendanceStatus($timeIn)
                             : 'Present';
                     }
 
@@ -282,12 +283,12 @@ class BatchAttendanceController extends Controller
         ]);
     }
 
-    private function attendanceStatus(string $shift, string $timeIn): string
+    private function attendanceStatus(string $timeIn): string
     {
-        $start = Carbon::createFromFormat('H:i:s', self::SHIFT_STARTS[$shift]);
+        $start = Carbon::createFromFormat('H:i:s', self::MECHANIC_SHIFT_START);
         $actual = Carbon::createFromFormat('H:i', $timeIn);
 
-        return $actual->greaterThan($start->copy()->addMinutes(self::GRACE_MINUTES))
+        return $actual->greaterThan($start)
             ? 'Late'
             : 'Present';
     }
