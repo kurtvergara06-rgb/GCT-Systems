@@ -397,7 +397,7 @@
 
 /* Modal Details */
 .warehouse-request-details-modal {
-  width: min(820px, 95vw);
+  width: min(850px, calc(100vw - 32px));
 }
 
 .warehouse-request-meta-grid {

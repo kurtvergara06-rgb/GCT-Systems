@@ -8,10 +8,20 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     modal.classList.add('active');
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
+    delete modal.dataset.gsapClosing;
+
+    const scrollable = modal.querySelector(
+      '.ui-form-modal-scrollable, .inventory-details-scrollable, .inventory-movement-modal__body'
+    );
+    if (scrollable) {
+      scrollable.scrollTop = 0;
+    }
 
     if (window.GCTModalBackdrop?.sync) {
       window.GCTModalBackdrop.sync();
     }
+
+    window.GCTSystemAnimations?.animateModalOpen?.(modal);
   }
 
   function closeModal(modal) {
@@ -19,13 +29,19 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
       return;
     }
 
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
+    const finishClose = function () {
+      modal.classList.remove('show');
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
 
-    if (window.GCTModalBackdrop?.sync) {
-      window.GCTModalBackdrop.sync();
+      if (window.GCTModalBackdrop?.sync) {
+        window.GCTModalBackdrop.sync();
+      }
+    };
+
+    if (!window.GCTSystemAnimations?.animateModalClose?.(modal, finishClose)) {
+      finishClose();
     }
   }
 

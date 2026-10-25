@@ -5,14 +5,32 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    delete modal.dataset.gsapClosing;
+
+    const scrollable = modal.querySelector('.warehouse-modal-scrollable');
+    if (scrollable) {
+      scrollable.scrollTop = 0;
+    }
+
+    window.GCTModalBackdrop?.sync?.();
+    window.GCTSystemAnimations?.animateModalOpen?.(modal);
   }
 
   function closeModal(modal) {
     if (!modal) return;
 
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
+    const finishClose = function () {
+      modal.classList.remove('show');
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+      window.GCTModalBackdrop?.sync?.();
+    };
+
+    if (!window.GCTSystemAnimations?.animateModalClose?.(modal, finishClose)) {
+      finishClose();
+    }
   }
 
   function closeAllModals() {

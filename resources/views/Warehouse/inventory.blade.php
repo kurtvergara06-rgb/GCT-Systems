@@ -231,7 +231,13 @@
       aria-labelledby="movementHistoryModalTitle"
     >
       <div class="modal-header inventory-movement-modal__header">
-        <h2 id="movementHistoryModalTitle">Movement History</h2>
+        <div class="inventory-movement-title-wrap">
+          <span class="inventory-movement-title-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+          <div>
+            <h2 id="movementHistoryModalTitle">Movement History</h2>
+            <p>Item-level stock receipts, issuances, and inventory adjustments</p>
+          </div>
+        </div>
         <button type="button" class="close-btn closeModal" aria-label="Close movement history">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -242,6 +248,10 @@
           <i class="fa-solid fa-clock-rotate-left"></i>
           <span>Select an inventory item to view its movement history.</span>
         </div>
+      </div>
+
+      <div class="inventory-movement-modal__footer">
+        <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">Close</button>
       </div>
     </div>
   </div>
@@ -645,72 +655,78 @@
   @endif
 
   {{-- VIEW MODAL --}}
-  <div class="modal-overlay" id="viewModal">
-    <div class="modal-box wide-modal">
-
-      <div class="modal-header">
-        <h2>Inventory Item Details</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
+  <div class="modal-overlay ui-form-overlay inventory-details-overlay" id="viewModal" aria-hidden="true">
+    <div class="ui-form-modal inventory-details-modal" role="dialog" aria-modal="true" aria-labelledby="inventoryDetailsTitle">
+      <div class="ui-form-modal-header inventory-details-header">
+        <div class="ui-form-title-wrap">
+          <span class="ui-form-title-icon"><i class="fa-solid fa-box"></i></span>
+          <div>
+            <h2 id="inventoryDetailsTitle">Inventory Item Details</h2>
+            <p>Warehouse stock identity, quantity, supplier, and location information</p>
+          </div>
+        </div>
+        <button type="button" class="ui-form-close closeModal" aria-label="Close Inventory Item Details">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
-      <div class="details-grid">
+      <div class="inventory-details-scrollable">
+        <section class="ui-form-section inventory-details-section">
+          <header class="ui-form-section-header">
+            <div class="ui-form-section-title">
+              <span class="ui-form-section-icon"><i class="fa-solid fa-tag"></i></span>
+              <div>
+                <h3>01 — Item Information</h3>
+                <p>Warehouse item identity and classification</p>
+              </div>
+            </div>
+          </header>
+          <div class="ui-form-section-body inventory-details-grid">
+            <div class="inventory-detail-value"><span>Item Code</span><strong id="view_code">—</strong></div>
+            <div class="inventory-detail-value"><span>Parts Name</span><strong id="view_name">—</strong></div>
+            <div class="inventory-detail-value"><span>Category</span><strong id="view_category">—</strong></div>
+          </div>
+        </section>
 
-        <div class="detail-item">
-          <span>Item Code</span>
-          <strong id="view_code">—</strong>
-        </div>
+        <section class="ui-form-section inventory-details-section">
+          <header class="ui-form-section-header">
+            <div class="ui-form-section-title">
+              <span class="ui-form-section-icon"><i class="fa-solid fa-cubes-stacked"></i></span>
+              <div>
+                <h3>02 — Stock Information</h3>
+                <p>Current quantity, measurement, threshold, and availability</p>
+              </div>
+            </div>
+          </header>
+          <div class="ui-form-section-body inventory-details-grid inventory-stock-details-grid">
+            <div class="inventory-detail-value"><span>Quantity Available</span><strong id="view_quantity">—</strong></div>
+            <div class="inventory-detail-value"><span>Unit</span><strong id="view_unit">—</strong></div>
+            <div class="inventory-detail-value"><span>Reorder Level</span><strong id="view_reorder">—</strong></div>
+            <div class="inventory-detail-value"><span>Status</span><strong id="view_status">—</strong></div>
+          </div>
+        </section>
 
-        <div class="detail-item">
-          <span>Parts Name</span>
-          <strong id="view_name">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Category</span>
-          <strong id="view_category">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Quantity Available</span>
-          <strong id="view_quantity">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Unit</span>
-          <strong id="view_unit">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Reorder Level</span>
-          <strong id="view_reorder">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Status</span>
-          <strong id="view_status">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Supplier</span>
-          <strong id="view_supplier">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Storage Location</span>
-          <strong id="view_location">—</strong>
-        </div>
-
-        <div class="detail-item">
-          <span>Last Updated</span>
-          <strong id="view_updated">—</strong>
-        </div>
-
+        <section class="ui-form-section inventory-details-section">
+          <header class="ui-form-section-header">
+            <div class="ui-form-section-title">
+              <span class="ui-form-section-icon"><i class="fa-solid fa-warehouse"></i></span>
+              <div>
+                <h3>03 — Supply & Storage</h3>
+                <p>Supplier, physical location, and record freshness</p>
+              </div>
+            </div>
+          </header>
+          <div class="ui-form-section-body inventory-details-grid">
+            <div class="inventory-detail-value"><span>Supplier</span><strong id="view_supplier">—</strong></div>
+            <div class="inventory-detail-value"><span>Storage Location</span><strong id="view_location">—</strong></div>
+            <div class="inventory-detail-value"><span>Last Updated</span><strong id="view_updated">—</strong></div>
+          </div>
+        </section>
       </div>
 
-      <div class="modal-actions full-width">
-        <button type="button" class="secondary-btn cancel-btn closeModal">Close</button>
+      <div class="ui-form-actions inventory-details-footer">
+        <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">Close</button>
       </div>
-
     </div>
   </div>
 

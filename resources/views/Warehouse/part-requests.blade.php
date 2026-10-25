@@ -3,6 +3,7 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-styles/form-components.css',
     'resources/css/Warehouse/part-requests.css',
     'resources/css/Warehouse/part-requests-cleanup.css',
     'resources/js/Warehouse/part-requests.js',
@@ -228,60 +229,101 @@
     </main>
   </div>
 
-  <div id="viewPrModal" class="modal-overlay warehouse-view-overlay">
-    <div class="warehouse-edit-style-modal warehouse-request-details-modal">
+  <div id="viewPrModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
+    <div class="warehouse-edit-style-modal warehouse-request-details-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseRequestDetailsTitle">
       <div class="warehouse-edit-header">
-        <div>
-          <h2>Purchase Request Details</h2>
-          <h3>PR Information</h3>
-          <p>Request, stock availability, and issuance details.</p>
+        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+        <div class="warehouse-modal-title-copy">
+          <h2 id="warehouseRequestDetailsTitle">Purchase Request Details</h2>
+          <p>Warehouse requisition, stock availability, and issuance information</p>
         </div>
-        <button type="button" id="closeViewPrModal" class="warehouse-edit-close">
+        <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="warehouse-edit-form-grid warehouse-request-meta-grid">
-        <div class="warehouse-field">
-          <label>PR ID</label>
-          <input id="view_pr_no" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Date Created</label>
-          <input id="view_created" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>JO ID</label>
-          <input id="view_job_order_no" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Bus ID</label>
-          <input id="view_bus_no" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Purchase Status</label>
-          <input id="view_purchase_status" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field">
-          <label>Warehouse Status</label>
-          <input id="view_warehouse_status" type="text" value="—" readonly>
-        </div>
-        <div class="warehouse-field full">
-          <label>Requested Parts Breakdown</label>
-          <div id="view_parts_breakdown" class="parts-breakdown-box">
-            <div class="parts-breakdown-empty">No parts found.</div>
+      <div class="warehouse-modal-scrollable">
+        <div class="warehouse-request-summary" aria-label="Purchase Request summary">
+          <div class="warehouse-summary-item">
+            <span>PR ID</span>
+            <strong id="view_pr_no">—</strong>
+          </div>
+          <div class="warehouse-summary-item">
+            <span>Purchase Status</span>
+            <strong id="view_purchase_status">—</strong>
+          </div>
+          <div class="warehouse-summary-item">
+            <span>Warehouse Status</span>
+            <strong id="view_warehouse_status">—</strong>
+          </div>
+          <div class="warehouse-summary-item">
+            <span>Date Created</span>
+            <strong id="view_created">—</strong>
           </div>
         </div>
-        <div class="warehouse-field full">
-          <label>Actual Issued Quantities</label>
-          <div id="view_issue_quantities" class="warehouse-issued-quantities">
-            <div class="parts-breakdown-empty">No parts have been issued yet.</div>
+
+        <section class="warehouse-modal-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+            <div>
+              <h3>01 — Request Information</h3>
+              <p>Linked maintenance and vehicle references</p>
+            </div>
+          </header>
+          <div class="warehouse-modal-section-body warehouse-request-meta-grid">
+            <div class="warehouse-readonly-field">
+              <span>Job Order ID</span>
+              <strong id="view_job_order_no">—</strong>
+            </div>
+            <div class="warehouse-readonly-field">
+              <span>Bus ID</span>
+              <strong id="view_bus_no">—</strong>
+            </div>
           </div>
-        </div>
-        <div class="warehouse-field full">
-          <label>Remarks</label>
-          <input id="view_remarks" type="text" value="No remarks" readonly>
-        </div>
+        </section>
+
+        <section class="warehouse-modal-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-packing"></i></span>
+            <div>
+              <h3>02 — Requested Parts</h3>
+              <p>Requested quantities compared with Warehouse stock</p>
+            </div>
+          </header>
+          <div class="warehouse-modal-section-body">
+            <div id="view_parts_breakdown" class="parts-breakdown-box">
+              <div class="parts-breakdown-empty">No parts found.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="warehouse-modal-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-box-open"></i></span>
+            <div>
+              <h3>03 — Issuance Record</h3>
+              <p>Actual quantities physically released by Warehouse</p>
+            </div>
+          </header>
+          <div class="warehouse-modal-section-body">
+            <div id="view_issue_quantities" class="warehouse-issued-quantities">
+              <div class="parts-breakdown-empty">No parts have been issued yet.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="warehouse-modal-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-note-sticky"></i></span>
+            <div>
+              <h3>04 — Remarks</h3>
+              <p>Request notes and processing context</p>
+            </div>
+          </header>
+          <div class="warehouse-modal-section-body">
+            <div class="warehouse-readonly-note" id="view_remarks">No remarks</div>
+          </div>
+        </section>
       </div>
 
       <div class="warehouse-edit-footer">
@@ -290,21 +332,34 @@
     </div>
   </div>
 
-  <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay">
-    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal">
+  <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
+    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIssuePartsTitle">
       @csrf
       <div class="warehouse-edit-header">
-        <div>
-          <h2>Issue Parts</h2>
-          <h3 id="issue_pr_no">Purchase Request</h3>
-          <p>Confirm the approved parts being released from Warehouse inventory.</p>
+        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span>
+        <div class="warehouse-modal-title-copy">
+          <h2 id="warehouseIssuePartsTitle">Issue Parts</h2>
+          <p><strong id="issue_pr_no">Purchase Request</strong> · Confirm the approved parts being released from Warehouse inventory.</p>
         </div>
-        <button type="button" id="closeIssuePartsModal" class="warehouse-edit-close" title="Close">
+        <button type="button" id="closeIssuePartsModal" class="warehouse-edit-close" aria-label="Close Issue Parts">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div id="issue_parts_fields" class="issue-parts-fields"></div>
+      <div class="warehouse-modal-scrollable warehouse-issue-scrollable">
+        <section class="warehouse-modal-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-packing"></i></span>
+            <div>
+              <h3>Parts for Release</h3>
+              <p>Review requested and available quantities before recording handover</p>
+            </div>
+          </header>
+          <div class="warehouse-modal-section-body">
+            <div id="issue_parts_fields" class="issue-parts-fields"></div>
+          </div>
+        </section>
+      </div>
 
       <div class="warehouse-edit-footer issue-modal-footer">
         <button type="button" id="cancelIssueParts" class="warehouse-cancel-btn">Cancel</button>

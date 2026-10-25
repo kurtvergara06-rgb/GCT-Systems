@@ -40,7 +40,31 @@ class WarehouseFrontendHardeningTest extends TestCase
             $this->assertStringNotContainsString('event.target === modal', $contents);
             $this->assertStringNotContainsString('event.target === viewPrModal', $contents);
             $this->assertStringNotContainsString('event.target === issuePartsModal', $contents);
+            $this->assertStringContainsString('GCTSystemAnimations', $contents);
+            $this->assertStringContainsString('GCTModalBackdrop', $contents);
         }
+    }
+
+    public function test_warehouse_read_only_modals_use_the_maintenance_form_language(): void
+    {
+        $inventory = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
+        $partRequests = file_get_contents(resource_path('views/Warehouse/part-requests.blade.php'));
+
+        $this->assertStringContainsString('inventory-details-modal', $inventory);
+        $this->assertStringContainsString('01 — Item Information', $inventory);
+        $this->assertStringContainsString('02 — Stock Information', $inventory);
+        $this->assertStringContainsString('03 — Supply & Storage', $inventory);
+        $this->assertStringContainsString('inventory-details-footer', $inventory);
+        $this->assertStringContainsString('inventory-movement-title-icon', $inventory);
+        $this->assertStringContainsString('inventory-movement-modal__footer', $inventory);
+
+        $this->assertStringContainsString('resources/css/Main-styles/form-components.css', $partRequests);
+        $this->assertStringContainsString('warehouse-modal-scrollable', $partRequests);
+        $this->assertStringContainsString('01 — Request Information', $partRequests);
+        $this->assertStringContainsString('02 — Requested Parts', $partRequests);
+        $this->assertStringContainsString('03 — Issuance Record', $partRequests);
+        $this->assertStringContainsString('04 — Remarks', $partRequests);
+        $this->assertStringContainsString('warehouse-edit-footer', $partRequests);
     }
 
     public function test_dashboard_uses_unique_realtime_regions(): void
@@ -160,6 +184,16 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString(
             "font: { size: 11.5, family:",
             $js
+        );
+    }
+
+    public function test_dashboard_kpis_use_balanced_three_column_rows(): void
+    {
+        $css = file_get_contents(resource_path('css/Warehouse/dashboard-warehouse.css'));
+
+        $this->assertStringContainsString(
+            "grid-template-columns: repeat(3, minmax(0, 1fr));",
+            $css
         );
     }
 
