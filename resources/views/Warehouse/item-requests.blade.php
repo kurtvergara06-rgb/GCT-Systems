@@ -79,6 +79,7 @@
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                 data-ir-status="{{ $ir->status }}"
+                                data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button>
                         </td>
@@ -109,9 +110,20 @@
                 <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
                 <div><span>Status</span><strong id="warehouse-ir-status">—</strong></div>
             </div>
-            <div class="ir-field"><label>Requested Items</label><p id="warehouse-ir-parts" class="ir-detail-text"></p></div>
+            <div class="ir-field">
+                <div class="warehouse-ir-verify-heading"><label>Requested Items &amp; Stock Verification</label><button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button></div>
+                <p class="ir-form-hint">This is a live stock reference, not an authorization to issue or reserve parts.</p>
+                <div class="warehouse-ir-stock-table-wrap">
+                    <table class="warehouse-ir-stock-table">
+                        <thead><tr><th>PART</th><th>REQUIRED</th><th>ON HAND</th><th>SHORTAGE</th><th>AVAILABILITY</th></tr></thead>
+                        <tbody id="warehouse-ir-stock-rows"><tr><td colspan="5" class="warehouse-ir-stock-empty">Select View to check current stock.</td></tr></tbody>
+                    </table>
+                </div>
+                <p id="warehouse-ir-stock-time" class="warehouse-ir-stock-time"></p>
+                <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
+            </div>
             <div class="ir-field"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
-            <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>View-only preview. Warehouse stock verification and issuance actions will be added separately. Viewing an IR does not change inventory.</span></div>
+            <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>Stock verification is read-only. The request cannot be issued or deducted from inventory from this screen yet; partial release and purchase shortages require their separate authorization steps.</span></div>
         </div>
         <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
     </div>
