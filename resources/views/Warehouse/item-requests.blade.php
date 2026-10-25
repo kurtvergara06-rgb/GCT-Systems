@@ -82,11 +82,11 @@
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
                         <td>
                             <div class="warehouse-ir-onhand-summary">
-                                <strong>{{ $stockIsMixed ? 'Mixed stock' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
+                                <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
                                 <div class="warehouse-ir-onhand-actions">
                                     @if($stockIsMixed)
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
-                                        <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                        <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
                                             <div class="warehouse-ir-stock-popover-title">Warehouse stock breakdown</div>
                                             @foreach($stockParts as $part)
@@ -110,7 +110,7 @@
                                     </details>
                                     @endif
                                     @if($shortPartsCount > 0)
-                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('item', $shortPartsCount) }} short</span>
+                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('item', $shortPartsCount) }} Short</span>
                                     @endif
                                 </div>
                             </div>
