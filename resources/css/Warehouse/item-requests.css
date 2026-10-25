@@ -79,3 +79,16 @@ body > .ir-parts-popover strong{font-weight:800;white-space:nowrap}
 .warehouse-ir-process-status.is-shortage{color:#925e11;background:#fff0cc;border-color:#f6d482}
 .warehouse-ir-process-subtext{display:block;margin-top:5px;font-size:9px;color:#8090a3;font-weight:700}
 .warehouse-ir-page .ir-record-count{background:#f5f8fd;border:1px solid #dee7f4;border-radius:20px;padding:8px 12px;font-weight:800;color:#43648c;font-size:11px}
+
+
+/* On-hand stock summary: separate stock count, shortage and drill-down. */
+.warehouse-ir-onhand-summary{display:flex;align-items:flex-start;flex-direction:column;gap:5px;min-width:110px}
+.warehouse-ir-onhand-summary>strong{font-size:12px;font-weight:850;color:#18365a;white-space:nowrap}
+.warehouse-ir-shortage-note{font-size:10px;font-weight:800;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.warehouse-ir-shortage-note.has-shortage{background:#fff0e2;color:#a6501c;border:1px solid #ffd6b5}
+.warehouse-ir-shortage-note.is-complete{background:#e9f9f0;color:#227347;border:1px solid #bcebd0}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more{margin:1px 0 0}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more>summary{font-size:10px;color:#1554a2;font-weight:800;white-space:nowrap}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more>summary i{font-size:8px;margin-left:3px}
+.warehouse-ir-shortage-quantity{font-weight:800;color:#bb472d}
+.warehouse-ir-process-status.is-submitted{color:#1d58a4;background:#ebf3ff;border-color:#cbdfff}
