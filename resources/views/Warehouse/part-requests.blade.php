@@ -114,12 +114,12 @@
                   <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum(fn ($part) => min((int) $part['available'], (int) $part['quantity'])) }}</td>
                   <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
                   <td class="status-col">—</td>
-                  <td class="status-col"><x-ui.status-badge status="Pending Issuance" /></td>
+                  <td class="status-col">@if($job->warehouse_has_linked_pr)<x-ui.status-badge status="Via PR" />@else<x-ui.status-badge status="Pending Issuance" />@endif</td>
                   <td class="actions-col">
                     @php
                       $fullyAvailable = collect($job->warehouse_available_parts)->every(fn ($part) => (int) $part['available'] >= (int) $part['quantity']);
                       $allPartsCount = count(app(\App\Services\PartParser::class)->parsePartText((string) $job->part_needed));
-                      $canIssueJo = $canEditWarehouse && $fullyAvailable && $allPartsCount === count($job->warehouse_available_parts) && !empty($job->assigned_mechanic);
+                      $canIssueJo = $canEditWarehouse && !$job->warehouse_has_linked_pr && $fullyAvailable && $allPartsCount === count($job->warehouse_available_parts) && !empty($job->assigned_mechanic);
                     @endphp
                     @if($canIssueJo)
                       <form action="{{ route('part-requests.job-order.issue', $job) }}" method="POST" class="inline-action-form"
@@ -130,12 +130,12 @@
                         <button type="submit" class="issue-part-btn icon-only-btn" title="Record physical parts handover"><i class="fa-solid fa-box-open"></i></button>
                       </form>
                     @else
-                      <span class="pr-meta-tag" title="Warehouse must have all requested stock and an assigned mechanic; missing parts require a PR.">Pending</span>
+                      <span class="pr-meta-tag" title="{{ $job->warehouse_has_linked_pr ? 'This JO already has a PR. Process its parts through PR Requests to prevent duplicate issuance.' : 'Full requested stock and an assigned mechanic are required for issuance.' }}">{{ $job->warehouse_has_linked_pr ? 'Via PR' : 'Pending' }}</span>
                     @endif
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with available stock and no existing PR appear here." />
+                <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with matched available Warehouse stock appear here. Linked PRs are processed in PR Requests." />
               @endforelse
             </tbody>
             @else
