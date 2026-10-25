@@ -154,9 +154,9 @@
               @endforelse
             </tbody>
             @endif
-            @if(!$isJo)
+            <?php if (! $isJo): ?>
             <tbody>
-              @foreach($purchaseRequests as $partRequest)
+              <?php foreach ($purchaseRequests as $partRequest): ?>
                 @php
                   $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
                   $itemName = $partRequest->first_item_display ?? '—';
@@ -269,7 +269,7 @@
                     </div>
                   </td>
                 </tr>
-              @endforeach
+              <?php endforeach; ?>
               @if($purchaseRequests->isEmpty())
                 <x-ui.empty-row
                   colspan="8"
@@ -279,7 +279,7 @@
                 />
               @endif
             </tbody>
-            @endif
+            <?php endif; ?>
           </table>
         </div>
 
