@@ -135,7 +135,7 @@
                                 <x-ui.action-button type="view" title="Download Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
                             @endif
                             @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-                                <x-ui.action-button type="issue" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
+                                <x-ui.action-button type="issue" icon="fa-file-pen" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                     data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
