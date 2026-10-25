@@ -184,7 +184,14 @@
                                       $firstRequestedItem = trim((string) ($firstRequestedPart['name'] ?? $pr->item ?? ''));
                                       $requestedPartCount = count($requestedParts);
                                       $requestedUnits = collect($requestedParts)->pluck('unit')->map(fn ($unit) => trim((string) $unit))->filter()->unique()->values();
-                                      $totalQuantityDisplay = $pr->quantity.' '.($requestedUnits->count() > 1 ? 'mixed units' : ($requestedUnits->first() ?: 'units'));
+                                      // Different measurement units cannot be summed into one meaningful unit.
+                                      $hasMixedUnits = $requestedUnits->count() > 1;
+                                      $totalQuantityDisplay = $hasMixedUnits
+                                          ? $requestedPartCount.' items'
+                                          : $pr->quantity.($requestedUnits->first() ? ' '.$requestedUnits->first() : '');
+                                      $quantityBreakdown = collect($requestedParts)
+                                          ->map(fn ($part) => trim(($part['name'] ?? '').': '.($part['quantity'] ?? '').' '.($part['unit'] ?? '')))
+                                          ->implode(' | ');
                                       $firstPartQuantity = $firstRequestedPart
                                           ? trim(($firstRequestedPart['quantity'] ?? '').' '.($firstRequestedPart['unit'] ?? ''))
                                           : null;
@@ -216,7 +223,7 @@
                                               <small class="pr-part-more">+{{ $requestedPartCount - 1 }} more {{ $requestedPartCount === 2 ? 'part' : 'parts' }}</small>
                                           @endif
                                       </td>
-                                      <td>{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $totalQuantityDisplay) : $totalQuantityDisplay }}</td>
+                                      <td title="{{ $quantityBreakdown }}">{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $totalQuantityDisplay) : $totalQuantityDisplay }}</td>
                                       <td class="status-col">
                                           <x-ui.status-badge :status="$pr->status" type="purchase" />
                                       </td>
