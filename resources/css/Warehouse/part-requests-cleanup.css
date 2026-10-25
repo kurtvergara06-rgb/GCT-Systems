@@ -25,7 +25,7 @@
 }
 
 .warehouse-part-table-clean th {
-  padding: 11px 14px;
+  padding: 10px 12px;
   background: #f8fafc;
   color: #475569;
   font-size: 11px;
@@ -37,7 +37,7 @@
 }
 
 .warehouse-part-table-clean td {
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-bottom: 1px solid #f1f5f9;
   color: var(--text, #0f172a);
   font-size: 13px;
@@ -69,7 +69,7 @@
 .pr-ref-cell {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 }
 
 .pr-main-num {
@@ -83,7 +83,7 @@
 .pr-sub-tags {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 5px;
   white-space: nowrap;
 }
@@ -119,8 +119,10 @@
 }
 
 .item-name-text {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1.4;
+  text-transform: capitalize;
   color: #0f172a;
 }
 
@@ -159,8 +161,8 @@
 
 /* Warehouse Status Pill */
 .warehouse-status-pill {
-  min-height: 26px;
-  padding: 4px 10px;
+  min-height: 24px;
+  padding: 3px 9px;
   border: 1px solid transparent;
   border-radius: 999px;
   display: inline-flex;
@@ -616,6 +618,33 @@
 }
 
 
+
+/* Page-scoped finishing touches; do not affect Inventory or delivery actions. */
+.warehouse-part-card .warehouse-part-table-clean .pr-meta-tag {
+  min-height: 20px;
+  line-height: 1.25;
+}
+.warehouse-part-card .warehouse-part-table-clean td.status-col .status-badge,
+.warehouse-part-card .warehouse-part-table-clean td.status-col .warehouse-status-pill {
+  min-height: 24px;
+  padding: 3px 9px;
+  font-size: 10px;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.warehouse-part-card .warehouse-part-table-clean .warehouse-actions .view-btn {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.warehouse-part-card .warehouse-part-table-clean .warehouse-actions .view-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 /* Compact Warehouse records header and aligned control row. */
 .warehouse-part-card .warehouse-record-header {
   display: flex;
@@ -637,8 +666,8 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px 16px;
-  margin: 8px 0 12px;
+  gap: 8px 14px;
+  margin: 6px 0 10px;
   width: 100%;
 }
 .warehouse-part-card .warehouse-list-controls .warehouse-record-tabs {
