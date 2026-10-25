@@ -5882,3 +5882,40 @@ body.jo-readonly-open { overflow: hidden; }
     grid-column: 1;
   }
 }
+
+/* Read-only JO details: show live stock availability on each requested part. */
+#joReadonlyOverlay .jo-view-parts-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 5px;
+}
+#joReadonlyOverlay .jo-view-part-availability {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+#joReadonlyOverlay .jo-view-part-availability.is-available {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+#joReadonlyOverlay .jo-view-part-availability.is-partial {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+#joReadonlyOverlay .jo-view-part-availability.is-unavailable {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
