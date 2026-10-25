@@ -207,7 +207,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         appendCell(tr, part.quantity + ' ' + part.unit);
         appendCell(tr, trigger.dataset.irBus);
         appendCell(tr, data.status === 'sufficient' ? part.quantity + ' ' + part.unit : '________');
-        appendCell(tr, '____________', 'warehouse-ir-slip-signature-cell');
+        appendCell(tr, '____________');
         appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
         tbody.appendChild(tr);
       }
