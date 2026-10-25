@@ -4940,3 +4940,77 @@
   #editPrModal #prReviewItemsSection .pr-review-items-table th:nth-child(4),
   #editPrModal #prReviewItemsSection .pr-review-items-table td:nth-child(4) { width: 62px; }
 }
+
+
+/* PR View: match Job Order's white two-column information sections. */
+#editPrModal #prReviewInformation .pr-review-information,
+#editPrModal #prRequestDetailsSection .pr-review-information,
+#editPrModal #prAuthorizationSection .pr-review-information {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 22px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 0;
+  box-shadow: none;
+}
+#editPrModal #prReviewInformation .pr-review-detail-row,
+#editPrModal #prRequestDetailsSection .pr-review-detail-row,
+#editPrModal #prAuthorizationSection .pr-review-detail-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-left: 0;
+  border-inline-start: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#editPrModal #prReviewInformation .pr-review-detail-row:nth-child(odd),
+#editPrModal #prRequestDetailsSection .pr-review-detail-row:nth-child(odd),
+#editPrModal #prAuthorizationSection .pr-review-detail-row:nth-child(odd),
+#editPrModal #prReviewInformation .pr-review-detail-row:nth-child(even),
+#editPrModal #prRequestDetailsSection .pr-review-detail-row:nth-child(even),
+#editPrModal #prAuthorizationSection .pr-review-detail-row:nth-child(even) {
+  background: transparent;
+}
+#editPrModal #prReviewInformation .pr-review-detail-row > span,
+#editPrModal #prRequestDetailsSection .pr-review-detail-row > span,
+#editPrModal #prAuthorizationSection .pr-review-detail-row > span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+#editPrModal #prReviewInformation .pr-review-detail-row > strong,
+#editPrModal #prRequestDetailsSection .pr-review-detail-row > strong,
+#editPrModal #prAuthorizationSection .pr-review-detail-row > strong {
+  color: #172e4e;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+#editPrModal #prRequestDetailsSection .pr-review-detail-full {
+  grid-column: 1 / -1;
+}
+#editPrModal #prAuthorizationSection .pr-review-detail-full {
+  grid-column: 1 / -1;
+}
+@media(max-width: 520px) {
+  #editPrModal #prReviewInformation .pr-review-information,
+  #editPrModal #prRequestDetailsSection .pr-review-information,
+  #editPrModal #prAuthorizationSection .pr-review-information {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+  #editPrModal #prRequestDetailsSection .pr-review-detail-full,
+  #editPrModal #prAuthorizationSection .pr-review-detail-full {
+    grid-column: 1;
+  }
+}
