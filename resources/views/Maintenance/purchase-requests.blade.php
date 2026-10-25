@@ -183,6 +183,8 @@
                                       $firstRequestedPart = $requestedParts[0] ?? null;
                                       $firstRequestedItem = trim((string) ($firstRequestedPart['name'] ?? $pr->item ?? ''));
                                       $requestedPartCount = count($requestedParts);
+                                      $requestedUnits = collect($requestedParts)->pluck('unit')->map(fn ($unit) => trim((string) $unit))->filter()->unique()->values();
+                                      $totalQuantityDisplay = $pr->quantity.' '.($requestedUnits->count() > 1 ? 'mixed units' : ($requestedUnits->first() ?: 'units'));
                                       $firstPartQuantity = $firstRequestedPart
                                           ? trim(($firstRequestedPart['quantity'] ?? '').' '.($firstRequestedPart['unit'] ?? ''))
                                           : null;
@@ -214,12 +216,9 @@
                                               <small class="pr-part-more">+{{ $requestedPartCount - 1 }} more {{ $requestedPartCount === 2 ? 'part' : 'parts' }}</small>
                                           @endif
                                       </td>
-                                      <td>{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $pr->quantity) : $pr->quantity }}</td>
+                                      <td>{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $totalQuantityDisplay) : $totalQuantityDisplay }}</td>
                                       <td class="status-col">
                                           <x-ui.status-badge :status="$pr->status" type="purchase" />
-                                          @if($legacyAuthorized)
-                                              <small title="The source Job Order is approved; this PR retains its original Submitted status." style="display:block;color:#3869a5;font-size:10px;margin-top:4px;">JO Approved</small>
-                                          @endif
                                       </td>
                                       <td class="created-cell">
                                           @if($pr->created_at)
