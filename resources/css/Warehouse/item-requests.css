@@ -279,3 +279,34 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
 .warehouse-ir-confirm-section button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:680px){.warehouse-ir-confirm-fields{grid-template-columns:1fr}}
 @media print{#warehouseIrSlipModal .warehouse-ir-confirm-section{display:none!important}}
+
+
+/* Protect the requested-parts slip table from inherited modal/table display rules. */
+#warehouseIrSlipModal .warehouse-ir-slip-body{
+ display:flex!important;flex-direction:column!important;align-items:stretch;
+ overflow-y:auto;min-height:0;
+}
+#warehouseIrSlipModal .warehouse-ir-stock-table-wrap{
+ display:block!important;flex:0 0 auto!important;width:100%!important;
+ min-height:112px!important;max-width:100%!important;overflow-x:auto!important;
+ overflow-y:visible!important;visibility:visible!important;
+ border:1px solid #dce5f3;background:#fff;
+}
+#warehouseIrSlipModal table.warehouse-ir-slip-table{
+ display:table!important;width:100%!important;min-width:815px;
+ table-layout:auto;border-collapse:collapse;visibility:visible!important;
+}
+#warehouseIrSlipModal .warehouse-ir-slip-table thead{display:table-header-group!important}
+#warehouseIrSlipModal .warehouse-ir-slip-table tbody{display:table-row-group!important}
+#warehouseIrSlipModal .warehouse-ir-slip-table tr{display:table-row!important}
+#warehouseIrSlipModal .warehouse-ir-slip-table th,
+#warehouseIrSlipModal .warehouse-ir-slip-table td{
+ display:table-cell!important;visibility:visible!important;
+ font-size:11px!important;line-height:1.4!important;
+}
+#warehouseIrSlipModal .warehouse-ir-slip-signatures,
+#warehouseIrSlipModal .warehouse-ir-confirm-section{flex:0 0 auto}
+@media print{
+ #warehouseIrSlipModal .warehouse-ir-slip-body{display:block!important;overflow:visible!important}
+ #warehouseIrSlipModal .warehouse-ir-stock-table-wrap{min-height:0!important;overflow:visible!important}
+}
