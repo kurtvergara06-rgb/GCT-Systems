@@ -61,11 +61,22 @@
         <div class="gct-table-toolbar-row">
 
           @if($isJo)
-            <form action="{{ route('part-requests') }}" method="GET" class="warehouse-jo-search">
-              <input type="hidden" name="view" value="jo">
-              <input type="search" name="search" value="{{ request('search') }}" placeholder="Search JO, bus, or part..." aria-label="Search JO requests">
-              <button type="submit" class="warehouse-record-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-            </form>
+          <x-ui.table-toolbar action="{{ route('part-requests') }}" data-server-filter="true"
+            search-label="Search JO Requests" search-placeholder="Search JO no., bus, or part..."
+            :filter-count="(int) (request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
+            filter-title="Filter JO Requests"
+            :sort-options="['created_at' => 'Created Date', 'job_order_no' => 'JO Number', 'bus_no' => 'Bus Number']"
+            default-sort="created_at" default-direction="desc">
+            <x-slot:hidden><input type="hidden" name="view" value="jo"></x-slot:hidden>
+            <x-slot:filters>
+              <x-ui.table-toolbar-field label="Maintenance Type" name="maintenance_type" default="All Types">
+                <option value="All Types">All Types</option>
+                @foreach(($joMaintenanceTypes ?? []) as $type)
+                  <option value="{{ $type }}" @selected(request('maintenance_type') === $type)>{{ $type }}</option>
+                @endforeach
+              </x-ui.table-toolbar-field>
+            </x-slot:filters>
+          </x-ui.table-toolbar>
           @else
           <x-ui.table-toolbar action="{{ route('part-requests') }}" data-server-filter="true" search-label="Search Part Requests" search-placeholder="Search PR no., JO no., bus, or item..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Part Requests" :sort-options="['pr_no' => 'PR Number', 'created_at' => 'Request Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
             <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
