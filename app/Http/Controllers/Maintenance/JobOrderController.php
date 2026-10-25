@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Mechanic;
@@ -113,6 +114,22 @@ class JobOrderController extends Controller
             ->latest()
             ->paginate(1000)
             ->withQueryString();
+
+        // Older IRs were created without advancing the Job Order part_status.
+        // Use the linked IR for the display instead of falsely showing
+        // "Not Requested". This does not mutate historical database records.
+        $existingIrStatuses = ItemRequest::query()
+            ->whereIn('job_order_id', $jobOrders->getCollection()->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+        $jobOrders->getCollection()->each(function (JobOrder $jobOrder) use ($existingIrStatuses): void {
+            if (in_array($jobOrder->part_status, [null, 'Not Requested'], true)
+                && $existingIrStatuses->has($jobOrder->id)) {
+                $jobOrder->part_status = $existingIrStatuses->get($jobOrder->id);
+            }
+        });
 
         $onHold = JobOrder::where(
             'status',
