@@ -4677,3 +4677,62 @@ if (!window.__gctJobOrderViewDelegated) {
     if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
 }
+
+
+/* Keep JO mechanic +N popovers outside the table's clipped scroll viewport. */
+window.GCTPartialNavigation.registerInitializer('maintenance-jo-mechanic-more-portal', '.jo-page', () => {
+  document.querySelectorAll('.jo-mechanic-more').forEach((details) => {
+    if (details.dataset.portalReady === '1') return;
+    details.dataset.portalReady = '1';
+    const trigger = details.querySelector('summary');
+    const panel = details.querySelector('.jo-mechanic-more-panel');
+    if (!trigger || !panel) return;
+
+    let open = false;
+    const position = () => {
+      if (!open) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.max(230, Math.min(300, window.innerWidth - 24));
+      const estimatedHeight = Math.min(panel.scrollHeight || 210, 225);
+      const roomBelow = window.innerHeight - rect.bottom - 12;
+      const above = roomBelow < estimatedHeight && rect.top > roomBelow;
+      const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+      panel.style.position = 'fixed';
+      panel.style.zIndex = '110500';
+      panel.style.width = width + 'px';
+      panel.style.left = left + 'px';
+      panel.style.top = above ? 'auto' : (rect.bottom + 6) + 'px';
+      panel.style.bottom = above ? (window.innerHeight - rect.top + 6) + 'px' : 'auto';
+      panel.style.maxHeight = Math.min(225, Math.max(90, above ? rect.top - 18 : roomBelow)) + 'px';
+    };
+    const close = () => {
+      if (!open) return;
+      open = false;
+      details.open = false;
+      panel.hidden = true;
+      panel.removeAttribute('style');
+      details.appendChild(panel);
+      window.removeEventListener('resize', position);
+      window.removeEventListener('scroll', position, true);
+    };
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (open) { close(); return; }
+      document.querySelectorAll('.jo-mechanic-more[data-portal-ready="1"][open] summary')
+        .forEach((other) => { if (other !== trigger) other.click(); });
+      open = true;
+      details.open = true;
+      panel.hidden = false;
+      document.body.appendChild(panel);
+      position();
+      window.addEventListener('resize', position);
+      window.addEventListener('scroll', position, true);
+    });
+    document.addEventListener('click', (event) => {
+      if (open && !details.contains(event.target) && !panel.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (open && event.key === 'Escape') { close(); trigger.focus(); }
+    });
+  });
+});
