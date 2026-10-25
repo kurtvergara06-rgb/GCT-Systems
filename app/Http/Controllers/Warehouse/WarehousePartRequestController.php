@@ -36,6 +36,7 @@ class WarehousePartRequestController extends Controller
     | Issued records will appear in the Issued Parts History table instead.
     */
     private array $statuses = [
+        'Submitted',
         'Approved',
         'For Purchase',
         'Ordered',
