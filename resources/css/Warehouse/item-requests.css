@@ -28,3 +28,14 @@ table.warehouse-ir-stock-table{display:table;width:100%;min-width:520px;border-c
 .warehouse-ir-stock-status.is-unavailable{background:#ffe7e7;color:#a72d36;border-color:#ffb5b5}
 .warehouse-ir-stock-time{margin:0;color:#7990a8;font-size:10px}
 .warehouse-ir-stock-message{font-size:11px;color:#355b87;line-height:1.5;margin:0;font-weight:700}
+
+
+.warehouse-ir-page .ir-table th,.warehouse-ir-page .ir-table td{white-space:nowrap}
+.warehouse-ir-page .ir-table td:nth-child(4){white-space:normal;min-width:150px}
+.warehouse-ir-page .ir-table td:nth-child(5){font-size:11px;font-weight:750;color:#18385e}
+.warehouse-ir-more-stock{display:inline-block;margin-left:5px;color:#4773a9;font-weight:750;font-size:10px}
+.warehouse-ir-issue-form[hidden]{display:none!important}
+.warehouse-ir-issue-form{margin:0}
+.warehouse-ir-issue-form .ir-primary-button:disabled{opacity:.5;cursor:not-allowed}
+.warehouse-ir-page .ir-table-wrap{overflow-x:auto}
+@media(max-width:1040px){.warehouse-ir-page .ir-table{min-width:850px}}
