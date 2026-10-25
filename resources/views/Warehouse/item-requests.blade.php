@@ -67,9 +67,9 @@
                         <td>
                             @php($parts = collect($ir->requested_parts ?? []))
                             @if($parts->isNotEmpty())
-                                <strong class="ir-part-name">{{ $parts->first()['name'] ?? '—' }}</strong>
+                                <strong class="ir-part-name warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</strong>
                                 @if($parts->count() > 1)
-                                    <details class="ir-parts-details"><summary>+{{ $parts->count() - 1 }} more</summary>
+                                    <details class="ir-parts-details warehouse-ir-item-more"><summary>+{{ $parts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover">
                                             @foreach($parts as $part)
                                                 <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
