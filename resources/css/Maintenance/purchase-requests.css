@@ -5176,3 +5176,56 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   color: #275998;
   white-space: nowrap;
 }
+
+/* History shares the Active PR table and controls; preserve read-only behavior. */
+.purchase-page .purchase-request-card.is-history .purchase-requests-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.purchase-page .purchase-request-card.is-history .maintenance-record-tabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 5px;
+  margin: 0;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  background: #f6f8fb;
+}
+.purchase-page .purchase-request-card.is-history .maintenance-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  min-height: 36px;
+  border-radius: 9px;
+  text-decoration: none;
+}
+.purchase-page .purchase-request-card.is-history .gct-table-toolbar-row {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+.purchase-page .purchase-request-card.is-history .purchase-request-table td {
+  vertical-align: middle;
+}
+.purchase-page .purchase-request-card.is-history .purchase-request-table .actions .pr-review-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 92px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+.purchase-page .purchase-request-card.is-history .date-time-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
