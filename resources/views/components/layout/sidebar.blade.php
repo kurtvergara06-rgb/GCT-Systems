@@ -86,6 +86,7 @@
                 'icon' => 'fa-toolbox',
                 'children' => [
                     ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
+                    ['label' => 'Item Requests', 'route' => 'item-requests', 'icon' => 'fa-box-open'],
                     ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
                 ],
             ],
