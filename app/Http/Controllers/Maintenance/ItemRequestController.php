@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
 use App\Services\PartParser;
+use App\Services\Maintenance\JobOrderWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ItemRequestController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, PartParser $parser, JobOrderWorkflowService $workflow)
     {
         $view = $request->query('view') === 'history' ? 'history' : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
@@ -55,9 +56,18 @@ class ItemRequestController extends Controller
             ->where('part_needed', '!=', '')
             ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
             ->orderByDesc('created_at')
-            ->get(['id', 'job_order_no', 'bus_no', 'part_needed']);
+            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed']);
+        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($parser, $workflow) {
+            $parts = $parser->parsePartText((string) $job->part_needed);
+            return [$job->id => [
+                'jo' => $job->job_order_no,
+                'bus' => $job->bus_no,
+                'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
+                'parts' => $workflow->inventoryAvailability($parts)['parts'],
+            ]];
+        });
 
-        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount'));
+        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews'));
     }
 
     public function store(Request $request, PartParser $parser)
