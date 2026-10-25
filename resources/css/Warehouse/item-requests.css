@@ -203,3 +203,17 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   font-size:12px;font-weight:800;line-height:1.45;
 }
 .warehouse-ir-page .ir-table .warehouse-ir-reference{min-width:105px}
+
+
+/* Consistent, more legible Inventory and Warehouse IR status badges. */
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:27px;padding:6px 11px;border-radius:999px;
+  font-size:11px;font-weight:800;line-height:1.2;letter-spacing:0;
+  white-space:nowrap;box-sizing:border-box;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status i,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status i{
+  font-size:11px;line-height:1;flex:none;
+}
