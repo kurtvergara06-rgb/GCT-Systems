@@ -24,7 +24,11 @@ class ItemRequestController extends Controller
         }
         if ($request->filled('search')) {
             $search = trim((string) $request->query('search'));
-            $requestsQuery->where(function ($query) use ($search) {
+            $irSearchId = preg_match('/^IR-?0*(\\d+)$/i', $search, $matches) ? (int) $matches[1] : null;
+            $requestsQuery->where(function ($query) use ($search, $irSearchId) {
+                if ($irSearchId !== null) {
+                    $query->orWhere('id', $irSearchId);
+                }
                 $query->whereHas('jobOrder', function ($jo) use ($search) {
                     $jo->where('job_order_no', 'like', '%'.$search.'%')
                         ->orWhere('bus_no', 'like', '%'.$search.'%');
