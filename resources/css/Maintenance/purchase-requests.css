@@ -4467,7 +4467,7 @@
   padding: 16px 19px;
   background: linear-gradient(110deg, #edf5ff 0%, #ffffff 68%);
   border: 1px solid #ccdffa;
-  border-left: 4px solid #1d5ec9;
+  border-left: 1px solid #ccdffa;
   border-radius: 13px;
   box-shadow: 0 5px 16px rgba(17, 58, 112, .05);
 }
