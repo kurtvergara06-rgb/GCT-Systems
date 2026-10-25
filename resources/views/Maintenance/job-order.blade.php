@@ -356,7 +356,19 @@
                                                         <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse</h3>
                                                         <div class="jo-view-grid">
                                                             <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
-                                                            <div><span>Requested Parts</span><strong>{{ $jobOrder->part_needed ?: 'None required' }}</strong></div>
+                                                            <div class="jo-view-parts-cell">
+                                                                <span>Requested Parts</span>
+                                                                @php($viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
+                                                                @if(count($viewRequestedParts))
+                                                                    <ul class="jo-view-parts-list">
+                                                                        @foreach($viewRequestedParts as $part)
+                                                                            <li><span class="jo-view-part-name">{{ $part['name'] }}</span><span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span></li>
+                                                                        @endforeach
+                                                                    </ul>
+                                                                @else
+                                                                    <strong>None required</strong>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     </section>
                                                     <section class="jo-view-section">
