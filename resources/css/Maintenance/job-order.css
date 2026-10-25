@@ -5508,3 +5508,27 @@ body.jo-readonly-open { overflow: hidden; }
   margin: 0 !important;
   box-sizing: border-box;
 }
+
+/* Keep read-only JO actions consistent with the labeled PR View button. */
+.app:has(#jobModal) .jo-page .job-orders-table .actions .jo-labeled-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-width: 82px;
+  height: 34px;
+  padding: 0 12px;
+  white-space: nowrap;
+  background: #edf4ff;
+  border: 1px solid #d4e3fb;
+  color: #1656c8;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.app:has(#jobModal) .jo-page .job-orders-table .actions .jo-labeled-view:hover {
+  background: #1252c5;
+  border-color: #1252c5;
+  color: #fff;
+}
