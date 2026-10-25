@@ -4,6 +4,8 @@ namespace Tests\Feature\Warehouse;
 
 use App\Models\Admin\User;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Warehouse\InventoryItem;
 use App\Models\Purchase\PurchaseOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -121,4 +123,40 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             ->assertDontSee('receive-delivery-btn', false)
             ->assertSee('Read only');
     }
+
+    public function test_jo_tab_lists_approved_jobs_with_available_parts_without_a_pr(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'FILTER-JO-TAB',
+            'parts_name' => 'Fuel Filter',
+            'item_name' => 'Fuel Filter',
+            'category' => 'Parts',
+            'quantity_available' => 4,
+            'on_hand' => 4,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+
+        JobOrder::create([
+            'job_order_no' => 'JO-WH-TAB-001',
+            'bus_no' => 'BUS-101',
+            'problem_issue' => 'Replace filters',
+            'maintenance_type' => 'Repair',
+            'part_needed' => 'Fuel Filter - Qty: 2 pcs',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+        ]);
+
+        $this->get(route('part-requests', ['view' => 'jo']))
+            ->assertOk()
+            ->assertSee('JO Requests')
+            ->assertSee('JO-WH-TAB-001')
+            ->assertSee('Fuel Filter')
+            ->assertDontSee('open-issue-modal');
+
+        $this->get(route('part-requests', ['view' => 'pr']))
+            ->assertOk()
+            ->assertDontSee('JO-WH-TAB-001');
+    }
+
 }
