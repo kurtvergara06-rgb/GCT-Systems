@@ -336,6 +336,25 @@ class WarehousePartRequestController extends Controller
                 ->where('status', '!=', 'Issued')
                 ->exists();
 
+            // Record the real Warehouse handover against the source Job Order.
+            // Audit rows preserve the actor and receipt reference without changing history.
+            if ($jobOrder) {
+                $jobOrder->audits()->create([
+                    'user_id' => auth()->id(),
+                    'action' => $allFullyIssued && ! $hasOutstandingRequest ? 'parts_issued' : 'parts_partially_issued',
+                    'from_status' => $jobOrder->part_status,
+                    'to_status' => $allFullyIssued && ! $hasOutstandingRequest ? 'Issued' : 'Partially Issued',
+                    'notes' => 'Warehouse issued parts under '.$issuance->issue_no.' for '.$lockedRequest->pr_no.'.',
+                    'metadata' => [
+                        'issuance_id' => $issuance->id,
+                        'issue_no' => $issuance->issue_no,
+                        'purchase_request_id' => $lockedRequest->id,
+                        'purchase_request_no' => $lockedRequest->pr_no,
+                        'items' => $issueDetails,
+                    ],
+                ]);
+            }
+
             if ($allFullyIssued && ! $hasOutstandingRequest) {
                 // A completed warehouse issue is the mechanic's parts handover.
                 // Start only approved, assigned, unfinished jobs; never reset an existing timer.
