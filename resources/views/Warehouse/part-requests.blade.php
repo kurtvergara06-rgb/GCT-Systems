@@ -136,7 +136,7 @@
                   <td class="status-col">—</td>
                   <td class="status-col">@if($job->warehouse_has_linked_pr)<x-ui.status-badge status="Via PR" />@else<x-ui.status-badge status="Pending Issuance" />@endif</td>
                   <td class="actions-col">
-                    @if($canEditWarehouse && ! $job->warehouse_has_linked_pr && !empty($job->assigned_mechanic) && count($job->warehouse_available_parts) === count(app(\App\Services\PartParser::class)->parsePartText((string) $job->part_needed)) && collect($job->warehouse_available_parts)->every(fn ($part) => (int) $part['available'] >= (int) $part['quantity']))
+                    @if($job->warehouse_can_issue && $canEditWarehouse)
                       <form action="{{ route('part-requests.job-order.issue', $job) }}" method="POST" class="inline-action-form"
                         data-confirm-form data-confirm-title="Issue JO Parts?"
                         data-confirm-message="Confirm the parts were physically handed to the mechanic for {{ $job->job_order_no }}. This deducts inventory."
