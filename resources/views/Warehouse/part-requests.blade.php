@@ -104,7 +104,24 @@
                   <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
                   <td class="status-col">—</td>
                   <td class="status-col"><x-ui.status-badge status="Pending Issuance" /></td>
-                  <td class="actions-col"><span title="JO-only issuance is not yet enabled. No inventory is deducted." class="pr-meta-tag">Pending setup</span></td>
+                  <td class="actions-col">
+                    @php
+                      $fullyAvailable = collect($job->warehouse_available_parts)->every(fn ($part) => (int) $part['available'] >= (int) $part['quantity']);
+                      $allPartsCount = count(app(\App\Services\PartParser::class)->parsePartText((string) $job->part_needed));
+                      $canIssueJo = $canEditWarehouse && $fullyAvailable && $allPartsCount === count($job->warehouse_available_parts) && !empty($job->assigned_mechanic);
+                    @endphp
+                    @if($canIssueJo)
+                      <form action="{{ route('part-requests.job-order.issue', $job) }}" method="POST" class="inline-action-form"
+                        data-confirm-form data-confirm-title="Issue JO Parts?"
+                        data-confirm-message="Confirm the parts were physically handed to the mechanic for {{ $job->job_order_no }}. This deducts inventory."
+                        data-confirm-button="Issue Parts" data-confirm-type="warning">
+                        @csrf
+                        <button type="submit" class="issue-part-btn icon-only-btn" title="Record physical parts handover"><i class="fa-solid fa-box-open"></i></button>
+                      </form>
+                    @else
+                      <span class="pr-meta-tag" title="Warehouse must have all requested stock and an assigned mechanic; missing parts require a PR.">Pending</span>
+                    @endif
+                  </td>
                 </tr>
               @empty
                 <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with available stock and no existing PR appear here." />
