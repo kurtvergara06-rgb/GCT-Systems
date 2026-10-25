@@ -153,7 +153,8 @@
                 <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with matched available Warehouse stock appear here. Linked PRs are processed in PR Requests." />
               @endforelse
             </tbody>
-            @else
+            @endif
+            @if(!$isJo)
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
