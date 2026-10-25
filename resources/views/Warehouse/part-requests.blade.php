@@ -93,11 +93,15 @@
               <tr>
                 <th>{{ $isJo ? 'JO ID' : 'PR ID' }}</th>
                 <th>Item</th>
-                <th class="qty-col">Qty</th>
-                <th class="qty-col">On Hand</th>
-                <th class="status-col">Inventory</th>
-                <th class="status-col">Purchase</th>
-                <th class="status-col">Warehouse</th>
+                @if($isJo)
+                  <th class="status-col">Availability</th>
+                @else
+                  <th class="qty-col">Qty</th>
+                  <th class="qty-col">On Hand</th>
+                  <th class="status-col">Inventory</th>
+                  <th class="status-col">Purchase</th>
+                  <th class="status-col">Warehouse</th>
+                @endif
                 <th class="actions-col">Actions</th>
               </tr>
             </thead>
@@ -130,11 +134,9 @@
                       @endif
                     </div>
                   </td>
-                  <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum('quantity') }}</td>
-                  <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum(fn ($part) => min((int) $part['available'], (int) $part['quantity'])) }}</td>
-                  <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
-                  <td class="status-col">—</td>
-                  <td class="status-col">@if($job->warehouse_has_linked_pr)<x-ui.status-badge status="Via PR" />@else<x-ui.status-badge status="Pending Issuance" />@endif</td>
+                  <td class="status-col">
+                    <span class="warehouse-jo-availability warehouse-jo-availability-{{ strtolower($job->warehouse_stock_status) }}">{{ $job->warehouse_stock_status }}</span>
+                  </td>
                   <td class="actions-col">
                     @if($job->warehouse_can_issue && $canEditWarehouse)
                       <form action="{{ route('part-requests.job-order.issue', $job) }}" method="POST" class="inline-action-form"
@@ -145,13 +147,19 @@
                         <button type="submit" class="issue-part-btn icon-only-btn" title="Record physical parts handover"><i class="fa-solid fa-box-open"></i></button>
                       </form>
                     @else
-                      <span class="pr-meta-tag" title="{{ $job->warehouse_has_linked_pr ? 'This JO already has a PR. Process its parts through PR Requests to prevent duplicate issuance.' : 'Full requested stock and an assigned mechanic are required for issuance.' }}">{{ $job->warehouse_has_linked_pr ? 'Via PR' : 'Pending' }}</span>
+                      @if($job->warehouse_has_linked_pr)
+                        <a href="{{ route('part-requests', ['view' => 'pr', 'search' => $job->job_order_no]) }}" class="warehouse-jo-linked-pr" title="Open linked requisition in PR Requests">
+                          <i class="fa-solid fa-file-lines" aria-hidden="true"></i> View PR
+                        </a>
+                      @else
+                        <span class="pr-meta-tag" title="Complete stock and assigned mechanic required before issuance">Pending</span>
+                      @endif
                     @endif
                   </td>
                 </tr>
               @endforeach
               @if($jobOrderRequests->isEmpty())
-                <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with matched available Warehouse stock appear here. Linked PRs are processed in PR Requests." />
+                <x-ui.empty-row colspan="4" icon="fa-wrench" message="No approved JO parts requests found" description="Approved open Job Orders with required parts appear here." />
               @endif
             </tbody>
             @endif
