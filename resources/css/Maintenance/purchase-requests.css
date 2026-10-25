@@ -5014,3 +5014,24 @@
     grid-column: 1;
   }
 }
+
+
+/* PR details requested items: three display columns; units remain in stored parts. */
+#editPrModal #prReviewItemsSection .pr-review-items-table {
+  table-layout: fixed;
+  width: 100%;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table th:first-child,
+#editPrModal #prReviewItemsSection .pr-review-items-table td:first-child {
+  width: 42px;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table th:nth-child(2),
+#editPrModal #prReviewItemsSection .pr-review-items-table td:nth-child(2) {
+  width: auto;
+  text-align: left;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table th:nth-child(3),
+#editPrModal #prReviewItemsSection .pr-review-items-table td:nth-child(3) {
+  width: 86px;
+  text-align: center;
+}
