@@ -34,6 +34,8 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     message.textContent = '';
     timestamp.textContent = '';
     button.disabled = true;
+    const issueButton = document.getElementById('warehouseIrIssueButton');
+    if (issueButton) issueButton.disabled = true;
     try {
       const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
       if (!response.ok) throw new Error('Could not verify inventory (HTTP ' + response.status + ').');
@@ -63,6 +65,9 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         tbody.appendChild(tr);
       }
       timestamp.textContent = 'Checked ' + new Date(data.checked_at).toLocaleString();
+      if (issueButton && activeTrigger?.dataset.irStatus === 'Submitted') {
+        issueButton.disabled = data.status !== 'sufficient';
+      }
       message.textContent = data.status === 'sufficient'
         ? 'Requested parts appear available. Recheck inventory at physical issuance.'
         : data.status === 'partial'
@@ -95,6 +100,11 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         const node = document.getElementById(id);
         if (node) node.textContent = trigger.dataset[key] || (key === 'irRemarks' ? 'No remarks provided.' : '—');
       });
+      const form = document.getElementById('warehouseIrIssueForm');
+      if (form) {
+        form.action = trigger.dataset.irIssueUrl || '#';
+        form.hidden = trigger.dataset.irStatus !== 'Submitted';
+      }
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       void verify();
@@ -102,6 +112,15 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     }
     if (event.target.closest('#warehouseIrRefreshStock') && modal.contains(event.target)) void verify();
     if (event.target.closest('[data-ir-close]') && modal.contains(event.target)) close();
+  });
+  const issueForm = document.getElementById('warehouseIrIssueForm');
+  issueForm?.addEventListener('submit', (event) => {
+    const button = document.getElementById('warehouseIrIssueButton');
+    if (button?.disabled || !window.confirm('Confirm that ALL requested parts have been physically handed over to Maintenance? This will permanently deduct their quantities from Warehouse inventory.')) {
+      event.preventDefault();
+      return;
+    }
+    button.disabled = true;
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('is-open')) close();
