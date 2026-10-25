@@ -176,6 +176,13 @@ class PurchaseRequestController extends Controller
                 ->paginate(8)
                 ->withQueryString();
 
+        // Source JO approval is the authorization for the requisition.
+        $prJobApprovals = JobOrder::query()
+            ->with('approver')
+            ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter())
+            ->get()
+            ->keyBy('job_order_no');
+
         $submitted =
             $this
                 ->maintenancePurchaseRequestQuery()
@@ -288,6 +295,7 @@ class PurchaseRequestController extends Controller
             'Maintenance.purchase-requests',
             compact(
                 'purchaseRequests',
+                'prJobApprovals',
                 'submitted',
                 'approved',
                 'rejected',
