@@ -103,7 +103,7 @@
             </thead>
             @if($isJo)
             <tbody>
-              @forelse($jobOrderRequests as $job)
+              @foreach($jobOrderRequests as $job)
                 <tr>
                   <td>
                     <div class="pr-ref-cell"><strong class="pr-main-num">{{ $job->job_order_no }}</strong>
@@ -149,14 +149,15 @@
                     @endif
                   </td>
                 </tr>
-              @empty
+              @endforeach
+              @if($jobOrderRequests->isEmpty())
                 <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with matched available Warehouse stock appear here. Linked PRs are processed in PR Requests." />
-              @endforelse
+              @endif
             </tbody>
             @endif
-            <?php if (! $isJo): ?>
+            @if(!$isJo)
             <tbody>
-              <?php foreach ($purchaseRequests as $partRequest): ?>
+              @foreach($purchaseRequests as $partRequest)
                 @php
                   $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
                   $itemName = $partRequest->first_item_display ?? '—';
@@ -269,7 +270,7 @@
                     </div>
                   </td>
                 </tr>
-              <?php endforeach; ?>
+              @endforeach
               @if($purchaseRequests->isEmpty())
                 <x-ui.empty-row
                   colspan="8"
@@ -279,7 +280,7 @@
                 />
               @endif
             </tbody>
-            <?php endif; ?>
+            @endif
           </table>
         </div>
 
