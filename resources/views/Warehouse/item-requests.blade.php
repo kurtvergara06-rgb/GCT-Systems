@@ -83,10 +83,8 @@
                         <td>
                             <div class="warehouse-ir-onhand-summary">
                                 <strong>{{ $stockIsMixed ? 'Mixed stock' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
-                                <span class="warehouse-ir-shortage-note {{ $shortPartsCount ? 'has-shortage' : 'is-complete' }}">
-                                    {{ $shortPartsCount ? $shortPartsCount.' '.\Illuminate\Support\Str::plural('item', $shortPartsCount).' short' : 'No shortage' }}
-                                </span>
-                                @if($stockIsMixed)
+                                <div class="warehouse-ir-onhand-actions">
+                                    @if($stockIsMixed)
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
@@ -110,7 +108,11 @@
                                             @endforeach
                                         </div>
                                     </details>
-                                @endif
+                                    @endif
+                                    @if($shortPartsCount > 0)
+                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('item', $shortPartsCount) }} short</span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}">{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
