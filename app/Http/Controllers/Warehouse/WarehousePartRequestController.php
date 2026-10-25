@@ -131,7 +131,12 @@ class WarehousePartRequestController extends Controller
                 ->where('status', '!=', 'Completed')
                 ->whereNotNull('part_needed')
                 ->where('part_needed', '!=', '')
-                ->whereDoesntHave('purchaseRequests', fn ($q) => $q->where('source_type', 'Maintenance Request'))
+                ->whereNotIn('job_order_no', PurchaseRequest::query()
+                    ->select('job_order_no')
+                    ->where(function ($q) {
+                        $q->whereNull('source_type')->orWhere('source_type', 'Maintenance Request');
+                    })
+                    ->where('job_order_no', '!=', 'RESTOCK'))
                 ->orderByDesc('created_at')
                 ->get()
                 ->map(function (JobOrder $job) use ($parser, $workflow) {
