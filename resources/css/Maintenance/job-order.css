@@ -5586,3 +5586,67 @@ body.jo-readonly-open { overflow: hidden; }
   white-space: nowrap;
   line-height: 1;
 }
+
+
+/* Compact read-only Parts, approval and audit sections — no decorative accent lines. */
+#jobModal .jo-view-parts-cell {
+  min-width: 0;
+}
+#jobModal .jo-view-parts-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+#jobModal .jo-view-parts-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  background: #f5f8fd;
+  border-radius: 7px;
+  font-size: 11px;
+}
+#jobModal .jo-view-part-name {
+  color: #17365b;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#jobModal .jo-view-part-quantity {
+  flex-shrink: 0;
+  color: #355b88;
+  font-weight: 750;
+  white-space: nowrap;
+}
+#jobModal .jo-view-signature {
+  padding: 8px 15px 15px;
+  gap: 9px;
+}
+#jobModal .jo-view-signature img {
+  display: block;
+  width: min(100%, 450px);
+  max-width: 100%;
+  height: 95px;
+  padding: 6px 14px;
+  object-fit: contain;
+  border: 1px solid #e2e9f4;
+  border-radius: 9px;
+  background: #fbfdff;
+}
+#jobModal .jo-view-audit {
+  padding: 11px 14px;
+  background: #f7faff;
+}
+#jobModal .jo-view-audit summary {
+  min-height: 24px;
+}
+#jobModal .jo-view-audit[open] {
+  background: #fff;
+}
+@media(max-width:600px) {
+  #jobModal .jo-view-parts-list li { align-items: flex-start; }
+  #jobModal .jo-view-signature img { width: 100%; height: 90px; }
+}
