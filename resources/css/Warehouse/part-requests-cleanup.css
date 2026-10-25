@@ -616,50 +616,48 @@
 }
 
 
-/* Warehouse records: explicit two-row grid keeps tabs and toolbar level. */
-.warehouse-part-card .warehouse-list-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    ". count"
-    "tabs tools";
-  align-items: center;
-  column-gap: 16px;
-  row-gap: 6px;
-  width: 100%;
-  margin: 10px 0 12px;
-}
-.warehouse-part-card .warehouse-request-count {
-  grid-area: count;
+/* Compact Warehouse records header and aligned control row. */
+.warehouse-part-card .warehouse-record-header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.warehouse-part-card .warehouse-record-header .warehouse-request-count {
+  display: inline-flex;
   justify-content: flex-end;
   align-items: center;
-  margin: 0;
   width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.warehouse-part-card .warehouse-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 8px 0 12px;
+  width: 100%;
 }
 .warehouse-part-card .warehouse-list-controls .warehouse-record-tabs {
-  grid-area: tabs;
-  justify-self: start;
-  align-self: center;
   margin: 0;
+  align-self: center;
 }
 .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
-  grid-area: tools;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin: 0;
   width: auto;
+  margin: 0 0 0 auto;
 }
 .warehouse-part-card .warehouse-list-controls .gct-table-toolbar {
   margin: 0;
 }
-@media (max-width: 650px) {
-  .warehouse-part-card .warehouse-list-controls {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "count" "tabs" "tools";
-  }
+@media (max-width: 700px) {
   .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
-    justify-content: flex-start;
+    margin-left: auto;
+    max-width: 100%;
   }
 }
