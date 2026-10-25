@@ -72,3 +72,41 @@
 #itemRequestModal .ir-stock-unavailable{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
 #itemRequestModal .ir-modal-footer{position:sticky;bottom:0;z-index:1}
 @media(max-width:640px){#itemRequestModal .ir-modal-body{padding:16px}#itemRequestModal .ir-preview-grid{grid-template-columns:1fr}#itemRequestModal .ir-preview-table th,#itemRequestModal .ir-preview-table td{padding:9px 7px;font-size:10px}}
+
+
+/* Document-style Item Request form, aligned with the Maintenance design system. */
+#itemRequestModal .ir-modal{width:min(860px,calc(100vw - 28px));border:1px solid #d6e2f1;border-radius:17px;box-shadow:0 28px 72px rgba(8,24,49,.27)}
+#itemRequestModal .ir-modal-header{background:linear-gradient(120deg,#f0f5fe 0%,#fff 92%);padding:18px 25px;border-bottom:1px solid #dbe6f4}
+#itemRequestModal .ir-modal-heading{gap:13px}
+#itemRequestModal .ir-modal-symbol{display:grid;place-items:center;min-width:46px;height:46px;background:#e2ecff;border:1px solid #cbddfa;border-radius:12px;color:#1556b0;font-size:18px}
+#itemRequestModal .ir-modal-eyebrow{display:block;color:#6c83a2;font-weight:800;letter-spacing:.09em;font-size:9px;margin-bottom:3px}
+#itemRequestModal .ir-modal-heading h2{font-size:19px;letter-spacing:-.02em;line-height:1.25;font-weight:850}
+#itemRequestModal .ir-modal-heading p{font-size:11px;margin-top:5px;color:#6d7f97}
+#itemRequestModal .ir-modal-body{background:#f5f8fd;padding:17px 22px 21px;gap:13px}
+#itemRequestModal .ir-form-section{background:#fff;border:1px solid #dde7f5;border-radius:12px;padding:15px 17px;gap:12px;box-shadow:0 2px 7px rgba(26,58,97,.035)}
+#itemRequestModal .ir-form-section+.ir-form-section{padding-top:15px;border-top:1px solid #dde7f5}
+#itemRequestModal .ir-form-section h3{font-size:12px;font-weight:850;color:#143762;gap:9px;letter-spacing:-.01em}
+#itemRequestModal .ir-form-section h3 span{background:#e8f1ff;border:1px solid #cfdff6;font-size:10px;border-radius:7px;padding:5px 8px;color:#1651a0}
+#itemRequestModal .ir-form-section h3 small{margin-left:auto;font-size:10px;font-weight:600;color:#8495ac;letter-spacing:0}
+#itemRequestModal .ir-field{gap:7px}
+#itemRequestModal .ir-field label{font-weight:800;font-size:11px}
+#itemRequestModal .ir-field select{min-height:42px;font-size:12px;font-weight:700;background:#fff;border-color:#ccd9ea}
+#itemRequestModal .ir-field textarea{min-height:66px;resize:vertical;font-size:12px;line-height:1.5}
+#itemRequestModal .ir-preview-grid{gap:10px}
+#itemRequestModal .ir-preview-grid>div{position:relative;min-height:69px;padding:13px 13px 12px 51px;background:#f5f8fd;border:1px solid #e0e9f5;border-radius:9px;gap:4px}
+#itemRequestModal .ir-preview-card-icon{position:absolute;top:15px;left:13px;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#e5efff;color:#215ba5;font-size:12px}
+#itemRequestModal .ir-preview-grid>div>span:not(.ir-preview-card-icon){font-size:10px;color:#70839b;font-weight:700}
+#itemRequestModal .ir-preview-grid strong{font-size:12px;font-weight:850;color:#152f52}
+#itemRequestModal .ir-form-hint{background:#f3f7fd;border:1px solid #e4ecf8;padding:9px 11px;border-radius:8px;color:#617690;font-size:10px}
+#itemRequestModal .ir-preview-table-wrap{border:1px solid #dce5f3;border-radius:9px}
+#itemRequestModal .ir-preview-table th{padding:10px 13px;background:#edf3fb;color:#536c8a;font-size:10px;font-weight:850}
+#itemRequestModal .ir-preview-table td{padding:12px 13px;font-size:12px}
+#itemRequestModal .ir-preview-table tbody tr:nth-child(even){background:#f9fbfe}
+#itemRequestModal .ir-preview-table td:first-child{font-weight:800;color:#102f56}
+#itemRequestModal .ir-note{background:#eaf3ff;border:1px solid #cddffa;color:#36567e;font-size:10px;border-radius:9px;padding:11px 14px;line-height:1.6}
+#itemRequestModal .ir-note i{color:#1a5da8}
+#itemRequestModal .ir-note strong{font-weight:850}
+#itemRequestModal .ir-modal-footer{padding:13px 23px;background:#fff;box-shadow:0 -3px 15px rgba(16,51,96,.035);gap:9px}
+#itemRequestModal .ir-modal-footer .ir-primary-button{background:#124caa;border-color:#124caa;min-height:40px;font-weight:800}
+#itemRequestModal .ir-modal-footer .ir-secondary-button{min-height:40px;font-weight:750}
+@media(max-width:640px){#itemRequestModal .ir-modal-header{padding:14px 16px}#itemRequestModal .ir-modal-body{padding:12px;gap:10px}#itemRequestModal .ir-form-section{padding:12px}#itemRequestModal .ir-form-section h3{flex-wrap:wrap}#itemRequestModal .ir-form-section h3 small{margin-left:0}#itemRequestModal .ir-preview-grid>div{min-height:62px}}
