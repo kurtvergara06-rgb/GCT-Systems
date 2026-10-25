@@ -123,12 +123,23 @@ class WarehousePartRequestController extends Controller
         // JO requests are sourced from signed, open Job Orders, not fabricated PRs.
         // This queue is read-only until the JO-specific stock ledger action is implemented.
         $jobOrderRequests = null;
+        $jobOrderIssuances = $currentView === 'history'
+            ? InventoryIssuance::query()
+                ->whereIn('reference_no', JobOrder::query()->select('job_order_no'))
+                ->with('items')
+                ->orderByDesc('issued_at')
+                ->limit(100)
+                ->get()
+                ->filter(fn ($issue) => $issue->reference_no
+                    && str_starts_with((string) $issue->reference_no, 'JO-'))
+            : collect();
         if ($currentView === 'jo') {
             $parser = app(PartParser::class);
             $workflow = app(JobOrderWorkflowService::class);
             $jobs = JobOrder::query()
                 ->where('review_status', 'Approved')
                 ->where('status', '!=', 'Completed')
+                ->where('part_status', '!=', 'Issued')
                 ->whereNotNull('part_needed')
                 ->where('part_needed', '!=', '')
                 ->whereNotIn('job_order_no', PurchaseRequest::query()
@@ -232,6 +243,7 @@ class WarehousePartRequestController extends Controller
             'issued',
             'currentView',
             'jobOrderRequests',
+            'jobOrderIssuances',
             'statusOptions',
             'activeCount',
             'historyCount'
