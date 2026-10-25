@@ -11,6 +11,8 @@
     <main class="main maintenance-ir-page warehouse-ir-page">
         <x-layout.topbar title="Item Requests" subtitle="Review Item Requests submitted by Maintenance" />
 
+        @if(session("success"))<div class="ir-alert ir-alert-success" role="status">{{ session("success") }}</div>@endif
+        @if($errors->any())<div class="ir-alert ir-alert-error" role="alert">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
         <section class="ir-summary" aria-label="Warehouse Item Request overview">
             <div class="ir-summary-card"><span class="ir-summary-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><span>Total Requests</span><strong>{{ $totalCount }}</strong><small>All received Item Requests</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span><div><span>Submitted</span><strong>{{ $submittedCount }}</strong><small>Awaiting verification</small></div></div>
@@ -49,9 +51,13 @@
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
-                    <thead><tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE REQUESTED</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>IR STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
+                    @php($stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]))
+                    @php($stockParts = collect($stock['parts'] ?? []))
+                    @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
+                    @php($onHandCount = $stockParts->sum(fn ($p) => (int) ($p['available'] ?? 0)))
                     <tr>
                         <td><strong class="ir-number">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</strong></td>
                         <td><strong>{{ $ir->jobOrder?->job_order_no ?? '—' }}</strong></td>
@@ -71,8 +77,10 @@
                                 @endif
                             @else — @endif
                         </td>
+                        <td><strong>{{ $requestedCount }}</strong> total</td>
+                        <td><strong>{{ $onHandCount }}</strong> on hand*</td>
+                        <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}">{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td><span class="ir-status">{{ $ir->status }}</span></td>
-                        <td class="ir-date">{{ $ir->created_at?->format('M d, Y') }}</td>
                         <td>
                             <button type="button" class="ir-view-button" data-ir-view
                                 data-ir-number="IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}"
@@ -80,17 +88,19 @@
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                 data-ir-status="{{ $ir->status }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
+                                data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
+                                data-ir-can-issue="{{ $ir->status === 'Submitted' && ($stock['status'] ?? '') === 'sufficient' ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button>
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="7"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
+                        <tr><td colspan="8"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
             </div>
-            <div class="ir-footer">{{ $requests->links() }}</div>
+            <div class="ir-footer"><span class="warehouse-ir-stock-time">*On-hand totals are reference values. Parts may have different units; see View for per-item quantities.</span>{{ $requests->links() }}</div>
         </section>
     </main>
 </div>
@@ -123,9 +133,17 @@
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
             </div>
             <div class="ir-field"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
-            <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>Stock verification is read-only. The request cannot be issued or deducted from inventory from this screen yet; partial release and purchase shortages require their separate authorization steps.</span></div>
+            <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>Warehouse rechecks live stock at issuance. Complete requests can be issued only after physical handover. Partial requests require a separate Head decision; missing parts must be purchased through PR.</span></div>
         </div>
-        <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
+        <footer class="ir-modal-footer">
+            @if(auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+            <form id="warehouseIrIssueForm" method="POST" action="#" class="warehouse-ir-issue-form" hidden>
+                @csrf
+                <button type="submit" id="warehouseIrIssueButton" class="ir-primary-button" disabled><i class="fa-solid fa-box-open"></i> Confirm Physical Issuance</button>
+            </form>
+            @endif
+            <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
+        </footer>
     </div>
 </div>
 </x-layout.app>
