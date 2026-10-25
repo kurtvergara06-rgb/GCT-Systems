@@ -164,6 +164,46 @@ class WarehouseActiveHistoryTabsTest extends TestCase
         ]);
     }
 
+    public function test_linked_pr_does_not_hide_available_jo_or_enable_duplicate_issue(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'FILTER-WH-LINKED',
+            'parts_name' => 'Fuel Filter',
+            'item_name' => 'Fuel Filter',
+            'category' => 'Parts',
+            'quantity_available' => 5,
+            'on_hand' => 0,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-WH-LINKED-001',
+            'bus_no' => 'BUS-303',
+            'problem_issue' => 'Replace filter',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Fuel Filter - Qty: 2 pcs',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'part_status' => 'Approved',
+        ]);
+        PurchaseRequest::create([
+            'pr_no' => 'PR-WH-LINKED-001',
+            'job_order_no' => $jo->job_order_no,
+            'bus_no' => $jo->bus_no,
+            'item' => 'Fuel Filter - Qty: 2 pcs',
+            'quantity' => 2,
+            'status' => 'Approved',
+            'source_type' => 'Maintenance Request',
+        ]);
+
+        $this->get(route('part-requests', ['view' => 'jo']))
+            ->assertOk()
+            ->assertSee('JO-WH-LINKED-001')
+            ->assertSee('Via PR')
+            ->assertDontSee('action="'.route('part-requests.job-order.issue', $jo).'"', false);
+    }
+
     public function test_jo_tab_lists_approved_jobs_with_available_parts_without_a_pr(): void
     {
         InventoryItem::create([
