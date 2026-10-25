@@ -202,12 +202,12 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       tbody.replaceChildren();
       for (const part of (data.parts || [])) {
         const tr = document.createElement('tr');
-        appendCell(tr, '—');
+        appendCell(tr, part.stock_no || '—');
         appendCell(tr, part.name);
         appendCell(tr, part.quantity + ' ' + part.unit);
         appendCell(tr, trigger.dataset.irBus);
         appendCell(tr, data.status === 'sufficient' ? part.quantity + ' ' + part.unit : '________');
-        appendCell(tr, '________________', 'warehouse-ir-slip-signature-cell');
+        appendCell(tr, '____________', 'warehouse-ir-slip-signature-cell');
         appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
         tbody.appendChild(tr);
       }
