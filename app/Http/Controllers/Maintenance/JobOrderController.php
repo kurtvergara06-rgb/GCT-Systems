@@ -124,12 +124,8 @@ class JobOrderController extends Controller
             ->get(['job_order_id', 'status'])
             ->unique('job_order_id')
             ->pluck('status', 'job_order_id');
-        $jobOrders->getCollection()->each(function (JobOrder $jobOrder) use ($existingIrStatuses): void {
-            if (in_array($jobOrder->part_status, [null, 'Not Requested'], true)
-                && $existingIrStatuses->has($jobOrder->id)) {
-                $jobOrder->part_status = $existingIrStatuses->get($jobOrder->id);
-            }
-        });
+        // Preserve the IR mapping as explicit view data. Mutating an Eloquent
+        // model in a paginator does not reliably describe the persisted workflow.
 
         $onHold = JobOrder::where(
             'status',
@@ -270,6 +266,7 @@ class JobOrderController extends Controller
             'Maintenance.job-order',
             compact(
                 'jobOrders',
+                'existingIrStatuses',
                 'onHold',
                 'onGoing',
                 'completed',
