@@ -104,7 +104,7 @@
                   <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
                   <td class="status-col">—</td>
                   <td class="status-col"><x-ui.status-badge status="Pending Issuance" /></td>
-                  <td class="actions-col"><span title="JO-only issuance requires a ledger-backed handover action; no automatic stock deduction." class="pr-meta-tag">View JO</span></td>
+                  <td class="actions-col"><span title="JO-only issuance is not yet enabled. No inventory is deducted." class="pr-meta-tag">Pending setup</span></td>
                 </tr>
               @empty
                 <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with available stock and no existing PR appear here." />
