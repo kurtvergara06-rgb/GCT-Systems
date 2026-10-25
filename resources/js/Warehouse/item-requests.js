@@ -86,8 +86,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     message.textContent = '';
     timestamp.textContent = '';
     button.disabled = true;
-    const issueButton = document.getElementById('warehouseIrIssueButton');
-    if (issueButton) issueButton.disabled = true;
+
     try {
       const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
       if (!response.ok) throw new Error('Could not verify inventory (HTTP ' + response.status + ').');
@@ -117,9 +116,6 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         tbody.appendChild(tr);
       }
       timestamp.textContent = 'Checked ' + new Date(data.checked_at).toLocaleString();
-      if (issueButton && activeTrigger?.dataset.irStatus === 'Submitted') {
-        issueButton.disabled = data.status !== 'sufficient';
-      }
       message.textContent = data.status === 'sufficient'
         ? 'Requested parts appear available. Recheck inventory at physical issuance.'
         : data.status === 'partial'
@@ -152,11 +148,6 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         const node = document.getElementById(id);
         if (node) node.textContent = trigger.dataset[key] || (key === 'irRemarks' ? 'No remarks provided.' : '—');
       });
-      const form = document.getElementById('warehouseIrIssueForm');
-      if (form) {
-        form.action = trigger.dataset.irIssueUrl || '#';
-        form.hidden = trigger.dataset.irStatus !== 'Submitted';
-      }
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       void verify();
@@ -165,16 +156,76 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     if (event.target.closest('#warehouseIrRefreshStock') && modal.contains(event.target)) void verify();
     if (event.target.closest('[data-ir-close]') && modal.contains(event.target)) close();
   });
-  const issueForm = document.getElementById('warehouseIrIssueForm');
-  issueForm?.addEventListener('submit', (event) => {
-    const button = document.getElementById('warehouseIrIssueButton');
-    if (button?.disabled || !window.confirm('Confirm that ALL requested parts have been physically handed over to Maintenance? This will permanently deduct their quantities from Warehouse inventory.')) {
-      event.preventDefault();
-      return;
+
+  const slipModal = document.getElementById('warehouseIrSlipModal');
+  let slipSequence = 0;
+  const closeSlip = () => {
+    slipSequence++;
+    slipModal?.classList.remove('is-open');
+    slipModal?.setAttribute('aria-hidden', 'true');
+    document.getElementById('ir-slip-print').disabled = true;
+  };
+  const openSlip = async (trigger) => {
+    if (!slipModal) return;
+    const sequence = ++slipSequence;
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || '—'; };
+    set('ir-slip-number', trigger.dataset.irNumber);
+    set('ir-slip-job', trigger.dataset.irJob);
+    set('ir-slip-bus', trigger.dataset.irBus);
+    set('ir-slip-mechanic', trigger.dataset.irMechanics);
+    set('ir-slip-date', new Date().toLocaleDateString());
+    const tbody = document.getElementById('ir-slip-lines');
+    const msg = document.getElementById('ir-slip-message');
+    const printButton = document.getElementById('ir-slip-print');
+    printButton.disabled = true;
+    tbody.replaceChildren();
+    const pending = document.createElement('tr');
+    appendCell(pending, 'Checking inventory...', 'warehouse-ir-stock-empty').colSpan = 7;
+    tbody.appendChild(pending);
+    slipModal.classList.add('is-open');
+    slipModal.setAttribute('aria-hidden', 'false');
+    try {
+      const response = await fetch(trigger.dataset.irVerifyUrl, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!response.ok) throw Error('Stock verification failed (HTTP ' + response.status + ').');
+      const data = await response.json();
+      if (sequence !== slipSequence) return;
+      tbody.replaceChildren();
+      for (const part of (data.parts || [])) {
+        const tr = document.createElement('tr');
+        appendCell(tr, '—');
+        appendCell(tr, part.name);
+        appendCell(tr, part.quantity + ' ' + part.unit);
+        appendCell(tr, trigger.dataset.irBus);
+        appendCell(tr, '________');
+        appendCell(tr, '________________', 'warehouse-ir-slip-signature-cell');
+        appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
+        tbody.appendChild(tr);
+      }
+      if (!data.parts?.length) throw Error('This request has no recorded parts.');
+      msg.querySelector('span').textContent = data.status === 'sufficient'
+        ? 'Stock is currently available. This preview does not reserve or issue items. Signatures and confirmed handover are required before inventory deduction.'
+        : 'Some items are unavailable or short. This slip is a draft only: quantities to issue must be decided and approved before handover. Nothing has been deducted.';
+      printButton.disabled = false;
+    } catch (error) {
+      if (sequence !== slipSequence) return;
+      tbody.replaceChildren();
+      const row = document.createElement('tr');
+      appendCell(row, error.message, 'warehouse-ir-stock-empty').colSpan = 7;
+      tbody.appendChild(row);
+      msg.querySelector('span').textContent = 'Unable to prepare the slip until stock verification succeeds.';
     }
-    button.disabled = true;
+  };
+  document.addEventListener('click', (event) => {
+    const prepare = event.target.closest('[data-ir-prepare]');
+    if (prepare && document.querySelector('.warehouse-ir-page')?.contains(prepare)) void openSlip(prepare);
+    if (event.target.closest('[data-ir-slip-close]') && slipModal?.contains(event.target)) closeSlip();
+    if (event.target.closest('#ir-slip-print') && slipModal?.contains(event.target)) window.print();
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('is-open')) close();
+    if (event.key === 'Escape' && slipModal?.classList.contains('is-open')) closeSlip();
   });
 });
