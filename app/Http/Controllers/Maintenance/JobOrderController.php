@@ -515,7 +515,8 @@ class JobOrderController extends Controller
             $partNeeded,
             $partStatus,
             $pmsSchedule,
-            $validated
+            $validated,
+            $selectedJobs
         ): JobOrder {
             $bus = Bus::query()
                 ->where('bus_no', $validated['bus_no'])
