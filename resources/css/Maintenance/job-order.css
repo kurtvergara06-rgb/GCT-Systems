@@ -5589,10 +5589,10 @@ body.jo-readonly-open { overflow: hidden; }
 
 
 /* Compact read-only Parts, approval and audit sections — no decorative accent lines. */
-#jobModal .jo-view-parts-cell {
+#joReadonlyOverlay .jo-view-parts-cell {
   min-width: 0;
 }
-#jobModal .jo-view-parts-list {
+#joReadonlyOverlay .jo-view-parts-list {
   margin: 6px 0 0;
   padding: 0;
   list-style: none;
@@ -5600,7 +5600,7 @@ body.jo-readonly-open { overflow: hidden; }
   flex-direction: column;
   gap: 7px;
 }
-#jobModal .jo-view-parts-list li {
+#joReadonlyOverlay .jo-view-parts-list li {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -5610,22 +5610,22 @@ body.jo-readonly-open { overflow: hidden; }
   border-radius: 7px;
   font-size: 11px;
 }
-#jobModal .jo-view-part-name {
+#joReadonlyOverlay .jo-view-part-name {
   color: #17365b;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
-#jobModal .jo-view-part-quantity {
+#joReadonlyOverlay .jo-view-part-quantity {
   flex-shrink: 0;
   color: #355b88;
   font-weight: 750;
   white-space: nowrap;
 }
-#jobModal .jo-view-signature {
+#joReadonlyOverlay .jo-view-signature {
   padding: 8px 15px 15px;
   gap: 9px;
 }
-#jobModal .jo-view-signature img {
+#joReadonlyOverlay .jo-view-signature img {
   display: block;
   width: min(100%, 450px);
   max-width: 100%;
@@ -5636,86 +5636,86 @@ body.jo-readonly-open { overflow: hidden; }
   border-radius: 9px;
   background: #fbfdff;
 }
-#jobModal .jo-view-audit {
+#joReadonlyOverlay .jo-view-audit {
   padding: 11px 14px;
   background: #f7faff;
 }
-#jobModal .jo-view-audit summary {
+#joReadonlyOverlay .jo-view-audit summary {
   min-height: 24px;
 }
-#jobModal .jo-view-audit[open] {
+#joReadonlyOverlay .jo-view-audit[open] {
   background: #fff;
 }
 @media(max-width:600px) {
-  #jobModal .jo-view-parts-list li { align-items: flex-start; }
-  #jobModal .jo-view-signature img { width: 100%; height: 90px; }
+  #joReadonlyOverlay .jo-view-parts-list li { align-items: flex-start; }
+  #joReadonlyOverlay .jo-view-signature img { width: 100%; height: 90px; }
 }
 
 
 /* Readable type scale for the JO View modal, including parts and head approval. */
-#jobModal .jo-view-section h3,
-#jobModal .jo-view-audit summary {
+#joReadonlyOverlay .jo-view-section h3,
+#joReadonlyOverlay .jo-view-audit summary {
   font-size: 14px;
   line-height: 1.4;
   font-weight: 800;
 }
-#jobModal .jo-view-section .jo-view-grid > div > span,
-#jobModal .jo-view-signature > span {
+#joReadonlyOverlay .jo-view-section .jo-view-grid > div > span,
+#joReadonlyOverlay .jo-view-signature > span {
   font-size: 12px;
   line-height: 1.45;
 }
-#jobModal .jo-view-section .jo-view-grid strong,
-#jobModal .jo-view-parts-pill {
+#joReadonlyOverlay .jo-view-section .jo-view-grid strong,
+#joReadonlyOverlay .jo-view-parts-pill {
   font-size: 13px;
   line-height: 1.5;
 }
-#jobModal .jo-view-parts-list {
+#joReadonlyOverlay .jo-view-parts-list {
   gap: 8px;
 }
-#jobModal .jo-view-parts-list li {
+#joReadonlyOverlay .jo-view-parts-list li {
   font-size: 13px;
   line-height: 1.45;
   padding: 10px 12px;
   gap: 10px;
 }
-#jobModal .jo-view-signature img {
+#joReadonlyOverlay .jo-view-signature img {
   height: 120px;
 }
-#jobModal .jo-view-audit-count {
+#joReadonlyOverlay .jo-view-audit-count {
   font-size: 11px;
   padding: 3px 8px;
 }
-#jobModal .jo-view-audit li,
-#jobModal .jo-view-audit small {
+#joReadonlyOverlay .jo-view-audit li,
+#joReadonlyOverlay .jo-view-audit small {
   font-size: 12px;
   line-height: 1.5;
 }
 
 
 /* Balanced read-only JO sections: avoid narrow columns, bullets and oversized whitespace. */
-#jobModal .jo-view-warehouse-section .jo-view-warehouse-grid {
+#joReadonlyOverlay .jo-view-warehouse-section .jo-view-warehouse-grid {
   display: grid;
   grid-template-columns: minmax(155px, .75fr) minmax(0, 1.65fr);
   gap: 18px;
   align-items: start;
   padding: 16px 18px;
 }
-#jobModal .jo-view-warehouse-grid > div,
-#jobModal .jo-view-approval-grid > div {
+#joReadonlyOverlay .jo-view-warehouse-grid > div,
+#joReadonlyOverlay .jo-view-approval-grid > div {
   min-width: 0;
   padding: 0;
   border: 0;
 }
-#jobModal .jo-view-warehouse-grid .jo-view-parts-cell {
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-cell {
   padding: 0;
 }
-#jobModal .jo-view-warehouse-grid .jo-view-parts-list {
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list {
   margin-top: 10px;
   gap: 8px;
   padding: 0;
   list-style: none;
 }
-#jobModal .jo-view-warehouse-grid .jo-view-parts-list li {
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
   display: flex;
   list-style: none;
   align-items: center;
@@ -5729,37 +5729,37 @@ body.jo-readonly-open { overflow: hidden; }
   font-size: 13px;
   line-height: 1.45;
 }
-#jobModal .jo-view-warehouse-grid .jo-view-parts-list li::marker { content: ""; }
-#jobModal .jo-view-warehouse-grid .jo-view-part-name { font-size: 13px; font-weight: 700; }
-#jobModal .jo-view-warehouse-grid .jo-view-part-quantity { font-size: 13px; font-weight: 800; }
-#jobModal .jo-view-head-approval-section .jo-view-approval-grid {
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li::marker { content: ""; }
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-name { font-size: 13px; font-weight: 700; }
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity { font-size: 13px; font-weight: 800; }
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-approval-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   padding: 17px 18px 8px;
 }
-#jobModal .jo-view-head-approval-section .jo-view-approval-grid > div {
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-approval-grid > div {
   padding: 12px 15px;
   background: #f4f8fd;
   border-radius: 10px;
 }
-#jobModal .jo-view-head-approval-section .jo-view-approval-grid strong {
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-approval-grid strong {
   margin-top: 6px;
   font-size: 14px;
 }
-#jobModal .jo-view-head-approval-section .jo-view-signature {
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-signature {
   align-items: center;
   gap: 10px;
   padding: 12px 18px 19px;
 }
-#jobModal .jo-view-head-approval-section .jo-view-signature > span {
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-signature > span {
   width: 100%;
   max-width: 480px;
   color: #48607f;
   font-size: 12px;
   font-weight: 750;
 }
-#jobModal .jo-view-head-approval-section .jo-view-signature img {
+#joReadonlyOverlay .jo-view-head-approval-section .jo-view-signature img {
   box-sizing: border-box;
   display: block;
   width: min(100%, 480px);
@@ -5770,26 +5770,53 @@ body.jo-readonly-open { overflow: hidden; }
   object-fit: contain;
   background: #f9fbfe;
 }
-#jobModal .jo-view-audit-compact {
+#joReadonlyOverlay .jo-view-audit-compact {
   padding: 12px 16px;
   border-radius: 11px;
 }
-#jobModal .jo-view-audit-compact summary {
+#joReadonlyOverlay .jo-view-audit-compact summary {
   display: flex;
   gap: 9px;
   align-items: center;
   font-size: 13px;
 }
-#jobModal .jo-view-audit-compact .jo-view-audit-count {
+#joReadonlyOverlay .jo-view-audit-compact .jo-view-audit-count {
   margin-left: auto;
 }
 @media (max-width: 640px) {
-  #jobModal .jo-view-warehouse-section .jo-view-warehouse-grid,
-  #jobModal .jo-view-head-approval-section .jo-view-approval-grid {
+  #joReadonlyOverlay .jo-view-warehouse-section .jo-view-warehouse-grid,
+  #joReadonlyOverlay .jo-view-head-approval-section .jo-view-approval-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
     padding: 14px;
   }
-  #jobModal .jo-view-warehouse-grid .jo-view-parts-list li { gap: 9px; }
-  #jobModal .jo-view-head-approval-section .jo-view-signature { padding: 10px 14px 16px; }
+  #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li { gap: 9px; }
+  #joReadonlyOverlay .jo-view-head-approval-section .jo-view-signature { padding: 10px 14px 16px; }
+}
+
+/* Explicit readable, balanced styles for the actual read-only dialog. */
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list,
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
+  list-style: none !important;
+  list-style-type: none !important;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li::before,
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li::marker {
+  content: none !important;
+  display: none !important;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-cell {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity {
+  font-size: 13px !important;
 }
