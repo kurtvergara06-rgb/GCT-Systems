@@ -382,12 +382,12 @@
                                                                                     || (in_array($requestedUnit, ['pc', 'pcs', 'piece', 'pieces']) && in_array($stockUnit, ['pc', 'pcs', 'piece', 'pieces']));
                                                                                 $partStock = $stockItem && $partUnitsMatch ? max(0, (int) $stockItem->quantity_available) : 0;
                                                                                 $partDemand = (int) $viewPartsTotalByName->get($partKey, $part['quantity']);
-                                                                                $partAvailability = $partStock >= $partDemand ? 'Available' : ($partStock > 0 ? 'Partially Available' : 'Unavailable');
+                                                                                $partAvailability = $partStock >= $partDemand ? 'Available' : 'Unavailable';
                                                                             @endphp
                                                                             <li>
                                                                                 <span class="jo-view-part-name">{{ $part['name'] }}</span>
                                                                                 <span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span>
-                                                                                <span class="jo-view-part-availability {{ $partStock >= $partDemand ? 'is-available' : ($partStock > 0 ? 'is-partial' : 'is-unavailable') }}" title="Warehouse stock: {{ $partStock }} {{ $part['unit'] }}; total required: {{ $partDemand }} {{ $part['unit'] }}">{{ $partAvailability }} · {{ $partStock }} in stock</span>
+                                                                                <span class="jo-view-part-availability {{ $partStock >= $partDemand ? 'is-available' : 'is-unavailable' }}">{{ $partAvailability }}</span>
                                                                             </li>
                                                                         @endforeach
                                                                     </ul>
