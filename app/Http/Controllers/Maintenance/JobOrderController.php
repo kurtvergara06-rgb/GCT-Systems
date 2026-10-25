@@ -295,7 +295,10 @@ class JobOrderController extends Controller
         )->unique()->values()->all();
         $workText = implode(' ', $selectedSkills);
         $mechanics = $this->workflow->availableMechanics(null, $workText)
-            ->filter(fn (Mechanic $mechanic) => $selectedSkills === [] || $this->matchesSpecialization($mechanic, $selectedSkills))
+            ->filter(fn (Mechanic $mechanic) => $jobs !== []
+                && collect($jobs)->every(fn ($job) => is_string($job)
+                    && $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])) !== []
+                    && $this->matchesSpecialization($mechanic, $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])))))
             ->values()
             ->map(fn (Mechanic $mechanic) => [
                 'id' => $mechanic->id,
@@ -448,7 +451,9 @@ class JobOrderController extends Controller
         }
         if ($requiredSkills !== []) {
             foreach ($mechanics as $mechanic) {
-                if (! $this->matchesSpecialization($mechanic, $requiredSkills)) {
+                if (! collect($selectedJobs)->every(fn ($job) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                ))) {
                     throw ValidationException::withMessages([
                         'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for this maintenance job.",
                     ]);
