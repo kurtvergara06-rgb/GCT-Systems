@@ -1,4 +1,61 @@
 window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.warehouse-part-main', function () {
+
+  // Floating JO parts menu avoids clipping inside the horizontally scrollable table.
+  let joPartsMenu = null;
+  let joPartsButton = null;
+  const closeJoParts = () => {
+    joPartsMenu?.remove();
+    joPartsButton?.setAttribute('aria-expanded', 'false');
+    joPartsMenu = null;
+    joPartsButton = null;
+  };
+  const positionJoParts = () => {
+    if (!joPartsMenu || !joPartsButton?.isConnected) return closeJoParts();
+    const r = joPartsButton.getBoundingClientRect();
+    const margin = 8;
+    const width = Math.min(330, window.innerWidth - 2 * margin);
+    joPartsMenu.style.width = width + 'px';
+    joPartsMenu.style.left = Math.max(margin, Math.min(r.left, window.innerWidth - width - margin)) + 'px';
+    const below = window.innerHeight - r.bottom;
+    const above = r.top;
+    const height = joPartsMenu.scrollHeight;
+    const flip = below < Math.min(height + margin, 220) && above > below;
+    const available = Math.max(90, (flip ? above : below) - 2 * margin);
+    joPartsMenu.style.maxHeight = Math.min(230, available) + 'px';
+    joPartsMenu.style.top = (flip ? Math.max(margin, r.top - Math.min(height, 230, available) - margin) : r.bottom + margin) + 'px';
+  };
+  const joPartsPage = document.querySelector('.warehouse-part-main');
+  joPartsPage?.addEventListener('click', event => {
+    const button = event.target.closest('.warehouse-jo-parts-more');
+    if (!button || !joPartsPage.contains(button)) return;
+    event.preventDefault();
+    if (joPartsButton === button) return closeJoParts();
+    closeJoParts();
+    const template = button.parentElement.querySelector('.warehouse-jo-parts-template');
+    if (!template) return;
+    joPartsButton = button;
+    joPartsMenu = template.cloneNode(true);
+    joPartsMenu.removeAttribute('hidden');
+    joPartsMenu.classList.remove('warehouse-jo-parts-template');
+    joPartsMenu.classList.add('warehouse-jo-parts-popup');
+    joPartsMenu.setAttribute('role', 'dialog');
+    joPartsMenu.setAttribute('aria-label', 'Other requested parts');
+    document.body.appendChild(joPartsMenu);
+    button.setAttribute('aria-expanded', 'true');
+    positionJoParts();
+  });
+  document.addEventListener('click', event => {
+    if (joPartsButton?.contains(event.target) || joPartsMenu?.contains(event.target)) return;
+    closeJoParts();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeJoParts();
+  });
+  window.addEventListener('resize', closeJoParts);
+  document.addEventListener('scroll', event => {
+    if (joPartsMenu && !joPartsMenu.contains(event.target)) closeJoParts();
+  }, true);
+
   function openModal(modal) {
     if (!modal) return;
 
