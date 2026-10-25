@@ -31,6 +31,7 @@ Route::middleware([
             ->name('inventory.movements');
 
         Route::get('/warehouse/item-requests', [ItemRequestController::class, 'index'])->name('warehouse.item-requests');
+        Route::get('/warehouse/item-requests/{itemRequest}/verify', [ItemRequestController::class, 'verify'])->name('warehouse.item-requests.verify');
 
         Route::controller(WarehousePartRequestController::class)
             ->prefix('part-requests')
