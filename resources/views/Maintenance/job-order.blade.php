@@ -243,20 +243,39 @@
                                                 ->unique()
                                                 ->values();
                                             if ($assignedMechanicNames->isEmpty() && filled($jobOrder->assigned_mechanic)) {
-                                                $assignedMechanicNames = collect([$jobOrder->assigned_mechanic]);
+                                                $assignedMechanicNames = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic) ?: [])
+                                                    ->map(fn ($name) => trim((string) $name))->filter()->unique()->values();
                                             }
                                         @endphp
                                         @if($assignedMechanicNames->isNotEmpty())
                                             <div class="jo-mechanic-profiles">
-                                                @foreach($assignedMechanicNames as $mechanicName)
-                                                    <div class="jo-mechanic-profile">
-                                                        <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-                                                        <span class="jo-mechanic-profile-text">
-                                                            <span class="jo-mechanic-profile-name">{{ $mechanicName }}</span>
-                                                            <span class="jo-mechanic-profile-caption">Mechanic profile</span>
-                                                        </span>
-                                                    </div>
-                                                @endforeach
+                                                <div class="jo-mechanic-profile">
+                                                    <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                    <span class="jo-mechanic-profile-text">
+                                                        <span class="jo-mechanic-profile-name">{{ $assignedMechanicNames->first() }}</span>
+                                                        <span class="jo-mechanic-profile-caption">Mechanic profile</span>
+                                                    </span>
+                                                    @if($assignedMechanicNames->count() > 1)
+                                                        <details class="jo-mechanic-more" data-jo-mechanic-more>
+                                                            <summary aria-label="Show {{ $assignedMechanicNames->count() - 1 }} additional assigned mechanics">
+                                                                +{{ $assignedMechanicNames->count() - 1 }} more
+                                                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                                            </summary>
+                                                            <div class="jo-mechanic-more-panel">
+                                                                <div class="jo-mechanic-more-title">Other assigned mechanics</div>
+                                                                @foreach($assignedMechanicNames->skip(1) as $mechanicName)
+                                                                    <div class="jo-mechanic-profile">
+                                                                        <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                                        <span class="jo-mechanic-profile-text">
+                                                                            <span class="jo-mechanic-profile-name">{{ $mechanicName }}</span>
+                                                                            <span class="jo-mechanic-profile-caption">Mechanic profile</span>
+                                                                        </span>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </details>
+                                                    @endif
+                                                </div>
                                             </div>
                                         @else
                                             <span class="jo-mechanic-unassigned">Not assigned</span>
