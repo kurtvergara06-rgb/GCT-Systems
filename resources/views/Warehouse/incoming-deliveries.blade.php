@@ -37,6 +37,14 @@
             <p>Purchase Orders ready for Warehouse receiving and completed receipt records.</p>
           </div>
 
+
+        </div>
+
+        @if($isHistory)
+          <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
+        @endif
+
+        <div class="incoming-delivery-controls">
           <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view" role="tablist">
             <a
               href="{{ route('incoming-deliveries', ['view' => 'active']) }}"
@@ -59,16 +67,13 @@
               <span>History</span>
             </a>
           </nav>
-        </div>
-
-        @if($isHistory)
-          <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
-        @endif
-
+          <div class="incoming-delivery-toolbar">
         <x-ui.table-toolbar action="{{ route('incoming-deliveries') }}" data-server-filter="true" search-label="Search Deliveries" search-placeholder="Search PO no., supplier, item, or delivery..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Deliveries" :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'status' => 'Status', 'inventory_posted_at' => 'Received Date']" default-sort="po_date" default-direction="desc">
           <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
           <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">@foreach(array_merge(['All Statuses'], $statusOptions ?? []) as $status)<option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
         </x-ui.table-toolbar>
+          </div>
+        </div>
 
         <div class="table-wrap">
           <table class="incoming-delivery-table">
