@@ -100,8 +100,13 @@ class JobOrderIndexController extends Controller
                 ),
             ]);
 
-        $onHold = JobOrder::where('status', 'On Hold')->where('review_status', 'Approved')->count();
-        $onGoing = JobOrder::where('status', 'On Going')->where('review_status', 'Approved')->count();
+        // Count the effective repair state, including legacy JOs started before parts arrived.
+        $approvedActive = JobOrder::query()
+            ->where('review_status', 'Approved')
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->get(['id', 'status', 'part_needed', 'part_status', 'review_status']);
+        $onHold = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'On Hold')->count();
+        $onGoing = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'In Progress')->count();
         $completed = JobOrder::where('status', 'Completed')->where('review_status', 'Approved')->count();
 
         $needParts = JobOrder::query()
