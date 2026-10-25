@@ -5553,3 +5553,36 @@ body.jo-readonly-open { overflow: hidden; }
   flex-shrink: 0;
   position: static;
 }
+
+/* JO read-only action matches the PR View control; override legacy 30px rules. */
+.jo-page .job-orders-table td.jo-actions-cell {
+  min-width: 120px;
+  width: 120px;
+  overflow: visible;
+}
+.app:has(#jobModal) .jo-page .job-orders-table td.jo-actions-cell .actions,
+.jo-page .job-orders-table td.jo-actions-cell .actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+.app:has(#jobModal) .jo-page .job-orders-table td.jo-actions-cell .actions button.jo-labeled-view,
+.app:has(#jobModal) .jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view,
+.jo-page .job-orders-table td.jo-actions-cell .actions button.jo-labeled-view,
+.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view {
+  box-sizing: border-box;
+  flex: 0 0 92px;
+  width: 92px;
+  min-width: 92px;
+  max-width: 92px;
+  height: 34px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  overflow: visible;
+  white-space: nowrap;
+  line-height: 1;
+}
