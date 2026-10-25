@@ -1,0 +1,12 @@
+/* Warehouse Item Requests share the Maintenance IR presentation components. */
+.warehouse-ir-page{padding-bottom:26px}
+.warehouse-ir-page .ir-summary{margin-top:20px}
+.warehouse-ir-page .ir-record-header{padding-top:1px}
+.warehouse-ir-page .ir-table th:last-child,.warehouse-ir-page .ir-table td:last-child{text-align:center}
+.warehouse-ir-page .ir-table td{vertical-align:middle}
+.warehouse-ir-page .ir-record-count{white-space:nowrap}
+#warehouseItemRequestDetails .ir-modal{width:min(720px,calc(100vw - 30px));max-height:calc(100vh - 36px)}
+#warehouseItemRequestDetails .ir-modal-body{overflow-y:auto;gap:16px;padding:20px 24px}
+#warehouseItemRequestDetails .ir-note{background:#eef5ff;border:1px solid #d3e4fa}
+#warehouseItemRequestDetails .ir-modal-footer{position:sticky;bottom:0}
+@media(max-width:800px){.warehouse-ir-page .ir-table-wrap{overflow-x:auto}.warehouse-ir-page .ir-table{min-width:750px}}
