@@ -121,7 +121,7 @@
                             </span>
                         </td>
                         <td>
-                            <button type="button" class="ir-view-button" data-ir-view
+                            <x-ui.action-button type="view" title="View Item Request" aria-label="View Item Request" data-ir-view
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
@@ -130,17 +130,16 @@
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
                                 data-ir-can-issue="{{ $ir->status === 'Submitted' && ($stock['status'] ?? '') === 'sufficient' ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
-                                data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button>
+                                data-ir-remarks="{{ $ir->remarks ?? '' }}" />
                             @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-                                <button type="button" class="ir-prepare-button" data-ir-prepare
+                                <x-ui.action-button type="issue" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                     data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                     data-ir-mechanics="{{ $ir->jobOrder?->assigned_mechanic ?? '—' }}"
                                     data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                     data-ir-remarks="{{ $ir->remarks ?? '' }}">
-                                    <i class="fa-solid fa-file-signature"></i> Prepare Issuance
-                                </button>
+                                />
                             @endif
                         </td>
                     </tr>
