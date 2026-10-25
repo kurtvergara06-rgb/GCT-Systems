@@ -644,6 +644,10 @@
   margin: 0;
 }
 .warehouse-part-card .warehouse-request-count {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
   margin: 0 0 10px;
 }
 @media (max-width: 700px) {
