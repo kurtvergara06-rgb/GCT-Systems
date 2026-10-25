@@ -238,6 +238,7 @@
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
                                                   data-jo-approved="{{ $sourceJo?->review_status === 'Approved' ? '1' : '0' }}"
+                                                  data-jo-review-status="{{ $sourceJo?->review_status ?? ($sourceJo ? 'Pending' : 'JO not found') }}"
                                                   data-jo-approver="{{ $sourceJo?->approver?->name ?? '' }}"
                                                   data-jo-approved-at="{{ $sourceJo?->approved_at?->format('M d, Y · h:i A') ?? '' }}"
                                                   data-jo-signature-url="{{ $sourceJo?->review_status === 'Approved' ? route('job-orders.approval-signature', $sourceJo->id, false) : '' }}"
