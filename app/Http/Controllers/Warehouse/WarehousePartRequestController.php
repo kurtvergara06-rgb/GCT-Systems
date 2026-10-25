@@ -171,7 +171,10 @@ class WarehousePartRequestController extends Controller
                             'unit' => $part['unit'] ?? '',
                             'available' => max(0, (int) ($item?->quantity_available ?? 0)),
                         ];
-                    })->filter(fn ($part) => $part['available'] > 0)->values()->all();
+                    })->values()->all();
+                    $stocked = collect($job->warehouse_available_parts)->filter(fn ($part) => $part['available'] >= $part['quantity'])->count();
+                    $some = collect($job->warehouse_available_parts)->filter(fn ($part) => $part['available'] > 0)->count();
+                    $job->warehouse_stock_status = $stocked === count($parts) && $stocked > 0 ? 'Available' : ($some > 0 ? 'Partial' : 'Unavailable');
                     $job->warehouse_can_issue = ! $job->warehouse_has_linked_pr
                         && trim((string) $job->assigned_mechanic) !== ''
                         && count($job->warehouse_available_parts) === count($parts)
