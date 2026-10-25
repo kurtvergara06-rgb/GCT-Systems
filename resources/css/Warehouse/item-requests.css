@@ -310,3 +310,10 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
  #warehouseIrSlipModal .warehouse-ir-slip-body{display:block!important;overflow:visible!important}
  #warehouseIrSlipModal .warehouse-ir-stock-table-wrap{min-height:0!important;overflow:visible!important}
 }
+
+
+/* Signature is a real writing line, not text dashes or an input box. */
+#warehouseIrSlipModal .warehouse-ir-handwritten-line{
+ display:block;width:125px;max-width:100%;height:24px;
+ border-bottom:1.5px solid #324a6d;background:transparent;
+}
