@@ -38,6 +38,8 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'part_needed' => 'Brake Pad - Qty: 2 pcs',
             'start_date' => now(),
             'status' => 'On Going',
+            'review_status' => 'Approved',
+            'approved_at' => now(),
             'part_status' => 'Not Requested',
         ]);
 
@@ -58,7 +60,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame('Approved', $jobOrder->fresh()->part_status);
 
         // Warehouse queries approved Maintenance PRs directly: no second approval.
-        $this->actingAs($user)->get(route('part-requests'))->assertSee($purchaseRequest->pr_no);
+        $this->actingAs($warehouseStaff)->get(route('part-requests'))->assertOk()->assertSee($purchaseRequest->pr_no);
 
         $inventoryItem = InventoryItem::create([
             'item_code' => 'BRAKE-PAD',
