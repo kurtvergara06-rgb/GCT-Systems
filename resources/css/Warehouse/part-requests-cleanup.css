@@ -691,3 +691,38 @@
     max-width: 100%;
   }
 }
+
+/* Three-way Warehouse request navigation and read-only JO queue search. */
+.warehouse-part-card .warehouse-record-tabs {
+  flex-wrap: wrap;
+}
+.warehouse-part-card .warehouse-jo-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.warehouse-part-card .warehouse-jo-search input[type="search"] {
+  min-width: 180px;
+  max-width: 260px;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid #dbe4f0;
+  border-radius: 9px;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.warehouse-part-card .warehouse-jo-search .warehouse-record-tab {
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .warehouse-part-card .warehouse-jo-search {
+    flex-wrap: wrap;
+  }
+  .warehouse-part-card .warehouse-jo-search input[type="search"] {
+    min-width: 0;
+    width: 100%;
+  }
+}
