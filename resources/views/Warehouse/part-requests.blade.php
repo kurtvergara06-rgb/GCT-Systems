@@ -109,7 +109,27 @@
                     <div class="pr-ref-cell"><strong class="pr-main-num">{{ $job->job_order_no }}</strong>
                     <div class="pr-sub-tags"><span class="pr-meta-tag bus-tag"><i class="fa-solid fa-bus"></i> {{ $job->bus_no }}</span></div></div>
                   </td>
-                  <td class="item-col"><strong class="item-name-text">{{ collect($job->warehouse_available_parts)->pluck('name')->implode(', ') }}</strong></td>
+                  <td class="item-col">
+                    @php($joVisibleParts = collect($job->warehouse_available_parts)->values())
+                    <div class="warehouse-jo-parts-summary">
+                      <strong class="item-name-text">{{ $joVisibleParts->first()['name'] ?? '—' }}</strong>
+                      @if($joVisibleParts->count() > 1)
+                        <button type="button" class="warehouse-jo-parts-more" aria-expanded="false" aria-haspopup="dialog"
+                          aria-label="Show {{ $joVisibleParts->count() - 1 }} additional parts for {{ $job->job_order_no }}">
+                          +{{ $joVisibleParts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="warehouse-jo-parts-template" hidden>
+                          <div class="warehouse-jo-parts-heading">Other requested parts</div>
+                          @foreach($joVisibleParts->skip(1) as $part)
+                            <div class="warehouse-jo-parts-row">
+                              <span>{{ $part['name'] }}</span>
+                              <strong>{{ $part['quantity'] }} {{ $part['unit'] }}</strong>
+                            </div>
+                          @endforeach
+                        </div>
+                      @endif
+                    </div>
+                  </td>
                   <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum('quantity') }}</td>
                   <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum(fn ($part) => min((int) $part['available'], (int) $part['quantity'])) }}</td>
                   <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
