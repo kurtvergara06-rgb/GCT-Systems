@@ -110,3 +110,35 @@
 #itemRequestModal .ir-modal-footer .ir-primary-button{background:#124caa;border-color:#124caa;min-height:40px;font-weight:800}
 #itemRequestModal .ir-modal-footer .ir-secondary-button{min-height:40px;font-weight:750}
 @media(max-width:640px){#itemRequestModal .ir-modal-header{padding:14px 16px}#itemRequestModal .ir-modal-body{padding:12px;gap:10px}#itemRequestModal .ir-form-section{padding:12px}#itemRequestModal .ir-form-section h3{flex-wrap:wrap}#itemRequestModal .ir-form-section h3 small{margin-left:0}#itemRequestModal .ir-preview-grid>div{min-height:62px}}
+
+
+/* Requested Items: prevent inherited global table min-width from clipping the last column. */
+#itemRequestModal .ir-form-section,
+#itemRequestModal .ir-preview-table-wrap {min-width:0;max-width:100%;box-sizing:border-box}
+#itemRequestModal .ir-preview-table-wrap {overflow:hidden;width:100%}
+#itemRequestModal table.ir-preview-table {
+  display:table;width:100%!important;min-width:0!important;max-width:100%;
+  table-layout:fixed;border-collapse:collapse;box-sizing:border-box
+}
+#itemRequestModal .ir-preview-table th,
+#itemRequestModal .ir-preview-table td {
+  min-width:0!important;box-sizing:border-box;white-space:normal;
+  overflow-wrap:break-word;vertical-align:middle
+}
+#itemRequestModal .ir-preview-table th:nth-child(1){width:48%}
+#itemRequestModal .ir-preview-table th:nth-child(2){width:23%}
+#itemRequestModal .ir-preview-table th:nth-child(3){width:29%}
+#itemRequestModal .ir-preview-table th:nth-child(3),
+#itemRequestModal .ir-preview-table td:nth-child(3){text-align:center}
+#itemRequestModal .ir-preview-table .ir-preview-placeholder{
+  display:table-cell!important;text-align:center!important;vertical-align:middle;
+  padding:24px 12px!important;background:#fbfdff!important;border:0!important;
+  box-shadow:none!important;border-radius:0!important;white-space:normal!important;
+  font-size:11px;font-weight:600;color:#7588a2!important
+}
+@media(max-width:640px){
+ #itemRequestModal .ir-preview-table th,#itemRequestModal .ir-preview-table td{padding:10px 7px!important;font-size:10px}
+ #itemRequestModal .ir-preview-table th:nth-child(1){width:43%}
+ #itemRequestModal .ir-preview-table th:nth-child(2){width:26%}
+ #itemRequestModal .ir-preview-table th:nth-child(3){width:31%}
+}
