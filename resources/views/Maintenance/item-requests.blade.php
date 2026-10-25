@@ -21,43 +21,58 @@
         @endif
 
         <section class="ir-summary" aria-label="Request overview">
-            <div class="ir-summary-card">
-                <span class="ir-summary-icon"><i class="fa-solid fa-file-lines"></i></span>
-                <div><span>Total Requests</span><strong>{{ $requests->total() }}</strong><small>Item requests created</small></div>
-            </div>
-            <div class="ir-summary-card">
-                <span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span>
-                <div><span>Submitted</span><strong>{{ $requests->getCollection()->where('status', 'Submitted')->count() }}</strong><small>On this page</small></div>
-            </div>
-            <div class="ir-summary-card">
-                <span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-clipboard-check"></i></span>
-                <div><span>Eligible Job Orders</span><strong>{{ $eligibleJobs->count() }}</strong><small>Approved, without an IR</small></div>
-            </div>
+            <div class="ir-summary-card"><span class="ir-summary-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><span>Total Requests</span><strong>{{ $totalCount }}</strong><small>Item requests recorded</small></div></div>
+            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span><div><span>Submitted</span><strong>{{ $submittedCount }}</strong><small>Awaiting Warehouse review</small></div></div>
+            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-list-check"></i></span><div><span>Active</span><strong>{{ $activeCount }}</strong><small>Open Item Requests</small></div></div>
+            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-red"><i class="fa-solid fa-clock-rotate-left"></i></span><div><span>History</span><strong>{{ $historyCount }}</strong><small>Closed Item Requests</small></div></div>
         </section>
 
         <section class="ir-record-card">
             <header class="ir-record-header">
                 <div>
-                    <div class="ir-eyebrow">RESOURCE MANAGEMENT</div>
                     <h2>Item Request Records</h2>
-                    <p>Track the parts requested from Warehouse for each approved Job Order.</p>
+                    <p>Track requested parts, linked Job Orders, and Warehouse processing.</p>
                 </div>
                 @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
                     <button type="button" class="ir-primary-button" id="openItemRequestModal" @disabled($eligibleJobs->isEmpty())>
-                        <i class="fa-solid fa-plus"></i> New Item Request
+                        <i class="fa-solid fa-plus"></i> New IR
                     </button>
                 @endif
             </header>
-
             <div class="ir-toolbar">
-                <span class="ir-active-tab"><i class="fa-solid fa-list-check"></i> All Requests</span>
-                <span class="ir-record-count">{{ $requests->total() }} {{ \Illuminate\Support\Str::plural('record', $requests->total()) }}</span>
+                <nav class="ir-tabs" aria-label="Item Request record view">
+                    <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active</a>
+                    <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                </nav>
+                <form method="GET" action="{{ route('item-requests') }}" class="ir-filter-form">
+                    <input type="hidden" name="view" value="{{ $view }}">
+                    <div class="ir-filter-control">
+                        <label for="ir-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+                        <input id="ir-search" type="search" name="search" value="{{ request('search') }}" placeholder="IR, JO, bus or part">
+                    </div>
+                    <div class="ir-filter-control">
+                        <label for="ir-status"><i class="fa-solid fa-filter"></i> Filter</label>
+                        <select id="ir-status" name="status">
+                            <option value="All Statuses">All Statuses</option>
+                            @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
+                                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="ir-filter-control">
+                        <label for="ir-sort"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort</label>
+                        <select id="ir-sort" name="sort">
+                            <option value="newest" @selected(request('sort') !== 'oldest')>Newest</option>
+                            <option value="oldest" @selected(request('sort') === 'oldest')>Oldest</option>
+                        </select>
+                    </div>
+                    <button class="ir-apply-button" type="submit">Apply</button>
+                </form>
             </div>
-
             <div class="ir-table-wrap">
                 <table class="ir-table">
                     <thead>
-                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE CREATED</th></tr>
+                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE CREATED</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody>
                         @forelse($requests as $ir)
@@ -84,14 +99,14 @@
                                 @endif
                             </td>
                             <td><span class="ir-status">{{ $ir->status }}</span></td>
-                            <td class="ir-date">{{ $ir->created_at?->format('M d, Y') }}</td>
+                            <td class="ir-date">{{ $ir->created_at?->format('M d, Y') }}</td><td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-parts="{{ collect($ir->requested_parts ?? [])->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button></td>
                         </tr>
                         @empty
-                        <tr><td colspan="6">
+                        <tr><td colspan="7">
                             <div class="ir-empty">
                                 <span><i class="fa-solid fa-box-open"></i></span>
-                                <strong>No Item Requests yet</strong>
-                                <p>Create an Item Request from an approved Job Order to begin Warehouse verification.</p>
+                                <strong>{{ $view === 'history' ? 'No historical Item Requests' : 'No active Item Requests' }}</strong>
+                                <p>{{ $view === 'history' ? 'Completed or closed requests will appear here.' : 'Create an Item Request from an approved Job Order to begin Warehouse verification.' }}</p>
                             </div>
                         </td></tr>
                         @endforelse
@@ -103,6 +118,13 @@
     </main>
 </div>
 
+<div id="viewItemRequestModal" class="ir-modal-overlay" aria-hidden="true">
+    <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
+        <header class="ir-modal-header"><div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span><div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div></div><button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
+        <div class="ir-modal-body"><div class="ir-details-grid"><div><span>IR Number</span><strong id="ir-detail-number"></strong></div><div><span>Job Order</span><strong id="ir-detail-job"></strong></div><div><span>Bus</span><strong id="ir-detail-bus"></strong></div><div><span>Status</span><strong id="ir-detail-status"></strong></div></div><div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div><div class="ir-field"><label>Remarks</label><p id="ir-detail-remarks" class="ir-detail-text"></p></div></div>
+        <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
+    </div>
+</div>
 @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
 <div id="itemRequestModal" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="itemRequestModalTitle">
