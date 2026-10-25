@@ -5229,3 +5229,26 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   align-items: center;
   gap: 2px;
 }
+
+/* Purchase Requisition create dialog: use the desktop workspace without affecting other modals. */
+@media screen and (min-width: 900px) {
+  #prModal .ui-form-modal {
+    box-sizing: border-box;
+    width: min(960px, calc(100vw - 72px)) !important;
+    max-width: 960px !important;
+  }
+  #prModal .ui-form-modal-body {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+  #prModal .pr-document-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+  }
+}
+@media screen and (min-width: 600px) and (max-width: 899px) {
+  #prModal .ui-form-modal {
+    width: calc(100vw - 40px) !important;
+    max-width: 780px !important;
+  }
+}
