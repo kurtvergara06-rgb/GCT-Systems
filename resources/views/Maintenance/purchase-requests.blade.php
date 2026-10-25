@@ -139,7 +139,7 @@
                           </a>
                       </div>
                       <div class="gct-table-toolbar-row">
-                      <x-ui.table-toolbar action="{{ route('purchase-requests') }}" search-label="Search Purchase Requests" search-placeholder="Search PR no., JO no., bus no., or item..." :filter-count="(int) ($recordView !== 'history' && request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
+                      <x-ui.table-toolbar action="{{ route('purchase-requests') }}" search-label="Search Purchase Requests" search-placeholder="Search PR no., JO no., bus no., or item..." :filter-count="(int) ($recordView === 'history' ? (int) request()->filled('created_from') + (int) request()->filled('created_to') : (int) (request()->filled('status') && request('status') !== 'All Statuses'))" filter-title="Filter Purchase Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
                           <x-slot:hidden>
                               @if($recordView === 'history')
                                   <input type="hidden" name="record_view" value="history">
@@ -153,6 +153,9 @@
                                           <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                       @endforeach
                                   </x-ui.table-toolbar-field>
+                              @else
+                                  <x-ui.table-toolbar-field label="Created From" name="created_from" type="date" />
+                                  <x-ui.table-toolbar-field label="Created To" name="created_to" type="date" />
                               @endif
                           </x-slot:filters>
                       </x-ui.table-toolbar>
