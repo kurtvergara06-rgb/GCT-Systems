@@ -39,3 +39,18 @@ table.warehouse-ir-stock-table{display:table;width:100%;min-width:520px;border-c
 .warehouse-ir-issue-form .ir-primary-button:disabled{opacity:.5;cursor:not-allowed}
 .warehouse-ir-page .ir-table-wrap{overflow-x:auto}
 @media(max-width:1040px){.warehouse-ir-page .ir-table{min-width:850px}}
+
+
+/* Allow inline summary chips without clipping their floating detail lists. */
+.warehouse-ir-page .ir-table th,.warehouse-ir-page .ir-table td{white-space:nowrap}
+.warehouse-ir-page .ir-table td:nth-child(3){white-space:normal;min-width:145px}
+.warehouse-ir-page .ir-table td:nth-child(4){min-width:75px;white-space:nowrap}
+.warehouse-ir-page .ir-table{min-width:0}
+.warehouse-ir-page .ir-parts-details{display:inline-block;vertical-align:middle;margin-left:6px}
+.warehouse-ir-page .ir-parts-details>summary{cursor:pointer;color:#1459ac;font-size:10px;font-weight:800;list-style:none}
+.warehouse-ir-page .ir-parts-details>summary::-webkit-details-marker{display:none}
+body > .ir-parts-popover{display:block;overflow-y:auto;min-width:210px;max-width:300px;background:#fff;border:1px solid #d6e3f4;border-radius:10px;padding:9px 11px;box-shadow:0 12px 28px rgba(16,43,79,.18)}
+body > .ir-parts-popover[hidden]{display:none!important}
+body > .ir-parts-popover>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid #edf2f8;color:#244265;font-size:11px}
+body > .ir-parts-popover>div:last-child{border-bottom:0}
+body > .ir-parts-popover strong{font-weight:800;white-space:nowrap}
