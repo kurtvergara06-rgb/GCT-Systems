@@ -89,9 +89,24 @@
                                 @if($stockIsMixed)
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                        <div class="ir-parts-popover">
+                                        <div class="ir-parts-popover warehouse-ir-stock-popover">
+                                            <div class="warehouse-ir-stock-popover-title">Warehouse stock breakdown</div>
                                             @foreach($stockParts as $part)
-                                                <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} @if(($part['shortage'] ?? 0) > 0)<span class="warehouse-ir-shortage-quantity">({{ $part['shortage'] }} short)</span>@endif</strong></div>
+                                                <div class="warehouse-ir-stock-popover-row">
+                                                    <span class="warehouse-ir-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                                                    <span class="warehouse-ir-stock-popover-info">
+                                                        <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
+                                                        <small>Required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
+                                                    </span>
+                                                    <span class="warehouse-ir-stock-popover-amount">
+                                                        <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong>
+                                                        @if(($part['shortage'] ?? 0) > 0)
+                                                            <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} short</small>
+                                                        @else
+                                                            <small class="warehouse-ir-stock-ok">In stock</small>
+                                                        @endif
+                                                    </span>
+                                                </div>
                                             @endforeach
                                         </div>
                                     </details>
