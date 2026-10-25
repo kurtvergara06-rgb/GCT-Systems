@@ -1828,6 +1828,37 @@ window.GCTPartialNavigation.registerInitializer(
       activePrTrigger =
         button;
 
+      const approvedJo = button.dataset.joApproved === '1';
+      const approver = document.getElementById('reviewPrApprover');
+      const approvedAt = document.getElementById('reviewPrApprovedAt');
+      const signature = document.getElementById('reviewPrSignature');
+      const signatureFallback = document.getElementById('reviewPrSignatureFallback');
+      if (approver) approver.textContent = approvedJo ? (button.dataset.joApprover || 'Not recorded') : 'Not approved';
+      if (approvedAt) approvedAt.textContent = approvedJo ? (button.dataset.joApprovedAt || 'Not recorded') : '—';
+      if (signature) {
+        signature.style.display = 'none';
+        signature.removeAttribute('src');
+        signature.onload = () => {
+          signature.style.display = 'block';
+          if (signatureFallback) signatureFallback.hidden = true;
+        };
+        signature.onerror = () => {
+          signature.style.display = 'none';
+          if (signatureFallback) {
+            signatureFallback.hidden = false;
+            signatureFallback.textContent = 'Signature unavailable';
+          }
+        };
+        if (signatureFallback) {
+          signatureFallback.hidden = false;
+          signatureFallback.textContent = approvedJo ? 'Loading signature…' : 'No JO approval signature';
+        }
+        if (approvedJo && button.dataset.joSignatureUrl) {
+          signature.src = button.dataset.joSignatureUrl;
+        }
+      }
+
+
 
       if (reviewPrNo) {
         reviewPrNo.textContent =
@@ -1837,8 +1868,8 @@ window.GCTPartialNavigation.registerInitializer(
 
       if (reviewPrStatus) {
         reviewPrStatus.textContent =
-          status === 'Submitted'
-            ? 'Under Review'
+          status === 'Submitted' && approvedJo
+            ? 'JO Approved — Pending Processing'
             : status;
         reviewPrStatus.dataset.status =
           status.toLowerCase().replaceAll(' ', '-');
@@ -1893,8 +1924,8 @@ window.GCTPartialNavigation.registerInitializer(
 
       if (reviewPrStatusText) {
         reviewPrStatusText.textContent =
-          status === 'Submitted'
-            ? 'Under Review'
+          status === 'Submitted' && approvedJo
+            ? 'JO Approved — Pending Processing'
             : status;
       }
 
