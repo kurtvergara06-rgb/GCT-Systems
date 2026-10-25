@@ -75,7 +75,7 @@
                     <tbody>
                         @forelse($requests as $ir)
                         <tr>
-                            <td><strong class="ir-number">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
+                            <td><strong class="ir-number maintenance-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
                             <td><strong>{{ $ir->jobOrder?->job_order_no ?? '—' }}</strong></td>
                             <td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></td>
                             <td>
