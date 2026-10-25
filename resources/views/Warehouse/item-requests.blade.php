@@ -57,7 +57,7 @@
                     @php($stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]))
                     @php($stockParts = collect($stock['parts'] ?? []))
                     @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
-                    @php($onHandCount = $stockParts->sum(fn ($p) => (int) ($p['available'] ?? 0)))
+                    @php($firstStock = $stockParts->first())
                     <tr>
                         <td><strong class="ir-number">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</strong></td>
                         <td><strong>{{ $ir->jobOrder?->job_order_no ?? '—' }}</strong></td>
@@ -78,7 +78,7 @@
                             @else — @endif
                         </td>
                         <td><strong>{{ $requestedCount }}</strong> total</td>
-                        <td><strong>{{ $onHandCount }}</strong> on hand*</td>
+                        <td><strong>{{ $firstStock['available'] ?? 0 }}</strong> {{ $firstStock['unit'] ?? '' }} @if($stockParts->count() > 1)<span class="warehouse-ir-more-stock">+{{ $stockParts->count() - 1 }} items</span>@endif</td>
                         <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}">{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td><span class="ir-status">{{ $ir->status }}</span></td>
                         <td>
@@ -100,7 +100,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="ir-footer"><span class="warehouse-ir-stock-time">*On-hand totals are reference values. Parts may have different units; see View for per-item quantities.</span>{{ $requests->links() }}</div>
+            <div class="ir-footer"><span class="warehouse-ir-stock-time">On hand shows the first part only; open View for the complete per-item stock check.</span>{{ $requests->links() }}</div>
         </section>
     </main>
 </div>
