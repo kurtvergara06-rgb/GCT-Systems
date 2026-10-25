@@ -150,6 +150,13 @@
                                     $durationSuggestion = $durationSuggestions->get($jobOrder->id);
 
                                     $partStatus = $jobOrder->part_status;
+                                    // Existing IRs may predate the JO status sync.
+                                    // Always show the linked operational request state
+                                    // when the stored JO still says "Not Requested".
+                                    $linkedIrStatus = $existingIrStatuses->get($jobOrder->id);
+                                    if ($hasNeededParts && $linkedIrStatus && in_array($partStatus, [null, '', 'Not Requested', 'Unknown'], true)) {
+                                        $partStatus = $linkedIrStatus;
+                                    }
                                     if (!$hasNeededParts) {
                                         $partStatus = '----';
                                     } elseif (!$partStatus || $partStatus === 'Unknown' || $partStatus === 'No Parts Needed') {
