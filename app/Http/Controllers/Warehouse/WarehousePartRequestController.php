@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\Maintenance\JobOrderWorkflowService;
+use App\Services\PartParser;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
@@ -110,8 +113,49 @@ class WarehousePartRequestController extends Controller
     public function index(Request $request)
     {
         $currentView = strtolower(trim((string) $request->input('view', 'active')));
-        if (! in_array($currentView, ['active', 'history'], true)) {
-            $currentView = 'active';
+        if ($currentView === 'active') {
+            $currentView = 'pr'; // Existing bookmarked Active links remain valid.
+        }
+        if (! in_array($currentView, ['jo', 'pr', 'history'], true)) {
+            $currentView = 'pr';
+        }
+
+        // JO requests are sourced from signed, open Job Orders, not fabricated PRs.
+        // This queue is read-only until the JO-specific stock ledger action is implemented.
+        $jobOrderRequests = null;
+        if ($currentView === 'jo') {
+            $parser = app(PartParser::class);
+            $workflow = app(JobOrderWorkflowService::class);
+            $jobs = JobOrder::query()
+                ->where('review_status', 'Approved')
+                ->where('status', '!=', 'Completed')
+                ->whereNotNull('part_needed')
+                ->where('part_needed', '!=', '')
+                ->whereDoesntHave('purchaseRequests', fn ($q) => $q->where('source_type', 'Maintenance Request'))
+                ->orderByDesc('created_at')
+                ->get()
+                ->map(function (JobOrder $job) use ($parser, $workflow) {
+                    $parts = $parser->parsePartText((string) $job->part_needed);
+                    $availability = $workflow->inventoryAvailability($parts);
+                    $job->warehouse_available_parts = collect($availability['parts'])
+                        ->filter(fn ($part) => (int) $part['available'] > 0)
+                        ->values()->all();
+                    return $job;
+                })
+                ->filter(fn ($job) => count($job->warehouse_available_parts) > 0);
+            if ($request->filled('search')) {
+                $needle = mb_strtolower(trim((string) $request->input('search')));
+                $jobs = $jobs->filter(fn ($job) => str_contains(mb_strtolower(
+                    $job->job_order_no.' '.$job->bus_no.' '.$job->part_needed
+                ), $needle));
+            }
+            $jobs = $jobs->values();
+            $page = max(1, (int) $request->input('page', 1));
+            $jobOrderRequests = new LengthAwarePaginator(
+                $jobs->forPage($page, 8)->values(),
+                $jobs->count(), 8, $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
 
         $statusOptions = $currentView === 'history'
@@ -182,6 +226,7 @@ class WarehousePartRequestController extends Controller
             'delivered',
             'issued',
             'currentView',
+            'jobOrderRequests',
             'statusOptions',
             'activeCount',
             'historyCount'
