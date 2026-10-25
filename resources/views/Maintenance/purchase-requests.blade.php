@@ -96,7 +96,7 @@
                   <x-ui.summary-card label="For Purchase" value="{{ $forPurchase }}" small="Ready to purchase" icon="fa-cart-shopping" color="blue" />
               </section>
 
-              <section data-ajax-region="records" class="table-card purchase-request-card">
+              <section data-ajax-region="records" class="table-card purchase-request-card {{ $recordView === 'history' ? 'is-history' : 'is-active' }}">
                   <div class="section-header maintenance-record-header">
                       <div>
                           <h2>Purchase Requisition Records</h2>
