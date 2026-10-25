@@ -11,6 +11,7 @@ use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Services\Warehouse\InventoryLedgerService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class ItemRequestController extends Controller
@@ -45,20 +46,40 @@ class ItemRequestController extends Controller
      * Issue a complete IR only. Partial releases require a separate Head decision.
      * Item rows are locked and matched by name AND compatible unit.
      */
-    public function issue(ItemRequest $itemRequest, InventoryLedgerService $ledger)
+    public function issue(Request $request, ItemRequest $itemRequest, InventoryLedgerService $ledger)
     {
-        // Never deduct stock without a retained, verified signed issuance slip.
-        // The preparation modal is print-only; the signed-issuance workflow follows.
-        abort(409, 'A signed stock withdrawal slip must be recorded before issuance can be confirmed.');
+        $validated = $request->validate([
+            'received_by' => ['required', 'string', 'max:255'],
+            'signed_slip' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'handover_confirmed' => ['required', 'accepted'],
+            'issued_quantities' => ['required', 'array', 'min:1'],
+            'issued_quantities.*' => ['required', 'integer', 'min:1'],
+        ]);
 
+        $expected = collect($itemRequest->requested_parts ?? [])->values();
+        if ($expected->isEmpty() || count($validated['issued_quantities']) !== $expected->count()) {
+            throw ValidationException::withMessages(['issued_quantities' => 'All requested parts must be included.']);
+        }
+        foreach ($expected as $index => $part) {
+            if ((int) ($validated['issued_quantities'][$index] ?? 0) !== (int) ($part['quantity'] ?? 0)) {
+                throw ValidationException::withMessages(['issued_quantities' => 'Partial issuance requires Maintenance Head authorization and is not enabled yet.']);
+            }
+        }
+
+        // Retain evidence in private storage, not the publicly accessible disk.
+        $slipPath = $request->file('signed_slip')->store('warehouse/signed-ir-slips', 'local');
+        try {
         $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        DB::transaction(function () use ($itemRequest, $ledger, $irNumber): void {
+        DB::transaction(function () use ($itemRequest, $ledger, $irNumber, $slipPath, $validated): void {
             $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
             if ($ir->status !== 'Submitted') {
                 throw ValidationException::withMessages(['issue' => 'This Item Request has already been processed or is not ready for issuance.']);
             }
             if ($ir->jobOrder?->review_status !== 'Approved') {
                 throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved.']);
+            }
+            if (InventoryIssuance::where('reference_no', $irNumber)->exists()) {
+                throw ValidationException::withMessages(['issue' => 'An issuance is already recorded for this Item Request.']);
             }
             $parts = collect($ir->requested_parts ?? []);
             if ($parts->isEmpty()) {
@@ -100,6 +121,9 @@ class ItemRequestController extends Controller
                 'reference_no' => $irNumber,
                 'issued_by' => auth()->id(),
                 'issued_at' => now(),
+                'signed_slip_path' => $slipPath,
+                'received_by' => trim($validated['received_by']),
+                'handover_confirmed_at' => now(),
             ]);
             foreach ($allocations as $allocation) {
                 $item = $allocation['item'];
@@ -120,8 +144,12 @@ class ItemRequestController extends Controller
             $ir->update(['status' => 'Issued']);
             $ir->jobOrder?->update(['part_status' => 'Issued']);
         });
+        } catch (\Throwable $error) {
+            Storage::disk('local')->delete($slipPath);
+            throw $error;
+        }
 
-        return redirect()->route('warehouse.item-requests')->with('success', "{$irNumber} issued. Warehouse stock movements were recorded.");
+        return redirect()->route('warehouse.item-requests')->with('success', "{$irNumber} issued. Signed slip retained and stock movements recorded.");
     }
 
     public function index(Request $request)
