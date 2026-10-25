@@ -188,6 +188,8 @@
                                           : null;
 
                                       $sourceJo = ($prJobApprovals ?? collect())->get($pr->job_order_no);
+                                      $sourceJoApproved = $sourceJo?->review_status === 'Approved';
+                                      $legacyAuthorized = $pr->status === 'Submitted' && $sourceJoApproved;
 
                                       $isSubmitted = $pr->status === 'Submitted';
                                       $isRejected = $pr->status === 'Rejected';
@@ -213,6 +215,9 @@
                                       <td>{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $pr->quantity) : $pr->quantity }}</td>
                                       <td class="status-col">
                                           <x-ui.status-badge :status="$pr->status" type="purchase" />
+                                          @if($legacyAuthorized)
+                                              <small title="The source Job Order is approved; this PR retains its original Submitted status." style="display:block;color:#3869a5;font-size:10px;margin-top:4px;">JO Approved</small>
+                                          @endif
                                       </td>
                                       <td class="created-cell">
                                           @if($pr->created_at)
@@ -244,7 +249,7 @@
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-purpose="{{ $pr->purpose }}"
                                                   data-target-date="{{ $pr->target_date?->format('M d, Y') }}"
-                                                  data-requester="{{ $pr->requester?->name }}"
+                                                  data-requester="{{ $pr->requester?->name ?: 'Requester not recorded' }}"
                                                   data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
                                                   data-source-type="{{ $pr->source_type ?: 'Maintenance Request' }}"
                                                   data-work-to-perform="{{ $workToPerformByJobOrder->get($pr->job_order_no, '') }}"
