@@ -5132,3 +5132,47 @@
 @media (max-width: 700px) {
   .purchase-page .pr-parts-dropdown-menu { width: min(280px, 80vw); }
 }
+
+/* Portal dropdown: the original details content is only a template.
+   The JS clones it into body to avoid clipping by the scrollable table. */
+.purchase-page .pr-parts-dropdown > .pr-parts-dropdown-menu {
+  display: none !important;
+}
+body > .pr-parts-floating-menu {
+  box-sizing: border-box;
+  padding: 11px;
+  background: #fff;
+  border: 1px solid #d9e5f6;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(14, 46, 89, .17);
+  color: #17345c;
+  font-size: 11px;
+  line-height: 1.4;
+}
+body > .pr-parts-floating-menu > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #29466d;
+}
+body > .pr-parts-floating-menu .pr-parts-dropdown-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 6px;
+  margin-top: 5px;
+  border-radius: 6px;
+  background: #f7faff;
+}
+body > .pr-parts-floating-menu .pr-parts-dropdown-item > span {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
+  flex: none;
+  color: #275998;
+  white-space: nowrap;
+}
