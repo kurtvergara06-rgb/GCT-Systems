@@ -226,3 +226,39 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
  font-size:11px;font-weight:800;line-height:1.2;white-space:nowrap;
 }
 .warehouse-ir-page .ir-table tbody td .ir-view-button i{font-size:11px;line-height:1;flex:none}
+
+
+/* GCT paper issuance-slip preparation layout */
+.warehouse-ir-page .ir-table td:last-child{white-space:nowrap}
+.warehouse-ir-page .ir-table .ir-prepare-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-left:6px;min-height:29px;padding:6px 10px;border:1px solid #aee2c2;border-radius:7px;background:#e4f8ec;color:#176b42;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.warehouse-ir-page .ir-table .ir-prepare-button:hover{background:#cff0dc}
+#warehouseIrSlipModal .warehouse-ir-slip-modal{width:min(1080px,calc(100vw - 28px));max-height:calc(100vh - 32px)}
+#warehouseIrSlipModal .warehouse-ir-slip-body{padding:20px 24px;gap:18px}
+.warehouse-ir-slip-eyebrow{display:block;font-size:9px;font-weight:850;letter-spacing:.08em;color:#647f9e;margin-bottom:4px}
+.warehouse-ir-slip-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.warehouse-ir-slip-fields>div{display:flex;flex-direction:column;gap:5px;padding:12px 14px;background:#f4f7fc;border:1px solid #e0e7f3;border-radius:9px}
+.warehouse-ir-slip-fields span{font-size:10px;color:#657c9a;font-weight:700}
+.warehouse-ir-slip-fields strong{font-size:12px;font-weight:850;color:#17395f;overflow-wrap:anywhere}
+#warehouseIrSlipModal .warehouse-ir-slip-table{min-width:815px}
+#warehouseIrSlipModal .warehouse-ir-slip-table td{height:54px}
+#warehouseIrSlipModal .warehouse-ir-slip-table th{white-space:normal}
+.warehouse-ir-slip-signature-cell{white-space:nowrap;font-size:12px;color:#8a9bb1}
+.warehouse-ir-slip-signatures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:14px}
+.warehouse-ir-slip-signatures>div{padding:12px;display:flex;flex-direction:column;gap:7px}
+.warehouse-ir-slip-signatures span{font-weight:850;font-size:12px;color:#17345a}
+.warehouse-ir-slip-signatures small{font-size:10px;color:#7084a0}
+.warehouse-ir-signature-line{height:52px;border-bottom:1px solid #8295ae}
+@media(max-width:680px){.warehouse-ir-slip-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.warehouse-ir-slip-signatures{grid-template-columns:1fr;gap:8px}}
+@media print{
+  body *{visibility:hidden!important}
+  #warehouseIrSlipModal,#warehouseIrSlipModal *{visibility:visible!important}
+  #warehouseIrSlipModal{display:block!important;position:absolute!important;inset:0!important;padding:0!important;background:#fff!important;backdrop-filter:none!important}
+  #warehouseIrSlipModal .warehouse-ir-slip-modal{display:block!important;max-height:none!important;width:100%!important;box-shadow:none!important;overflow:visible!important;border:0!important}
+  #warehouseIrSlipModal .ir-modal-body{display:block!important;overflow:visible!important}
+  #warehouseIrSlipModal .warehouse-ir-slip-header{border-bottom:2px solid #233c60!important}
+  #warehouseIrSlipModal .ir-modal-footer,#warehouseIrSlipModal [data-ir-slip-close],#warehouseIrSlipModal .ir-note{display:none!important}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields{margin-bottom:18px!important}
+  #warehouseIrSlipModal .warehouse-ir-stock-table-wrap{overflow:visible!important}
+  #warehouseIrSlipModal .warehouse-ir-slip-table{min-width:0!important;width:100%!important;font-size:9px!important}
+  @page{size:landscape;margin:12mm}
+}
