@@ -196,7 +196,10 @@ class MechanicAttendanceController extends Controller
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning';
+        if (! in_array($validated['status'], ['Absent', 'On Leave'], true) && ! empty($validated['time_in'])) {
+            $validated['status'] = $validated['time_in'] > '08:00' ? 'Late' : 'Present';
+        }
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -265,7 +268,10 @@ class MechanicAttendanceController extends Controller
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning';
+        if (! in_array($validated['status'], ['Absent', 'On Leave'], true) && ! empty($validated['time_in'])) {
+            $validated['status'] = $validated['time_in'] > '08:00' ? 'Late' : 'Present';
+        }
 
         // Prevent an ongoing Maintenance Job Order from being made unavailable
         // or moved to a different attendance day.
@@ -412,7 +418,11 @@ class MechanicAttendanceController extends Controller
 
                 try {
                     $status = trim($data['status'] ?? 'Present');
-                    if (! in_array($status, ['Present', 'Absent', 'On Leave', 'On Duty'], true)) {
+                    $importTimeIn = $this->parseCsvTime($data['time_in'] ?? null);
+                    if (! in_array($status, ['Absent', 'On Leave'], true) && $importTimeIn) {
+                        $status = substr((string) $importTimeIn, 0, 5) > '08:00' ? 'Late' : 'Present';
+                    }
+                    if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 
