@@ -39,6 +39,14 @@
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
 
+
+        </div>
+
+        @if($isHistory)
+          <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
+        @endif
+
+        <div class="warehouse-list-controls">
           <nav class="warehouse-record-tabs" aria-label="Part request record view" role="tablist">
             <a
               href="{{ route('part-requests', ['view' => 'active']) }}"
@@ -61,18 +69,16 @@
               <span>History</span>
             </a>
           </nav>
-        </div>
-
-        @if($isHistory)
-          <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
-        @endif
-
         <div class="gct-table-toolbar-row">
-          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+
           <x-ui.table-toolbar action="{{ route('part-requests') }}" data-server-filter="true" search-label="Search Part Requests" search-placeholder="Search PR no., JO no., bus, or item..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Part Requests" :sort-options="['pr_no' => 'PR Number', 'created_at' => 'Request Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
             <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
             <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Statuses"><option value="All Statuses">All Statuses</option>@foreach(($statusOptions ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
           </x-ui.table-toolbar>
+        </div>
+        </div>
+        <div class="warehouse-request-count">
+          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
         </div>
 
         <div class="table-wrap">
