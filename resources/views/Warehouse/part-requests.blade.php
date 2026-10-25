@@ -38,6 +38,9 @@
             <h2>{{ $isHistory ? 'Part Request History' : 'Active Part Requests' }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
+        <div class="warehouse-request-count">
+          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+        </div>
 
 
         </div>
@@ -47,9 +50,7 @@
         @endif
 
         <div class="warehouse-list-controls">
-        <div class="warehouse-request-count">
-          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
-        </div>
+
           <nav class="warehouse-record-tabs" aria-label="Part request record view" role="tablist">
             <a
               href="{{ route('part-requests', ['view' => 'active']) }}"
