@@ -572,12 +572,11 @@
                               <th>#</th>
                               <th>Item / Part</th>
                               <th>Qty</th>
-                              <th>Unit</th>
                           </tr>
                       </thead>
                       <tbody id="reviewPrItemsBody">
                           <tr>
-                              <td colspan="4" class="pr-review-empty">No requested items recorded.</td>
+                              <td colspan="3" class="pr-review-empty">No requested items recorded.</td>
                           </tr>
                       </tbody>
                   </table>
