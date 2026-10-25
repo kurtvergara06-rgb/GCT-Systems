@@ -19,7 +19,7 @@ class ItemRequestController extends Controller
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
-            ->whereDoesntHave('itemRequest')
+            ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
             ->orderByDesc('created_at')
             ->get(['id', 'job_order_no', 'bus_no', 'part_needed']);
 
