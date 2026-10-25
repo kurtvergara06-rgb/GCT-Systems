@@ -90,7 +90,7 @@
               />
 
               <section data-ajax-region="summary" class="stats-grid purchase-stats-grid">
-                  <x-ui.summary-card label="Submitted" value="{{ $submitted }}" small="Waiting approval" icon="fa-paper-plane" color="blue" />
+                  <x-ui.summary-card label="Submitted" value="{{ $submitted }}" small="Awaiting processing" icon="fa-paper-plane" color="blue" />
                   <x-ui.summary-card label="Rejected" value="{{ $rejected }}" small="Needs revision" icon="fa-xmark" color="red" />
                   <x-ui.summary-card label="Approved" value="{{ $approved }}" small="Approved requests" icon="fa-check" color="purple" />
                   <x-ui.summary-card label="For Purchase" value="{{ $forPurchase }}" small="Ready to purchase" icon="fa-cart-shopping" color="blue" />
@@ -189,8 +189,8 @@
 
                                       $isSubmitted = $pr->status === 'Submitted';
                                       $isRejected = $pr->status === 'Rejected';
-                                      $canEdit = $isSubmitted || $isRejected;
-                                      $canApproveOrReject = $isMaintenanceAdmin && $isSubmitted;
+                                      $canEdit = $isRejected;
+                                      $canApproveOrReject = false; // Approval already occurred during Job Order review.
                                       $canDelete = $isSubmitted;
                                   @endphp
 
@@ -227,7 +227,7 @@
                                               <button
                                                   type="button"
                                                   class="pr-review-btn open-view-pr-modal"
-                                                  title="{{ $canApproveOrReject ? 'Review Purchase Requisition' : 'View Purchase Requisition' }}"
+                                                  title="View Purchase Requisition"
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
                                                   data-job-order-no="{{ $pr->job_order_no }}"
@@ -252,7 +252,7 @@
                                                   data-history="{{ $recordView === 'history' ? '1' : '0' }}"
                                               >
                                                   <i class="fa-solid fa-eye"></i>
-                                                  <span>{{ $canApproveOrReject ? 'Review' : 'View' }}</span>
+                                                  <span>View</span>
                                               </button>
 
                                               @if($recordView !== 'history' && $canDelete)
@@ -438,7 +438,7 @@
           id="editPrModal"
           title="Purchase Request Details"
           title-id="editPrModalTitle"
-          description="Review the purchase request information and take the appropriate action."
+          description="View purchase requisition information approved during Job Order review."
           size="wide"
           form-id="editPrForm"
           action="#"
