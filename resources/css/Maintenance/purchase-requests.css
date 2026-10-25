@@ -4460,3 +4460,100 @@
   font-size: 10px;
   font-weight: 650;
 }
+
+
+/* PR detail document refresh: compact, readable information hierarchy. */
+#editPrModal .pr-review-summary {
+  padding: 16px 19px;
+  background: linear-gradient(110deg, #edf5ff 0%, #ffffff 68%);
+  border: 1px solid #ccdffa;
+  border-left: 4px solid #1d5ec9;
+  border-radius: 13px;
+  box-shadow: 0 5px 16px rgba(17, 58, 112, .05);
+}
+#editPrModal .pr-review-doc-icon {
+  background: #e3eeff;
+  border-color: #c9dcfb;
+  color: #155bc5;
+}
+#editPrModal #reviewPrNo {
+  font-size: 17px;
+  letter-spacing: .15px;
+}
+#editPrModal .pr-review-information-section,
+#editPrModal .pr-review-section {
+  margin-top: 17px;
+}
+#editPrModal .pr-review-section-heading {
+  padding: 0 3px 2px;
+}
+#editPrModal .pr-review-information {
+  background: #fff;
+  border: 1px solid #d8e4f4;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px rgba(18, 48, 95, .04);
+}
+#editPrModal .pr-review-information-column:first-child {
+  border-right: 1px solid #dfe8f6;
+}
+#editPrModal .pr-review-detail-row,
+#editPrModal .pr-review-detail-full {
+  min-height: 49px;
+  padding: 10px 15px;
+  gap: 14px;
+  grid-template-columns: 120px minmax(0, 1fr);
+  border-bottom: 1px solid #e9eff7;
+}
+#editPrModal .pr-review-detail-row:nth-child(odd) {
+  background: #f7faff;
+}
+#editPrModal .pr-review-information > .pr-review-detail-full:nth-child(odd) {
+  background: #f7faff;
+}
+#editPrModal .pr-review-detail-row > span {
+  font-size: 11px;
+  font-weight: 650;
+  color: #5a708c;
+  line-height: 1.35;
+}
+#editPrModal .pr-review-detail-row > strong {
+  font-size: 12px;
+  font-weight: 750;
+  color: #142d50;
+  line-height: 1.45;
+}
+#editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
+  color: #1758bd;
+}
+#editPrModal #prAuthorizationSection .pr-review-information {
+  background: #f8fbff;
+}
+#editPrModal #prAuthorizationSection .pr-review-detail-row {
+  background: transparent;
+}
+#editPrModal #prAuthorizationSection #reviewPrSignature {
+  display: block;
+  max-width: min(100%, 300px);
+  height: auto;
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid #d8e4f4;
+  border-radius: 9px;
+  background: #fff;
+}
+#editPrModal #prAuthorizationSection #reviewPrSignature[style*="display: none"] {
+  display: none !important;
+}
+@media (max-width: 640px) {
+  #editPrModal .pr-review-information { grid-template-columns: 1fr; }
+  #editPrModal .pr-review-information-column:first-child {
+    border-right: 0;
+    border-bottom: 1px solid #dfe8f6;
+  }
+  #editPrModal .pr-review-detail-row,
+  #editPrModal .pr-review-detail-full {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+    padding: 11px 13px;
+  }
+}
