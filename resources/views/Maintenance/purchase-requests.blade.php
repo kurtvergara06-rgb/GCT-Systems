@@ -230,6 +230,10 @@
                                                   title="View Purchase Requisition"
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
+                                                  data-jo-approved="{{ $sourceJo?->review_status === 'Approved' ? '1' : '0' }}"
+                                                  data-jo-approver="{{ $sourceJo?->approver?->name ?? '' }}"
+                                                  data-jo-approved-at="{{ $sourceJo?->approved_at?->format('M d, Y · h:i A') ?? '' }}"
+                                                  data-jo-signature-url="{{ $sourceJo?->review_status === 'Approved' ? route('job-orders.approval-signature', $sourceJo->id, false) : '' }}"
                                                   data-job-order-no="{{ $pr->job_order_no }}"
                                                   data-bus-no="{{ $pr->bus_no }}"
                                                   data-item="{{ $pr->item }}"
@@ -586,6 +590,24 @@
                           </tr>
                       </tbody>
                   </table>
+              </div>
+          </section>
+
+          <section class="pr-review-section" id="prAuthorizationSection">
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                      <div><h3>04 — Authorization</h3><p>Inherited from the source Job Order approval; no second approval required.</p></div>
+                  </div>
+              </div>
+              <div class="pr-review-information">
+                  <div class="pr-review-detail-row"><span>Approved By</span><strong id="reviewPrApprover">—</strong></div>
+                  <div class="pr-review-detail-row"><span>Approval Date</span><strong id="reviewPrApprovedAt">—</strong></div>
+                  <div class="pr-review-detail-row pr-review-detail-full">
+                      <span>Authorized Signature</span>
+                      <div><img id="reviewPrSignature" alt="Maintenance Head handwritten approval signature" style="display:none;max-width:300px;max-height:110px;object-fit:contain;" />
+                      <strong id="reviewPrSignatureFallback">Not available</strong></div>
+                  </div>
               </div>
           </section>
 
