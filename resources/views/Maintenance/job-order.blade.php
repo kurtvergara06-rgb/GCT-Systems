@@ -140,7 +140,7 @@
                             @forelse($jobOrders as $jobOrder)
                                 @php
                                     $isCompleted = $jobOrder->status === 'Completed';
-                                    $isOnHold = $jobOrder->status === 'On Hold';
+                                    $isOnHold = $jobOrder->display_status === 'On Hold';
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
                                     $hasNeededParts = !empty($jobOrder->part_needed);
                                     $joStatus = $jobOrder->display_status;
@@ -175,7 +175,7 @@
                                         && !$hasLinkedPr
                                         && in_array($jobOrder->part_status, [null, 'Not Requested'], true);
 
-                                    $isOngoing = $jobOrder->status === 'On Going';
+                                    $isOngoing = $jobOrder->display_status === 'In Progress';
 
                                     $canComplete = $isApprovedReview
                                         && !$isCompleted
@@ -265,8 +265,8 @@
                                         @endif
                                     </td>
 
-                                    <td class="{{ $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
-                                        @if($jobOrder->start_date)
+                                    <td class="{{ !$isOnHold && $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
+                                        @if(!$isOnHold && $jobOrder->start_date)
                                             <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->start_date)) }}</span>
                                             <span class="time-value">{{ date('h:i A', strtotime($jobOrder->start_date)) }}</span>
                                         @else
