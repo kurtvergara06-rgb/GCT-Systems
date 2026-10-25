@@ -54,3 +54,28 @@ body > .ir-parts-popover[hidden]{display:none!important}
 body > .ir-parts-popover>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid #edf2f8;color:#244265;font-size:11px}
 body > .ir-parts-popover>div:last-child{border-bottom:0}
 body > .ir-parts-popover strong{font-weight:800;white-space:nowrap}
+
+
+/* PR-inspired Warehouse IR processing table */
+.warehouse-ir-page .ir-table-wrap{border:1px solid #dce5f2;border-radius:10px;overflow-x:auto;overflow-y:visible}
+.warehouse-ir-page .ir-table{width:100%;min-width:850px;border-collapse:collapse;table-layout:auto}
+.warehouse-ir-page .ir-table thead th{padding:13px 12px;background:#f3f6fb;font-size:10px;font-weight:850;color:#526781;letter-spacing:.045em;border-bottom:1px solid #dce5f2}
+.warehouse-ir-page .ir-table tbody td{padding:13px 12px;vertical-align:middle;border-bottom:1px solid #e8eef6;font-size:11px}
+.warehouse-ir-page .ir-table tbody tr:nth-child(even){background:#f8fafd}
+.warehouse-ir-page .ir-table td:nth-child(2){min-width:170px;white-space:normal}
+.warehouse-ir-page .ir-table td:nth-child(3){min-width:85px;white-space:nowrap}
+.warehouse-ir-page .ir-table td:nth-child(4){min-width:115px;white-space:nowrap;font-weight:750}
+.warehouse-ir-page .ir-table td:nth-child(5){min-width:115px}
+.warehouse-ir-page .ir-table td:nth-child(6){min-width:143px}
+.warehouse-ir-page .ir-table td:nth-child(7){text-align:center}
+.warehouse-ir-reference{min-width:166px}
+.warehouse-ir-reference .ir-number{color:#1551a2;font-weight:850;font-size:12px}
+.warehouse-ir-ref-tags{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:7px}
+.warehouse-ir-ref-tag{background:#eff4fc;border:1px solid #d9e4f2;padding:4px 6px;border-radius:5px;font-size:9px;font-weight:750;color:#456080;white-space:nowrap}
+.warehouse-ir-ref-tag i{margin-right:3px}
+.warehouse-ir-process-status{display:inline-flex;align-items:center;gap:5px;border:1px solid;border-radius:20px;padding:6px 9px;font-size:10px;font-weight:800;white-space:nowrap}
+.warehouse-ir-process-status.is-ready,.warehouse-ir-process-status.is-issued{color:#167445;background:#ddf9e9;border-color:#9de9bf}
+.warehouse-ir-process-status.is-pending{color:#925e11;background:#fff0cc;border-color:#f6d482}
+.warehouse-ir-process-status.is-shortage{color:#925e11;background:#fff0cc;border-color:#f6d482}
+.warehouse-ir-process-subtext{display:block;margin-top:5px;font-size:9px;color:#8090a3;font-weight:700}
+.warehouse-ir-page .ir-record-count{background:#f5f8fd;border:1px solid #dee7f4;border-radius:20px;padding:8px 12px;font-weight:800;color:#43648c;font-size:11px}
