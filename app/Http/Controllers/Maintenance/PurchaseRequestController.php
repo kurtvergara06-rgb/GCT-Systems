@@ -267,7 +267,27 @@ class PurchaseRequestController extends Controller
                 ->orderByDesc(
                     'created_at'
                 )
-                ->get();
+                ->get()
+                ->filter(function (JobOrder $jobOrder): bool {
+                    if ($jobOrder->review_status !== 'Approved') {
+                        return false;
+                    }
+
+                    if ($this->maintenancePurchaseRequestQuery()
+                        ->where('job_order_no', $jobOrder->job_order_no)
+                        ->exists()) {
+                        return false;
+                    }
+
+                    try {
+                        // Reuse the exact shortage calculation used by submission.
+                        return $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed) !== [];
+                    } catch (ValidationException $exception) {
+                        // Invalid JO part units still need correction, not a purchase request.
+                        return false;
+                    }
+                })
+                ->values();
 
         $selectedJobOrder =
             null;
