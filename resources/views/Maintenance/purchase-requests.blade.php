@@ -187,6 +187,8 @@
                                           ? trim(($firstRequestedPart['quantity'] ?? '').' '.($firstRequestedPart['unit'] ?? ''))
                                           : null;
 
+                                      $sourceJo = ($prJobApprovals ?? collect())->get($pr->job_order_no);
+
                                       $isSubmitted = $pr->status === 'Submitted';
                                       $isRejected = $pr->status === 'Rejected';
                                       $canEdit = $isRejected;
