@@ -352,9 +352,9 @@
                                                             <div><span>Completion Date &amp; Time</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
                                                         </div>
                                                     </section>
-                                                    <section class="jo-view-section">
+                                                    <section class="jo-view-section jo-view-warehouse-section">
                                                         <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse</h3>
-                                                        <div class="jo-view-grid">
+                                                        <div class="jo-view-grid jo-view-warehouse-grid">
                                                             <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
                                                             <div class="jo-view-parts-cell">
                                                                 <span>Requested Parts</span>
@@ -371,9 +371,9 @@
                                                             </div>
                                                         </div>
                                                     </section>
-                                                    <section class="jo-view-section">
+                                                    <section class="jo-view-section jo-view-head-approval-section">
                                                         <h3><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3>
-                                                        <div class="jo-view-grid">
+                                                        <div class="jo-view-grid jo-view-approval-grid">
                                                             <div><span>Approved By</span><strong><i class="fa-solid fa-circle-check jo-view-approved-icon" aria-hidden="true"></i> {{ $jobOrder->approver?->name ?? 'Not approved' }}</strong></div>
                                                             <div><span>Approved At</span><strong>{{ $jobOrder->approved_at?->format('M d, Y · h:i A') ?? 'Pending' }}</strong></div>
                                                         </div>
@@ -386,7 +386,7 @@
                                                             <p class="jo-view-help">No saved signature image is available for this record.</p>
                                                         @endif
                                                     </section>
-                                                    <details class="jo-view-audit">
+                                                    <details class="jo-view-audit jo-view-audit-compact">
                                                         <summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></summary>
                                                         <ol>
                                                             @forelse($jobOrder->audits as $audit)
