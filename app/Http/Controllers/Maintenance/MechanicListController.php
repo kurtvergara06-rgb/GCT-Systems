@@ -20,9 +20,8 @@ class MechanicListController extends Controller
             : now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
         $activeJobs = JobOrder::query()->with('mechanicAssignments')
-            ->where('status', 'On Going')
+            ->whereIn('status', ['On Going', 'On Hold'])
             ->where('review_status', 'Approved')
-            ->whereNotNull('actual_started_at')
             ->latest('start_date')
             ->latest('id')
             ->get()
@@ -95,7 +94,9 @@ class MechanicListController extends Controller
             $mechanic->setAttribute('active_job', $activeJob);
             $mechanic->setAttribute(
                 'effective_status',
-                $activeJob && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true)
+                $activeJob && $activeJob->actual_started_at !== null
+                    && ($activeJob->part_needed === null || trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued')
+                    && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true)
                     ? 'On Duty'
                     : $baseStatus
             );
@@ -119,11 +120,13 @@ class MechanicListController extends Controller
             ->where('employment_status', 'Active')
             ->get();
         $activeAssignedNames = $activeJobs->keys();
+        $workingNames = $activeJobs->filter(fn (JobOrder $jobOrder) => $jobOrder->actual_started_at !== null
+            && (trim((string) $jobOrder->part_needed) === '' || $jobOrder->part_status === 'Issued'))->keys();
 
         $totalMechanics = $allMechanics->count();
-        $availableMechanics = $allMechanics->filter(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeAssignedNames) {
+        $availableMechanics = $allMechanics->filter(function (Mechanic $mechanic) use ($attendanceByMechanic, $workingNames) {
             $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
-            $isAssigned = $activeAssignedNames->contains(Str::lower(trim($mechanic->mechanic_name)));
+            $isAssigned = $workingNames->contains(Str::lower(trim($mechanic->mechanic_name)));
 
             return $attendance
                 && in_array($attendance->status, ['Present', 'Late'], true)
@@ -131,7 +134,7 @@ class MechanicListController extends Controller
         })->count();
 
         $onDutyMechanics = $allMechanics->filter(
-            fn (Mechanic $mechanic) => $activeAssignedNames->contains(Str::lower(trim($mechanic->mechanic_name)))
+            fn (Mechanic $mechanic) => $workingNames->contains(Str::lower(trim($mechanic->mechanic_name)))
                 && in_array($attendanceByMechanic->get($mechanic->mechanic_id)?->status, ['Present', 'Late', 'On Duty'], true)
         )->count();
 
