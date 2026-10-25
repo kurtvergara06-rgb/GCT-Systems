@@ -33,13 +33,20 @@ class JobOrderWorkflowService
             ->flatMap(fn ($names) => preg_split('/\s*,\s*/', (string) $names) ?: [])
             ->filter();
 
+        // Use the same attendance-by-mechanic-ID basis as the Mechanic
+        // Availability board, so both screens agree on today's duty status.
+        $onDutyMechanicCodes = MechanicAttendance::query()
+            ->whereDate('attendance_date', $today)
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->pluck('mechanic_id')
+            ->filter(fn ($id) => trim((string) $id) !== '')
+            ->unique();
+
         return Mechanic::query()
             ->where('employment_status', 'Active')
+            ->whereIn('mechanic_id', $onDutyMechanicCodes)
             ->whereNotIn('id', $busyIds)
             ->whereNotIn('mechanic_name', $busyLegacyNames)
-            ->whereHas('attendances', fn ($query) => $query
-                ->whereDate('attendance_date', $today)
-                ->whereIn('status', ['Present', 'Late', 'On Duty']))
             ->orderBy('mechanic_name')
             ->get()
             ->map(function (Mechanic $mechanic) use ($workText): Mechanic {
