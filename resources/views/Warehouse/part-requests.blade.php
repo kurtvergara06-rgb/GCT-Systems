@@ -256,6 +256,30 @@
         </div>
 
         <x-ui.table-footer :items="$isJo ? $jobOrderRequests : $purchaseRequests" data-lazy-pagination="true" />
+
+        @if($isHistory && $jobOrderIssuances->isNotEmpty())
+          <div class="warehouse-jo-history" style="margin-top:18px">
+            <h3>JO Parts Issuance History</h3>
+            <p>Recorded Warehouse handovers for approved Job Orders without requisitions.</p>
+            <div class="table-wrap">
+              <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
+                <thead><tr><th>JO ID</th><th>Issue Reference</th><th>Parts Issued</th><th>Issued By</th><th>Date Issued</th></tr></thead>
+                <tbody>
+                  @foreach($jobOrderIssuances as $issuance)
+                    <tr>
+                      <td><strong class="pr-main-num">{{ $issuance->reference_no }}</strong></td>
+                      <td>{{ $issuance->issue_no }}</td>
+                      <td>{{ $issuance->items->map(fn ($item) => $item->item_name.' ('.$item->quantity.' '.$item->unit.')')->implode(', ') }}</td>
+                      <td>{{ $issuance->issued_by }}</td>
+                      <td>{{ $issuance->issued_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+        @endif
+
       </section>
     </main>
   </div>
