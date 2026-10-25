@@ -632,7 +632,7 @@
 }
 .warehouse-part-card .warehouse-list-controls .warehouse-record-tabs {
   margin: 0;
-  align-self: center;
+  align-self: flex-end;
 }
 .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
   display: flex;
