@@ -657,8 +657,9 @@ class JobOrderController extends Controller
             $updates['review_notes'] = null;
             $updates['revision_number'] = $jobOrder->revision_number + 1;
         } else {
-            $updates['status'] = $mechanics->isNotEmpty() ? 'On Going' : 'On Hold';
-            if ($mechanics->isNotEmpty() && ! $jobOrder->actual_started_at) {
+            $partsReady = trim((string) $partNeeded) === '' || $partStatus === 'Issued';
+            $updates['status'] = $mechanics->isNotEmpty() && $partsReady ? 'On Going' : 'On Hold';
+            if ($mechanics->isNotEmpty() && $partsReady && ! $jobOrder->actual_started_at) {
                 $updates['actual_started_at'] = now();
                 $updates['start_date'] = now();
             }
@@ -702,7 +703,9 @@ class JobOrderController extends Controller
             if ($wasRevision) {
                 $this->workflow->audit($locked, 'resubmitted', 'Revision Required', 'For Review', 'Revised Job Order resubmitted.');
             } else {
-                $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                if ($locked->actual_started_at) {
+                    $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                }
                 $this->workflow->audit($locked, 'updated', 'Approved', 'Approved');
             }
         });
@@ -952,6 +955,7 @@ class JobOrderController extends Controller
                 $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
             ]), (string) config('app.key'));
             $hasMechanics = $mechanics->isNotEmpty();
+            $canStart = $hasMechanics && (trim((string) $locked->part_needed) === '' || $locked->part_status === 'Issued');
             $locked->update([
                 'review_status' => 'Approved',
                 'estimated_duration_value' => $finalDurationValue,
@@ -960,13 +964,13 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt,
                 'approval_signature_hash' => $signatureHash,
-                'status' => $hasMechanics ? 'On Going' : 'On Hold',
-                'start_date' => $hasMechanics ? $approvedAt : null,
-                'actual_started_at' => $hasMechanics ? $approvedAt : null,
+                'status' => $canStart ? 'On Going' : 'On Hold',
+                'start_date' => $canStart ? $approvedAt : null,
+                'actual_started_at' => $canStart ? $approvedAt : null,
             ]);
 
             $bus->placeUnderMaintenance();
-            if ($hasMechanics) {
+            if ($canStart) {
                 $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
             }
             $this->workflow->audit($locked, 'approved', 'For Review', 'Approved', $validated['review_notes'] ?? null, [
