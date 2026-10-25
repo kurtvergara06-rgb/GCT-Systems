@@ -132,8 +132,12 @@ class JobOrderWorkflowService
     public function inventoryAvailability(array $parts): array
     {
         // Evaluate duplicates against total requested demand, not each row alone.
-        $items = InventoryItem::query()->get()->keyBy(
-            fn (InventoryItem $item) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $item->parts_name))
+        // Several Warehouse records may share the same part name. Group them
+        // instead of letting keyBy silently discard all but the last record.
+        $normalizeName = static fn (string $name): string =>
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $name));
+        $items = InventoryItem::query()->get()->groupBy(
+            fn (InventoryItem $item) => $normalizeName((string) ($item->parts_name ?? $item->item_name ?? ''))
         );
         $normalizedParts = collect($parts)->map(static function (array $part): array {
             $name = trim((string) ($part['name'] ?? ''));
@@ -148,8 +152,10 @@ class JobOrderWorkflowService
             ->map(fn ($group) => $group->sum('quantity'));
 
         $breakdown = $normalizedParts->map(function (array $part) use ($items, $totals): array {
-            $item = $items->get($part['key']);
-            $onHand = $item ? max(0, (int) $item->on_hand) : 0;
+            $matchingItems = $items->get($part['key'], collect());
+            $item = $matchingItems->first();
+            $onHand = $matchingItems->sum(fn (InventoryItem $stock) =>
+                max(0, (int) ($stock->quantity_available ?? $stock->on_hand ?? 0)));
             $groupQuantity = (int) $totals->get($part['key'], $part['quantity']);
             return [
                 'name' => $part['name'],
@@ -165,7 +171,8 @@ class JobOrderWorkflowService
         })->values();
 
         $availableGroups = $totals->sum(function ($total, $key) use ($items): int {
-            $onHand = max(0, (int) ($items->get($key)?->on_hand ?? 0));
+            $onHand = $items->get($key, collect())->sum(fn (InventoryItem $stock) =>
+                max(0, (int) ($stock->quantity_available ?? $stock->on_hand ?? 0)));
             return min((int) $total, $onHand);
         });
         $totalNeeded = $totals->sum();
