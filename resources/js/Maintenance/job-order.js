@@ -2753,6 +2753,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     // Never display stale or unqualified mechanics while checking new JO tasks.
     if (newJobMechanicSelect) {
+      newJobMechanicSelect.dataset.lookupStatus = 'loading';
       newJobMechanicSelect.replaceChildren();
       newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
@@ -2798,6 +2799,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       const mechanics =
         await response.json();
       if (lookupSequence !== mechanicLookupSequence) return;
+      if (newJobMechanicSelect) newJobMechanicSelect.dataset.lookupStatus = 'ready';
 
       /* =====================================================
          NEW JO SELECT
@@ -2910,6 +2912,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     } catch (error) {
 
       if (lookupSequence !== mechanicLookupSequence) return;
+      if (newJobMechanicSelect) {
+        newJobMechanicSelect.dataset.lookupStatus = 'error';
+        newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
       console.error(
         'Unable to update available mechanic dropdown:',
         error
@@ -4205,9 +4211,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
 
       if (!selected.length) {
         const availableCount = Array.from(select.options).filter((option) => option.value).length;
-        label.textContent = availableCount
-          ? `${availableCount} mechanics available`
-          : '0 mechanics available';
+        label.textContent = select.dataset.lookupStatus === 'loading'
+          ? 'Checking available mechanics...'
+          : select.dataset.lookupStatus === 'error'
+            ? 'Unable to load mechanics — retry'
+            : availableCount
+              ? `${availableCount} mechanics available`
+              : '0 qualified, on-duty mechanics';
         return;
       }
 
