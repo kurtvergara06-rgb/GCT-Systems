@@ -5035,3 +5035,100 @@
   width: 86px;
   text-align: center;
 }
+
+
+/* Compact expandable part list, patterned after Driver Master List authorized buses. */
+.purchase-page .purchase-request-table { table-layout: fixed; }
+.purchase-page .purchase-request-table td.requested-part-cell {
+  position: relative;
+  min-width: 0;
+  max-width: 0;
+  overflow: visible;
+  text-align: left;
+  vertical-align: middle;
+}
+.purchase-page .purchase-request-table .requested-part-cell .pr-part-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.purchase-page .pr-parts-dropdown {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 5px;
+}
+.purchase-page .pr-parts-dropdown summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 8px;
+  background: #eaf2ff;
+  border: 1px solid #d5e4fa;
+  border-radius: 6px;
+  color: #1754ab;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+}
+.purchase-page .pr-parts-dropdown summary::-webkit-details-marker { display: none; }
+.purchase-page .pr-parts-dropdown summary i { font-size: 9px; transition: transform .18s ease; }
+.purchase-page .pr-parts-dropdown[open] summary i { transform: rotate(180deg); }
+.purchase-page .pr-parts-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  box-sizing: border-box;
+  width: min(330px, 75vw);
+  max-width: none;
+  padding: 11px;
+  background: #fff;
+  border: 1px solid #d9e5f6;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(14, 46, 89, .14);
+}
+.purchase-page .pr-parts-dropdown-menu > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: #29466d;
+}
+.purchase-page .pr-parts-dropdown-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 6px;
+  background: #f7faff;
+  margin-top: 5px;
+  font-size: 11px;
+}
+.purchase-page .pr-parts-dropdown-item > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #17345c;
+}
+.purchase-page .pr-parts-dropdown-item > b {
+  flex: none;
+  white-space: nowrap;
+  color: #275998;
+}
+.purchase-page .purchase-request-table tbody tr:nth-last-child(-n+3) .pr-parts-dropdown-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+@media (max-width: 700px) {
+  .purchase-page .pr-parts-dropdown-menu { width: min(280px, 80vw); }
+}
