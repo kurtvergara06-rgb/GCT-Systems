@@ -337,8 +337,23 @@ class WarehousePartRequestController extends Controller
                 ->exists();
 
             if ($allFullyIssued && ! $hasOutstandingRequest) {
-                JobOrder::where('job_order_no', $lockedRequest->job_order_no)
-                    ->update(['part_status' => 'Issued']);
+                // A completed warehouse issue is the mechanic's parts handover.
+                // Start only approved, assigned, unfinished jobs; never reset an existing timer.
+                $lockedJob = JobOrder::query()
+                    ->where('job_order_no', $lockedRequest->job_order_no)
+                    ->lockForUpdate()->first();
+                if ($lockedJob) {
+                    $updates = ['part_status' => 'Issued'];
+                    if ($lockedJob->review_status === 'Approved'
+                        && $lockedJob->status !== 'Completed'
+                        && trim((string) $lockedJob->assigned_mechanic) !== ''
+                        && $lockedJob->actual_started_at === null) {
+                        $updates['status'] = 'On Going';
+                        $updates['start_date'] = now();
+                        $updates['actual_started_at'] = now();
+                    }
+                    $lockedJob->update($updates);
+                }
             } elseif ($jobOrder) {
                 $jobOrder->update(['part_status' => 'For Purchase']);
             }
