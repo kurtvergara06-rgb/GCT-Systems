@@ -4557,3 +4557,80 @@
     padding: 11px 13px;
   }
 }
+
+/* PR record presentation: quiet cards, no decorative accent lines. */
+#editPrModal #viewOnlyActions.pr-review-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px;
+  border-top: 0;
+  background: #fff;
+}
+#editPrModal #viewOnlyActions #closeViewOnlyPr {
+  margin-left: auto;
+  min-width: 96px;
+  padding: 10px 18px;
+  border-radius: 9px;
+  border: 1px solid #d0dff2;
+  color: #174783;
+  background: #ecf3ff;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+#editPrModal #viewOnlyActions #closeViewOnlyPr:hover {
+  background: #dceaff;
+  border-color: #b5cef4;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table-wrap {
+  border: 1px solid #dbe6f5;
+  border-radius: 13px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(24, 55, 100, .045);
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table thead th {
+  background: #edf4fd;
+  color: #3c5576;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .035em;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table tbody tr:nth-child(even) {
+  background: #f7faff;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table tbody td {
+  padding-top: 13px;
+  padding-bottom: 13px;
+  color: #173250;
+}
+#editPrModal #prAuthorizationSection .pr-review-information {
+  border: 1px solid #dce7f5;
+  border-radius: 13px;
+  padding: 7px;
+  background: #f8fbff;
+  box-shadow: 0 4px 12px rgba(24, 55, 100, .04);
+}
+#editPrModal #prAuthorizationSection .pr-review-detail-row {
+  padding: 13px 15px;
+  border-bottom: 0;
+}
+#editPrModal #prAuthorizationSection .pr-review-detail-full {
+  border-top: 0;
+}
+#editPrModal #prAuthorizationSection #reviewPrSignatureFallback {
+  color: #677a95;
+  font-size: 12px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  #editPrModal #viewOnlyActions.pr-review-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+  #editPrModal #viewOnlyActions #closeViewOnlyPr {
+    width: auto;
+  }
+}
