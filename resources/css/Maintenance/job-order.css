@@ -5959,3 +5959,14 @@ body.jo-readonly-open { overflow: hidden; }
 .job-orders-table .jo-mechanic-more-title{font-size:10px;font-weight:800;color:#5c7494;padding:6px 7px 10px;border-bottom:1px solid #edf1f7}
 .job-orders-table .jo-mechanic-more-panel .jo-mechanic-profile{display:flex;align-items:center;gap:9px;padding:9px 6px;border-bottom:1px solid #edf1f7}
 .job-orders-table .jo-mechanic-more-panel .jo-mechanic-profile:last-child{border-bottom:0}
+
+
+/* Portal panel is appended to body so JO table overflow cannot clip it. */
+body > .jo-mechanic-more-panel{position:fixed;z-index:110500;min-width:230px;max-width:310px;overflow-y:auto;background:#fff;border:1px solid #d3e0ef;border-radius:11px;box-shadow:0 12px 28px rgba(20,48,85,.17);padding:10px}
+body > .jo-mechanic-more-panel .jo-mechanic-more-title{font-size:10px;font-weight:800;color:#5c7494;padding:6px 7px 10px;border-bottom:1px solid #edf1f7}
+body > .jo-mechanic-more-panel .jo-mechanic-profile{display:flex;align-items:center;gap:9px;padding:9px 6px;border-bottom:1px solid #edf1f7}
+body > .jo-mechanic-more-panel .jo-mechanic-profile:last-child{border-bottom:0}
+body > .jo-mechanic-more-panel .jo-mechanic-profile-icon{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:7px;background:#eaf2ff;color:#1555a8}
+body > .jo-mechanic-more-panel .jo-mechanic-profile-text{display:grid;gap:3px;min-width:0}
+body > .jo-mechanic-more-panel .jo-mechanic-profile-name{font-size:11px;font-weight:750;color:#122d52}
+body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color:#7c8da5}
