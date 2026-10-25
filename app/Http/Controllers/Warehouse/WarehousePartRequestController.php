@@ -122,6 +122,15 @@ class WarehousePartRequestController extends Controller
 
         // JO requests are sourced from signed, open Job Orders, not fabricated PRs.
         // This queue is read-only until the JO-specific stock ledger action is implemented.
+        $joMaintenanceTypes = JobOrder::query()
+            ->where('review_status', 'Approved')
+            ->whereNotNull('maintenance_type')
+            ->distinct()
+            ->orderBy('maintenance_type')
+            ->pluck('maintenance_type')
+            ->filter()
+            ->values()
+            ->all();
         $jobOrderRequests = null;
         $jobOrderIssuances = $currentView === 'history'
             ? InventoryIssuance::query()
@@ -161,13 +170,20 @@ class WarehousePartRequestController extends Controller
                     return $job;
                 })
                 ->filter(fn ($job) => count($job->warehouse_available_parts) > 0);
+            if ($request->filled('maintenance_type') && $request->input('maintenance_type') !== 'All Types') {
+                $jobs = $jobs->filter(fn ($job) => $job->maintenance_type === $request->input('maintenance_type'));
+            }
             if ($request->filled('search')) {
                 $needle = mb_strtolower(trim((string) $request->input('search')));
                 $jobs = $jobs->filter(fn ($job) => str_contains(mb_strtolower(
                     $job->job_order_no.' '.$job->bus_no.' '.$job->part_needed
                 ), $needle));
             }
-            $jobs = $jobs->values();
+            $sortColumn = (string) $request->input('sort', 'created_at');
+            $sortColumn = in_array($sortColumn, ['created_at', 'job_order_no', 'bus_no'], true)
+                ? $sortColumn : 'created_at';
+            $descending = $request->input('direction', 'desc') !== 'asc';
+            $jobs = $jobs->sortBy($sortColumn, SORT_REGULAR, $descending)->values();
             $page = max(1, (int) $request->input('page', 1));
             $jobOrderRequests = new LengthAwarePaginator(
                 $jobs->forPage($page, 8)->values(),
@@ -245,6 +261,7 @@ class WarehousePartRequestController extends Controller
             'issued',
             'currentView',
             'jobOrderRequests',
+            'joMaintenanceTypes',
             'jobOrderIssuances',
             'statusOptions',
             'activeCount',
