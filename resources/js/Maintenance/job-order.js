@@ -2741,13 +2741,21 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      AVAILABLE MECHANICS REFRESH
   ========================================================= */
 
+  let mechanicLookupSequence = 0;
   async function refreshAvailableMechanicsDropdown() {
+    const lookupSequence = ++mechanicLookupSequence;
 
     const newJobMechanicSelect =
       document.querySelector(
         '#jobModal select[name="mechanic_ids[]"]'
       );
 
+
+    // Never display stale or unqualified mechanics while checking new JO tasks.
+    if (newJobMechanicSelect) {
+      newJobMechanicSelect.replaceChildren();
+      newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 
     try {
 
@@ -2789,6 +2797,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
       const mechanics =
         await response.json();
+      if (lookupSequence !== mechanicLookupSequence) return;
 
       /* =====================================================
          NEW JO SELECT
@@ -2900,6 +2909,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     } catch (error) {
 
+      if (lookupSequence !== mechanicLookupSequence) return;
       console.error(
         'Unable to update available mechanic dropdown:',
         error
