@@ -592,7 +592,10 @@ class PurchaseRequestController extends Controller
                 'bus_no' => $lockedJobOrder->bus_no,
                 'item' => $formattedParts,
                 'quantity' => $totalQuantity,
-                'status' => 'Submitted',
+                // The Maintenance Head has already approved the source Job Order.
+                // Do not require a second approval of this purchase requisition.
+                'status' => 'Approved',
+                'approved_at' => now(),
                 'source_type' => 'Maintenance Request',
                 'remarks' => $validated['remarks'] ?? null,
                 'purpose' => $validated['purpose'] ?? null,
@@ -601,7 +604,7 @@ class PurchaseRequestController extends Controller
             ]);
 
             $lockedJobOrder->update([
-                'part_status' => 'Submitted',
+                'part_status' => 'Approved',
             ]);
 
             return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
@@ -620,7 +623,7 @@ class PurchaseRequestController extends Controller
             'JobOrder',
             'status_updated',
             $jobOrder->id,
-            'Job order part status was updated to Submitted.'
+            'Job order part status was updated to Approved.'
         );
 
         if ($request->ajax() || $request->expectsJson()) {
