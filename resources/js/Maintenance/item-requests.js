@@ -57,3 +57,47 @@ document.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeItemRequestDetails();
 });
+
+
+function renderItemRequestPreview() {
+    const select = document.getElementById('item_request_job_order');
+    const source = document.getElementById('ir-job-previews');
+    const tbody = document.getElementById('ir-preview-parts');
+    if (!select || !source || !tbody) return;
+    let previews = {};
+    try { previews = JSON.parse(source.textContent || '{}'); } catch (_) { return; }
+    const jo = previews[select.value];
+    document.getElementById('ir-preview-bus').textContent = jo?.bus || 'Select a JO';
+    document.getElementById('ir-preview-mechanic').textContent = jo?.mechanic || 'Select a JO';
+    tbody.replaceChildren();
+    if (!jo || !Array.isArray(jo.parts) || !jo.parts.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 3; td.className = 'ir-preview-placeholder';
+        td.textContent = 'Select an approved JO to review its required parts.';
+        tr.appendChild(td); tbody.appendChild(tr); return;
+    }
+    jo.parts.forEach(part => {
+        const tr = document.createElement('tr');
+        const partTd = document.createElement('td');
+        partTd.textContent = part.name || '—';
+        const qtyTd = document.createElement('td');
+        qtyTd.textContent = String(part.quantity || 0) + ' ' + (part.unit || '');
+        const stockTd = document.createElement('td');
+        const badge = document.createElement('span');
+        const available = Number(part.available || 0);
+        const required = Number(part.quantity || 0);
+        const status = available >= required ? 'Available' : available > 0 ? 'Partial' : 'Unavailable';
+        badge.className = 'ir-stock-badge ir-stock-' + status.toLowerCase();
+        badge.textContent = status;
+        stockTd.appendChild(badge);
+        tr.append(partTd, qtyTd, stockTd);
+        tbody.appendChild(tr);
+    });
+}
+document.addEventListener('change', event => {
+    if (event.target?.id === 'item_request_job_order') renderItemRequestPreview();
+});
+document.addEventListener('click', event => {
+    if (event.target.closest('#openItemRequestModal')) renderItemRequestPreview();
+});
