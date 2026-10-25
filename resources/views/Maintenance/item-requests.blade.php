@@ -44,30 +44,28 @@
                     <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active</a>
                     <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                 </nav>
-                <form method="GET" action="{{ route('item-requests') }}" class="ir-filter-form">
-                    <input type="hidden" name="view" value="{{ $view }}">
-                    <div class="ir-filter-control">
-                        <label for="ir-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
-                        <input id="ir-search" type="search" name="search" value="{{ request('search') }}" placeholder="IR, JO, bus or part">
-                    </div>
-                    <div class="ir-filter-control">
-                        <label for="ir-status"><i class="fa-solid fa-filter"></i> Filter</label>
-                        <select id="ir-status" name="status">
-                            <option value="All Statuses">All Statuses</option>
-                            @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
-                                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="ir-filter-control">
-                        <label for="ir-sort"><i class="fa-solid fa-arrow-down-wide-short"></i> Sort</label>
-                        <select id="ir-sort" name="sort">
-                            <option value="newest" @selected(request('sort') !== 'oldest')>Newest</option>
-                            <option value="oldest" @selected(request('sort') === 'oldest')>Oldest</option>
-                        </select>
-                    </div>
-                    <button class="ir-apply-button" type="submit">Apply</button>
-                </form>
+                <div class="gct-table-toolbar-row">
+                    <x-ui.table-toolbar
+                        action="{{ route('item-requests') }}"
+                        search-label="Search Item Requests"
+                        search-placeholder="Search IR no., JO no., bus, or part..."
+                        :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')"
+                        filter-title="Filter Item Requests"
+                        :sort-options="['created_at' => 'Created Date', 'id' => 'IR Number', 'status' => 'Status']"
+                        default-sort="created_at"
+                        default-direction="desc"
+                        data-server-filter="true">
+                        <x-slot:hidden><input type="hidden" name="view" value="{{ $view }}"></x-slot:hidden>
+                        <x-slot:filters>
+                            <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
+                                <option value="All Statuses">All Statuses</option>
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
+                                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                                @endforeach
+                            </x-ui.table-toolbar-field>
+                        </x-slot:filters>
+                    </x-ui.table-toolbar>
+                </div>
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
