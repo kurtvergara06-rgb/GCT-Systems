@@ -1869,7 +1869,7 @@ window.GCTPartialNavigation.registerInitializer(
       if (reviewPrStatus) {
         reviewPrStatus.textContent =
           status === 'Submitted' && approvedJo
-            ? 'JO Approved — Pending Processing'
+            ? 'Submitted · JO Approved'
             : status;
         reviewPrStatus.dataset.status =
           status.toLowerCase().replaceAll(' ', '-');
@@ -1925,7 +1925,7 @@ window.GCTPartialNavigation.registerInitializer(
       if (reviewPrStatusText) {
         reviewPrStatusText.textContent =
           status === 'Submitted' && approvedJo
-            ? 'JO Approved — Pending Processing'
+            ? 'Submitted · JO Approved'
             : status;
       }
 
