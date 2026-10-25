@@ -124,6 +124,46 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             ->assertSee('Read only');
     }
 
+
+    public function test_warehouse_can_issue_fully_stocked_jo_once_without_a_pr(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'FILTER-JO-ISSUE',
+            'parts_name' => 'Fuel Filter',
+            'item_name' => 'Fuel Filter',
+            'category' => 'Parts',
+            'quantity_available' => 4,
+            'on_hand' => 4,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-WH-ISSUE-001',
+            'bus_no' => 'BUS-200',
+            'problem_issue' => 'Replace fuel filter',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Fuel Filter - Qty: 2 pcs',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'part_status' => 'Not Requested',
+        ]);
+
+        $this->post(route('part-requests.job-order.issue', $jo))->assertRedirect();
+        $this->assertSame('Issued', $jo->fresh()->part_status);
+        $this->assertDatabaseHas('inventory_issuances', ['reference_no' => $jo->job_order_no]);
+        $this->assertDatabaseHas('inventory_items', [
+            'item_code' => 'FILTER-JO-ISSUE', 'quantity_available' => 2,
+        ]);
+
+        $this->post(route('part-requests.job-order.issue', $jo))->assertSessionHasErrors('workflow');
+        $this->assertDatabaseCount('inventory_issuances', 1);
+        $this->assertDatabaseHas('inventory_items', [
+            'item_code' => 'FILTER-JO-ISSUE', 'quantity_available' => 2,
+        ]);
+    }
+
     public function test_jo_tab_lists_approved_jobs_with_available_parts_without_a_pr(): void
     {
         InventoryItem::create([
