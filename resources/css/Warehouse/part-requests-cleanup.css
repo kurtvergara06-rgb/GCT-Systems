@@ -46,8 +46,8 @@
 
 .warehouse-part-table-clean th:first-child,
 .warehouse-part-table-clean td:first-child {
-  min-width: 185px;
-  width: 185px;
+  min-width: 220px;
+  width: 220px;
 }
 
 .warehouse-part-table-clean tbody tr:last-child td {
@@ -69,7 +69,8 @@
 .pr-ref-cell {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .pr-main-num {
@@ -84,14 +85,14 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 7px;
   white-space: nowrap;
 }
 
 .pr-meta-tag {
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 3px 7px;
   border-radius: 5px;
   display: inline-flex;
   align-items: center;
