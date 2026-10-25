@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Warehouse\IncomingDeliveryController;
 use App\Http\Controllers\Warehouse\InventoryController;
+use App\Http\Controllers\Warehouse\ItemRequestController;
 use App\Http\Controllers\Warehouse\InventoryMovementController;
 use App\Http\Controllers\Warehouse\StockMovementController;
 use App\Http\Controllers\Warehouse\WarehouseDashboardController;
@@ -28,6 +29,8 @@ Route::middleware([
 
         Route::get('/inventory/{inventoryItem}/movements', [InventoryMovementController::class, 'show'])
             ->name('inventory.movements');
+
+        Route::get('/warehouse/item-requests', [ItemRequestController::class, 'index'])->name('warehouse.item-requests');
 
         Route::controller(WarehousePartRequestController::class)
             ->prefix('part-requests')
