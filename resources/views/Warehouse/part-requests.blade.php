@@ -270,7 +270,7 @@
                       <td><strong class="pr-main-num">{{ $issuance->reference_no }}</strong></td>
                       <td>{{ $issuance->issue_no }}</td>
                       <td>{{ $issuance->items->map(fn ($item) => $item->item_name.' ('.$item->quantity.' '.$item->unit.')')->implode(', ') }}</td>
-                      <td>{{ $issuance->issued_by }}</td>
+                      <td>{{ $issuance->issuer?->name ?? '—' }}</td>
                       <td>{{ $issuance->issued_at?->format('M d, Y h:i A') ?? '—' }}</td>
                     </tr>
                   @endforeach
