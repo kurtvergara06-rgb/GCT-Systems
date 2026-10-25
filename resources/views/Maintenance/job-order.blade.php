@@ -356,7 +356,7 @@
                                                         <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse</h3>
                                                         <div class="jo-view-grid jo-view-warehouse-grid">
                                                             <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
-                                                            <div class="jo-view-parts-cell">
+                                                            <div class="jo-view-parts-cell jo-view-parts-fullwidth">
                                                                 <span>Requested Parts</span>
                                                                 @php($viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
                                                                 @if(count($viewRequestedParts))
