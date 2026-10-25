@@ -289,7 +289,7 @@ window.GCTPartialNavigation.registerInitializer(
           );
 
 
-        cell.colSpan = 4;
+        cell.colSpan = 3;
         cell.className =
           'pr-review-empty';
         cell.textContent =
@@ -345,21 +345,7 @@ window.GCTPartialNavigation.registerInitializer(
               part.quantity || '—';
 
 
-            const unitCell =
-              document.createElement(
-                'td'
-              );
-
-            unitCell.textContent =
-              part.unit || '—';
-
-
-            row.append(
-              numberCell,
-              nameCell,
-              quantityCell,
-              unitCell
-            );
+            row.append(numberCell, nameCell, quantityCell);
 
 
             body.appendChild(
