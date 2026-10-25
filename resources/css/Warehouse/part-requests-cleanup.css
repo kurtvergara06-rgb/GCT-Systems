@@ -726,3 +726,68 @@
     width: 100%;
   }
 }
+
+/* JO item summary mirrors Maintenance PR's +N more dropdown. */
+.warehouse-part-card .warehouse-jo-parts-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+}
+.warehouse-part-card .warehouse-jo-parts-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid #cddffa;
+  border-radius: 6px;
+  background: #ecf3ff;
+  color: #174ca0;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.warehouse-part-card .warehouse-jo-parts-more[aria-expanded="true"] i {
+  transform: rotate(180deg);
+}
+.warehouse-part-card .warehouse-jo-parts-more:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+body > .warehouse-jo-parts-popup {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 10020;
+  overflow-y: auto;
+  padding: 11px;
+  border: 1px solid #d5e3f6;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(20, 50, 90, .17);
+  color: #183154;
+  font-size: 11px;
+}
+body > .warehouse-jo-parts-popup .warehouse-jo-parts-heading {
+  margin-bottom: 9px;
+  font-weight: 800;
+}
+body > .warehouse-jo-parts-popup .warehouse-jo-parts-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #f5f8fd;
+}
+body > .warehouse-jo-parts-popup .warehouse-jo-parts-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+body > .warehouse-jo-parts-popup .warehouse-jo-parts-row strong {
+  flex-shrink: 0;
+  color: #1752a4;
+  white-space: nowrap;
+}
