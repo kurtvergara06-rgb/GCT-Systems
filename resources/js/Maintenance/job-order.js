@@ -2756,6 +2756,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         maintenance_job: document.getElementById('newJoMaintenanceJob')?.value || '',
         problem_issue: document.getElementById('jobProblemIssue')?.value || '',
           });
+      document.getElementById('newJoMaintenanceJob')?.getSelectedJobs?.().forEach((job) => {
+        mechanicParams.append('maintenance_jobs[]', job);
+      });
       document.querySelectorAll('#joCustomSpecializations input:checked').forEach((input) => {
         mechanicParams.append('specializations[]', input.value);
       });
