@@ -771,7 +771,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <p class="jo-create-field-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Only qualified, on-duty mechanics who are not assigned to a conflicting active Job Order appear. If none are available, check today's attendance and the selected maintenance job.</p>
+                    <p class="jo-create-field-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Select one or more qualified, on-duty mechanics for this JO. Click a name to add or remove it; selected mechanics stay visible as chips. Mechanics on conflicting active jobs are excluded.</p>
                 </div>
             </div>
         </section>
