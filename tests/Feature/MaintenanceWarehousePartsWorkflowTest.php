@@ -51,15 +51,14 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Submitted', $purchaseRequest->status);
+        $this->assertSame('Approved', $purchaseRequest->status);
+        $this->assertNotNull($purchaseRequest->approved_at);
         $this->assertSame('Maintenance Request', $purchaseRequest->source_type);
         $this->assertSame(2, (int) $purchaseRequest->quantity);
-        $this->assertSame('Submitted', $jobOrder->fresh()->part_status);
+        $this->assertSame('Approved', $jobOrder->fresh()->part_status);
 
-        // Approval is covered by the Maintenance approval action. At this point
-        // the Warehouse handoff requires the request to be approved.
-        $purchaseRequest->update(['status' => 'Approved']);
-        $jobOrder->update(['part_status' => 'Approved']);
+        // Warehouse queries approved Maintenance PRs directly: no second approval.
+        $this->actingAs($user)->get(route('part-requests'))->assertSee($purchaseRequest->pr_no);
 
         $inventoryItem = InventoryItem::create([
             'item_code' => 'BRAKE-PAD',
