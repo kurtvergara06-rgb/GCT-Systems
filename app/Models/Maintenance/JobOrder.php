@@ -237,11 +237,26 @@ class JobOrder extends Model
         return $this->review_status === 'Revision Required';
     }
 
+    public function isWaitingForRequiredParts(): bool
+    {
+        return $this->status !== 'Completed'
+            && trim((string) $this->part_needed) !== ''
+            && $this->part_status !== 'Issued';
+    }
+
     public function getDisplayStatusAttribute(): string
     {
-        return in_array($this->review_status, ['For Review', 'Revision Required', 'Rejected'], true)
-            ? $this->review_status
-            : ($this->status === 'On Going' ? 'In Progress' : $this->status);
+        if (in_array($this->review_status, ['For Review', 'Revision Required', 'Rejected'], true)) {
+            return $this->review_status;
+        }
+
+        // Legacy records may still have status=On Going from assignment time.
+        // Never represent unissued parts as active repair work.
+        if ($this->isWaitingForRequiredParts() && $this->review_status === 'Approved') {
+            return 'On Hold';
+        }
+
+        return $this->status === 'On Going' ? 'In Progress' : $this->status;
     }
 
     public function scopeOpen($query)
