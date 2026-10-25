@@ -58,6 +58,8 @@
                     @php($stockParts = collect($stock['parts'] ?? []))
                     @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
                     @php($firstStock = $stockParts->first())
+                    @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
+                    @php($stockIsMixed = $stockParts->count() > 1)
                     <tr>
                         <td class="warehouse-ir-reference"><strong class="ir-number">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</strong>
                             <div class="warehouse-ir-ref-tags"><span class="warehouse-ir-ref-tag"><i class="fa-solid fa-wrench"></i> {{ $ir->jobOrder?->job_order_no ?? '—' }}</span><span class="warehouse-ir-ref-tag"><i class="fa-solid fa-bus-simple"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></div>
@@ -78,20 +80,31 @@
                             @else — @endif
                         </td>
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
-                        <td><strong>{{ $firstStock['available'] ?? 0 }}</strong> {{ $firstStock['unit'] ?? '' }}
-                            @if($stockParts->count() > 1)
-                                <details class="ir-parts-details warehouse-ir-onhand-more">
-                                    <summary>+{{ $stockParts->count() - 1 }} more</summary>
-                                    <div class="ir-parts-popover">
-                                        @foreach($stockParts->skip(1) as $part)
-                                            <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
-                                        @endforeach
-                                    </div>
-                                </details>
-                            @endif
+                        <td>
+                            <div class="warehouse-ir-onhand-summary">
+                                <strong>{{ $stockIsMixed ? 'Mixed stock' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
+                                <span class="warehouse-ir-shortage-note {{ $shortPartsCount ? 'has-shortage' : 'is-complete' }}">
+                                    {{ $shortPartsCount ? $shortPartsCount.' '.\Illuminate\Support\Str::plural('item', $shortPartsCount).' short' : 'No shortage' }}
+                                </span>
+                                @if($stockIsMixed)
+                                    <details class="ir-parts-details warehouse-ir-onhand-more">
+                                        <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                        <div class="ir-parts-popover">
+                                            @foreach($stockParts as $part)
+                                                <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} @if(($part['shortage'] ?? 0) > 0)<span class="warehouse-ir-shortage-quantity">({{ $part['shortage'] }} short)</span>@endif</strong></div>
+                                            @endforeach
+                                        </div>
+                                    </details>
+                                @endif
+                            </div>
                         </td>
                         <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}">{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
-                        <td><span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : (($stock['status'] ?? '') === 'sufficient' ? 'is-ready' : (($stock['status'] ?? '') === 'partial' ? 'is-pending' : 'is-shortage')) }}"><i class="fa-solid {{ $ir->status === 'Issued' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'sufficient' ? 'fa-box-open' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-cart-shopping')) }}"></i> {{ $ir->status === 'Issued' ? 'Issued' : (($stock['status'] ?? '') === 'sufficient' ? 'Ready to Issue' : (($stock['status'] ?? '') === 'partial' ? 'Partial Stock' : 'Needs Purchase')) }}</span><small class="warehouse-ir-process-subtext">{{ $ir->status }}</small></td>
+                        <td>
+                            <span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : 'is-submitted' }}">
+                                <i class="fa-solid {{ $ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane' }}"></i>
+                                {{ $ir->status }}
+                            </span>
+                        </td>
                         <td>
                             <button type="button" class="ir-view-button" data-ir-view
                                 data-ir-number="IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}"
@@ -111,7 +124,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="ir-footer"><span class="warehouse-ir-stock-time">Current on-hand is a live reference, not reserved stock. Use View to review all item quantities.</span>{{ $requests->links() }}</div>
+            <div class="ir-footer"><span class="warehouse-ir-stock-time">Stock is a live reference, not reserved inventory. Open View for detailed verification and issuance.</span>{{ $requests->links() }}</div>
         </section>
     </main>
 </div>
