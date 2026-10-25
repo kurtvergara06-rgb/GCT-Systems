@@ -222,6 +222,27 @@
                 <div><span>Received By — Mechanic</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
                 <div><span>Issued By — Warehouse Personnel</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
             </div>
+            <section class="warehouse-ir-confirm-section">
+                <h3><i class="fa-solid fa-clipboard-check"></i> Confirm Signed Handover</h3>
+                <p>Only complete issuances are currently supported. After the mechanic and Warehouse personnel sign the printed slip, upload its photo or PDF to complete the transaction.</p>
+                <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data">
+                    @csrf
+                    <div id="ir-slip-quantities" class="warehouse-ir-confirm-quantities"></div>
+                    <div class="warehouse-ir-confirm-fields">
+                        <label>Receiving Mechanic / Representative <span>*</span>
+                            <input name="received_by" id="ir-slip-received-by" required maxlength="255" placeholder="Full name of person who collected the parts">
+                        </label>
+                        <label>Signed Withdrawal Slip (JPG, PNG, PDF; max 10 MB) <span>*</span>
+                            <input type="file" name="signed_slip" required accept=".jpg,.jpeg,.png,.pdf">
+                        </label>
+                    </div>
+                    <label class="warehouse-ir-confirm-check">
+                        <input type="checkbox" name="handover_confirmed" value="1" required>
+                        I confirm these quantities were physically handed over and the attached slip contains the mechanic's and Warehouse issuer's signatures.
+                    </label>
+                    <button type="submit" id="ir-slip-confirm" class="ir-primary-button" disabled><i class="fa-solid fa-circle-check"></i> Confirm Issuance &amp; Deduct Stock</button>
+                </form>
+            </section>
             <p id="ir-slip-message" class="ir-note"><i class="fa-solid fa-circle-info"></i><span>This is a preparation and print preview only. No parts are deducted or marked Issued. Record the signed handover before processing inventory issuance.</span></p>
         </div>
         <footer class="ir-modal-footer">
