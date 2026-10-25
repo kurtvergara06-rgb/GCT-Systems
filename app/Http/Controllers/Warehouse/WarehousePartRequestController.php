@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Warehouse;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
-use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\PartParser;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Warehouse\InventoryIssuance;
@@ -144,7 +143,12 @@ class WarehousePartRequestController extends Controller
             : collect();
         if ($currentView === 'jo') {
             $parser = app(PartParser::class);
-            $workflow = app(JobOrderWorkflowService::class);
+            // Use the same exact-part matching and authoritative stock field as
+            // Warehouse issuance. A linked PR must not hide a stocked JO.
+            $linkedPrJobNumbers = $this->warehouseMaintenanceRequestQuery()
+                ->whereNotNull('job_order_no')
+                ->pluck('job_order_no')
+                ->flip();
             $jobs = JobOrder::query()
                 ->where('review_status', 'Approved')
                 ->where('status', '!=', 'Completed')
@@ -153,20 +157,20 @@ class WarehousePartRequestController extends Controller
                 })
                 ->whereNotNull('part_needed')
                 ->where('part_needed', '!=', '')
-                ->whereNotIn('job_order_no', PurchaseRequest::query()
-                    ->select('job_order_no')
-                    ->where(function ($q) {
-                        $q->whereNull('source_type')->orWhere('source_type', 'Maintenance Request');
-                    })
-                    ->where('job_order_no', '!=', 'RESTOCK'))
                 ->orderByDesc('created_at')
                 ->get()
-                ->map(function (JobOrder $job) use ($parser, $workflow) {
+                ->map(function (JobOrder $job) use ($parser, $linkedPrJobNumbers) {
                     $parts = $parser->parsePartText((string) $job->part_needed);
-                    $availability = $workflow->inventoryAvailability($parts);
-                    $job->warehouse_available_parts = collect($availability['parts'])
-                        ->filter(fn ($part) => (int) $part['available'] > 0)
-                        ->values()->all();
+                    $job->warehouse_has_linked_pr = $linkedPrJobNumbers->has($job->job_order_no);
+                    $job->warehouse_available_parts = collect($parts)->map(function ($part) {
+                        $item = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
+                        return [
+                            'name' => $part['name'],
+                            'quantity' => (int) $part['quantity'],
+                            'unit' => $part['unit'] ?? '',
+                            'available' => max(0, (int) ($item?->quantity_available ?? 0)),
+                        ];
+                    })->filter(fn ($part) => $part['available'] > 0)->values()->all();
                     return $job;
                 })
                 ->filter(fn ($job) => count($job->warehouse_available_parts) > 0);
