@@ -616,46 +616,50 @@
 }
 
 
-/* Align Warehouse Part Requests record controls with Maintenance JO/PR pages. */
-.warehouse-part-card .warehouse-record-header {
-  align-items: flex-start;
-}
+/* Warehouse records: explicit two-row grid keeps tabs and toolbar level. */
 .warehouse-part-card .warehouse-list-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    ". count"
+    "tabs tools";
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   column-gap: 16px;
-  row-gap: 8px;
+  row-gap: 6px;
   width: 100%;
-  margin: 10px 0 14px;
+  margin: 10px 0 12px;
+}
+.warehouse-part-card .warehouse-request-count {
+  grid-area: count;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0;
+  width: auto;
 }
 .warehouse-part-card .warehouse-list-controls .warehouse-record-tabs {
+  grid-area: tabs;
+  justify-self: start;
+  align-self: center;
   margin: 0;
-  align-self: flex-end;
 }
 .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
+  grid-area: tools;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  margin: 0;
   width: auto;
-  margin: 0 0 0 auto;
 }
 .warehouse-part-card .warehouse-list-controls .gct-table-toolbar {
   margin: 0;
 }
-.warehouse-part-card .warehouse-request-count {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
-  margin: 0;
-}
-@media (max-width: 700px) {
+@media (max-width: 650px) {
+  .warehouse-part-card .warehouse-list-controls {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "count" "tabs" "tools";
+  }
   .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
-    margin-left: auto;
-    max-width: 100%;
+    justify-content: flex-start;
   }
 }
