@@ -63,6 +63,21 @@ class PurchaseRequestIndexController extends Controller
             }
         }
 
+        // History is always Issued; date filters narrow its audit records without changing status.
+        if ($recordView === 'history') {
+            $dates = $request->validate([
+                'created_from' => ['nullable', 'date_format:Y-m-d'],
+                'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
+            ]);
+
+            if (! empty($dates['created_from'])) {
+                $query->whereDate('created_at', '>=', $dates['created_from']);
+            }
+            if (! empty($dates['created_to'])) {
+                $query->whereDate('created_at', '<=', $dates['created_to']);
+            }
+        }
+
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
             ->with('requester')
