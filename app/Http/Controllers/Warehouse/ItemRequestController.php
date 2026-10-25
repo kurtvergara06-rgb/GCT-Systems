@@ -24,12 +24,14 @@ class ItemRequestController extends Controller
     {
         $parts = $itemRequest->requested_parts ?? [];
         $snapshot = $workflow->inventoryAvailability($parts);
+        $codes = InventoryItem::query()->get(['id', 'item_code'])->keyBy('id');
 
         return response()->json([
             'request_id' => $itemRequest->id,
             'status' => $snapshot['status'],
             'parts' => collect($snapshot['parts'])->map(fn (array $part) => [
                 'name' => $part['name'],
+                'stock_no' => $codes->get($part['inventory_item_id'] ?? null)?->item_code,
                 'quantity' => $part['quantity'],
                 'unit' => $part['unit'],
                 'available' => $part['available'],
