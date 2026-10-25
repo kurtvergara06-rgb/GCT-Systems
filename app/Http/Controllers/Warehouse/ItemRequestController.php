@@ -47,7 +47,7 @@ class ItemRequestController extends Controller
      */
     public function issue(ItemRequest $itemRequest, InventoryLedgerService $ledger)
     {
-        $irNumber = 'IR-'.str_pad((string) $itemRequest->id, 5, '0', STR_PAD_LEFT);
+        $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
         DB::transaction(function () use ($itemRequest, $ledger, $irNumber): void {
             $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
             if ($ir->status !== 'Submitted') {
@@ -134,7 +134,7 @@ class ItemRequestController extends Controller
 
         if ($request->filled('search')) {
             $search = trim((string) $request->query('search'));
-            $irId = preg_match('/^IR-?0*(\\d+)$/i', $search, $matches) ? (int) $matches[1] : null;
+            $irId = preg_match('/^IR-(?:\\d{4}-)?0*(\\d+)$/i', $search, $matches) ? (int) $matches[1] : null;
             $query->where(function ($nested) use ($search, $irId) {
                 if ($irId !== null) {
                     $nested->orWhere('id', $irId);
