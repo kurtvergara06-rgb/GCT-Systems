@@ -355,6 +355,8 @@ class JobOrderController extends Controller
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'maintenance_job' => 'nullable|string|max:255',
+            'maintenance_jobs' => 'nullable|array|max:10',
+            'maintenance_jobs.*' => 'string|max:255|distinct',
             'custom_maintenance_job' => 'nullable|string|max:255',
             'specializations' => 'nullable|array',
             'specializations.*' => 'string|max:255',
@@ -371,6 +373,25 @@ class JobOrderController extends Controller
             'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
             'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
         ]);
+
+        $selectedJobs = array_values(array_unique(array_filter(
+            $validated['maintenance_jobs'] ?? [$validated['maintenance_job'] ?? null],
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )));
+        if (count($selectedJobs) > 1 && in_array('Other', $selectedJobs, true)) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Custom work must be selected on its own, not with preset jobs.',
+            ]);
+        }
+        $validated['maintenance_job'] = $selectedJobs[0] ?? '';
+        $jobSkills = collect($selectedJobs)->flatMap(
+            fn ($job) => $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+        )->unique()->values()->all();
+        if ($selectedJobs !== [] && $jobSkills === []) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Select valid Maintenance Jobs with defined specializations.',
+            ]);
+        }
 
         if (($validated['maintenance_job'] ?? null) === 'Other') {
             $customName = trim((string) ($validated['custom_maintenance_job'] ?? ''));
@@ -416,10 +437,7 @@ class JobOrderController extends Controller
             ]);
         }
         $mechanics = $this->workflow->validatedMechanics($mechanicIds);
-        $requiredSkills = $this->requiredSpecializations(
-            (string) ($validated['maintenance_job'] ?? ''),
-            $validated['specializations'] ?? []
-        );
+        $requiredSkills = $jobSkills;
         if (($validated['maintenance_job'] ?? '') !== '' && $requiredSkills === []) {
             throw ValidationException::withMessages([
                 'maintenance_job' => 'Select a supported Maintenance Job with defined specialization requirements.',
@@ -513,8 +531,9 @@ class JobOrderController extends Controller
                 'bus_no' => $validated['bus_no'],
                 'pms_schedule_id' => $pmsSchedule?->id,
                 'problem_issue' => $validated['problem_issue'],
-                'work_to_perform' => ($validated['maintenance_job'] ?? null) === 'Other'
-                    ? trim($validated['custom_maintenance_job']) : ($validated['maintenance_job'] ?? null),
+                'work_to_perform' => in_array('Other', $selectedJobs, true)
+                    ? trim($validated['custom_maintenance_job'])
+                    : implode(', ', $selectedJobs),
                 'maintenance_type' => $validated['maintenance_type'],
                 'assigned_mechanic' => $mechanics->pluck('mechanic_name')->implode(', ') ?: null,
                 'part_needed' => $partNeeded,
@@ -534,6 +553,7 @@ class JobOrderController extends Controller
             $this->workflow->syncMechanics($createdJobOrder, $mechanics, auth()->id());
             $this->workflow->audit($createdJobOrder, 'created', null, 'For Review', 'Submitted for Maintenance Head review.', [
                 'maintenance_job' => $validated['maintenance_job'] ?? null,
+                'maintenance_jobs' => $selectedJobs,
                 'custom_maintenance_job' => $validated['custom_maintenance_job'] ?? null,
                 'required_specializations' => $validated['specializations'] ?? [],
             ]);
