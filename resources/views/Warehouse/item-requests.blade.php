@@ -61,9 +61,7 @@
                     @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
                     @php($stockIsMixed = $stockParts->count() > 1)
                     <tr>
-                        <td class="warehouse-ir-reference"><strong class="ir-number">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</strong>
-                            <div class="warehouse-ir-ref-tags"><span class="warehouse-ir-ref-tag"><i class="fa-solid fa-wrench"></i> {{ $ir->jobOrder?->job_order_no ?? '—' }}</span><span class="warehouse-ir-ref-tag"><i class="fa-solid fa-bus-simple"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></div>
-                        </td>
+                        <td class="warehouse-ir-reference"><span class="warehouse-ir-id-badge">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</span></td>
                         <td>
                             @php($parts = collect($ir->requested_parts ?? []))
                             @if($parts->isNotEmpty())
