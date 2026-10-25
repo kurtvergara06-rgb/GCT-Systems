@@ -5970,3 +5970,26 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-icon{display:grid;place-item
 body > .jo-mechanic-more-panel .jo-mechanic-profile-text{display:grid;gap:3px;min-width:0}
 body > .jo-mechanic-more-panel .jo-mechanic-profile-name{font-size:11px;font-weight:750;color:#122d52}
 body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color:#7c8da5}
+
+
+/* Stronger text contrast for JO status badges and read-only detail values. */
+.jo-page .job-orders-table .status-col .gct-status-badge,
+.jo-page .job-orders-table .status-col .status-badge,
+.jo-page .job-orders-table .jo-for-review-badge,
+.jo-page .job-orders-table .jo-parts-not-requested-badge,
+.jo-page .job-orders-table .jo-no-parts-required-badge,
+.jo-page .job-orders-table .part-status-badge {
+  font-weight: 800;
+}
+#joReadonlyOverlay .jo-view-summary strong,
+#joReadonlyOverlay .jo-view-section .jo-view-grid > div > strong,
+#joReadonlyOverlay .jo-view-section .jo-view-grid strong,
+#joReadonlyOverlay .jo-view-parts-pill,
+#joReadonlyOverlay .jo-view-part-name,
+#joReadonlyOverlay .jo-view-part-quantity,
+#joReadonlyOverlay .jo-view-part-availability {
+  font-weight: 800;
+}
+#joReadonlyOverlay .jo-view-section h3 {
+  font-weight: 800;
+}
