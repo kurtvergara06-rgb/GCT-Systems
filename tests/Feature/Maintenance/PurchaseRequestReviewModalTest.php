@@ -333,4 +333,70 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
     }
+
+    public function test_head_cannot_trigger_a_second_pr_approval_or_rejection(): void
+    {
+        $head = $this->maintenanceUser('head');
+        $purchaseRequest = $this->purchaseRequest('Submitted');
+
+        $this->actingAs($head)
+            ->post(route('purchase-requests.approve', $purchaseRequest))
+            ->assertStatus(409);
+
+        $this->actingAs($head)
+            ->post(route('purchase-requests.reject', $purchaseRequest))
+            ->assertStatus(409);
+
+        $this->assertSame('Submitted', $purchaseRequest->fresh()->status);
+    }
+
+    public function test_rejected_pr_cannot_change_parts_outside_signed_jo_scope(): void
+    {
+        $head = $this->maintenanceUser('head');
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-9001',
+            'bus_no' => 'GCT-108',
+            'problem_issue' => 'AC repair',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'AC Refrigerant R134a - Qty: 2 can, O-Ring Set - Qty: 4 set',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+            'part_status' => 'Rejected',
+        ]);
+        $pr = $this->purchaseRequest('Rejected');
+
+        $this->actingAs($head)->post(route('purchase-requests.resubmit', $pr), [
+            'parts' => [['name' => 'New unauthorized part', 'quantity' => 5, 'unit' => 'pcs']],
+        ])->assertSessionHasErrors('parts');
+
+        $this->assertSame('Rejected', $pr->fresh()->status);
+    }
+
+    public function test_rejected_pr_with_unchanged_jo_authorized_parts_needs_no_second_approval(): void
+    {
+        $head = $this->maintenanceUser('head');
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-9001',
+            'bus_no' => 'GCT-108',
+            'problem_issue' => 'AC repair',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'AC Refrigerant R134a - Qty: 2 can, O-Ring Set - Qty: 4 set',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+            'part_status' => 'Rejected',
+        ]);
+        $pr = $this->purchaseRequest('Rejected');
+
+        $this->actingAs($head)->post(route('purchase-requests.resubmit', $pr), [
+            'parts' => [
+                ['name' => 'AC Refrigerant R134a', 'quantity' => 2, 'unit' => 'can'],
+                ['name' => 'O-Ring Set', 'quantity' => 4, 'unit' => 'set'],
+            ],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Approved', $pr->fresh()->status);
+    }
+
 }
