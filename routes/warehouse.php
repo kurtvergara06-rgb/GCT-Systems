@@ -33,6 +33,9 @@ Route::middleware([
             ->prefix('part-requests')
             ->group(function () {
                 Route::get('/', 'index')->name('part-requests');
+                Route::post('/job-orders/{jobOrder}/issue', 'issueJobOrder')
+                    ->middleware('system.permission:warehouse,edit')
+                    ->name('part-requests.job-order.issue');
                 Route::post('/{purchaseRequest}/issue', 'issue')
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.issue');
