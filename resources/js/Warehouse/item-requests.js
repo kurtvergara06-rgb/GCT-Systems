@@ -200,14 +200,17 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       const data = await response.json();
       if (sequence !== slipSequence) return;
       tbody.replaceChildren();
-      for (const part of (data.parts || [])) {
+      for (const [index, part] of (data.parts || []).entries()) {
         const tr = document.createElement('tr');
-        appendCell(tr, part.stock_no || '—');
+        appendCell(tr, index + 1);
         appendCell(tr, part.name);
         appendCell(tr, part.quantity + ' ' + part.unit);
         appendCell(tr, trigger.dataset.irBus);
         appendCell(tr, data.status === 'sufficient' ? part.quantity + ' ' + part.unit : '________');
-        appendCell(tr, '____________');
+        const signatureCell = appendCell(tr, '');
+        const signatureLine = document.createElement('span');
+        signatureLine.className = 'warehouse-ir-handwritten-line';
+        signatureCell.appendChild(signatureLine);
         appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
         tbody.appendChild(tr);
       }
