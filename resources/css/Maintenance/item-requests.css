@@ -39,3 +39,9 @@
 .ir-detail-text{white-space:pre-line;overflow-wrap:anywhere;background:#f7f9fd;border:1px solid #e3ebf4;border-radius:8px;padding:13px;font-size:12px;color:#2d4363;margin:0}
 @media(max-width:1250px){.maintenance-ir-page .ir-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.maintenance-ir-page .ir-toolbar{flex-wrap:wrap}.maintenance-ir-page .ir-table-wrap{overflow-x:auto}}
 @media(max-width:760px){.maintenance-ir-page .ir-summary{grid-template-columns:1fr}.maintenance-ir-page .ir-filter-form{justify-content:flex-start}.maintenance-ir-page .ir-filter-control input{width:110px}.ir-details-grid{grid-template-columns:1fr}}
+
+/* Shared toolbar from JO / Purchase Requests */
+.maintenance-ir-page .ir-toolbar .gct-table-toolbar-row{display:flex;align-items:center;justify-content:flex-end;min-width:0;flex:1}
+.maintenance-ir-page .ir-toolbar .gct-table-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin:0}
+.maintenance-ir-page .ir-toolbar .gct-table-tool-trigger{min-height:36px}
+@media(max-width:760px){.maintenance-ir-page .ir-toolbar .gct-table-toolbar-row{justify-content:flex-start}}
