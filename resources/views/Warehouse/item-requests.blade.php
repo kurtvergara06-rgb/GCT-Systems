@@ -61,7 +61,7 @@
                     @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
                     @php($stockIsMixed = $stockParts->count() > 1)
                     <tr>
-                        <td class="warehouse-ir-reference"><span class="warehouse-ir-id-badge">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</span></td>
+                        <td class="warehouse-ir-reference"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span></td>
                         <td>
                             @php($parts = collect($ir->requested_parts ?? []))
                             @if($parts->isNotEmpty())
@@ -122,7 +122,7 @@
                         </td>
                         <td>
                             <button type="button" class="ir-view-button" data-ir-view
-                                data-ir-number="IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}"
+                                data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                 data-ir-status="{{ $ir->status }}"
