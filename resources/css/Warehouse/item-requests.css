@@ -126,3 +126,64 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
 .warehouse-ir-page .ir-parts-details.warehouse-ir-item-more>summary i{font-size:8px;transition:transform .15s ease}
 .warehouse-ir-page .ir-parts-details.warehouse-ir-item-more[open]>summary{background:#dceaff}
 .warehouse-ir-page .ir-parts-details.warehouse-ir-item-more[open]>summary i{transform:rotate(180deg)}
+
+
+/* Warehouse IR typography normalization: consistent hierarchy across all rows. */
+.warehouse-ir-page .ir-record-card,
+.warehouse-ir-page .ir-table{
+  font-family:inherit;
+}
+.warehouse-ir-page .ir-table thead th{
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+  line-height:1.35;
+}
+.warehouse-ir-page .ir-table tbody td{
+  font-size:12px;
+  font-weight:500;
+  line-height:1.45;
+  color:#233a59;
+}
+.warehouse-ir-page .ir-table tbody td .ir-number,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-item-label,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-onhand-summary>strong,
+.warehouse-ir-page .ir-table tbody td:nth-child(3)>strong,
+.warehouse-ir-page .ir-table tbody td:nth-child(4)>strong{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0;
+  line-height:1.45;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-item-label{
+  display:inline;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:#173452;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-ref-tag{
+  font-size:10px;
+  font-weight:700;
+  line-height:1.2;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status{
+  font-size:10px;
+  font-weight:800;
+  line-height:1.2;
+}
+.warehouse-ir-page .ir-table tbody td .ir-view-button,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-item-more>summary,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-onhand-more>summary{
+  font-size:10px;
+  font-weight:750;
+  line-height:1.25;
+}
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-shortage-note{
+  font-size:10px;
+  font-weight:750;
+  line-height:1.2;
+}
