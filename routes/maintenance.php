@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Maintenance\FuelReportController;
+use App\Http\Controllers\Maintenance\ItemRequestController;
 use App\Http\Controllers\Maintenance\JobOrderController;
 use App\Http\Controllers\Maintenance\JobOrderIndexController;
 use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
@@ -84,6 +85,9 @@ Route::middleware([
                 Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->middleware('system.permission:maintenance,edit')->name('job-orders.create-pr');
                 Route::delete('/{jobOrder}', 'destroy')->middleware('system.permission:maintenance,edit')->name('job-orders.destroy');
             });
+
+        Route::get('/item-requests', [ItemRequestController::class, 'index'])->name('item-requests');
+        Route::post('/item-requests', [ItemRequestController::class, 'store'])->middleware('system.permission:maintenance,edit')->name('item-requests.store');
 
         Route::get('/purchase-requests', PurchaseRequestIndexController::class)
             ->name('purchase-requests');
