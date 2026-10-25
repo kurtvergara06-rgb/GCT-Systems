@@ -3,6 +3,81 @@ window.GCTPartialNavigation.registerInitializer(
   '.purchase-page',
   () => {
 
+    /* Parts dropdown: render above the scrollable table so menus cannot be clipped. */
+    const prPartsPage = document.querySelector('.purchase-page');
+    let activePartsTrigger = null;
+    let activePartsMenu = null;
+
+    function closePartsMenu() {
+      if (activePartsMenu) activePartsMenu.remove();
+      if (activePartsTrigger) {
+        activePartsTrigger.setAttribute('aria-expanded', 'false');
+        activePartsTrigger.closest('details')?.removeAttribute('open');
+      }
+      activePartsMenu = null;
+      activePartsTrigger = null;
+    }
+
+    function positionPartsMenu() {
+      if (!activePartsTrigger || !activePartsMenu || !activePartsTrigger.isConnected) {
+        closePartsMenu();
+        return;
+      }
+      const rect = activePartsTrigger.getBoundingClientRect();
+      const margin = 8;
+      const width = Math.min(330, window.innerWidth - margin * 2);
+      activePartsMenu.style.width = width + 'px';
+      activePartsMenu.style.left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin)) + 'px';
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const menuHeight = activePartsMenu.offsetHeight;
+      const above = spaceBelow < Math.min(menuHeight + margin, 220) && spaceAbove > spaceBelow;
+      const maxHeight = Math.max(100, (above ? spaceAbove : spaceBelow) - margin * 2);
+      activePartsMenu.style.maxHeight = maxHeight + 'px';
+      activePartsMenu.style.overflowY = 'auto';
+      activePartsMenu.style.top = above
+        ? Math.max(margin, rect.top - Math.min(menuHeight, maxHeight) - margin) + 'px'
+        : Math.min(window.innerHeight - margin, rect.bottom + margin) + 'px';
+    }
+
+    prPartsPage?.addEventListener('click', event => {
+      const summary = event.target.closest('.pr-parts-dropdown > summary');
+      if (!summary || !prPartsPage.contains(summary)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (activePartsTrigger === summary) {
+        closePartsMenu();
+        return;
+      }
+      closePartsMenu();
+      const source = summary.parentElement.querySelector('.pr-parts-dropdown-menu');
+      if (!source) return;
+      activePartsTrigger = summary;
+      summary.parentElement.setAttribute('open', '');
+      summary.setAttribute('aria-expanded', 'true');
+      activePartsMenu = source.cloneNode(true);
+      activePartsMenu.classList.add('pr-parts-floating-menu');
+      Object.assign(activePartsMenu.style, {
+        position: 'fixed', zIndex: '10000', bottom: 'auto', right: 'auto',
+        display: 'block', visibility: 'hidden', margin: '0'
+      });
+      document.body.appendChild(activePartsMenu);
+      positionPartsMenu();
+      activePartsMenu.style.visibility = 'visible';
+    });
+
+    document.addEventListener('click', event => {
+      if (activePartsMenu?.contains(event.target) || activePartsTrigger?.contains(event.target)) return;
+      closePartsMenu();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closePartsMenu();
+    });
+    window.addEventListener('resize', closePartsMenu);
+    document.addEventListener('scroll', event => {
+      if (activePartsMenu && !activePartsMenu.contains(event.target)) closePartsMenu();
+    }, true);
+
     /* =========================================================
        MODAL HELPERS
     ========================================================= */
