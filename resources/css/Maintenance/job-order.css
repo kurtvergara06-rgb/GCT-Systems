@@ -5883,39 +5883,57 @@ body.jo-readonly-open { overflow: hidden; }
   }
 }
 
-/* Read-only JO details: show live stock availability on each requested part. */
-#joReadonlyOverlay .jo-view-parts-list li {
+/* JO requested parts: consistent name, quantity and binary availability alignment. */
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  column-gap: 12px;
-  row-gap: 5px;
+  gap: 10px;
+  min-height: 50px;
+  padding: 9px 12px;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity {
+  min-width: 56px;
+  text-align: right;
+  white-space: nowrap;
 }
 #joReadonlyOverlay .jo-view-part-availability {
-  grid-column: 1 / -1;
-  justify-self: start;
   display: inline-flex;
+  grid-column: auto;
   align-items: center;
-  min-height: 23px;
+  justify-content: center;
+  justify-self: end;
+  min-width: 93px;
+  min-height: 25px;
   padding: 3px 9px;
-  border-radius: 999px;
   border: 1px solid transparent;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 750;
   line-height: 1.3;
+  white-space: nowrap;
 }
 #joReadonlyOverlay .jo-view-part-availability.is-available {
   background: #dcfce7;
   border-color: #86efac;
   color: #166534;
 }
-#joReadonlyOverlay .jo-view-part-availability.is-partial {
-  background: #fef3c7;
-  border-color: #fcd34d;
-  color: #92400e;
-}
 #joReadonlyOverlay .jo-view-part-availability.is-unavailable {
   background: #fee2e2;
   border-color: #fca5a5;
   color: #991b1b;
+}
+@media (max-width: 530px) {
+  #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 7px;
+  }
+  #joReadonlyOverlay .jo-view-part-availability {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
 }
