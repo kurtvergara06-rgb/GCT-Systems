@@ -47,6 +47,9 @@
         @endif
 
         <div class="warehouse-list-controls">
+        <div class="warehouse-request-count">
+          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+        </div>
           <nav class="warehouse-record-tabs" aria-label="Part request record view" role="tablist">
             <a
               href="{{ route('part-requests', ['view' => 'active']) }}"
@@ -70,9 +73,6 @@
             </a>
           </nav>
         <div class="gct-table-toolbar-row">
-        <div class="warehouse-request-count">
-          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
-        </div>
 
           <x-ui.table-toolbar action="{{ route('part-requests') }}" data-server-filter="true" search-label="Search Part Requests" search-placeholder="Search PR no., JO no., bus, or item..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Part Requests" :sort-options="['pr_no' => 'PR Number', 'created_at' => 'Request Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
             <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
