@@ -326,8 +326,8 @@
                                     <td class="jo-actions-cell">
                                         <div class="actions">
                                             @if($isViewOnly && !($canReviewJobOrders && $isPendingReview))
-                                                <button type="button" class="action-btn view jo-open-view" data-id="{{ $jobOrder->id }}" aria-label="View Job Order {{ $jobOrder->job_order_no }}" title="View Job Order">
-                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                                <button type="button" class="action-btn view jo-open-view jo-labeled-view" data-id="{{ $jobOrder->id }}" aria-label="View Job Order {{ $jobOrder->job_order_no }}" title="View Job Order">
+                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                                                 </button>
                                                 <template class="jo-view-content">
                                                     <div class="jo-view-summary">
@@ -387,7 +387,7 @@
                                                 </template>
                                             @elseif(!($canReviewJobOrders && $isPendingReview))
                                             <x-ui.action-buttom-modal
-                                                class="{{ $isViewOnly ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
+                                                class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal' }}"
                                                 title="{{ $isViewOnly ? 'View Job Order' : 'Edit Job Order' }}"
                                                 icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                                                 data-id="{{ $jobOrder->id }}"
@@ -405,7 +405,7 @@
                                                 data-review-status="{{ $jobOrder->review_status }}"
                                                 data-review-notes="{{ $jobOrder->review_notes }}"
                                                 data-view-only="{{ $isViewOnly ? '1' : '0' }}"
-                                            />
+                                            >@if($isViewOnly)<span>View</span>@endif</x-ui.action-buttom-modal>
                                             @endif
 
                                             @if($canReviewJobOrders && $isPendingReview)
