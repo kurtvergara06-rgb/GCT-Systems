@@ -142,3 +142,12 @@
  #itemRequestModal .ir-preview-table th:nth-child(2){width:26%}
  #itemRequestModal .ir-preview-table th:nth-child(3){width:31%}
 }
+
+
+/* Match the black compact IR identifier badge used by Warehouse. */
+.maintenance-ir-page .ir-table .maintenance-ir-id-badge{
+ display:inline-flex;align-items:center;min-height:21px;padding:3px 8px;
+ border:1px solid #d4dfed;border-radius:5px;background:#f4f7fc;
+ color:#16243a;font-size:11px;font-weight:800;line-height:1.2;
+ letter-spacing:0;white-space:nowrap;box-sizing:border-box;
+}
