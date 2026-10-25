@@ -18,6 +18,12 @@
   @endphp
 
   <style>
+    .mechanic-attendance-profile { display: flex; align-items: center; gap: 10px; min-width: 175px; }
+    .mechanic-attendance-profile-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; border: 1px solid #cfe0ff; border-radius: 9px; background: #e7f0ff; color: #1a5bd1; font-size: 14px; }
+    .mechanic-attendance-profile-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .mechanic-attendance-profile-info strong { font-size: 12px; font-weight: 750; color: #172d50; line-height: 1.25; }
+    .mechanic-attendance-profile-info small { font-size: 10px; color: #627794; line-height: 1.2; }
+
     .badge.leave {
       display: inline-flex;
       align-items: center;
@@ -152,7 +158,15 @@
 
                 <tr>
                   <td><span class="system-id-badge system-id-badge--small">{{ $attendance->mechanic_id }}</span></td>
-                  <td><span class="mechanic-attendance-name-chip">{{ $attendance->mechanic_name }}</span></td>
+                  <td>
+                    <div class="mechanic-attendance-profile">
+                      <span class="mechanic-attendance-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                      <span class="mechanic-attendance-profile-info">
+                        <strong>{{ $attendance->mechanic_name }}</strong>
+                        <small>Mechanic profile</small>
+                      </span>
+                    </div>
+                  </td>
                   <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
