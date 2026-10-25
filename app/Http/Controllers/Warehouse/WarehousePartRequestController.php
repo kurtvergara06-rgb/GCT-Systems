@@ -126,7 +126,7 @@ class WarehousePartRequestController extends Controller
         $jobOrderIssuances = $currentView === 'history'
             ? InventoryIssuance::query()
                 ->whereIn('reference_no', JobOrder::query()->select('job_order_no'))
-                ->with('items')
+                ->with(['items', 'issuer'])
                 ->orderByDesc('issued_at')
                 ->limit(100)
                 ->get()
@@ -139,7 +139,9 @@ class WarehousePartRequestController extends Controller
             $jobs = JobOrder::query()
                 ->where('review_status', 'Approved')
                 ->where('status', '!=', 'Completed')
-                ->where('part_status', '!=', 'Issued')
+                ->where(function ($q) {
+                    $q->whereNull('part_status')->orWhere('part_status', '!=', 'Issued');
+                })
                 ->whereNotNull('part_needed')
                 ->where('part_needed', '!=', '')
                 ->whereNotIn('job_order_no', PurchaseRequest::query()
