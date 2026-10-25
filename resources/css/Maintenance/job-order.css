@@ -5650,3 +5650,43 @@ body.jo-readonly-open { overflow: hidden; }
   #jobModal .jo-view-parts-list li { align-items: flex-start; }
   #jobModal .jo-view-signature img { width: 100%; height: 90px; }
 }
+
+
+/* Readable type scale for the JO View modal, including parts and head approval. */
+#jobModal .jo-view-section h3,
+#jobModal .jo-view-audit summary {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 800;
+}
+#jobModal .jo-view-section .jo-view-grid > div > span,
+#jobModal .jo-view-signature > span {
+  font-size: 12px;
+  line-height: 1.45;
+}
+#jobModal .jo-view-section .jo-view-grid strong,
+#jobModal .jo-view-parts-pill {
+  font-size: 13px;
+  line-height: 1.5;
+}
+#jobModal .jo-view-parts-list {
+  gap: 8px;
+}
+#jobModal .jo-view-parts-list li {
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  gap: 10px;
+}
+#jobModal .jo-view-signature img {
+  height: 120px;
+}
+#jobModal .jo-view-audit-count {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+#jobModal .jo-view-audit li,
+#jobModal .jo-view-audit small {
+  font-size: 12px;
+  line-height: 1.5;
+}
