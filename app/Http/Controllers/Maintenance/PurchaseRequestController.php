@@ -1095,6 +1095,23 @@ class PurchaseRequestController extends Controller
                     $parts
                 );
 
+        // The signed JO is the sole approval authority. Never let a rejected
+        // legacy PR silently change the parts covered by that authorization.
+        if ($jobOrder->review_status !== 'Approved' || $jobOrder->status === 'Completed') {
+            throw ValidationException::withMessages([
+                'job_order_no' => 'The linked Job Order must be approved and open before this PR can be resubmitted.',
+            ]);
+        }
+
+        $authorizedParts = $this->partParser->normalizePartsInput(
+            $this->partParser->parsePartText((string) $jobOrder->part_needed)
+        );
+        if ($parts !== $authorizedParts) {
+            throw ValidationException::withMessages([
+                'parts' => 'These parts differ from the approved Job Order. A new authorized Job Order is required before requesting changed parts.',
+            ]);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | SAME PR NUMBER
@@ -1123,10 +1140,10 @@ class PurchaseRequestController extends Controller
                 ?? 'Revised and resubmitted.',
 
             'status' =>
-                'Submitted',
+                'Approved',
 
             'approved_at' =>
-                null,
+                $jobOrder->approved_at ?? now(),
 
             'rejected_at' =>
                 null,
@@ -1142,7 +1159,7 @@ class PurchaseRequestController extends Controller
                 $formattedParts,
 
             'part_status' =>
-                'Submitted',
+                'Approved',
         ]);
         });
 
@@ -1151,7 +1168,7 @@ class PurchaseRequestController extends Controller
             'PurchaseRequest',
             'status_updated',
             $purchaseRequest->id,
-            'A rejected Purchase Request was revised and resubmitted.'
+            'A rejected Purchase Request was restored under the existing Job Order approval.'
         );
 
         $this->broadcastSystemDataUpdated(
@@ -1159,13 +1176,13 @@ class PurchaseRequestController extends Controller
             'JobOrder',
             'status_updated',
             $jobOrder->id,
-            'The related Job Order part status was returned to Submitted.'
+            'The related Job Order part status was restored to Approved using the signed Job Order.'
         );
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Purchase Request revised and resubmitted successfully.',
+                'message' => 'Purchase Request revised and restored under the existing Job Order approval.',
                 'purchase_request' => $purchaseRequest,
             ]);
         }
@@ -1186,6 +1203,8 @@ class PurchaseRequestController extends Controller
         Request $request,
         PurchaseRequest $purchaseRequest
     ) {
+        abort(409, 'Purchase Requisition approval is inherited from the signed Job Order; separate PR review is disabled.');
+
         if (
             $this->isRestockRequest(
                 $purchaseRequest
@@ -1291,6 +1310,8 @@ class PurchaseRequestController extends Controller
         Request $request,
         PurchaseRequest $purchaseRequest
     ) {
+        abort(409, 'Purchase Requisition approval is inherited from the signed Job Order; separate PR review is disabled.');
+
         if (
             $this->isRestockRequest(
                 $purchaseRequest
