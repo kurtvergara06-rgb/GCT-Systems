@@ -356,11 +356,39 @@
                                                             <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
                                                             <div class="jo-view-parts-cell jo-view-parts-fullwidth">
                                                                 <span>Requested Parts</span>
-                                                                @php($viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
+                                                                @php
+                                                                    $viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
+                                                                    $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()
+                                                                        ->get(['item_code', 'item_name', 'parts_name', 'unit_of_measurement', 'unit', 'quantity_available'])
+                                                                        ->flatMap(function ($item) {
+                                                                            $normalize = fn ($name) => mb_strtolower(trim((string) $name));
+                                                                            return collect([$item->item_code, $item->item_name, $item->parts_name])
+                                                                                ->filter(fn ($name) => trim((string) $name) !== '')
+                                                                                ->mapWithKeys(fn ($name) => [$normalize($name) => $item]);
+                                                                        });
+                                                                    $viewPartsTotalByName = collect($viewRequestedParts)
+                                                                        ->groupBy(fn ($part) => mb_strtolower(trim((string) $part['name'])))
+                                                                        ->map(fn ($parts) => $parts->sum('quantity'));
+                                                                @endphp
                                                                 @if(count($viewRequestedParts))
                                                                     <ul class="jo-view-parts-list">
                                                                         @foreach($viewRequestedParts as $part)
-                                                                            <li><span class="jo-view-part-name">{{ $part['name'] }}</span><span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span></li>
+                                                                            @php
+                                                                                $partKey = mb_strtolower(trim((string) $part['name']));
+                                                                                $stockItem = $viewPartsStock->get($partKey);
+                                                                                $stockUnit = mb_strtolower(trim((string) ($stockItem?->unit_of_measurement ?: $stockItem?->unit)));
+                                                                                $requestedUnit = mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                                                                                $partUnitsMatch = $requestedUnit === '' || $stockUnit === '' || $requestedUnit === $stockUnit
+                                                                                    || (in_array($requestedUnit, ['pc', 'pcs', 'piece', 'pieces']) && in_array($stockUnit, ['pc', 'pcs', 'piece', 'pieces']));
+                                                                                $partStock = $stockItem && $partUnitsMatch ? max(0, (int) $stockItem->quantity_available) : 0;
+                                                                                $partDemand = (int) $viewPartsTotalByName->get($partKey, $part['quantity']);
+                                                                                $partAvailability = $partStock >= $partDemand ? 'Available' : ($partStock > 0 ? 'Partially Available' : 'Unavailable');
+                                                                            @endphp
+                                                                            <li>
+                                                                                <span class="jo-view-part-name">{{ $part['name'] }}</span>
+                                                                                <span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span>
+                                                                                <span class="jo-view-part-availability {{ $partStock >= $partDemand ? 'is-available' : ($partStock > 0 ? 'is-partial' : 'is-unavailable') }}" title="Warehouse stock: {{ $partStock }} {{ $part['unit'] }}; total required: {{ $partDemand }} {{ $part['unit'] }}">{{ $partAvailability }} · {{ $partStock }} in stock</span>
+                                                                            </li>
                                                                         @endforeach
                                                                     </ul>
                                                                 @else
