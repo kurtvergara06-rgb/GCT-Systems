@@ -47,6 +47,10 @@ class ItemRequestController extends Controller
      */
     public function issue(ItemRequest $itemRequest, InventoryLedgerService $ledger)
     {
+        // Never deduct stock without a retained, verified signed issuance slip.
+        // The preparation modal is print-only; the signed-issuance workflow follows.
+        abort(409, 'A signed stock withdrawal slip must be recorded before issuance can be confirmed.');
+
         $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
         DB::transaction(function () use ($itemRequest, $ledger, $irNumber): void {
             $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
