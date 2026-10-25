@@ -51,7 +51,7 @@
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
-                    <thead><tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>IR STATUS</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR NUMBER</th><th>JOB ORDER</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>IR STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
                     @php($stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]))
@@ -61,7 +61,6 @@
                     <tr>
                         <td><strong class="ir-number">IR-{{ str_pad((string) $ir->id, 5, '0', STR_PAD_LEFT) }}</strong></td>
                         <td><strong>{{ $ir->jobOrder?->job_order_no ?? '—' }}</strong></td>
-                        <td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></td>
                         <td>
                             @php($parts = collect($ir->requested_parts ?? []))
                             @if($parts->isNotEmpty())
@@ -78,7 +77,18 @@
                             @else — @endif
                         </td>
                         <td><strong>{{ $requestedCount }}</strong> total</td>
-                        <td><strong>{{ $firstStock['available'] ?? 0 }}</strong> {{ $firstStock['unit'] ?? '' }} @if($stockParts->count() > 1)<span class="warehouse-ir-more-stock">+{{ $stockParts->count() - 1 }} items</span>@endif</td>
+                        <td><strong>{{ $firstStock['available'] ?? 0 }}</strong> {{ $firstStock['unit'] ?? '' }}
+                            @if($stockParts->count() > 1)
+                                <details class="ir-parts-details warehouse-ir-onhand-more">
+                                    <summary>+{{ $stockParts->count() - 1 }} more</summary>
+                                    <div class="ir-parts-popover">
+                                        @foreach($stockParts->skip(1) as $part)
+                                            <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                        @endforeach
+                                    </div>
+                                </details>
+                            @endif
+                        </td>
                         <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}">{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td><span class="ir-status">{{ $ir->status }}</span></td>
                         <td>
@@ -95,7 +105,7 @@
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="8"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
+                        <tr><td colspan="7"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
