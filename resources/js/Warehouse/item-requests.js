@@ -206,7 +206,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         appendCell(tr, part.name);
         appendCell(tr, part.quantity + ' ' + part.unit);
         appendCell(tr, trigger.dataset.irBus);
-        appendCell(tr, '________');
+        appendCell(tr, data.status === 'sufficient' ? part.quantity + ' ' + part.unit : '________');
         appendCell(tr, '________________', 'warehouse-ir-slip-signature-cell');
         appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
         tbody.appendChild(tr);
@@ -214,18 +214,13 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (!data.parts?.length) throw Error('This request has no recorded parts.');
       if (data.status === 'sufficient' && form && lines) {
         (data.parts || []).forEach((part, index) => {
-          const label = document.createElement('label');
-          label.textContent = part.name + ' — Qty Issued (' + part.unit + ')';
+          // The slip table is the visible quantity record. Keep only the
+          // validated full-issuance values in hidden fields for submission.
           const input = document.createElement('input');
-          input.type = 'number';
+          input.type = 'hidden';
           input.name = 'issued_quantities[' + index + ']';
-          input.min = String(part.quantity);
-          input.max = String(part.quantity);
-          input.step = '1';
           input.value = String(part.quantity);
-          input.required = true;
-          label.appendChild(input);
-          lines.appendChild(label);
+          lines.appendChild(input);
         });
         confirm.disabled = false;
       } else {
