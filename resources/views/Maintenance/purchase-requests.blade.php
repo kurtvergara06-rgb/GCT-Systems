@@ -32,25 +32,8 @@
           $isMaintenanceAdmin = $isMaintenanceAdmin ?? false;
           $workToPerformByJobOrder = $workToPerformByJobOrder ?? collect();
 
-          $availablePrJobOrders = $jobOrders->filter(function ($jobOrder) {
-              if (
-                  empty($jobOrder->assigned_mechanic) ||
-                  empty($jobOrder->part_needed) ||
-                  $jobOrder->status === 'Completed'
-              ) {
-                  return false;
-              }
-
-              return !\App\Models\Maintenance\PurchaseRequest::query()
-                  ->where('job_order_no', $jobOrder->job_order_no)
-                  ->where('pr_no', 'not like', '%-P')
-                  ->where(function ($query) {
-                      $query
-                          ->whereNull('source_type')
-                          ->orWhere('source_type', 'Maintenance Request');
-                  })
-                  ->exists();
-          })->values();
+          // Controller supplies only approved JOs that still require procurement.
+          $availablePrJobOrders = $jobOrders;
       @endphp
 
       @if($errors->any())
