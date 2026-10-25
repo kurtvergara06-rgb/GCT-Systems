@@ -96,6 +96,12 @@ class ItemRequestController extends Controller
                 'requested_parts' => $parts,
                 'remarks' => $data['remarks'] ?? null,
             ]);
+            // An IR is the operational request for JO parts. Creating it
+            // transitions the JO away from "Not Requested" without implying
+            // that Warehouse has issued or reserved anything.
+            if (in_array($jo->part_status, [null, 'Not Requested'], true)) {
+                $jo->update(['part_status' => 'Submitted']);
+            }
         });
 
         return redirect()->route('item-requests')->with('success', 'Item Request submitted for Warehouse stock verification.');
