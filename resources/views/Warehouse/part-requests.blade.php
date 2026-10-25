@@ -12,7 +12,8 @@
 >
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
-    $currentView = $currentView ?? 'active';
+    $currentView = $currentView ?? 'pr';
+    $isJo = $currentView === 'jo';
     $isHistory = $currentView === 'history';
   @endphp
   <div class="app">
@@ -36,11 +37,11 @@
         <div class="section-header warehouse-record-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>{{ $isHistory ? 'Part Request History' : 'Active Part Requests' }}</h2>
+            <h2>{{ $isHistory ? 'Part Request History' : ($isJo ? 'Job Order Requests' : 'Purchase Requisitions') }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
         <div class="warehouse-request-count">
-          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $isJo ? $jobOrderRequests->total() : $purchaseRequests->total() }} {{ $isJo ? \Illuminate\Support\Str::plural('Job Order', $jobOrderRequests->total()) : \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
         </div>
 
 
@@ -52,27 +53,10 @@
 
         <div class="warehouse-list-controls">
 
-          <nav class="warehouse-record-tabs" aria-label="Part request record view" role="tablist">
-            <a
-              href="{{ route('part-requests', ['view' => 'active']) }}"
-              class="warehouse-record-tab {{ !$isHistory ? 'is-active' : '' }}"
-              data-allow-partial-navigation="true"
-              role="tab"
-              aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
-            >
-              <i class="fa-solid fa-list-check"></i>
-              <span>Active</span>
-            </a>
-            <a
-              href="{{ route('part-requests', ['view' => 'history']) }}"
-              class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}"
-              data-allow-partial-navigation="true"
-              role="tab"
-              aria-selected="{{ $isHistory ? 'true' : 'false' }}"
-            >
-              <i class="fa-solid fa-clock-rotate-left"></i>
-              <span>History</span>
-            </a>
+          <nav class="warehouse-record-tabs" aria-label="Warehouse request type" role="tablist">
+            <a href="{{ route('part-requests', ['view' => 'jo']) }}" class="warehouse-record-tab {{ $isJo ? 'is-active' : '' }}" role="tab" aria-selected="{{ $isJo ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-wrench"></i> JO Requests</a>
+            <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ !$isJo && !$isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> PR Requests</a>
+            <a href="{{ route('part-requests', ['view' => 'history']) }}" class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ $isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
           </nav>
         <div class="gct-table-toolbar-row">
 
@@ -88,7 +72,7 @@
           <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
             <thead>
               <tr>
-                <th>PR ID</th>
+                <th>{{ $isJo ? 'JO ID' : 'PR ID' }}</th>
                 <th>Item</th>
                 <th class="qty-col">Qty</th>
                 <th class="qty-col">On Hand</th>
@@ -98,6 +82,27 @@
                 <th class="actions-col">Actions</th>
               </tr>
             </thead>
+            @if($isJo)
+            <tbody>
+              @forelse($jobOrderRequests as $job)
+                <tr>
+                  <td>
+                    <div class="pr-ref-cell"><strong class="pr-main-num">{{ $job->job_order_no }}</strong>
+                    <div class="pr-sub-tags"><span class="pr-meta-tag bus-tag"><i class="fa-solid fa-bus"></i> {{ $job->bus_no }}</span></div></div>
+                  </td>
+                  <td class="item-col"><strong class="item-name-text">{{ collect($job->warehouse_available_parts)->pluck('name')->implode(', ') }}</strong></td>
+                  <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum('quantity') }}</td>
+                  <td class="qty-col">{{ collect($job->warehouse_available_parts)->sum(fn ($part) => min((int) $part['available'], (int) $part['quantity'])) }}</td>
+                  <td class="status-col"><x-ui.status-badge status="Available" type="inventory" /></td>
+                  <td class="status-col">—</td>
+                  <td class="status-col"><x-ui.status-badge status="Pending Issuance" /></td>
+                  <td class="actions-col"><span title="JO-only issuance requires a ledger-backed handover action; no automatic stock deduction." class="pr-meta-tag">View JO</span></td>
+                </tr>
+              @empty
+                <x-ui.empty-row colspan="8" icon="fa-wrench" message="No JO parts requests with available stock" description="Approved open Job Orders with available stock and no existing PR appear here." />
+              @endforelse
+            </tbody>
+            @else
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
@@ -221,6 +226,7 @@
                 />
               @endforelse
             </tbody>
+            @endif
           </table>
         </div>
 
