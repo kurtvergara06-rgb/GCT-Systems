@@ -615,3 +615,39 @@
   }
 }
 
+
+/* Align Warehouse Part Requests record controls with Maintenance JO/PR pages. */
+.warehouse-part-card .warehouse-record-header {
+  align-items: flex-start;
+}
+.warehouse-part-card .warehouse-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 10px;
+}
+.warehouse-part-card .warehouse-list-controls .warehouse-record-tabs {
+  margin: 0;
+  align-self: center;
+}
+.warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: auto;
+  margin: 0 0 0 auto;
+}
+.warehouse-part-card .warehouse-list-controls .gct-table-toolbar {
+  margin: 0;
+}
+.warehouse-part-card .warehouse-request-count {
+  margin: 0 0 10px;
+}
+@media (max-width: 700px) {
+  .warehouse-part-card .warehouse-list-controls > .gct-table-toolbar-row {
+    margin-left: 0;
+  }
+}
