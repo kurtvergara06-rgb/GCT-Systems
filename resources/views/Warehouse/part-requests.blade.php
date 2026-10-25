@@ -156,7 +156,7 @@
             @endif
             @if(!$isJo)
             <tbody>
-              @forelse($purchaseRequests as $partRequest)
+              @foreach($purchaseRequests as $partRequest)
                 @php
                   $status = $partRequest->purchase_progress_status ?? $partRequest->status ?? 'Approved';
                   $itemName = $partRequest->first_item_display ?? '—';
@@ -269,14 +269,15 @@
                     </div>
                   </td>
                 </tr>
-              @empty
+              @endforeach
+              @if($purchaseRequests->isEmpty())
                 <x-ui.empty-row
                   colspan="8"
                   icon="fa-clipboard-list"
                   :message="$isHistory ? 'No Part Request History Found' : 'No Active Part Requests Found'"
                   :description="$isHistory ? 'Issued and fulfilled part requests will appear here.' : 'Maintenance part requisitions awaiting fulfillment will appear here.'"
                 />
-              @endforelse
+              @endif
             </tbody>
             @endif
           </table>
