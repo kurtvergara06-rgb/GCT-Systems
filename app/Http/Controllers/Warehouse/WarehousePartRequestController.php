@@ -171,6 +171,12 @@ class WarehousePartRequestController extends Controller
                             'available' => max(0, (int) ($item?->quantity_available ?? 0)),
                         ];
                     })->filter(fn ($part) => $part['available'] > 0)->values()->all();
+                    $job->warehouse_can_issue = ! $job->warehouse_has_linked_pr
+                        && trim((string) $job->assigned_mechanic) !== ''
+                        && count($job->warehouse_available_parts) === count($parts)
+                        && collect($job->warehouse_available_parts)->every(
+                            fn ($part) => (int) $part['available'] >= (int) $part['quantity']
+                        );
                     return $job;
                 })
                 ->filter(fn ($job) => count($job->warehouse_available_parts) > 0);
