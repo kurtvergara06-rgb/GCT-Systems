@@ -152,6 +152,17 @@ class ItemRequestController extends Controller
         return redirect()->route('warehouse.item-requests')->with('success', "{$irNumber} issued. Signed slip retained and stock movements recorded.");
     }
 
+    public function signedSlip(ItemRequest $itemRequest)
+    {
+        $reference = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
+        $issuance = InventoryIssuance::query()->where('reference_no', $reference)->firstOrFail();
+        if (! $issuance->signed_slip_path || ! Storage::disk('local')->exists($issuance->signed_slip_path)) {
+            abort(404, 'Signed issuance slip not found.');
+        }
+
+        return Storage::disk('local')->download($issuance->signed_slip_path);
+    }
+
     public function index(Request $request)
     {
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
