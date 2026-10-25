@@ -238,6 +238,119 @@ class WarehousePartRequestController extends Controller
         ));
     }
 
+    /**
+     * Physical issue of stocked parts against a signed Job Order (no PR needed).
+     * An issuance reference and ledger movements are committed atomically.
+     */
+    public function issueJobOrder(JobOrder $jobOrder)
+    {
+        $this->authorizeWarehouseCapability('edit');
+
+        DB::transaction(function () use ($jobOrder): void {
+            $job = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($job->review_status !== 'Approved' || $job->status === 'Completed'
+                || trim((string) $job->assigned_mechanic) === '') {
+                throw ValidationException::withMessages([
+                    'workflow' => 'Only an approved, open Job Order with an assigned mechanic can receive parts.',
+                ]);
+            }
+
+            if (PurchaseRequest::query()->where('job_order_no', $job->job_order_no)
+                ->where(function ($q) {
+                    $q->whereNull('source_type')->orWhere('source_type', 'Maintenance Request');
+                })->exists()) {
+                throw ValidationException::withMessages([
+                    'workflow' => 'This Job Order has a linked PR. Issue its parts through the PR workflow instead.',
+                ]);
+            }
+
+            if (InventoryIssuance::query()->where('reference_no', $job->job_order_no)->exists()) {
+                throw ValidationException::withMessages([
+                    'workflow' => 'Parts were already issued for this Job Order.',
+                ]);
+            }
+
+            $parts = app(PartParser::class)->parsePartText((string) $job->part_needed);
+            if ($parts === []) {
+                throw ValidationException::withMessages(['parts' => 'No requested parts were found.']);
+            }
+
+            $requirements = collect($parts)->groupBy(fn ($p) => mb_strtolower(trim((string) $p['name'])))
+                ->map(fn ($items) => [
+                    'name' => $items->first()['name'],
+                    'unit' => $items->first()['unit'] ?? '',
+                    'quantity' => $items->sum('quantity'),
+                ])->values();
+
+            // Validate every item and reserve its row locks before any stock movement.
+            $stockLines = [];
+            foreach ($requirements as $part) {
+                $match = $this->findInventoryItem($part['name'], $part['unit']);
+                $stock = $match ? InventoryItem::query()->whereKey($match->id)->lockForUpdate()->first() : null;
+                $needed = (int) $part['quantity'];
+                if (!$stock || (int) $stock->quantity_available < $needed) {
+                    throw ValidationException::withMessages([
+                        'stock' => 'Insufficient stock for '.$part['name'].'. Create a PR for unavailable parts.',
+                    ]);
+                }
+                $stockLines[] = [$stock, $part, $needed];
+            }
+
+            $issuance = InventoryIssuance::create([
+                'issue_no' => $this->generateIssueNo(),
+                'issued_to' => 'Maintenance',
+                'purpose' => 'Parts issued for Job Order '.$job->job_order_no,
+                'reference_no' => $job->job_order_no,
+                'issued_by' => auth()->id(),
+                'issued_at' => now(),
+            ]);
+            $details = [];
+            foreach ($stockLines as [$stock, $part, $quantity]) {
+                $movement = $this->ledger->stockOut(
+                    $stock, $quantity, $job->job_order_no,
+                    'Warehouse issued parts for approved Job Order '.$job->job_order_no.'.',
+                    auth()->id()
+                );
+                InventoryIssuanceItem::create([
+                    'inventory_issuance_id' => $issuance->id,
+                    'inventory_item_id' => $stock->id,
+                    'item_code' => $stock->item_code,
+                    'item_name' => $stock->parts_name ?? $stock->item_name ?? 'Inventory Item',
+                    'quantity' => $quantity,
+                    'unit' => $stock->unit_of_measurement ?: $stock->unit,
+                    'previous_stock' => $movement->previous_stock,
+                    'new_stock' => $movement->new_stock,
+                    'stock_movement_id' => $movement->id,
+                ]);
+                $details[] = ['name' => $part['name'], 'issued' => $quantity, 'unit' => $part['unit']];
+            }
+
+            $job->audits()->create([
+                'user_id' => auth()->id(),
+                'action' => 'parts_issued',
+                'from_status' => $job->part_status,
+                'to_status' => 'Issued',
+                'notes' => 'Warehouse handed over parts under '.$issuance->issue_no.'.',
+                'metadata' => [
+                    'issuance_id' => $issuance->id,
+                    'issue_no' => $issuance->issue_no,
+                    'job_order_no' => $job->job_order_no,
+                    'items' => $details,
+                ],
+            ]);
+            $updates = ['part_status' => 'Issued'];
+            if ($job->actual_started_at === null) {
+                $updates['status'] = 'On Going';
+                $updates['start_date'] = now();
+                $updates['actual_started_at'] = now();
+            }
+            $job->update($updates);
+        });
+
+        $this->broadcastSystemDataUpdated('Warehouse', 'JobOrder', 'status_updated', $jobOrder->id, 'Warehouse issued available JO parts.');
+        return redirect()->back()->with('success', 'Job Order parts issued and inventory updated.');
+    }
+
     public function issue(PurchaseRequest $purchaseRequest)
     {
         $this->authorizeWarehouseCapability('edit');
