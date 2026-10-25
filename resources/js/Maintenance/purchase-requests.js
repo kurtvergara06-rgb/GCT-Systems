@@ -1210,6 +1210,21 @@ window.GCTPartialNavigation.registerInitializer(
         'reviewPrCreated'
       );
 
+    const reviewPrSummaryJobOrder =
+      document.getElementById(
+        'reviewPrSummaryJobOrder'
+      );
+
+    const reviewPrJoAuthorization =
+      document.getElementById(
+        'reviewPrJoAuthorization'
+      );
+
+    const reviewPrAuthorizationJobOrder =
+      document.getElementById(
+        'reviewPrAuthorizationJobOrder'
+      );
+
 
     const reviewPrJobOrderNo =
       document.getElementById(
@@ -1283,6 +1298,16 @@ window.GCTPartialNavigation.registerInitializer(
     const prReviewItemsSection =
       document.getElementById(
         'prReviewItemsSection'
+      );
+
+    const prRequestDetailsSection =
+      document.getElementById(
+        'prRequestDetailsSection'
+      );
+
+    const prAuthorizationSection =
+      document.getElementById(
+        'prAuthorizationSection'
       );
 
 
@@ -1642,7 +1667,7 @@ window.GCTPartialNavigation.registerInitializer(
 
           editPrModalTitle
             .textContent =
-            'Purchase Request Details';
+            'Purchase Requisition Details';
 
         } else if (
           isRejected
@@ -1763,6 +1788,8 @@ window.GCTPartialNavigation.registerInitializer(
       [
         prReviewInformation,
         prReviewItemsSection,
+        prRequestDetailsSection,
+        prAuthorizationSection,
       ].forEach(
         element => {
 
@@ -1839,14 +1866,14 @@ window.GCTPartialNavigation.registerInitializer(
         : (sourceJoStatus === 'JO not found' ? 'Source JO not found' : 'Pending JO approval (' + sourceJoStatus + ')');
       if (approvedAt) approvedAt.textContent = approvedJo ? (button.dataset.joApprovedAt || 'Not recorded') : '—';
       if (signature) {
-        signature.style.display = 'none';
+        signature.hidden = true;
         signature.removeAttribute('src');
         signature.onload = () => {
-          signature.style.display = 'block';
+          signature.hidden = false;
           if (signatureFallback) signatureFallback.hidden = true;
         };
         signature.onerror = () => {
-          signature.style.display = 'none';
+          signature.hidden = true;
           if (signatureFallback) {
             signatureFallback.hidden = false;
             signatureFallback.textContent = 'Signature unavailable';
@@ -1871,11 +1898,31 @@ window.GCTPartialNavigation.registerInitializer(
 
       if (reviewPrStatus) {
         reviewPrStatus.textContent =
-          status === 'Submitted' && approvedJo
-            ? 'Submitted · JO Approved'
-            : status;
+          status;
         reviewPrStatus.dataset.status =
           status.toLowerCase().replaceAll(' ', '-');
+      }
+
+      const sourceJobOrder =
+        button.dataset.jobOrderNo || '—';
+
+      if (reviewPrSummaryJobOrder) {
+        reviewPrSummaryJobOrder.textContent =
+          sourceJobOrder;
+      }
+
+      if (reviewPrJoAuthorization) {
+        reviewPrJoAuthorization.textContent =
+          approvedJo
+            ? 'JO authorization: Approved'
+            : `JO authorization: ${sourceJoStatus}`;
+      }
+
+      if (reviewPrAuthorizationJobOrder) {
+        reviewPrAuthorizationJobOrder.textContent =
+          approvedJo
+            ? `${sourceJobOrder} · Approved`
+            : `${sourceJobOrder} · ${sourceJoStatus}`;
       }
 
 
@@ -2076,6 +2123,15 @@ window.GCTPartialNavigation.registerInitializer(
       openModal(
         editPrModal
       );
+
+      const modalScroller =
+        editPrModal?.querySelector(
+          '.ui-form-modal-scrollable'
+        );
+
+      if (modalScroller) {
+        modalScroller.scrollTop = 0;
+      }
 
     }
 

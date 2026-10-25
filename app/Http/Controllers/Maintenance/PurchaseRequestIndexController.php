@@ -87,7 +87,12 @@ class PurchaseRequestIndexController extends Controller
         $prJobApprovals = $visibleJobOrderNumbers->isEmpty()
             ? collect()
             : JobOrder::query()
-                ->with('approver')
+                ->with([
+                    'approver',
+                    'audits' => fn ($query) => $query
+                        ->where('action', 'approved')
+                        ->latest('id'),
+                ])
                 ->whereIn('job_order_no', $visibleJobOrderNumbers)
                 ->get()
                 ->keyBy('job_order_no');

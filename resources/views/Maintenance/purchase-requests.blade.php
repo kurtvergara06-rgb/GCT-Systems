@@ -188,6 +188,8 @@
                                           : null;
 
                                       $sourceJo = ($prJobApprovals ?? collect())->get($pr->job_order_no);
+                                      $sourceJoApprovalAudit = $sourceJo?->audits?->first();
+                                      $sourceJoSignaturePath = data_get($sourceJoApprovalAudit?->metadata, 'handwritten_signature_path');
                                       $sourceJoApproved = $sourceJo?->review_status === 'Approved';
                                       $legacyAuthorized = $pr->status === 'Submitted' && $sourceJoApproved;
 
@@ -240,8 +242,8 @@
                                                   data-jo-approved="{{ $sourceJo?->review_status === 'Approved' ? '1' : '0' }}"
                                                   data-jo-review-status="{{ $sourceJo?->review_status ?? ($sourceJo ? 'Pending' : 'JO not found') }}"
                                                   data-jo-approver="{{ $sourceJo?->approver?->name ?? '' }}"
-                                                  data-jo-approved-at="{{ $sourceJo?->approved_at?->format('M d, Y · h:i A') ?? '' }}"
-                                                  data-jo-signature-url="{{ $sourceJo?->review_status === 'Approved' ? route('job-orders.approval-signature', $sourceJo->id, false) : '' }}"
+                                                  data-jo-approved-at="{{ ($sourceJo?->approved_at ?? $sourceJoApprovalAudit?->created_at)?->format('M d, Y · h:i A') ?? '' }}"
+                                                  data-jo-signature-url="{{ $sourceJoApproved && is_string($sourceJoSignaturePath) && $sourceJoSignaturePath !== '' ? route('job-orders.approval-signature', $sourceJo->id, false) : '' }}"
                                                   data-job-order-no="{{ $pr->job_order_no }}"
                                                   data-bus-no="{{ $pr->bus_no }}"
                                                   data-item="{{ $pr->item }}"
@@ -448,9 +450,10 @@
 
       <x-ui.form-modal
           id="editPrModal"
-          title="Purchase Request Details"
+          title="Purchase Requisition Details"
           title-id="editPrModalTitle"
-          description="View purchase requisition information approved during Job Order review."
+          description="Maintenance purchase requisition information and authorization"
+          icon="fa-file-circle-check"
           size="wide"
           form-id="editPrForm"
           action="#"
@@ -470,22 +473,21 @@
           <input type="hidden" name="status_display" id="edit_status_display">
 
           <div class="pr-review-summary">
-              <div class="pr-review-summary-main">
-                  <div class="pr-review-doc-icon">
-                      <i class="fa-solid fa-clipboard-list"></i>
-                  </div>
-
-                  <div>
-                      <strong id="reviewPrNo">—</strong>
-                      <span id="reviewPrStatus" class="pr-review-status-pill">—</span>
-                  </div>
+              <div class="pr-review-summary-item">
+                  <span>PR ID</span>
+                  <strong id="reviewPrNo">—</strong>
               </div>
-
-              <div class="pr-review-created">
-                  <span>
-                      <i class="fa-regular fa-calendar"></i>
-                      Created
-                  </span>
+              <div class="pr-review-summary-item">
+                  <span>Current PR Status</span>
+                  <strong><span id="reviewPrStatus" class="pr-review-status-pill">—</span></strong>
+              </div>
+              <div class="pr-review-summary-item">
+                  <span>Source JO ID</span>
+                  <strong id="reviewPrSummaryJobOrder">—</strong>
+                  <small id="reviewPrJoAuthorization">—</small>
+              </div>
+              <div class="pr-review-summary-item pr-review-created">
+                  <span>Created Date</span>
                   <strong id="reviewPrCreated">—</strong>
               </div>
           </div>
@@ -497,73 +499,55 @@
                           <i class="fa-solid fa-file-lines"></i>
                       </span>
                       <div>
-                          <h3>Request Information</h3>
-                          <p>Review the source Job Order and request details.</p>
+                          <h3>01 — Request Information</h3>
+                          <p>Origin and requester information</p>
                       </div>
                   </div>
               </div>
 
               <div class="pr-review-information">
-              <div class="pr-review-information-column">
                   <div class="pr-review-detail-row">
-                      <span>Job Order No.</span>
+                      <span>Job Order ID</span>
                       <strong id="reviewPrJobOrderNo">—</strong>
                   </div>
-
                   <div class="pr-review-detail-row">
-                      <span>Bus No.</span>
+                      <span>Bus ID</span>
                       <strong id="reviewPrBusNo">—</strong>
                   </div>
-
                   <div class="pr-review-detail-row">
                       <span>Department</span>
                       <strong>Maintenance</strong>
                   </div>
-              </div>
-
-              <div class="pr-review-information-column">
+                  <div class="pr-review-detail-row">
+                      <span>Source</span>
+                      <strong id="reviewPrSource">Maintenance Request</strong>
+                  </div>
+                  <div class="pr-review-detail-row">
+                      <span>Requested By</span>
+                      <strong id="reviewPrRequester">—</strong>
+                  </div>
                   <div class="pr-review-detail-row">
                       <span>Request Date</span>
                       <strong id="reviewPrRequestDate">—</strong>
                   </div>
+              </div>
+          </section>
 
-                  <div class="pr-review-detail-row">
-                      <span>Status</span>
-                      <strong id="reviewPrStatusText">—</strong>
-                  </div>
-
-                  <div class="pr-review-detail-row">
-                      <span>Total Quantity</span>
-                      <strong id="reviewPrTotalQuantity">—</strong>
+          <section class="pr-review-section" id="prRequestDetailsSection">
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+                      <div><h3>02 — Request Details</h3><p>Repair purpose and requested schedule</p></div>
                   </div>
               </div>
-
-              <div class="pr-review-detail-row pr-review-detail-full">
-                  <span>Source</span>
-                  <strong id="reviewPrSource">Maintenance Request</strong>
-              </div>
-
-              <div class="pr-review-detail-row pr-review-detail-full">
+              <div class="pr-review-information">
+                  <div class="pr-review-detail-row pr-review-detail-full">
                   <span>Work / Repair to Perform</span>
                   <strong id="reviewPrWorkToPerform">No work / repair details recorded.</strong>
-              </div>
-
-              <div class="pr-review-detail-row pr-review-detail-full">
-                  <span>Remarks</span>
-                  <strong id="reviewPrRemarks">No remarks provided.</strong>
-              </div>
-              <div class="pr-review-detail-row pr-review-detail-full">
-                  <span>Purpose</span>
-                  <strong id="reviewPrPurpose">—</strong>
-              </div>
-              <div class="pr-review-detail-row">
-                  <span>Target Date</span>
-                  <strong id="reviewPrTargetDate">—</strong>
-              </div>
-              <div class="pr-review-detail-row">
-                  <span>Requested By</span>
-                  <strong id="reviewPrRequester">—</strong>
-              </div>
+                  </div>
+                  <div class="pr-review-detail-row pr-review-detail-full"><span>Purpose</span><strong id="reviewPrPurpose">—</strong></div>
+                  <div class="pr-review-detail-row pr-review-detail-full"><span>Remarks</span><strong id="reviewPrRemarks">No remarks provided.</strong></div>
+                  <div class="pr-review-detail-row pr-review-detail-full"><span>Target Date</span><strong id="reviewPrTargetDate">—</strong></div>
               </div>
           </section>
 
@@ -574,8 +558,8 @@
                           <i class="fa-solid fa-clipboard-list"></i>
                       </span>
                       <div>
-                          <h3>Requested Items</h3>
-                          <p>Parts included in this purchase request.</p>
+                          <h3>03 — Requested Items</h3>
+                          <p>Parts and quantities included in this requisition</p>
                       </div>
                   </div>
 
@@ -599,6 +583,10 @@
                       </tbody>
                   </table>
               </div>
+              <div class="pr-review-items-total">
+                  <span>Total requested quantity</span>
+                  <strong id="reviewPrTotalQuantity">—</strong>
+              </div>
           </section>
 
           <section class="pr-review-section" id="prAuthorizationSection">
@@ -610,33 +598,14 @@
               </div>
               <div class="pr-review-information">
                   <div class="pr-review-detail-row"><span>Approved By</span><strong id="reviewPrApprover">—</strong></div>
-                  <div class="pr-review-detail-row"><span>Approval Date</span><strong id="reviewPrApprovedAt">—</strong></div>
+                  <div class="pr-review-detail-row"><span>Approval Date and Time</span><strong id="reviewPrApprovedAt">—</strong></div>
+                  <div class="pr-review-detail-row pr-review-detail-full"><span>Source Job Order</span><strong id="reviewPrAuthorizationJobOrder">—</strong></div>
                   <div class="pr-review-detail-row pr-review-detail-full">
-                      <span>Authorized Signature</span>
-                      <div><img id="reviewPrSignature" alt="Maintenance Head handwritten approval signature" style="display:none;max-width:300px;max-height:110px;object-fit:contain;" />
+                      <span>Authorized Handwritten Signature</span>
+                      <div class="pr-review-signature"><img id="reviewPrSignature" alt="Maintenance Head handwritten approval signature" hidden />
                       <strong id="reviewPrSignatureFallback">Not available</strong></div>
                   </div>
               </div>
-          </section>
-
-          <section id="reviewDecisionBlock" class="pr-review-decision" hidden>
-              <div class="pr-review-section-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon">
-                          <i class="fa-solid fa-user-check"></i>
-                      </span>
-                      <div>
-                          <h3>Approval / Rejection</h3>
-                          <p>Optional remarks. Rejection remarks will be saved with the request.</p>
-                      </div>
-                  </div>
-              </div>
-
-              <label for="reviewDecisionRemarks">Remarks / Reason (Optional)</label>
-              <textarea
-                  id="reviewDecisionRemarks"
-                  placeholder="Enter remarks or reason here..."
-              ></textarea>
           </section>
 
           <section id="prEditableSection" class="pr-edit-workspace" hidden>
@@ -669,40 +638,6 @@
               <button type="button" id="closeViewOnlyPr" class="ui-form-btn ui-form-btn-cancel">
                   Close
               </button>
-
-              <div class="pr-review-footer-actions">
-                  <button
-                      type="button"
-                      id="reviewEditPrBtn"
-                      class="ui-form-btn pr-review-btn-edit"
-                      hidden
-                  >
-                      <i class="fa-solid fa-pen-to-square"></i>
-                      <span>Edit</span>
-                  </button>
-
-                  <button
-                      type="button"
-                      id="reviewRejectPrBtn"
-                      class="ui-form-btn pr-review-btn-reject open-pr-confirmation"
-                      data-action="reject"
-                      hidden
-                  >
-                      <i class="fa-solid fa-xmark"></i>
-                      Reject
-                  </button>
-
-                  <button
-                      type="button"
-                      id="reviewApprovePrBtn"
-                      class="ui-form-btn pr-review-btn-approve open-pr-confirmation"
-                      data-action="approve"
-                      hidden
-                  >
-                      <i class="fa-solid fa-check"></i>
-                      Approve
-                  </button>
-              </div>
           </div>
 
           <div class="ui-form-actions" id="editPrMainActions" style="display: none;">

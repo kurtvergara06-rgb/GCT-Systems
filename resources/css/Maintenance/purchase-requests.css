@@ -4634,3 +4634,309 @@
     width: auto;
   }
 }
+
+/* Read-only Purchase Requisition details — aligned with Job Order Details. */
+#editPrModal.pr-review-modal-overlay {
+  align-items: center;
+  justify-content: center;
+  padding: 20px !important;
+  background: rgba(10, 25, 49, .56);
+  backdrop-filter: blur(5px);
+}
+#editPrModal.pr-review-modal-overlay > .ui-form-modal {
+  width: min(850px, 100%) !important;
+  max-width: 850px !important;
+  max-height: calc(100dvh - 40px);
+  overflow: hidden;
+  border: 1px solid #d8e4f5;
+  border-radius: 17px;
+  background: #fff;
+  color: #152c4d;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .24);
+}
+#editPrModal .ui-form-modal-header {
+  flex: none;
+  padding: 19px 23px;
+  border-bottom: 1px solid #e1e8f2;
+  background: linear-gradient(120deg, #f1f6ff 0%, #fff 100%);
+}
+#editPrModal .ui-form-title-wrap { gap: 13px; }
+#editPrModal .ui-form-title-icon {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border: 1px solid #bcd4ff;
+  border-radius: 12px;
+  color: #0d4b9c;
+  background: #e7f0ff;
+  font-size: 18px;
+}
+#editPrModal .ui-form-heading h2 {
+  margin: 0;
+  color: #152c4d;
+  font-size: 19px;
+  font-weight: 800;
+}
+#editPrModal .ui-form-heading p {
+  margin: 5px 0 0;
+  color: #60738e;
+  font-size: 12px;
+}
+#editPrModal .ui-form-close {
+  border: 1px solid #d2deee;
+  border-radius: 8px;
+  background: #fff;
+  color: #16365f;
+}
+#editPrModal .ui-form-close:hover { background: #e9f1fd; }
+#editPrModal .ui-form-content,
+#editPrModal .ui-form-modal-body {
+  min-height: 0;
+  padding: 0;
+}
+#editPrModal .ui-form-modal-scrollable {
+  max-height: calc(100dvh - 119px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 17px 22px 0;
+  background: #fbfcff;
+}
+#editPrModal .pr-review-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 15px;
+  margin: 0 0 14px;
+  padding: 15px 18px;
+  border: 1px solid #b8d1f5;
+  border-radius: 11px;
+  background: linear-gradient(100deg, #eaf3ff, #f7faff);
+  box-shadow: none;
+}
+#editPrModal .pr-review-summary-item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#editPrModal .pr-review-summary-item > span {
+  color: #6a7b92;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+#editPrModal .pr-review-summary-item > strong {
+  color: #0c3f87;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+#editPrModal .pr-review-summary-item > small {
+  color: #60738e;
+  font-size: 10px;
+  line-height: 1.35;
+}
+#editPrModal #reviewPrNo { font-size: 14px; }
+#editPrModal .pr-review-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 25px;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid #bad3fc;
+  border-radius: 99px;
+  background: #dbeafe;
+  color: #134ba6;
+  font-size: 11px;
+  line-height: 1.2;
+}
+#editPrModal .pr-review-created { width: auto; text-align: left; }
+#editPrModal .pr-review-created strong { max-width: none; font-size: 12px; }
+#editPrModal .pr-review-information-section,
+#editPrModal .pr-review-section {
+  margin: 0 0 14px;
+  overflow: hidden;
+  border: 1px solid #dae5f4;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(16, 58, 105, .035);
+}
+#editPrModal .pr-review-section-heading {
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e8f3;
+  background: #f1f5fc;
+}
+#editPrModal .pr-review-section-title { gap: 8px; }
+#editPrModal .pr-review-section-icon {
+  width: 21px;
+  height: 21px;
+  flex-basis: 21px;
+  border: 0;
+  border-radius: 0;
+  color: #1554a4;
+  background: transparent;
+  font-size: 12px;
+}
+#editPrModal .pr-review-section-title h3 {
+  color: #10366e;
+  font-size: 12px;
+  font-weight: 800;
+}
+#editPrModal .pr-review-section-title p {
+  margin-top: 3px;
+  color: #60738e;
+  font-size: 10px;
+}
+#editPrModal .pr-review-information {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px 24px;
+  margin: 0;
+  padding: 16px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+#editPrModal .pr-review-detail-row,
+#editPrModal .pr-review-detail-full {
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+#editPrModal .pr-review-detail-full { grid-column: 1 / -1; }
+#editPrModal .pr-review-detail-row > span {
+  color: #6a7b92;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .025em;
+}
+#editPrModal .pr-review-detail-row > strong {
+  color: #1c3554;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table-wrap {
+  margin: 14px 14px 0;
+  border: 1px solid #dbe6f5;
+  border-radius: 9px;
+  box-shadow: none;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table thead th {
+  padding: 9px 10px;
+  background: #edf4fd;
+  color: #3c5576;
+  font-size: 10px;
+}
+#editPrModal #prReviewItemsSection .pr-review-items-table tbody td {
+  padding: 11px 10px;
+  color: #173250;
+  font-size: 11px;
+}
+#editPrModal .pr-review-items-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 11px 15px 14px;
+  color: #60738e;
+  font-size: 11px;
+}
+#editPrModal .pr-review-items-total strong {
+  color: #0c3f87;
+  font-size: 14px;
+}
+#editPrModal #prAuthorizationSection .pr-review-information {
+  padding: 16px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+#editPrModal #prAuthorizationSection .pr-review-detail-row { padding: 0; }
+#editPrModal .pr-review-signature { width: 100%; }
+#editPrModal #prAuthorizationSection #reviewPrSignature:not([hidden]) {
+  display: block;
+  width: min(300px, 100%);
+  max-height: 110px;
+  object-fit: contain;
+  object-position: left center;
+}
+#editPrModal #prAuthorizationSection #reviewPrSignature[hidden],
+#editPrModal #reviewPrSignatureFallback[hidden] { display: none; }
+#editPrModal #reviewPrSignatureFallback {
+  color: #677a95;
+  font-size: 11px;
+  font-weight: 600;
+}
+#editPrModal #viewOnlyActions.pr-review-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 -22px;
+  padding: 12px 20px;
+  border-top: 1px solid #e1e8f2;
+  background: #f9fbff;
+}
+#editPrModal #viewOnlyActions #closeViewOnlyPr {
+  width: auto;
+  min-width: 90px;
+  min-height: 34px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #0f4a99;
+  border-radius: 8px;
+  background: #0f4a99;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+#editPrModal #viewOnlyActions #closeViewOnlyPr:hover {
+  border-color: #0b3876;
+  background: #0b3876;
+  color: #fff;
+}
+@media (max-width: 760px) {
+  #editPrModal.pr-review-modal-overlay { padding: 8px !important; }
+  #editPrModal.pr-review-modal-overlay > .ui-form-modal { max-height: calc(100dvh - 16px); }
+  #editPrModal .ui-form-modal-header { padding: 15px 16px; }
+  #editPrModal .ui-form-modal-scrollable { max-height: calc(100dvh - 102px); padding: 14px 14px 0; }
+  #editPrModal .pr-review-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #editPrModal #viewOnlyActions.pr-review-footer {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    margin-inline: -14px;
+  }
+}
+@media (max-width: 520px) {
+  #editPrModal .ui-form-title-icon { width: 38px; height: 38px; flex-basis: 38px; }
+  #editPrModal .ui-form-heading h2 { font-size: 17px; }
+  #editPrModal .ui-form-heading p { font-size: 10px; }
+  #editPrModal .pr-review-summary,
+  #editPrModal .pr-review-information { grid-template-columns: 1fr; }
+  #editPrModal .pr-review-detail-full { grid-column: auto; }
+  #editPrModal #prReviewItemsSection .pr-review-items-table th:first-child,
+  #editPrModal #prReviewItemsSection .pr-review-items-table td:first-child { width: 34px; }
+  #editPrModal #prReviewItemsSection .pr-review-items-table th:nth-child(3),
+  #editPrModal #prReviewItemsSection .pr-review-items-table td:nth-child(3) { width: 54px; }
+  #editPrModal #prReviewItemsSection .pr-review-items-table th:nth-child(4),
+  #editPrModal #prReviewItemsSection .pr-review-items-table td:nth-child(4) { width: 62px; }
+}
