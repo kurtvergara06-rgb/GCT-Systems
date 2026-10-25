@@ -1833,7 +1833,10 @@ window.GCTPartialNavigation.registerInitializer(
       const approvedAt = document.getElementById('reviewPrApprovedAt');
       const signature = document.getElementById('reviewPrSignature');
       const signatureFallback = document.getElementById('reviewPrSignatureFallback');
-      if (approver) approver.textContent = approvedJo ? (button.dataset.joApprover || 'Not recorded') : 'Not approved';
+      const sourceJoStatus = button.dataset.joReviewStatus || 'Unknown';
+      if (approver) approver.textContent = approvedJo
+        ? (button.dataset.joApprover || 'Approver not recorded')
+        : (sourceJoStatus === 'JO not found' ? 'Source JO not found' : 'Pending JO approval (' + sourceJoStatus + ')');
       if (approvedAt) approvedAt.textContent = approvedJo ? (button.dataset.joApprovedAt || 'Not recorded') : '—';
       if (signature) {
         signature.style.display = 'none';
@@ -1851,7 +1854,7 @@ window.GCTPartialNavigation.registerInitializer(
         };
         if (signatureFallback) {
           signatureFallback.hidden = false;
-          signatureFallback.textContent = approvedJo ? 'Loading signature…' : 'No JO approval signature';
+          signatureFallback.textContent = approvedJo ? 'Loading signature…' : 'No approved JO signature available';
         }
         if (approvedJo && button.dataset.joSignatureUrl) {
           signature.src = button.dataset.joSignatureUrl;
