@@ -5944,3 +5944,18 @@ body.jo-readonly-open { overflow: hidden; }
 #jobModal .jo-maintenance-job-label{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
 #jobModal .jo-maintenance-job-option.is-selected{background:#edf4ff;color:#124e9e}
 #jobModal .jo-maintenance-job-option.is-selected .fa-check{opacity:1}
+
+
+/* Compact assigned-mechanic cell: Bus Master List +N more pattern */
+.job-orders-table .jo-mechanic-profiles{display:block;min-width:0}
+.job-orders-table .jo-mechanic-profiles>.jo-mechanic-profile{display:flex;align-items:center;gap:7px;position:relative;min-width:0}
+.job-orders-table .jo-mechanic-profiles>.jo-mechanic-profile>.jo-mechanic-profile-text{min-width:0}
+.job-orders-table .jo-mechanic-more{flex:none;position:relative;margin-left:3px}
+.job-orders-table .jo-mechanic-more>summary{list-style:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:6px 9px;border:1px solid #cbdfff;border-radius:7px;background:#eaf2ff;color:#1757ae;font-size:10px;font-weight:800;cursor:pointer;user-select:none}
+.job-orders-table .jo-mechanic-more>summary::-webkit-details-marker{display:none}
+.job-orders-table .jo-mechanic-more[open]>summary{background:#dceaff}
+.job-orders-table .jo-mechanic-more[open]>summary i{transform:rotate(180deg)}
+.job-orders-table .jo-mechanic-more-panel{position:absolute;z-index:80;top:calc(100% + 8px);left:0;min-width:230px;max-width:310px;max-height:225px;overflow:auto;background:#fff;border:1px solid #d3e0ef;border-radius:11px;box-shadow:0 12px 28px rgba(20,48,85,.17);padding:10px}
+.job-orders-table .jo-mechanic-more-title{font-size:10px;font-weight:800;color:#5c7494;padding:6px 7px 10px;border-bottom:1px solid #edf1f7}
+.job-orders-table .jo-mechanic-more-panel .jo-mechanic-profile{display:flex;align-items:center;gap:9px;padding:9px 6px;border-bottom:1px solid #edf1f7}
+.job-orders-table .jo-mechanic-more-panel .jo-mechanic-profile:last-child{border-bottom:0}
