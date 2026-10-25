@@ -92,3 +92,22 @@ body > .ir-parts-popover strong{font-weight:800;white-space:nowrap}
 .warehouse-ir-onhand-summary .warehouse-ir-onhand-more>summary i{font-size:8px;margin-left:3px}
 .warehouse-ir-shortage-quantity{font-weight:800;color:#bb472d}
 .warehouse-ir-process-status.is-submitted{color:#1d58a4;background:#ebf3ff;border-color:#cbdfff}
+
+
+/* JO Assigned Mechanics-inspired floating stock breakdown. Rendered at body level to avoid table clipping. */
+body > .ir-parts-popover.warehouse-ir-stock-popover{width:300px;max-width:calc(100vw - 24px);border:1px solid #cfdff3;border-radius:12px;padding:12px 13px;box-shadow:0 14px 34px rgba(20,51,94,.18);background:#fff;box-sizing:border-box}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-title{display:block;padding:4px 4px 11px;margin:0;border-bottom:1px solid #e4ebf5;color:#526c8e;font-size:10px;font-weight:850;letter-spacing:.015em}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-row{display:flex;align-items:center;gap:10px;padding:11px 3px;border-bottom:1px solid #e9eff7;min-width:0}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-row:last-child{border-bottom:0;padding-bottom:4px}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-icon{flex:none;display:grid;place-items:center;width:29px;height:29px;border:1px solid #d0e0fc;border-radius:8px;background:#eaf2ff;color:#1b60b5;font-size:12px}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-info{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-info .warehouse-ir-stock-popover-name{font-size:11px;font-weight:850;color:#17345a;white-space:normal;overflow-wrap:anywhere}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-info small{font-size:10px;color:#7a8ca5}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-amount{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-amount strong{font-size:11px;font-weight:850;color:#153658}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-popover-amount small{font-size:10px;font-weight:800}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-ok{color:#18814b}
+body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more>summary{display:inline-flex;gap:6px;align-items:center;padding:6px 9px;border:1px solid #cbddfa;border-radius:7px;background:#eaf2ff;color:#1554a2}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more[open]>summary{background:#dceaff}
+.warehouse-ir-onhand-summary .warehouse-ir-onhand-more[open]>summary i{transform:rotate(180deg)}
