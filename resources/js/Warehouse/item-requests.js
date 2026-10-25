@@ -1,4 +1,56 @@
 window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.warehouse-ir-page', () => {
+  // Move expandable item/on-hand lists outside the scroll-clipped records table.
+  document.querySelectorAll('.warehouse-ir-page .ir-parts-details').forEach((details) => {
+    if (details.dataset.popupReady) return;
+    details.dataset.popupReady = '1';
+    const trigger = details.querySelector('summary');
+    const panel = details.querySelector('.ir-parts-popover');
+    if (!trigger || !panel) return;
+    let visible = false;
+    const place = () => {
+      if (!visible) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.min(300, window.innerWidth - 24);
+      panel.style.position = 'fixed';
+      panel.style.zIndex = '110500';
+      panel.style.width = width + 'px';
+      panel.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12)) + 'px';
+      const above = window.innerHeight - rect.bottom < 200 && rect.top > 200;
+      panel.style.top = above ? 'auto' : (rect.bottom + 6) + 'px';
+      panel.style.bottom = above ? (window.innerHeight - rect.top + 6) + 'px' : 'auto';
+      panel.style.maxHeight = Math.min(230, Math.max(90, above ? rect.top - 18 : window.innerHeight - rect.bottom - 16)) + 'px';
+    };
+    const close = () => {
+      if (!visible) return;
+      visible = false;
+      details.open = false;
+      panel.hidden = true;
+      panel.removeAttribute('style');
+      details.appendChild(panel);
+      window.removeEventListener('scroll', place, true);
+      window.removeEventListener('resize', place);
+    };
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (visible) return close();
+      document.querySelectorAll('.warehouse-ir-page .ir-parts-details[open] summary').forEach((other) => {
+        if (other !== trigger) other.click();
+      });
+      visible = true;
+      details.open = true;
+      panel.hidden = false;
+      document.body.appendChild(panel);
+      place();
+      window.addEventListener('scroll', place, true);
+      window.addEventListener('resize', place);
+    });
+    document.addEventListener('click', (event) => {
+      if (visible && !details.contains(event.target) && !panel.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (visible && event.key === 'Escape') { close(); trigger.focus(); }
+    });
+  });
   const modal = document.getElementById('warehouseItemRequestDetails');
   if (!modal) return;
   let activeTrigger = null;
