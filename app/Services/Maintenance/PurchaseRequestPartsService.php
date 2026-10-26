@@ -22,9 +22,10 @@ class PurchaseRequestPartsService
         }
 
         $availability = $this->workflow->inventoryAvailability($requestedParts);
-        $partsByName = collect($availability['parts'])->groupBy(
-            fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $part['name']))
-        );
+        $partKey = static fn (array $part): string =>
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['unit'] ?? '')));
+        $partsByName = collect($availability['parts'])->groupBy($partKey);
         // If a split IR was submitted first, purchase only the JO quantity
         // that is not already accounted for by that IR. This also remains
         // stable when Warehouse stock changes or the IR is physically issued.
@@ -37,7 +38,7 @@ class PurchaseRequestPartsService
                 ->latest('id')->first();
             if ($ir) {
                 $irQuantities = collect($ir->requested_parts ?? [])
-                    ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))))
+                    ->groupBy($partKey)
                     ->map(fn ($parts) => $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
                 $totalIr = $irQuantities->sum();
                 $totalJo = collect($requestedParts)->sum('quantity');
@@ -63,7 +64,7 @@ class PurchaseRequestPartsService
             $part = $parts->first();
             $shortage = $irQuantities->isNotEmpty()
                 ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
-                : (int) $part['shortage'];
+                : max(0, $parts->sum('quantity') - (int) $part['available']);
             if ($shortage < 1) {
                 continue;
             }
