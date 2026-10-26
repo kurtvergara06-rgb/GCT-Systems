@@ -151,6 +151,11 @@ class PurchaseRequestIndexController extends Controller
         // Keep the existing create modal restricted to the same eligible JOs.
         $jobOrders = $pendingPrJobs->pluck('job')->values();
 
+        // Automatically open Pending when approved JOs need procurement.
+        if (! $request->has('record_view') && $pendingPrJobs->isNotEmpty()) {
+            $recordView = 'pending';
+        }
+
         $selectedJobOrder = null;
         if ($request->filled('job_order_id')) {
             $selectedJobOrder = JobOrder::find($request->job_order_id);
