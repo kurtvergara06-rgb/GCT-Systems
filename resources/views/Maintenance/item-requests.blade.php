@@ -23,7 +23,7 @@
         <section class="ir-summary" aria-label="Request overview">
             <div class="ir-summary-card"><span class="ir-summary-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><span>Total Requests</span><strong>{{ $totalCount }}</strong><small>Item requests recorded</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span><div><span>Submitted</span><strong>{{ $submittedCount }}</strong><small>Awaiting Warehouse review</small></div></div>
-            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-list-check"></i></span><div><span>Active</span><strong>{{ $activeCount }}</strong><small>Open Item Requests</small></div></div>
+            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-list-check"></i></span><div><span>In Progress</span><strong>{{ $activeCount }}</strong><small>Open Item Requests</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-red"><i class="fa-solid fa-clock-rotate-left"></i></span><div><span>History</span><strong>{{ $historyCount }}</strong><small>Closed Item Requests</small></div></div>
         </section>
 
@@ -33,16 +33,11 @@
                     <h2>Item Request Records</h2>
                     <p>Track requested parts, linked Job Orders, and Warehouse processing.</p>
                 </div>
-                @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
-                    <button type="button" class="ir-primary-button" id="openItemRequestModal" @disabled($eligibleJobs->isEmpty())>
-                        <i class="fa-solid fa-plus"></i> New IR
-                    </button>
-                @endif
             </header>
             <div class="ir-toolbar">
                 <nav class="ir-tabs" aria-label="Item Request record view">
                     <a href="{{ route('item-requests', ['view' => 'pending']) }}" class="ir-active-tab {{ $view === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock"></i> Pending Requests <span>({{ $eligibleJobs->count() }})</span></a>
-                    <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active</a>
+                    <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> In Progress</a>
                     <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                 </nav>
                 <div class="gct-table-toolbar-row">
@@ -120,8 +115,8 @@
                         <tr><td colspan="7">
                             <div class="ir-empty">
                                 <span><i class="fa-solid fa-box-open"></i></span>
-                                <strong>{{ $view === 'history' ? 'No historical Item Requests' : 'No active Item Requests' }}</strong>
-                                <p>{{ $view === 'history' ? 'Completed or closed requests will appear here.' : 'Create an Item Request from an approved Job Order to begin Warehouse verification.' }}</p>
+                                <strong>{{ $view === 'history' ? 'No historical Item Requests' : 'No Item Requests in progress' }}</strong>
+                                <p>{{ $view === 'history' ? 'Completed or closed requests will appear here.' : 'Submitted Item Requests awaiting Warehouse fulfillment will appear here.' }}</p>
                             </div>
                         </td></tr>
                         @endforelse
