@@ -366,3 +366,68 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   #warehouseIrSlipModal .ir-note,
   #warehouseIrSlipModal .ir-modal-footer { display:none!important; }
 }
+
+
+/* Compact, readable IR review modal. Does not affect the issuance slip. */
+#warehouseItemRequestDetails .warehouse-ir-details-modal{
+ width:min(790px,calc(100vw - 32px));max-height:min(780px,calc(100vh - 32px));
+}
+#warehouseItemRequestDetails .warehouse-ir-details-body{
+ display:flex;flex-direction:column;gap:18px;padding:20px 22px 22px;
+ overflow-y:auto;min-height:0;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-meta{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-meta>div{
+ padding:12px 13px;min-width:0;border:1px solid #dce6f3;
+ border-radius:9px;background:#f5f8fd;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-meta span{
+ display:block;margin-bottom:5px;font-size:10px;line-height:1.3;
+ color:#6b829d;font-weight:700;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-meta strong{
+ font-size:12px;font-weight:850;color:#173458;line-height:1.5;
+ overflow-wrap:anywhere;
+}
+#warehouseItemRequestDetails .ir-field{margin:0;min-width:0}
+#warehouseItemRequestDetails .warehouse-ir-verify-heading{margin-bottom:9px}
+#warehouseItemRequestDetails .warehouse-ir-verify-heading label{
+ font-size:13px;color:#19385f;font-weight:850;
+}
+#warehouseItemRequestDetails .warehouse-ir-stock-hint{
+ display:flex;align-items:center;gap:7px;margin:0 0 12px!important;
+ font-size:11px;line-height:1.4;color:#577492;
+}
+#warehouseItemRequestDetails .warehouse-ir-stock-hint i{color:#235eaf}
+#warehouseItemRequestDetails .warehouse-ir-stock-table-wrap{
+ border-radius:9px;border-color:#d5e0ee;overflow-x:auto;
+}
+#warehouseItemRequestDetails table.warehouse-ir-stock-table{min-width:565px}
+#warehouseItemRequestDetails .warehouse-ir-stock-table th{
+ font-size:10px;font-weight:800;padding:11px 12px;
+}
+#warehouseItemRequestDetails .warehouse-ir-stock-table td{
+ font-size:12px;font-weight:750;padding:12px;line-height:1.4;
+}
+#warehouseItemRequestDetails .warehouse-ir-stock-time{
+ font-size:10px;margin-top:9px;
+}
+#warehouseItemRequestDetails .warehouse-ir-stock-message{
+ margin-top:4px;font-size:11px;font-weight:700;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-remarks label{
+ font-size:12px;font-weight:850;color:#19385f;
+}
+#warehouseItemRequestDetails .warehouse-ir-details-remarks .ir-detail-text{
+ margin:7px 0 0;padding:11px 12px;min-height:0;
+ font-size:11px;line-height:1.5;
+}
+#warehouseItemRequestDetails .ir-modal-footer{
+ padding:12px 22px;flex-shrink:0;
+}
+@media(max-width:690px){
+ #warehouseItemRequestDetails .warehouse-ir-details-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #warehouseItemRequestDetails .warehouse-ir-details-body{padding:16px}
+}
