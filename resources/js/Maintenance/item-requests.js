@@ -28,6 +28,42 @@ document.addEventListener('keydown', (event) => {
 });
 
 
+function renderItemRequestDetailParts(raw) {
+    const list = document.getElementById('ir-detail-parts');
+    const count = document.getElementById('ir-detail-parts-count');
+    if (!list) return;
+    const parts = String(raw).split(' | ').map(value => value.trim()).filter(Boolean);
+    if (count) count.textContent = parts.length + (parts.length === 1 ? ' item' : ' items');
+    list.replaceChildren();
+    if (!parts.length) {
+        const empty = document.createElement('p');
+        empty.className = 'ir-view-parts-empty';
+        empty.textContent = 'No requested parts listed.';
+        list.append(empty);
+        return;
+    }
+    parts.forEach((part, index) => {
+        const separator = part.lastIndexOf(' — ');
+        const name = separator >= 0 ? part.slice(0, separator) : part;
+        const quantity = separator >= 0 ? part.slice(separator + 3) : '';
+        const row = document.createElement('div');
+        row.className = 'ir-view-part-row';
+        const main = document.createElement('div');
+        main.className = 'ir-view-part-main';
+        const number = document.createElement('span');
+        number.className = 'ir-view-part-index';
+        number.textContent = String(index + 1).padStart(2, '0');
+        const label = document.createElement('strong');
+        label.textContent = name || '—';
+        main.append(number, label);
+        const amount = document.createElement('span');
+        amount.className = 'ir-view-part-qty';
+        amount.textContent = quantity || '—';
+        row.append(main, amount);
+        list.append(row);
+    });
+}
+
 function closeItemRequestDetails() {
     const modal = document.getElementById('viewItemRequestModal');
     if (!modal) return;
@@ -45,13 +81,29 @@ document.addEventListener('click', (event) => {
             'ir-detail-bus': trigger.dataset.irBus,
             'ir-detail-status': trigger.dataset.irStatus,
             'ir-detail-date': trigger.dataset.irDate,
-            'ir-detail-parts': (trigger.dataset.irParts || '').split(' | ').join('\n'),
             'ir-detail-remarks': trigger.dataset.irRemarks || 'No remarks provided.'
         };
         Object.entries(map).forEach(([id, value]) => {
             const element = document.getElementById(id);
             if (element) element.textContent = value || '—';
         });
+        renderItemRequestDetailParts(trigger.dataset.irParts || '');
+        const status = (trigger.dataset.irStatus || '').trim();
+        const description = document.getElementById('ir-detail-status-description');
+        if (description) {
+            const descriptions = {
+                submitted: 'Submitted to Warehouse; awaiting review.',
+                approved: 'Warehouse has approved the request for processing.',
+                preparing: 'Warehouse is preparing the requested parts.',
+                partial: 'Some parts have been issued; quantities remain outstanding.',
+                issued: 'The request has been issued by Warehouse.',
+                completed: 'This request is completed.',
+                cancelled: 'This request was cancelled.',
+                rejected: 'This request was rejected.',
+                pending: 'The request is awaiting processing.'
+            };
+            description.textContent = descriptions[status.toLowerCase()] || 'Current request processing status.';
+        }
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         modal.querySelector('[data-ir-close]')?.focus();
