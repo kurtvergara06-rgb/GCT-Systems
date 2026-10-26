@@ -166,6 +166,11 @@ class PurchaseRequestIndexController extends Controller
             $pendingPrJobs = $pendingPrJobs->sortBy(fn (array $proposal) => $proposal['job']->created_at, SORT_REGULAR, $pendingSortDesc)->values();
         }
 
+        if ($request->filled('status')
+            && ! in_array($request->query('status'), ['All Statuses', 'Pending Review'], true)) {
+            $pendingPrJobs = collect();
+        }
+
         // Automatically open Pending when approved JOs need procurement.
         if (! $request->has('record_view') && $pendingPrJobs->isNotEmpty()) {
             $recordView = 'pending';
