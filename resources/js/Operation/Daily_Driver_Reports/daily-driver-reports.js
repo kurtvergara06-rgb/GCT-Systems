@@ -136,19 +136,32 @@ function initDdrAssignedDrivers() {
     const modal = document.getElementById('ddrEncodeModal');
     const date = modal?.querySelector('[name="report_date"]');
     const driverCombo = modal?.querySelector('[data-combo][data-field="driver"]');
+    const busCombo = modal?.querySelector('[data-combo][data-field="bus"]');
     const exception = modal?.querySelector('#ddrUnscheduledMode');
     if (!date || !driverCombo || !window.ddrAssignedDriversUrl) return;
     let requestToken = 0;
     const update = async () => {
         const token = ++requestToken;
         const options = Array.from(driverCombo.querySelectorAll('[data-combo-option]'));
+        const busOptions = Array.from(busCombo?.querySelectorAll('[data-combo-option]') || []);
+        const showAll = () => {
+            [...options, ...busOptions].forEach(option => { option.hidden = false; option.style.display = ''; });
+        };
+        const setAllowed = (entries, allowed) => {
+            entries.forEach(option => {
+                const visible = allowed.has(String(option.dataset.value));
+                option.hidden = !visible;
+                option.style.display = visible ? '' : 'none';
+            });
+        };
         if (exception?.checked) {
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            showAll();
             return;
         }
         if (!date.value) {
-            // Keep the driver search usable before a date is selected.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            // No schedule date means no eligible scheduled-trip suggestions yet.
+            setAllowed(options, new Set());
+            setAllowed(busOptions, new Set());
             return;
         }
         try {
@@ -159,11 +172,9 @@ function initDdrAssignedDrivers() {
             const data = await response.json();
             if (token !== requestToken) return;
             const allowed = new Set((data.driver_ids || []).map(String));
-            options.forEach((option) => {
-                const visible = allowed.has(String(option.dataset.value));
-                option.hidden = !visible;
-                option.style.display = visible ? '' : 'none';
-            });
+            const allowedBuses = new Set((data.bus_ids || []).map(String));
+            setAllowed(options, allowed);
+            setAllowed(busOptions, allowedBuses);
             const selected = driverCombo.querySelector('[data-combo-value]');
             if (selected?.value && !allowed.has(String(selected.value))) {
                 selected.value = '';
@@ -171,9 +182,17 @@ function initDdrAssignedDrivers() {
                 if (input) input.value = '';
                 driverCombo.classList.remove('has-value');
             }
+            const selectedBus = busCombo?.querySelector('[data-combo-value]');
+            if (selectedBus?.value && !allowedBuses.has(String(selectedBus.value))) {
+                selectedBus.value = '';
+                const busInput = busCombo.querySelector('[data-combo-input]');
+                if (busInput) busInput.value = '';
+                busCombo.classList.remove('has-value');
+            }
         } catch (error) {
-            // A failed lookup must not make the driver's input appear broken.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            // Do not expose future or unverified assignments if eligibility lookup fails.
+            setAllowed(options, new Set());
+            setAllowed(busOptions, new Set());
         }
     };
     date.addEventListener('change', update);
