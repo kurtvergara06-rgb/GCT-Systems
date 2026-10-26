@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\Maintenance\PurchaseRequestPartsService;
+use Illuminate\Validation\ValidationException;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,10 +26,10 @@ class PurchaseRequestIndexController extends Controller
         'Issued',
     ];
 
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, PurchaseRequestPartsService $missingParts)
     {
-        $recordView = $request->input('record_view') === 'history'
-            ? 'history'
+        $recordView = in_array($request->input('record_view'), ['pending', 'history'], true)
+            ? $request->input('record_view')
             : 'active';
 
         $query = $this->maintenancePurchaseRequestQuery();
@@ -130,6 +132,25 @@ class PurchaseRequestIndexController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Virtual pending PR suggestions for approved JOs with a real shortage.
+        // They are not saved PRs and must be reviewed and submitted by Maintenance.
+        $existingPrJoNumbers = $this->maintenancePurchaseRequestQuery()
+            ->whereIn('job_order_no', $jobOrders->pluck('job_order_no'))
+            ->pluck('job_order_no');
+        $pendingPrJobs = $jobOrders->reject(fn (JobOrder $job) =>
+            $existingPrJoNumbers->contains($job->job_order_no)
+        )->map(function (JobOrder $job) use ($missingParts) {
+            try {
+                $parts = $missingParts->missingParts((string) $job->part_needed);
+            } catch (ValidationException) {
+                $parts = [];
+            }
+            return ['job' => $job, 'parts' => $parts];
+        })->filter(fn (array $proposal) => $proposal['parts'] !== [])->values();
+
+        // Keep the existing create modal restricted to the same eligible JOs.
+        $jobOrders = $pendingPrJobs->pluck('job')->values();
+
         $selectedJobOrder = null;
         if ($request->filled('job_order_id')) {
             $selectedJobOrder = JobOrder::find($request->job_order_id);
@@ -149,6 +170,7 @@ class PurchaseRequestIndexController extends Controller
             'issued',
             'nextPrNo',
             'jobOrders',
+            'pendingPrJobs',
             'selectedJobOrder',
             'statuses',
             'isMaintenanceAdmin',
