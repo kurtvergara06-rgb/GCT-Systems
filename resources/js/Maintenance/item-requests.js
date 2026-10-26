@@ -1,12 +1,15 @@
 document.addEventListener('click', (event) => {
     const modal = document.getElementById('itemRequestModal');
     if (!modal) return;
-    const open = event.target.closest('#openItemRequestModal');
+    const open = event.target.closest('#openItemRequestModal, [data-ir-review-job]');
     const close = event.target.closest('#closeItemRequestModal, #cancelItemRequestModal');
     if (open) {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
-        modal.querySelector('select')?.focus();
+        const select = document.getElementById('item_request_job_order');
+        if (open.dataset.irReviewJob && select) select.value = open.dataset.irReviewJob;
+        renderItemRequestPreview();
+        select?.focus();
     }
     if (close) {
         modal.classList.remove('is-open');
@@ -87,7 +90,7 @@ function renderItemRequestPreview() {
         const badge = document.createElement('span');
         const available = Number(part.available || 0);
         const required = Number(part.quantity || 0);
-        const status = available >= required ? 'Available' : available > 0 ? 'Partial' : 'Unavailable';
+        const status = 'Available';
         badge.className = 'ir-stock-badge ir-stock-' + status.toLowerCase();
         badge.textContent = status;
         stockTd.appendChild(badge);
