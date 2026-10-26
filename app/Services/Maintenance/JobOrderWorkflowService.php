@@ -24,7 +24,7 @@ class JobOrderWorkflowService
             })
             ->whereNotNull('mechanic_id')
             ->pluck('mechanic_id');
-        $busyLegacyNames = JobOrder::query()
+        $legacyNames = JobOrder::query()
             ->where('status', 'On Going')
             ->where('review_status', 'Approved')
             ->when($jobOrder, fn ($query) => $query->whereKeyNot($jobOrder->id))
@@ -32,6 +32,11 @@ class JobOrderWorkflowService
             ->pluck('assigned_mechanic')
             ->flatMap(fn ($names) => preg_split('/\s*,\s*/', (string) $names) ?: [])
             ->filter();
+        // Legacy name-only assignments cannot identify namesakes reliably.
+        // Exclude a name only if it belongs to one distinct master mechanic.
+        $busyLegacyNames = $legacyNames->filter(fn ($name) =>
+            Mechanic::query()->where('mechanic_name', $name)->count() === 1
+        );
 
         // Use the same attendance-by-mechanic-ID basis as the Mechanic
         // Availability board, so both screens agree on today's duty status.
