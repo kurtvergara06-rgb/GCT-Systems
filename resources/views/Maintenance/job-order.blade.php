@@ -563,6 +563,22 @@
                                                                         <textarea name="duration_adjustment_reason" maxlength="2000" placeholder="Explain the verified estimate" disabled></textarea>
                                                                     </div>
                                                                 </div>
+                                                                @if(trim((string) $jobOrder->part_needed) !== '')
+                                                                    <div class="jo-head-duration-review jo-head-parts-decision">
+                                                                        <div class="jo-review-step-heading">
+                                                                            <span class="jo-review-step-number">02</span>
+                                                                            <div><strong>Parts Release Decision</strong><p>Choose whether Warehouse may issue available parts while shortages are being purchased.</p></div>
+                                                                        </div>
+                                                                        <div class="jo-duration-decision-field">
+                                                                            <label for="jo-parts-decision-{{ $jobOrder->id }}">Maintenance Head decision <span class="ui-required">*</span></label>
+                                                                            <select id="jo-parts-decision-{{ $jobOrder->id }}" name="parts_issue_strategy" required>
+                                                                                <option value="complete_before_issuance" @selected(old('parts_issue_strategy', 'complete_before_issuance') === 'complete_before_issuance')>Wait until all JO parts are available</option>
+                                                                                <option value="issue_available_only" @selected(old('parts_issue_strategy') === 'issue_available_only')>Allow partial release of available parts</option>
+                                                                            </select>
+                                                                            <small>Actual stock is rechecked by Warehouse. This decision does not reserve or deduct parts.</small>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
                                                                 <div class="jo-head-authorization">
                                                                     <div class="jo-review-step-heading">
                                                                         <span class="jo-review-step-number">02</span>
