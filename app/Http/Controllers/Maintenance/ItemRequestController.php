@@ -74,6 +74,12 @@ class ItemRequestController extends Controller
             ]];
         });
 
+        // Show actionable suggestions first on ordinary sidebar navigation.
+        // Explicit Active/History/Pending links always keep their requested tab.
+        if (! $request->has('view') && $eligibleJobs->isNotEmpty()) {
+            $view = 'pending';
+        }
+
         return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews'));
     }
 
