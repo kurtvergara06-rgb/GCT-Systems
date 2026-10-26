@@ -631,9 +631,13 @@ class PurchaseRequestController extends Controller
                 'requested_by' => Auth::id(),
             ]);
 
-            $lockedJobOrder->update([
-                'part_status' => 'Approved',
-            ]);
+            // Procurement approval is not proof of physical issuance.
+            // Preserve IR/partial/issued progress rather than overwriting it.
+            if (in_array($lockedJobOrder->part_status, [null, 'Not Requested', 'Submitted'], true)) {
+                $lockedJobOrder->update([
+                    'part_status' => 'For Purchase',
+                ]);
+            }
 
             return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
         });
