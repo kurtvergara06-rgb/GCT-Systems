@@ -3,6 +3,8 @@
 namespace App\Services\Maintenance;
 
 use App\Services\PartParser;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Validation\ValidationException;
 
 class ItemRequestPartsService
@@ -13,7 +15,7 @@ class ItemRequestPartsService
     ) {}
 
     /** Suggested warehouse quantities, never a stock reservation. */
-    public function availableParts(string $partText): array
+    public function availableParts(string $partText, ?JobOrder $jobOrder = null): array
     {
         $parsed = $this->parser->parsePartText($partText);
         if ($parsed === []) {
@@ -22,9 +24,26 @@ class ItemRequestPartsService
 
         $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])
             ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $part['name'])));
+        // When a PR was submitted first, its quantities must not be
+        // suggested again in a later IR even if Warehouse stock changes.
+        $purchaseQuantities = collect();
+        if ($jobOrder) {
+            $pr = PurchaseRequest::query()
+                ->where('job_order_no', $jobOrder->job_order_no)
+                ->where('pr_no', 'not like', '%-P')
+                ->where(fn ($query) => $query->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request'))
+                ->whereNotIn('status', ['Rejected', 'Cancelled'])
+                ->latest('id')->first();
+            if ($pr) {
+                $purchaseQuantities = collect($this->parser->parsePartText((string) $pr->item))
+                    ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $part['name'])))
+                    ->map(fn ($items) => $items->sum('quantity'));
+            }
+        }
         $result = [];
 
-        foreach ($groups as $parts) {
+        foreach ($groups as $key => $parts) {
             $units = $parts->pluck('unit')->map(fn ($unit) => mb_strtolower(trim((string) $unit)))->unique();
             if ($units->count() !== 1) {
                 throw ValidationException::withMessages([
@@ -33,7 +52,8 @@ class ItemRequestPartsService
             }
             $first = $parts->first();
             $needed = $parts->sum('quantity');
-            $available = min($needed, max(0, (int) $first['available']));
+            $remainingAfterPr = max(0, $needed - (int) $purchaseQuantities->get($key, 0));
+            $available = min($remainingAfterPr, max(0, (int) $first['available']));
             if ($available > 0) {
                 $result[] = [
                     'name' => $first['name'],
