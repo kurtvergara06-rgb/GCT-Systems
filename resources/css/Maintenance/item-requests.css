@@ -214,3 +214,21 @@
 @media (max-width: 480px) {
   #viewItemRequestModal .ir-details-grid { grid-template-columns: 1fr; }
 }
+
+/* Read-only Item Request details follow the Job Order details section layout. */
+#viewItemRequestModal .ir-modal { width: min(740px, 100%); max-height: calc(100dvh - 40px); }
+#viewItemRequestModal .ir-modal-header { flex: 0 0 auto; }
+#viewItemRequestModal .ir-modal-body { display: flex; flex-direction: column; gap: 11px; padding: 12px 19px 18px; min-height: 0; overflow-y: auto; }
+#viewItemRequestModal .ir-view-section { border: 1px solid #dbe5f3; border-radius: 10px; overflow: hidden; background: #fff; flex: 0 0 auto; }
+#viewItemRequestModal .ir-view-section h3 { display: flex; gap: 9px; align-items: center; background: #f0f5fc; border-bottom: 1px solid #dbe5f3; color: #123c74; padding: 12px 16px; margin: 0; font-size: 12px; font-weight: 800; }
+#viewItemRequestModal .ir-view-section h3 i { color: #1454a2; }
+#viewItemRequestModal .ir-details-grid { padding: 14px 16px; }
+#viewItemRequestModal .ir-details-grid > div { background: #f4f7fc; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 5px; }
+#viewItemRequestModal .ir-details-grid span { color: #637a96; font-size: 11px; }
+#viewItemRequestModal .ir-details-grid strong { color: #102e55; font-size: 12px; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-section-content { padding: 14px 16px; display: grid; gap: 13px; }
+#viewItemRequestModal .ir-view-section-content .ir-field { gap: 6px; }
+#viewItemRequestModal .ir-view-status { align-self: flex-start; display: inline-block; border: 1px solid #c8dfff; border-radius: 100px; padding: 5px 10px; background: #e9f2ff; color: #1452a3; font-size: 11px; }
+#viewItemRequestModal .ir-detail-text { margin: 0; border: 1px solid #e0e8f4; border-radius: 8px; background: #f5f8fd; padding: 12px; color: #273c5b; min-height: 32px; }
+#viewItemRequestModal .ir-modal-footer { flex: 0 0 auto; background: #f9fbff; }
+@media (max-width: 540px) { #viewItemRequestModal .ir-modal-body { padding: 10px; } #viewItemRequestModal .ir-details-grid { grid-template-columns: 1fr; } }
