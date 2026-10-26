@@ -60,7 +60,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['Pending Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
@@ -71,7 +71,7 @@
             @if($view === 'pending')
             <p class="ir-form-hint" style="padding:0 16px">Approved Job Orders appear here automatically when Warehouse has available stock. Review and submit to create an actual Item Request. Stock is rechecked when you submit.</p>
             <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
-            @forelse($eligibleJobs as $jo)
+            @forelse($pendingJobs as $jo)
             @php
                 $suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [];
                 $totalRequested = app(\App\Services\PartParser::class)->parsePartText((string) $jo->part_needed);
