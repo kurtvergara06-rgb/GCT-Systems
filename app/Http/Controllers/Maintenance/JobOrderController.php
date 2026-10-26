@@ -303,14 +303,16 @@ class JobOrderController extends Controller
     public function availableMechanics(Request $request)
     {
         $jobs = $request->input('maintenance_jobs', [$request->input('maintenance_job', '')]);
-        $jobs = is_array($jobs) ? $jobs : [];
+        $jobs = is_array($jobs) ? collect($jobs)->filter(
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )->values()->all() : [];
         $selectedSkills = collect($jobs)->filter(fn ($job) => is_string($job))->flatMap(
             fn ($job) => $this->requiredSpecializations(trim($job), (array) $request->input('specializations', []))
         )->unique()->values()->all();
         $workText = implode(' ', $selectedSkills);
         $mechanics = $this->workflow->availableMechanics(null, $workText)
-            ->filter(fn (Mechanic $mechanic) => $jobs !== []
-                && collect($jobs)->every(fn ($job) => is_string($job)
+            ->filter(fn (Mechanic $mechanic) => $jobs === []
+                || collect($jobs)->every(fn ($job) => is_string($job)
                     && $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])) !== []
                     && $this->matchesSpecialization($mechanic, $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])))))
             ->values()
