@@ -772,122 +772,34 @@ class JobOrderController extends Controller
 
     public function createPurchaseRequest(Request $request, JobOrder $jobOrder)
     {
-        if ($jobOrder->review_status !== 'Approved') {
-            abort(423, 'Purchase Request actions are locked until the Job Order is approved.');
+        // Legacy shortcut must not bypass the new Pending PR review workflow.
+        // Derive the same JO-aware shortage, then require Maintenance to review
+        // and submit the actual PR through the canonical store action.
+        if ($jobOrder->review_status !== 'Approved' || $jobOrder->status === 'Completed') {
+            abort(423, 'Only approved and open Job Orders can request purchasing.');
         }
-
-        if (empty($jobOrder->assigned_mechanic)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Assign a mechanic before creating a Purchase Request.'], 422);
-            }
-            return redirect()->back()->with('error', 'Assign a mechanic before creating a Purchase Request.');
+        if (trim((string) $jobOrder->assigned_mechanic) === '' || trim((string) $jobOrder->part_needed) === '') {
+            throw ValidationException::withMessages(['job_order_no' => 'The Job Order must have assigned mechanics and requested parts.']);
         }
-
-        if (empty($jobOrder->part_needed)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order has no requested parts.'], 422);
-            }
-            return redirect()->back()->with('error', 'Cannot create PR because this Job Order has no requested parts.');
+        if ($this->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)->exists()) {
+            return redirect()->route('purchase-requests', ['record_view' => 'active', 'search' => $jobOrder->job_order_no])
+                ->with('error', 'A Purchase Request already exists for this Job Order.');
         }
-
-        if ($jobOrder->status === 'Completed') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order is already completed.'], 422);
-            }
-            return redirect()->back()->with('error', 'Cannot create PR because this Job Order is already completed.');
-        }
-
-        if ($jobOrder->part_status === 'Rejected') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.'], 422);
-            }
-            return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
-                ->with('error', 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.');
-        }
-
-        if (! in_array($jobOrder->part_status, [null, 'Not Requested'], true)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'This Job Order already has a Purchase Request.'], 422);
-            }
-            return redirect()->back()->with('error', 'This Job Order already has a Purchase Request.');
-        }
-
-        $existingPr = $this->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
-            ->latest()
-            ->first();
-
-        if ($existingPr) {
-            $existingMsg = $existingPr->status === 'Rejected'
-                ? 'The existing Purchase Request is rejected. Revise and resubmit it.'
-                : 'This Job Order already has a Purchase Request.';
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $existingMsg], 422);
-            }
-            return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
-                ->with('error', $existingMsg);
-        }
-
-        $parts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed);
+        $parts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder);
         if ($parts === []) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'All requested parts are available. A Purchase Request is not needed.'], 422);
-            }
-            return redirect()->back()->with('error', 'All requested parts are available. A Purchase Request is not needed.');
+            throw ValidationException::withMessages(['job_order_no' => 'There is no outstanding shortage for this Job Order.']);
         }
-
-        [$purchaseRequest, $jobOrder] = DB::transaction(function () use ($jobOrder): array {
-            $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
-
-            $existingRequest = $this->maintenancePurchaseRequestForJobOrder($lockedJobOrder->job_order_no)
-                ->latest()
-                ->first();
-
-            if ($existingRequest || ! in_array($lockedJobOrder->part_status, [null, 'Not Requested'], true)) {
-                throw ValidationException::withMessages([
-                    'job_order_no' => 'This Job Order already has a Purchase Request.',
-                ]);
-            }
-
-            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
-            if ($parts === []) {
-                throw ValidationException::withMessages([
-                    'job_order_no' => 'All requested parts are available. A Purchase Request is not needed.',
-                ]);
-            }
-
-            $createdPurchaseRequest = PurchaseRequest::create([
-                'pr_no' => $this->generatePrNo(),
-                'job_order_no' => $lockedJobOrder->job_order_no,
-                'bus_no' => $lockedJobOrder->bus_no,
-                'item' => $this->partParser->formatParts($parts),
-                'quantity' => $this->partParser->calculateTotalQuantity($parts),
-                // The signed JO already authorizes this PR; Warehouse must see it immediately.
-                'status' => 'Approved',
-                'approved_at' => $lockedJobOrder->approved_at ?? now(),
-                'source_type' => 'Maintenance Request',
-                'remarks' => 'Created from Job Order ' . $lockedJobOrder->job_order_no,
-                'purpose' => $lockedJobOrder->work_to_perform,
-                'requested_by' => auth()->id(),
-                'date_requested' => now(),
-            ]);
-
-            $lockedJobOrder->update(['part_status' => 'Approved']);
-
-            return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
-        });
-
-        $this->broadcastSystemDataUpdated('Maintenance', 'PurchaseRequest', 'created', $purchaseRequest->id, 'A purchase request was created from a job order.');
-        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Approved.');
-
-        if ($request->ajax() || $request->expectsJson()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Purchase request created successfully.',
-                'purchase_request' => $purchaseRequest,
+                'submitted' => false,
+                'job_order_no' => $jobOrder->job_order_no,
+                'suggested_parts' => $parts,
+                'message' => 'Review the suggested shortage before submitting a Purchase Request.',
             ]);
         }
-
-        return redirect()->to(route('job-orders', [], false))->with('success', 'Purchase request created successfully.');
+        return redirect()->route('purchase-requests', ['record_view' => 'pending', 'search' => $jobOrder->job_order_no])
+            ->with('success', 'Review the suggested shortage and submit the Purchase Request.');
     }
 
     public function approvalSignature(Request $request, JobOrder $jobOrder)
