@@ -22,8 +22,10 @@ class ItemRequestPartsService
             return [];
         }
 
-        $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])
-            ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $part['name'])));
+        $partKey = static fn (array $part): string =>
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['unit'] ?? '')));
+        $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])->groupBy($partKey);
         // When a PR was submitted first, its quantities must not be
         // suggested again in a later IR even if Warehouse stock changes.
         $purchaseQuantities = collect();
@@ -37,7 +39,7 @@ class ItemRequestPartsService
                 ->latest('id')->first();
             if ($pr) {
                 $purchaseQuantities = collect($this->parser->parsePartText((string) $pr->item))
-                    ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $part['name'])))
+                    ->groupBy($partKey)
                     ->map(fn ($items) => $items->sum('quantity'));
             }
         }
