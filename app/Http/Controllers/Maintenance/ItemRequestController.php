@@ -57,7 +57,7 @@ class ItemRequestController extends Controller
             ->where('part_needed', '!=', '')
             ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
             ->orderByDesc('created_at')
-            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy']);
+            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'created_at']);
         $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
             try {
                 return $irParts->availableParts((string) $job->part_needed, $job) !== [];
@@ -74,13 +74,40 @@ class ItemRequestController extends Controller
             ]];
         });
 
+        // Search and sort the virtual pending suggestions independently of
+        // the persisted Active/History records.
+        $pendingJobs = $eligibleJobs;
+        if ($request->filled('search')) {
+            $needle = mb_strtolower(trim((string) $request->query('search')));
+            $pendingJobs = $pendingJobs->filter(function (JobOrder $job) use ($needle, $jobOrderPreviews): bool {
+                $parts = $jobOrderPreviews->get($job->id)['parts'] ?? [];
+                $haystack = mb_strtolower($job->job_order_no.' '.$job->bus_no.' '.
+                    collect($parts)->pluck('name')->implode(' '));
+                return str_contains($haystack, $needle);
+            })->values();
+        }
+        if ($request->filled('status') && $request->query('status') !== 'All Statuses') {
+            $pendingJobs = $pendingJobs->filter(function (JobOrder $job) use ($request, $parser, $jobOrderPreviews): bool {
+                $all = $parser->parsePartText((string) $job->part_needed);
+                $parts = $jobOrderPreviews->get($job->id)['parts'] ?? [];
+                $blocked = collect($all)->sum('quantity') > collect($parts)->sum('quantity')
+                    && $job->parts_issue_strategy !== 'issue_available_only';
+                return $request->query('status') === ($blocked ? 'Head Decision Required' : 'Pending Review');
+            })->values();
+        }
+        if ($sortField === 'id') {
+            $pendingJobs = $pendingJobs->sortBy('id', SORT_REGULAR, $sortDirection === 'desc')->values();
+        } elseif ($sortField === 'created_at') {
+            $pendingJobs = $pendingJobs->sortBy('created_at', SORT_REGULAR, $sortDirection === 'desc')->values();
+        }
+
         // Show actionable suggestions first on ordinary sidebar navigation.
         // Explicit Active/History/Pending links always keep their requested tab.
         if (! $request->has('view') && $eligibleJobs->isNotEmpty()) {
             $view = 'pending';
         }
 
-        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews'));
+        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs'));
     }
 
     public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser)
