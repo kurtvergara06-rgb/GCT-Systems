@@ -222,8 +222,8 @@
                 </table>
             </div>
             <div class="warehouse-ir-slip-signatures">
-                <div><span>Received By — Mechanic</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
-                <div><span>Issued By — Warehouse Personnel</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
+                <div><span>Approved By — Mechanic</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
+                <div><span>Issued By</span><div class="warehouse-ir-signature-line"></div><small>Handwritten signature and date</small></div>
             </div>
             <section class="warehouse-ir-confirm-section">
                 <h3><i class="fa-solid fa-clipboard-check"></i> Confirm Signed Handover</h3>
