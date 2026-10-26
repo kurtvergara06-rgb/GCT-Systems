@@ -57,10 +57,10 @@ class ItemRequestController extends Controller
             ->where('part_needed', '!=', '')
             ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
             ->orderByDesc('created_at')
-            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed']);
+            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy']);
         $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
             try {
-                return $irParts->availableParts((string) $job->part_needed) !== [];
+                return $irParts->availableParts((string) $job->part_needed, $job) !== [];
             } catch (ValidationException) {
                 return false;
             }
@@ -92,7 +92,7 @@ class ItemRequestController extends Controller
             if (ItemRequest::query()->where('job_order_id', $jo->id)->exists()) {
                 throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an Item Request.']);
             }
-            $parts = $irParts->availableParts((string) $jo->part_needed);
+            $parts = $irParts->availableParts((string) $jo->part_needed, $jo);
             // Splitting a JO into IR + PR must be authorized by the Head.
             // Default JO strategy waits until all parts can be supplied.
             $fullRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
