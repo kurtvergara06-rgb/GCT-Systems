@@ -77,14 +77,14 @@ class ItemRequestController extends Controller
         return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews'));
     }
 
-    public function store(Request $request, ItemRequestPartsService $irParts)
+    public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser)
     {
         $data = $request->validate([
             'job_order_id' => ['required', 'integer', 'exists:job_orders,id'],
             'remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($data, $irParts): void {
+        DB::transaction(function () use ($data, $irParts, $parser): void {
             $jo = JobOrder::query()->lockForUpdate()->findOrFail($data['job_order_id']);
             if ($jo->review_status !== 'Approved') {
                 throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved before creating an Item Request.']);
@@ -93,6 +93,15 @@ class ItemRequestController extends Controller
                 throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an Item Request.']);
             }
             $parts = $irParts->availableParts((string) $jo->part_needed);
+            // Splitting a JO into IR + PR must be authorized by the Head.
+            // Default JO strategy waits until all parts can be supplied.
+            $fullRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
+            $availableForIr = collect($parts)->sum('quantity');
+            if ($availableForIr < $fullRequired && $jo->parts_issue_strategy !== 'issue_available_only') {
+                throw ValidationException::withMessages([
+                    'job_order_id' => 'This Job Order has a shortage. The Maintenance Head must authorize release of available parts before a partial IR can be submitted.',
+                ]);
+            }
             if ($parts === []) {
                 throw ValidationException::withMessages(['job_order_id' => 'No available quantities remain for this Job Order. Missing quantities belong in a Purchase Request.']);
             }
