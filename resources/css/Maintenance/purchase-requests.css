@@ -5252,3 +5252,45 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
     max-width: 780px !important;
   }
 }
+
+
+/* Maintenance View design parity: neutral field surfaces like Job Order Details.
+   Keep the blue PR summary and soft-blue section headings untouched. */
+#editPrModal.pr-review-modal-overlay #prReviewInformation .pr-review-information,
+#editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-information,
+#editPrModal.pr-review-modal-overlay #prAuthorizationSection .pr-review-information {
+  background: #fff !important;
+  background-image: none !important;
+  border: 0;
+  box-shadow: none;
+}
+#editPrModal.pr-review-modal-overlay #prReviewInformation .pr-review-information > .pr-review-detail-row,
+#editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-information > .pr-review-detail-row,
+#editPrModal.pr-review-modal-overlay #prAuthorizationSection .pr-review-information > .pr-review-detail-row {
+  background: #fff !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0;
+}
+#editPrModal.pr-review-modal-overlay #prReviewInformation .pr-review-detail-row > strong,
+#editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-detail-row > strong,
+#editPrModal.pr-review-modal-overlay #prAuthorizationSection .pr-review-detail-row > strong {
+  background: none !important;
+  padding: 0;
+}
+#editPrModal.pr-review-modal-overlay #prReviewInformation .pr-review-information,
+#editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-information {
+  gap: 17px 22px;
+}
+#editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-detail-full {
+  grid-column: 1 / -1;
+}
+@media (max-width: 520px) {
+  #editPrModal.pr-review-modal-overlay #prReviewInformation .pr-review-information,
+  #editPrModal.pr-review-modal-overlay #prRequestDetailsSection .pr-review-information,
+  #editPrModal.pr-review-modal-overlay #prAuthorizationSection .pr-review-information {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
