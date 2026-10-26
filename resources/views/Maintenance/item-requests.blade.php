@@ -64,7 +64,7 @@
                 </div>
             </div>
             @if($view === 'pending')
-            <p class="ir-form-hint" style="padding:0 16px">Approved Job Orders appear here automatically when Warehouse has available stock. Review and submit to create an actual Item Request. Stock is rechecked when you submit.</p>
+            <div class="ir-pending-guidance" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p><strong>Automatic IR recommendations</strong><span>Approved Job Orders with available stock appear here for review. Submitting an IR creates the actual request; Warehouse verifies stock before issuance.</span></p></div>
             <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
             @forelse($pendingJobs as $jo)
             @php
@@ -75,7 +75,7 @@
             @endphp
             <tr><td><strong>{{ $jo->job_order_no }}</strong></td><td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $jo->bus_no }}</span></td><td>@foreach($suggestedParts as $part)<div>{{ $part['name'] }} — {{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td><td><span class="ir-stock-badge {{ $needsHeadRelease ? 'ir-stock-partial' : 'ir-stock-available' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Pending Review' }}</span></td><td><button type="button" class="ir-primary-button" data-ir-review-job="{{ $jo->id }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye"></i> Review IR</button></td></tr>
             @empty
-            <tr><td colspan="5" class="ir-preview-placeholder">No pending IR suggestions. New suggestions appear after JO approval when stock is available.</td></tr>
+            <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
             @endforelse
             </tbody></table></div>
             @else
