@@ -125,12 +125,17 @@
                       <div class="gct-table-toolbar-row">
                       <x-ui.table-toolbar action="{{ route('purchase-requests') }}" search-label="Search Purchase Requests" search-placeholder="Search PR no., JO no., bus no., or item..." :filter-count="(int) ($recordView === 'history' ? (int) request()->filled('created_from') + (int) request()->filled('created_to') : (int) (request()->filled('status') && request('status') !== 'All Statuses'))" filter-title="Filter Purchase Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
                           <x-slot:hidden>
-                              @if($recordView === 'history')
-                                  <input type="hidden" name="record_view" value="history">
+                              @if($recordView === 'history' || $recordView === 'pending')
+                                  <input type="hidden" name="record_view" value="{{ $recordView }}">
                               @endif
                           </x-slot:hidden>
                           <x-slot:filters>
-                              @if($recordView !== 'history')
+                              @if($recordView === 'pending')
+                                  <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
+                                      <option value="All Statuses">All Statuses</option>
+                                      <option value="Pending Review" @selected(request('status') === 'Pending Review')>Pending Review</option>
+                                  </x-ui.table-toolbar-field>
+                              @elseif($recordView !== 'history')
                                   <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                       <option value="All Statuses">All Statuses</option>
                                       @foreach($statuses as $status)
@@ -157,10 +162,10 @@
                           @forelse($pendingPrJobs as $proposal)
                               <tr>
                                   <td><strong>{{ $proposal['job']->job_order_no }}</strong></td>
-                                  <td><span class="ir-bus-tag">{{ $proposal['job']->bus_no }}</span></td>
+                                  <td><span class="pr-pending-bus-badge"><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> {{ $proposal['job']->bus_no }}</span></td>
                                   <td>@foreach($proposal['parts'] as $part)<div><strong>{{ $part['name'] }}</strong></div>@endforeach</td>
                                   <td>@foreach($proposal['parts'] as $part)<div>{{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td>
-                                  <td><span class="ir-stock-badge ir-stock-partial">Pending Review</span></td>
+                                  <td><span class="pr-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Pending Review</span></td>
                                   <td><button type="button" class="primary-btn compact-new-pr-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye"></i> Review PR</button></td>
                               </tr>
                           @empty
