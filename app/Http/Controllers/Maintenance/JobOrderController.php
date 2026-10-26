@@ -1419,8 +1419,8 @@ class JobOrderController extends Controller
     private function requiredSpecializations(string $job, array $customSkills = []): array
     {
         $jobs = [
-            'Change Oil' => ['Lubrication', 'Preventive Maintenance'],
-            'Oil Filter Replacement' => ['Lubrication', 'Preventive Maintenance'],
+            'Change Oil' => ['Change Oil', 'Lubrication', 'Preventive Maintenance'],
+            'Oil Filter Replacement' => ['Oil Filter Replacement', 'Lubrication', 'Preventive Maintenance'],
             'Brake Inspection' => ['Brakes'],
             'Brake Pad Replacement' => ['Brakes'],
             'Air Filter Replacement' => ['Engine', 'Preventive Maintenance'],
