@@ -7,15 +7,16 @@ use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
 use App\Services\PartParser;
 use App\Services\Maintenance\JobOrderWorkflowService;
+use App\Services\Maintenance\ItemRequestPartsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ItemRequestController extends Controller
 {
-    public function index(Request $request, PartParser $parser, JobOrderWorkflowService $workflow)
+    public function index(Request $request, PartParser $parser, JobOrderWorkflowService $workflow, ItemRequestPartsService $irParts)
     {
-        $view = $request->query('view') === 'history' ? 'history' : 'active';
+        $view = in_array($request->query('view'), ['pending', 'history'], true) ? $request->query('view') : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
         $requestsQuery = ItemRequest::with('jobOrder');
         if ($view === 'history') {
@@ -50,34 +51,40 @@ class ItemRequestController extends Controller
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
         $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count();
-        $eligibleJobs = JobOrder::query()
+        $candidateJobs = JobOrder::query()
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
             ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
             ->orderByDesc('created_at')
             ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed']);
-        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($parser, $workflow) {
-            $parts = $parser->parsePartText((string) $job->part_needed);
+        $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
+            try {
+                return $irParts->availableParts((string) $job->part_needed) !== [];
+            } catch (ValidationException) {
+                return false;
+            }
+        })->values();
+        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts) {
             return [$job->id => [
                 'jo' => $job->job_order_no,
                 'bus' => $job->bus_no,
                 'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
-                'parts' => $workflow->inventoryAvailability($parts)['parts'],
+                'parts' => $irParts->availableParts((string) $job->part_needed),
             ]];
         });
 
         return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews'));
     }
 
-    public function store(Request $request, PartParser $parser)
+    public function store(Request $request, ItemRequestPartsService $irParts)
     {
         $data = $request->validate([
             'job_order_id' => ['required', 'integer', 'exists:job_orders,id'],
             'remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($data, $parser): void {
+        DB::transaction(function () use ($data, $irParts): void {
             $jo = JobOrder::query()->lockForUpdate()->findOrFail($data['job_order_id']);
             if ($jo->review_status !== 'Approved') {
                 throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved before creating an Item Request.']);
@@ -85,9 +92,9 @@ class ItemRequestController extends Controller
             if (ItemRequest::query()->where('job_order_id', $jo->id)->exists()) {
                 throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an Item Request.']);
             }
-            $parts = $parser->parsePartText((string) $jo->part_needed);
+            $parts = $irParts->availableParts((string) $jo->part_needed);
             if ($parts === []) {
-                throw ValidationException::withMessages(['job_order_id' => 'The Job Order has no requested parts.']);
+                throw ValidationException::withMessages(['job_order_id' => 'No available quantities remain for this Job Order. Missing quantities belong in a Purchase Request.']);
             }
             ItemRequest::create([
                 'job_order_id' => $jo->id,
