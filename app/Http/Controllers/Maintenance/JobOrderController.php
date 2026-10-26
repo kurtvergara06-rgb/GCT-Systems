@@ -926,6 +926,7 @@ class JobOrderController extends Controller
             'electronic_signature' => 'required|string|max:255',
             'signature_image' => 'required|string|max:550000',
             'duration_decision' => 'required|in:accept,adjust',
+            'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
             'verified_duration_value' => 'required_if:duration_decision,adjust|nullable|numeric|gt:0',
             'verified_duration_unit' => 'required_if:duration_decision,adjust|nullable|in:Minutes,Hours,Days',
             'duration_adjustment_reason' => 'required_if:duration_decision,adjust|nullable|string|max:2000',
@@ -1009,6 +1010,9 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt,
                 'approval_signature_hash' => $signatureHash,
+                'parts_issue_strategy' => trim((string) $locked->part_needed) !== ''
+                    ? ($validated['parts_issue_strategy'] ?? 'complete_before_issuance')
+                    : 'complete_before_issuance',
                 'status' => $canStart ? 'On Going' : 'On Hold',
                 'start_date' => $canStart ? $approvedAt : null,
                 'actual_started_at' => $canStart ? $approvedAt : null,
@@ -1022,6 +1026,7 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt->toISOString(),
                 'signature_hash' => $signatureHash,
+                'parts_issue_strategy' => $locked->parts_issue_strategy,
                 'handwritten_signature_path' => $signaturePath,
                 'handwritten_signature_sha256' => hash('sha256', $signatureBytes),
                 'duration_verification' => [
