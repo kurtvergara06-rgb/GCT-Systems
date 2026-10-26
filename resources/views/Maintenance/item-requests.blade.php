@@ -82,7 +82,7 @@
             <div class="ir-table-wrap">
                 <table class="ir-table">
                     <thead>
-                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE CREATED</th><th>ACTIONS</th></tr>
+                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE & TIME</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody>
                         @forelse($requests as $ir)
@@ -109,7 +109,7 @@
                                 @endif
                             </td>
                             <td><span class="ir-status">{{ $ir->status }}</span></td>
-                            <td class="ir-date">{{ $ir->created_at?->format('M d, Y') }}</td><td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-parts="{{ collect($ir->requested_parts ?? [])->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button></td>
+                            <td class="ir-date"><span>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</span><small>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '' }}</small></td><td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ collect($ir->requested_parts ?? [])->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="7">
@@ -132,7 +132,7 @@
 <div id="viewItemRequestModal" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
         <header class="ir-modal-header"><div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span><div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div></div><button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
-        <div class="ir-modal-body"><div class="ir-details-grid"><div><span>IR Number</span><strong id="ir-detail-number"></strong></div><div><span>Job Order</span><strong id="ir-detail-job"></strong></div><div><span>Bus</span><strong id="ir-detail-bus"></strong></div><div><span>Status</span><strong id="ir-detail-status"></strong></div></div><div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div><div class="ir-field"><label>Remarks</label><p id="ir-detail-remarks" class="ir-detail-text"></p></div></div>
+        <div class="ir-modal-body"><div class="ir-details-grid"><div><span>IR Number</span><strong id="ir-detail-number"></strong></div><div><span>Job Order</span><strong id="ir-detail-job"></strong></div><div><span>Bus</span><strong id="ir-detail-bus"></strong></div><div><span>Status</span><strong id="ir-detail-status"></strong></div><div><span>Date & Time Created</span><strong id="ir-detail-date"></strong></div></div><div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div><div class="ir-field"><label>Remarks</label><p id="ir-detail-remarks" class="ir-detail-text"></p></div></div>
         <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
     </div>
 </div>
