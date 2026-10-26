@@ -141,7 +141,7 @@ class PurchaseRequestIndexController extends Controller
             $existingPrJoNumbers->contains($job->job_order_no)
         )->map(function (JobOrder $job) use ($missingParts) {
             try {
-                $parts = $missingParts->missingParts((string) $job->part_needed);
+                $parts = $missingParts->missingParts((string) $job->part_needed, $job);
             } catch (ValidationException) {
                 $parts = [];
             }
