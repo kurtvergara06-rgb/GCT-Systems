@@ -138,55 +138,35 @@ class JobOrderWorkflowService
 
     public function inventoryAvailability(array $parts): array
     {
-        // Evaluate duplicates against total requested demand, not each row alone.
-        // Several Warehouse records may share the same part name. Group them
-        // instead of letting keyBy silently discard all but the last record.
-        $normalizeName = static fn (string $name): string =>
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $name));
-        $items = InventoryItem::query()->get()->groupBy(
-            fn (InventoryItem $item) => $normalizeName((string) ($item->parts_name ?? $item->item_name ?? ''))
-        );
-        $normalizedParts = collect($parts)->map(static function (array $part): array {
+        // Match the same one-to-one name AND unit used at physical issuance.
+        // Multiple matching stock records are ambiguous, not combined.
+        $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
+        $items = InventoryItem::query()->get();
+        $requested = collect($parts)->map(static function (array $part) use ($normal): array {
             $name = trim((string) ($part['name'] ?? ''));
-            return [
-                'name' => $name,
-                'key' => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $name)),
-                'quantity' => max(1, (int) ($part['quantity'] ?? 1)),
-                'unit' => trim((string) ($part['unit'] ?? '')),
-            ];
+            $unit = trim((string) ($part['unit'] ?? ''));
+            return ['name'=>$name,'unit'=>$unit,'key'=>$normal($name).'|'.$normal($unit),
+                'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
-        $totals = $normalizedParts->groupBy('key')
-            ->map(fn ($group) => $group->sum('quantity'));
-
-        $breakdown = $normalizedParts->map(function (array $part) use ($items, $totals): array {
-            $matchingItems = $items->get($part['key'], collect());
-            $item = $matchingItems->first();
-            $onHand = $matchingItems->sum(fn (InventoryItem $stock) =>
-                max(0, (int) ($stock->quantity_available ?? $stock->on_hand ?? 0)));
-            $groupQuantity = (int) $totals->get($part['key'], $part['quantity']);
-            return [
-                'name' => $part['name'],
-                'quantity' => $part['quantity'],
-                'unit' => $part['unit'],
-                'inventory_item_id' => $item?->id,
-                'category' => $item?->category,
-                'available' => $onHand,
-                'shortage' => max(0, $groupQuantity - $onHand),
-                'in_stock' => $onHand > 0,
-                'fulfillable' => $onHand >= $groupQuantity,
-            ];
+        $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
+        $breakdown = $requested->map(function (array $part) use ($items, $normal, $totals): array {
+            $matching = $items->filter(fn (InventoryItem $item) =>
+                $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
+                && $normal($item->unit ?? $item->unit_of_measurement ?? '') === $normal($part['unit'])
+            )->values();
+            $item = $matching->count() === 1 ? $matching->first() : null;
+            $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0)) : 0;
+            $required = (int)$totals->get($part['key'], $part['quantity']);
+            return ['name'=>$part['name'],'quantity'=>$part['quantity'],'unit'=>$part['unit'],
+                'inventory_item_id'=>$item?->id,'category'=>$item?->category,
+                'available'=>$stock,'shortage'=>max(0,$required-$stock),
+                'in_stock'=>$stock>0,'fulfillable'=>$stock >= $required,
+                'ambiguous'=>$matching->count()>1];
         })->values();
-
-        $availableGroups = $totals->sum(function ($total, $key) use ($items): int {
-            $onHand = $items->get($key, collect())->sum(fn (InventoryItem $stock) =>
-                max(0, (int) ($stock->quantity_available ?? $stock->on_hand ?? 0)));
-            return min((int) $total, $onHand);
-        });
-        $totalNeeded = $totals->sum();
-        $status = $totalNeeded === 0 || $availableGroups >= $totalNeeded
-            ? 'sufficient'
-            : ($availableGroups > 0 ? 'partial' : 'none');
-
-        return ['status' => $status, 'parts' => $breakdown->all()];
+        $total = $totals->sum();
+        $available = $breakdown->unique(fn ($part) => $normal($part['name']).'|'.$normal($part['unit']))
+            ->sum(fn ($part) => min((int)$totals->get($normal($part['name']).'|'.$normal($part['unit']),0),$part['available']));
+        return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
+            'parts'=>$breakdown->all()];
     }
 }
