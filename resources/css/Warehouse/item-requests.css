@@ -326,3 +326,43 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   opacity:1!important;cursor:not-allowed!important;
 }
 #warehouseIrSlipModal #ir-slip-confirm:disabled i{color:inherit!important}
+
+
+/* Half-bond withdrawal slip: one clean sheet, without the dashboard or form UI. */
+@media print {
+  @page { size: 8.5in 5.5in; margin: 0.25in; }
+  html, body { width: 8in!important; height: 5in!important; margin:0!important; padding:0!important; overflow:hidden!important; background:white!important; }
+  body > *:not(#warehouseIrSlipModal):not(:has(#warehouseIrSlipModal)) { display:none!important; }
+  #warehouseIrSlipModal { position:fixed!important; inset:0!important; width:8in!important; height:5in!important; margin:0!important; padding:0!important; display:block!important; overflow:hidden!important; transform:none!important; border:0!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-modal { width:8in!important; min-width:0!important; height:auto!important; max-height:5in!important; margin:0!important; padding:0!important; display:block!important; overflow:hidden!important; border:0!important; border-radius:0!important; background:white!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-header { min-height:0!important; padding:2px 5px 7px!important; margin:0 0 6px!important; border-bottom:1px solid #666!important; }
+  #warehouseIrSlipModal .ir-modal-heading { gap:0!important; }
+  #warehouseIrSlipModal .ir-modal-symbol, #warehouseIrSlipModal .warehouse-ir-slip-header p { display:none!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-eyebrow { font-size:9px!important; margin:0 0 2px!important; color:#111!important; }
+  #warehouseIrSlipModal #warehouseIrSlipTitle { font-size:15px!important; line-height:1.2!important; color:#111!important; margin:0!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-body { display:block!important; height:auto!important; min-height:0!important; overflow:hidden!important; padding:0 5px!important; margin:0!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields { display:grid!important; grid-template-columns:repeat(3,1fr)!important; gap:4px!important; margin:0 0 7px!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields>div { min-height:0!important; padding:4px 6px!important; border:1px solid #bbb!important; border-radius:0!important; background:#fff!important; gap:2px!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields span { font-size:8px!important; color:#333!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields strong { font-size:9px!important; color:#111!important; }
+  #warehouseIrSlipModal .warehouse-ir-stock-table-wrap { width:100%!important; min-width:0!important; min-height:0!important; margin:0!important; border:1px solid #777!important; border-radius:0!important; overflow:visible!important; }
+  #warehouseIrSlipModal table.warehouse-ir-slip-table { width:100%!important; min-width:0!important; table-layout:fixed!important; font-size:9px!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th { background:#eee!important; color:#111!important; font-size:8px!important; padding:5px 3px!important; border-bottom:1px solid #777!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table td { height:30px!important; font-size:9px!important; font-weight:600!important; color:#111!important; padding:5px 3px!important; overflow-wrap:anywhere!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(1) { width:8%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(2) { width:20%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(3) { width:12%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(4) { width:16%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(5) { width:12%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(6) { width:20%; }
+  #warehouseIrSlipModal .warehouse-ir-slip-table th:nth-child(7) { width:12%; }
+  #warehouseIrSlipModal .warehouse-ir-handwritten-line { width:100%!important; height:18px!important; border-bottom:1px solid #222!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-signatures { display:grid!important; grid-template-columns:1fr 1fr!important; gap:20px!important; margin:8px 0 0!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-signatures>div { padding:2px!important; gap:2px!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-signatures span { color:#111!important; font-size:9px!important; }
+  #warehouseIrSlipModal .warehouse-ir-signature-line { height:23px!important; border-bottom:1px solid #444!important; }
+  #warehouseIrSlipModal .warehouse-ir-slip-signatures small { color:#333!important; font-size:8px!important; }
+  #warehouseIrSlipModal .warehouse-ir-confirm-section,
+  #warehouseIrSlipModal .ir-note,
+  #warehouseIrSlipModal .ir-modal-footer { display:none!important; }
+}
