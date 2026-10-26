@@ -3,6 +3,8 @@
 namespace App\Services\Maintenance;
 
 use App\Services\PartParser;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use Illuminate\Validation\ValidationException;
 
 class PurchaseRequestPartsService
@@ -12,7 +14,7 @@ class PurchaseRequestPartsService
         private JobOrderWorkflowService $workflow
     ) {}
 
-    public function missingParts(string $partText): array
+    public function missingParts(string $partText, ?JobOrder $jobOrder = null): array
     {
         $requestedParts = $this->partParser->parsePartText($partText);
         if ($requestedParts === []) {
@@ -23,9 +25,34 @@ class PurchaseRequestPartsService
         $partsByName = collect($availability['parts'])->groupBy(
             fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $part['name']))
         );
+        // If a split IR was submitted first, purchase only the JO quantity
+        // that is not already accounted for by that IR. This also remains
+        // stable when Warehouse stock changes or the IR is physically issued.
+        // Legacy full-JO IRs retain the live-shortage fallback.
+        $irQuantities = collect();
+        if ($jobOrder) {
+            $ir = ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->whereNotIn('status', ['Cancelled', 'Rejected'])
+                ->latest('id')->first();
+            if ($ir) {
+                $irQuantities = collect($ir->requested_parts ?? [])
+                    ->groupBy(fn (array $part): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))))
+                    ->map(fn ($parts) => $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
+                $totalIr = $irQuantities->sum();
+                $totalJo = collect($requestedParts)->sum('quantity');
+                if ($totalIr >= $totalJo && $ir->status === 'Issued') {
+                    return [];
+                }
+                if ($totalIr >= $totalJo) {
+                    // Old IRs captured all JO parts, even missing stock.
+                    $irQuantities = collect();
+                }
+            }
+        }
         $missingParts = [];
 
-        foreach ($partsByName as $parts) {
+        foreach ($partsByName as $key => $parts) {
             $units = $parts->pluck('unit')->map(fn ($unit) => mb_strtolower(trim((string) $unit)))->unique();
             if ($units->count() > 1) {
                 throw ValidationException::withMessages([
@@ -34,7 +61,9 @@ class PurchaseRequestPartsService
             }
 
             $part = $parts->first();
-            $shortage = (int) $part['shortage'];
+            $shortage = $irQuantities->isNotEmpty()
+                ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
+                : (int) $part['shortage'];
             if ($shortage < 1) {
                 continue;
             }
