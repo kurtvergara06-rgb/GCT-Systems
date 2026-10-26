@@ -126,6 +126,6 @@ class ItemRequestController extends Controller
             }
         });
 
-        return redirect()->route('item-requests')->with('success', 'Item Request submitted for Warehouse stock verification.');
+        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Item Request submitted for Warehouse stock verification.');
     }
 }
