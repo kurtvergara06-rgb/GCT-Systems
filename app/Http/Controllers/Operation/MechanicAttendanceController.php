@@ -158,6 +158,7 @@ class MechanicAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
+            'mechanic_id' => 'nullable|string|max:255',
             'shift' => 'required|string|in:Morning',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
@@ -165,9 +166,18 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $mechanic = Mechanic::query()
-            ->where('mechanic_name', $validated['mechanic_name'])
-            ->first();
+        $mechanicQuery = Mechanic::query();
+        if (! empty($validated['mechanic_id'])) {
+            $mechanicQuery->where('mechanic_id', $validated['mechanic_id']);
+        } else {
+            $mechanicQuery->where('mechanic_name', $validated['mechanic_name']);
+            if ((clone $mechanicQuery)->count() > 1) {
+                throw ValidationException::withMessages([
+                    'mechanic_id' => 'Two mechanics have this name. Select the correct Mechanic ID.',
+                ]);
+            }
+        }
+        $mechanic = $mechanicQuery->first();
 
         if (! $mechanic) {
             if ($request->ajax() || $request->expectsJson()) {
