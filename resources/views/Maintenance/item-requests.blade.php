@@ -130,34 +130,34 @@
 </div>
 
 <div id="viewItemRequestModal" class="ir-modal-overlay" aria-hidden="true">
-    <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
-        <header class="ir-modal-header">
-            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span><div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div></div>
+    <div class="ir-modal ir-view-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
+        <header class="ir-modal-header ir-view-modal-header">
+            <div class="ir-modal-heading">
+                <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
+                <div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div>
+            </div>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
-        <div class="ir-modal-body">
-            <section class="ir-view-section">
-                <h3><i class="fa-solid fa-clipboard-list"></i> Basic Information</h3>
-                <div class="ir-details-grid">
-                    <div><span>IR Number</span><strong id="ir-detail-number"></strong></div>
-                    <div><span>Job Order</span><strong id="ir-detail-job"></strong></div>
-                    <div><span>Bus</span><strong id="ir-detail-bus"></strong></div>
-                    <div><span>Date &amp; Time Created</span><strong id="ir-detail-date"></strong></div>
-                </div>
+        <div class="ir-modal-body ir-view-modal-body">
+            <section class="ir-view-summary-grid" aria-label="Request information">
+                <div class="ir-view-info-card"><span><i class="fa-regular fa-file-lines"></i> IR Number</span><strong id="ir-detail-number"></strong></div>
+                <div class="ir-view-info-card"><span><i class="fa-solid fa-clipboard-list"></i> Job Order</span><strong id="ir-detail-job"></strong></div>
+                <div class="ir-view-info-card"><span><i class="fa-solid fa-bus"></i> Bus</span><strong id="ir-detail-bus"></strong></div>
+                <div class="ir-view-info-card"><span><i class="fa-regular fa-calendar"></i> Date &amp; Time Created</span><strong id="ir-detail-date"></strong></div>
             </section>
-            <section class="ir-view-section">
-                <h3><i class="fa-solid fa-boxes-stacked"></i> Parts &amp; Warehouse</h3>
-                <div class="ir-view-section-content">
-                    <div class="ir-field"><label>Status</label><strong class="ir-view-status" id="ir-detail-status"></strong></div>
-                    <div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div>
-                </div>
+            <section class="ir-view-panel" aria-labelledby="ir-view-parts-heading">
+                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked"></i> Requested Parts</h3><p>Parts submitted to Warehouse for checking and fulfillment.</p></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
+                <div id="ir-detail-parts" class="ir-view-parts-list"></div>
             </section>
-            <section class="ir-view-section">
-                <h3><i class="fa-solid fa-note-sticky"></i> Remarks</h3>
-                <div class="ir-view-section-content"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
+            <section class="ir-view-panel ir-view-status-panel" aria-labelledby="ir-view-status-heading">
+                <div class="ir-view-status-row"><div><h3 id="ir-view-status-heading"><i class="fa-solid fa-warehouse"></i> Warehouse Status</h3><p id="ir-detail-status-description">Current request processing status.</p></div><strong class="ir-view-status" id="ir-detail-status"></strong></div>
+            </section>
+            <section class="ir-view-panel" aria-labelledby="ir-view-remarks-heading">
+                <header class="ir-view-panel-header"><div><h3 id="ir-view-remarks-heading"><i class="fa-regular fa-message"></i> Remarks</h3></div></header>
+                <div class="ir-view-remarks"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
             </section>
         </div>
-        <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
+        <footer class="ir-modal-footer ir-view-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
     </div>
 </div>
 @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
