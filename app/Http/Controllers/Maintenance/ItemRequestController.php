@@ -70,7 +70,7 @@ class ItemRequestController extends Controller
                 'jo' => $job->job_order_no,
                 'bus' => $job->bus_no,
                 'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
-                'parts' => $irParts->availableParts((string) $job->part_needed),
+                'parts' => $irParts->availableParts((string) $job->part_needed, $job),
             ]];
         });
 
