@@ -663,7 +663,7 @@ class PurchaseRequestController extends Controller
         }
 
         return redirect()
-            ->to(route('purchase-requests', [], false))
+            ->to(route('purchase-requests', ['record_view' => 'active'], false))
             ->with(
                 'success',
                 'Purchase request created successfully.'
