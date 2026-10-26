@@ -266,7 +266,8 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ->assertOk()
             ->assertViewHas('totalMechanics', 2)
             ->assertViewHas('availableMechanics', 1)
-            ->assertViewHas('onDutyMechanics', 1);
+            // 'onDutyMechanics' measures Working (started JO), not attendance Present.
+            ->assertViewHas('onDutyMechanics', 0);
     }
 
 }
