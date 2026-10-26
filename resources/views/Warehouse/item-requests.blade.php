@@ -157,15 +157,15 @@
 </div>
 
 <div id="warehouseItemRequestDetails" class="ir-modal-overlay" aria-hidden="true">
-    <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIrDetailsTitle">
+    <div class="ir-modal warehouse-ir-details-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIrDetailsTitle">
         <header class="ir-modal-header">
             <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
                 <div><h2 id="warehouseIrDetailsTitle">Item Request Details</h2><p>Maintenance request information for Warehouse review</p></div>
             </div>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
-        <div class="ir-modal-body">
-            <div class="ir-details-grid">
+        <div class="ir-modal-body warehouse-ir-details-body">
+            <div class="ir-details-grid warehouse-ir-details-meta">
                 <div><span>Item Request</span><strong id="warehouse-ir-number">—</strong></div>
                 <div><span>Linked Job Order</span><strong id="warehouse-ir-job">—</strong></div>
                 <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
@@ -173,7 +173,7 @@
             </div>
             <div class="ir-field">
                 <div class="warehouse-ir-verify-heading"><label>Requested Items &amp; Stock Verification</label><button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button></div>
-                <p class="ir-form-hint">This is a live stock reference, not an authorization to issue or reserve parts.</p>
+                <p class="ir-form-hint warehouse-ir-stock-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Live inventory reference. Actual stock is rechecked before issuance.</p>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table">
                         <thead><tr><th>PART</th><th>REQUIRED</th><th>ON HAND</th><th>SHORTAGE</th><th>AVAILABILITY</th></tr></thead>
@@ -183,12 +183,9 @@
                 <p id="warehouse-ir-stock-time" class="warehouse-ir-stock-time"></p>
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
             </div>
-            <div class="ir-field"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
-            <div class="ir-note"><i class="fa-solid fa-circle-info"></i><span>Warehouse rechecks live stock at issuance. Complete requests can be issued only after physical handover. Partial requests require a separate Head decision; missing parts must be purchased through PR.</span></div>
+            <div class="ir-field warehouse-ir-details-remarks"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
         </div>
         <footer class="ir-modal-footer">
-            @if(auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-            @endif
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
         </footer>
     </div>
