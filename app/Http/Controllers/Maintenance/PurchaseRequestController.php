@@ -945,6 +945,8 @@ class PurchaseRequestController extends Controller
 
                 if (
                     ! $hasOtherRequest
+                    && ! \App\Models\Maintenance\ItemRequest::query()->where('job_order_id', $oldJobOrder->id)->exists()
+                    && ! in_array($oldJobOrder->part_status, ['Issued', 'Partial'], true)
                 ) {
                     $oldJobOrder->update([
                         'part_status' =>
@@ -1570,6 +1572,8 @@ class PurchaseRequestController extends Controller
 
             if (
                 ! $hasOtherRequest
+                && ! \App\Models\Maintenance\ItemRequest::query()->where('job_order_id', $jobOrder->id)->exists()
+                && ! in_array($jobOrder->part_status, ['Issued', 'Partial'], true)
             ) {
                 $jobOrder->update([
                     'part_status' =>
