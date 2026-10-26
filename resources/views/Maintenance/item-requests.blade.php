@@ -131,8 +131,32 @@
 
 <div id="viewItemRequestModal" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
-        <header class="ir-modal-header"><div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span><div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div></div><button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
-        <div class="ir-modal-body"><div class="ir-details-grid"><div><span>IR Number</span><strong id="ir-detail-number"></strong></div><div><span>Job Order</span><strong id="ir-detail-job"></strong></div><div><span>Bus</span><strong id="ir-detail-bus"></strong></div><div><span>Status</span><strong id="ir-detail-status"></strong></div><div><span>Date & Time Created</span><strong id="ir-detail-date"></strong></div></div><div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div><div class="ir-field"><label>Remarks</label><p id="ir-detail-remarks" class="ir-detail-text"></p></div></div>
+        <header class="ir-modal-header">
+            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span><div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div></div>
+            <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="ir-modal-body">
+            <section class="ir-view-section">
+                <h3><i class="fa-solid fa-clipboard-list"></i> Basic Information</h3>
+                <div class="ir-details-grid">
+                    <div><span>IR Number</span><strong id="ir-detail-number"></strong></div>
+                    <div><span>Job Order</span><strong id="ir-detail-job"></strong></div>
+                    <div><span>Bus</span><strong id="ir-detail-bus"></strong></div>
+                    <div><span>Date &amp; Time Created</span><strong id="ir-detail-date"></strong></div>
+                </div>
+            </section>
+            <section class="ir-view-section">
+                <h3><i class="fa-solid fa-boxes-stacked"></i> Parts &amp; Warehouse</h3>
+                <div class="ir-view-section-content">
+                    <div class="ir-field"><label>Status</label><strong class="ir-view-status" id="ir-detail-status"></strong></div>
+                    <div class="ir-field"><label>Requested Parts</label><p id="ir-detail-parts" class="ir-detail-text"></p></div>
+                </div>
+            </section>
+            <section class="ir-view-section">
+                <h3><i class="fa-solid fa-note-sticky"></i> Remarks</h3>
+                <div class="ir-view-section-content"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
+            </section>
+        </div>
         <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
     </div>
 </div>
