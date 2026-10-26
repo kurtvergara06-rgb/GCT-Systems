@@ -966,6 +966,18 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
+    // Virtual PR suggestions open the existing validated PR modal, preselecting
+    // the approved JO. No purchase requisition is created until submission.
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-pr-review-job]');
+      if (!trigger) return;
+      openPrModal?.click();
+      if (jobOrderSelect) {
+        jobOrderSelect.value = trigger.dataset.prReviewJob || '';
+        jobOrderSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+
     closePrModal
       ?.addEventListener(
         'click',
