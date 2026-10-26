@@ -148,8 +148,23 @@ class PurchaseRequestIndexController extends Controller
             return ['job' => $job, 'parts' => $parts];
         })->filter(fn (array $proposal) => $proposal['parts'] !== [])->values();
 
-        // Keep the existing create modal restricted to the same eligible JOs.
+        // Keep the create dropdown unfiltered, while Search/Sort apply to the
+        // virtual suggestions displayed under the Pending tab.
         $jobOrders = $pendingPrJobs->pluck('job')->values();
+        if ($request->filled('search')) {
+            $needle = mb_strtolower(trim((string) $request->query('search')));
+            $pendingPrJobs = $pendingPrJobs->filter(function (array $proposal) use ($needle): bool {
+                $job = $proposal['job'];
+                $partNames = collect($proposal['parts'])->pluck('name')->implode(' ');
+                return str_contains(mb_strtolower($job->job_order_no.' '.$job->bus_no.' '.$partNames), $needle);
+            })->values();
+        }
+        $pendingSortDesc = $request->query('sort_direction', $request->query('direction', 'desc')) !== 'asc';
+        if ($request->query('sort') === 'pr_no') {
+            $pendingPrJobs = $pendingPrJobs->sortBy(fn (array $proposal) => $proposal['job']->job_order_no, SORT_REGULAR, $pendingSortDesc)->values();
+        } else {
+            $pendingPrJobs = $pendingPrJobs->sortBy(fn (array $proposal) => $proposal['job']->created_at, SORT_REGULAR, $pendingSortDesc)->values();
+        }
 
         // Automatically open Pending when approved JOs need procurement.
         if (! $request->has('record_view') && $pendingPrJobs->isNotEmpty()) {
