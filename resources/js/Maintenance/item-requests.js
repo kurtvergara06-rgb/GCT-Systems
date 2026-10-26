@@ -44,6 +44,7 @@ document.addEventListener('click', (event) => {
             'ir-detail-job': trigger.dataset.irJob,
             'ir-detail-bus': trigger.dataset.irBus,
             'ir-detail-status': trigger.dataset.irStatus,
+            'ir-detail-date': trigger.dataset.irDate,
             'ir-detail-parts': (trigger.dataset.irParts || '').split(' | ').join('\n'),
             'ir-detail-remarks': trigger.dataset.irRemarks || 'No remarks provided.'
         };
