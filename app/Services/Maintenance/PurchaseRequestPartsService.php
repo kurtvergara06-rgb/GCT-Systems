@@ -62,6 +62,11 @@ class PurchaseRequestPartsService
             }
 
             $part = $parts->first();
+            if ($parts->contains(fn (array $candidate) => (bool) ($candidate['ambiguous'] ?? false))) {
+                throw ValidationException::withMessages([
+                    'job_order_no' => "Inventory contains multiple matching records for {$part['name']}. Warehouse must resolve the inventory item before purchasing.",
+                ]);
+            }
             $shortage = $irQuantities->isNotEmpty()
                 ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
                 : max(0, $parts->sum('quantity') - (int) $part['available']);
