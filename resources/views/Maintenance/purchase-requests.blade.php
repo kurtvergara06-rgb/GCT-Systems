@@ -97,6 +97,7 @@
 
                   <div class="maintenance-list-controls purchase-requests-controls-row">
                       <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
+                          <a href="{{ route('purchase-requests', ['record_view' => 'pending']) }}" class="maintenance-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true" role="tab" aria-selected="{{ $recordView === 'pending' ? 'true' : 'false' }}"><i class="fa-solid fa-clock"></i><span>Pending Requests ({{ $pendingPrJobs->count() }})</span></a>
                           <a
                               href="{{ route('purchase-requests', array_filter(['search' => request('search'), 'status' => 'All Statuses'])) }}"
                               class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
@@ -147,6 +148,28 @@
 
                   </div>
 
+                  @if($recordView === 'pending')
+                  <p class="maintenance-history-note">These are automatic suggestions from approved Job Orders, not submitted Purchase Requests. Review the current shortage before creating the PR.</p>
+                  <div class="table-wrap purchase-table-wrap">
+                      <table class="purchase-request-table">
+                          <thead><tr><th>JO ID</th><th>BUS</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE QTY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                          <tbody>
+                          @forelse($pendingPrJobs as $proposal)
+                              <tr>
+                                  <td><strong>{{ $proposal['job']->job_order_no }}</strong></td>
+                                  <td><span class="ir-bus-tag">{{ $proposal['job']->bus_no }}</span></td>
+                                  <td>@foreach($proposal['parts'] as $part)<div><strong>{{ $part['name'] }}</strong></div>@endforeach</td>
+                                  <td>@foreach($proposal['parts'] as $part)<div>{{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td>
+                                  <td><span class="ir-stock-badge ir-stock-partial">Pending Review</span></td>
+                                  <td><button type="button" class="primary-btn compact-new-pr-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye"></i> Review PR</button></td>
+                              </tr>
+                          @empty
+                              <tr><td colspan="6" style="text-align:center;padding:30px">No pending purchase suggestions. Shortages from approved Job Orders appear here automatically.</td></tr>
+                          @endforelse
+                          </tbody>
+                      </table>
+                  </div>
+                  @else
                   <div class="table-wrap purchase-table-wrap">
                       <table class="purchase-request-table">
                           <thead>
@@ -300,6 +323,7 @@
                       </table>
                   </div>
 
+                  @endif
                   <x-ui.table-footer
                       :items="$purchaseRequests"
                       data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
