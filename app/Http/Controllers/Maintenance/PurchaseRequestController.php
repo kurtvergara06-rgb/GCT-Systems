@@ -281,7 +281,7 @@ class PurchaseRequestController extends Controller
 
                     try {
                         // Reuse the exact shortage calculation used by submission.
-                        return $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed) !== [];
+                        return $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder) !== [];
                     } catch (ValidationException $exception) {
                         // Invalid JO part units still need correction, not a purchase request.
                         return false;
@@ -367,7 +367,7 @@ class PurchaseRequestController extends Controller
             'signature_url' => is_string($signaturePath) && $signaturePath !== ''
                 ? route('job-orders.approval-signature', $jobOrder, false)
                 : null,
-            'parts' => $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed),
+            'parts' => $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder),
         ]);
     }
 
@@ -604,7 +604,7 @@ class PurchaseRequestController extends Controller
                 ]);
             }
 
-            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
+            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed, $lockedJobOrder);
             if ($parts === []) {
                 throw ValidationException::withMessages([
                     'job_order_no' => 'All requested parts are available. A Purchase Requisition is not needed.',
