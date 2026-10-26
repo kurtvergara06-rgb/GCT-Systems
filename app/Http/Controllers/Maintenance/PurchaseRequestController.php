@@ -959,15 +959,8 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        /* Sync new/current JO requested parts. */
-
-        $jobOrder->update([
-            'part_needed' =>
-                $formattedParts,
-
-            'part_status' =>
-                'Submitted',
-        ]);
+        // The approved JO is the immutable source of required parts.
+        // Editing an existing PR must not rewrite the JO demand or erase IR progress.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -1173,18 +1166,7 @@ class PurchaseRequestController extends Controller
                 null,
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Synchronize revised parts back to Job Order.
-        */
-
-        $jobOrder->update([
-            'part_needed' =>
-                $formattedParts,
-
-            'part_status' =>
-                'Approved',
-        ]);
+        // PR resubmission does not modify approved JO parts or fulfillment.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -1680,10 +1662,9 @@ class PurchaseRequestController extends Controller
             return;
         }
 
-        $jobOrder->update([
-            'part_status' =>
-                $partStatus,
-        ]);
+        if (! in_array($jobOrder->part_status, ['Issued', 'Partial'], true)) {
+            $jobOrder->update(['part_status' => $partStatus]);
+        }
     }
 
     /* =========================================================
