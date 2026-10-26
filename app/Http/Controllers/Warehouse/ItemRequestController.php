@@ -10,6 +10,7 @@ use App\Models\Warehouse\InventoryItem;
 use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Services\PartParser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -48,7 +49,7 @@ class ItemRequestController extends Controller
      * Issue a complete IR only. Partial releases require a separate Head decision.
      * Item rows are locked and matched by name AND compatible unit.
      */
-    public function issue(Request $request, ItemRequest $itemRequest, InventoryLedgerService $ledger)
+    public function issue(Request $request, ItemRequest $itemRequest, InventoryLedgerService $ledger, PartParser $parser)
     {
         $validated = $request->validate([
             'received_by' => ['required', 'string', 'max:255'],
@@ -72,7 +73,7 @@ class ItemRequestController extends Controller
         $slipPath = $request->file('signed_slip')->store('warehouse/signed-ir-slips', 'local');
         try {
         $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        DB::transaction(function () use ($itemRequest, $ledger, $irNumber, $slipPath, $validated): void {
+        DB::transaction(function () use ($itemRequest, $ledger, $parser, $irNumber, $slipPath, $validated): void {
             $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
             if ($ir->status !== 'Submitted') {
                 throw ValidationException::withMessages(['issue' => 'This Item Request has already been processed or is not ready for issuance.']);
@@ -84,6 +85,13 @@ class ItemRequestController extends Controller
                 throw ValidationException::withMessages(['issue' => 'An issuance is already recorded for this Item Request.']);
             }
             $parts = collect($ir->requested_parts ?? []);
+            $jo = $ir->jobOrder;
+            $joRequired = collect($parser->parsePartText((string) ($jo?->part_needed ?? '')))->sum('quantity');
+            $irQuantity = $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
+            $hasOutstandingJoParts = $joRequired > $irQuantity;
+            if ($hasOutstandingJoParts && $jo?->parts_issue_strategy !== 'issue_available_only') {
+                throw ValidationException::withMessages(['issue' => 'The Maintenance Head has not authorized partial release for this Job Order.']);
+            }
             if ($parts->isEmpty()) {
                 throw ValidationException::withMessages(['issue' => 'There are no items to issue.']);
             }
@@ -144,7 +152,7 @@ class ItemRequestController extends Controller
                 ]);
             }
             $ir->update(['status' => 'Issued']);
-            $ir->jobOrder?->update(['part_status' => 'Issued']);
+            $jo?->update(['part_status' => $hasOutstandingJoParts ? 'Partial' : 'Issued']);
         });
         } catch (\Throwable $error) {
             Storage::disk('local')->delete($slipPath);
