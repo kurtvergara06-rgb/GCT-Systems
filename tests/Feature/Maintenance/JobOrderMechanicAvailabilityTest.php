@@ -45,6 +45,31 @@ class JobOrderMechanicAvailabilityTest extends TestCase
         ]);
     }
 
+    public function test_change_oil_lists_attended_mechanic_with_lubrication_skill(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-LUBE-01', 'Lubrication Mechanic');
+        $mechanic->update(['specialization' => 'Lubrication']);
+        $this->attendance($mechanic, 'Present');
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics', ['maintenance_job' => 'Change Oil']))
+            ->assertOk()
+            ->assertJsonFragment(['mechanic_name' => 'Lubrication Mechanic']);
+    }
+
+    public function test_change_oil_does_not_show_specialized_mechanic_without_attendance(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-LUBE-02', 'Off Duty Lubrication Mechanic');
+        $mechanic->update(['specialization' => 'Lubrication']);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics', ['maintenance_job' => 'Change Oil']))
+            ->assertOk()
+            ->assertJsonMissing(['mechanic_name' => 'Off Duty Lubrication Mechanic']);
+    }
+
     public function test_on_duty_attendance_is_available_when_no_active_job_exists(): void
     {
         $user = $this->maintenanceUser();
