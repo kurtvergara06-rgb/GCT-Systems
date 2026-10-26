@@ -41,6 +41,7 @@
             </header>
             <div class="ir-toolbar">
                 <nav class="ir-tabs" aria-label="Item Request record view">
+                    <a href="{{ route('item-requests', ['view' => 'pending']) }}" class="ir-active-tab {{ $view === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock"></i> Pending Requests <span>({{ $eligibleJobs->count() }})</span></a>
                     <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active</a>
                     <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                 </nav>
@@ -67,6 +68,17 @@
                     </x-ui.table-toolbar>
                 </div>
             </div>
+            @if($view === 'pending')
+            <p class="ir-form-hint" style="padding:0 16px">Approved Job Orders appear here automatically when Warehouse has available stock. Review and submit to create an actual Item Request. Stock is rechecked when you submit.</p>
+            <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
+            @forelse($eligibleJobs as $jo)
+            @php($suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [])
+            <tr><td><strong>{{ $jo->job_order_no }}</strong></td><td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $jo->bus_no }}</span></td><td>@foreach($suggestedParts as $part)<div>{{ $part['name'] }} — {{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td><td><span class="ir-stock-badge ir-stock-available">Pending Review</span></td><td><button type="button" class="ir-primary-button" data-ir-review-job="{{ $jo->id }}" ><i class="fa-solid fa-eye"></i> Review IR</button></td></tr>
+            @empty
+            <tr><td colspan="5" class="ir-preview-placeholder">No pending IR suggestions. New suggestions appear after JO approval when stock is available.</td></tr>
+            @endforelse
+            </tbody></table></div>
+            @else
             <div class="ir-table-wrap">
                 <table class="ir-table">
                     <thead>
@@ -112,6 +124,7 @@
                 </table>
             </div>
             <div class="ir-footer">{{ $requests->links() }}</div>
+            @endif
         </section>
     </main>
 </div>
@@ -154,10 +167,10 @@
                 </div>
                 <div class="ir-form-section">
                     <h3><span>02</span> Requested Items <small>Automatically sourced from the JO</small></h3>
-                    <p class="ir-form-hint">Read-only items and quantities from the approved JO. Stock availability is an estimate; Warehouse confirms it at issuance.</p>
+                    <p class="ir-form-hint">Only available quantities are suggested here. Missing quantities belong in a separate Purchase Request. Warehouse confirms stock again at issuance.</p>
                     <div class="ir-preview-table-wrap">
                         <table class="ir-preview-table">
-                            <thead><tr><th>Item / Part</th><th>Required Qty</th><th>Stock Reference</th></tr></thead>
+                            <thead><tr><th>Item / Part</th><th>Suggested IR Qty</th><th>Stock Reference</th></tr></thead>
                             <tbody id="ir-preview-parts"><tr><td colspan="3" class="ir-preview-placeholder">Select an approved JO to review its required parts.</td></tr></tbody>
                         </table>
                     </div>
