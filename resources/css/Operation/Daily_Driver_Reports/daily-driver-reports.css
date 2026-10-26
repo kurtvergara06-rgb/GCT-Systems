@@ -2467,3 +2467,20 @@ button.ddr-new-btn {
 @media(max-width: 580px) {
     #ddrEncodeModal .ddr-extra-trip-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Keep driver suggestions in the form layout instead of covering the Bus field.
+   An open combobox grows its grid row; closing it restores the compact form. */
+#ddrEncodeModal .ddr-modal-form-grid .ddr-form-group:has(.ddr-combo.open) {
+  align-self: start;
+}
+#ddrEncodeModal .ddr-modal-form-grid .ddr-combo.open .ddr-combo-list {
+  position: static;
+  inset: auto;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 5px 16px rgba(6,31,61,.10);
+}
