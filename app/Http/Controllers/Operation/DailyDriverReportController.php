@@ -600,15 +600,26 @@ class DailyDriverReportController extends Controller
     public function assignedDrivers(Request $request): JsonResponse
     {
         $validated = $request->validate(['report_date' => ['required', 'date_format:Y-m-d']]);
-        $driverIds = \App\Models\Operation\TripAssignment::query()
-            ->whereHas('tripSchedule', fn ($query) => $query
-                ->whereDate('trip_date', $validated['report_date'])
-                ->whereNotIn('status', ['Cancelled', 'Missed']))
-            ->distinct()
-            ->pluck('driver_id')
-            ->values();
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        if ($validated['report_date'] > $today) {
+            return response()->json(['driver_ids' => [], 'bus_ids' => []]);
+        }
 
-        return response()->json(['driver_ids' => $driverIds]);
+        // Use the same eligibility rule as scheduleLookup and DDR submission.
+        // Ready alone is insufficient: the scheduled service must have ended.
+        $eligibleSchedules = TripSchedule::query()
+            ->whereDate('trip_date', $validated['report_date'])
+            ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+            ->get()
+            ->filter(fn (TripSchedule $schedule) => ! $schedule->estimatedArrivalDateTime()->isFuture());
+        $assignments = \App\Models\Operation\TripAssignment::query()
+            ->whereIn('trip_schedule_id', $eligibleSchedules->pluck('id'))
+            ->get(['driver_id', 'bus_id']);
+
+        return response()->json([
+            'driver_ids' => $assignments->pluck('driver_id')->filter()->unique()->values(),
+            'bus_ids' => $assignments->pluck('bus_id')->filter()->unique()->values(),
+        ]);
     }
 
     public function scheduleLookup(Request $request): JsonResponse
