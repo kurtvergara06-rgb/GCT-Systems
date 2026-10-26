@@ -72,8 +72,13 @@
             <p class="ir-form-hint" style="padding:0 16px">Approved Job Orders appear here automatically when Warehouse has available stock. Review and submit to create an actual Item Request. Stock is rechecked when you submit.</p>
             <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
             @forelse($eligibleJobs as $jo)
-            @php($suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [])
-            <tr><td><strong>{{ $jo->job_order_no }}</strong></td><td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $jo->bus_no }}</span></td><td>@foreach($suggestedParts as $part)<div>{{ $part['name'] }} — {{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td><td><span class="ir-stock-badge ir-stock-available">Pending Review</span></td><td><button type="button" class="ir-primary-button" data-ir-review-job="{{ $jo->id }}" ><i class="fa-solid fa-eye"></i> Review IR</button></td></tr>
+            @php
+                $suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [];
+                $totalRequested = app(\App\Services\PartParser::class)->parsePartText((string) $jo->part_needed);
+                $hasShortage = collect($totalRequested)->sum('quantity') > collect($suggestedParts)->sum('quantity');
+                $needsHeadRelease = $hasShortage && $jo->parts_issue_strategy !== 'issue_available_only';
+            @endphp
+            <tr><td><strong>{{ $jo->job_order_no }}</strong></td><td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $jo->bus_no }}</span></td><td>@foreach($suggestedParts as $part)<div>{{ $part['name'] }} — {{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td><td><span class="ir-stock-badge {{ $needsHeadRelease ? 'ir-stock-partial' : 'ir-stock-available' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Pending Review' }}</span></td><td><button type="button" class="ir-primary-button" data-ir-review-job="{{ $jo->id }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye"></i> Review IR</button></td></tr>
             @empty
             <tr><td colspan="5" class="ir-preview-placeholder">No pending IR suggestions. New suggestions appear after JO approval when stock is available.</td></tr>
             @endforelse
