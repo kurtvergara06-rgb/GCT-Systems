@@ -159,8 +159,23 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
 
   const slipModal = document.getElementById('warehouseIrSlipModal');
   let slipSequence = 0;
+  let slipStockEligible = false;
+  const signedForm = document.getElementById('warehouseIrSignedIssueForm');
+  const updateIssueButton = () => {
+    const button = document.getElementById('ir-slip-confirm');
+    if (!button || !signedForm) return;
+    const receivingName = signedForm.querySelector('[name="received_by"]');
+    const slipFile = signedForm.querySelector('[name="signed_slip"]');
+    const handover = signedForm.querySelector('[name="handover_confirmed"]');
+    const file = slipFile?.files?.[0];
+    const acceptedFile = file && file.size <= 10 * 1024 * 1024 && /\.(jpe?g|png|pdf)$/i.test(file.name);
+    button.disabled = !(slipStockEligible && receivingName?.value.trim() && acceptedFile && handover?.checked && signedForm.checkValidity());
+  };
+  signedForm?.addEventListener('input', updateIssueButton);
+  signedForm?.addEventListener('change', updateIssueButton);
   const closeSlip = () => {
     slipSequence++;
+    slipStockEligible = false;
     slipModal?.classList.remove('is-open');
     slipModal?.setAttribute('aria-hidden', 'true');
     document.getElementById('ir-slip-print').disabled = true;
@@ -181,6 +196,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     const form = document.getElementById('warehouseIrSignedIssueForm');
     const confirm = document.getElementById('ir-slip-confirm');
     const lines = document.getElementById('ir-slip-quantities');
+    slipStockEligible = false;
     form?.reset();
     if (form) form.action = trigger.dataset.irIssueUrl || '#';
     if (confirm) confirm.disabled = true;
@@ -225,7 +241,8 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
           input.value = String(part.quantity);
           lines.appendChild(input);
         });
-        confirm.disabled = false;
+        slipStockEligible = true;
+        updateIssueButton();
       } else {
         const notice = document.createElement('p');
         notice.textContent = 'Partial/unavailable IR: issuance confirmation is disabled pending a Head-approved partial release.';
@@ -246,6 +263,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
   };
   document.getElementById('warehouseIrSignedIssueForm')?.addEventListener('submit', (event) => {
     const button = document.getElementById('ir-slip-confirm');
+    updateIssueButton();
     if (button.disabled || !window.confirm('Confirm signed physical handover? This will deduct Warehouse stock and move the IR to History.')) {
       event.preventDefault();
       return;
