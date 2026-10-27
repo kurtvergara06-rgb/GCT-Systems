@@ -65,6 +65,24 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
     document.getElementById(id)?.addEventListener('click', () => closeModal(viewMechanicAttendanceModal));
   });
 
+  const timeOutModal = document.getElementById('recordMechanicTimeOutModal');
+  const timeOutForm = document.getElementById('recordMechanicTimeOutForm');
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-mechanic-timeout-modal');
+    if (button && timeOutModal && timeOutForm) {
+      timeOutForm.action = button.dataset.action || '';
+      document.getElementById('mechanicTimeOutName').textContent = button.dataset.name || '';
+      document.getElementById('mechanicTimeOutIn').textContent = button.dataset.timeIn || '';
+      const timeInput = document.getElementById('mechanicTimeOutValue');
+      if (timeInput) timeInput.value = '';
+      openModal(timeOutModal);
+      timeInput?.focus();
+    }
+    if (event.target.closest('[data-close-mechanic-timeout]')) {
+      closeModal(timeOutModal);
+    }
+  });
+
   const editMechanicAttendanceModal = document.getElementById(
     'editMechanicAttendanceModal'
   );
