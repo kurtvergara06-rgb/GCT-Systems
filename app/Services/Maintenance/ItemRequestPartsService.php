@@ -58,7 +58,7 @@ class ItemRequestPartsService
             $remainingAfterPr = max(0, $needed - (int) $purchaseQuantities->get($key, 0));
             $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
                 ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
-            $available = min($remainingAfterPr, max(0, (int) ($reserved ?? $first['available'])));
+            $available = min($remainingAfterPr, max(0, (int) ($reserved ?? (isset($jobOrder->inventory_snapshot['shortages']) ? 0 : $first['available']))));
             if ($available > 0) {
                 $result[] = [
                     'name' => $first['name'],
