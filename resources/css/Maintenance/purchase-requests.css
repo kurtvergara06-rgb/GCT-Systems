@@ -5304,8 +5304,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 .purchase-page .pr-pending-badge{
  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;
- border:1px solid #f0d28e;border-radius:999px;background:#fff5dc;
- color:#8e5d12;font-size:11px;font-weight:800;white-space:nowrap;
+ border:1px solid #c8dfff;border-radius:999px;background:#e9f2ff;
+ color:#1452a3;font-size:11px;font-weight:800;white-space:nowrap;
 }
 .purchase-page .purchase-request-table td .pr-pending-bus-badge i,
 .purchase-page .purchase-request-table td .pr-pending-badge i{font-size:10px}
