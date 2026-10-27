@@ -1306,6 +1306,9 @@ class JobOrderController extends Controller
                 'actual_completed_at' => now(),
                 'status' => 'Completed',
             ]);
+            // Unused reservations must not hold stock after completion.
+            \App\Models\Maintenance\JobOrderPartReservation::query()
+                ->where('job_order_id', $lockedJobOrder->id)->delete();
 
             $this->workflow->setAttendanceStatus($lockedJobOrder->fresh('mechanicAssignments.mechanic'), 'Present');
             $this->workflow->audit($lockedJobOrder, 'completed', 'Approved', 'Completed');
