@@ -149,6 +149,9 @@ class JobOrderWorkflowService
         $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
         $unitKey = static fn ($unit): string => (new PartParser())->normalizeUnit((string) $unit);
         $items = InventoryItem::query()->get();
+        $reserved = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
         $requested = collect($parts)->map(static function (array $part) use ($normal, $unitKey): array {
             $name = trim((string) ($part['name'] ?? ''));
             $unit = trim((string) ($part['unit'] ?? ''));
@@ -156,13 +159,13 @@ class JobOrderWorkflowService
                 'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
         $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
-        $breakdown = $requested->map(function (array $part) use ($items, $normal, $unitKey, $totals): array {
+        $breakdown = $requested->map(function (array $part) use ($items, $reserved, $normal, $unitKey, $totals): array {
             $matching = $items->filter(fn (InventoryItem $item) =>
                 $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
                 && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
             )->values();
             $item = $matching->count() === 1 ? $matching->first() : null;
-            $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0)) : 0;
+            $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0) - (int) $reserved->get($item->id, 0)) : 0;
             $required = (int)$totals->get($part['key'], $part['quantity']);
             return ['name'=>$part['name'],'quantity'=>$part['quantity'],'unit'=>$part['unit'],
                 'inventory_item_id'=>$item?->id,'category'=>$item?->category,
