@@ -79,12 +79,18 @@
                                 $prAvailable = (int) ($matchingPr['available'] ?? 0);
                                 $shortForPurchase = max(0, $prRequired - $prAvailable);
                                 $unit = $part['unit'] ?? $matchingPr['unit'] ?? '';
+                                $irQuantity = collect($partRequest->jo_ir_parts ?? [])->filter(function ($irPart) use ($joName, $joItemId, $normalizedName) {
+                                    $irName = (string) ($irPart['name'] ?? '');
+                                    return ($joItemId > 0 && (int) ($irPart['inventory_item_id'] ?? 0) === $joItemId)
+                                        || $normalizedName($irName) === $normalizedName($joName);
+                                })->sum(fn ($irPart) => (int) ($irPart['quantity'] ?? 0));
                               @endphp
                               <div class="warehouse-pr-stock-popover-row">
                                 <span class="warehouse-pr-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
                                 <span class="warehouse-pr-stock-popover-info">
                                   <strong class="warehouse-pr-stock-popover-name">{{ $joName }}</strong>
                                   <small>JO required: {{ $joRequired }} {{ $unit }}</small>
+                                  @if($irQuantity > 0)<small class="warehouse-pr-stock-ok">{{ $irQuantity }} {{ $unit }} listed in linked IR</small>@endif
                                 </span>
                                 <span class="warehouse-pr-stock-popover-amount">
                                   @if($matchingPr)
@@ -96,7 +102,7 @@
                                     @endif
                                   @else
                                     <strong>Not in PR</strong>
-                                    <small class="warehouse-pr-stock-ok">Check linked IR for issuance</small>
+                                    <small class="warehouse-pr-stock-ok">{{ $irQuantity > 0 ? 'See linked IR for issuance' : 'No matching PR shortage' }}</small>
                                   @endif
                                 </span>
                               </div>
