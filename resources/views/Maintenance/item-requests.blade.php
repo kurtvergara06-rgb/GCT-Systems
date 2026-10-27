@@ -101,7 +101,7 @@
             </tbody></table></div>
             @else
             <div class="ir-table-wrap">
-                <table class="ir-table">
+                <table class="ir-table ir-records-table">
                     <thead>
                         <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE & TIME</th><th>ACTIONS</th></tr>
                     </thead>
