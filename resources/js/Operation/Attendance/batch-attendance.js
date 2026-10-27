@@ -436,7 +436,7 @@ function initBatchAttendancePage() {
         if (!time || ['Absent', 'On Leave'].includes(status)) return;
 
         const shift = row.dataset.shift;
-        const start = shiftStarts[shift];
+        const start = type === 'mechanic' ? '08:00' : shiftStarts[shift];
         if (!start) return;
 
         const late = minutes(time) > minutes(String(start).slice(0, 5)) + graceMinutes;
