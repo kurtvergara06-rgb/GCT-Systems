@@ -838,3 +838,30 @@ body > .warehouse-jo-parts-popup .warehouse-jo-parts-row strong {
   white-space: nowrap;
   text-decoration: none;
 }
+
+/* Warehouse PR records mirror Maintenance PR spacing and compact status layout. */
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) { table-layout: fixed; width: 100%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(1) { width: 15%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(2) { width: 17%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(3) { width: 12%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(4) { width: 28%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(5) { width: 17%; }
+.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)) th:nth-child(6) { width: 11%; }
+.warehouse-part-card .warehouse-part-table-clean th { background: #f3f7fc; font-size: 10px; letter-spacing: .04em; }
+.warehouse-part-card .warehouse-part-table-clean td { padding: 12px 10px; vertical-align: middle; font-size: 12px; }
+.warehouse-pr-review { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:32px; border:1px solid #cfe0fd; border-radius:7px; background:#eaf2ff; color:#1251a9; padding:7px 12px; font-size:11px; font-weight:750; cursor:pointer; }
+.warehouse-pr-review:hover { background:#dce9ff; }
+.warehouse-pr-review:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+.warehouse-pr-status { display:inline-flex; padding:5px 10px; border:1px solid #cbdffc; border-radius:999px; background:#eaf2ff; color:#1653aa; font-size:11px; font-weight:750; white-space:nowrap; }
+.warehouse-pr-more-details { display:inline-block; position:relative; margin-left:8px; }
+.warehouse-pr-more-details summary { display:inline-block; padding:4px 8px; border-radius:6px; background:#eaf2ff; border:1px solid #cfe0fd; color:#1453a5; font-size:10px; font-weight:750; list-style:none; cursor:pointer; }
+.warehouse-pr-more-details summary::-webkit-details-marker { display:none; }
+.warehouse-pr-more-items { position:absolute; z-index:30; top:100%; left:0; min-width:270px; max-width:320px; max-height:230px; overflow:auto; padding:8px; background:#fff; border:1px solid #dbe5f2; border-radius:10px; box-shadow:0 12px 25px rgba(15,35,70,.15); }
+.warehouse-pr-more-items > div { display:flex; justify-content:space-between; gap:12px; padding:8px; border-bottom:1px solid #eaf0f8; }
+.warehouse-pr-more-items > div:last-child { border-bottom:0; }
+.warehouse-pr-row-actions[hidden] { display:none !important; }
+.warehouse-pr-modal-actions { display:flex; align-items:center; gap:8px; margin-right:auto; }
+.warehouse-pr-modal-actions .warehouse-pr-row-actions:not([hidden]) { display:flex; align-items:center; gap:8px; }
+.warehouse-pr-modal-action { display:inline-flex; align-items:center; gap:7px; min-height:34px; padding:7px 11px; border-radius:7px; border:1px solid #cfe0fd; background:#eaf2ff; color:#1251a9; font-size:11px; font-weight:750; cursor:pointer; }
+.warehouse-pr-modal-actions .inline-action-form { margin:0; }
+@media(max-width:900px){.warehouse-part-card .table-wrap{overflow-x:auto;}.warehouse-part-card .warehouse-part-table:not(:has(.warehouse-jo-parts-summary)){min-width:760px;}}
