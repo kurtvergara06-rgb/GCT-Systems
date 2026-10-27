@@ -3,6 +3,7 @@
 namespace App\Services\Maintenance;
 
 use App\Services\PartParser;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\ItemRequest;
 use Illuminate\Validation\ValidationException;
@@ -67,9 +68,11 @@ class PurchaseRequestPartsService
                     'job_order_no' => "Inventory contains multiple matching records for {$part['name']}. Warehouse must resolve the inventory item before purchasing.",
                 ]);
             }
+            $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
+                ->where('inventory_item_id', $part['inventory_item_id'] ?? 0)->value('quantity') : null;
             $shortage = $irQuantities->isNotEmpty()
                 ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
-                : max(0, $parts->sum('quantity') - (int) $part['available']);
+                : max(0, $parts->sum('quantity') - (int) ($reserved ?? $part['available']));
             if ($shortage < 1) {
                 continue;
             }
