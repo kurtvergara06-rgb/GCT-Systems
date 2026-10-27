@@ -60,6 +60,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     'warehouse-ir-job': 'irJob',
     'warehouse-ir-bus': 'irBus',
     'warehouse-ir-status': 'irStatus',
+    'warehouse-ir-release-policy': 'irReleasePolicy',
     'warehouse-ir-remarks': 'irRemarks',
   };
 
@@ -186,6 +187,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || '—'; };
     set('ir-slip-number', trigger.dataset.irNumber);
     set('ir-slip-job', trigger.dataset.irJob);
+    set('ir-slip-release-policy', 'Checking Head authorization...');
     set('ir-slip-bus', trigger.dataset.irBus);
     set('ir-slip-mechanic', trigger.dataset.irMechanics);
     set('ir-slip-date', new Date().toLocaleDateString());
@@ -214,6 +216,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       });
       if (!response.ok) throw Error('Stock verification failed (HTTP ' + response.status + ').');
       const data = await response.json();
+      set('ir-slip-release-policy', data.release_policy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete');
       if (sequence !== slipSequence) return;
       tbody.replaceChildren();
       for (const [index, part] of (data.parts || []).entries()) {
