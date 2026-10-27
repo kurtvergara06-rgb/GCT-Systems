@@ -3090,7 +3090,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           || (joValue('#newJoCustomWorkName').length >= 3
             && !!joForm.querySelector('#newJoCustomSpecializations input:checked')))
         ? 'completed' : 'incomplete',
-      selectedMechanics ? 'completed' : 'incomplete',
+      selectedMechanics && (() => {
+        const jobs = document.getElementById('newJoMaintenanceJob')?.getSelectedJobs?.() || [];
+        const options = [...(joForm.querySelector('#jobAssignedMechanics')?.selectedOptions || [])];
+        return jobs.length > 0 && jobs.every((job) => options.some((option) =>
+          (option.dataset.qualifiedJobs || '').split(',').map((value) => value.trim()).includes(job)));
+      })() ? 'completed' : 'incomplete',
       joDurationValid() ? 'completed' : 'incomplete',
       joPartsStatus(),
     ];
@@ -4301,16 +4306,53 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       }
       const selectedJobs = document.getElementById('newJoMaintenanceJob')?.getSelectedJobs?.() || [];
       const chosen = selectedOptions();
-      const covered = new Set(chosen.flatMap((option) => (option.dataset.qualifiedJobs || '').split(',').map((job) => job.trim()).filter(Boolean)));
-      const uncovered = selectedJobs.filter((job) => !covered.has(job));
+      const coveringMechanic = (job) => chosen.find((option) =>
+        (option.dataset.qualifiedJobs || '').split(',').map((name) => name.trim()).includes(job));
+      const uncovered = selectedJobs.filter((job) => !coveringMechanic(job));
       coverage.hidden = !selectedJobs.length || !chosen.length;
-      coverage.textContent = uncovered.length
-        ? `Uncovered maintenance jobs: ${uncovered.join(', ')}. Assign a qualified, available mechanic for each job.`
-        : 'All selected maintenance jobs are covered by the assigned mechanics.';
+      coverage.replaceChildren();
+      if (!coverage.hidden) {
+        const heading = document.createElement('div');
+        heading.className = 'jo-coverage-heading';
+        const title = document.createElement('strong');
+        title.textContent = 'Qualification Coverage';
+        const count = document.createElement('span');
+        count.textContent = uncovered.length ? `${uncovered.length} uncovered` : 'All covered';
+        count.className = uncovered.length ? 'jo-coverage-count is-warning' : 'jo-coverage-count is-success';
+        heading.append(title, count);
+        coverage.appendChild(heading);
+        selectedJobs.forEach((job) => {
+          const owner = coveringMechanic(job);
+          const row = document.createElement('div');
+          row.className = `jo-coverage-row ${owner ? 'is-covered' : 'is-uncovered'}`;
+          const symbol = document.createElement('span');
+          symbol.textContent = owner ? '✓' : '!';
+          symbol.setAttribute('aria-hidden', 'true');
+          const description = document.createElement('span');
+          const jobTitle = document.createElement('strong');
+          jobTitle.textContent = job;
+          const note = document.createElement('small');
+          note.textContent = owner ? `Covered by ${mechanicName(owner)}` : 'Assign a qualified, available mechanic';
+          description.append(jobTitle, note);
+          row.append(symbol, description);
+          coverage.appendChild(row);
+        });
+      }
       coverage.dataset.state = uncovered.length ? 'incomplete' : 'completed';
-      coverage.style.color = uncovered.length ? '#a45a08' : '#237348';
-      coverage.style.fontSize = '12px';
-      coverage.style.marginTop = '6px';
+      coverage.style.cssText = 'margin-top:8px;padding:11px 12px;border:1px solid #dce5f1;border-radius:10px;background:#f7f9fc;font-size:12px;';
+      coverage.querySelectorAll('.jo-coverage-heading').forEach((node) => {
+        node.style.cssText = 'display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;';
+      });
+      coverage.querySelectorAll('.jo-coverage-count').forEach((node) => {
+        node.style.color = uncovered.length ? '#a45a08' : '#237348';
+      });
+      coverage.querySelectorAll('.jo-coverage-row').forEach((node) => {
+        node.style.cssText = 'display:flex;align-items:flex-start;gap:9px;padding:5px 0;';
+        node.firstChild.style.cssText = `font-weight:700;color:${node.classList.contains('is-covered') ? '#237348' : '#a45a08'}`;
+        node.children[1].style.cssText = 'display:flex;flex-direction:column;gap:2px;';
+        node.querySelector('small').style.cssText = 'color:#64748b;font-size:11px;';
+      });
+      window.GCTUpdateJoSectionIndicators?.();
     };
     select.addEventListener('change', renderCoverage);
     document.getElementById('newJoMaintenanceJob')?.addEventListener('change', renderCoverage);
