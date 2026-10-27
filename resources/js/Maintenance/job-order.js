@@ -3115,17 +3115,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
   if (joForm) {
     joForm.addEventListener('input', updateJoSectionIndicators);
     joForm.addEventListener('change', updateJoSectionIndicators);
-    // Auto-advance only when the user finishes the last field, not on a keystroke.
-    const advanceOnCompletion = (step, next) => {
-      updateJoSectionIndicators();
-      if (joSections[step]?.querySelector('.jo-section-progress')?.dataset.state === 'completed'
-          && !joSections[step].classList.contains('is-collapsed')) {
-        setJoSectionOpen(next);
-      }
-    };
-    joForm.querySelector('#jobProblemIssue')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
-    joForm.querySelector('#newJoCustomWorkName')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
-    joForm.querySelector('#newJoMaintenanceJob')?.addEventListener('change', () => advanceOnCompletion(0, 1));
+    // Completion only updates the badge. Never auto-collapse Job Details
+    // when a maintenance job is selected or an input loses focus.
+    // Users control section expansion explicitly using the header toggles.
     // Keep Mechanic Assignment expanded as the user adds multiple mechanics.
     // Completion badge updates on every selection, but moving to Duration is manual.
     // Covers dynamically added/removed part rows and programmatic dropdown updates.
