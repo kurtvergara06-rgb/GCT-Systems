@@ -45,10 +45,10 @@ function initBatchAttendancePage() {
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
+                    <div class="batch-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end">${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="font-size:12px;color:#64748b;white-space:nowrap"></span></div>` : ''}
+                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button></div>
                 </div>
 
-                ${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;gap:8px;padding:0 20px 12px"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="margin-left:auto;font-size:12px;color:#64748b;align-self:center"></span></div>` : ''}
                 <div class="batch-attendance-controls">
                     <label>
                         <span>Attendance Date</span>
