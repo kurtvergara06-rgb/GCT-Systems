@@ -136,8 +136,10 @@ class MaintenanceWorkflowHardeningTest extends TestCase
             'electronic_signature' => $head->name,
             'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
             'duration_decision' => 'accept',
-        ])->assertRedirect();
+            'parts_issue_strategy' => 'complete_before_issuance',
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
+        $this->assertSame('Approved', $jobOrder->fresh()->review_status);
         $this->assertSame('Under Maintenance', $bus->fresh()->status);
         $this->assertSame('Active', $bus->fresh()->pre_maintenance_status);
 
