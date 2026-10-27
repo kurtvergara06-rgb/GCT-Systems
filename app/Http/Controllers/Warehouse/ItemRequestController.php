@@ -43,6 +43,7 @@ class ItemRequestController extends Controller
         $others = JobOrderPartReservation::query()->where('job_order_id', '!=', $itemRequest->job_order_id)
             ->select('inventory_item_id', DB::raw('SUM(quantity) as qty'))->groupBy('inventory_item_id')->pluck('qty', 'inventory_item_id');
         $hasAllocation = isset($itemRequest->jobOrder?->inventory_snapshot['shortages']);
+        $physicalItems = InventoryItem::query()->get()->keyBy('id');
         foreach ($snapshot['parts'] as &$part) {
             $id = $part['inventory_item_id'] ?? null;
             $quantity = (int) ($part['quantity'] ?? 0);
@@ -53,7 +54,9 @@ class ItemRequestController extends Controller
             $part['already_issued'] = $already;
             $part['quantity'] = max(0, $quantity - $already);
             $quantity = $part['quantity'];
-            $free = max(0, (int) ($part['available'] ?? 0) - (int) $others->get($id, 0));
+            $item = $physicalItems->get($id);
+            $physical = $item ? (int) ($item->quantity_available ?? $item->on_hand ?? 0) : 0;
+            $free = max(0, $physical - (int) $others->get($id, 0));
             $allocated = (int) $own->get($id, 0);
             $part['available'] = $hasAllocation ? min($free, $allocated) : $free;
             $part['shortage'] = max(0, $quantity - $part['available']);
