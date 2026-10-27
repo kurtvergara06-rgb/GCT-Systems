@@ -59,7 +59,29 @@
                     @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
                     @php($firstStock = $stockParts->first())
                     @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
-                    @php($stockIsMixed = $stockParts->count() > 1)
+                    @php
+                        // Context only: the actual IR lines remain the sole quantities eligible for issuance.
+                        $joRequirements = $ir->jobOrder
+                            ? collect(app(\App\Services\PartParser::class)->parsePartText((string) $ir->jobOrder->part_needed))
+                            : collect();
+                        $irLookup = $stockParts->keyBy(fn ($part) => mb_strtolower(trim((string) ($part['name'] ?? ''))));
+                        $fullJoParts = $joRequirements->map(function ($part) use ($irLookup) {
+                            $key = mb_strtolower(trim((string) ($part['name'] ?? '')));
+                            $irPart = $irLookup->get($key);
+                            $required = (int) ($part['quantity'] ?? 0);
+                            $allocated = (int) ($irPart['quantity'] ?? 0);
+                            return [
+                                'name' => $part['name'] ?? '—',
+                                'unit' => $part['unit'] ?? '',
+                                'quantity' => $required,
+                                'available' => $allocated,
+                                'shortage' => max(0, $required - $allocated),
+                            ];
+                        });
+                        $displayStockParts = $fullJoParts->isNotEmpty() ? $fullJoParts : $stockParts;
+                        $stockIsMixed = $displayStockParts->count() > 1;
+                        $shortPartsCount = $displayStockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count();
+                    @endphp
                     <tr>
                         <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span>@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
                         <td>
@@ -82,24 +104,24 @@
                             <div class="warehouse-ir-onhand-summary">
                                 <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
                                 <div class="warehouse-ir-onhand-actions">
-                                    @if($stockIsMixed)
+                                    @if($displayStockParts->isNotEmpty())
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
-                                            <div class="warehouse-ir-stock-popover-title">Warehouse stock breakdown</div>
-                                            @foreach($stockParts as $part)
+                                            <div class="warehouse-ir-stock-popover-title">JO requirement &amp; issuance breakdown</div>
+                                            @foreach($displayStockParts as $part)
                                                 <div class="warehouse-ir-stock-popover-row">
                                                     <span class="warehouse-ir-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
                                                     <span class="warehouse-ir-stock-popover-info">
                                                         <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
-                                                        <small>Required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
+                                                        <small>JO required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
                                                     </span>
                                                     <span class="warehouse-ir-stock-popover-amount">
-                                                        <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong>
+                                                        <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} issuable</strong>
                                                         @if(($part['shortage'] ?? 0) > 0)
-                                                            <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} short</small>
+                                                            <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} {{ $part['unit'] ?? '' }} awaiting supply</small>
                                                         @else
-                                                            <small class="warehouse-ir-stock-ok">In stock</small>
+                                                            <small class="warehouse-ir-stock-ok">Allocated for issue</small>
                                                         @endif
                                                     </span>
                                                 </div>
