@@ -84,9 +84,7 @@
                       <div>
                           <h2>Purchase Requisition Records</h2>
                       </div>
-                      @if($recordView !== 'history')
-                          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn"><i class="fa-solid fa-plus"></i> New PR</button>
-                      @endif
+
 
 
                   </div>
@@ -97,7 +95,7 @@
 
                   <div class="maintenance-list-controls purchase-requests-controls-row">
                       <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
-                          <a href="{{ route('purchase-requests', ['record_view' => 'pending']) }}" class="maintenance-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true" role="tab" aria-selected="{{ $recordView === 'pending' ? 'true' : 'false' }}"><i class="fa-solid fa-clock"></i><span>Pending Requests ({{ $pendingPrJobs->count() }})</span></a>
+                          <a href="{{ route('purchase-requests', ['record_view' => 'pending']) }}" class="maintenance-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true" role="tab" aria-selected="{{ $recordView === 'pending' ? 'true' : 'false' }}"><i class="fa-solid fa-clock"></i><span>Pending Requests</span></a>
                           <a
                               href="{{ route('purchase-requests', array_filter(['search' => request('search'), 'status' => 'All Statuses'])) }}"
                               class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
