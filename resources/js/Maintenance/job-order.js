@@ -2,7 +2,7 @@ import gsap from 'gsap';
 
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
 
-  // Maintenance Head review: reveal per-part fulfillment status, not stock counts.
+  // Maintenance Head review: reveal authorized on-hand quantities and shortages.
   document.querySelectorAll('.jo-review-parts-list').forEach((list) => {
     const reviewDetails = list.closest('details.jo-review-actions');
     const loadStatuses = async () => {
@@ -17,7 +17,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         badge.className = 'jo-review-part-availability is-checking';
       });
       try {
-        const response = await fetch('/job-orders/inventory-availability', {
+        const response = await fetch('/job-orders/head-review-inventory-availability', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -30,9 +30,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         if (!response.ok) throw new Error('Lookup failed');
         const result = await response.json();
         badges.forEach((badge, index) => {
-          const available = result.parts?.[index]?.fulfillable === true;
-          badge.className = 'jo-review-part-availability ' + (available ? 'is-available' : 'is-unavailable');
-          badge.textContent = available ? 'Available' : 'Unavailable';
+          const part = result.parts?.[index];
+          if (!part) {
+            badge.className = 'jo-review-part-availability is-unknown';
+            badge.textContent = 'Unable to check';
+            return;
+          }
+          const status = part.status || 'Unavailable';
+          badge.className = 'jo-review-part-availability ' + (status === 'Available' ? 'is-available' : status === 'Partially Available' ? 'is-partial' : 'is-unavailable');
+          badge.textContent = status + ' · Stock: ' + part.available + ' · Shortage: ' + part.shortage;
         });
       } catch {
         badges.forEach((badge) => {
