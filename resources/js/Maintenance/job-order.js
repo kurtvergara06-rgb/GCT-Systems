@@ -3296,8 +3296,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           picker.append(initial);
           items.forEach((item) => {
             const option = document.createElement('option');
-            option.value = item.name;
-            option.textContent = item.name;
+            option.value = `${item.name} [${item.code || item.id}]`;
+            option.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
             option.dataset.itemId = item.id;
             option.dataset.unit = item.unit;
             option.disabled = !item.unit;
@@ -3376,7 +3376,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
             const taken = selectedPartIds();
             const currentId = String(itemId.value || '');
             const matches = items.filter((item) =>
-              item.name.toLowerCase().includes(query)
+              `${item.name} ${item.code || ''}`.toLowerCase().includes(query)
               && (!taken.has(String(item.id)) || String(item.id) === currentId)
             ).slice(0, 80);
             if (!matches.length) {
@@ -3391,7 +3391,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               button.setAttribute('role', 'option');
               button.disabled = !item.unit;
               const label = document.createElement('span');
-              label.textContent = item.name;
+              label.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
               const hint = document.createElement('small');
               hint.textContent = item.unit || 'Unit not configured';
               button.append(label, hint);
@@ -3400,7 +3400,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
                 if (choice) {
                   picker.value = choice.value;
                   picker.dispatchEvent(new Event('change', { bubbles: true }));
-                  trigger.textContent = item.name;
+                  trigger.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
                 }
                 close();
               });
@@ -3432,7 +3432,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           document.addEventListener('pointerdown', (event) => {
             if (!searchWrap.contains(event.target) && !menu.contains(event.target)) close();
           });
-          picker.value = existingName;
+          picker.value = Array.from(picker.options).find((option) => option.value === existingName || option.value.startsWith(existingName + ' ['))?.value || '';
           row.dataset.inventoryPicker = '1';
           updateItem();
         };
