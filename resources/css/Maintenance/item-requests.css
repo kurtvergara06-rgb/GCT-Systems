@@ -351,3 +351,6 @@
 .ir-jo-signature img { display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; }
 .ir-jo-signature span { font-size:11px; color:#64748b; }
 @media(max-width:540px){.ir-jo-authorization-grid{grid-template-columns:1fr}}
+/* Match the bold date / muted time hierarchy used by Warehouse records. */
+.maintenance-ir-page .ir-records-table .ir-date .maintenance-ir-date-primary { display:block; color:#102b4f; font-size:12px; font-weight:800; line-height:1.35; }
+.maintenance-ir-page .ir-records-table .ir-date small { display:block; margin-top:3px; color:#71839b; font-size:10px; font-weight:400; }
