@@ -287,3 +287,19 @@
 .maintenance-ir-page .ir-pending-record .ir-parts-popover {
   text-align: left;
 }
+
+/* The JO source is fixed by the Pending Requests review action, not user-selectable. */
+.ir-linked-jo-display {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid #d5e2f1;
+  border-radius: 9px;
+  background: #f4f7fc;
+  color: #17375f;
+  font-size: 12px;
+  font-weight: 750;
+}
