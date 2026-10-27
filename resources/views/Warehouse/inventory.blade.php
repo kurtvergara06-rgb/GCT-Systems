@@ -89,7 +89,9 @@
               <tr>
                 <th>Item</th>
                 <th>Category</th>
-                <th>Stock</th>
+                <th>On Hand</th>
+                <th>Reserved</th>
+                <th>Free Stock</th>
                 <th>Reorder Level</th>
                 <th>Status</th>
                 <th>Supplier</th>
@@ -124,6 +126,17 @@
                     <span class="inventory-stock-cell">
                       <strong>{{ $item->quantity_available }}</strong>
                       <small>{{ $item->unit_of_measurement }}</small>
+                    </span>
+                  </td>
+                  @php
+                    $reservedQuantity = max(0, (int) $reservedByItem->get($item->id, 0));
+                    $freeQuantity = max(0, (int) $item->quantity_available - $reservedQuantity);
+                  @endphp
+                  <td><strong>{{ $reservedQuantity }}</strong></td>
+                  <td>
+                    <span class="inventory-stock-cell">
+                      <strong>{{ $freeQuantity }}</strong>
+                      <small>{{ $item->unit_of_measurement ?: $item->unit }}</small>
                     </span>
                   </td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
