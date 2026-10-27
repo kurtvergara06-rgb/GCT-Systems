@@ -9,6 +9,10 @@ document.addEventListener('click', (event) => {
         const linkedJob = document.getElementById('item_request_job_order');
         if (linkedJob) linkedJob.value = open.dataset.irReviewJob || '';
         renderItemRequestPreview();
+        const display = document.getElementById('item_request_job_order_display');
+        if (display && open.dataset.irReviewNumber) {
+            display.textContent = open.dataset.irReviewNumber + ' — Bus ' + (open.dataset.irReviewBus || '—');
+        }
         modal.querySelector('#item_request_job_order_display')?.focus();
     }
     if (close) {
