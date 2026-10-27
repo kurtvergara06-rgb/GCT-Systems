@@ -303,3 +303,23 @@
   font-size: 12px;
   font-weight: 750;
 }
+
+/* Identical seven-column layout for In Progress and History IR records. */
+.maintenance-ir-page .ir-records-table {
+  width: 100%;
+  table-layout: fixed;
+}
+.maintenance-ir-page .ir-records-table th:nth-child(1) { width: 15%; }
+.maintenance-ir-page .ir-records-table th:nth-child(2) { width: 16%; }
+.maintenance-ir-page .ir-records-table th:nth-child(3) { width: 13%; }
+.maintenance-ir-page .ir-records-table th:nth-child(4) { width: 19%; }
+.maintenance-ir-page .ir-records-table th:nth-child(5) { width: 12%; }
+.maintenance-ir-page .ir-records-table th:nth-child(6) { width: 15%; }
+.maintenance-ir-page .ir-records-table th:nth-child(7) { width: 10%; }
+.maintenance-ir-page .ir-records-table td { vertical-align: middle; }
+.maintenance-ir-page .ir-records-table .ir-date span,
+.maintenance-ir-page .ir-records-table .ir-date small { display: block; }
+.maintenance-ir-page .ir-records-table .ir-date small { margin-top: 3px; }
+@media (max-width: 850px) {
+  .maintenance-ir-page .ir-records-table { min-width: 780px; }
+}
