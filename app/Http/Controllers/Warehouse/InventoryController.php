@@ -59,6 +59,13 @@ class InventoryController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        // Actual stock stays unchanged on JO reservation. Show committed and free balances separately.
+        $reservedByItem = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->whereIn('inventory_item_id', $inventoryItems->getCollection()->pluck('id'))
+            ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')
+            ->pluck('reserved', 'inventory_item_id');
+
         $categories = $inventoryScope()
             ->whereNotNull('category')
             ->where('category', '!=', '')
@@ -85,6 +92,7 @@ class InventoryController extends Controller
 
         return view('Warehouse.inventory', compact(
             'inventoryItems',
+            'reservedByItem',
             'categories',
             'totalItemsInStock',
             'lowStockAlerts',
@@ -540,7 +548,7 @@ class InventoryController extends Controller
                 ->whereKey($itemId)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $current = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+            $current = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
 
             if ($quantity > $current) {
                 throw ValidationException::withMessages([
