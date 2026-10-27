@@ -152,7 +152,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="ir-footer"><span class="warehouse-ir-stock-time">Stock is a live reference, not reserved inventory. Open View for detailed verification and issuance.</span>{{ $requests->links() }}</div>
+            <div class="ir-footer"><span class="warehouse-ir-stock-time">Inventory availability accounts for approved JO reservations. Open View for detailed verification and issuance.</span>{{ $requests->links() }}</div>
         </section>
     </main>
 </div>
@@ -175,7 +175,7 @@
             </div>
             <div class="ir-field">
                 <div class="warehouse-ir-verify-heading"><label>Requested Items &amp; Stock Verification</label><button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button></div>
-                <p class="ir-form-hint warehouse-ir-stock-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Live inventory reference. Actual stock is rechecked before issuance.</p>
+                <p class="ir-form-hint warehouse-ir-stock-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Live allocation-aware stock reference. Warehouse rechecks physical inventory before issuance.</p>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table">
                         <thead><tr><th>PART</th><th>REQUIRED</th><th>ON HAND</th><th>SHORTAGE</th><th>AVAILABILITY</th></tr></thead>
