@@ -3479,20 +3479,28 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
     const badge = badgeFor(row);
     if (!badge) return;
     if (!part) {
-      badge.textContent = '';
-      badge.hidden = true;
-      badge.removeAttribute('title');
+      badge.hidden = false;
+      badge.className = 'jo-row-stock-badge is-unknown';
+      badge.textContent = 'Select Part';
+      badge.title = 'Select a Warehouse item to check availability.';
       return;
     }
-    // Maintenance Staff only needs a yes/no availability indication.
-    // Never expose Warehouse on-hand quantities or shortages in labels/tooltips.
-    const isAvailable = hasQty ? part.fulfillable === true : part.in_stock === true;
+    if (!hasQty) {
+      badge.hidden = false;
+      badge.className = 'jo-row-stock-badge is-unknown';
+      badge.textContent = 'Enter Quantity';
+      badge.title = 'Enter the required quantity to check availability.';
+      return;
+    }
+    // Staff can see qualitative availability only; numbers remain Warehouse-only.
+    const available = part.fulfillable === true;
+    const partial = !available && part.in_stock === true;
     badge.hidden = false;
-    badge.className = 'jo-row-stock-badge ' + (isAvailable ? 'is-available' : 'is-out');
-    badge.textContent = isAvailable ? 'Available' : 'Unavailable';
-    badge.title = isAvailable
-      ? (hasQty ? 'Warehouse can fulfill the requested quantity.' : 'Item is in stock; enter quantity to confirm fulfillment.')
-      : (hasQty ? 'Warehouse cannot fulfill the entire requested quantity.' : 'Item is currently unavailable.');
+    badge.className = 'jo-row-stock-badge ' + (available ? 'is-available' : partial ? 'is-partial' : 'is-out');
+    badge.textContent = available ? 'Available' : partial ? 'Partially Available' : 'Unavailable';
+    badge.title = available ? 'Available to reserve when this JO is submitted.'
+      : partial ? 'Some units can be reserved at submission; remaining units need purchasing.'
+      : 'No unreserved units are currently available.';
   };
   const checkAvailability = () => {
     clearTimeout(availabilityTimer);
@@ -3508,6 +3516,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
         paintStock(row, null);
         if (name) {
           const hasQty = rawQty !== '' && Number.isFinite(quantity) && quantity > 0;
+          if (!hasQty) paintStock(row, {}, false);
           const inventoryItemId = row.querySelector('input[name$="[inventory_item_id]"]')?.value || null;
           selected.push({ row, name, inventory_item_id: inventoryItemId, hasQty, quantity: hasQty ? quantity : 1, unit: row.querySelector('select[name$="[unit]"]')?.value || '' });
         }
