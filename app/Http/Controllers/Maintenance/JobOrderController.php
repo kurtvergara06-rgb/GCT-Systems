@@ -235,10 +235,8 @@ class JobOrderController extends Controller
             $buses
                 ->reject(
                     fn ($bus) =>
-                        $activeBusNumbers
-                            ->contains(
-                                $bus->bus_no
-                            )
+                        $activeBusNumbers->contains($bus->bus_no)
+                        || $bus->hasOngoingDispatch()
                 )
                 ->values();
 
@@ -587,6 +585,14 @@ class JobOrderController extends Controller
             if ($bus->status !== 'Active') {
                 throw ValidationException::withMessages([
                     'bus_no' => 'Only active buses without an open Job Order can be selected.',
+                ]);
+            }
+
+            // An Active master status does not mean the vehicle has returned
+            // from an already dispatched trip. Guard writes as well as the UI.
+            if ($bus->hasOngoingDispatch()) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'This bus is currently dispatched. It cannot be assigned to a new Job Order until its trip is completed.',
                 ]);
             }
 
