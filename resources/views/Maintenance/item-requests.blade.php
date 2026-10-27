@@ -64,7 +64,7 @@
                 </div>
             </div>
             @if($view === 'pending')
-            <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
+            <div class="ir-table-wrap"><table class="ir-table ir-records-table"><thead><tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE &amp; TIME</th><th>ACTIONS</th></tr></thead><tbody>
             @forelse($pendingJobs as $jo)
             @php
                 $suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [];
@@ -73,6 +73,7 @@
                 $needsHeadRelease = $hasShortage && $jo->parts_issue_strategy !== 'issue_available_only';
             @endphp
             <tr class="ir-pending-record">
+                <td><span class="ir-not-generated">Not yet generated</span></td>
                 <td><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong></td>
                 <td><span class="ir-bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $jo->bus_no }}</span></td>
                 <td>
@@ -93,10 +94,11 @@
                     @endif
                 </td>
                 <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Ready for IR Review' }}</span></td>
+                <td class="ir-date"><span>{{ $jo->approved_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</span><small>{{ $jo->approved_at ? 'JO approved · '.$jo->approved_at->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') : 'JO approval time unavailable' }}</small></td>
                 <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
             </tr>
             @empty
-            <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
+            <tr><td colspan="7" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
             @endforelse
             </tbody></table></div>
             @else
