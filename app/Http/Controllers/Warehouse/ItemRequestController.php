@@ -214,7 +214,7 @@ class ItemRequestController extends Controller
                 foreach ($allocations as $allocation) {
                     $item = $allocation['item'];
                     $qty = $allocation['quantity'];
-                    $movement = $ledger->stockOut($item, $qty, $batchRef, 'Issued for '.$jo->job_order_no);
+                    $movement = $ledger->stockOut($item, $qty, $batchRef, 'Issued for '.$jo->job_order_no, null, $jo->id);
                     InventoryIssuanceItem::create([
                         'inventory_issuance_id' => $issuance->id,
                         'inventory_item_id' => $item->id,
