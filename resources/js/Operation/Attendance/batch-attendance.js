@@ -19,6 +19,7 @@ function initBatchAttendancePage() {
 
     let shiftStarts = {};
     let graceMinutes = 10;
+    let mechanicMode = 'in';
 
     button.addEventListener('click', openModal);
 
@@ -47,6 +48,7 @@ function initBatchAttendancePage() {
                     <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
                 </div>
 
+                ${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;gap:8px;padding:0 20px 12px"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="margin-left:auto;font-size:12px;color:#64748b;align-self:center"></span></div>` : ''}
                 <div class="batch-attendance-controls">
                     <label>
                         <span>Attendance Date</span>
@@ -128,6 +130,12 @@ function initBatchAttendancePage() {
         overlay.querySelectorAll('[data-batch-close]').forEach((el) => {
             el.addEventListener('click', closeModal);
         });
+        overlay.querySelectorAll('[data-mechanic-mode]').forEach(button => {
+            button.addEventListener('click', () => {
+                mechanicMode = button.dataset.mechanicMode;
+                updateMechanicMode();
+            });
+        });
         overlay.querySelector('#batchAttendanceDate').addEventListener('change', loadRoster);
         overlay.querySelector('#batchAttendanceShift').addEventListener('change', loadRoster);
         overlay.querySelector('#batchDriverSearch')?.addEventListener('input', (event) => {
@@ -139,7 +147,7 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
-                if (!row.classList.contains('is-unavailable')) {
+                if (!row.hidden && !row.classList.contains('is-unavailable')) {
                     row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]').value = currentTime();
                     detectLate(row);
                     updateAvailability(row);
@@ -156,7 +164,7 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchClearAll').addEventListener('click', clearAllRows);
         overlay.querySelector('#batchSelectAll').addEventListener('change', (event) => {
             overlay.querySelectorAll('[data-row-select]').forEach((input) => {
-                input.checked = event.target.checked;
+                if (!input.closest('[data-batch-row]')?.hidden) input.checked = event.target.checked;
             });
         });
         overlay.querySelector('#batchSaveAttendance').addEventListener('click', saveAttendance);
@@ -193,6 +201,35 @@ function initBatchAttendancePage() {
             body.innerHTML = `<tr><td colspan="8" class="batch-error">${escapeHtml(error.message || 'Unable to load attendance roster.')}</td></tr>`;
             updateSummary();
         }
+    }
+
+    function updateMechanicMode() {
+        if (type !== 'mechanic') return;
+        const modal = document.getElementById('batchAttendanceModal');
+        if (!modal) return;
+        const modeIn = mechanicMode === 'in';
+        let count = 0;
+        modal.querySelectorAll('[data-batch-row]').forEach(row => {
+            const isTimeOut = row.dataset.recorded === 'true';
+            row.hidden = modeIn ? isTimeOut : !isTimeOut;
+            if (!row.hidden) count++;
+        });
+        modal.querySelectorAll('[data-mechanic-mode]').forEach(button => {
+            const active = button.dataset.mechanicMode === mechanicMode;
+            button.setAttribute('aria-pressed', String(active));
+            button.classList.toggle('success', active);
+            button.style.borderColor = active ? '#1c58a7' : '';
+            button.style.background = active ? '#e9f2ff' : '';
+        });
+        const counter = modal.querySelector('#batchMechanicModeCount');
+        if (counter) counter.textContent = count + (modeIn ? ' awaiting time-in' : ' awaiting time-out');
+        const save = modal.querySelector('#batchSaveAttendance');
+        if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + (modeIn ? 'Save Time-ins' : 'Save Time-outs');
+        const mark = modal.querySelector('#batchMarkPresent');
+        if (mark) mark.hidden = !modeIn;
+        const selectAll = modal.querySelector('#batchSelectAll');
+        if (selectAll) selectAll.checked = false;
+        updateSummary();
     }
 
     function renderRows(rows) {
@@ -278,6 +315,7 @@ function initBatchAttendancePage() {
                 row.classList.add('batch-awaiting-timeout');
             }
         });
+        updateMechanicMode();
         updateSummary();
     }
 
@@ -360,7 +398,7 @@ function initBatchAttendancePage() {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
+            .filter((row) => !row.hidden && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
             toast('Select at least one available personnel row.', 'warning');
             return;
@@ -404,7 +442,7 @@ function initBatchAttendancePage() {
         }
         let updated = 0;
         modal.querySelectorAll('[data-batch-row]').forEach((row) => {
-            if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
+            if (row.hidden || !row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
             const target = row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]');
             target.value = time;
             target.dispatchEvent(new Event('input', { bubbles: true }));
@@ -475,7 +513,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => (row.dataset.recorded !== 'true'
+             .filter((row) => !row.hidden && (row.dataset.recorded !== 'true'
                  ? (type !== 'mechanic' || Boolean(row.querySelector('[data-time-in]').value) || ['Absent', 'On Leave'].includes(selectedStatus(row)))
                  : (type === 'mechanic' && Boolean(row.querySelector('[data-time-out]').value)))
                 && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked))
@@ -590,6 +628,7 @@ function initBatchAttendancePage() {
         };
 
         rows.forEach((row) => {
+            if (row.hidden) return;
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
