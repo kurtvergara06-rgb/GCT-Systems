@@ -368,3 +368,58 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     }
   });
 });
+
+/* Portal PR stock and item popovers out of the scrollable table so they overlap rows. */
+window.GCTPartialNavigation.registerInitializer('warehouse-pr-stock-popover-portal', '.warehouse-part-main', () => {
+  const root = document.querySelector('.warehouse-part-main');
+  if (!root || root.dataset.prPopoverPortalReady === '1') return;
+  root.dataset.prPopoverPortalReady = '1';
+  let active = null;
+  const close = () => {
+    if (!active) return;
+    const { panel, details, summary } = active;
+    panel.removeAttribute('style');
+    details.appendChild(panel);
+    details.open = false;
+    summary.setAttribute('aria-expanded', 'false');
+    active = null;
+  };
+  const position = () => {
+    if (!active) return;
+    const { panel, summary } = active;
+    if (!summary.isConnected) return close();
+    const r = summary.getBoundingClientRect();
+    const w = Math.min(310, window.innerWidth - 24);
+    const h = Math.min(panel.scrollHeight || 200, window.innerHeight - 24);
+    const above = window.innerHeight - r.bottom < h + 12 && r.top > h + 12;
+    Object.assign(panel.style, {
+      position: 'fixed', zIndex: '110500', width: w + 'px',
+      minWidth: '0', maxWidth: 'calc(100vw - 24px)',
+      left: Math.max(12, Math.min(r.left, window.innerWidth - w - 12)) + 'px',
+      top: above ? 'auto' : (r.bottom + 6) + 'px',
+      bottom: above ? (window.innerHeight - r.top + 6) + 'px' : 'auto',
+      maxHeight: Math.max(90, Math.min(280, above ? r.top - 18 : window.innerHeight - r.bottom - 18)) + 'px'
+    });
+  };
+  root.addEventListener('click', event => {
+    const summary = event.target.closest('.warehouse-pr-parts-more > summary');
+    if (!summary) return;
+    const details = summary.parentElement;
+    const panel = details.querySelector(':scope > .warehouse-pr-parts-popup');
+    if (!panel) return;
+    event.preventDefault();
+    if (active?.details === details) return close();
+    close();
+    details.open = true;
+    document.body.appendChild(panel);
+    active = { panel, details, summary };
+    summary.setAttribute('aria-expanded', 'true');
+    position();
+  });
+  document.addEventListener('click', event => {
+    if (active && !active.summary.contains(event.target) && !active.panel.contains(event.target)) close();
+  });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+  window.addEventListener('resize', position);
+  window.addEventListener('scroll', position, true);
+});
