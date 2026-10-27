@@ -357,7 +357,7 @@
       <x-ui.form-modal
           id="prModal"
           title="New Purchase Request"
-          description="Review the approved Job Order and shortage parts before submitting for PR approval."
+          description="Review shortages for Warehouse verification."
           icon="fa-file-circle-plus"
           size="wide"
           form-id="newPrForm"
@@ -365,9 +365,9 @@
           method="POST"
           close-id="closePrModal"
           :confirm="true"
-          confirm-title="Submit Purchase Request for Approval?"
-          confirm-message="Submit this Purchase Request for Maintenance Head approval?"
-          confirm-button="Yes, Submit PR"
+          confirm-title="Submit Purchase Request to Warehouse?"
+          confirm-message="Send this JO-authorized Purchase Request to Warehouse for shortage verification?"
+          confirm-button="Submit to Warehouse"
           confirm-type="create"
           :show-actions="false"
           class="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
@@ -393,12 +393,15 @@
                       </label>
                       <div class="pr-simple-source-grid">
                           <div class="pr-simple-source-card"><span>Bus Number</span><strong id="prReviewBus">—</strong></div>
-                          <div class="pr-simple-source-card"><span>JO Approved By</span><strong id="prApproverName">—</strong></div>
+                          <div class="pr-simple-source-card"><span>Assigned Mechanics</span><strong id="prReviewMechanics">—</strong></div>
                       </div>
-                      <div class="pr-jo-signature-reference">
-                          <span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span>
+                      <div class="pr-jo-authorization-heading"><strong>Maintenance Head Authorization</strong><span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></div>
+                      <div class="pr-jo-authorization-grid">
+                        <div class="pr-simple-source-card"><span>Approved By</span><strong id="prApproverName">—</strong><small>Maintenance Head</small></div>
+                        <div class="pr-jo-signature-reference">
                           <img id="prApprovalSignature" alt="Saved Job Order authorization signature" hidden>
-                          <span id="prSignaturePlaceholder">JO signature reference is loaded from the approved Job Order.</span>
+                          <span id="prSignaturePlaceholder">JO signature unavailable</span>
+                        </div>
                       </div>
                   </div>
               </section>
@@ -440,7 +443,7 @@
 
           <footer class="pr-document-footer">
               <button type="button" id="cancelPrModal" class="ui-form-btn ui-form-btn-cancel">Cancel</button>
-              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary" disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit for Approval</button>
+              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary" disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit to Warehouse</button>
           </footer>
       </x-ui.form-modal>
 
