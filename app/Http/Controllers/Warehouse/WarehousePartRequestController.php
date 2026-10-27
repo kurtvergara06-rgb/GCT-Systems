@@ -630,6 +630,10 @@ class WarehousePartRequestController extends Controller
             $warehouseDisplayStatus = $missingPurchaseRequest->status;
         }
 
+        // Show the linked JO's full requirement as context, without changing PR shortage lines.
+        $purchaseRequest->jo_parts_requirement = $jobOrder
+            ? app(\App\Services\PartParser::class)->parsePartText((string) $jobOrder->part_needed)
+            : [];
         $purchaseRequest->parts_breakdown = $inventoryCheck['breakdown'];
         $purchaseRequest->inventory_check = $inventoryCheck;
 
