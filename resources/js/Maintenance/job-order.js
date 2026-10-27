@@ -3340,7 +3340,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           menu.hidden = true;
           const search = document.createElement('input');
           search.type = 'search';
-          search.placeholder = 'Search part name...';
+          search.placeholder = 'Search part name or item code...';
           search.setAttribute('aria-label', 'Search warehouse items');
           const results = document.createElement('div');
           results.className = 'jo-inventory-search-results';
@@ -3390,11 +3390,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               button.className = 'jo-inventory-search-option';
               button.setAttribute('role', 'option');
               button.disabled = !item.unit;
-              const label = document.createElement('span');
-              label.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
+              const description = document.createElement('span');
+              description.style.cssText = 'display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;';
+              const label = document.createElement('strong');
+              label.textContent = item.name;
               const hint = document.createElement('small');
-              hint.textContent = item.unit || 'Unit not configured';
-              button.append(label, hint);
+              hint.textContent = `Item Code: ${item.code || 'Not assigned'} · Unit: ${item.unit || 'Not configured'}`;
+              hint.style.cssText = 'font-size:11px;color:#64748b;';
+              description.append(label, hint);
+              const identity = document.createElement('span');
+              identity.textContent = `ID ${item.id}`;
+              identity.style.cssText = 'font-size:10px;font-weight:600;color:#64748b;background:#eef2f7;border-radius:6px;padding:3px 6px;white-space:nowrap;align-self:center;';
+              button.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;';
+              button.append(description, identity);
               button.addEventListener('click', () => {
                 const choice = Array.from(picker.options).find((option) => option.dataset.itemId === String(item.id));
                 if (choice) {
