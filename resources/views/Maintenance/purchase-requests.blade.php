@@ -372,124 +372,68 @@
           :show-actions="false"
           class="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
       >
-          <div class="pr-document" id="prDocument">
-              <section class="pr-step-card pr-step-details" aria-label="Requisition details">
-                  <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Job Order Information</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Required</span></div>
-                  <div class="pr-document-fields">
-                  <label class="pr-document-field">
-                      <span>To</span>
-                      <input type="text" value="Purchase Department" readonly>
-                  </label>
-                  <label class="pr-document-field">
-                      <span>Requested Date</span>
-                      <input id="prRequestedDate" type="text" value="{{ now()->format('F j, Y') }}" readonly>
-                  </label>
-                  <label class="pr-document-field">
-                      <span>From</span>
-                      <input type="text" value="Maintenance Department" readonly>
-                  </label>
-                  <label class="pr-document-field">
-                      <span>Approved Job Order <span class="ui-required">*</span></span>
-                      <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
-                          <option value="">Select an approved Job Order</option>
-                          @foreach($availablePrJobOrders as $jobOrder)
-                              <option
-                                  value="{{ $jobOrder->job_order_no }}"
-                                  data-job-order-url="{{ route('purchase-requests.job-order-data', $jobOrder, false) }}"
-                                  @selected(old('job_order_no', $selectedJobOrder?->job_order_no) === $jobOrder->job_order_no)
-                              >
-                                  {{ $jobOrder->job_order_no }}
-                              </option>
-                          @endforeach
-                      </select>
-                      <div id="prReviewLinkedJo" class="pr-review-linked-jo" aria-live="polite">Linked from Pending Requests</div>
-                      <input type="hidden" name="bus_no" id="busNoInput">
-                  </label>
-                  <label class="pr-document-field">
-                      <span>PR Number</span>
-                      <input id="newPrNo" type="text" value="{{ $nextPrNo }}" readonly>
-                  </label>
-                  <label class="pr-document-field">
-                      <span>Requested By</span>
-                      <input type="text" value="{{ auth()->user()->name }}" readonly>
-                  </label>
-                  </div>
-              </section>
-
-              <section class="pr-document-section pr-document-parts pr-step-card">
-                  <div class="pr-document-section-heading">
-                      <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span><div><h3>02 — Parts for Purchase</h3><p>Shortage quantities automatically sourced from the approved JO</p></div></div>
-                      <span class="pr-missing-only"><i class="fa-regular fa-circle-exclamation"></i> Missing Parts Only</span>
-                  </div>
-                  <div class="pr-shortage-table-wrap">
-                      <table class="pr-shortage-table">
-                          <thead>
-                              <tr>
-                                  <th scope="col">No.</th>
-                                  <th scope="col">Item Description</th>
-                                  <th scope="col">Category</th>
-                                  <th scope="col">Order Qty</th>
-                                  <th scope="col">Availability</th>
-                              </tr>
-                          </thead>
-                          <tbody id="newPrPartsBody">
-                              <tr><td colspan="5" class="pr-table-message">Select an approved Job Order to check its unavailable parts.</td></tr>
-                          </tbody>
-                      </table>
-                  </div>
-                  <p class="pr-stock-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Available items are excluded automatically. Only missing quantities are requested for purchasing.</p>
-                  <p id="prPartsError" class="pr-inline-error" role="alert" hidden></p>
-              </section>
-
-              <section class="pr-step-card pr-step-additional" aria-label="Additional information">
-                  <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i></span><div><h3>03 — Request Details</h3><p>Reason and required delivery date</p></div></div>
-                  <div class="pr-document-fields pr-document-additional">
-                  <label class="pr-document-field">
-                      <span>Purpose / Bus Number</span>
-                      <input id="prPurposeBus" type="text" value="" placeholder="Bus number and repair purpose" readonly>
-                  </label>
-                  <label class="pr-document-field">
-                      <span>Target Date</span>
-                      <input type="date" name="target_date" min="{{ now()->toDateString() }}" value="{{ old('target_date') }}">
-                  </label>
-                  <label class="pr-document-field pr-document-field-full">
-                      <span>Purpose / Work Description</span>
-                      <input id="prPurpose" type="text" name="purpose" maxlength="1000" value="{{ old('purpose') }}" placeholder="Purpose of the requested parts" required>
-                  </label>
-                  <label class="pr-document-field pr-document-field-full">
-                      <span>Remarks / Justification</span>
-                      <textarea name="remarks" id="newPrRemarks" maxlength="1000" placeholder="Enter purchase justification (optional)">{{ old('remarks') }}</textarea>
-                  </label>
-                  </div>
-              </section>
-
-              <section class="pr-document-section pr-authorization pr-step-card">
-                  <div class="pr-step-heading">
-                      <span class="pr-step-icon"><i class="fa-solid fa-shield-check" aria-hidden="true"></i></span>
-                      <div><h3>04 — JO Authorization Reference</h3><p>Existing Job Order approval, not Purchase Request approval</p></div>
-                      <span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span>
-                  </div>
-                  <div class="pr-authorization-grid">
-                      <div class="pr-authorization-card">
-                          <div class="pr-authorization-card-title"><i class="fa-regular fa-user" aria-hidden="true"></i><span>Requested By</span></div>
-                          <div class="pr-auth-identity">
-                              <strong>{{ auth()->user()->name }}</strong>
-                              <small>Maintenance Department</small>
-                          </div>
-                          <span class="pr-auth-verification"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Authenticated User</span>
+          <div class="pr-document pr-review-simplified" id="prDocument">
+              <section class="pr-step-card pr-step-details" aria-label="Linked Job Order">
+                  <div class="pr-step-heading"><span class="pr-step-icon">01</span><div><h3>Job Order Information</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Source details</span></div>
+                  <div class="pr-simple-body">
+                      <label class="pr-document-field pr-document-field-full">
+                          <span>Approved Job Order <span class="ui-required">*</span></span>
+                          <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
+                              <option value="">Select an approved Job Order</option>
+                              @foreach($availablePrJobOrders as $jobOrder)
+                                  <option value="{{ $jobOrder->job_order_no }}"
+                                      data-job-order-url="{{ route('purchase-requests.job-order-data', $jobOrder, false) }}"
+                                      @selected(old('job_order_no', $selectedJobOrder?->job_order_no) === $jobOrder->job_order_no)>
+                                      {{ $jobOrder->job_order_no }}
+                                  </option>
+                              @endforeach
+                          </select>
+                          <div id="prReviewLinkedJo" class="pr-review-linked-jo" aria-live="polite">Linked from Pending Requests</div>
+                          <input type="hidden" name="bus_no" id="busNoInput">
+                      </label>
+                      <div class="pr-simple-source-grid">
+                          <div class="pr-simple-source-card"><span>Bus Number</span><strong id="prReviewBus">—</strong></div>
+                          <div class="pr-simple-source-card"><span>JO Approved By</span><strong id="prApproverName">—</strong></div>
                       </div>
-                      <div class="pr-authorization-card">
-                          <div class="pr-authorization-card-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>JO Approved By</span></div>
-                          <div class="pr-auth-identity">
-                              <strong id="prApproverName">Select a Job Order to load its approver</strong>
-                              <small>Maintenance Head</small>
-                          </div>
-                          <div class="pr-auth-signature-area">
-                              <img id="prApprovalSignature" alt="Saved Maintenance Head signature" hidden>
-                              <span id="prSignaturePlaceholder">Select an approved Job Order to view its signature.</span>
-                              <small>Verified from linked Job Order</small>
-                          </div>
+                      <div class="pr-jo-signature-reference">
+                          <span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span>
+                          <img id="prApprovalSignature" alt="Saved Job Order authorization signature" hidden>
+                          <span id="prSignaturePlaceholder">JO signature reference is loaded from the approved Job Order.</span>
                       </div>
+                  </div>
+              </section>
+              <section class="pr-step-card pr-document-parts" aria-label="Parts requiring purchase">
+                  <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Parts for Purchase</h3><p>Shortages automatically sourced from the approved Job Order</p></div><span class="pr-step-tag">JO shortage</span></div>
+                  <div class="pr-simple-body">
+                      <div class="pr-shortage-table-wrap">
+                          <table class="pr-shortage-table pr-review-parts-table">
+                              <thead><tr><th scope="col">ITEM / PART</th><th scope="col">SHORTAGE QTY</th><th scope="col">AVAILABILITY</th></tr></thead>
+                              <tbody id="newPrPartsBody"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
+                          </table>
+                      </div>
+                      <p class="pr-stock-note">Only shortage quantities are included. Warehouse verifies availability during processing.</p>
+                      <p id="prPartsError" class="pr-inline-error" role="alert" hidden></p>
+                  </div>
+              </section>
+              <section class="pr-step-card pr-step-additional" aria-label="Request details">
+                  <div class="pr-step-heading"><span class="pr-step-icon">03</span><div><h3>Request Details</h3><p>Purpose and optional purchasing instructions</p></div></div>
+                  <div class="pr-simple-body">
+                      <input id="prPurposeBus" type="hidden" value="">
+                      <input id="prPurpose" type="hidden" name="purpose" maxlength="1000" value="{{ old('purpose') }}">
+                      <div class="pr-simple-request-grid">
+                          <label class="pr-document-field">
+                              <span>Target Date <small>(Optional)</small></span>
+                              <input type="date" name="target_date" min="{{ now()->toDateString() }}" value="{{ old('target_date') }}">
+                          </label>
+                          <label class="pr-document-field">
+                              <span>Requested By</span>
+                              <input type="text" value="{{ auth()->user()->name }}" readonly>
+                          </label>
+                      </div>
+                      <label class="pr-document-field pr-document-field-full">
+                          <span>Remarks <small>(Optional)</small></span>
+                          <textarea name="remarks" id="newPrRemarks" maxlength="1000" placeholder="Additional instructions for purchasing…">{{ old('remarks') }}</textarea>
+                      </label>
                   </div>
               </section>
           </div>
