@@ -5993,3 +5993,13 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 #joReadonlyOverlay .jo-view-section h3 {
   font-weight: 800;
 }
+
+/* Keep the multi-job selector compact while displaying selected work clearly. */
+#jobModal .jo-maintenance-job-trigger { min-height: 44px; }
+#jobModal .jo-maintenance-job-label { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.3; min-width: 0; }
+#jobModal .jo-maintenance-job-selected-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 9px 0 2px; }
+#jobModal .jo-maintenance-job-selected-chips[hidden] { display: none; }
+#jobModal .jo-maintenance-job-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 5px 7px 5px 10px; border-radius: 8px; border: 1px solid #d5e4fa; background: #eff5ff; color: #17467e; font-size: 11px; font-weight: 700; }
+#jobModal .jo-maintenance-job-chip > span { min-width: 0; overflow-wrap: anywhere; }
+#jobModal .jo-maintenance-job-chip-remove { display: inline-grid; place-items: center; flex: 0 0 auto; border: 0; background: transparent; color: #39679c; font-size: 17px; line-height: 1; cursor: pointer; padding: 0 2px; }
+#jobModal .jo-maintenance-job-chip-remove:hover { color: #b91c1c; }
