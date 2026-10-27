@@ -980,35 +980,28 @@ window.GCTPartialNavigation.registerInitializer(
 
     function renderMissingParts(parts) {
       if (!newPrPartsBody) return;
-
       newPrPartsBody.replaceChildren();
       if (!Array.isArray(parts) || parts.length === 0) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 5;
+        cell.colSpan = 3;
         cell.className = 'pr-table-message';
         cell.textContent = 'No missing parts. All requested items are available from Warehouse.';
         row.appendChild(cell);
         newPrPartsBody.appendChild(row);
         return;
       }
-
-      parts.forEach((part, index) => {
+      parts.forEach((part) => {
         const row = document.createElement('tr');
-        const values = [
-          String(index + 1),
-          part.name || '—',
-          part.category || 'Uncategorized',
-          `${part.quantity} ${part.unit || ''}`.trim(),
-        ];
-
-        values.forEach((value, cellIndex) => {
+        for (const [label, value] of [
+          ['Item / Part', part.name || '—'],
+          ['Shortage Qty', String(part.quantity) + ' ' + (part.unit || '')],
+        ]) {
           const cell = document.createElement('td');
-          cell.dataset.label = ['No.', 'Item Description', 'Category', 'Order Qty'][cellIndex];
+          cell.dataset.label = label;
           cell.textContent = value;
           row.appendChild(cell);
-        });
-
+        }
         const availabilityCell = document.createElement('td');
         availabilityCell.dataset.label = 'Availability';
         const badge = document.createElement('span');
@@ -1077,6 +1070,8 @@ window.GCTPartialNavigation.registerInitializer(
           prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
         }
         if (busNoInput) busNoInput.value = data.bus_no || '';
+        const reviewBus = document.getElementById('prReviewBus');
+        if (reviewBus) reviewBus.textContent = data.bus_no || '—';
         if (prPurpose && !prPurpose.dataset.userEdited) {
           prPurpose.value = data.work_to_perform || '';
         }
