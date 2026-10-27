@@ -61,15 +61,13 @@ class BatchAttendanceController extends Controller
             ->get()
             ->keyBy($idColumn);
 
-        // For drivers, show only personnel who still need attendance for
-        // this date. A saved Present, Absent or On Leave record must not
-        // reappear in the new-entry modal.
-        if ($type === 'driver') {
-            $people = $people->reject(
-                fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
-                    && ! in_array($record->status, ['Unmarked', null, ''], true)
-            )->values();
-        }
+        // The new-entry roster includes only personnel without a saved
+        // attendance record for the selected date. Time-out updates belong
+        // to the existing attendance record, not this creation modal.
+        $people = $people->reject(
+            fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
+                && ! in_array($record->status, ['Unmarked', null, ''], true)
+        )->values();
 
         $rows = $people->map(function ($person) use (
             $dateRecords,
