@@ -73,7 +73,7 @@ class MechanicAttendanceController extends Controller
 
             if ($names->isNotEmpty()) {
                 $activeJobsByMechanic = JobOrder::query()->with('mechanicAssignments')
-                    ->where('status', 'On Going')
+                    ->whereIn('status', ['On Going', 'On Hold'])
                     ->where('review_status', 'Approved')
                     ->orderByDesc('id')
                     ->get()
@@ -86,6 +86,7 @@ class MechanicAttendanceController extends Controller
                         return $assignedNames->filter(fn ($name) => $names->contains($name))->map(fn ($name) => (object) [
                             'mechanic_name' => $name,
                             'job_order_no' => $jobOrder->job_order_no,
+                            'work_to_perform' => trim((string) $jobOrder->work_to_perform),
                         ]);
                     })->groupBy(fn ($job) => mb_strtolower(trim((string) $job->mechanic_name)));
             }
@@ -96,6 +97,9 @@ class MechanicAttendanceController extends Controller
             $attendance->display_assigned_job = $jobs && $jobs->isNotEmpty()
                 ? $jobs->pluck('job_order_no')->filter()->unique()->implode(', ')
                 : (trim((string) $attendance->assigned_job) ?: 'Unassigned');
+            $attendance->display_assigned_work = $jobs && $jobs->isNotEmpty()
+                ? $jobs->pluck('work_to_perform')->filter()->unique()->implode(' / ')
+                : '';
         });
 
         // Preload active JO names for permission-aware Edit buttons.
