@@ -8,6 +8,7 @@ use App\Models\Maintenance\JobOrder;
 use App\Services\PartParser;
 use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\Maintenance\ItemRequestPartsService;
+use App\Services\Maintenance\PartsReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -55,10 +56,11 @@ class ItemRequestController extends Controller
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
-            ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
+            ->whereNotIn('id', ItemRequest::query()->whereIn('status', ['Submitted', 'Partially Issued'])->select('job_order_id'))
+            ->whereNotIn('part_status', ['Issued', 'No Parts Required'])
             ->with('approver')
             ->orderByDesc('created_at')
-            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'created_at', 'approved_by']);
+            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'inventory_snapshot', 'part_status', 'created_at', 'approved_by']);
         $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
             try {
                 return $irParts->availableParts((string) $job->part_needed, $job) !== [];
@@ -113,27 +115,33 @@ class ItemRequestController extends Controller
         return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs'));
     }
 
-    public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser)
+    public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser, PartsReservationService $reservations)
     {
         $data = $request->validate([
             'job_order_id' => ['required', 'integer', 'exists:job_orders,id'],
             'remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($data, $irParts, $parser): void {
+        DB::transaction(function () use ($data, $irParts, $parser, $reservations): void {
             $jo = JobOrder::query()->lockForUpdate()->findOrFail($data['job_order_id']);
             if ($jo->review_status !== 'Approved') {
                 throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved before creating an Item Request.']);
             }
-            if (ItemRequest::query()->where('job_order_id', $jo->id)->exists()) {
-                throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an Item Request.']);
+            if (ItemRequest::query()->where('job_order_id', $jo->id)
+                ->whereIn('status', ['Submitted', 'Partially Issued'])->exists()) {
+                throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an active Item Request. Complete its handover before requesting additional parts.']);
             }
+            $reservations->topUp($jo);
             $parts = $irParts->availableParts((string) $jo->part_needed, $jo);
             // Splitting a JO into IR + PR must be authorized by the Head.
             // Default JO strategy waits until all parts can be supplied.
             $fullRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
             $availableForIr = collect($parts)->sum('quantity');
-            if ($availableForIr < $fullRequired && $jo->parts_issue_strategy !== 'issue_available_only') {
+            if ($availableForIr < $fullRequired
+                && $jo->parts_issue_strategy !== 'issue_available_only'
+                && ! ($jo->inventory_snapshot && $availableForIr === ($fullRequired - ItemRequest::query()
+                    ->where('job_order_id', $jo->id)->where('status', 'Issued')->get()
+                    ->sum(fn ($prior) => collect($prior->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0)))))) {
                 throw ValidationException::withMessages([
                     'job_order_id' => 'This Job Order has a shortage. The Maintenance Head must authorize release of available parts before a partial IR can be submitted.',
                 ]);
