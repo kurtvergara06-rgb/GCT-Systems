@@ -16,7 +16,7 @@
         <section class="ir-summary" aria-label="Warehouse Item Request overview">
             <div class="ir-summary-card"><span class="ir-summary-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><span>Total Requests</span><strong>{{ $totalCount }}</strong><small>All received Item Requests</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span><div><span>Submitted</span><strong>{{ $submittedCount }}</strong><small>Awaiting verification</small></div></div>
-            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-list-check"></i></span><div><span>In Progress</span><strong>{{ $activeCount }}</strong><small>Open Item Requests</small></div></div>
+            <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-green"><i class="fa-solid fa-list-check"></i></span><div><span>Active</span><strong>{{ $activeCount }}</strong><small>Open Item Requests</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-red"><i class="fa-solid fa-clock-rotate-left"></i></span><div><span>History</span><strong>{{ $historyCount }}</strong><small>Closed Item Requests</small></div></div>
         </section>
 
@@ -51,31 +51,77 @@
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
-                    <thead><tr><th>IR ID</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>WAREHOUSE</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
                     @php($stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]))
-                    @php($parts = collect($ir->requested_parts ?? []))
+                    @php($stockParts = collect($stock['parts'] ?? []))
+                    @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
+                    @php($firstStock = $stockParts->first())
+                    @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
+                    @php($stockIsMixed = $stockParts->count() > 1)
                     <tr>
                         <td class="warehouse-ir-reference"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span></td>
-                        <td><span class="warehouse-ir-row-meta">{{ $ir->jobOrder?->job_order_no ?? '—' }}</span></td>
-                        <td><span class="warehouse-ir-row-meta"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></td>
                         <td>
-                            <strong class="warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</strong>
-                            @if($parts->count() > 1)
-                                <details class="ir-parts-details warehouse-ir-item-more">
-                                    <summary>+{{ $parts->count() - 1 }} more</summary>
-                                    <div class="ir-parts-popover">
-                                        @foreach($parts as $part)
-                                            <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
-                                        @endforeach
-                                    </div>
-                                </details>
-                            @endif
+                            @php($parts = collect($ir->requested_parts ?? []))
+                            @if($parts->isNotEmpty())
+                                <strong class="ir-part-name warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</strong>
+                                @if($parts->count() > 1)
+                                    <details class="ir-parts-details warehouse-ir-item-more"><summary>+{{ $parts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                        <div class="ir-parts-popover">
+                                            @foreach($parts as $part)
+                                                <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                            @endforeach
+                                        </div>
+                                    </details>
+                                @endif
+                            @else — @endif
                         </td>
-                        <td><span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : 'is-submitted' }}">{{ $ir->status }}</span></td>
-                        <td class="warehouse-ir-actions">
-                            <button type="button" class="warehouse-ir-review" data-ir-view
+                        <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
+                        <td>
+                            <div class="warehouse-ir-onhand-summary">
+                                <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
+                                <div class="warehouse-ir-onhand-actions">
+                                    @if($stockIsMixed)
+                                    <details class="ir-parts-details warehouse-ir-onhand-more">
+                                        <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                        <div class="ir-parts-popover warehouse-ir-stock-popover">
+                                            <div class="warehouse-ir-stock-popover-title">Warehouse stock breakdown</div>
+                                            @foreach($stockParts as $part)
+                                                <div class="warehouse-ir-stock-popover-row">
+                                                    <span class="warehouse-ir-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                                                    <span class="warehouse-ir-stock-popover-info">
+                                                        <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
+                                                        <small>Required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
+                                                    </span>
+                                                    <span class="warehouse-ir-stock-popover-amount">
+                                                        <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong>
+                                                        @if(($part['shortage'] ?? 0) > 0)
+                                                            <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} short</small>
+                                                        @else
+                                                            <small class="warehouse-ir-stock-ok">In stock</small>
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </details>
+                                    @endif
+                                    @if($shortPartsCount > 0)
+                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('item', $shortPartsCount) }} Short</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
+                        <td>
+                            <span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : 'is-submitted' }}">
+                                <i class="fa-solid {{ $ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane' }}"></i>
+                                {{ $ir->status }}
+                            </span>
+                        </td>
+                        <td>
+                            <x-ui.action-button type="view" title="View Item Request" aria-label="View Item Request" data-ir-view
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
@@ -84,25 +130,23 @@
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
                                 data-ir-can-issue="{{ $ir->status === 'Submitted' && ($stock['status'] ?? '') === 'sufficient' ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
-                                data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> {{ $view === 'history' ? 'View' : 'Review' }}</button>
-                            <div class="warehouse-ir-hidden-actions" hidden>
-                              @if($ir->status === 'Issued')
-                                  <x-ui.action-button type="view" title="Download Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
-                              @endif
-                              @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-                                  <x-ui.action-button type="issue" icon="fa-file-pen" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
-                                      data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
-                                      data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
-                                      data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
-                                      data-ir-mechanics="{{ $ir->jobOrder?->assigned_mechanic ?? '—' }}"
-                                      data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
-                                      data-ir-remarks="{{ $ir->remarks ?? '' }}" />
-                              @endif
-                            </div>
+                                data-ir-remarks="{{ $ir->remarks ?? '' }}" />
+                            @if($ir->status === 'Issued')
+                                <x-ui.action-button type="view" title="Download Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
+                            @endif
+                            @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+                                <x-ui.action-button type="issue" icon="fa-file-pen" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
+                                    data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
+                                    data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
+                                    data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
+                                    data-ir-mechanics="{{ $ir->jobOrder?->assigned_mechanic ?? '—' }}"
+                                    data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
+                                    data-ir-remarks="{{ $ir->remarks ?? '' }}" />
+                            @endif
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="6"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
+                        <tr><td colspan="7"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -142,7 +186,6 @@
             <div class="ir-field warehouse-ir-details-remarks"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
         </div>
         <footer class="ir-modal-footer">
-            <div id="warehouseIrReviewActions" class="warehouse-ir-review-actions"></div>
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
         </footer>
     </div>
