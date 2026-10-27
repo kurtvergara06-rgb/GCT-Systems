@@ -137,11 +137,13 @@ class ItemRequestController extends Controller
             // Default JO strategy waits until all parts can be supplied.
             $fullRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
             $availableForIr = collect($parts)->sum('quantity');
-            if ($availableForIr < $fullRequired
-                && $jo->parts_issue_strategy !== 'issue_available_only'
-                && ! ($jo->inventory_snapshot && $availableForIr === ($fullRequired - ItemRequest::query()
-                    ->where('job_order_id', $jo->id)->where('status', 'Issued')->get()
-                    ->sum(fn ($prior) => collect($prior->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0)))))) {
+            $previouslyIssued = ItemRequest::query()
+                ->where('job_order_id', $jo->id)->where('status', 'Issued')->get()
+                ->sum(fn ($prior) => collect($prior->requested_parts ?? [])
+                    ->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
+            $remainingJoQuantity = max(0, $fullRequired - $previouslyIssued);
+            if ($availableForIr < $remainingJoQuantity
+                && $jo->parts_issue_strategy !== 'issue_available_only') {
                 throw ValidationException::withMessages([
                     'job_order_id' => 'This Job Order has a shortage. The Maintenance Head must authorize release of available parts before a partial IR can be submitted.',
                 ]);
@@ -158,7 +160,7 @@ class ItemRequestController extends Controller
             ]);
             // An IR is the operational request for JO parts. Creating it
             // transitions the JO away from "Not Requested" without implying
-            // that Warehouse has issued or reserved anything.
+            // that Warehouse has physically issued anything; approved JOs may already reserve stock.
             if (in_array($jo->part_status, [null, 'Not Requested'], true)) {
                 $jo->update(['part_status' => 'Submitted']);
             }
