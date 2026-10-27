@@ -76,10 +76,12 @@ class ItemRequestPartsService
             $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
                 ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
             $free = max(0, (int) $first['available']);
-            // Reservation-backed JOs may request only stock actually locked to this JO.
-            // topUp() runs inside the IR creation transaction to reserve newly arrived
-            // stock first. Adding free stock here would allow an unreserved IR.
-            $available = $reservationBacked
+            // New submission-reserved JOs may request only the locked allocation.
+            // Legacy JOs with a shortage snapshot but no submission reservation
+            // retain the historic free-stock preview after a PR is delivered.
+            // The IR store transaction calls topUp() before it persists the request.
+            $submissionReserved = $jobOrder && ! empty($jobOrder->inventory_snapshot['reservation_at_submission']);
+            $available = $submissionReserved
                 ? min($remainingAfterPr, max(0, (int) $reserved))
                 : min($remainingAfterPr, max(0, (int) ($reserved ?? $free)));
             if ($available > 0) {
