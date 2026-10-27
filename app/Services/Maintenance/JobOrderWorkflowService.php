@@ -166,15 +166,19 @@ class JobOrderWorkflowService
         $requested = collect($parts)->map(static function (array $part) use ($normal, $unitKey): array {
             $name = trim((string) ($part['name'] ?? ''));
             $unit = trim((string) ($part['unit'] ?? ''));
-            return ['name'=>$name,'unit'=>$unit,'key'=>$normal($name).'|'.$unitKey($unit),
+            $id = (int) ($part['inventory_item_id'] ?? 0);
+            return ['name'=>$name,'unit'=>$unit,'inventory_item_id'=>$id ?: null,
+                'key'=>$id ? 'id:'.$id : $normal($name).'|'.$unitKey($unit),
                 'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
         $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
         $breakdown = $requested->map(function (array $part) use ($items, $reserved, $normal, $unitKey, $totals): array {
-            $matching = $items->filter(fn (InventoryItem $item) =>
-                $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
-                && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
-            )->values();
+            $matching = ! empty($part['inventory_item_id'])
+                ? $items->where('id', (int) $part['inventory_item_id'])->values()
+                : $items->filter(fn (InventoryItem $item) =>
+                    $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
+                    && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
+                )->values();
             $item = $matching->count() === 1 ? $matching->first() : null;
             $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0) - (int) $reserved->get($item->id, 0)) : 0;
             $required = (int)$totals->get($part['key'], $part['quantity']);
@@ -185,8 +189,8 @@ class JobOrderWorkflowService
                 'ambiguous'=>$matching->count()>1];
         })->values();
         $total = $totals->sum();
-        $available = $breakdown->unique(fn ($part) => $normal($part['name']).'|'.$unitKey($part['unit']))
-            ->sum(fn ($part) => min((int)$totals->get($normal($part['name']).'|'.$unitKey($part['unit']),0),$part['available']));
+        $available = $breakdown->unique(fn ($part) => ! empty($part['inventory_item_id']) ? 'id:'.$part['inventory_item_id'] : $normal($part['name']).'|'.$unitKey($part['unit']))
+            ->sum(fn ($part) => min((int)$totals->get(! empty($part['inventory_item_id']) ? 'id:'.$part['inventory_item_id'] : $normal($part['name']).'|'.$unitKey($part['unit']),0),$part['available']));
         return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
             'parts'=>$breakdown->all()];
     }
