@@ -76,6 +76,7 @@ Route::middleware([
                 Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
                 Route::get('/duration-suggestion', 'durationSuggestion')->name('job-orders.duration-suggestion');
                 Route::post('/inventory-availability', 'inventoryAvailability')->name('job-orders.inventory-availability');
+                Route::post('/head-review-inventory-availability', 'headReviewInventoryAvailability')->name('job-orders.head-review-inventory-availability');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
                 Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
                 Route::post('/{jobOrder}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('job-orders.approve');
