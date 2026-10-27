@@ -172,7 +172,7 @@ class JobOrderWorkflowService
         })->values();
         $total = $totals->sum();
         $available = $breakdown->unique(fn ($part) => $normal($part['name']).'|'.$unitKey($part['unit']))
-            ->sum(fn ($part) => min((int)$totals->get($normal($part['name']).'|'.$normal($part['unit']),0),$part['available']));
+            ->sum(fn ($part) => min((int)$totals->get($normal($part['name']).'|'.$unitKey($part['unit']),0),$part['available']));
         return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
             'parts'=>$breakdown->all()];
     }
