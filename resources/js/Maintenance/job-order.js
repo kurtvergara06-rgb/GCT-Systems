@@ -30,18 +30,30 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         if (!response.ok) throw new Error('Lookup failed');
         const result = await response.json();
         badges.forEach((badge, index) => {
+          const row = badge.closest('.jo-review-part-item');
+          const stock = row?.querySelector('.jo-review-part-stock');
+          const shortage = row?.querySelector('.jo-review-part-shortage');
           const part = result.parts?.[index];
           if (!part) {
+            if (stock) stock.textContent = '—';
+            if (shortage) shortage.textContent = '—';
             badge.className = 'jo-review-part-availability is-unknown';
             badge.textContent = 'Unable to check';
             return;
           }
           const status = part.status || 'Unavailable';
           badge.className = 'jo-review-part-availability ' + (status === 'Available' ? 'is-available' : status === 'Partially Available' ? 'is-partial' : 'is-unavailable');
-          badge.textContent = status + ' · Stock: ' + part.available + ' · Shortage: ' + part.shortage;
+          if (stock) stock.textContent = String(part.available);
+          if (shortage) shortage.textContent = String(part.shortage);
+          badge.textContent = status;
         });
       } catch {
         badges.forEach((badge) => {
+          const row = badge.closest('.jo-review-part-item');
+          const stock = row?.querySelector('.jo-review-part-stock');
+          const shortage = row?.querySelector('.jo-review-part-shortage');
+          if (stock) stock.textContent = '—';
+          if (shortage) shortage.textContent = '—';
           badge.className = 'jo-review-part-availability is-unknown';
           badge.textContent = 'Unable to check';
         });
