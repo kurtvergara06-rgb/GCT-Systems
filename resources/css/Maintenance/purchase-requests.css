@@ -5309,3 +5309,23 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 .purchase-page .purchase-request-table td .pr-pending-bus-badge i,
 .purchase-page .purchase-request-table td .pr-pending-badge i{font-size:10px}
+
+/* Pending PR action matches the small blue Review control in Item Requests. */
+.purchase-page .pr-pending-review-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 7px 13px;
+    min-height: 32px;
+    border-radius: 7px;
+    border: 1px solid #cfe0fd;
+    background: #eaf2ff;
+    color: #1251a9;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.purchase-page .pr-pending-review-btn:hover { background: #dce9ff; }
+.purchase-page .pr-pending-review-btn:focus-visible { outline: 2px solid #4d85d1; outline-offset: 2px; }
