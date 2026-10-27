@@ -930,61 +930,29 @@
         :show-actions="false"
         class="jo-edit-modal-overlay"
     >
-        <section data-edit-jo-step="0" class="jo-edit-section jo-edit-basic jo-edit-creation-step jo-edit-collapsible">
-            <div class="jo-edit-section-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-file-lines"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-edit-step-number">01 &mdash;</span> Job Details</h3>
-                    <p>Review the bus, maintenance work and reported problem.</p>
-                </div>
+        <input type="hidden" name="job_order_no" id="edit_job_order_no">
+        <input type="hidden" name="maintenance_type" id="edit_maintenance_type" value="Repair">
+        <section data-edit-jo-step="0" class="jo-create-section jo-create-basic jo-create-job-details jo-edit-creation-step jo-edit-collapsible">
+            <div class="jo-create-section-header jo-edit-section-header">
+                <span class="jo-create-section-icon"><i class="fa-solid fa-file-lines"></i></span>
+                <div><h3><span class="jo-create-section-number">01 &mdash;</span> Job Details</h3></div>
             </div>
-
-            <div class="ui-form-grid jo-edit-basic-grid">
-                <x-ui.form-field
-                    label="JO No."
-                    name="job_order_no"
-                    id="edit_job_order_no"
-                    icon="fa-hashtag"
-                    readonly
-                    required
-                />
-
-                <x-ui.form-select
-                    label="Bus ID / Plate"
-                    name="bus_no"
-                    id="edit_bus_no"
-                    icon="fa-bus"
-                    placeholder="Select Bus"
-                    :options="$buses
-                        ->mapWithKeys(function ($bus) {
-                            return [
-                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
-                            ];
-                        })
-                        ->toArray()"
-                    required
-                />
-
-                <div class="ui-form-group ui-form-full jo-edit-problem-field">
-                    <label for="edit_problem_issue">
-                        Problem / Issue
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <textarea
-                        name="problem_issue"
-                        id="edit_problem_issue"
-                        placeholder="Describe the problem or issue..."
-                        required
-                    ></textarea>
+            <div class="ui-form-grid jo-create-basic-grid jo-create-job-details-grid">
+                <x-ui.form-select label="Bus ID / Plate" name="bus_no" id="edit_bus_no"
+                    icon="fa-bus" placeholder="Select Bus"
+                    :options="$buses->mapWithKeys(fn ($bus) => [$bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')])->toArray()" required />
+                <div class="ui-form-group jo-maintenance-job-slot">
+                    <label for="edit_work_to_perform">Maintenance Job <span class="ui-required">*</span></label>
+                    <textarea name="work_to_perform" id="edit_work_to_perform" rows="2" required placeholder="Maintenance work from this Job Order"></textarea>
+                </div>
+                <div class="ui-form-group ui-form-full jo-create-problem-field">
+                    <label for="edit_problem_issue">Complaint / Problem <span class="ui-required">*</span></label>
+                    <textarea name="problem_issue" id="edit_problem_issue" placeholder="Describe the reported issue or complaint..." required></textarea>
                 </div>
             </div>
         </section>
 
-        <section data-edit-jo-step="1" data-collapsed="true" class="jo-edit-section jo-edit-details jo-edit-creation-step jo-edit-collapsible">
+        <section data-edit-jo-step="1" data-collapsed="true" class="jo-create-section jo-create-details jo-create-mechanics jo-edit-creation-step jo-edit-collapsible">
             <div class="jo-edit-section-header">
                 <span class="jo-edit-section-icon">
                     <i class="fa-solid fa-gears"></i>
@@ -997,15 +965,6 @@
             </div>
 
             <div class="jo-edit-details-grid">
-                <x-ui.form-select
-                    label="Maintenance Type"
-                    name="maintenance_type"
-                    id="edit_maintenance_type"
-                    icon="fa-screwdriver-wrench"
-                    :options="['PMS' => 'PMS', 'Repair' => 'Repair']"
-                    required
-                />
-
                 <x-ui.form-select
                     label="Status"
                     name="status"
@@ -1025,7 +984,7 @@
             </div>
         </section>
 
-        <section data-edit-jo-step="2" data-collapsed="true" class="jo-edit-section jo-edit-creation-step jo-edit-collapsible jo-edit-duration-section">
+        <section data-edit-jo-step="2" data-collapsed="true" class="jo-create-section jo-create-duration jo-edit-creation-step jo-edit-collapsible jo-edit-duration-section">
             <div class="jo-edit-section-header"><span class="jo-edit-section-icon"><i class="fa-regular fa-clock"></i></span>
                 <div><h3><span class="jo-edit-step-number">03 &mdash;</span> Estimated Duration</h3><p>Update the expected repair time.</p></div>
             </div>
@@ -1070,7 +1029,7 @@
 
         <section
             id="editRequestedPartsSection" data-edit-jo-step="3" data-collapsed="true"
-            class="jo-edit-section jo-edit-parts jo-parts-section jo-edit-creation-step jo-edit-collapsible"
+            class="jo-create-section jo-create-parts jo-parts-section jo-edit-creation-step jo-edit-collapsible"
         >
             <div class="jo-edit-section-header jo-edit-parts-header">
                 <span class="jo-edit-section-icon">
