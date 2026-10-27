@@ -129,13 +129,13 @@
                                 data-ir-release-policy="{{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
-                                data-ir-can-issue="{{ $ir->status === 'Submitted' ? '1' : '0' }}"
+                                data-ir-can-issue="{{ in_array($ir->status, ['Submitted', 'Partially Issued'], true) ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}" />
                             @if($ir->status === 'Issued')
                                 <x-ui.action-button type="view" title="Download Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
                             @endif
-                            @if($ir->status === 'Submitted' && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+                            @if(in_array($ir->status, ['Submitted', 'Partially Issued'], true) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
                                 <x-ui.action-button type="issue" icon="fa-file-pen" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
@@ -227,7 +227,7 @@
             </div>
             <section class="warehouse-ir-confirm-section">
                 <h3><i class="fa-solid fa-clipboard-check"></i> Confirm Signed Handover</h3>
-                <p>Only complete issuances are currently supported. After the mechanic and Warehouse personnel sign the printed slip, upload its photo or PDF to complete the transaction.</p>
+                <p>Enter quantities actually handed over. For a Head-authorized partial release, outstanding quantities remain pending. Upload the signed slip after physical handover.</p>
                 <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data">
                     @csrf
                     <div id="ir-slip-quantities" class="warehouse-ir-confirm-quantities"></div>
