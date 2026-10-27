@@ -55,7 +55,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['Pending Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['Ready for IR Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
@@ -72,7 +72,29 @@
                 $hasShortage = collect($totalRequested)->sum('quantity') > collect($suggestedParts)->sum('quantity');
                 $needsHeadRelease = $hasShortage && $jo->parts_issue_strategy !== 'issue_available_only';
             @endphp
-            <tr><td><strong>{{ $jo->job_order_no }}</strong></td><td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $jo->bus_no }}</span></td><td>@foreach($suggestedParts as $part)<div>{{ $part['name'] }} — {{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td><td><span class="ir-stock-badge {{ $needsHeadRelease ? 'ir-stock-partial' : 'ir-stock-available' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Pending Review' }}</span></td><td><button type="button" class="ir-primary-button" data-ir-review-job="{{ $jo->id }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye"></i> Review IR</button></td></tr>
+            <tr class="ir-pending-record">
+                <td><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong></td>
+                <td><span class="ir-bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $jo->bus_no }}</span></td>
+                <td>
+                    @if(count($suggestedParts))
+                        <span class="ir-part-name">{{ $suggestedParts[0]['name'] ?? '—' }}</span>
+                        @if(count($suggestedParts) > 1)
+                            <details class="ir-parts-details">
+                                <summary>+{{ count($suggestedParts) - 1 }} more</summary>
+                                <div class="ir-parts-popover">
+                                    @foreach($suggestedParts as $part)
+                                        <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                    @endforeach
+                                </div>
+                            </details>
+                        @endif
+                    @else
+                        <span>—</span>
+                    @endif
+                </td>
+                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Ready for IR Review' }}</span></td>
+                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
+            </tr>
             @empty
             <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
             @endforelse
