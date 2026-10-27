@@ -22,10 +22,23 @@ class ItemRequestController extends Controller
     /**
      * Read-only, up-to-date snapshot. Never reserve or deduct stock from a preview.
      */
-    public function verify(ItemRequest $itemRequest, JobOrderWorkflowService $workflow)
+    public function verify(ItemRequest $itemRequest, JobOrderWorkflowService $workflow, PartParser $parser)
     {
         $parts = $itemRequest->requested_parts ?? [];
         $snapshot = $workflow->inventoryAvailability($parts);
+        $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
+        $previous = InventoryIssuance::query()->where(fn ($query) => $query
+            ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))
+            ->with('items')->get();
+        $key = static fn ($name, $unit): string =>
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+        $issued = [];
+        foreach ($previous as $batch) {
+            foreach ($batch->items as $entry) {
+                $k = $key($entry->item_name, $entry->unit);
+                $issued[$k] = ($issued[$k] ?? 0) + (int) $entry->quantity;
+            }
+        }
         $own = JobOrderPartReservation::query()->where('job_order_id', $itemRequest->job_order_id)->pluck('quantity', 'inventory_item_id');
         $others = JobOrderPartReservation::query()->where('job_order_id', '!=', $itemRequest->job_order_id)
             ->select('inventory_item_id', DB::raw('SUM(quantity) as qty'))->groupBy('inventory_item_id')->pluck('qty', 'inventory_item_id');
@@ -33,6 +46,13 @@ class ItemRequestController extends Controller
         foreach ($snapshot['parts'] as &$part) {
             $id = $part['inventory_item_id'] ?? null;
             $quantity = (int) ($part['quantity'] ?? 0);
+            $part['requested_total'] = $quantity;
+            $partKey = $key($part['name'], $part['unit']);
+            $already = min($quantity, (int) ($issued[$partKey] ?? 0));
+            $issued[$partKey] = max(0, (int) ($issued[$partKey] ?? 0) - $already);
+            $part['already_issued'] = $already;
+            $part['quantity'] = max(0, $quantity - $already);
+            $quantity = $part['quantity'];
             $free = max(0, (int) ($part['available'] ?? 0) - (int) $others->get($id, 0));
             $allocated = (int) $own->get($id, 0);
             $part['available'] = $hasAllocation ? min($free, $allocated) : $free;
@@ -54,6 +74,8 @@ class ItemRequestController extends Controller
                 'name' => $part['name'],
                 'stock_no' => $codes->get($part['inventory_item_id'] ?? null)?->item_code,
                 'quantity' => $part['quantity'],
+                'requested_total' => $part['requested_total'],
+                'already_issued' => $part['already_issued'],
                 'unit' => $part['unit'],
                 'available' => $part['available'],
                 'shortage' => $part['shortage'],
