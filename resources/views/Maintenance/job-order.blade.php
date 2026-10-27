@@ -573,11 +573,13 @@
                                                                         </div>
                                                                         <div class="jo-duration-decision-field">
                                                                             <label for="jo-parts-decision-{{ $jobOrder->id }}">Maintenance Head decision <span class="ui-required">*</span></label>
-                                                                            <select id="jo-parts-decision-{{ $jobOrder->id }}" name="parts_issue_strategy" required>
-                                                                                <option value="complete_before_issuance" @selected(old('parts_issue_strategy', 'complete_before_issuance') === 'complete_before_issuance')>Wait until all JO parts are available</option>
+                                                                            <p class="jo-parts-decision-notice"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Required before approving this Job Order — choose one release policy.</p>
+                                                                            <select id="jo-parts-decision-{{ $jobOrder->id }}" name="parts_issue_strategy" required aria-describedby="jo-parts-decision-help-{{ $jobOrder->id }}">
+                                                                                <option value="" disabled @selected(!old('parts_issue_strategy'))>Select parts release decision...</option>
+                                                                                <option value="complete_before_issuance" @selected(old('parts_issue_strategy') === 'complete_before_issuance')>Wait until all JO parts are available</option>
                                                                                 <option value="issue_available_only" @selected(old('parts_issue_strategy') === 'issue_available_only')>Allow partial release of available parts</option>
                                                                             </select>
-                                                                            <small>Actual stock is rechecked by Warehouse. This decision does not reserve or deduct parts.</small>
+                                                                            <small id="jo-parts-decision-help-{{ $jobOrder->id }}">Warehouse will recheck stock before issuance. Approval does not reserve or deduct parts.</small>
                                                                         </div>
                                                                     </div>
                                                                 @endif
