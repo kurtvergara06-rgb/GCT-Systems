@@ -23,9 +23,10 @@ class ItemRequestPartsService
             return [];
         }
 
-        $partKey = fn (array $part): string =>
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
-            $this->parser->normalizeUnit((string) ($part['unit'] ?? ''));
+        $partKey = fn (array $part): string => ! empty($part['inventory_item_id'])
+            ? 'id:'.(int) $part['inventory_item_id']
+            : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
+                $this->parser->normalizeUnit((string) ($part['unit'] ?? ''));
         $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])->groupBy($partKey);
         // When a PR was submitted first, its quantities must not be
         // suggested again in a later IR even if Warehouse stock changes.
@@ -83,6 +84,7 @@ class ItemRequestPartsService
                     'name' => $first['name'],
                     'quantity' => $available,
                     'unit' => $first['unit'],
+                    'inventory_item_id' => $first['inventory_item_id'] ?? null,
                 ];
             }
         }
