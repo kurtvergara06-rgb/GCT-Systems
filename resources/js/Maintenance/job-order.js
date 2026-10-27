@@ -4285,7 +4285,35 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     const mechanicName = (option) => option.textContent.split('·')[0].trim();
     const mechanicSpecializations = (option) => option.dataset.specializations
       || option.textContent.split('·').slice(1).join('·').trim()
-      || 'General maintenance';
+      || 'Not specified';
+
+    // Qualified jobs come from the Laravel available-mechanics endpoint.
+    // Never infer qualifications from job names in the browser.
+    const coverage = document.createElement('div');
+    coverage.className = 'jo-mechanic-coverage';
+    coverage.setAttribute('role', 'status');
+    coverage.setAttribute('aria-live', 'polite');
+    combobox.insertAdjacentElement('afterend', coverage);
+    const renderCoverage = () => {
+      if (select.id !== 'jobAssignedMechanics') {
+        coverage.hidden = true;
+        return;
+      }
+      const selectedJobs = document.getElementById('newJoMaintenanceJob')?.getSelectedJobs?.() || [];
+      const chosen = selectedOptions();
+      const covered = new Set(chosen.flatMap((option) => (option.dataset.qualifiedJobs || '').split(',').map((job) => job.trim()).filter(Boolean)));
+      const uncovered = selectedJobs.filter((job) => !covered.has(job));
+      coverage.hidden = !selectedJobs.length || !chosen.length;
+      coverage.textContent = uncovered.length
+        ? `Uncovered maintenance jobs: ${uncovered.join(', ')}. Assign a qualified, available mechanic for each job.`
+        : 'All selected maintenance jobs are covered by the assigned mechanics.';
+      coverage.dataset.state = uncovered.length ? 'incomplete' : 'completed';
+      coverage.style.color = uncovered.length ? '#a45a08' : '#237348';
+      coverage.style.fontSize = '12px';
+      coverage.style.marginTop = '6px';
+    };
+    select.addEventListener('change', renderCoverage);
+    document.getElementById('newJoMaintenanceJob')?.addEventListener('change', renderCoverage);
 
     const positionMenu = () => {
       if (menu.hidden || !document.body.contains(menu)) return;
@@ -4333,6 +4361,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
       label.classList.toggle('placeholder', selected.length === 0);
 
       if (!selected.length) {
+        renderCoverage();
         const availableCount = Array.from(select.options).filter((option) => option.value).length;
         label.textContent = select.dataset.lookupStatus === 'loading'
           ? 'Checking available mechanics...'
@@ -4372,6 +4401,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
         chip.appendChild(remove);
         label.appendChild(chip);
       });
+      renderCoverage();
     };
 
     const filterOptions = () => {
@@ -4415,7 +4445,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
         const title = document.createElement('strong');
         const details = document.createElement('small');
         title.textContent = name;
-        details.textContent = `${specializations} · ${availability}${matches ? ' · Recommended match' : ''}`;
+        const qualified = option.dataset.qualifiedJobs || '';
+        details.textContent = `${specializations} · ${availability}${qualified ? ' · Covers: ' + qualified : ''}`;
         copy.append(title, details);
 
         const check = document.createElement('i');
