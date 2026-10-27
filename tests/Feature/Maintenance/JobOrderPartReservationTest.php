@@ -5,6 +5,7 @@ namespace Tests\Feature\Maintenance;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\ItemRequest;
+use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Maintenance\ItemRequestPartsService;
 use App\Services\Maintenance\PartsReservationService;
@@ -162,4 +163,51 @@ class JobOrderPartReservationTest extends TestCase
         ));
     }
 
+
+    public function test_follow_up_ir_does_not_duplicate_outstanding_pr_but_can_use_received_stock(): void
+    {
+        $stock = InventoryItem::create([
+            'item_code' => 'OIL-FILTER-PR-GUARD',
+            'item_name' => 'Oil Filter',
+            'parts_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 6,
+            'on_hand' => 6,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $job = JobOrder::create([
+            'job_order_no' => 'JO-2026-0992',
+            'bus_no' => 'BUS-RES-92',
+            'problem_issue' => 'Replace filters',
+            'maintenance_type' => 'Corrective',
+            'part_needed' => 'Oil Filter - Qty: 10 pcs',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'inventory_snapshot' => ['shortages' => ['Oil Filter']],
+        ]);
+        ItemRequest::create([
+            'job_order_id' => $job->id,
+            'status' => 'Issued',
+            'requested_parts' => [['name' => 'Oil Filter', 'quantity' => 4, 'unit' => 'pcs']],
+        ]);
+        $pr = PurchaseRequest::create([
+            'pr_no' => 'PR-2026-9992',
+            'job_order_no' => $job->job_order_no,
+            'bus_no' => $job->bus_no,
+            'item' => 'Oil Filter - Qty: 6 pcs',
+            'quantity' => 6,
+            'status' => 'For Purchase',
+            'source_type' => 'Maintenance Request',
+            'date_requested' => now(),
+        ]);
+        $parts = app(ItemRequestPartsService::class);
+        $this->assertSame([], $parts->availableParts((string) $job->part_needed, $job));
+
+        $pr->update(['status' => 'Delivered']);
+        $available = $parts->availableParts((string) $job->part_needed, $job);
+        $this->assertSame(6, (int) $available[0]['quantity']);
+        $this->assertSame(6, (int) $stock->fresh()->quantity_available);
+    }
 }
