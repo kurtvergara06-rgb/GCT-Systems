@@ -5390,7 +5390,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 
 /* PR Review inherits the IR pattern: JO identity is linked by Review, never reselected. */
-.purchase-page #prModal .pr-review-source-select {
+#prModal .pr-review-source-select {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -5399,7 +5399,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
     opacity: 0;
     pointer-events: none;
 }
-.purchase-page #prModal .pr-review-linked-jo {
+#prModal .pr-review-linked-jo {
     display: flex;
     align-items: center;
     min-height: 42px;
