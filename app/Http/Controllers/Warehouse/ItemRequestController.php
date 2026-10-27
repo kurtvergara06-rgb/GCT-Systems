@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
+use App\Models\Maintenance\JobOrderPartReservation;
 use Illuminate\Http\Request;
 use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Models\Warehouse\InventoryItem;
@@ -25,11 +26,30 @@ class ItemRequestController extends Controller
     {
         $parts = $itemRequest->requested_parts ?? [];
         $snapshot = $workflow->inventoryAvailability($parts);
+        $own = JobOrderPartReservation::query()->where('job_order_id', $itemRequest->job_order_id)->pluck('quantity', 'inventory_item_id');
+        $others = JobOrderPartReservation::query()->where('job_order_id', '!=', $itemRequest->job_order_id)
+            ->select('inventory_item_id', DB::raw('SUM(quantity) as qty'))->groupBy('inventory_item_id')->pluck('qty', 'inventory_item_id');
+        $hasAllocation = isset($itemRequest->jobOrder?->inventory_snapshot['shortages']);
+        foreach ($snapshot['parts'] as &$part) {
+            $id = $part['inventory_item_id'] ?? null;
+            $quantity = (int) ($part['quantity'] ?? 0);
+            $free = max(0, (int) ($part['available'] ?? 0) - (int) $others->get($id, 0));
+            $allocated = (int) $own->get($id, 0);
+            $part['available'] = $hasAllocation ? min($free, $allocated) : $free;
+            $part['shortage'] = max(0, $quantity - $part['available']);
+            $part['fulfillable'] = $part['available'] >= $quantity;
+        }
+        unset($part);
+        $canIssue = collect($snapshot['parts'])->every(fn ($part) => $part['fulfillable']);
+        $anyStock = collect($snapshot['parts'])->contains(fn ($part) => $part['available'] > 0);
+        $snapshot['status'] = $canIssue ? 'sufficient' : ($anyStock ? 'partial' : 'none');
         $codes = InventoryItem::query()->get(['id', 'item_code'])->keyBy('id');
 
         return response()->json([
             'request_id' => $itemRequest->id,
             'status' => $snapshot['status'],
+            'release_policy' => $itemRequest->jobOrder?->parts_issue_strategy ?? 'complete_before_issuance',
+            'reserved_stock' => $hasAllocation,
             'parts' => collect($snapshot['parts'])->map(fn (array $part) => [
                 'name' => $part['name'],
                 'stock_no' => $codes->get($part['inventory_item_id'] ?? null)?->item_code,
@@ -108,7 +128,7 @@ class ItemRequestController extends Controller
                 }
                 $matches = $stockRows->filter(fn ($item) =>
                     $normalize($item->parts_name) === $normalize($name)
-                    && $normalize($item->unit) === $normalize($unit)
+                    && $parser->normalizeUnit((string) $item->unit) === $parser->normalizeUnit($unit)
                 )->values();
                 if ($matches->count() !== 1) {
                     throw ValidationException::withMessages(['issue' => "Part '{$name}' is missing or matches multiple inventory records. Warehouse must resolve the item code before issuing."]);
@@ -117,10 +137,18 @@ class ItemRequestController extends Controller
                 $allocations[$item->id] ??= ['item' => $item, 'quantity' => 0];
                 $allocations[$item->id]['quantity'] += $quantity;
             }
+            $otherReserved = JobOrderPartReservation::query()->where('job_order_id', '!=', $jo->id)
+                ->select('inventory_item_id', DB::raw('SUM(quantity) as qty'))->groupBy('inventory_item_id')->pluck('qty', 'inventory_item_id');
+            $ownReserved = JobOrderPartReservation::query()->where('job_order_id', $jo->id)->lockForUpdate()->get()->keyBy('inventory_item_id');
+            $hasAllocation = isset($jo->inventory_snapshot['shortages']);
             foreach ($allocations as $allocation) {
                 $item = $allocation['item'];
-                if ((int) ($item->quantity_available ?? $item->on_hand ?? 0) < $allocation['quantity']) {
-                    throw ValidationException::withMessages(['issue' => "Insufficient current stock for '{$item->parts_name}'. Recheck the IR and coordinate any shortage."]);
+                $needed = $allocation['quantity'];
+                $physical = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+                $freeForJo = max(0, $physical - (int) $otherReserved->get($item->id, 0));
+                $reserved = (int) ($ownReserved->get($item->id)?->quantity ?? 0);
+                if ($needed > $freeForJo || ($hasAllocation && $needed > $reserved)) {
+                    throw ValidationException::withMessages(['issue' => "Insufficient allocated stock for '{$item->parts_name}'. Recheck the IR and coordinate any shortage."]);
                 }
             }
 
@@ -139,6 +167,10 @@ class ItemRequestController extends Controller
                 $item = $allocation['item'];
                 $qty = $allocation['quantity'];
                 $movement = $ledger->stockOut($item, $qty, $irNumber, 'Issued for '.$ir->jobOrder?->job_order_no);
+                $reservation = $ownReserved->get($item->id);
+                if ($reservation) {
+                    $reservation->quantity === $qty ? $reservation->delete() : $reservation->decrement('quantity', $qty);
+                }
                 InventoryIssuanceItem::create([
                     'inventory_issuance_id' => $issuance->id,
                     'inventory_item_id' => $item->id,
