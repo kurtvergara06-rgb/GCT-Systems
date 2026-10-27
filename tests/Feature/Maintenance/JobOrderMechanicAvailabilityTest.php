@@ -270,4 +270,65 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ->assertViewHas('onDutyMechanics', 0);
     }
 
+
+    public function test_submitted_job_order_reserves_mechanic_before_head_approval(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-PENDING-01', 'Pending Approval Mechanic');
+        $this->attendance($mechanic, 'Present');
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-PENDING-0001',
+            'bus_no' => 'BUS-PENDING-01',
+            'problem_issue' => 'Brake inspection',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => $mechanic->mechanic_name,
+            'status' => 'On Hold',
+            'review_status' => 'For Review',
+        ]);
+        $jobOrder->mechanicAssignments()->create([
+            'mechanic_id' => $mechanic->id,
+            'mechanic_name' => $mechanic->mechanic_name,
+        ]);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()
+            ->assertJsonMissing(['mechanic_name' => $mechanic->mechanic_name]);
+
+        $jobOrder->update(['review_status' => 'Rejected']);
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()
+            ->assertJsonFragment(['mechanic_name' => $mechanic->mechanic_name]);
+    }
+
+    public function test_approved_on_hold_job_reserves_mechanic_until_completed(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-HOLD-01', 'Waiting For Parts Mechanic');
+        $this->attendance($mechanic, 'On Duty');
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-HOLD-0001',
+            'bus_no' => 'BUS-HOLD-01',
+            'problem_issue' => 'Waiting for parts',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => $mechanic->mechanic_name,
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+        ]);
+        $jobOrder->mechanicAssignments()->create([
+            'mechanic_id' => $mechanic->id,
+            'mechanic_name' => $mechanic->mechanic_name,
+        ]);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()->assertJsonMissing(['mechanic_name' => $mechanic->mechanic_name]);
+
+        $jobOrder->update(['status' => 'Completed']);
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()->assertJsonFragment(['mechanic_name' => $mechanic->mechanic_name]);
+    }
 }
