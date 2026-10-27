@@ -149,7 +149,7 @@ class JobOrderWorkflowService
         $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
         $unitKey = static fn ($unit): string => (new PartParser())->normalizeUnit((string) $unit);
         $items = InventoryItem::query()->get();
-        $requested = collect($parts)->map(static function (array $part) use ($normal): array {
+        $requested = collect($parts)->map(static function (array $part) use ($normal, $unitKey): array {
             $name = trim((string) ($part['name'] ?? ''));
             $unit = trim((string) ($part['unit'] ?? ''));
             return ['name'=>$name,'unit'=>$unit,'key'=>$normal($name).'|'.$unitKey($unit),
