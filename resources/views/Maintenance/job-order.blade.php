@@ -914,8 +914,8 @@
 
     <x-ui.form-modal
         id="editJobModal"
-        title="Job Order Details"
-        description="Review and update the selected job order."
+        title="Edit Job Order"
+        description="Update the maintenance work, mechanics and required parts."
         icon="fa-clipboard-check"
         size="large"
         form-id="editJobForm"
@@ -930,15 +930,15 @@
         :show-actions="false"
         class="jo-edit-modal-overlay"
     >
-        <section class="jo-edit-section jo-edit-basic">
+        <section class="jo-edit-section jo-edit-basic jo-edit-creation-step">
             <div class="jo-edit-section-header">
                 <span class="jo-edit-section-icon">
                     <i class="fa-solid fa-file-lines"></i>
                 </span>
 
                 <div>
-                    <h3>Basic Information</h3>
-                    <p>Review the Job Order reference, affected bus, and reported issue.</p>
+                    <h3><span class="jo-edit-step-number">01 &mdash;</span> Job Details</h3>
+                    <p>Review the bus, maintenance work and reported problem.</p>
                 </div>
             </div>
 
@@ -984,15 +984,15 @@
             </div>
         </section>
 
-        <section class="jo-edit-section jo-edit-details">
+        <section class="jo-edit-section jo-edit-details jo-edit-creation-step">
             <div class="jo-edit-section-header">
                 <span class="jo-edit-section-icon">
                     <i class="fa-solid fa-gears"></i>
                 </span>
 
                 <div>
-                    <h3>Job Details</h3>
-                    <p>Review the maintenance work, duration, status, and assigned mechanic.</p>
+                    <h3><span class="jo-edit-step-number">02 &mdash;</span> Mechanic Assignment</h3>
+                    <p>Manage the mechanics assigned to this Job Order.</p>
                 </div>
             </div>
 
@@ -1006,7 +1006,30 @@
                     required
                 />
 
-                <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
+                <x-ui.form-select
+                    label="Status"
+                    name="status"
+                    id="edit_status"
+                    icon="fa-circle-check"
+                    :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
+                />
+
+                <div class="ui-form-group">
+                    <label for="edit_assigned_mechanic">Assigned Mechanics <small>(optional)</small></label>
+                    <select name="mechanic_ids[]" id="edit_assigned_mechanic" multiple size="4">
+                        @foreach($allMechanics as $mechanic)
+                            <option value="{{ $mechanic->id }}">{{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="jo-edit-section jo-edit-creation-step jo-edit-duration-section">
+            <div class="jo-edit-section-header"><span class="jo-edit-section-icon"><i class="fa-regular fa-clock"></i></span>
+                <div><h3><span class="jo-edit-step-number">03 &mdash;</span> Estimated Duration</h3><p>Update the expected repair time.</p></div>
+            </div>
+            <div class="jo-edit-duration-content">                <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
                     <label>
                         Estimated Work Duration
                         <span class="ui-required">*</span>
@@ -1041,28 +1064,13 @@
                     </div>
                 </div>
 
-                <x-ui.form-select
-                    label="Status"
-                    name="status"
-                    id="edit_status"
-                    icon="fa-circle-check"
-                    :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
-                />
 
-                <div class="ui-form-group">
-                    <label for="edit_assigned_mechanic">Assigned Mechanics <small>(optional)</small></label>
-                    <select name="mechanic_ids[]" id="edit_assigned_mechanic" multiple size="4">
-                        @foreach($allMechanics as $mechanic)
-                            <option value="{{ $mechanic->id }}">{{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}</option>
-                        @endforeach
-                    </select>
-                </div>
             </div>
         </section>
 
         <section
             id="editRequestedPartsSection"
-            class="jo-edit-section jo-edit-parts jo-parts-section"
+            class="jo-edit-section jo-edit-parts jo-parts-section jo-edit-creation-step"
         >
             <div class="jo-edit-section-header jo-edit-parts-header">
                 <span class="jo-edit-section-icon">
@@ -1070,7 +1078,7 @@
                 </span>
 
                 <div>
-                    <h3>Requested Parts</h3>
+                    <h3><span class="jo-edit-step-number">04 &mdash;</span> Requested Parts</h3>
                     <p>Review or update the parts required for this job order.</p>
                 </div>
 
