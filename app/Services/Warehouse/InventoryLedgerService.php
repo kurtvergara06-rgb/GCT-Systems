@@ -3,6 +3,7 @@
 namespace App\Services\Warehouse;
 
 use App\Models\Warehouse\InventoryItem;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Warehouse\StockMovement;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -54,7 +55,8 @@ class InventoryLedgerService
         int $quantity,
         string $referenceNo,
         ?string $remarks = null,
-        ?int $actorId = null
+        ?int $actorId = null,
+        ?int $authorizedJobOrderId = null
     ): StockMovement {
         if ($quantity <= 0) {
             throw new InvalidArgumentException('Stock Out quantity must be a positive number.');
@@ -67,7 +69,8 @@ class InventoryLedgerService
             self::TYPE_STOCK_OUT,
             $referenceNo,
             $remarks,
-            $actorId
+            $actorId,
+            $authorizedJobOrderId
         );
     }
 
@@ -104,7 +107,8 @@ class InventoryLedgerService
         string $movementType,
         string $referenceNo,
         ?string $remarks,
-        ?int $actorId
+        ?int $actorId,
+        ?int $authorizedJobOrderId = null
     ): StockMovement {
         if ($signedChange === null && $absoluteTarget === null) {
             throw new InvalidArgumentException('A stock movement must define a quantity change.');
@@ -117,7 +121,8 @@ class InventoryLedgerService
             $movementType,
             $referenceNo,
             $remarks,
-            $actorId
+            $actorId,
+            $authorizedJobOrderId
         ) {
             $item = InventoryItem::query()
                 ->whereKey($inventoryItemId)
@@ -155,6 +160,19 @@ class InventoryLedgerService
                     . abs($new)
                     . ' would be required to complete this transaction.'
                 );
+            }
+
+            // Stock allocated to approved JOs cannot be consumed by unrelated
+            // issuances, purchase requests or negative inventory adjustments.
+            if ($signedChange < 0) {
+                $reservedForOthers = JobOrderPartReservation::query()
+                    ->where('inventory_item_id', $item->id)
+                    ->when($authorizedJobOrderId !== null, fn ($query) =>
+                        $query->where('job_order_id', '!=', $authorizedJobOrderId))
+                    ->sum('quantity');
+                if ($new < (int) $reservedForOthers) {
+                    throw new InvalidArgumentException('This stock is reserved for approved Job Orders and cannot be issued or adjusted below the reserved quantity.');
+                }
             }
 
             $item->forceFill([
