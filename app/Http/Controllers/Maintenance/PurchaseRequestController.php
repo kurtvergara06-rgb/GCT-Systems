@@ -362,6 +362,7 @@ class PurchaseRequestController extends Controller
         return response()->json([
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
+            'assigned_mechanics' => $jobOrder->assigned_mechanic ?: 'Not assigned',
             'work_to_perform' => $jobOrder->work_to_perform,
             'approver_name' => $jobOrder->approver?->name,
             'signature_url' => is_string($signaturePath) && $signaturePath !== ''
