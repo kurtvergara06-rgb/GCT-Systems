@@ -288,7 +288,7 @@ class JobOrderController extends Controller
                 'name' => (string) ($item->parts_name ?: $item->item_name),
                 'code' => (string) $item->item_code,
                 'unit' => trim((string) ($item->unit ?: $item->unit_of_measurement)),
-                'in_stock' => (int) $item->on_hand > 0,
+                'in_stock' => (int) ($item->quantity_available ?? $item->on_hand ?? 0) > 0,
             ]));
     }
 
