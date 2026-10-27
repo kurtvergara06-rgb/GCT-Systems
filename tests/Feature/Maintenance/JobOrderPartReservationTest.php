@@ -84,4 +84,36 @@ class JobOrderPartReservationTest extends TestCase
         $this->assertSame(10, (int) $missing[0]['quantity']);
         $this->assertSame([], app(PurchaseRequestPartsService::class)->missingParts((string) $first->part_needed, $first));
     }
+    public function test_unrelated_stock_out_cannot_consume_reserved_filters(): void
+    {
+        $item = InventoryItem::create([
+            'item_code' => 'OIL-FILTER-GUARD',
+            'item_name' => 'Oil Filter',
+            'parts_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 10,
+            'on_hand' => 10,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-2026-0990', 'bus_no' => 'BUS-RES-90',
+            'problem_issue' => 'Replace oil filter',
+            'maintenance_type' => 'Corrective', 'part_needed' => 'Oil Filter - Qty: 10 pcs',
+            'review_status' => 'For Review', 'status' => 'On Hold',
+        ]);
+        DB::transaction(fn () => app(PartsReservationService::class)->reserveForApproval($jo));
+        $ledger = app(\\App\\Services\\Warehouse\\InventoryLedgerService::class);
+        try {
+            $ledger->stockOut($item, 1, 'OTHER-REQUEST');
+            $this->fail('Unrelated issuance must not consume reserved stock.');
+        } catch (\\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('reserved', $exception->getMessage());
+        }
+        $this->assertSame(10, (int) $item->fresh()->quantity_available);
+        $ledger->stockOut($item, 10, 'IR-OWN', null, null, $jo->id);
+        $this->assertSame(0, (int) $item->fresh()->quantity_available);
+    }
+
 }
