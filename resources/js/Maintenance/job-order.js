@@ -1981,6 +1981,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
             .maintenanceType ||
           '';
       }
+      const editWork = document.getElementById('edit_work_to_perform');
+      if (editWork) editWork.value = button.dataset.workToPerform || '';
+
 
 
       if (editStatus) {
