@@ -337,3 +337,17 @@
   font-size: 10px;
   line-height: 1.4;
 }
+
+/* Shared JO authorization presentation for both Maintenance request flows. */
+.ir-jo-authorization { display:grid; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid #e2eaf5; }
+.ir-jo-authorization-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.ir-jo-authorization-heading strong { font-size:12px; color:#17375f; }
+.ir-jo-approved-badge { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:750; color:#157246; background:#e6f7ee; border-radius:20px; padding:5px 9px; }
+.ir-jo-authorization-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ir-jo-authorizer,.ir-jo-signature { display:flex; flex-direction:column; justify-content:center; gap:5px; min-height:80px; padding:11px; border:1px solid #dfe8f5; border-radius:9px; background:#f5f8fc; box-sizing:border-box; min-width:0; }
+.ir-jo-authorizer span,.ir-jo-authorizer small { font-size:10px; color:#657b98; }
+.ir-jo-authorizer strong { font-size:12px; color:#17375f; overflow-wrap:anywhere; }
+.ir-jo-signature { align-items:center; background:#fff; text-align:center; }
+.ir-jo-signature img { max-width:100%; width:auto; height:auto; max-height:85px; object-fit:contain; }
+.ir-jo-signature span { font-size:11px; color:#64748b; }
+@media(max-width:540px){.ir-jo-authorization-grid{grid-template-columns:1fr}}
