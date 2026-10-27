@@ -175,7 +175,7 @@
                           data-code="{{ $item->item_code }}"
                           data-name="{{ $item->item_name }}"
                           data-category="{{ $item->category }}"
-                          data-quantity="{{ $item->on_hand }}"
+                          data-quantity="{{ $item->quantity_available }}"
                           data-unit="{{ $item->unit_of_measurement }}"
                           data-reorder="{{ $item->reorder_level }}"
                           data-supplier="{{ $item->supplier }}"
