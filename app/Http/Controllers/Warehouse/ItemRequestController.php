@@ -126,8 +126,9 @@ class ItemRequestController extends Controller
                     ->where(fn ($query) => $query->where('reference_no', $irNumber)
                         ->orWhere('reference_no', 'like', $irNumber.'-B%'))
                     ->with('items')->orderBy('id')->lockForUpdate()->get();
-                $key = static fn ($name, $unit): string =>
-                    mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+                $key = static fn ($name, $unit, $id = null): string => $id
+                    ? 'id:'.(int) $id
+                    : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
                 $already = [];
                 foreach ($previous as $batch) {
                     foreach ($batch->items as $entry) {
