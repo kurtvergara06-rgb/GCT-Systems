@@ -171,8 +171,8 @@ class JobOrderPartReservationTest extends TestCase
             'item_name' => 'Oil Filter',
             'parts_name' => 'Oil Filter',
             'category' => 'Filters',
-            'quantity_available' => 6,
-            'on_hand' => 6,
+            'quantity_available' => 0,
+            'on_hand' => 0,
             'unit' => 'pcs',
             'unit_of_measurement' => 'pcs',
             'reorder_level' => 1,
@@ -205,6 +205,10 @@ class JobOrderPartReservationTest extends TestCase
         $parts = app(ItemRequestPartsService::class);
         $this->assertSame([], $parts->availableParts((string) $job->part_needed, $job));
 
+        // Receiving stock and closing the PR are separate operations.
+        // Exercise the real stock ledger, not a status-only mock receipt.
+        app(\App\Services\Warehouse\InventoryLedgerService::class)
+            ->stockIn($stock, 6, 'DELIVERY-PR-2026-9992', 'Received against purchase request');
         $pr->update(['status' => 'Delivered']);
         $available = $parts->availableParts((string) $job->part_needed, $job);
         $this->assertSame(6, (int) $available[0]['quantity']);
