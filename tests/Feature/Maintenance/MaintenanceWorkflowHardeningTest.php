@@ -26,6 +26,7 @@ class MaintenanceWorkflowHardeningTest extends TestCase
         InventoryItem::create([
             'item_code' => 'SPK-PLUG',
             'parts_name' => 'Spark Plug',
+            'item_name' => 'Spark Plug',
             'unit' => 'pc',
             'on_hand' => 160,
             'quantity_available' => 160,
