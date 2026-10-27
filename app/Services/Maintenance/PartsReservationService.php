@@ -58,6 +58,70 @@ class PartsReservationService
             count($shortages) === 0 ? 'sufficient' : (collect($allocations)->sum('reserved') > 0 ? 'partial' : 'none')];
     }
 
+    /**
+     * Allocate stock that arrived after initial Head approval. Call while the
+     * JO row is locked in a write transaction (before a follow-up IR).
+     * Prior signed issuances are excluded from outstanding JO demand.
+     */
+    public function topUp(JobOrder $jo): void
+    {
+        if ($jo->review_status !== 'Approved' || $jo->status === 'Completed'
+            || ! isset($jo->inventory_snapshot['shortages'])) {
+            return; // legacy JOs retain their existing workflow
+        }
+        $items = InventoryItem::query()->orderBy('id')->lockForUpdate()->get();
+        $reserved = JobOrderPartReservation::query()->where('job_order_id', $jo->id)
+            ->lockForUpdate()->get()->keyBy('inventory_item_id');
+        $allReserved = JobOrderPartReservation::query()
+            ->select('inventory_item_id', DB::raw('SUM(quantity) AS quantity'))
+            ->groupBy('inventory_item_id')->pluck('quantity', 'inventory_item_id');
+
+        $requests = \App\Models\Maintenance\ItemRequest::query()->where('job_order_id', $jo->id)->get();
+        $referenceNos = $requests->map(fn ($ir) => 'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT));
+        $issuedByItem = [];
+        if ($referenceNos->isNotEmpty()) {
+            $batchQuery = \App\Models\Warehouse\InventoryIssuance::query()->where(function ($query) use ($referenceNos) {
+                foreach ($referenceNos as $reference) {
+                    $query->orWhere('reference_no', $reference)
+                        ->orWhere('reference_no', 'like', $reference.'-B%');
+                }
+            });
+            foreach ($batchQuery->with('items')->get() as $batch) {
+                foreach ($batch->items as $line) {
+                    $issuedByItem[$line->inventory_item_id] =
+                        ($issuedByItem[$line->inventory_item_id] ?? 0) + (int) $line->quantity;
+                }
+            }
+        }
+
+        $groups = collect($this->parser->parsePartText((string) $jo->part_needed))
+            ->groupBy(fn ($part) => $this->key((string) $part['name'], (string) $part['unit']));
+        foreach ($groups as $parts) {
+            $sample = $parts->first();
+            $matches = $items->filter(fn ($item) => $this->key(
+                (string) ($item->parts_name ?? $item->item_name ?? ''),
+                (string) ($item->unit ?? $item->unit_of_measurement ?? '')
+            ) === $this->key((string) $sample['name'], (string) $sample['unit']))->values();
+            if ($matches->count() !== 1) continue;
+            $item = $matches->first();
+            $current = $reserved->get($item->id);
+            $alreadyReserved = (int) ($current?->quantity ?? 0);
+            $required = $parts->sum(fn ($part) => (int) $part['quantity']);
+            $remaining = max(0, $required - (int) ($issuedByItem[$item->id] ?? 0) - $alreadyReserved);
+            $free = max(0, (int) ($item->quantity_available ?? $item->on_hand ?? 0) - (int) $allReserved->get($item->id, 0));
+            $extra = min($remaining, $free);
+            if ($extra > 0) {
+                if ($current) {
+                    $current->increment('quantity', $extra);
+                } else {
+                    JobOrderPartReservation::create([
+                        'job_order_id' => $jo->id, 'inventory_item_id' => $item->id, 'quantity' => $extra,
+                    ]);
+                }
+            }
+        }
+    }
+
     public function reservedForJo(JobOrder $jo): array
     {
         return JobOrderPartReservation::query()->where('job_order_id', $jo->id)
