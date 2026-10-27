@@ -17,66 +17,97 @@
                     ? ($partRequest->warehouse_status ?: $partRequest->status)
                     : ($partRequest->warehouse_workflow_status ?? 'Ready to Issue');
                   $warehouseStatusLabel = $warehouseStatus;
-                  $parts = collect($partRequest->parts_breakdown ?? []);
-                  $displayStatus = $isHistory ? ($warehouseStatusLabel ?: $status) : ($warehouseStatusLabel ?: $status);
-                  $displayStatus = in_array($displayStatus, ['Ready to Issue', 'Approved'], true) && $canSendToPurchase ? 'For Purchase' : $displayStatus;
                 @endphp
 
                 <tr>
-                  <td><strong class="pr-main-num">{{ $partRequest->pr_no ?? '—' }}</strong></td>
-                  <td><span class="pr-meta-tag jo-tag">{{ $partRequest->job_order_no ?: '—' }}</span></td>
-                  <td><span class="pr-meta-tag bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $partRequest->bus_no ?: '—' }}</span></td>
-                  <td class="item-col">
-                    <strong class="item-name-text">{{ $itemName }}</strong>
-                    @if($parts->count() > 1)
-                      <details class="warehouse-pr-more-details">
-                        <summary>+{{ $parts->count() - 1 }} more</summary>
-                        <div class="warehouse-pr-more-items">
-                          @foreach($parts as $part)
-                            <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['needed_display'] ?? ($part['needed'] ?? $part['quantity'] ?? '—') }}</strong></div>
-                          @endforeach
+                  <td>
+                    <div class="pr-ref-cell">
+                      <strong class="pr-main-num">{{ $partRequest->pr_no ?? '—' }}</strong>
+                      @if($partRequest->job_order_no || $partRequest->bus_no)
+                        <div class="pr-sub-tags">
+                          @if($partRequest->job_order_no)
+                            <span class="pr-meta-tag jo-tag" title="Job Order"><i class="fa-solid fa-wrench"></i> {{ $partRequest->job_order_no }}</span>
+                          @endif
+                          @if($partRequest->bus_no)
+                            <span class="pr-meta-tag bus-tag" title="Bus Number"><i class="fa-solid fa-bus"></i> {{ $partRequest->bus_no }}</span>
+                          @endif
                         </div>
-                      </details>
-                    @endif
+                      @endif
+                    </div>
                   </td>
-                  <td><span class="warehouse-pr-status">{{ $displayStatus }}</span></td>
+                  <td class="item-col" title="{{ $itemName }}">
+                    <div class="item-display-cell">
+                      <strong class="item-name-text">{{ $itemName }}</strong>
+                    </div>
+                  </td>
+                  <td class="qty-col">
+                    <span class="qty-needed-badge">{{ $quantity }}</span>
+                  </td>
+                  <td class="qty-col">
+                    <span class="on-hand-pill {{ $onHandClass }}" title="Quantity on hand in inventory">
+                      <i class="fa-solid {{ $onHandClass === 'enough' ? 'fa-circle-check' : 'fa-triangle-exclamation' }}"></i>
+                      {{ $onHand }}
+                    </span>
+                  </td>
+                  <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
+                  <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
+                  <td class="status-col">
+                    <x-ui.status-badge :status="$warehouseStatusLabel" class="warehouse-status-pill" title="{{ $warehouseStatus }}" />
+                  </td>
                   <td class="actions-col">
-                    <button type="button" class="warehouse-pr-review open-view-pr-modal"
-                      data-pr-no="{{ $partRequest->pr_no }}"
-                      data-job-order-no="{{ $partRequest->job_order_no }}"
-                      data-bus-no="{{ $partRequest->bus_no }}"
-                      data-item="{{ $partRequest->item }}"
-                      data-quantity="{{ $quantity }}"
-                      data-on-hand="{{ $onHand }}"
-                      data-inventory-status="{{ $inventoryStatus }}"
-                      data-status="{{ $status }}"
-                      data-warehouse-status="{{ $warehouseStatusLabel }}"
-                      data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
-                      data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
-                      data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
-                      data-parts='@json($partRequest->parts_breakdown ?? [])'>
-                      <i class="fa-solid fa-eye" aria-hidden="true"></i> {{ $isHistory ? 'View' : 'Review' }}
-                    </button>
-                    <div class="warehouse-pr-row-actions" hidden>
+                    <div class="actions warehouse-actions">
+                      <button
+                        type="button"
+                        class="action-btn view view-btn open-view-pr-modal"
+                        title="View Requisition Details"
+                        data-pr-no="{{ $partRequest->pr_no }}"
+                        data-job-order-no="{{ $partRequest->job_order_no }}"
+                        data-bus-no="{{ $partRequest->bus_no }}"
+                        data-item="{{ $partRequest->item }}"
+                        data-quantity="{{ $quantity }}"
+                        data-on-hand="{{ $onHand }}"
+                        data-inventory-status="{{ $inventoryStatus }}"
+                        data-status="{{ $status }}"
+                        data-warehouse-status="{{ $warehouseStatusLabel }}"
+                        data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
+                        data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
+                        data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
+                        data-parts='@json($partRequest->parts_breakdown ?? [])'
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+
                       @unless($isHistory)
-                        @if($canSendToPurchase)
-                          <form action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}" method="POST"
-                            class="inline-action-form" data-confirm-form
-                            data-confirm-title="Send Missing Parts to Purchase?"
-                            data-confirm-message="Are you sure you want to send the missing parts for {{ $partRequest->pr_no }} to Purchase?"
-                            data-confirm-button="Yes, Send to Purchase" data-confirm-type="warning">
-                            @csrf
-                            <button type="submit" class="send-purchase-btn warehouse-pr-modal-action"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
-                          </form>
-                        @endif
-                        @if($canIssue)
-                          <button type="button" class="issue-part-btn warehouse-pr-modal-action open-issue-modal"
-                            data-action="{{ route('part-requests.issue', $partRequest->id) }}"
-                            data-pr-no="{{ $partRequest->pr_no }}"
-                            data-parts='@json($partRequest->parts_breakdown ?? [])'>
-                            <i class="fa-solid fa-box-open"></i> Issue Parts
+                      @if($canSendToPurchase)
+                        <form
+                          action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
+                          method="POST"
+                          class="inline-action-form"
+                          data-confirm-form
+                          data-confirm-title="Send Missing Parts to Purchase?"
+                          data-confirm-message="Are you sure you want to send the missing parts for {{ $partRequest->pr_no }} to Purchase?"
+                          data-confirm-button="Yes, Send to Purchase"
+                          data-confirm-type="warning"
+                        >
+                          @csrf
+                          <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
+                            <i class="fa-solid fa-cart-shopping"></i>
                           </button>
-                        @endif
+                        </form>
+                      @endif
+
+                      @if($canIssue)
+                        <button
+                          type="button"
+                          class="issue-part-btn icon-only-btn open-issue-modal"
+                          title="Record and Issue Parts"
+                          data-action="{{ route('part-requests.issue', $partRequest->id) }}"
+                          data-pr-no="{{ $partRequest->pr_no }}"
+                          data-parts='@json($partRequest->parts_breakdown ?? [])'
+                        >
+                          <i class="fa-solid fa-box-open"></i>
+                        </button>
+                      @endif
                       @endunless
                     </div>
                   </td>
@@ -84,7 +115,7 @@
               @endforeach
               @if($purchaseRequests->isEmpty())
                 <x-ui.empty-row
-                  colspan="6"
+                  colspan="8"
                   icon="fa-clipboard-list"
                   :message="$isHistory ? 'No Part Request History Found' : 'No Active Part Requests Found'"
                   :description="$isHistory ? 'Issued and fulfilled part requests will appear here.' : 'Maintenance part requisitions awaiting fulfillment will appear here.'"
