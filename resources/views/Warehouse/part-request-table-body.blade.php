@@ -74,9 +74,37 @@
                       <span class="on-hand-pill {{ $onHandClass }}" title="Current Warehouse on-hand stock">{{ $onHand }}</span>
                     @endif
                   </td>
-                  <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
+                  @php
+                    $inventoryLabel = match (strtolower(trim((string) $inventoryStatus))) {
+                      'available', 'sufficient' => 'Available',
+                      'partial', 'partially available' => 'Partial',
+                      default => 'Not Available',
+                    };
+                    $inventoryClass = match ($inventoryLabel) {
+                      'Available' => 'is-available',
+                      'Partial' => 'is-partial',
+                      default => 'is-unavailable',
+                    };
+                    $inventoryIcon = match ($inventoryLabel) {
+                      'Available' => 'fa-circle-check',
+                      'Partial' => 'fa-triangle-exclamation',
+                      default => 'fa-circle-xmark',
+                    };
+                    $workflowStatus = strtolower(trim((string) $warehouseStatusLabel));
+                    $isWarehouseComplete = in_array($workflowStatus, ['issued', 'completed', 'delivered', 'picked up'], true);
+                    $isWarehouseWarning = in_array($workflowStatus, ['needs purchase', 'for purchase', 'pending', 'partial', 'rejected', 'cancelled'], true);
+                  @endphp
                   <td class="status-col">
-                    <x-ui.status-badge :status="$warehouseStatusLabel" class="warehouse-status-pill" title="{{ $warehouseStatus }}" />
+                    <span class="warehouse-ir-stock-status {{ $inventoryClass }}">
+                      <i class="fa-solid {{ $inventoryIcon }}" aria-hidden="true"></i>
+                      {{ $inventoryLabel }}
+                    </span>
+                  </td>
+                  <td class="status-col">
+                    <span class="warehouse-ir-process-status {{ $isWarehouseComplete ? 'is-issued' : ($isWarehouseWarning ? 'is-warning' : 'is-submitted') }}" title="{{ $warehouseStatus }}">
+                      <i class="fa-solid {{ $isWarehouseComplete ? 'fa-circle-check' : ($isWarehouseWarning ? 'fa-triangle-exclamation' : 'fa-paper-plane') }}" aria-hidden="true"></i>
+                      {{ $warehouseStatusLabel }}
+                    </span>
                   </td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
