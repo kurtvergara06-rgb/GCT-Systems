@@ -3,6 +3,7 @@
 namespace App\Services\Maintenance;
 
 use App\Services\PartParser;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Validation\ValidationException;
@@ -55,7 +56,9 @@ class ItemRequestPartsService
             $first = $parts->first();
             $needed = $parts->sum('quantity');
             $remainingAfterPr = max(0, $needed - (int) $purchaseQuantities->get($key, 0));
-            $available = min($remainingAfterPr, max(0, (int) $first['available']));
+            $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
+                ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
+            $available = min($remainingAfterPr, max(0, (int) ($reserved ?? $first['available'])));
             if ($available > 0) {
                 $result[] = [
                     'name' => $first['name'],
