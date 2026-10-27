@@ -915,63 +915,29 @@ window.GCTPartialNavigation.registerInitializer(
 
     let jobOrderRequestSequence = 0;
 
-    openPrModal
-      ?.addEventListener(
-        'click',
-        () => {
+    const showPrReviewModal = () => {
+      if (!prModal) return;
+      const modalPanel = prModal.querySelector('.ui-form-modal');
+      const modalScroller = prModal.querySelector('.ui-form-modal-scrollable');
+      prModal.style.setProperty('backdrop-filter', 'blur(7px)');
+      prModal.style.setProperty('-webkit-backdrop-filter', 'blur(7px)');
+      openModal(prModal);
+      const resetScroll = () => {
+        if (modalPanel) modalPanel.scrollTop = 0;
+        if (modalScroller) modalScroller.scrollTop = 0;
+      };
+      resetScroll();
+      window.requestAnimationFrame(resetScroll);
+    };
 
-          const modalPanel =
-            prModal?.querySelector(
-              '.ui-form-modal'
-            );
+    openPrModal?.addEventListener('click', showPrReviewModal);
 
-          const modalScroller =
-            prModal?.querySelector(
-              '.ui-form-modal-scrollable'
-            );
-
-          const resetPrModalScroll = () => {
-            if (modalPanel) {
-              modalPanel.scrollTop = 0;
-            }
-
-            if (modalScroller) {
-              modalScroller.scrollTop = 0;
-            }
-          };
-
-          // Keep the intended glass backdrop when the production CSS
-          // optimizer normalizes the prefixed backdrop-filter declaration.
-          prModal?.style.setProperty(
-            'backdrop-filter',
-            'blur(7px)'
-          );
-
-          prModal?.style.setProperty(
-            '-webkit-backdrop-filter',
-            'blur(7px)'
-          );
-
-          openModal(
-            prModal
-          );
-
-          resetPrModalScroll();
-
-          window.requestAnimationFrame(
-            resetPrModalScroll
-          );
-
-        }
-      );
-
-
-    // Virtual PR suggestions open the existing validated PR modal, preselecting
-    // the approved JO. No purchase requisition is created until submission.
+    // The Review action opens the existing validated PR form directly.
+    // It must not depend on the removed New PR toolbar button.
     document.addEventListener('click', (event) => {
       const trigger = event.target.closest('[data-pr-review-job]');
       if (!trigger) return;
-      openPrModal?.click();
+      showPrReviewModal();
       if (jobOrderSelect) {
         jobOrderSelect.value = trigger.dataset.prReviewJob || '';
         jobOrderSelect.dispatchEvent(new Event('change', { bubbles: true }));
