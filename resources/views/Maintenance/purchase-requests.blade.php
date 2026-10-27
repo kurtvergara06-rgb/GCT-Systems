@@ -97,7 +97,7 @@
                       <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
                           <a href="{{ route('purchase-requests', ['record_view' => 'pending']) }}" class="maintenance-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true" role="tab" aria-selected="{{ $recordView === 'pending' ? 'true' : 'false' }}"><i class="fa-solid fa-clock"></i><span>Pending Requests</span></a>
                           <a
-                              href="{{ route('purchase-requests', array_filter(['search' => request('search'), 'status' => 'All Statuses'])) }}"
+                              href="{{ route('purchase-requests', array_filter(['record_view' => 'active', 'search' => request('search'), 'status' => 'All Statuses'])) }}"
                               class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
                               data-allow-partial-navigation="true"
                               data-maintenance-record-tab-link="active"
@@ -123,9 +123,7 @@
                       <div class="gct-table-toolbar-row">
                       <x-ui.table-toolbar action="{{ route('purchase-requests') }}" search-label="Search Purchase Requests" search-placeholder="Search PR no., JO no., bus no., or item..." :filter-count="(int) ($recordView === 'history' ? (int) request()->filled('created_from') + (int) request()->filled('created_to') : (int) (request()->filled('status') && request('status') !== 'All Statuses'))" filter-title="Filter Purchase Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
                           <x-slot:hidden>
-                              @if($recordView === 'history' || $recordView === 'pending')
-                                  <input type="hidden" name="record_view" value="{{ $recordView }}">
-                              @endif
+                              <input type="hidden" name="record_view" value="{{ $recordView }}">
                           </x-slot:hidden>
                           <x-slot:filters>
                               @if($recordView === 'pending')
