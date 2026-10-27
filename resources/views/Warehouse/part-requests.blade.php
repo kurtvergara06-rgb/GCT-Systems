@@ -37,7 +37,7 @@
         <div class="section-header warehouse-record-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>{{ $isHistory ? 'Part Request History' : ($isJo ? 'Job Order Requests' : 'Active Part Requests') }}</h2>
+            <h2>{{ $isJo ? 'Job Order Requests' : 'Part Request Records' }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
         <div class="warehouse-request-count">
@@ -90,18 +90,11 @@
           <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
             <thead>
               <tr>
-                <th>{{ $isJo ? 'JO ID' : 'PR ID' }}</th>
-                <th>Item</th>
                 @if($isJo)
-                  <th class="status-col">Availability</th>
+                  <th>JO ID</th><th>Item</th><th class="status-col">Availability</th><th class="actions-col">Actions</th>
                 @else
-                  <th class="qty-col">Qty</th>
-                  <th class="qty-col">On Hand</th>
-                  <th class="status-col">Inventory</th>
-                  <th class="status-col">Purchase</th>
-                  <th class="status-col">Warehouse</th>
+                  <th>PR ID</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th class="actions-col">ACTIONS</th>
                 @endif
-                <th class="actions-col">Actions</th>
               </tr>
             </thead>
             @if($isJo)
@@ -295,6 +288,7 @@
       </div>
 
       <div class="warehouse-edit-footer">
+        <div id="warehousePrModalActions" class="warehouse-pr-modal-actions"></div>
         <button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button>
       </div>
     </div>
