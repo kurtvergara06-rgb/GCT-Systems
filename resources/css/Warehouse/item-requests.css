@@ -431,29 +431,3 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
  #warehouseItemRequestDetails .warehouse-ir-details-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
  #warehouseItemRequestDetails .warehouse-ir-details-body{padding:16px}
 }
-
-/* Match the streamlined Warehouse Part Requests table; leave verification in Review. */
-.warehouse-ir-page .ir-table { width:100%; min-width:0; table-layout:fixed; }
-.warehouse-ir-page .ir-table th:nth-child(1){width:15%}
-.warehouse-ir-page .ir-table th:nth-child(2){width:17%}
-.warehouse-ir-page .ir-table th:nth-child(3){width:12%}
-.warehouse-ir-page .ir-table th:nth-child(4){width:28%}
-.warehouse-ir-page .ir-table th:nth-child(5){width:17%}
-.warehouse-ir-page .ir-table th:nth-child(6){width:11%}
-.warehouse-ir-page .ir-table tbody td { padding:12px 10px; vertical-align:middle; }
-.warehouse-ir-page .ir-table td:nth-child(2),
-.warehouse-ir-page .ir-table td:nth-child(3),
-.warehouse-ir-page .ir-table td:nth-child(4),
-.warehouse-ir-page .ir-table td:nth-child(5),
-.warehouse-ir-page .ir-table td:nth-child(6) { min-width:0; }
-.warehouse-ir-page .ir-table td:nth-child(6){text-align:center}
-.warehouse-ir-page .ir-table .warehouse-ir-reference { min-width:0; }
-.warehouse-ir-page .warehouse-ir-row-meta { display:inline-flex; align-items:center; gap:5px; border:1px solid #d5e1f1; border-radius:5px; background:#f5f8fc; padding:4px 7px; color:#18365a; font-size:11px; font-weight:750; white-space:nowrap; }
-.warehouse-ir-page .warehouse-ir-review { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:32px; padding:7px 12px; border:1px solid #cfe0fd; border-radius:7px; background:#eaf2ff; color:#1251a9; font-size:11px; font-weight:750; cursor:pointer; }
-.warehouse-ir-page .warehouse-ir-review:hover { background:#dce9ff }
-.warehouse-ir-page .warehouse-ir-review:focus-visible { outline:2px solid #2563eb; outline-offset:2px }
-.warehouse-ir-page .warehouse-ir-hidden-actions[hidden] { display:none!important }
-#warehouseItemRequestDetails .warehouse-ir-review-actions { display:flex; align-items:center; gap:8px; margin-right:auto; }
-#warehouseItemRequestDetails .warehouse-ir-hidden-actions:not([hidden]) { display:flex; align-items:center; gap:8px; }
-#warehouseItemRequestDetails .warehouse-ir-hidden-actions .action-btn { width:auto; min-width:35px; }
-@media(max-width:850px){.warehouse-ir-page .ir-table{min-width:760px}.warehouse-ir-page .ir-table-wrap{overflow-x:auto}}
