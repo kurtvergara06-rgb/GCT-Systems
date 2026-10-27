@@ -930,7 +930,7 @@
         :show-actions="false"
         class="jo-edit-modal-overlay"
     >
-        <section class="jo-edit-section jo-edit-basic jo-edit-creation-step">
+        <section data-edit-jo-step="0" class="jo-edit-section jo-edit-basic jo-edit-creation-step jo-edit-collapsible">
             <div class="jo-edit-section-header">
                 <span class="jo-edit-section-icon">
                     <i class="fa-solid fa-file-lines"></i>
@@ -984,7 +984,7 @@
             </div>
         </section>
 
-        <section class="jo-edit-section jo-edit-details jo-edit-creation-step">
+        <section data-edit-jo-step="1" data-collapsed="true" class="jo-edit-section jo-edit-details jo-edit-creation-step jo-edit-collapsible">
             <div class="jo-edit-section-header">
                 <span class="jo-edit-section-icon">
                     <i class="fa-solid fa-gears"></i>
@@ -1025,7 +1025,7 @@
             </div>
         </section>
 
-        <section class="jo-edit-section jo-edit-creation-step jo-edit-duration-section">
+        <section data-edit-jo-step="2" data-collapsed="true" class="jo-edit-section jo-edit-creation-step jo-edit-collapsible jo-edit-duration-section">
             <div class="jo-edit-section-header"><span class="jo-edit-section-icon"><i class="fa-regular fa-clock"></i></span>
                 <div><h3><span class="jo-edit-step-number">03 &mdash;</span> Estimated Duration</h3><p>Update the expected repair time.</p></div>
             </div>
@@ -1069,8 +1069,8 @@
         </section>
 
         <section
-            id="editRequestedPartsSection"
-            class="jo-edit-section jo-edit-parts jo-parts-section jo-edit-creation-step"
+            id="editRequestedPartsSection" data-edit-jo-step="3" data-collapsed="true"
+            class="jo-edit-section jo-edit-parts jo-parts-section jo-edit-creation-step jo-edit-collapsible"
         >
             <div class="jo-edit-section-header jo-edit-parts-header">
                 <span class="jo-edit-section-icon">
