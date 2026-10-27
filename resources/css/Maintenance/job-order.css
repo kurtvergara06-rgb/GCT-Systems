@@ -5567,3 +5567,45 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal, #editJobModal) .jo-create-parts-header > .jo-section-progress {
   margin-left: 0 !important;
 }
+
+
+/* Head review details: predictable label/value alignment without narrow text columns. */
+.jo-head-review-body .jo-review-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 22px;
+  row-gap: 0;
+}
+.jo-head-review-body .jo-review-detail-grid > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 42%) minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  border-bottom: 1px solid #e7edf5;
+  padding: 9px 2px;
+}
+.jo-head-review-body .jo-review-detail-grid > div > span {
+  min-width: 0;
+  align-items: flex-start;
+  text-align: left;
+}
+.jo-head-review-body .jo-review-detail-grid > div > strong {
+  min-width: 0;
+  display: block;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+@media (max-width: 720px) {
+  .jo-head-review-body .jo-review-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 420px) {
+  .jo-head-review-body .jo-review-detail-grid > div {
+    grid-template-columns: minmax(110px, 40%) minmax(0, 1fr);
+    gap: 8px;
+  }
+}
