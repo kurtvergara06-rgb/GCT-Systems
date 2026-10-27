@@ -174,6 +174,22 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
   const closeViewPrModalBottom = document.getElementById('closeViewPrModalBottom');
+  const modalActionsSlot = document.getElementById('warehousePrModalActions');
+  let activeRowActions = null;
+  let rowActionsHome = null;
+  const restoreRowActions = () => {
+    if (activeRowActions && rowActionsHome) {
+      activeRowActions.hidden = true;
+      rowActionsHome.appendChild(activeRowActions);
+    }
+    activeRowActions = null;
+    rowActionsHome = null;
+  };
+  const closePrReview = () => {
+    restoreRowActions();
+    closeModal(viewPrModal);
+  };
+
 
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.open-view-pr-modal');
@@ -195,6 +211,16 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     setField('view_bus_no', button.dataset.busNo);
     setField('view_created', button.dataset.created);
     setField('view_remarks', button.dataset.remarks, 'No remarks');
+    setField('view_purchase_status', button.dataset.status);
+    setField('view_warehouse_status', button.dataset.warehouseStatus);
+    restoreRowActions();
+    const rowActions = button.closest('tr')?.querySelector('.warehouse-pr-row-actions');
+    if (rowActions && modalActionsSlot) {
+      rowActionsHome = rowActions.parentElement;
+      activeRowActions = rowActions;
+      rowActions.hidden = false;
+      modalActionsSlot.appendChild(rowActions);
+    }
 
     renderPartsBreakdown(parts);
 
@@ -203,13 +229,13 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
   if (closeViewPrModal) {
     closeViewPrModal.addEventListener('click', function () {
-      closeModal(viewPrModal);
+      closePrReview();
     });
   }
 
   if (closeViewPrModalBottom) {
     closeViewPrModalBottom.addEventListener('click', function () {
-      closeModal(viewPrModal);
+      closePrReview();
     });
   }
 
@@ -364,6 +390,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
+      restoreRowActions();
       closeAllModals();
     }
   });
