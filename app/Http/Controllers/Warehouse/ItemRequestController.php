@@ -66,8 +66,8 @@ class ItemRequestController extends Controller
 
 
     /**
-     * Issue a complete IR only. Partial releases require a separate Head decision.
-     * Item rows are locked and matched by name AND compatible unit.
+     * Signed physical handover. Supports cumulative partial batches while
+     * enforcing the Maintenance Head policy and JO-scoped stock allocations.
      */
     public function issue(Request $request, ItemRequest $itemRequest, InventoryLedgerService $ledger, PartParser $parser)
     {
@@ -76,122 +76,147 @@ class ItemRequestController extends Controller
             'signed_slip' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'handover_confirmed' => ['required', 'accepted'],
             'issued_quantities' => ['required', 'array', 'min:1'],
-            'issued_quantities.*' => ['required', 'integer', 'min:1'],
+            'issued_quantities.*' => ['required', 'integer', 'min:0'],
         ]);
 
-        $expected = collect($itemRequest->requested_parts ?? [])->values();
-        if ($expected->isEmpty() || count($validated['issued_quantities']) !== $expected->count()) {
-            throw ValidationException::withMessages(['issued_quantities' => 'All requested parts must be included.']);
-        }
-        foreach ($expected as $index => $part) {
-            if ((int) ($validated['issued_quantities'][$index] ?? 0) !== (int) ($part['quantity'] ?? 0)) {
-                throw ValidationException::withMessages(['issued_quantities' => 'Partial issuance requires Maintenance Head authorization and is not enabled yet.']);
-            }
-        }
-
-        // Retain evidence in private storage, not the publicly accessible disk.
         $slipPath = $request->file('signed_slip')->store('warehouse/signed-ir-slips', 'local');
         try {
-        $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        DB::transaction(function () use ($itemRequest, $ledger, $parser, $irNumber, $slipPath, $validated): void {
-            $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
-            if ($ir->status !== 'Submitted') {
-                throw ValidationException::withMessages(['issue' => 'This Item Request has already been processed or is not ready for issuance.']);
-            }
-            if ($ir->jobOrder?->review_status !== 'Approved') {
-                throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved.']);
-            }
-            if (InventoryIssuance::where('reference_no', $irNumber)->exists()) {
-                throw ValidationException::withMessages(['issue' => 'An issuance is already recorded for this Item Request.']);
-            }
-            $parts = collect($ir->requested_parts ?? []);
-            $jo = $ir->jobOrder;
-            $joRequired = collect($parser->parsePartText((string) ($jo?->part_needed ?? '')))->sum('quantity');
-            $irQuantity = $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
-            $hasOutstandingJoParts = $joRequired > $irQuantity;
-            if ($hasOutstandingJoParts && $jo?->parts_issue_strategy !== 'issue_available_only') {
-                throw ValidationException::withMessages(['issue' => 'The Maintenance Head has not authorized partial release for this Job Order.']);
-            }
-            if ($parts->isEmpty()) {
-                throw ValidationException::withMessages(['issue' => 'There are no items to issue.']);
-            }
+            $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
+            DB::transaction(function () use ($itemRequest, $ledger, $parser, $irNumber, $slipPath, $validated): void {
+                $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
+                if (! in_array($ir->status, ['Submitted', 'Partially Issued'], true)) {
+                    throw ValidationException::withMessages(['issue' => 'This IR is not ready for issuance.']);
+                }
+                $jo = $ir->jobOrder;
+                if (! $jo || $jo->review_status !== 'Approved') {
+                    throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved.']);
+                }
+                $parts = collect($ir->requested_parts ?? [])->values();
+                if ($parts->isEmpty() || count($validated['issued_quantities']) !== $parts->count()) {
+                    throw ValidationException::withMessages(['issued_quantities' => 'All IR item rows must be included.']);
+                }
 
-            $normalize = static fn ($value) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $value)));
-            $stockRows = InventoryItem::query()->orderBy('id')->lockForUpdate()->get();
-            $allocations = [];
-            foreach ($parts as $part) {
-                $name = trim((string) ($part['name'] ?? ''));
-                $unit = trim((string) ($part['unit'] ?? ''));
-                $quantity = (int) ($part['quantity'] ?? 0);
-                if ($name === '' || $unit === '' || $quantity < 1) {
-                    throw ValidationException::withMessages(['issue' => 'Each requested part must have a name, unit, and positive quantity.']);
+                $previous = InventoryIssuance::query()
+                    ->where(fn ($query) => $query->where('reference_no', $irNumber)
+                        ->orWhere('reference_no', 'like', $irNumber.'-B%'))
+                    ->with('items')->orderBy('id')->lockForUpdate()->get();
+                $key = static fn ($name, $unit): string =>
+                    mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+                $already = [];
+                foreach ($previous as $batch) {
+                    foreach ($batch->items as $entry) {
+                        $partKey = $key($entry->item_name, $entry->unit);
+                        $already[$partKey] = ($already[$partKey] ?? 0) + (int) $entry->quantity;
+                    }
                 }
-                $matches = $stockRows->filter(fn ($item) =>
-                    $normalize($item->parts_name) === $normalize($name)
-                    && $parser->normalizeUnit((string) $item->unit) === $parser->normalizeUnit($unit)
-                )->values();
-                if ($matches->count() !== 1) {
-                    throw ValidationException::withMessages(['issue' => "Part '{$name}' is missing or matches multiple inventory records. Warehouse must resolve the item code before issuing."]);
-                }
-                $item = $matches->first();
-                $allocations[$item->id] ??= ['item' => $item, 'quantity' => 0];
-                $allocations[$item->id]['quantity'] += $quantity;
-            }
-            $otherReserved = JobOrderPartReservation::query()->where('job_order_id', '!=', $jo->id)
-                ->select('inventory_item_id', DB::raw('SUM(quantity) as qty'))->groupBy('inventory_item_id')->pluck('qty', 'inventory_item_id');
-            $ownReserved = JobOrderPartReservation::query()->where('job_order_id', $jo->id)->lockForUpdate()->get()->keyBy('inventory_item_id');
-            $hasAllocation = isset($jo->inventory_snapshot['shortages']);
-            foreach ($allocations as $allocation) {
-                $item = $allocation['item'];
-                $needed = $allocation['quantity'];
-                $physical = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-                $freeForJo = max(0, $physical - (int) $otherReserved->get($item->id, 0));
-                $reserved = (int) ($ownReserved->get($item->id)?->quantity ?? 0);
-                if ($needed > $freeForJo || ($hasAllocation && $needed > $reserved)) {
-                    throw ValidationException::withMessages(['issue' => "Insufficient allocated stock for '{$item->parts_name}'. Recheck the IR and coordinate any shortage."]);
-                }
-            }
 
-            $issuance = InventoryIssuance::create([
-                'issue_no' => 'ISS-IR-'.$ir->id,
-                'issued_to' => $ir->jobOrder?->assigned_mechanic ?: 'Maintenance',
-                'purpose' => 'Item Request issuance',
-                'reference_no' => $irNumber,
-                'issued_by' => auth()->id(),
-                'issued_at' => now(),
-                'signed_slip_path' => $slipPath,
-                'received_by' => trim($validated['received_by']),
-                'handover_confirmed_at' => now(),
-            ]);
-            foreach ($allocations as $allocation) {
-                $item = $allocation['item'];
-                $qty = $allocation['quantity'];
-                $movement = $ledger->stockOut($item, $qty, $irNumber, 'Issued for '.$ir->jobOrder?->job_order_no);
-                $reservation = $ownReserved->get($item->id);
-                if ($reservation) {
-                    $reservation->quantity === $qty ? $reservation->delete() : $reservation->decrement('quantity', $qty);
+                $expectedTotals = [];
+                $nowTotals = [];
+                $needs = [];
+                foreach ($parts as $index => $part) {
+                    $name = trim((string) ($part['name'] ?? ''));
+                    $unit = trim((string) ($part['unit'] ?? ''));
+                    $quantity = (int) ($part['quantity'] ?? 0);
+                    $issueNow = (int) ($validated['issued_quantities'][$index] ?? -1);
+                    if ($name === '' || $unit === '' || $quantity < 1 || $issueNow < 0) {
+                        throw ValidationException::withMessages(['issued_quantities' => 'Invalid item, unit, or issued quantity.']);
+                    }
+                    $partKey = $key($name, $unit);
+                    $expectedTotals[$partKey] = ($expectedTotals[$partKey] ?? 0) + $quantity;
+                    $nowTotals[$partKey] = ($nowTotals[$partKey] ?? 0) + $issueNow;
+                    $needs[$partKey] = ['name' => $name, 'unit' => $unit];
                 }
-                InventoryIssuanceItem::create([
-                    'inventory_issuance_id' => $issuance->id,
-                    'inventory_item_id' => $item->id,
-                    'item_code' => $item->item_code,
-                    'item_name' => $item->parts_name,
-                    'quantity' => $qty,
-                    'unit' => $item->unit,
-                    'previous_stock' => $movement->previous_stock,
-                    'new_stock' => $movement->new_stock,
-                    'stock_movement_id' => $movement->id,
+                if (array_sum($nowTotals) < 1) {
+                    throw ValidationException::withMessages(['issued_quantities' => 'Issue at least one item.']);
+                }
+                foreach ($expectedTotals as $partKey => $quantity) {
+                    if (($already[$partKey] ?? 0) + ($nowTotals[$partKey] ?? 0) > $quantity) {
+                        throw ValidationException::withMessages(['issued_quantities' => 'Quantity exceeds the remaining IR requirement. Refresh before issuing.']);
+                    }
+                }
+
+                $joRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
+                $irQuantity = $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
+                if ($joRequired > $irQuantity && $jo->parts_issue_strategy !== 'issue_available_only') {
+                    throw ValidationException::withMessages(['issue' => 'This Job Order requires all parts before Warehouse may issue any quantity.']);
+                }
+                if ($jo->parts_issue_strategy !== 'issue_available_only' && array_sum($nowTotals) < array_sum($expectedTotals) - array_sum($already)) {
+                    throw ValidationException::withMessages(['issue' => 'The Head selected Wait Until Complete. Partial handover is not authorized.']);
+                }
+
+                $inventory = InventoryItem::query()->orderBy('id')->lockForUpdate()->get();
+                $allocations = [];
+                foreach ($nowTotals as $partKey => $qty) {
+                    if ($qty === 0) continue;
+                    $matches = $inventory->filter(fn (InventoryItem $item) =>
+                        $key($item->parts_name ?? $item->item_name, $item->unit ?? $item->unit_of_measurement) === $partKey)->values();
+                    if ($matches->count() !== 1) {
+                        throw ValidationException::withMessages(['issue' => 'Inventory item '.$needs[$partKey]['name'].' is missing or ambiguous. Resolve it before issuing.']);
+                    }
+                    $item = $matches->first();
+                    $allocations[] = ['item' => $item, 'quantity' => $qty];
+                }
+
+                $otherReserved = JobOrderPartReservation::query()->where('job_order_id', '!=', $jo->id)
+                    ->select('inventory_item_id', DB::raw('SUM(quantity) as quantity'))
+                    ->groupBy('inventory_item_id')->pluck('quantity', 'inventory_item_id');
+                $ownReserved = JobOrderPartReservation::query()->where('job_order_id', $jo->id)
+                    ->lockForUpdate()->get()->keyBy('inventory_item_id');
+                $hasAllocation = isset($jo->inventory_snapshot['shortages']);
+                foreach ($allocations as $allocation) {
+                    $item = $allocation['item'];
+                    $physical = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+                    $freeForJo = max(0, $physical - (int) $otherReserved->get($item->id, 0));
+                    $own = (int) ($ownReserved->get($item->id)?->quantity ?? 0);
+                    if ($allocation['quantity'] > $freeForJo || ($hasAllocation && $allocation['quantity'] > $own)) {
+                        throw ValidationException::withMessages(['issue' => 'Insufficient allocated stock for '.$item->parts_name.'. Recheck stock before issuing.']);
+                    }
+                }
+
+                $batchNo = $previous->count() + 1;
+                $batchRef = $batchNo === 1 ? $irNumber : $irNumber.'-B'.$batchNo;
+                $issuance = InventoryIssuance::create([
+                    'issue_no' => $batchNo === 1 ? 'ISS-IR-'.$ir->id : 'ISS-IR-'.$ir->id.'-B'.$batchNo,
+                    'issued_to' => $jo->assigned_mechanic ?: 'Maintenance',
+                    'purpose' => 'Item Request issuance',
+                    'reference_no' => $batchRef,
+                    'issued_by' => auth()->id(),
+                    'issued_at' => now(),
+                    'signed_slip_path' => $slipPath,
+                    'received_by' => trim($validated['received_by']),
+                    'handover_confirmed_at' => now(),
                 ]);
-            }
-            $ir->update(['status' => 'Issued']);
-            $jo?->update(['part_status' => $hasOutstandingJoParts ? 'Partial' : 'Issued']);
-        });
+                foreach ($allocations as $allocation) {
+                    $item = $allocation['item'];
+                    $qty = $allocation['quantity'];
+                    $movement = $ledger->stockOut($item, $qty, $batchRef, 'Issued for '.$jo->job_order_no);
+                    InventoryIssuanceItem::create([
+                        'inventory_issuance_id' => $issuance->id,
+                        'inventory_item_id' => $item->id,
+                        'item_code' => $item->item_code,
+                        'item_name' => $item->parts_name ?? $item->item_name,
+                        'quantity' => $qty,
+                        'unit' => $item->unit ?? $item->unit_of_measurement,
+                        'previous_stock' => $movement->previous_stock,
+                        'new_stock' => $movement->new_stock,
+                        'stock_movement_id' => $movement->id,
+                    ]);
+                    $reserved = $ownReserved->get($item->id);
+                    if ($reserved) {
+                        $reserved->quantity <= $qty ? $reserved->delete() : $reserved->decrement('quantity', $qty);
+                    }
+                }
+                $complete = collect($expectedTotals)->every(fn ($quantity, $partKey) =>
+                    (int) ($already[$partKey] ?? 0) + (int) ($nowTotals[$partKey] ?? 0) === (int) $quantity);
+                $ir->update(['status' => $complete ? 'Issued' : 'Partially Issued']);
+                $jo->update(['part_status' => $complete && $joRequired <= $irQuantity ? 'Issued' : 'Partial']);
+            });
         } catch (\Throwable $error) {
             Storage::disk('local')->delete($slipPath);
             throw $error;
         }
 
-        return redirect()->route('warehouse.item-requests')->with('success', "{$irNumber} issued. Signed slip retained and stock movements recorded.");
+        return redirect()->route('warehouse.item-requests')->with('success', 'Signed issuance recorded. Any remaining IR quantities stay pending.');
     }
 
     public function signedSlip(ItemRequest $itemRequest)
