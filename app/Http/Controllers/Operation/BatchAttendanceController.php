@@ -21,6 +21,8 @@ class BatchAttendanceController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
+    private const GRACE_MINUTES = 10;
+
     private const SHIFT_STARTS = [
         'Morning' => '06:00:00',
         'Afternoon' => '14:00:00',
