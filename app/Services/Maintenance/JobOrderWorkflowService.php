@@ -8,6 +8,7 @@ use App\Models\Maintenance\JobOrderMechanic;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Warehouse\InventoryItem;
+use App\Services\PartParser;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -146,18 +147,19 @@ class JobOrderWorkflowService
         // Match the same one-to-one name AND unit used at physical issuance.
         // Multiple matching stock records are ambiguous, not combined.
         $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
+        $unitKey = static fn ($unit): string => (new PartParser())->normalizeUnit((string) $unit);
         $items = InventoryItem::query()->get();
         $requested = collect($parts)->map(static function (array $part) use ($normal): array {
             $name = trim((string) ($part['name'] ?? ''));
             $unit = trim((string) ($part['unit'] ?? ''));
-            return ['name'=>$name,'unit'=>$unit,'key'=>$normal($name).'|'.$normal($unit),
+            return ['name'=>$name,'unit'=>$unit,'key'=>$normal($name).'|'.$unitKey($unit),
                 'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
         $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
-        $breakdown = $requested->map(function (array $part) use ($items, $normal, $totals): array {
+        $breakdown = $requested->map(function (array $part) use ($items, $normal, $unitKey, $totals): array {
             $matching = $items->filter(fn (InventoryItem $item) =>
                 $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
-                && $normal($item->unit ?? $item->unit_of_measurement ?? '') === $normal($part['unit'])
+                && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
             )->values();
             $item = $matching->count() === 1 ? $matching->first() : null;
             $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0)) : 0;
@@ -169,7 +171,7 @@ class JobOrderWorkflowService
                 'ambiguous'=>$matching->count()>1];
         })->values();
         $total = $totals->sum();
-        $available = $breakdown->unique(fn ($part) => $normal($part['name']).'|'.$normal($part['unit']))
+        $available = $breakdown->unique(fn ($part) => $normal($part['name']).'|'.$unitKey($part['unit']))
             ->sum(fn ($part) => min((int)$totals->get($normal($part['name']).'|'.$normal($part['unit']),0),$part['available']));
         return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
             'parts'=>$breakdown->all()];
