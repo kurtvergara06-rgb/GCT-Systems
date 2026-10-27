@@ -312,7 +312,7 @@ class JobOrderController extends Controller
         $workText = implode(' ', $selectedSkills);
         $mechanics = $this->workflow->availableMechanics(null, $workText)
             ->filter(fn (Mechanic $mechanic) => $jobs === []
-                || collect($jobs)->every(fn ($job) => is_string($job)
+                || collect($jobs)->contains(fn ($job) => is_string($job)
                     && $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])) !== []
                     && $this->matchesSpecialization($mechanic, $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])))))
             ->values()
@@ -323,6 +323,9 @@ class JobOrderController extends Controller
                 'specializations' => $mechanic->specialization_labels,
                 'skill_matches' => $mechanic->skill_matches,
                 'skill_match_score' => $mechanic->skill_match_score,
+                'qualified_jobs' => collect($jobs)->filter(fn ($job) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations((string) $job, (array) $request->input('specializations', []))
+                ))->values()->all(),
                 'availability' => 'Available',
             ]);
 
@@ -467,13 +470,23 @@ class JobOrderController extends Controller
         }
         if ($requiredSkills !== []) {
             foreach ($mechanics as $mechanic) {
-                if (! collect($selectedJobs)->every(fn ($job) => $this->matchesSpecialization(
+                if (! collect($selectedJobs)->contains(fn ($job) => $this->matchesSpecialization(
                     $mechanic, $this->requiredSpecializations($job, $validated['specializations'] ?? [])
                 ))) {
                     throw ValidationException::withMessages([
-                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for this maintenance job.",
+                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for any selected maintenance job.",
                     ]);
                 }
+            }
+            $uncoveredJobs = collect($selectedJobs)->reject(fn ($job) => $mechanics->contains(
+                fn (Mechanic $mechanic) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                )
+            ))->values();
+            if ($uncoveredJobs->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'mechanic_ids' => 'Assign qualified mechanics for every selected maintenance job. Uncovered: '.$uncoveredJobs->implode(', '),
+                ]);
             }
         }
         $pmsSchedule = null;
