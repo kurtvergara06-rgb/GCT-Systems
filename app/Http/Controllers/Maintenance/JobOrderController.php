@@ -285,8 +285,9 @@ class JobOrderController extends Controller
             ->get()
             ->map(fn ($item) => [
                 'id' => $item->id,
-                'name' => (string) $item->parts_name,
-                'unit' => trim((string) $item->unit),
+                'name' => (string) ($item->parts_name ?: $item->item_name),
+                'code' => (string) $item->item_code,
+                'unit' => trim((string) ($item->unit ?: $item->unit_of_measurement)),
                 'in_stock' => (int) $item->on_hand > 0,
             ]));
     }
@@ -549,13 +550,13 @@ class JobOrderController extends Controller
                 continue;
             }
             $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
-            if (! $item || ! trim((string) $item->unit)) {
+            if (! $item || ! trim((string) ($item->unit ?: $item->unit_of_measurement))) {
                 throw ValidationException::withMessages([
                     "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
                 ]);
             }
-            $partInput['name'] = (string) $item->parts_name;
-            $partInput['unit'] = (string) $item->unit;
+            $partInput['name'] = (string) ($item->parts_name ?: $item->item_name);
+            $partInput['unit'] = (string) ($item->unit ?: $item->unit_of_measurement);
         }
         unset($partInput);
         $parts = $this->partParser->normalizePartsInput($partInputs);
@@ -792,13 +793,13 @@ class JobOrderController extends Controller
                 continue;
             }
             $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
-            if (! $item || ! trim((string) $item->unit)) {
+            if (! $item || ! trim((string) ($item->unit ?: $item->unit_of_measurement))) {
                 throw ValidationException::withMessages([
                     "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
                 ]);
             }
-            $partInput['name'] = (string) $item->parts_name;
-            $partInput['unit'] = (string) $item->unit;
+            $partInput['name'] = (string) ($item->parts_name ?: $item->item_name);
+            $partInput['unit'] = (string) ($item->unit ?: $item->unit_of_measurement);
         }
         unset($partInput);
         $parts = $this->partParser->normalizePartsInput($partInputs);
