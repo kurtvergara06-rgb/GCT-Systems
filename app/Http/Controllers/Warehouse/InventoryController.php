@@ -253,8 +253,8 @@ class InventoryController extends Controller
             $freshItem = $lockedItem->fresh();
 
             $previousStock = (int) (
-                $freshItem->on_hand
-                ?? $freshItem->quantity_available
+                $freshItem->quantity_available
+                ?? $freshItem->on_hand
                 ?? 0
             );
 
@@ -457,8 +457,8 @@ class InventoryController extends Controller
 
                 if ($inventoryItem) {
                     $previousStock = (int) (
-                        $inventoryItem->on_hand
-                        ?? $inventoryItem->quantity_available
+                        $inventoryItem->quantity_available
+                ?? $inventoryItem->on_hand
                         ?? 0
                     );
 
@@ -662,8 +662,8 @@ class InventoryController extends Controller
         $unit = $this->getInventoryUnit($inventoryItem);
 
         $onHand = (int) (
-            $inventoryItem->on_hand
-            ?? $inventoryItem->quantity_available
+            $inventoryItem->quantity_available
+                ?? $inventoryItem->on_hand
             ?? 0
         );
 
