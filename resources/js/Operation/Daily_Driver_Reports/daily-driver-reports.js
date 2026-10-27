@@ -329,7 +329,7 @@ function initScheduleContextPanel() {
         select.setAttribute('aria-label', 'Select assigned trip');
         const placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = schedules.length ? 'Select an assigned trip...' : 'No eligible completed-service trips';
+        placeholder.textContent = schedules.length ? 'Select an assigned trip...' : 'No eligible dispatched trips';
         select.appendChild(placeholder);
         schedules.forEach((schedule, index) => {
             const option = document.createElement('option');
