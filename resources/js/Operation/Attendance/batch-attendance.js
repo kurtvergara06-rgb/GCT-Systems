@@ -473,7 +473,11 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => (row.dataset.recorded !== 'true' || (type === 'mechanic' && row.querySelector('[data-time-out]').value)) && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)) && (type !== 'mechanic' || row.querySelector('[data-row-select]').checked));
+             .filter((row) => (row.dataset.recorded !== 'true'
+                 ? (type !== 'mechanic' || Boolean(row.querySelector('[data-time-in]').value) || ['Absent', 'On Leave'].includes(selectedStatus(row)))
+                 : (type === 'mechanic' && Boolean(row.querySelector('[data-time-out]').value)))
+                && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked))
+                && (type !== 'mechanic' || row.querySelector('[data-row-select]').checked));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
