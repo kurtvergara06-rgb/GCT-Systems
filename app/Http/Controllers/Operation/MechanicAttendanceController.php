@@ -113,10 +113,19 @@ class MechanicAttendanceController extends Controller
         $late = (clone $summaryQuery)->where('status', 'Late')->count();
         $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
 
+        $timeOutCandidates = MechanicAttendance::query()
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->whereNotNull('time_in')
+            ->whereNull('time_out')
+            ->orderBy('mechanic_name')
+            ->get(['id', 'mechanic_name', 'mechanic_id', 'time_in']);
+
         $nextMechanicId = 'From Mechanic Master List';
 
         return view('Operation.Attendance.mechanic-attendance', compact(
             'mechanicAttendances',
+            'timeOutCandidates',
             'present',
             'absent',
             'late',
