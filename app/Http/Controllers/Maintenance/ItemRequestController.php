@@ -56,8 +56,9 @@ class ItemRequestController extends Controller
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
             ->whereNotIn('id', ItemRequest::query()->select('job_order_id'))
+            ->with('approver')
             ->orderByDesc('created_at')
-            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'created_at']);
+            ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'created_at', 'approved_by']);
         $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
             try {
                 return $irParts->availableParts((string) $job->part_needed, $job) !== [];
@@ -70,6 +71,8 @@ class ItemRequestController extends Controller
                 'jo' => $job->job_order_no,
                 'bus' => $job->bus_no,
                 'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
+                'approver' => $job->approver?->name ?? 'Not recorded',
+                'signature_url' => route('job-orders.approval-signature', $job, false),
                 'parts' => $irParts->availableParts((string) $job->part_needed, $job),
             ]];
         });
