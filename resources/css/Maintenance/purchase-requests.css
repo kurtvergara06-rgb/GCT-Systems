@@ -5329,3 +5329,62 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 .purchase-page .pr-pending-review-btn:hover { background: #dce9ff; }
 .purchase-page .pr-pending-review-btn:focus-visible { outline: 2px solid #4d85d1; outline-offset: 2px; }
+
+/* Pending PR: mirror Item Request row rhythm without changing Active/History. */
+.purchase-page .pr-pending-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.purchase-page .pr-pending-table th,
+.purchase-page .pr-pending-table td {
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+.purchase-page .pr-pending-table th {
+    background: #f3f7fc;
+    color: #647792;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+.purchase-page .pr-pending-table td { font-size: 12px; }
+.purchase-page .pr-pending-table th:nth-child(1),
+.purchase-page .pr-pending-table td:nth-child(1) { width: 16%; }
+.purchase-page .pr-pending-table th:nth-child(2),
+.purchase-page .pr-pending-table td:nth-child(2) { width: 13%; }
+.purchase-page .pr-pending-table th:nth-child(3),
+.purchase-page .pr-pending-table td:nth-child(3) { width: 26%; }
+.purchase-page .pr-pending-table th:nth-child(4),
+.purchase-page .pr-pending-table td:nth-child(4) { width: 16%; }
+.purchase-page .pr-pending-table th:nth-child(5),
+.purchase-page .pr-pending-table td:nth-child(5) { width: 16%; }
+.purchase-page .pr-pending-table th:nth-child(6),
+.purchase-page .pr-pending-table td:nth-child(6) { width: 13%; text-align: center; }
+.purchase-page .pr-pending-table tbody tr:nth-child(even) { background: #f9fbfd; }
+.purchase-page .pr-pending-part-name { font-weight: 750; }
+.purchase-page .pr-pending-shortage { font-weight: 600; white-space: nowrap; }
+.purchase-page .pr-pending-parts-details { display: inline-block; margin-left: 7px; position: relative; }
+.purchase-page .pr-pending-parts-details summary {
+    list-style: none; cursor: pointer; display: inline-block;
+    padding: 4px 7px; border-radius: 6px; border: 1px solid #cfe0fd;
+    background: #eaf2ff; color: #1251a9; font-size: 10px; font-weight: 750;
+}
+.purchase-page .pr-pending-parts-details summary::-webkit-details-marker { display: none; }
+.purchase-page .pr-pending-parts-list {
+    position: absolute; top: 100%; left: 0; z-index: 20;
+    width: min(320px, 70vw); max-height: 220px; overflow: auto;
+    background: #fff; border: 1px solid #dae4f1; border-radius: 10px;
+    box-shadow: 0 14px 30px rgba(16,42,76,.15); padding: 8px;
+}
+.purchase-page .pr-pending-parts-list > div {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 8px; border-bottom: 1px solid #eff2f7;
+}
+.purchase-page .pr-pending-parts-list > div:last-child { border-bottom: 0; }
+@media (max-width: 850px) {
+    .purchase-page .pr-pending-table { min-width: 760px; }
+    .purchase-page .pr-pending-table-wrap { overflow-x: auto; }
+}
