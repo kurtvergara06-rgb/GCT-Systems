@@ -3391,7 +3391,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               button.setAttribute('role', 'option');
               button.disabled = !item.unit;
               const description = document.createElement('span');
-              description.style.cssText = 'display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;';
+              description.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:3px;min-width:0;flex:1 1 auto;width:auto;';
               const label = document.createElement('strong');
               label.textContent = item.name;
               const hint = document.createElement('small');
@@ -3400,8 +3400,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               description.append(label, hint);
               const identity = document.createElement('span');
               identity.textContent = `ID ${item.id}`;
-              identity.style.cssText = 'font-size:10px;font-weight:600;color:#64748b;background:#eef2f7;border-radius:6px;padding:3px 6px;white-space:nowrap;align-self:center;';
-              button.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;';
+              identity.style.cssText = 'display:inline-flex;flex:0 0 auto;font-size:10px;font-weight:600;color:#64748b;background:#eef2f7;border-radius:6px;padding:3px 6px;white-space:nowrap;align-self:center;margin-left:auto;';
+              button.style.cssText = 'display:flex;flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:10px;width:100%;box-sizing:border-box;';
               button.append(description, identity);
               button.addEventListener('click', () => {
                 const choice = Array.from(picker.options).find((option) => option.dataset.itemId === String(item.id));
