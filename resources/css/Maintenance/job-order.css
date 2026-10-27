@@ -6133,3 +6133,20 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 #editJobModal .jo-edit-parts-header .jo-edit-add-part-btn { margin-left:auto; }
 #editJobModal .jo-edit-parts-header .jo-edit-step-toggle { margin-left:4px; }
 #editJobModal .jo-edit-creation-step { margin-bottom:10px; }
+
+/* Edit form uses Create JO section/grid classes, not legacy modal presentation. */
+#editJobModal .jo-create-section { margin-bottom:11px; border:1px solid #dfe8f6; border-radius:12px; background:#fff; overflow:visible; }
+#editJobModal .jo-create-section>.jo-create-section-header { display:flex;align-items:center;gap:10px;padding:11px 13px;min-height:55px;background:#f5f8fc;border-bottom:1px solid #e2eaf6;border-radius:12px 12px 0 0; }
+#editJobModal .jo-create-section-header .jo-create-section-icon { display:inline-grid;place-items:center;width:34px;height:34px;flex:0 0 34px;color:#1856b1;background:#e6efff;border-radius:10px; }
+#editJobModal .jo-create-section-header h3 { font-size:13px;font-weight:800;color:#092343;margin:0; }
+#editJobModal .jo-create-section-header .jo-create-section-number { color:#164fa1; }
+#editJobModal .jo-create-section-header p { color:#687f9f;margin:3px 0 0;font-size:11px; }
+#editJobModal .jo-create-job-details-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding:14px; }
+#editJobModal .jo-create-job-details-grid>.ui-form-full { grid-column:1/-1; }
+#editJobModal #edit_work_to_perform { min-height:42px;max-height:98px;resize:vertical; }
+#editJobModal .jo-create-job-details-grid .jo-create-problem-field textarea { min-height:72px; }
+#editJobModal .jo-create-section[data-collapsed="true"]>:not(.jo-create-section-header) { display:none!important; }
+#editJobModal .jo-create-section[data-collapsed="true"]>.jo-create-section-header { border-bottom:0; border-radius:12px; }
+#editJobModal .jo-create-section .jo-edit-step-toggle { margin-left:auto; }
+#editJobModal .jo-create-section .jo-edit-details-grid { padding:14px; }
+@media(max-width:720px){#editJobModal .jo-create-job-details-grid{grid-template-columns:1fr}}
