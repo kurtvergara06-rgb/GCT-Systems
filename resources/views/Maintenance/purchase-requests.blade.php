@@ -152,7 +152,7 @@
                   </div>
 
                   @if($recordView === 'pending')
-                  <div class="table-wrap purchase-table-wrap">
+                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
                       <table class="purchase-request-table pr-pending-table">
                           <thead><tr><th>JO ID</th><th>BUS</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE QTY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                           <tbody>
