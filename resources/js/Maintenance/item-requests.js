@@ -6,10 +6,10 @@ document.addEventListener('click', (event) => {
     if (open) {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
-        const select = document.getElementById('item_request_job_order');
-        if (open.dataset.irReviewJob && select) select.value = open.dataset.irReviewJob;
+        const linkedJob = document.getElementById('item_request_job_order');
+        if (linkedJob) linkedJob.value = open.dataset.irReviewJob || '';
         renderItemRequestPreview();
-        select?.focus();
+        modal.querySelector('#item_request_job_order_display')?.focus();
     }
     if (close) {
         modal.classList.remove('is-open');
@@ -123,8 +123,10 @@ function renderItemRequestPreview() {
     let previews = {};
     try { previews = JSON.parse(source.textContent || '{}'); } catch (_) { return; }
     const jo = previews[select.value];
-    document.getElementById('ir-preview-bus').textContent = jo?.bus || 'Select a JO';
-    document.getElementById('ir-preview-mechanic').textContent = jo?.mechanic || 'Select a JO';
+    const display = document.getElementById('item_request_job_order_display');
+    if (display) display.textContent = jo ? (jo.job_order_no || jo.jobOrderNo || jo.job || 'Approved Job Order') + ' — Bus ' + (jo.bus || '—') : 'No Job Order linked';
+    document.getElementById('ir-preview-bus').textContent = jo?.bus || '—';
+    document.getElementById('ir-preview-mechanic').textContent = jo?.mechanic || '—';
     tbody.replaceChildren();
     if (!jo || !Array.isArray(jo.parts) || !jo.parts.length) {
         const tr = document.createElement('tr');
