@@ -869,6 +869,13 @@ window.GCTPartialNavigation.registerInitializer(
       document.getElementById(
         'jobOrderSelect'
       );
+    const linkedJobDisplay = document.getElementById('prReviewLinkedJo');
+    const syncLinkedJobDisplay = () => {
+      if (!linkedJobDisplay) return;
+      const value = jobOrderSelect?.value || '';
+      linkedJobDisplay.textContent = value ? value + ' — linked approved Job Order' : 'No Job Order linked';
+    };
+
 
     const busNoInput =
       document.getElementById(
@@ -942,6 +949,7 @@ window.GCTPartialNavigation.registerInitializer(
         jobOrderSelect.value = trigger.dataset.prReviewJob || '';
         jobOrderSelect.dispatchEvent(new Event('change', { bubbles: true }));
       }
+      syncLinkedJobDisplay();
     });
 
     closePrModal
@@ -1016,6 +1024,7 @@ window.GCTPartialNavigation.registerInitializer(
       const sequence = ++jobOrderRequestSequence;
       const selectedOption = jobOrderSelect?.options[jobOrderSelect.selectedIndex];
       const dataUrl = selectedOption?.dataset.jobOrderUrl;
+      syncLinkedJobDisplay();
 
       if (createPrBtn) createPrBtn.disabled = true;
       if (prPartsError) {
