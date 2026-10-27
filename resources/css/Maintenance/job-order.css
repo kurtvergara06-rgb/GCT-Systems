@@ -6104,3 +6104,19 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   .jo-head-review-body .jo-head-parts-decision .jo-duration-decision-field,
   .jo-review-panel .jo-head-parts-decision .jo-duration-decision-field { padding: 10px 12px 12px; }
 }
+
+/* Revision form follows Create JO's numbered, compact section design. */
+#editJobModal .jo-edit-creation-step { border:1px solid #dce7f5; border-radius:12px; background:#fff; overflow:hidden; margin-bottom:12px; }
+#editJobModal .jo-edit-creation-step>.jo-edit-section-header { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#f4f8fd; border-bottom:1px solid #dfebf7; }
+#editJobModal .jo-edit-creation-step>.jo-edit-section-header h3 { font-size:13px; font-weight:800; margin:0; color:#18365b; }
+#editJobModal .jo-edit-creation-step>.jo-edit-section-header p { margin:4px 0 0; font-size:11px; color:#69809d; }
+#editJobModal .jo-edit-creation-step .jo-edit-step-number { color:#1b5bb3; }
+#editJobModal .jo-edit-creation-step .jo-edit-section-icon { width:32px; min-width:32px; height:32px; display:grid; place-items:center; border-radius:9px; background:#e7f0ff; color:#1a5bb5; }
+#editJobModal .jo-edit-basic-grid,#editJobModal .jo-edit-details-grid,#editJobModal .jo-edit-duration-content { padding:14px; }
+#editJobModal .jo-edit-duration-content { max-width:480px; }
+#editJobModal .jo-edit-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#editJobModal .jo-edit-details-grid>.ui-form-group:has(#edit_assigned_mechanic) { grid-column:1/-1; }
+#editJobModal #edit_assigned_mechanic { width:100%; min-height:92px; }
+#editJobModal .jo-edit-parts-table { margin:12px 14px 14px; }
+#editJobModal .jo-edit-add-part-btn { margin-left:auto; }
+@media(max-width:720px){#editJobModal .jo-edit-details-grid { grid-template-columns:1fr; } #editJobModal .jo-edit-duration-content{max-width:none}}
