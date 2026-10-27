@@ -19,15 +19,26 @@ class JobOrderWorkflowService
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $busyIds = JobOrderMechanic::query()
             ->whereHas('jobOrder', function ($query) use ($jobOrder): void {
-                $query->where('status', 'On Going')
-                    ->where('review_status', 'Approved')
+                $query->whereIn('status', ['On Hold', 'On Going'])
+                    ->where(function ($review) {
+                        $review->whereIn('review_status', ['For Review', 'Revision Required', 'Approved'])
+                            // Legacy active work may not have a review status.
+                            ->orWhere(function ($legacy) {
+                                $legacy->whereNull('review_status')->where('status', 'On Going');
+                            });
+                    })
                     ->when($jobOrder, fn ($nested) => $nested->whereKeyNot($jobOrder->id));
             })
             ->whereNotNull('mechanic_id')
             ->pluck('mechanic_id');
         $legacyNames = JobOrder::query()
-            ->where('status', 'On Going')
-            ->where('review_status', 'Approved')
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->where(function ($review) {
+                $review->whereIn('review_status', ['For Review', 'Revision Required', 'Approved'])
+                    ->orWhere(function ($legacy) {
+                        $legacy->whereNull('review_status')->where('status', 'On Going');
+                    });
+            })
             ->when($jobOrder, fn ($query) => $query->whereKeyNot($jobOrder->id))
             ->whereDoesntHave('mechanicAssignments')
             ->pluck('assigned_mechanic')
