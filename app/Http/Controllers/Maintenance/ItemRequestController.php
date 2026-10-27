@@ -61,6 +61,12 @@ class ItemRequestController extends Controller
             ->with('approver')
             ->orderByDesc('created_at')
             ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'inventory_snapshot', 'part_status', 'created_at', 'approved_by']);
+        $issuedQuantitiesByJo = ItemRequest::query()
+            ->whereIn('job_order_id', $candidateJobs->pluck('id'))
+            ->where('status', 'Issued')->get()
+            ->groupBy('job_order_id')
+            ->map(fn ($requests) => $requests->sum(fn ($ir) =>
+                collect($ir->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0))));
         $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
             try {
                 return $irParts->availableParts((string) $job->part_needed, $job) !== [];
@@ -68,9 +74,10 @@ class ItemRequestController extends Controller
                 return false;
             }
         })->values();
-        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts) {
+        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts, $issuedQuantitiesByJo) {
             return [$job->id => [
                 'jo' => $job->job_order_no,
+                'previously_issued' => (int) $issuedQuantitiesByJo->get($job->id, 0),
                 'bus' => $job->bus_no,
                 'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
                 'approver' => $job->approver?->name ?? 'Not recorded',
@@ -95,9 +102,10 @@ class ItemRequestController extends Controller
             $pendingJobs = $pendingJobs->filter(function (JobOrder $job) use ($request, $parser, $jobOrderPreviews): bool {
                 $all = $parser->parsePartText((string) $job->part_needed);
                 $parts = $jobOrderPreviews->get($job->id)['parts'] ?? [];
-                $blocked = collect($all)->sum('quantity') > collect($parts)->sum('quantity')
+                $remaining = max(0, collect($all)->sum('quantity') - (int) ($jobOrderPreviews->get($job->id)['previously_issued'] ?? 0));
+                $blocked = $remaining > collect($parts)->sum('quantity')
                     && $job->parts_issue_strategy !== 'issue_available_only';
-                return $request->query('status') === ($blocked ? 'Head Decision Required' : 'Pending Review');
+                return $request->query('status') === ($blocked ? 'Waiting for Complete Stock' : 'Pending Review');
             })->values();
         }
         if ($sortField === 'id') {
