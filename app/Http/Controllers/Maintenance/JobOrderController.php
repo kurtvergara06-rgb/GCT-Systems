@@ -349,6 +349,38 @@ class JobOrderController extends Controller
         ]);
     }
 
+    /**
+     * Detailed stock breakdown for authorized Maintenance Head JO review only.
+     * Do not expose numerical on-hand quantities through the staff endpoint.
+     */
+    public function headReviewInventoryAvailability(Request $request)
+    {
+        $this->assertMaintenanceHead();
+        $validated = $request->validate([
+            'parts' => 'nullable|array',
+            'parts.*.name' => 'required|string|max:255',
+            'parts.*.quantity' => 'required|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
+        ]);
+        $result = $this->workflow->inventoryAvailability(
+            $this->partParser->normalizePartsInput($validated['parts'] ?? [])
+        );
+
+        return response()->json([
+            'parts' => array_map(static function (array $part): array {
+                $required = (int) $part['quantity'];
+                $available = (int) $part['available'];
+                return [
+                    'required' => $required,
+                    'available' => $available,
+                    'shortage' => max(0, $required - $available),
+                    'status' => $available >= $required ? 'Available'
+                        : ($available > 0 ? 'Partially Available' : 'Unavailable'),
+                ];
+            }, $result['parts']),
+        ]);
+    }
+
     public function inventoryAvailability(Request $request)
     {
         $validated = $request->validate([
