@@ -45,7 +45,7 @@ function initBatchAttendancePage() {
                             </div>
                         </div>
                     </div>
-                    <div class="batch-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end">${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="font-size:12px;color:#64748b;white-space:nowrap"></span></div>` : ''}
+                    <div class="batch-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end">
                     <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button></div>
                 </div>
 
@@ -71,6 +71,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchUseCurrentTime"><i class="fa-regular fa-clock"></i> Use Current Time</button>
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
+                        ${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin-left:auto"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="font-size:12px;color:#64748b;white-space:nowrap"></span></div>` : ''}
                     </div>
                     ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
