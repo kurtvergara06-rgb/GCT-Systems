@@ -1,0 +1,85 @@
+<?php
+
+namespace Tests\Feature\Maintenance;
+
+use App\Models\Admin\User;
+use App\Models\Maintenance\ItemRequest;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\JobOrderPartReservation;
+use App\Models\Warehouse\InventoryItem;
+use App\Models\Warehouse\InventoryIssuance;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class ItemRequestPartialIssuanceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_two_signed_partial_handover_batches_issue_only_the_remaining_quantities(): void
+    {
+        Storage::fake('local');
+        $staff = User::factory()->create([
+            'department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active',
+        ]);
+        $stock = InventoryItem::create([
+            'item_code' => 'FILTER-IR-BATCH',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'on_hand' => 10,
+            'quantity_available' => 10,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-2026-0998',
+            'bus_no' => 'BUS-IR-98',
+            'problem_issue' => 'Change oil filter',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Mechanic Test',
+            'part_needed' => 'Oil Filter - Qty: 10 pc',
+            'review_status' => 'Approved',
+            'parts_issue_strategy' => 'issue_available_only',
+            'inventory_snapshot' => ['shortages' => [], 'status' => 'sufficient'],
+            'part_status' => 'Not Requested',
+            'status' => 'On Hold',
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jo->id,
+            'inventory_item_id' => $stock->id,
+            'quantity' => 10,
+        ]);
+        $ir = ItemRequest::create([
+            'job_order_id' => $jo->id,
+            'requested_by' => $staff->id,
+            'status' => 'Submitted',
+            'requested_parts' => [['name' => 'Oil Filter', 'quantity' => 10, 'unit' => 'pc']],
+        ]);
+        $this->actingAs($staff)->post(route('warehouse.item-requests.issue', $ir), [
+            'received_by' => 'Mechanic Test',
+            'signed_slip' => UploadedFile::fake()->create('handover1.pdf', 100, 'application/pdf'),
+            'handover_confirmed' => '1',
+            'issued_quantities' => [6],
+        ])->assertRedirect();
+        $this->assertSame('Partially Issued', $ir->fresh()->status);
+        $this->assertSame(4, (int) $stock->fresh()->quantity_available);
+        $this->assertSame(4, (int) JobOrderPartReservation::where('job_order_id', $jo->id)->value('quantity'));
+
+        $this->actingAs($staff)->post(route('warehouse.item-requests.issue', $ir), [
+            'received_by' => 'Mechanic Test',
+            'signed_slip' => UploadedFile::fake()->create('handover2.pdf', 100, 'application/pdf'),
+            'handover_confirmed' => '1',
+            'issued_quantities' => [4],
+        ])->assertRedirect();
+        $this->assertSame('Issued', $ir->fresh()->status);
+        $this->assertSame('Issued', $jo->fresh()->part_status);
+        $this->assertSame(0, (int) $stock->fresh()->quantity_available);
+        $this->assertSame(0, JobOrderPartReservation::where('job_order_id', $jo->id)->sum('quantity'));
+        $ref = 'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT);
+        $this->assertSame(2, InventoryIssuance::where('reference_no', $ref)
+            ->orWhere('reference_no', 'like', $ref.'-B%')->count());
+    }
+}
