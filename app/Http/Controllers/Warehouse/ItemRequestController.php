@@ -244,7 +244,9 @@ class ItemRequestController extends Controller
     public function signedSlip(ItemRequest $itemRequest)
     {
         $reference = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        $issuance = InventoryIssuance::query()->where('reference_no', $reference)->firstOrFail();
+        $issuance = InventoryIssuance::query()->where(fn ($query) => $query
+            ->where('reference_no', $reference)->orWhere('reference_no', 'like', $reference.'-B%'))
+            ->latest('id')->firstOrFail();
         if (! $issuance->signed_slip_path || ! Storage::disk('local')->exists($issuance->signed_slip_path)) {
             abort(404, 'Signed issuance slip not found.');
         }
@@ -252,7 +254,7 @@ class ItemRequestController extends Controller
         return Storage::disk('local')->download($issuance->signed_slip_path);
     }
 
-    public function index(Request $request)
+    public function index(Request $request, PartParser $parser)
     {
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
         $view = $request->query('view') === 'history' ? 'history' : 'active';
@@ -289,8 +291,10 @@ class ItemRequestController extends Controller
         $requests = $query->orderBy($sort, $direction)->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         $workflow = app(JobOrderWorkflowService::class);
-        $stockByRequest = $requests->getCollection()->mapWithKeys(function (ItemRequest $ir) use ($workflow) {
-            $snapshot = $workflow->inventoryAvailability($ir->requested_parts ?? []);
+        $stockByRequest = $requests->getCollection()->mapWithKeys(function (ItemRequest $ir) use ($workflow, $parser) {
+            // Use the same reservation-aware, remaining-quantity view as the
+            // issuance modal, not raw global free stock (which excludes this JO).
+            $snapshot = $this->verify($ir, $workflow, $parser)->getData(true);
             return [$ir->id => $snapshot];
         });
         $totalCount = ItemRequest::count();
