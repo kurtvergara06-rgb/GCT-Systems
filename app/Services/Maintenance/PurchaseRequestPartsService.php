@@ -23,9 +23,10 @@ class PurchaseRequestPartsService
         }
 
         $availability = $this->workflow->inventoryAvailability($requestedParts);
-        $partKey = fn (array $part): string =>
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
-            $this->partParser->normalizeUnit((string) ($part['unit'] ?? ''));
+        $partKey = fn (array $part): string => ! empty($part['inventory_item_id'])
+            ? 'id:'.(int) $part['inventory_item_id']
+            : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
+                $this->partParser->normalizeUnit((string) ($part['unit'] ?? ''));
         $partsByName = collect($availability['parts'])->groupBy($partKey);
         // If a split IR was submitted first, purchase only the JO quantity
         // that is not already accounted for by that IR. This also remains
@@ -97,6 +98,7 @@ class PurchaseRequestPartsService
                 'category' => $part['category'] ?: 'Uncategorized',
                 'quantity' => $shortage,
                 'unit' => $part['unit'],
+                'inventory_item_id' => $part['inventory_item_id'] ?? null,
                 'availability' => 'Unavailable',
             ];
         }
