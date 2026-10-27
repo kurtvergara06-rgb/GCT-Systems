@@ -104,11 +104,11 @@ class JobOrderPartReservationTest extends TestCase
             'review_status' => 'For Review', 'status' => 'On Hold',
         ]);
         DB::transaction(fn () => app(PartsReservationService::class)->reserveForApproval($jo));
-        $ledger = app(\\App\\Services\\Warehouse\\InventoryLedgerService::class);
+        $ledger = app(\App\Services\Warehouse\InventoryLedgerService::class);
         try {
             $ledger->stockOut($item, 1, 'OTHER-REQUEST');
             $this->fail('Unrelated issuance must not consume reserved stock.');
-        } catch (\\InvalidArgumentException $exception) {
+        } catch (\InvalidArgumentException $exception) {
             $this->assertStringContainsString('reserved', $exception->getMessage());
         }
         $this->assertSame(10, (int) $item->fresh()->quantity_available);
