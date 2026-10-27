@@ -57,25 +57,46 @@
                         <details class="warehouse-pr-parts-more">
                           <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                           <div class="warehouse-pr-parts-popup warehouse-pr-stock-popover">
-                            <div class="warehouse-pr-popup-title">Purchase shortage breakdown</div>
-                            @foreach($partDetails as $part)
+                            <div class="warehouse-pr-popup-title">JO requirement &amp; purchase shortage</div>
+                            @php
+                              $joParts = collect($partRequest->jo_parts_requirement ?? []);
+                              $normalizedName = fn ($value) => mb_strtolower(trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) $value)));
+                              $displayParts = $joParts->isNotEmpty() ? $joParts : $partDetails;
+                            @endphp
+                            @foreach($displayParts as $part)
                               @php
-                                $stockNeeded = (int) ($part['needed'] ?? 0);
-                                $stockAvailable = (int) ($part['available'] ?? 0);
-                                $stockShort = max(0, $stockNeeded - $stockAvailable);
+                                $joName = $part['name'] ?? '—';
+                                $joItemId = (int) ($part['inventory_item_id'] ?? 0);
+                                $matchingPr = $joParts->isNotEmpty()
+                                  ? $partDetails->first(function ($pr) use ($joName, $joItemId, $normalizedName) {
+                                      $prName = (string) ($pr['name'] ?? '');
+                                      return ($joItemId > 0 && str_contains($prName, '[item:'.$joItemId.']'))
+                                        || $normalizedName($prName) === $normalizedName($joName);
+                                    })
+                                  : $part;
+                                $joRequired = (int) ($part['quantity'] ?? $part['needed'] ?? 0);
+                                $prRequired = (int) ($matchingPr['needed'] ?? 0);
+                                $prAvailable = (int) ($matchingPr['available'] ?? 0);
+                                $shortForPurchase = max(0, $prRequired - $prAvailable);
+                                $unit = $part['unit'] ?? $matchingPr['unit'] ?? '';
                               @endphp
                               <div class="warehouse-pr-stock-popover-row">
                                 <span class="warehouse-pr-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
                                 <span class="warehouse-pr-stock-popover-info">
-                                  <strong class="warehouse-pr-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
-                                  <small>Required: {{ $part['needed_display'] ?? ($stockNeeded.' '.($part['unit'] ?? '')) }}</small>
+                                  <strong class="warehouse-pr-stock-popover-name">{{ $joName }}</strong>
+                                  <small>JO required: {{ $joRequired }} {{ $unit }}</small>
                                 </span>
                                 <span class="warehouse-pr-stock-popover-amount">
-                                  <strong>{{ $part['available_display'] ?? ($stockAvailable.' '.($part['unit'] ?? '')) }}</strong>
-                                  @if($stockShort > 0)
-                                    <small class="warehouse-pr-shortage-quantity">{{ $stockShort }} {{ $part['unit'] ?? '' }} shortage · Needs purchase</small>
+                                  @if($matchingPr)
+                                    <strong>{{ $prRequired }} {{ $unit }} in PR</strong>
+                                    @if($shortForPurchase > 0)
+                                      <small class="warehouse-pr-shortage-quantity">{{ $shortForPurchase }} {{ $unit }} to purchase</small>
+                                    @else
+                                      <small class="warehouse-pr-stock-ok">PR quantity covered</small>
+                                    @endif
                                   @else
-                                    <small class="warehouse-pr-stock-ok">No shortage</small>
+                                    <strong>Not in PR</strong>
+                                    <small class="warehouse-pr-stock-ok">Check linked IR for issuance</small>
                                   @endif
                                 </span>
                               </div>
