@@ -1070,6 +1070,8 @@ window.GCTPartialNavigation.registerInitializer(
           prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
         }
         if (busNoInput) busNoInput.value = data.bus_no || '';
+        const mechanics = document.getElementById('prReviewMechanics');
+        if (mechanics) mechanics.textContent = data.assigned_mechanics || 'Not assigned';
         const reviewBus = document.getElementById('prReviewBus');
         if (reviewBus) reviewBus.textContent = data.bus_no || '—';
         if (prPurpose && !prPurpose.dataset.userEdited) {
