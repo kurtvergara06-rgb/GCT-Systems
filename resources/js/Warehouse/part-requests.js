@@ -306,6 +306,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       parts = [];
     }
 
+    if (activeRowActions) closePrReview();
     issuePartsForm.action = button.dataset.action || '';
     setField('issue_pr_no', button.dataset.prNo, 'Purchase Request');
     renderIssueFields(parts);
