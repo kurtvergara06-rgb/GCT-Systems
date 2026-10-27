@@ -359,6 +359,7 @@ class JobOrderController extends Controller
             'parts.*.name' => 'required|string|max:255',
             'parts.*.quantity' => 'required|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
         ]);
         $result = $this->workflow->inventoryAvailability(
             $this->partParser->normalizePartsInput($validated['parts'] ?? [])
