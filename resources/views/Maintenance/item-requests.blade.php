@@ -197,13 +197,9 @@
                 <div class="ir-form-section">
                     <h3><span>01</span> Job Order Information <small>Source details</small></h3>
                     <div class="ir-field">
-                        <label for="item_request_job_order">Approved Job Order <span>*</span></label>
-                        <select id="item_request_job_order" name="job_order_id" required>
-                            <option value="">Select approved Job Order</option>
-                            @foreach($eligibleJobs as $jo)
-                                <option value="{{ $jo->id }}" @selected(old('job_order_id') == $jo->id)>{{ $jo->job_order_no }} — Bus {{ $jo->bus_no }}</option>
-                            @endforeach
-                        </select>
+                        <label for="item_request_job_order_display">Approved Job Order <span>*</span></label>
+                        <input type="hidden" id="item_request_job_order" name="job_order_id" value="{{ old('job_order_id', '') }}" required>
+                        <div id="item_request_job_order_display" class="ir-linked-jo-display" aria-live="polite">Linked automatically from the selected Job Order</div>
                     </div>
                     <div class="ir-preview-grid">
                         <div><span class="ir-preview-card-icon"><i class="fa-solid fa-bus-simple"></i></span><span>Bus Number</span><strong id="ir-preview-bus">Select a JO</strong></div>
