@@ -5553,3 +5553,17 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal, #editJobModal) .jo-create-section-header > .jo-collapse-toggle { margin-left:auto; flex:0 0 32px; }
 :is(#jobModal, #editJobModal) .jo-create-section-header.jo-create-parts-header > .jo-collapse-toggle { margin-left:8px; }
 :is(#jobModal, #editJobModal) .jo-create-section[data-jo-collapsible].is-collapsed { overflow:hidden; }
+
+/* Align step completion badges beside the right-hand accordion chevron. */
+:is(#jobModal, #editJobModal) .jo-create-section-header > .jo-section-progress {
+  margin-left: auto !important;
+}
+:is(#jobModal, #editJobModal) .jo-create-section-header > .jo-collapse-toggle {
+  margin-left: 8px !important;
+}
+:is(#jobModal, #editJobModal) .jo-create-parts-header > .jo-create-add-part-btn {
+  margin-left: auto !important;
+}
+:is(#jobModal, #editJobModal) .jo-create-parts-header > .jo-section-progress {
+  margin-left: 0 !important;
+}
