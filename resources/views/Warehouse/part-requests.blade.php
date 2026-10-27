@@ -37,7 +37,7 @@
         <div class="section-header warehouse-record-header">
           <div>
             <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
-            <h2>{{ $isHistory ? 'Part Request History' : ($isJo ? 'Job Order Requests' : 'Active Part Requests') }}</h2>
+            <h2>{{ $isJo ? 'Job Order Requests' : 'Part Request Records' }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
         <div class="warehouse-request-count">
@@ -98,7 +98,6 @@
                   <th class="qty-col">Qty</th>
                   <th class="qty-col">On Hand</th>
                   <th class="status-col">Inventory</th>
-                  <th class="status-col">Purchase</th>
                   <th class="status-col">Warehouse</th>
                 @endif
                 <th class="actions-col">Actions</th>
