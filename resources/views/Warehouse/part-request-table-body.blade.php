@@ -59,12 +59,28 @@
                         <strong>Stock Summary</strong>
                         <details class="warehouse-pr-parts-more">
                           <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                          <div class="warehouse-pr-parts-popup">
-                            <strong class="warehouse-pr-popup-title">Warehouse Stock Breakdown</strong>
+                          <div class="warehouse-pr-parts-popup warehouse-pr-stock-popover">
+                            <div class="warehouse-pr-popup-title">Warehouse stock breakdown</div>
                             @foreach($partDetails as $part)
-                              <div>
-                                <span>{{ $part['name'] ?? '—' }}<small>Required: {{ $part['needed_display'] ?? (($part['needed'] ?? 0).' '.($part['unit'] ?? '')) }}</small></span>
-                                <strong>{{ $part['available_display'] ?? (($part['available'] ?? 0).' '.($part['unit'] ?? '')) }}</strong>
+                              @php
+                                $stockNeeded = (int) ($part['needed'] ?? 0);
+                                $stockAvailable = (int) ($part['available'] ?? 0);
+                                $stockShort = max(0, $stockNeeded - $stockAvailable);
+                              @endphp
+                              <div class="warehouse-pr-stock-popover-row">
+                                <span class="warehouse-pr-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                                <span class="warehouse-pr-stock-popover-info">
+                                  <strong class="warehouse-pr-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
+                                  <small>Required: {{ $part['needed_display'] ?? ($stockNeeded.' '.($part['unit'] ?? '')) }}</small>
+                                </span>
+                                <span class="warehouse-pr-stock-popover-amount">
+                                  <strong>{{ $part['available_display'] ?? ($stockAvailable.' '.($part['unit'] ?? '')) }}</strong>
+                                  @if($stockShort > 0)
+                                    <small class="warehouse-pr-shortage-quantity">{{ $stockShort }} short</small>
+                                  @else
+                                    <small class="warehouse-pr-stock-ok">In stock</small>
+                                  @endif
+                                </span>
                               </div>
                             @endforeach
                           </div>
