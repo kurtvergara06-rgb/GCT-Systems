@@ -73,7 +73,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     optionsContainer.className = 'jo-maintenance-job-options';
     menu.appendChild(optionsContainer);
 
-    combobox.append(trigger, menu);
+    const selectedChips = document.createElement('div');
+    selectedChips.className = 'jo-maintenance-job-selected-chips';
+    selectedChips.setAttribute('aria-label', 'Selected maintenance jobs');
+    selectedChips.hidden = true;
+    combobox.append(trigger, selectedChips, menu);
     nativeWrap.insertAdjacentElement('afterend', combobox);
 
     const label = trigger.querySelector('.jo-maintenance-job-label');
@@ -85,10 +89,29 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       const selectedJobs = select.id === 'newJoMaintenanceJob' && select.getSelectedJobs
         ? select.getSelectedJobs() : [];
       label.textContent = selectedJobs.length
-        ? selectedJobs.join(', ')
+        ? selectedJobs.length + (selectedJobs.length === 1 ? ' Maintenance Job selected' : ' Maintenance Jobs selected')
         : (hasValue ? selectedOption.textContent.trim() : 'Select Maintenance Job');
-
-      label.classList.toggle('placeholder', !hasValue);
+      label.classList.toggle('placeholder', !hasValue && !selectedJobs.length);
+      selectedChips.replaceChildren();
+      selectedChips.hidden = selectedJobs.length === 0;
+      selectedJobs.forEach((job) => {
+        const chip = document.createElement('span');
+        chip.className = 'jo-maintenance-job-chip';
+        const name = document.createElement('span');
+        name.textContent = job;
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'jo-maintenance-job-chip-remove';
+        remove.setAttribute('aria-label', 'Remove ' + job);
+        remove.innerHTML = '&times;';
+        remove.addEventListener('click', (event) => {
+          event.stopPropagation();
+          select.toggleJobSelection?.(job);
+          sync();
+        });
+        chip.append(name, remove);
+        selectedChips.appendChild(chip);
+      });
 
       optionsContainer
         .querySelectorAll('.jo-maintenance-job-option')
