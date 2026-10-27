@@ -628,6 +628,12 @@ class JobOrderController extends Controller
                 'inventory_snapshot' => $inventory,
             ]);
 
+            // Claim stock atomically at submission; physical inventory is not deducted here.
+            $reservation = app(\App\Services\Maintenance\PartsReservationService::class)->reserveForApproval($createdJobOrder);
+            $createdJobOrder->update([
+                'inventory_availability' => $reservation['status'],
+                'inventory_snapshot' => array_merge($reservation, ['reservation_at_submission' => true]),
+            ]);
             $this->workflow->syncMechanics($createdJobOrder, $mechanics, auth()->id());
             $this->workflow->audit($createdJobOrder, 'created', null, 'For Review', 'Submitted for Maintenance Head review.', [
                 'maintenance_job' => $validated['maintenance_job'] ?? null,
@@ -890,6 +896,17 @@ class JobOrderController extends Controller
                 }
             }
             $locked->update($updates);
+            if ($wasRevision && isset($locked->inventory_snapshot['reservation_at_submission'])) {
+                // Reconcile changed part quantities while holding the JO transaction lock.
+                $reservationService = app(\App\Services\Maintenance\PartsReservationService::class);
+                $reservationService->release($locked);
+                $locked->update(['inventory_snapshot' => null]);
+                $newReservation = $reservationService->reserveForApproval($locked);
+                $locked->update([
+                    'inventory_availability' => $newReservation['status'],
+                    'inventory_snapshot' => array_merge($newReservation, ['reservation_at_submission' => true]),
+                ]);
+            }
             $this->workflow->syncMechanics($locked, $lockedMechanics, auth()->id());
             if ($wasRevision) {
                 $this->workflow->audit(
@@ -1173,6 +1190,7 @@ class JobOrderController extends Controller
             // Rejected review records are terminal but are not genuine completed
             // repairs. Keeping the operational status terminal prevents them from
             // blocking bus scheduling; review_status distinguishes them in history.
+            app(\App\Services\Maintenance\PartsReservationService::class)->release($locked);
             $locked->update([
                 'status' => 'Completed',
                 'review_status' => 'Rejected',
