@@ -548,7 +548,7 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : [])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
+        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : ['Late'])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function statusThemeClass(value) {
