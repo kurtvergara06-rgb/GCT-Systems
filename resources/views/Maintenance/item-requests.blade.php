@@ -93,7 +93,7 @@
                     @endif
                 </td>
                 <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Ready for IR Review' }}</span></td>
-                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
+                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
             </tr>
             @empty
             <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
