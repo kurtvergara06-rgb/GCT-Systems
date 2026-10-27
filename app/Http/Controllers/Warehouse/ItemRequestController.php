@@ -30,12 +30,13 @@ class ItemRequestController extends Controller
         $previous = InventoryIssuance::query()->where(fn ($query) => $query
             ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))
             ->with('items')->get();
-        $key = static fn ($name, $unit): string =>
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+        $key = static fn ($name, $unit, $id = null): string => $id
+            ? 'id:'.(int) $id
+            : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
         $issued = [];
         foreach ($previous as $batch) {
             foreach ($batch->items as $entry) {
-                $k = $key($entry->item_name, $entry->unit);
+                $k = $key($entry->item_name, $entry->unit, $entry->inventory_item_id);
                 $issued[$k] = ($issued[$k] ?? 0) + (int) $entry->quantity;
             }
         }
@@ -48,7 +49,7 @@ class ItemRequestController extends Controller
             $id = $part['inventory_item_id'] ?? null;
             $quantity = (int) ($part['quantity'] ?? 0);
             $part['requested_total'] = $quantity;
-            $partKey = $key($part['name'], $part['unit']);
+            $partKey = $key($part['name'], $part['unit'], $part['inventory_item_id'] ?? null);
             $already = min($quantity, (int) ($issued[$partKey] ?? 0));
             $issued[$partKey] = max(0, (int) ($issued[$partKey] ?? 0) - $already);
             $part['already_issued'] = $already;
@@ -130,7 +131,7 @@ class ItemRequestController extends Controller
                 $already = [];
                 foreach ($previous as $batch) {
                     foreach ($batch->items as $entry) {
-                        $partKey = $key($entry->item_name, $entry->unit);
+                        $partKey = $key($entry->item_name, $entry->unit, $entry->inventory_item_id);
                         $already[$partKey] = ($already[$partKey] ?? 0) + (int) $entry->quantity;
                     }
                 }
@@ -146,10 +147,10 @@ class ItemRequestController extends Controller
                     if ($name === '' || $unit === '' || $quantity < 1 || $issueNow < 0) {
                         throw ValidationException::withMessages(['issued_quantities' => 'Invalid item, unit, or issued quantity.']);
                     }
-                    $partKey = $key($name, $unit);
+                    $partKey = $key($name, $unit, $part['inventory_item_id'] ?? null);
                     $expectedTotals[$partKey] = ($expectedTotals[$partKey] ?? 0) + $quantity;
                     $nowTotals[$partKey] = ($nowTotals[$partKey] ?? 0) + $issueNow;
-                    $needs[$partKey] = ['name' => $name, 'unit' => $unit];
+                    $needs[$partKey] = ['name' => $name, 'unit' => $unit, 'inventory_item_id' => $part['inventory_item_id'] ?? null];
                 }
                 if (array_sum($nowTotals) < 1) {
                     throw ValidationException::withMessages(['issued_quantities' => 'Issue at least one item.']);
@@ -173,8 +174,10 @@ class ItemRequestController extends Controller
                 $allocations = [];
                 foreach ($nowTotals as $partKey => $qty) {
                     if ($qty === 0) continue;
-                    $matches = $inventory->filter(fn (InventoryItem $item) =>
-                        $key($item->parts_name ?? $item->item_name, $item->unit ?? $item->unit_of_measurement) === $partKey)->values();
+                    $matches = ! empty($needs[$partKey]['inventory_item_id'])
+                        ? $inventory->where('id', (int) $needs[$partKey]['inventory_item_id'])->values()
+                        : $inventory->filter(fn (InventoryItem $item) =>
+                            $key($item->parts_name ?? $item->item_name, $item->unit ?? $item->unit_of_measurement) === $partKey)->values();
                     if ($matches->count() !== 1) {
                         throw ValidationException::withMessages(['issue' => 'Inventory item '.$needs[$partKey]['name'].' is missing or ambiguous. Resolve it before issuing.']);
                     }
@@ -246,12 +249,12 @@ class ItemRequestController extends Controller
                 })->with('items')->get();
                 foreach ($allBatches as $batch) {
                     foreach ($batch->items as $line) {
-                        $partKey = $key($line->item_name, $line->unit);
+                        $partKey = $key($line->item_name, $line->unit, $line->inventory_item_id);
                         $issuedAcrossJo[$partKey] = ($issuedAcrossJo[$partKey] ?? 0) + (int) $line->quantity;
                     }
                 }
                 $requiredAcrossJo = collect($parser->parsePartText((string) $jo->part_needed))
-                    ->groupBy(fn ($part) => $key($part['name'], $part['unit']))
+                    ->groupBy(fn ($part) => $key($part['name'], $part['unit'], $part['inventory_item_id'] ?? null))
                     ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
                 $allJoPartsIssued = $requiredAcrossJo->every(fn ($required, $partKey) =>
                     (int) ($issuedAcrossJo[$partKey] ?? 0) >= (int) $required);
