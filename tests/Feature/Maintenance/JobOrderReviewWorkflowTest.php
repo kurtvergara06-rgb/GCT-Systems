@@ -7,9 +7,11 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Models\Warehouse\InventoryItem;
 use App\Services\Maintenance\JobOrderDurationService;
 use App\Http\Middleware\RequireSystemPermission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class JobOrderReviewWorkflowTest extends TestCase
@@ -150,5 +152,50 @@ class JobOrderReviewWorkflowTest extends TestCase
         $this->assertSame('Hours', $suggestion['unit']);
         $this->assertSame(3, $suggestion['sample_size']);
         $this->assertNull(app(JobOrderDurationService::class)->suggestion('PMS'));
+    }
+
+    public function test_failed_approval_does_not_leave_an_orphaned_signature_file(): void
+    {
+        Storage::fake('local');
+        $head = $this->user('head');
+        $bus = Bus::create(['bus_no' => 'BUS-SIGNATURE-ROLLBACK', 'status' => 'Active']);
+        foreach (['DUPLICATE-A', 'DUPLICATE-B'] as $code) {
+            InventoryItem::create([
+                'item_code' => $code,
+                'item_name' => 'Oil Filter',
+                'parts_name' => 'Oil Filter',
+                'category' => 'Filters',
+                'quantity_available' => 5,
+                'on_hand' => 5,
+                'unit' => 'pcs',
+                'unit_of_measurement' => 'pcs',
+                'reorder_level' => 1,
+            ]);
+        }
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-SIGNATURE-ROLLBACK',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Replace oil filter',
+            'maintenance_type' => 'Repair',
+            'part_needed' => 'Oil Filter - Qty: 1 pcs',
+            'part_status' => 'Not Requested',
+            'review_status' => 'For Review',
+            'status' => 'On Hold',
+            'estimated_duration_value' => 1,
+            'estimated_duration_unit' => 'Hours',
+        ]);
+
+        $this->actingAs($head)
+            ->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.approve', $jobOrder), [
+                'electronic_signature' => $head->name,
+                'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+                'duration_decision' => 'accept',
+            ])
+            ->assertSessionHasErrors('parts_issue_strategy');
+
+        Storage::disk('local')->assertDirectoryEmpty('maintenance/job-order-signatures/'.$jobOrder->id);
+        $this->assertSame('For Review', $jobOrder->fresh()->review_status);
+        $this->assertDatabaseMissing('job_order_part_reservations', ['job_order_id' => $jobOrder->id]);
     }
 }

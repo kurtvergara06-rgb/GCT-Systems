@@ -133,7 +133,10 @@
                     </div>
                   </td>
                   <td class="status-col">
-                    <span class="warehouse-jo-availability warehouse-jo-availability-{{ strtolower($job->warehouse_stock_status) }}">{{ $job->warehouse_stock_status }}</span>
+                    <x-ui.status-badge
+                      :status="$job->warehouse_stock_status"
+                      class="warehouse-jo-availability warehouse-jo-availability-{{ strtolower($job->warehouse_stock_status) }}"
+                    />
                   </td>
                   <td class="actions-col">
                     @if($job->warehouse_can_issue && $canEditWarehouse)
@@ -147,7 +150,7 @@
                     @else
                       @if($job->warehouse_has_linked_pr)
                         <a href="{{ route('part-requests', ['view' => 'pr', 'search' => $job->job_order_no]) }}" class="warehouse-jo-linked-pr" title="Open linked requisition in PR Requests">
-                          <i class="fa-solid fa-file-lines" aria-hidden="true"></i> View PR
+                          <i class="fa-solid fa-eye" aria-hidden="true"></i> View PR
                         </a>
                       @else
                         <span class="pr-meta-tag" title="Complete stock and assigned mechanic required before issuance">Pending</span>

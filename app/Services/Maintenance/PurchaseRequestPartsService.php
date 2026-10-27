@@ -33,22 +33,37 @@ class PurchaseRequestPartsService
         // Legacy full-JO IRs retain the live-shortage fallback.
         $irQuantities = collect();
         if ($jobOrder) {
-            $ir = ItemRequest::query()
+            $itemRequests = ItemRequest::query()
                 ->where('job_order_id', $jobOrder->id)
                 ->whereNotIn('status', ['Cancelled', 'Rejected'])
-                ->latest('id')->first();
-            if ($ir) {
-                $irQuantities = collect($ir->requested_parts ?? [])
+                ->latest('id')
+                ->get();
+            $reservationBacked = isset($jobOrder->inventory_snapshot['shortages']);
+
+            if ($reservationBacked && $itemRequests->isNotEmpty()) {
+                // Reservation-backed JOs can legitimately use several IRs
+                // (for example, 6 issued now and a follow-up 4 after restock).
+                // Every non-cancelled/rejected IR is an issued or active
+                // commitment, so aggregate all of them before purchasing.
+                $irQuantities = $itemRequests
+                    ->flatMap(fn (ItemRequest $ir) => $ir->requested_parts ?? [])
                     ->groupBy($partKey)
                     ->map(fn ($parts) => $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
-                $totalIr = $irQuantities->sum();
+            } elseif ($itemRequests->isNotEmpty()) {
+                // Historical IRs captured the full JO requirement even when
+                // Warehouse did not have the stock. Preserve their live-stock
+                // shortage behavior instead of treating the IR as coverage.
+                $ir = $itemRequests->first();
+                $latestIrQuantities = collect($ir->requested_parts ?? [])
+                    ->groupBy($partKey)
+                    ->map(fn ($parts) => $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
+                $totalIr = $latestIrQuantities->sum();
                 $totalJo = collect($requestedParts)->sum('quantity');
                 if ($totalIr >= $totalJo && $ir->status === 'Issued') {
                     return [];
                 }
-                if ($totalIr >= $totalJo) {
-                    // Old IRs captured all JO parts, even missing stock.
-                    $irQuantities = collect();
+                if ($totalIr < $totalJo) {
+                    $irQuantities = $latestIrQuantities;
                 }
             }
         }

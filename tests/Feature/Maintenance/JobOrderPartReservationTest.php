@@ -4,6 +4,7 @@ namespace Tests\Feature\Maintenance;
 
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\JobOrderPartReservation;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Maintenance\ItemRequestPartsService;
 use App\Services\Maintenance\PartsReservationService;
@@ -44,7 +45,7 @@ class JobOrderPartReservationTest extends TestCase
         ]));
         $results = $orders->map(fn (JobOrder $jo) => DB::transaction(fn () => $service->reserveForApproval($jo)));
         $this->assertSame([10, 0, 0], $results->map(fn (array $r) => collect($r['parts'])->sum('reserved'))->all());
-        $this->assertSame(10, JobOrderPartReservation::where('inventory_item_id', $item->id)->sum('quantity'));
+        $this->assertSame(10, (int) JobOrderPartReservation::where('inventory_item_id', $item->id)->sum('quantity'));
         $this->assertSame(10, (int) $item->fresh()->quantity_available);
         $this->assertSame('none', $results[1]['status']);
         $this->assertSame('none', $results[2]['status']);
@@ -114,6 +115,51 @@ class JobOrderPartReservationTest extends TestCase
         $this->assertSame(10, (int) $item->fresh()->quantity_available);
         $ledger->stockOut($item, 10, 'IR-OWN', null, null, $jo->id);
         $this->assertSame(0, (int) $item->fresh()->quantity_available);
+    }
+
+    public function test_sequential_item_requests_cover_requirement_without_duplicate_purchase(): void
+    {
+        $item = InventoryItem::create([
+            'item_code' => 'OIL-FILTER-SPLIT',
+            'item_name' => 'Oil Filter',
+            'parts_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 10,
+            'on_hand' => 10,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-2026-0991',
+            'bus_no' => 'BUS-RES-91',
+            'problem_issue' => 'Replace oil filters',
+            'maintenance_type' => 'Corrective',
+            'part_needed' => 'Oil Filter - Qty: 10 pcs',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'inventory_snapshot' => ['shortages' => ['Oil Filter']],
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jobOrder->id,
+            'inventory_item_id' => $item->id,
+            'quantity' => 10,
+        ]);
+        ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'status' => 'Issued',
+            'requested_parts' => [['name' => 'Oil Filter', 'quantity' => 6, 'unit' => 'pcs']],
+        ]);
+        ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'status' => 'Submitted',
+            'requested_parts' => [['name' => 'Oil Filter', 'quantity' => 4, 'unit' => 'pc']],
+        ]);
+
+        $this->assertSame([], app(PurchaseRequestPartsService::class)->missingParts(
+            (string) $jobOrder->part_needed,
+            $jobOrder
+        ));
     }
 
 }

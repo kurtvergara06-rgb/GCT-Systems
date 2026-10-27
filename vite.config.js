@@ -135,6 +135,7 @@ export default defineConfig({
                 'resources/css/Maintenance/referrals.css',
                 'resources/css/Maintenance/fuel-reports.css',
                 'resources/css/Maintenance/job-order.css',
+                'resources/css/Maintenance/item-requests.css',
                 'resources/css/Maintenance/mechanic-list.css',
                 'resources/css/Maintenance/mechanic-availability-enhancement.css',
                 'resources/css/Maintenance/pms-scheduling.css',
@@ -142,6 +143,7 @@ export default defineConfig({
 
                 'resources/js/Maintenance/fuel-reports.js',
                 'resources/js/Maintenance/job-order.js',
+                'resources/js/Maintenance/item-requests.js',
                 'resources/js/Maintenance/pms-scheduling.js',
                 'resources/js/Maintenance/purchase-requests.js',
 
@@ -244,9 +246,11 @@ export default defineConfig({
                 'resources/css/Warehouse/part-requests-cleanup.css',
                 'resources/css/Warehouse/stock-movements.css',
                 'resources/css/Warehouse/incoming-deliveries.css',
+                'resources/css/Warehouse/item-requests.css',
 
                 'resources/js/Warehouse/dashboard-warehouse.js',
                 'resources/js/Warehouse/inventory.js',
+                'resources/js/Warehouse/item-requests.js',
                 'resources/js/Warehouse/part-requests.js',
                 'resources/js/Warehouse/part-requests-cleanup.js',
             ],

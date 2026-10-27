@@ -45,7 +45,10 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
         $createResponse = $this
             ->actingAs($user)
-            ->post(route('job-orders.create-pr', $jobOrder));
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ]);
 
         $createResponse->assertRedirect();
 
@@ -57,7 +60,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertNotNull($purchaseRequest->approved_at);
         $this->assertSame('Maintenance Request', $purchaseRequest->source_type);
         $this->assertSame(2, (int) $purchaseRequest->quantity);
-        $this->assertSame('Approved', $jobOrder->fresh()->part_status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
         // Warehouse queries approved Maintenance PRs directly: no second approval.
         $this->actingAs($warehouseStaff)->get(route('part-requests'))->assertOk()->assertSee($purchaseRequest->pr_no);

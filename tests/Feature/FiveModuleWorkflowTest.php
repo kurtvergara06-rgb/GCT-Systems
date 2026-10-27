@@ -136,27 +136,26 @@ class FiveModuleWorkflowTest extends TestCase
             'assigned_mechanic' => 'Flow Mechanic',
             'part_needed' => 'Brake Pad - Qty: 2 pcs',
             'start_date' => now(),
-            'status' => 'On Going',
+            'status' => 'On Hold',
             'part_status' => 'Not Requested',
+            'review_status' => 'Approved',
+            'approved_by' => $maintenanceHead->id,
+            'approved_at' => now(),
         ]);
 
         $this->actingAs($maintenanceStaff)
-            ->post(route('job-orders.create-pr', $jobOrder))
-            ->assertRedirect();
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ])
+            ->assertRedirect(route('purchase-requests', ['record_view' => 'active'], false));
 
         $originalPr = PurchaseRequest::query()
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Submitted', $originalPr->status);
-        $this->assertSame('Submitted', $jobOrder->fresh()->part_status);
-
-        $this->actingAs($maintenanceHead)
-            ->post(route('purchase-requests.approve', $originalPr))
-            ->assertRedirect();
-
-        $this->assertSame('Approved', $originalPr->fresh()->status);
-        $this->assertSame('Approved', $jobOrder->fresh()->part_status);
+        $this->assertSame('Approved', $originalPr->status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
         $this->actingAs($warehouseUser)
             ->post(route('part-requests.send-to-purchase', $originalPr))

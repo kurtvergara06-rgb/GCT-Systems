@@ -59,7 +59,8 @@ class WarehouseActiveHistoryTabsTest extends TestCase
 
         $active
             ->assertOk()
-            ->assertSee('Active Part Requests')
+            ->assertSee('Part Request Records')
+            ->assertSee('PR Requests')
             ->assertSee('PR-ACTIVE-TAB')
             ->assertSee('send-purchase-btn', false)
             ->assertDontSee('PR-HISTORY-TAB');
@@ -68,7 +69,7 @@ class WarehouseActiveHistoryTabsTest extends TestCase
 
         $history
             ->assertOk()
-            ->assertSee('Part Request History')
+            ->assertSee('Completed and closed Warehouse requisitions are kept here')
             ->assertSee('PR-HISTORY-TAB')
             ->assertDontSee('PR-ACTIVE-TAB')
             ->assertDontSee('send-purchase-btn', false)
@@ -125,7 +126,7 @@ class WarehouseActiveHistoryTabsTest extends TestCase
     }
 
 
-    public function test_warehouse_can_issue_fully_stocked_jo_once_without_a_pr(): void
+    public function test_warehouse_cannot_issue_a_job_order_without_an_approved_pr(): void
     {
         InventoryItem::create([
             'item_code' => 'FILTER-JO-ISSUE',
@@ -150,17 +151,13 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             'part_status' => 'Not Requested',
         ]);
 
-        $this->post(route('part-requests.job-order.issue', $jo))->assertRedirect();
-        $this->assertSame('Issued', $jo->fresh()->part_status);
-        $this->assertDatabaseHas('inventory_issuances', ['reference_no' => $jo->job_order_no]);
+        $this->post(route('part-requests.job-order.issue', $jo))
+            ->assertRedirect(route('part-requests', ['view' => 'pr']))
+            ->assertSessionHas('error');
+        $this->assertSame('Not Requested', $jo->fresh()->part_status);
+        $this->assertDatabaseMissing('inventory_issuances', ['reference_no' => $jo->job_order_no]);
         $this->assertDatabaseHas('inventory_items', [
-            'item_code' => 'FILTER-JO-ISSUE', 'quantity_available' => 2,
-        ]);
-
-        $this->post(route('part-requests.job-order.issue', $jo))->assertSessionHasErrors('workflow');
-        $this->assertDatabaseCount('inventory_issuances', 1);
-        $this->assertDatabaseHas('inventory_items', [
-            'item_code' => 'FILTER-JO-ISSUE', 'quantity_available' => 2,
+            'item_code' => 'FILTER-JO-ISSUE', 'quantity_available' => 4,
         ]);
     }
 
@@ -197,14 +194,14 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             'source_type' => 'Maintenance Request',
         ]);
 
-        $this->get(route('part-requests', ['view' => 'jo']))
+        $this->get(route('part-requests', ['view' => 'pr', 'search' => $jo->job_order_no]))
             ->assertOk()
+            ->assertSee('PR-WH-LINKED-001')
             ->assertSee('JO-WH-LINKED-001')
-            ->assertSee('Via PR')
             ->assertDontSee('action="'.route('part-requests.job-order.issue', $jo).'"', false);
     }
 
-    public function test_jo_tab_lists_approved_jobs_with_available_parts_without_a_pr(): void
+    public function test_retired_jo_tab_routes_to_pr_queue_without_exposing_unrequested_jobs(): void
     {
         InventoryItem::create([
             'item_code' => 'FILTER-JO-TAB',
@@ -229,10 +226,9 @@ class WarehouseActiveHistoryTabsTest extends TestCase
 
         $this->get(route('part-requests', ['view' => 'jo']))
             ->assertOk()
-            ->assertSee('JO Requests')
-            ->assertSee('JO-WH-TAB-001')
-            ->assertSee('Fuel Filter')
-            ->assertDontSee('open-issue-modal');
+            ->assertSee('PR Requests')
+            ->assertDontSee('JO Requests')
+            ->assertDontSee('JO-WH-TAB-001');
 
         $this->get(route('part-requests', ['view' => 'pr']))
             ->assertOk()

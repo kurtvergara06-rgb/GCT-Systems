@@ -1021,8 +1021,10 @@ class JobOrderController extends Controller
             throw ValidationException::withMessages(['signature_image' => 'The drawn signature is invalid. Clear it and sign again.']);
         }
 
-        $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes, $reservations): JobOrder {
-            $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
+        $signaturePath = null;
+        try {
+            $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes, $reservations, &$signaturePath): JobOrder {
+                $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
             if ($locked->review_status !== 'For Review') {
                 throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be approved.']);
             }
@@ -1117,8 +1119,17 @@ class JobOrderController extends Controller
                 ],
             ]);
 
-            return $locked->fresh();
-        });
+                return $locked->fresh();
+            });
+        } catch (\Throwable $exception) {
+            // The filesystem is not transactional. Remove a signature written
+            // before a later reservation/database failure rolls back approval.
+            if (is_string($signaturePath) && $signaturePath !== '') {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($signaturePath);
+            }
+
+            throw $exception;
+        }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'approved', $jobOrder->id, 'A Job Order was approved and electronically signed.');
         $bus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();

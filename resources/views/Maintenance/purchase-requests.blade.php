@@ -84,9 +84,12 @@
                       <div>
                           <h2>Purchase Requisition Records</h2>
                       </div>
-
-
-
+                      @if($recordView !== 'history')
+                          <button type="button" id="openPrModal" class="primary-btn">
+                              <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                              New Purchase Request
+                          </button>
+                      @endif
                   </div>
 
                   @if($recordView === 'history')

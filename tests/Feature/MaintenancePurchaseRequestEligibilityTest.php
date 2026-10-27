@@ -253,7 +253,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         ]);
     }
 
-    public function test_job_order_create_pr_action_also_requests_only_the_shortage(): void
+    public function test_canonical_pr_submission_requests_only_the_shortage(): void
     {
         $user = $this->maintenanceStaff();
         $jobOrder = $this->createJobOrder(
@@ -264,7 +264,10 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         $this->createInventoryItem('Fan Belt', 3);
 
         $this->actingAs($user)
-            ->post(route('job-orders.create-pr', $jobOrder))
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ])
             ->assertRedirect();
 
         $purchaseRequest = PurchaseRequest::query()

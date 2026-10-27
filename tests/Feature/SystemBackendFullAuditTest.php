@@ -703,21 +703,18 @@ class SystemBackendFullAuditTest extends TestCase
             'duration_adjustment_reason' => 'Verified duration for the incident repair.',
         ])->assertRedirect();
         $this->assertSame('Approved', $jobOrder->fresh()->review_status);
-        $this->assertSame('On Going', $jobOrder->fresh()->status);
+        $this->assertSame('On Hold', $jobOrder->fresh()->status);
 
         // 7.7 Job Order creates Purchase Request
         $this->actingAs($maintStaff)
-            ->post(route('job-orders.create-pr', $jobOrder))
-            ->assertRedirect();
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ])
+            ->assertRedirect(route('purchase-requests', ['record_view' => 'active'], false));
 
         $originalPr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->firstOrFail();
-        $this->assertSame('Submitted', $originalPr->status);
-
-        // Maintenance Head approves PR
-        $this->actingAs($maintHead)
-            ->post(route('purchase-requests.approve', $originalPr))
-            ->assertRedirect();
-        $this->assertSame('Approved', $originalPr->fresh()->status);
+        $this->assertSame('Approved', $originalPr->status);
 
         // Warehouse routes PR to Purchase
         $this->actingAs($warehouseHead)

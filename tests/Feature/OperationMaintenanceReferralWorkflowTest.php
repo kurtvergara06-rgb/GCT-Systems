@@ -548,29 +548,24 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             'duration_adjustment_reason' => 'Verified repair estimate for the referred breakdown.',
         ])->assertRedirect();
         $this->assertSame('Approved', $jobOrder->fresh()->review_status);
-        $this->assertSame('On Going', $jobOrder->fresh()->status);
+        $this->assertSame('On Hold', $jobOrder->fresh()->status);
 
         $attendance = MechanicAttendance::where('mechanic_name', $mechanic->mechanic_name)->latest('id')->first();
-        $this->assertSame('On Duty', $attendance->status);
+        $this->assertSame('Present', $attendance->status);
 
-        // 7. Maintenance Staff creates Purchase Request from Job Order
+        // 7. Maintenance Staff reviews and submits the canonical Purchase Request.
         $createPrResponse = $this->actingAs($maintenanceStaff)
-            ->post(route('job-orders.create-pr', $jobOrder));
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ]);
         $createPrResponse->assertRedirect();
 
         $pr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->firstOrFail();
-        $this->assertSame('Submitted', $pr->status);
-        $this->assertSame('Submitted', $jobOrder->fresh()->part_status);
-
-        // 8. Maintenance Head approves the Purchase Request
-        $approvePrResponse = $this->actingAs($maintenanceHead)
-            ->post(route('purchase-requests.approve', $pr));
-        $approvePrResponse->assertRedirect();
-
         $this->assertSame('Approved', $pr->fresh()->status);
-        $this->assertSame('Approved', $jobOrder->fresh()->part_status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
-        // 9. Warehouse Staff issues directly because Maintenance already approved.
+        // 8. Warehouse Staff issues after the JO-authorized PR is submitted.
         $inventoryItem = InventoryItem::create([
             'item_code' => 'ALT-24V-001',
             'item_name' => 'Heavy Duty Alternator 24V',
@@ -588,9 +583,10 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
 
         $this->assertSame('Issued', $pr->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
+        $this->assertSame('On Going', $jobOrder->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->fresh()->quantity_available);
 
-        // 10. Maintenance completes the Job Order
+        // 9. Maintenance completes the Job Order
         $finishResponse = $this->actingAs($maintenanceStaff)
             ->post(route('job-orders.finish', $jobOrder));
         $finishResponse->assertRedirect();
@@ -603,7 +599,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $attendance->refresh();
         $this->assertSame('Present', $attendance->status);
 
-        // 11. End-to-End Traceability Validation across all modules
+        // 10. End-to-End Traceability Validation across all modules
         // Trace from JobOrder -> Referral & Incident
         $this->assertSame($referral->id, $jobOrder->maintenance_referral_id);
         $this->assertSame($incident->id, $jobOrder->incident_id);

@@ -82,19 +82,17 @@ class WarehouseFrontendHardeningTest extends TestCase
 
     public function test_warehouse_record_pages_expose_active_and_history_tabs(): void
     {
-        foreach (['part-requests', 'incoming-deliveries'] as $view) {
-            $contents = file_get_contents(resource_path("views/Warehouse/{$view}.blade.php"));
-
-            $this->assertStringContainsString('warehouse-record-tabs', $contents);
-            $this->assertStringContainsString("'view' => 'active'", $contents);
-            $this->assertStringContainsString("'view' => 'history'", $contents);
-            $this->assertStringContainsString('name="view"', $contents);
-        }
-
         $partRequests = file_get_contents(resource_path('views/Warehouse/part-requests.blade.php'));
-        $this->assertStringContainsString('@unless($isHistory)', $partRequests);
+        $this->assertStringContainsString('warehouse-record-tabs', $partRequests);
+        $this->assertStringContainsString("'view' => 'pr'", $partRequests);
+        $this->assertStringContainsString("'view' => 'history'", $partRequests);
+        $this->assertStringContainsString('name="view"', $partRequests);
 
         $deliveries = file_get_contents(resource_path('views/Warehouse/incoming-deliveries.blade.php'));
+        $this->assertStringContainsString('warehouse-record-tabs', $deliveries);
+        $this->assertStringContainsString("'view' => 'active'", $deliveries);
+        $this->assertStringContainsString("'view' => 'history'", $deliveries);
+        $this->assertStringContainsString('name="view"', $deliveries);
         $this->assertStringContainsString('$isHistory || $received', $deliveries);
     }
 
@@ -202,6 +200,8 @@ class WarehouseFrontendHardeningTest extends TestCase
     {
         $view = file_get_contents(
             resource_path('views/Warehouse/part-requests.blade.php')
+        ).file_get_contents(
+            resource_path('views/Warehouse/part-request-table-body.blade.php')
         );
         $controller = file_get_contents(
             app_path('Http/Controllers/Warehouse/WarehousePartRequestController.php')
