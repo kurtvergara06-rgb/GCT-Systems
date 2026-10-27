@@ -634,6 +634,14 @@ class WarehousePartRequestController extends Controller
         $purchaseRequest->jo_parts_requirement = $jobOrder
             ? app(\App\Services\PartParser::class)->parsePartText((string) $jobOrder->part_needed)
             : [];
+        $purchaseRequest->jo_ir_parts = $jobOrder
+            ? \App\Models\Maintenance\ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->get()
+                ->flatMap(fn ($ir) => collect($ir->requested_parts ?? []))
+                ->values()
+                ->all()
+            : [];
         $purchaseRequest->parts_breakdown = $inventoryCheck['breakdown'];
         $purchaseRequest->inventory_check = $inventoryCheck;
 
