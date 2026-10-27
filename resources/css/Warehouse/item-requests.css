@@ -431,3 +431,8 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
  #warehouseItemRequestDetails .warehouse-ir-details-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
  #warehouseItemRequestDetails .warehouse-ir-details-body{padding:16px}
 }
+
+/* Keep linked JO directly beneath the IR identifier, matching Warehouse PR references. */
+.warehouse-ir-reference-stack{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.warehouse-ir-jo-tag{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:3px 6px;border:1px solid #cfe0f6;border-radius:5px;background:#eff6ff;color:#26568c;font-size:10px;font-weight:800;line-height:1.2;white-space:nowrap}
+.warehouse-ir-jo-tag i{font-size:9px}
