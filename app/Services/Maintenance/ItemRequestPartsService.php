@@ -15,7 +15,7 @@ class ItemRequestPartsService
         private JobOrderWorkflowService $workflow
     ) {}
 
-    /** Suggested warehouse quantities, never a stock reservation. */
+    /** Preview of allocatable quantities. The controller reserves before storing IR. */
     public function availableParts(string $partText, ?JobOrder $jobOrder = null): array
     {
         $parsed = $this->parser->parsePartText($partText);
@@ -44,6 +44,16 @@ class ItemRequestPartsService
                     ->map(fn ($items) => $items->sum('quantity'));
             }
         }
+        $reservationBacked = $jobOrder && isset($jobOrder->inventory_snapshot['shortages']);
+        $previousIrQuantities = collect();
+        if ($reservationBacked) {
+            $previousIrQuantities = \App\Models\Maintenance\ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->whereNotIn('status', ['Cancelled', 'Rejected'])
+                ->get()->flatMap(fn ($ir) => $ir->requested_parts ?? [])
+                ->groupBy($partKey)
+                ->map(fn ($rows) => $rows->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
+        }
         $result = [];
 
         foreach ($groups as $key => $parts) {
@@ -55,10 +65,15 @@ class ItemRequestPartsService
             }
             $first = $parts->first();
             $needed = $parts->sum('quantity');
-            $remainingAfterPr = max(0, $needed - (int) $purchaseQuantities->get($key, 0));
+            $remainingAfterPr = $reservationBacked
+                ? max(0, $needed - (int) $previousIrQuantities->get($key, 0))
+                : max(0, $needed - (int) $purchaseQuantities->get($key, 0));
             $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
                 ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
-            $available = min($remainingAfterPr, max(0, (int) ($reserved ?? (isset($jobOrder->inventory_snapshot['shortages']) ? 0 : $first['available']))));
+            $free = max(0, (int) $first['available']);
+            $available = $reservationBacked
+                ? min($remainingAfterPr, max(0, (int) $reserved) + $free)
+                : min($remainingAfterPr, max(0, (int) ($reserved ?? $free)));
             if ($available > 0) {
                 $result[] = [
                     'name' => $first['name'],
