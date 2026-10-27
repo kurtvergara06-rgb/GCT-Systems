@@ -322,6 +322,48 @@ class MechanicAttendanceController extends Controller
             ->with('success', 'Mechanic attendance record updated successfully.');
     }
 
+    public function batchTimeOut(Request $request): RedirectResponse
+    {
+        $this->authorizeModuleAction($request, 'edit');
+        $validated = $request->validate([
+            'rows' => ['required', 'array', 'min:1', 'max:200'],
+            'rows.*.id' => ['required', 'integer', 'distinct', 'exists:mechanic_attendances,id'],
+            'rows.*.time_out' => ['required', 'date_format:H:i'],
+        ]);
+        $zone = config('app.business_timezone', 'Asia/Manila');
+        $today = now($zone)->toDateString();
+        $current = now($zone)->format('H:i');
+        $count = DB::transaction(function () use ($validated, $today, $current): int {
+            $ids = collect($validated['rows'])->pluck('id')->sort()->values();
+            $records = MechanicAttendance::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            foreach ($validated['rows'] as $index => $row) {
+                $record = $records->get((int) $row['id']);
+                if (! $record || $record->attendance_date?->toDateString() !== $today
+                    || ! in_array($record->status, ['Present', 'Late', 'On Duty'], true)
+                    || ! $record->time_in || $record->time_out) {
+                    throw ValidationException::withMessages([
+                        "rows.{$index}.time_out" => 'One or more mechanics are not eligible for time-out. Refresh the attendance list.',
+                    ]);
+                }
+                $start = substr((string) $record->time_in, 0, 5);
+                if ($row['time_out'] <= $start || $row['time_out'] > $current) {
+                    throw ValidationException::withMessages([
+                        "rows.{$index}.time_out" => "Time-out for {$record->mechanic_name} must be after time-in and not in the future.",
+                    ]);
+                }
+            }
+            foreach ($validated['rows'] as $row) {
+                $records->get((int) $row['id'])->update(['time_out' => $row['time_out'].':00']);
+            }
+            return count($validated['rows']);
+        });
+        $this->broadcastSystemDataUpdated(
+            $this->moduleName($request), 'Attendance', 'updated', null,
+            "{$count} mechanic time-out records saved."
+        );
+        return redirect()->route('mechanic-attendance')->with('success', "{$count} mechanic time-out records saved successfully.");
+    }
+
     public function recordTimeOut(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
     {
         $this->authorizeModuleAction($request, 'edit');
