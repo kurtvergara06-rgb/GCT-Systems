@@ -55,7 +55,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['For Review', 'Head Decision Required'] : ['Submitted', 'Partially Issued', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['For Review', 'Waiting for Complete Stock'] : ['Submitted', 'Partially Issued', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
@@ -69,7 +69,8 @@
             @php
                 $suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [];
                 $totalRequested = app(\App\Services\PartParser::class)->parsePartText((string) $jo->part_needed);
-                $hasShortage = collect($totalRequested)->sum('quantity') > collect($suggestedParts)->sum('quantity');
+                $stillNeeded = max(0, collect($totalRequested)->sum('quantity') - (int) ($jobOrderPreviews->get($jo->id)['previously_issued'] ?? 0));
+                $hasShortage = $stillNeeded > collect($suggestedParts)->sum('quantity');
                 $needsHeadRelease = $hasShortage && $jo->parts_issue_strategy !== 'issue_available_only';
             @endphp
             <tr class="ir-pending-record">
@@ -92,8 +93,8 @@
                         <span>—</span>
                     @endif
                 </td>
-                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'For Review' }}</span></td>
-                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
+                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Waiting for Complete Stock' : 'For Review' }}</span></td>
+                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Head selected Wait Until Complete. Warehouse must have all outstanding parts allocated before another IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
             </tr>
             @empty
             <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
