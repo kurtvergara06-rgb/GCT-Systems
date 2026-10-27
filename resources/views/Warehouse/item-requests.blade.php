@@ -126,9 +126,10 @@
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                 data-ir-status="{{ $ir->status }}"
+                                data-ir-release-policy="{{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
-                                data-ir-can-issue="{{ $ir->status === 'Submitted' && ($stock['status'] ?? '') === 'sufficient' ? '1' : '0' }}"
+                                data-ir-can-issue="{{ $ir->status === 'Submitted' ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}" />
                             @if($ir->status === 'Issued')
@@ -170,6 +171,7 @@
                 <div><span>Linked Job Order</span><strong id="warehouse-ir-job">—</strong></div>
                 <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
                 <div><span>Status</span><strong id="warehouse-ir-status">—</strong></div>
+                <div><span>Head-Approved Release Policy</span><strong id="warehouse-ir-release-policy">—</strong></div>
             </div>
             <div class="ir-field">
                 <div class="warehouse-ir-verify-heading"><label>Requested Items &amp; Stock Verification</label><button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button></div>
@@ -207,6 +209,7 @@
             <div class="warehouse-ir-slip-fields">
                 <div><span>Item Request</span><strong id="ir-slip-number">—</strong></div>
                 <div><span>Job Order</span><strong id="ir-slip-job">—</strong></div>
+                <div><span>Release Policy</span><strong id="ir-slip-release-policy">—</strong></div>
                 <div><span>Department</span><strong>Maintenance</strong></div>
                 <div><span>Bus / Purpose</span><strong id="ir-slip-bus">—</strong></div>
                 <div><span>Requested By / Mechanic</span><strong id="ir-slip-mechanic">—</strong></div>
