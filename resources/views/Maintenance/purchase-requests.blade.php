@@ -84,12 +84,7 @@
                       <div>
                           <h2>Purchase Requisition Records</h2>
                       </div>
-                      @if($recordView !== 'history')
-                          <button type="button" id="openPrModal" class="primary-btn">
-                              <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                              New Purchase Request
-                          </button>
-                      @endif
+                      {{-- PR creation is initiated from an approved Job Order shortage, not from a general page action. --}}
                   </div>
 
                   @if($recordView === 'history')
