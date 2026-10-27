@@ -493,12 +493,14 @@
                                                                 @if(count($reviewParts))
                                                                     <div class="jo-review-parts-list" data-parts='@json($reviewParts)'>
                                                                         <div class="jo-review-parts-table-header" aria-hidden="true">
-                                                                            <span>Part Description</span><span>Qty</span><span>Availability</span>
+                                                                            <span>Part Description</span><span>Required</span><span>Stock</span><span>Shortage</span><span>Status</span>
                                                                         </div>
                                                                         @foreach($reviewParts as $reviewPart)
                                                                             <div class="jo-review-part-item">
                                                                                 <strong class="jo-review-part-name">{{ $reviewPart['name'] }}</strong>
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
+                                                                                <span class="jo-review-part-stock">—</span>
+                                                                                <span class="jo-review-part-shortage">—</span>
                                                                                 <span class="jo-review-part-availability is-checking">Checking…</span>
                                                                             </div>
                                                                         @endforeach
