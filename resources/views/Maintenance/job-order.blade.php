@@ -406,9 +406,9 @@
                                                                         ->groupBy(fn ($part) => mb_strtolower(trim((string) $part['name'])))
                                                                         ->map(fn ($parts) => $parts->sum('quantity'));
                                                                 @endphp
-                                                                @if(count($viewRequestedParts))
+                                                                @if(collect($viewRequestedParts ?? [])->isNotEmpty())
                                                                     <ul class="jo-view-parts-list">
-                                                                        @foreach($viewRequestedParts as $part)
+                                                                        @foreach(collect($viewRequestedParts ?? []) as $part)
                                                                             @php
                                                                                 $partKey = mb_strtolower(trim((string) $part['name']));
                                                                                 $stockItem = $viewPartsStock->get($partKey);
