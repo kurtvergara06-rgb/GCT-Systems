@@ -137,15 +137,7 @@ class IncidentController extends Controller
         $activeTripScope = function ($tripQuery) use ($today): void {
             $tripQuery
                 ->whereDate('trip_date', $today)
-                ->where(function ($statusQuery): void {
-                    $statusQuery
-                        ->whereIn('status', ['Ready', 'Dispatched'])
-                        ->orWhere(function ($assignedScheduled): void {
-                            $assignedScheduled
-                                ->where('status', 'Scheduled')
-                                ->where('assignment_status', 'Assigned');
-                        });
-                });
+                ->whereIn('status', ['Ready', 'Dispatched']);
         };
 
         if ($tripAssignmentId) {
@@ -264,15 +256,7 @@ class IncidentController extends Controller
         $reportTripScope = function ($tripQuery) use ($reportDate): void {
             $tripQuery
                 ->whereDate('trip_date', $reportDate)
-                ->where(function ($statusQuery): void {
-                    $statusQuery
-                        ->whereIn('status', ['Ready', 'Dispatched'])
-                        ->orWhere(function ($assignedScheduled): void {
-                            $assignedScheduled
-                                ->where('status', 'Scheduled')
-                                ->where('assignment_status', 'Assigned');
-                        });
-                });
+                ->whereIn('status', ['Ready', 'Dispatched']);
         };
 
         $eligibleAssignment = TripAssignment::query()
@@ -281,7 +265,7 @@ class IncidentController extends Controller
             ->whereHas('tripSchedule', $reportTripScope);
         if (! $eligibleAssignment->exists()) {
             throw ValidationException::withMessages([
-                'bus_id' => 'Choose a bus assigned to a Ready trip today.',
+                'bus_id' => 'Choose a bus assigned to a Ready or Dispatched trip today.',
             ]);
         }
 
