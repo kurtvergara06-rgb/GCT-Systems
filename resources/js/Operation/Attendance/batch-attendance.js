@@ -39,7 +39,7 @@ function initBatchAttendancePage() {
                         <div class="batch-title-row">
                             <i class="fa-regular fa-calendar-check"></i>
                             <div>
-                                <h2>Record Daily Attendance</h2>
+                                <h2>${type === 'mechanic' ? 'Manage Daily Attendance' : 'Record Daily Attendance'}</h2>
                                 <p>${modalDescription}</p>
                             </div>
                         </div>
@@ -76,8 +76,8 @@ function initBatchAttendancePage() {
                 <div class="batch-shared-time-layer" id="batchSharedTimeLayer" hidden>
                     <div class="batch-shared-time-dialog" role="dialog" aria-modal="true" aria-labelledby="batchSharedTimeTitle">
                         <h3 id="batchSharedTimeTitle"><i class="fa-regular fa-clock"></i> Apply Time to Selected</h3>
-                        <p>Choose a time-in for the selected available personnel.</p>
-                        <label for="batchSharedTimeInput">Time In</label>
+                        <p>Apply the selected time to Time-in for new attendance, or Time-out for checked-in mechanics.</p>
+                        <label for="batchSharedTimeInput">Attendance Time</label>
                         <input type="time" id="batchSharedTimeInput" required />
                         <div class="batch-shared-time-actions">
                             <button type="button" class="secondary-btn" id="batchSharedTimeCancel">Cancel</button>
@@ -108,7 +108,7 @@ function initBatchAttendancePage() {
                     </div>
                     <div class="batch-attendance-note">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>Mechanics are marked Late after the grace period; drivers remain Present when checked in.</span>
+                        <span>${type === 'mechanic' ? 'New mechanics: record Time-in. Checked-in mechanics: enter Time-out; saved Time-in and status remain locked.' : 'Drivers remain Present when checked in.'}</span>
                     </div>
                 </div>
 
@@ -186,7 +186,7 @@ function initBatchAttendancePage() {
             graceMinutes = Number(data.grace_minutes || 10);
             const note = modal.querySelector('.batch-attendance-note span');
             if (note) {
-                note.textContent = `Mechanics are marked Late after the grace period; drivers remain Present when checked in.`;
+                note.textContent = type === 'mechanic' ? 'New mechanics: record Time-in. Checked-in mechanics: enter Time-out; saved Time-in and status remain locked.' : 'Drivers remain Present when checked in.';
             }
             renderRows(Array.isArray(data.rows) ? data.rows : []);
         } catch (error) {
@@ -221,13 +221,13 @@ function initBatchAttendancePage() {
                     data-shift="${escapeHtml(row.shift)}"
                     data-assigned-job="${escapeHtml(row.assigned_job || '')}"
                 >
-                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
+                    <td class="select-col"><input type="checkbox" data-row-select ${(isRecorded && type === 'driver') ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
                     <td>
                         <div class="batch-person-cell">
                             <span class="batch-avatar">${escapeHtml(initials(row.name))}</span>
                             <div class="batch-person-meta">
                                 <strong>${escapeHtml(row.name)}</strong>
-                                <small>${isRecorded ? 'Recorded · View in attendance list to edit' : label}</small>
+                                <small>${isRecorded && type === 'mechanic' ? 'Time-in recorded · Awaiting time-out' : isRecorded ? 'Recorded · View in attendance list to edit' : 'New time-in · Not yet recorded'}</small>
                             </div>
                         </div>
                     </td>
@@ -275,6 +275,7 @@ function initBatchAttendancePage() {
                 row.querySelector('[data-time-in]').readOnly = true;
                 row.querySelector('[data-row-now]').disabled = true;
                 row.querySelectorAll('[data-status-btn]').forEach(button => { button.disabled = true; });
+                row.classList.add('batch-awaiting-timeout');
             }
         });
         updateSummary();
@@ -309,6 +310,7 @@ function initBatchAttendancePage() {
             updateSummary();
         });
 
+        if (type === 'mechanic' && row.dataset.recorded !== 'true') timeOut.disabled = true;
         timeOut.addEventListener('change', updateSummary);
 
         nowButton.addEventListener('click', () => {
