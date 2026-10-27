@@ -4775,3 +4775,43 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-mechanic-more-po
     });
   });
 });
+
+/* Edit JO accordion: same compact steps as Create JO, preserving existing inputs/handlers. */
+window.GCTPartialNavigation.registerInitializer('maintenance-edit-jo-accordion', '.jo-page', () => {
+  const modal = document.getElementById('editJobModal');
+  const form = document.getElementById('editJobForm');
+  if (!modal || !form || modal.dataset.editAccordionReady === '1') return;
+  modal.dataset.editAccordionReady = '1';
+  const steps = [...modal.querySelectorAll('[data-edit-jo-step]')];
+  const setExpanded = (step, expand) => {
+    step.dataset.collapsed = expand ? 'false' : 'true';
+    const toggle = step.querySelector('.jo-edit-step-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', String(expand));
+  };
+  steps.forEach((step, index) => {
+    const header = step.querySelector(':scope > .jo-edit-section-header');
+    if (!header) return;
+    const title = header.querySelector('h3');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'jo-edit-step-toggle';
+    toggle.setAttribute('aria-label', 'Toggle ' + (title?.textContent?.trim() || 'section'));
+    toggle.innerHTML = '<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
+    toggle.addEventListener('click', () => setExpanded(step, step.dataset.collapsed === 'true'));
+    header.appendChild(toggle);
+    setExpanded(step, index === 0);
+  });
+  form.addEventListener('invalid', (event) => {
+    const step = event.target.closest('[data-edit-jo-step]');
+    if (step) setExpanded(step, true);
+  }, true);
+  form.addEventListener('submit', () => {
+    steps.forEach((step) => setExpanded(step, true));
+  });
+  modal.addEventListener('click', (event) => {
+    if (event.target.closest('.jo-edit-add-part-btn')) {
+      const step = modal.querySelector('#editRequestedPartsSection');
+      if (step) setExpanded(step, true);
+    }
+  });
+});
