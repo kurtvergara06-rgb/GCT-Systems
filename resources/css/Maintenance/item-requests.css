@@ -265,3 +265,25 @@
   #viewItemRequestModal .ir-view-summary-grid { grid-template-columns: 1fr; }
   #viewItemRequestModal .ir-view-status-row { align-items: flex-start; flex-wrap: wrap; }
 }
+
+/* Pending IR recommendations use the same table badges and actions as the records tabs. */
+.maintenance-ir-page .ir-pending-record .maintenance-ir-id-badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-pending-record .ir-status {
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-status-needs-head {
+  color: #895f14;
+  border-color: #f3d895;
+  background: #fff4db;
+}
+.maintenance-ir-page .ir-pending-record .ir-view-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.maintenance-ir-page .ir-pending-record .ir-parts-popover {
+  text-align: left;
+}
