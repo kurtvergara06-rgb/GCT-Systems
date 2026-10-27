@@ -86,9 +86,14 @@ class PurchaseRequestPartsService
             }
             $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
                 ->where('inventory_item_id', $part['inventory_item_id'] ?? 0)->value('quantity') : null;
-            $shortage = $irQuantities->isNotEmpty()
-                ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
-                : max(0, $parts->sum('quantity') - (int) ($reserved ?? (isset($jobOrder->inventory_snapshot['shortages']) ? 0 : $part['available'])));
+            // IR quantities and live JO reservations can overlap; the greater
+            // committed amount is covered, but must never be counted twice.
+            $irCovered = (int) $irQuantities->get($key, 0);
+            $reservedCovered = max(0, (int) ($reserved ?? 0));
+            $covered = isset($jobOrder->inventory_snapshot['shortages'])
+                ? max($irCovered, $reservedCovered)
+                : ($irQuantities->isNotEmpty() ? $irCovered : (int) ($reserved ?? $part['available']));
+            $shortage = max(0, $parts->sum('quantity') - $covered);
             if ($shortage < 1) {
                 continue;
             }
