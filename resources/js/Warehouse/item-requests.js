@@ -54,6 +54,18 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
   const modal = document.getElementById('warehouseItemRequestDetails');
   if (!modal) return;
   let activeTrigger = null;
+  const actionsSlot = document.getElementById('warehouseIrReviewActions');
+  let activeActions = null;
+  let actionsHome = null;
+  const restoreActions = () => {
+    if (activeActions && actionsHome) {
+      activeActions.hidden = true;
+      actionsHome.appendChild(activeActions);
+    }
+    activeActions = null;
+    actionsHome = null;
+  };
+
   let requestSequence = 0;
   const fields = {
     'warehouse-ir-number': 'irNumber',
@@ -134,6 +146,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
   };
 
   const close = () => {
+    restoreActions();
     requestSequence++;
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
@@ -143,7 +156,15 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
   document.addEventListener('click', (event) => {
     const trigger = event.target.closest('[data-ir-view]');
     if (trigger && document.querySelector('.warehouse-ir-page')?.contains(trigger)) {
+      restoreActions();
       activeTrigger = trigger;
+      const actions = trigger.closest('tr')?.querySelector('.warehouse-ir-hidden-actions');
+      if (actions && actionsSlot) {
+        actionsHome = actions.parentElement;
+        activeActions = actions;
+        actions.hidden = false;
+        actionsSlot.appendChild(actions);
+      }
       Object.entries(fields).forEach(([id, key]) => {
         const node = document.getElementById(id);
         if (node) node.textContent = trigger.dataset[key] || (key === 'irRemarks' ? 'No remarks provided.' : '—');
