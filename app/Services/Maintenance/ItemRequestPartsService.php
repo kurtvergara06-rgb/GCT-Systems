@@ -36,7 +36,9 @@ class ItemRequestPartsService
                 ->where('pr_no', 'not like', '%-P')
                 ->where(fn ($query) => $query->whereNull('source_type')
                     ->orWhere('source_type', 'Maintenance Request'))
-                ->whereNotIn('status', ['Rejected', 'Cancelled'])
+                // Only outstanding procurement holds a requirement.
+                // Once received/completed, the arriving stock may be requested by IR.
+                ->whereNotIn('status', ['Rejected', 'Cancelled', 'Delivered', 'Picked Up', 'Issued'])
                 ->latest('id')->first();
             if ($pr) {
                 $purchaseQuantities = collect($this->parser->parsePartText((string) $pr->item))
@@ -65,9 +67,11 @@ class ItemRequestPartsService
             }
             $first = $parts->first();
             $needed = $parts->sum('quantity');
-            $remainingAfterPr = $reservationBacked
-                ? max(0, $needed - (int) $previousIrQuantities->get($key, 0))
-                : max(0, $needed - (int) $purchaseQuantities->get($key, 0));
+            // A still-open PR and prior IRs both cover portions of the JO
+            // requirement. Do not suggest either portion again after restock.
+            $committedIr = (int) $previousIrQuantities->get($key, 0);
+            $committedPr = (int) $purchaseQuantities->get($key, 0);
+            $remainingAfterPr = max(0, $needed - $committedIr - $committedPr);
             $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
                 ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
             $free = max(0, (int) $first['available']);
