@@ -142,6 +142,7 @@
                                     data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                     data-ir-mechanics="{{ $ir->jobOrder?->assigned_mechanic ?? '—' }}"
                                     data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
+                                    data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
                                     data-ir-remarks="{{ $ir->remarks ?? '' }}" />
                             @endif
                         </td>
