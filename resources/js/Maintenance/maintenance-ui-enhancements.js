@@ -200,33 +200,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     readonly,
     lockUnit = false
   ) => {
-    if (isNewJobOrder && select) {
-      const selectedJobs = new Set();
-      const hiddenHolder = document.createElement('div');
-      hiddenHolder.className = 'jo-selected-maintenance-jobs';
-      group.appendChild(hiddenHolder);
-      select.getSelectedJobs = () => Array.from(selectedJobs);
-      select.toggleJobSelection = (job) => {
-        if (job === 'Other') {
-          selectedJobs.clear();
-          selectedJobs.add('Other');
-        } else {
-          selectedJobs.delete('Other');
-          if (selectedJobs.has(job)) selectedJobs.delete(job);
-          else selectedJobs.add(job);
-        }
-        hiddenHolder.replaceChildren();
-        Array.from(selectedJobs).forEach((value) => {
-          const hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.name = 'maintenance_jobs[]';
-          hidden.value = value;
-          hiddenHolder.appendChild(hidden);
-        });
-        select.value = Array.from(selectedJobs)[0] || '';
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-      };
-    }
     const { valueInput, unitSelect } = findDurationControls(durationField);
 
     if (valueInput) {
@@ -392,6 +365,33 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     const select = group.querySelector(`#${idPrefix}MaintenanceJob`);
     if (isNewJobOrder && select) {
       select.name = 'maintenance_job';
+    }
+    if (isNewJobOrder && select) {
+      const selectedJobs = new Set();
+      const hiddenHolder = document.createElement('div');
+      hiddenHolder.className = 'jo-selected-maintenance-jobs';
+      group.appendChild(hiddenHolder);
+      select.getSelectedJobs = () => Array.from(selectedJobs);
+      select.toggleJobSelection = (job) => {
+        if (job === 'Other') {
+          selectedJobs.clear();
+          selectedJobs.add('Other');
+        } else {
+          selectedJobs.delete('Other');
+          if (selectedJobs.has(job)) selectedJobs.delete(job);
+          else selectedJobs.add(job);
+        }
+        hiddenHolder.replaceChildren();
+        Array.from(selectedJobs).forEach((value) => {
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = 'maintenance_jobs[]';
+          hidden.value = value;
+          hiddenHolder.appendChild(hidden);
+        });
+        select.value = Array.from(selectedJobs)[0] || '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      };
     }
     const { valueInput, unitSelect } = findDurationControls(durationField);
     const maintenanceJobCombobox = enhanceMaintenanceJobSelect(select);
