@@ -187,7 +187,7 @@
         <header class="ir-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review the approved Job Order before submitting to Warehouse</p></div>
+                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review available parts for Warehouse issuance</p></div>
             </div>
             <button type="button" class="ir-icon-button" id="closeItemRequestModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
@@ -205,13 +205,20 @@
                         <div><span class="ir-preview-card-icon"><i class="fa-solid fa-bus-simple"></i></span><span>Bus Number</span><strong id="ir-preview-bus">Select a JO</strong></div>
                         <div><span class="ir-preview-card-icon"><i class="fa-solid fa-user-gear"></i></span><span>Assigned Mechanics</span><strong id="ir-preview-mechanic">Select a JO</strong></div>
                     </div>
+                    <div class="ir-jo-authorization">
+                        <div class="ir-jo-authorization-heading"><strong>Maintenance Head Authorization</strong><span class="ir-jo-approved-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></div>
+                        <div class="ir-jo-authorization-grid">
+                            <div class="ir-jo-authorizer"><span>Approved By</span><strong id="ir-preview-approver">—</strong><small>Maintenance Head</small></div>
+                            <div class="ir-jo-signature"><img id="ir-preview-signature" alt="Saved JO approval signature" hidden><span id="ir-preview-signature-placeholder">JO signature unavailable</span></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="ir-form-section">
                     <h3><span>02</span> Requested Items <small>Automatically sourced from the JO</small></h3>
                     <p class="ir-form-hint">Only available quantities are suggested here. Missing quantities belong in a separate Purchase Request. Warehouse confirms stock again at issuance.</p>
                     <div class="ir-preview-table-wrap">
                         <table class="ir-preview-table">
-                            <thead><tr><th>Item / Part</th><th>Suggested IR Qty</th><th>Stock Reference</th></tr></thead>
+                            <thead><tr><th>Item / Part</th><th>Suggested Qty</th><th>Availability</th></tr></thead>
                             <tbody id="ir-preview-parts"><tr><td colspan="3" class="ir-preview-placeholder">Select an approved JO to review its required parts.</td></tr></tbody>
                         </table>
                     </div>
