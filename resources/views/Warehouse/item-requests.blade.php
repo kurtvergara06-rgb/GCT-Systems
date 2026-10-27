@@ -54,11 +54,13 @@
                     <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>WAREHOUSE</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
-                    @php($stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]))
-                    @php($stockParts = collect($stock['parts'] ?? []))
-                    @php($requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0)))
-                    @php($firstStock = $stockParts->first())
-                    @php($shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count())
+                    @php
+                        $stock = $stockByRequest->get($ir->id, ['status' => 'none', 'parts' => []]);
+                        $stockParts = collect($stock['parts'] ?? []);
+                        $requestedCount = collect($ir->requested_parts ?? [])->sum(fn ($p) => (int) ($p['quantity'] ?? 0));
+                        $firstStock = $stockParts->first();
+                        $shortPartsCount = $stockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count();
+                    @endphp
                     @php
                         // Context only: the actual IR lines remain the sole quantities eligible for issuance.
                         $joRequirements = $ir->jobOrder
