@@ -35,12 +35,17 @@ class PartsReservationService
 
         $allocations = [];
         $shortages = [];
-        $parts = collect($this->parser->parsePartText((string) $jo->part_needed))->groupBy(fn ($p) => $this->key((string) $p['name'], (string) $p['unit']));
+        $parts = collect($this->parser->parsePartText((string) $jo->part_needed))->groupBy(fn ($p) => ! empty($p['inventory_item_id']) ? 'id:'.(int) $p['inventory_item_id'] : $this->key((string) $p['name'], (string) $p['unit']));
         foreach ($parts as $group) {
             $part = $group->first();
             $required = $group->sum(fn ($p) => (int) $p['quantity']);
-            $matches = $items->filter(fn ($item) => $this->key((string) ($item->parts_name ?? $item->item_name ?? ''), (string) ($item->unit ?? $item->unit_of_measurement ?? ''))
-                === $this->key((string) $part['name'], (string) $part['unit']))->values();
+            $matches = ! empty($part['inventory_item_id'])
+                ? $items->where('id', (int) $part['inventory_item_id'])->values()
+                : $items->filter(fn ($item) => $this->key((string) ($item->parts_name ?? $item->item_name ?? ''), (string) ($item->unit ?? $item->unit_of_measurement ?? ''))
+                    === $this->key((string) $part['name'], (string) $part['unit']))->values();
+            if (! empty($part['inventory_item_id']) && $matches->count() !== 1) {
+                throw ValidationException::withMessages(['parts_issue_strategy' => 'The selected inventory item no longer exists. Review the Job Order parts.']);
+            }
             if ($matches->count() > 1) {
                 throw ValidationException::withMessages(['parts_issue_strategy' => 'Multiple inventory records match '.$part['name'].'. Resolve the item before approval.']);
             }
@@ -95,13 +100,15 @@ class PartsReservationService
         }
 
         $groups = collect($this->parser->parsePartText((string) $jo->part_needed))
-            ->groupBy(fn ($part) => $this->key((string) $part['name'], (string) $part['unit']));
+            ->groupBy(fn ($part) => ! empty($part['inventory_item_id']) ? 'id:'.(int) $part['inventory_item_id'] : $this->key((string) $part['name'], (string) $part['unit']));
         foreach ($groups as $parts) {
             $sample = $parts->first();
-            $matches = $items->filter(fn ($item) => $this->key(
-                (string) ($item->parts_name ?? $item->item_name ?? ''),
-                (string) ($item->unit ?? $item->unit_of_measurement ?? '')
-            ) === $this->key((string) $sample['name'], (string) $sample['unit']))->values();
+            $matches = ! empty($sample['inventory_item_id'])
+                ? $items->where('id', (int) $sample['inventory_item_id'])->values()
+                : $items->filter(fn ($item) => $this->key(
+                    (string) ($item->parts_name ?? $item->item_name ?? ''),
+                    (string) ($item->unit ?? $item->unit_of_measurement ?? '')
+                ) === $this->key((string) $sample['name'], (string) $sample['unit']))->values();
             if ($matches->count() !== 1) continue;
             $item = $matches->first();
             $current = $reserved->get($item->id);
