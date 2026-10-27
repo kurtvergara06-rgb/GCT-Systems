@@ -5388,3 +5388,27 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
     .purchase-page .pr-pending-table { min-width: 760px; }
     .purchase-page .pr-pending-table-wrap { overflow-x: auto; }
 }
+
+/* PR Review inherits the IR pattern: JO identity is linked by Review, never reselected. */
+.purchase-page #prModal .pr-review-source-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    opacity: 0;
+    pointer-events: none;
+}
+.purchase-page #prModal .pr-review-linked-jo {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 10px 13px;
+    background: #f3f7fc;
+    border: 1px solid #d8e4f2;
+    border-radius: 9px;
+    color: #19375e;
+    font-weight: 750;
+    font-size: 12px;
+    box-sizing: border-box;
+}
