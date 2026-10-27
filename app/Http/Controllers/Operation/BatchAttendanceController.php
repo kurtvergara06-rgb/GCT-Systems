@@ -290,7 +290,7 @@ class BatchAttendanceController extends Controller
         $start = Carbon::createFromFormat('H:i:s', self::MECHANIC_SHIFT_START);
         $actual = Carbon::createFromFormat('H:i', $timeIn);
 
-        return $actual->greaterThan($start)
+        return $actual->greaterThan($start->copy()->addMinutes(self::GRACE_MINUTES))
             ? 'Late'
             : 'Present';
     }
