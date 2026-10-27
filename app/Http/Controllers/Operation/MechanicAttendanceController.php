@@ -322,6 +322,49 @@ class MechanicAttendanceController extends Controller
             ->with('success', 'Mechanic attendance record updated successfully.');
     }
 
+    public function recordTimeOut(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
+    {
+        $this->authorizeModuleAction($request, 'edit');
+        $validated = $request->validate(['time_out' => ['required', 'date_format:H:i']]);
+        $zone = config('app.business_timezone', 'Asia/Manila');
+        $today = now($zone)->toDateString();
+
+        DB::transaction(function () use ($mechanicAttendance, $validated, $zone, $today): void {
+            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)
+                ->lockForUpdate()->firstOrFail();
+            $attendance = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
+            if ($attendance->attendance_date?->toDateString() !== $today
+                || ! in_array($attendance->status, ['Present', 'Late', 'On Duty'], true)
+                || ! $attendance->time_in
+                || $attendance->time_out) {
+                throw ValidationException::withMessages([
+                    'time_out' => 'Time-out requires a current-day checked-in mechanic without an existing time-out.',
+                ]);
+            }
+
+            $timeIn = substr((string) $attendance->time_in, 0, 5);
+            $timeOut = $validated['time_out'];
+            if ($timeOut <= $timeIn || $timeOut > now($zone)->format('H:i')) {
+                throw ValidationException::withMessages([
+                    'time_out' => 'Time-out must be after time-in and cannot be in the future.',
+                ]);
+            }
+
+            $attendance->update(['time_out' => $timeOut.':00']);
+        });
+
+        $this->broadcastSystemDataUpdated(
+            $this->moduleName($request),
+            'Attendance',
+            'updated',
+            $mechanicAttendance->id,
+            'Mechanic time-out recorded.'
+        );
+
+        return redirect()->route('mechanic-attendance')
+            ->with('success', 'Mechanic time-out recorded successfully.');
+    }
+
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
         $this->authorizeModuleAction($request, 'edit');
