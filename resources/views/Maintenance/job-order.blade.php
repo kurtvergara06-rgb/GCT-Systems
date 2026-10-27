@@ -370,16 +370,26 @@
                                                     <section class="jo-view-section">
                                                         <h3><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Repair &amp; Assignment</h3>
                                                         <div class="jo-view-grid">
-                                                            <div><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span><strong>{{ $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->implode(', ') ?: ($jobOrder->assigned_mechanic ?: 'Not assigned') }}</strong></div>
-                                                            <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
-                                                            <div><span>Start Date &amp; Time</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
-                                                            <div><span>Completion Date &amp; Time</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
+                                                            <div class="jo-view-mechanics"><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span>
+                                                                <div class="jo-view-mechanic-chips">
+                                                                    @php($viewMechanicNames = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->whenEmpty(fn ($names) => collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic)))->filter())
+                                                                    @forelse($viewMechanicNames as $mechanicName)
+                                                                        <span class="jo-view-mechanic-chip">{{ $mechanicName }}</span>
+                                                                    @empty
+                                                                        <strong>Not assigned</strong>
+                                                                    @endforelse
+                                                                </div>
+                                                            </div>
+                                                            <div class="jo-view-time-fields">
+                                                                <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
+                                                                <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
+                                                                <div><span>Completed</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
+                                                            </div>
                                                         </div>
                                                     </section>
                                                     <section class="jo-view-section jo-view-warehouse-section">
-                                                        <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse</h3>
+                                                        <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse <span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></h3>
                                                         <div class="jo-view-grid jo-view-warehouse-grid">
-                                                            <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
                                                             <div class="jo-view-parts-cell jo-view-parts-fullwidth">
                                                                 <span>Requested Parts</span>
                                                                 @php
