@@ -6090,3 +6090,32 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 .jo-head-parts-decision select[name="parts_issue_strategy"]:invalid { border-color: #d39c4a; color: #8c6d37; }
 .jo-head-parts-decision select[name="parts_issue_strategy"]:focus-visible { outline: 2px solid #c48b2c; outline-offset: 2px; }
 .jo-head-parts-decision small { color: #64748b; line-height: 1.45; }
+
+/* Full-width Parts Release Decision beneath the JO review section heading. */
+.jo-head-review-body .jo-head-parts-decision .jo-duration-decision-field,
+.jo-review-panel .jo-head-parts-decision .jo-duration-decision-field {
+  width: 100%;
+  max-width: none;
+  flex: 1 1 auto;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: 12px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.jo-head-review-body .jo-head-parts-decision .jo-parts-decision-notice,
+.jo-head-review-body .jo-head-parts-decision select[name="parts_issue_strategy"],
+.jo-review-panel .jo-head-parts-decision .jo-parts-decision-notice,
+.jo-review-panel .jo-head-parts-decision select[name="parts_issue_strategy"] {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+.jo-head-review-body .jo-head-parts-decision .jo-review-step-heading,
+.jo-review-panel .jo-head-parts-decision .jo-review-step-heading { margin-bottom: 0; }
+@media (max-width: 600px) {
+  .jo-head-review-body .jo-head-parts-decision .jo-duration-decision-field,
+  .jo-review-panel .jo-head-parts-decision .jo-duration-decision-field { padding: 10px 12px 12px; }
+}
