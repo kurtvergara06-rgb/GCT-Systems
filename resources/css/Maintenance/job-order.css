@@ -5609,3 +5609,52 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
     gap: 8px;
   }
 }
+
+
+/* Compact readonly Job Order detail summary; no workflow behavior changes. */
+.jo-view-dialog { width: min(880px, 100%); }
+.jo-view-body { gap: 10px; padding: 13px 18px 18px; }
+.jo-view-summary { padding: 11px 14px; }
+.jo-view-section h3 { padding: 9px 13px; }
+.jo-view-section .jo-view-grid { padding: 12px 14px; gap: 12px 18px; }
+.jo-view-section .jo-view-grid > div { min-height: 0; }
+.jo-view-section .jo-view-grid strong { overflow-wrap: break-word; word-break: normal; }
+.jo-view-section .jo-view-grid .jo-view-mechanics {
+  grid-column: 1 / -1;
+  border-left: 0;
+  padding-left: 0;
+  gap: 7px;
+}
+.jo-view-mechanic-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jo-view-mechanic-chips .jo-view-mechanic-chip {
+  display: inline-flex; align-items: center; width: auto; max-width: 100%;
+  border: 1px solid #d6e4f8; border-radius: 7px; background: #f1f6ff;
+  padding: 5px 9px; color: #224b80; font-size: 11px; font-weight: 700;
+  letter-spacing: 0; overflow-wrap: anywhere;
+}
+.jo-view-section .jo-view-grid .jo-view-time-fields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  border-left: 0;
+  padding-left: 0;
+}
+.jo-view-time-fields > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.jo-view-warehouse-section h3 { justify-content: flex-start; }
+.jo-view-warehouse-section h3 .jo-view-parts-pill {
+  margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0;
+}
+.jo-view-warehouse-section .jo-view-warehouse-grid { grid-template-columns: minmax(0, 1fr); }
+.jo-view-warehouse-section .jo-view-parts-cell { width: 100%; }
+.jo-view-warehouse-section .jo-view-parts-list { width: 100%; }
+.jo-view-head-approval-section .jo-view-approval-grid { gap: 10px; }
+.jo-view-signature { margin-top: 3px; }
+@media (max-width: 580px) {
+  .jo-view-section .jo-view-grid .jo-view-time-fields { grid-template-columns: 1fr 1fr; }
+  .jo-view-header { padding: 13px 14px; }
+  .jo-view-body { padding: 10px; }
+}
+@media (max-width: 380px) {
+  .jo-view-section .jo-view-grid .jo-view-time-fields { grid-template-columns: minmax(0, 1fr); }
+}
