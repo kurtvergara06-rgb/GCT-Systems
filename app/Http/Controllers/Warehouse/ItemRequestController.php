@@ -126,9 +126,18 @@ class ItemRequestController extends Controller
                     ->where(fn ($query) => $query->where('reference_no', $irNumber)
                         ->orWhere('reference_no', 'like', $irNumber.'-B%'))
                     ->with('items')->orderBy('id')->lockForUpdate()->get();
-                $key = static fn ($name, $unit, $id = null): string => $id
-                    ? 'id:'.(int) $id
-                    : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+                // Canonicalize legacy name-only IR lines against Warehouse item IDs.
+                // Never silently choose between duplicate-name inventory records.
+                $stockItems = InventoryItem::query()->get();
+                $nameKey = static fn ($name, $unit): string =>
+                    mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+                $matchingIds = $stockItems->groupBy(fn ($item) =>
+                    $nameKey($item->parts_name ?? $item->item_name, $item->unit ?? $item->unit_of_measurement));
+                $key = static function ($name, $unit, $id = null) use ($nameKey, $matchingIds): string {
+                    if ($id) return 'id:'.(int) $id;
+                    $matches = $matchingIds->get($nameKey($name, $unit), collect());
+                    return $matches->count() === 1 ? 'id:'.$matches->first()->id : 'name:'.$nameKey($name, $unit);
+                };
                 $already = [];
                 foreach ($previous as $batch) {
                     foreach ($batch->items as $entry) {
