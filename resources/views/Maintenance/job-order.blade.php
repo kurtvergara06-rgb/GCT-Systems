@@ -459,6 +459,7 @@
                                                 data-job-order-no="{{ $jobOrder->job_order_no }}"
                                                 data-bus-no="{{ $jobOrder->bus_no }}"
                                                 data-problem-issue="{{ $jobOrder->problem_issue }}"
+                                                data-work-to-perform="{{ $jobOrder->work_to_perform }}"
                                                 data-maintenance-type="{{ $jobOrder->maintenance_type }}"
                                                 data-estimated-duration-value="{{ $jobOrder->estimated_duration_value }}"
                                                 data-estimated-duration-unit="{{ $jobOrder->estimated_duration_unit }}"
