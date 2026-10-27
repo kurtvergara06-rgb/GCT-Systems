@@ -293,7 +293,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
   });
   document.addEventListener('click', (event) => {
     const prepare = event.target.closest('[data-ir-prepare]');
-    if (prepare && document.querySelector('.warehouse-ir-page')?.contains(prepare)) void openSlip(prepare);
+    if (prepare && (document.querySelector('.warehouse-ir-page')?.contains(prepare) || document.getElementById('warehouseItemRequestDetails')?.contains(prepare))) { close(); void openSlip(prepare); }
     if (event.target.closest('[data-ir-slip-close]') && slipModal?.contains(event.target)) closeSlip();
     if (event.target.closest('#ir-slip-print') && slipModal?.contains(event.target)) window.print();
   });
