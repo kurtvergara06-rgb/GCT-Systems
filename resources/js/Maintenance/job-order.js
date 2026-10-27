@@ -3199,6 +3199,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
     fetch('/job-orders/inventory-options', { headers: { Accept: 'application/json' } })
       .then((response) => { if (!response.ok) throw new Error('Inventory unavailable'); return response.json(); })
       .then((items) => {
+        // A Warehouse item can be requested only once per JO. Removing or
+        // changing its row makes it selectable again in the other rows.
+        const selectedPartIds = () => new Set(
+          Array.from(partsWrapper.querySelectorAll('.part-needed-row input[name$="[inventory_item_id]"]'))
+            .map((input) => String(input.value || ''))
+            .filter(Boolean)
+        );
+        const notifyPartSelectionChanged = () => {
+          partsWrapper.dispatchEvent(new Event('jo-part-selection-changed'));
+        };
         const enhanceRow = (row) => {
           if (row.dataset.inventoryPicker === '1') return;
           const nameInput = row.querySelector('select[name$="[name]"], input[name$="[name]"]');
@@ -3238,6 +3248,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
             unitSelect.append(unitOption);
             unitSelect.value = unit;
             picker.dispatchEvent(new Event('jo-item-change', { bubbles: true }));
+            notifyPartSelectionChanged();
           };
           picker.addEventListener('change', updateItem);
           // Searchable single-select, with the native select retained for form submission.
@@ -3290,7 +3301,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           const render = () => {
             results.replaceChildren();
             const query = search.value.trim().toLowerCase();
-            const matches = items.filter((item) => item.name.toLowerCase().includes(query)).slice(0, 80);
+            const taken = selectedPartIds();
+            const currentId = String(itemId.value || '');
+            const matches = items.filter((item) =>
+              item.name.toLowerCase().includes(query)
+              && (!taken.has(String(item.id)) || String(item.id) === currentId)
+            ).slice(0, 80);
             if (!matches.length) {
               const empty = document.createElement('p');
               empty.textContent = 'No matching warehouse items';
@@ -3331,6 +3347,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
             search.focus();
           });
           search.addEventListener('input', render);
+          partsWrapper.addEventListener('jo-part-selection-changed', () => {
+            if (!menu.hidden) render();
+          });
           search.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') { close(); trigger.focus(); }
             if (event.key === 'Enter') {
@@ -3347,6 +3366,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
         partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
         const rowObserver = new MutationObserver(() => {
           partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
+          notifyPartSelectionChanged();
         });
         rowObserver.observe(partsWrapper, { childList: true });
       })
