@@ -3508,7 +3508,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
         paintStock(row, null);
         if (name) {
           const hasQty = rawQty !== '' && Number.isFinite(quantity) && quantity > 0;
-          selected.push({ row, name, hasQty, quantity: hasQty ? quantity : 1, unit: row.querySelector('select[name$="[unit]"]')?.value || '' });
+          const inventoryItemId = row.querySelector('input[name$="[inventory_item_id]"]')?.value || null;
+          selected.push({ row, name, inventory_item_id: inventoryItemId, hasQty, quantity: hasQty ? quantity : 1, unit: row.querySelector('select[name$="[unit]"]')?.value || '' });
         }
       });
       if (!selected.length) return;
@@ -3520,7 +3521,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
             'X-Requested-With': 'XMLHttpRequest',
           },
-          body: JSON.stringify({ parts: selected.map(({ name, quantity, unit }) => ({ name, quantity, unit })) }),
+          body: JSON.stringify({ parts: selected.map(({ name, inventory_item_id, quantity, unit }) => ({ name, inventory_item_id, quantity, unit })) }),
         });
         if (!response.ok) throw new Error('Stock lookup failed');
         const data = await response.json();
