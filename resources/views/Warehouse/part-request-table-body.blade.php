@@ -57,7 +57,7 @@
                         <details class="warehouse-pr-parts-more">
                           <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                           <div class="warehouse-pr-parts-popup warehouse-pr-stock-popover">
-                            <div class="warehouse-pr-popup-title">Warehouse stock breakdown</div>
+                            <div class="warehouse-pr-popup-title">Purchase shortage breakdown</div>
                             @foreach($partDetails as $part)
                               @php
                                 $stockNeeded = (int) ($part['needed'] ?? 0);
@@ -73,9 +73,9 @@
                                 <span class="warehouse-pr-stock-popover-amount">
                                   <strong>{{ $part['available_display'] ?? ($stockAvailable.' '.($part['unit'] ?? '')) }}</strong>
                                   @if($stockShort > 0)
-                                    <small class="warehouse-pr-shortage-quantity">{{ $stockShort }} short</small>
+                                    <small class="warehouse-pr-shortage-quantity">{{ $stockShort }} {{ $part['unit'] ?? '' }} shortage · Needs purchase</small>
                                   @else
-                                    <small class="warehouse-pr-stock-ok">In stock</small>
+                                    <small class="warehouse-pr-stock-ok">No shortage</small>
                                   @endif
                                 </span>
                               </div>
