@@ -65,68 +65,6 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
     document.getElementById(id)?.addEventListener('click', () => closeModal(viewMechanicAttendanceModal));
   });
 
-  const batchTimeOutModal = document.getElementById('batchMechanicTimeOutModal');
-  const batchTimeOutForm = document.getElementById('batchMechanicTimeOutForm');
-  if (batchTimeOutModal && batchTimeOutForm) {
-    const rows = () => Array.from(batchTimeOutModal.querySelectorAll('.batch-timeout-row'));
-    const update = () => {
-      const chosen = rows().filter(row => row.querySelector('.batch-timeout-select').checked);
-      document.getElementById('batchTimeOutSelectedCount').textContent = chosen.length + ' selected';
-      document.getElementById('batchTimeOutSave').disabled = chosen.length === 0;
-      const all = document.getElementById('batchTimeOutSelectAll');
-      all.checked = rows().length > 0 && chosen.length === rows().length;
-      all.indeterminate = chosen.length > 0 && chosen.length < rows().length;
-    };
-    document.getElementById('openBatchMechanicTimeOut')?.addEventListener('click', () => {
-      openModal(batchTimeOutModal);
-      update();
-    });
-    batchTimeOutModal.querySelectorAll('[data-close-batch-timeout]').forEach(button =>
-      button.addEventListener('click', () => closeModal(batchTimeOutModal))
-    );
-    document.getElementById('batchTimeOutSelectAll')?.addEventListener('change', event => {
-      rows().forEach(row => { row.querySelector('.batch-timeout-select').checked = event.target.checked; });
-      update();
-    });
-    batchTimeOutModal.querySelectorAll('.batch-timeout-select').forEach(box => box.addEventListener('change', update));
-    const localNow = () => {
-      const date = new Date();
-      return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
-    };
-    document.getElementById('batchTimeOutCurrent')?.addEventListener('click', () => {
-      const time = localNow();
-      document.getElementById('batchTimeOutShared').value = time;
-      rows().filter(row => row.querySelector('.batch-timeout-select').checked).forEach(row => {
-        row.querySelector('.batch-timeout-value').value = time;
-      });
-    });
-    document.getElementById('batchTimeOutSame')?.addEventListener('click', () => {
-      const value = document.getElementById('batchTimeOutShared').value;
-      if (!value) return;
-      rows().filter(row => row.querySelector('.batch-timeout-select').checked).forEach(row => {
-        row.querySelector('.batch-timeout-value').value = value;
-      });
-    });
-    batchTimeOutForm.addEventListener('submit', event => {
-      batchTimeOutForm.querySelectorAll('input[data-generated-batch-timeout]').forEach(el => el.remove());
-      const selected = rows().filter(row => row.querySelector('.batch-timeout-select').checked);
-      if (!selected.length) { event.preventDefault(); return; }
-      selected.forEach((row, index) => {
-        const id = row.querySelector('.batch-timeout-select').value;
-        const value = row.querySelector('.batch-timeout-value').value;
-        for (const [name, val] of [['id', id], ['time_out', value]]) {
-          const hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.name = 'rows[' + index + '][' + name + ']';
-          hidden.value = val;
-          hidden.dataset.generatedBatchTimeout = 'true';
-          batchTimeOutForm.appendChild(hidden);
-        }
-      });
-    });
-    update();
-  }
-
   const timeOutModal = document.getElementById('recordMechanicTimeOutModal');
   const timeOutForm = document.getElementById('recordMechanicTimeOutForm');
   document.addEventListener('click', (event) => {
