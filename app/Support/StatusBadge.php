@@ -90,6 +90,7 @@ final class StatusBadge
             'monitoring' => ['tone' => 'progress', 'icon' => 'fa-eye'],
             'on-trip' => ['tone' => 'progress', 'icon' => 'fa-bus'],
             'partial' => ['tone' => 'progress', 'icon' => 'fa-circle-half-stroke'],
+            'partially-issued' => ['tone' => 'progress', 'icon' => 'fa-box-open'],
             'partially-received' => ['tone' => 'progress', 'icon' => 'fa-box-open'],
             'assigned' => ['tone' => 'progress', 'icon' => 'fa-user-check'],
             'investigate' => ['tone' => 'progress', 'icon' => 'fa-magnifying-glass-chart'],
