@@ -372,7 +372,12 @@
                                                         <div class="jo-view-grid">
                                                             <div class="jo-view-mechanics"><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span>
                                                                 <div class="jo-view-mechanic-chips">
-                                                                    @php($viewMechanicNames = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->whenEmpty(fn ($names) => collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic)))->filter())
+                                                                    @php
+                                                                        $viewMechanicNames = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter();
+                                                                        if ($viewMechanicNames->isEmpty()) {
+                                                                            $viewMechanicNames = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic))->filter();
+                                                                        }
+                                                                    @endphp
                                                                     @forelse($viewMechanicNames as $mechanicName)
                                                                         <span class="jo-view-mechanic-chip">{{ $mechanicName }}</span>
                                                                     @empty
@@ -394,30 +399,20 @@
                                                                 <span>Requested Parts</span>
                                                                 @php
                                                                     $viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
-                                                                    $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()
-                                                                        ->get(['item_code', 'item_name', 'parts_name', 'unit_of_measurement', 'unit', 'quantity_available'])
-                                                                        ->flatMap(function ($item) {
-                                                                            $normalize = fn ($name) => mb_strtolower(trim((string) $name));
-                                                                            return collect([$item->item_code, $item->item_name, $item->parts_name])
-                                                                                ->filter(fn ($name) => trim((string) $name) !== '')
-                                                                                ->mapWithKeys(fn ($name) => [$normalize($name) => $item]);
-                                                                        });
-                                                                    $viewPartsTotalByName = collect($viewRequestedParts)
-                                                                        ->groupBy(fn ($part) => mb_strtolower(trim((string) $part['name'])))
-                                                                        ->map(fn ($parts) => $parts->sum('quantity'));
+                                                                    $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
                                                                 @endphp
                                                                 @if(collect($viewRequestedParts ?? [])->isNotEmpty())
                                                                     <ul class="jo-view-parts-list">
                                                                         @foreach(collect($viewRequestedParts ?? []) as $part)
                                                                             @php
                                                                                 $partKey = mb_strtolower(trim((string) $part['name']));
-                                                                                $stockItem = $viewPartsStock->get($partKey);
+                                                                                $stockItem = $viewPartsStock->get($part['inventory_item_id'] ?? null);
                                                                                 $stockUnit = mb_strtolower(trim((string) ($stockItem?->unit_of_measurement ?: $stockItem?->unit)));
                                                                                 $requestedUnit = mb_strtolower(trim((string) ($part['unit'] ?? '')));
                                                                                 $partUnitsMatch = $requestedUnit === '' || $stockUnit === '' || $requestedUnit === $stockUnit
                                                                                     || (in_array($requestedUnit, ['pc', 'pcs', 'piece', 'pieces']) && in_array($stockUnit, ['pc', 'pcs', 'piece', 'pieces']));
                                                                                 $partStock = $stockItem && $partUnitsMatch ? max(0, (int) $stockItem->quantity_available) : 0;
-                                                                                $partDemand = (int) $viewPartsTotalByName->get($partKey, $part['quantity']);
+                                                                                $partDemand = (int) $part['quantity'];
                                                                                 $partAvailability = $partStock >= $partDemand ? 'Available' : 'Unavailable';
                                                                             @endphp
                                                                             <li>
