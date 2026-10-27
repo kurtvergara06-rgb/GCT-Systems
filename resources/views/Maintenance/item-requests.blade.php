@@ -80,7 +80,7 @@
                         <span class="ir-part-name">{{ $suggestedParts[0]['name'] ?? '—' }}</span>
                         @if(count($suggestedParts) > 1)
                             <details class="ir-parts-details">
-                                <summary>+{{ count($suggestedParts) - 1 }} more</summary>
+                                <summary>+{{ count($suggestedParts) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                 <div class="ir-parts-popover">
                                     @foreach($suggestedParts as $part)
                                         <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
@@ -117,7 +117,7 @@
                                     <span class="ir-part-name">{{ $parts->first()['name'] ?? '—' }}</span>
                                     @if($parts->count() > 1)
                                         <details class="ir-parts-details">
-                                            <summary>+{{ $parts->count() - 1 }} more</summary>
+                                            <summary>+{{ $parts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                             <div class="ir-parts-popover">
                                                 @foreach($parts as $part)
                                                     <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
