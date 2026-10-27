@@ -323,3 +323,17 @@
 @media (max-width: 850px) {
   .maintenance-ir-page .ir-records-table { min-width: 780px; }
 }
+
+/* Pending recommendations share the seven-column records layout without implying an IR exists. */
+.maintenance-ir-page .ir-not-generated {
+  display: inline-block;
+  max-width: 100%;
+  color: #75859d;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.maintenance-ir-page .ir-pending-record .ir-date small {
+  font-size: 10px;
+  line-height: 1.4;
+}
