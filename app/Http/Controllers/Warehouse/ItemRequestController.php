@@ -234,7 +234,28 @@ class ItemRequestController extends Controller
                 $complete = collect($expectedTotals)->every(fn ($quantity, $partKey) =>
                     (int) ($already[$partKey] ?? 0) + (int) ($nowTotals[$partKey] ?? 0) === (int) $quantity);
                 $ir->update(['status' => $complete ? 'Issued' : 'Partially Issued']);
-                $jo->update(['part_status' => $complete && $joRequired <= $irQuantity ? 'Issued' : 'Partial']);
+                // An approved JO may have several sequential IRs after replenishment.
+                // Completing the latest IR does not alone prove every JO part was issued.
+                $allIr = ItemRequest::query()->where('job_order_id', $jo->id)->get();
+                $allReferences = $allIr->map(fn ($record) => 'IR-'.($record->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $record->id, 4, '0', STR_PAD_LEFT));
+                $issuedAcrossJo = [];
+                $allBatches = InventoryIssuance::query()->where(function ($query) use ($allReferences) {
+                    foreach ($allReferences as $ref) {
+                        $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
+                    }
+                })->with('items')->get();
+                foreach ($allBatches as $batch) {
+                    foreach ($batch->items as $line) {
+                        $partKey = $key($line->item_name, $line->unit);
+                        $issuedAcrossJo[$partKey] = ($issuedAcrossJo[$partKey] ?? 0) + (int) $line->quantity;
+                    }
+                }
+                $requiredAcrossJo = collect($parser->parsePartText((string) $jo->part_needed))
+                    ->groupBy(fn ($part) => $key($part['name'], $part['unit']))
+                    ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
+                $allJoPartsIssued = $requiredAcrossJo->every(fn ($required, $partKey) =>
+                    (int) ($issuedAcrossJo[$partKey] ?? 0) >= (int) $required);
+                $jo->update(['part_status' => $allJoPartsIssued || $jo->part_status === 'Issued' ? 'Issued' : 'Partial']);
             });
         } catch (\Throwable $error) {
             Storage::disk('local')->delete($slipPath);
