@@ -6029,3 +6029,29 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }
+
+/* Distinct columns for the Maintenance Head's stock review. */
+.jo-review-parts-table-header,
+.jo-review-panel .jo-review-part-item,
+.jo-head-review-body .jo-review-part-item {
+  grid-template-columns: minmax(115px, 1fr) 68px 65px 72px minmax(125px, 160px);
+  column-gap: 10px;
+}
+.jo-review-part-stock,
+.jo-review-part-shortage {
+  font-size: 11px;
+  font-weight: 700;
+  color: #233f64;
+  font-variant-numeric: tabular-nums;
+}
+.jo-review-part-shortage:not(:empty) { color: #8f5b10; }
+.jo-review-part-availability { justify-self: start; white-space: normal; }
+@media (max-width: 700px) {
+  .jo-review-parts-table-header,
+  .jo-review-panel .jo-review-part-item,
+  .jo-head-review-body .jo-review-part-item {
+    grid-template-columns: minmax(100px, 1fr) 55px 50px 58px minmax(105px, 1fr);
+    column-gap: 5px;
+    font-size: 10px;
+  }
+}
