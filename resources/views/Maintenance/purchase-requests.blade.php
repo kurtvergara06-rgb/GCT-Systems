@@ -152,7 +152,6 @@
                   </div>
 
                   @if($recordView === 'pending')
-                  <p class="maintenance-history-note">These are automatic suggestions from approved Job Orders, not submitted Purchase Requests. Review the current shortage before creating the PR.</p>
                   <div class="table-wrap purchase-table-wrap">
                       <table class="purchase-request-table">
                           <thead><tr><th>JO ID</th><th>BUS</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE QTY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
@@ -164,7 +163,7 @@
                                   <td>@foreach($proposal['parts'] as $part)<div><strong>{{ $part['name'] }}</strong></div>@endforeach</td>
                                   <td>@foreach($proposal['parts'] as $part)<div>{{ $part['quantity'] }} {{ $part['unit'] }}</div>@endforeach</td>
                                   <td><span class="pr-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Pending Review</span></td>
-                                  <td><button type="button" class="primary-btn compact-new-pr-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye"></i> Review PR</button></td>
+                                  <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review</button></td>
                               </tr>
                           @empty
                               <tr><td colspan="6" style="text-align:center;padding:30px">No pending purchase suggestions. Shortages from approved Job Orders appear here automatically.</td></tr>
