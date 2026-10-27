@@ -3165,8 +3165,8 @@ textarea[readonly] {
 }
 #newJobOrderForm .jo-create-section { margin-bottom: 0; }
 #newJobOrderForm .jo-create-parts { grid-column: 1 / -1; }
-:is(#jobModal, #editJobModal) #newJobOrderForm .jo-create-section[data-jo-collapsible].is-collapsed > :not(.jo-create-section-header) { display: none; }
-:is(#jobModal, #editJobModal) #newJobOrderForm .jo-create-section[data-jo-collapsible].is-collapsed .jo-create-section-header { border-bottom-color: transparent; }
+:is(#jobModal #newJobOrderForm, #editJobModal #editJobForm) .jo-create-section[data-jo-collapsible].is-collapsed > :not(.jo-create-section-header) { display: none; }
+:is(#jobModal #newJobOrderForm, #editJobModal #editJobForm) .jo-create-section[data-jo-collapsible].is-collapsed .jo-create-section-header { border-bottom-color: transparent; }
 .jo-collapse-toggle {
     width: 32px;
     height: 32px;
@@ -5547,3 +5547,9 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 
 
+
+/* Shared JO accordions: chevrons belong at the right edge in both modal modes. */
+:is(#jobModal, #editJobModal) .jo-create-section-header { display:flex; align-items:center; width:100%; }
+:is(#jobModal, #editJobModal) .jo-create-section-header > .jo-collapse-toggle { margin-left:auto; flex:0 0 32px; }
+:is(#jobModal, #editJobModal) .jo-create-section-header.jo-create-parts-header > .jo-collapse-toggle { margin-left:8px; }
+:is(#jobModal, #editJobModal) .jo-create-section[data-jo-collapsible].is-collapsed { overflow:hidden; }
