@@ -27,6 +27,22 @@ class PartsReservationService
     {
         $items = InventoryItem::query()->orderBy('id')->lockForUpdate()->get();
         $existing = JobOrderPartReservation::query()->where('job_order_id', $jo->id)->lockForUpdate()->get();
+        // New JOs reserve at submission, including an explicit zero-stock snapshot.
+        // Approval must reuse this allocation rather than reserve twice.
+        if (isset($jo->inventory_snapshot['reservation_at_submission'])) {
+            $byItem = $existing->pluck('quantity', 'inventory_item_id');
+            $allocations = [];
+            $shortages = [];
+            foreach ($this->parser->parsePartText((string) $jo->part_needed) as $part) {
+                $required = (int) $part['quantity'];
+                $reserved = (int) $byItem->get((int) ($part['inventory_item_id'] ?? 0), 0);
+                $allocations[] = ['name' => $part['name'], 'unit' => $part['unit'], 'required' => $required, 'reserved' => min($required, $reserved)];
+                if ($reserved < $required) $shortages[] = $part['name'];
+            }
+            return ['parts' => $allocations, 'shortages' => $shortages,
+                'status' => count($shortages) === 0 ? 'sufficient' : (collect($allocations)->sum('reserved') > 0 ? 'partial' : 'none'),
+                'reservation_at_submission' => true];
+        }
         if ($existing->isNotEmpty()) {
             throw ValidationException::withMessages(['parts_issue_strategy' => 'This Job Order already has stock reservations. Review it before approving again.']);
         }
