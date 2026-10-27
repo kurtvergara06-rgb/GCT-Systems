@@ -590,11 +590,10 @@ function initBatchAttendancePage() {
         };
 
         rows.forEach((row) => {
-            if (row.dataset.recorded === 'true') return;
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
-            if (status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+            if (row.dataset.recorded !== 'true' && status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
                 counts.Incomplete += 1;
             }
         });
