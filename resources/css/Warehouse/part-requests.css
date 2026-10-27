@@ -612,3 +612,17 @@
   .parts-breakdown-row { grid-template-columns: 1fr; }
   .parts-breakdown-row span { text-align: left !important; }
 }
+
+
+/* Detached PR stock popover: use the same readable two-column layout as IR. */
+body > .warehouse-pr-parts-popup.warehouse-pr-stock-popover{width:340px;max-width:calc(100vw - 24px);box-sizing:border-box;padding:13px;border:1px solid #cfdef0;border-radius:12px;background:#fff;box-shadow:0 14px 34px rgba(20,51,94,.18)}
+body > .warehouse-pr-stock-popover .warehouse-pr-popup-title{padding:3px 3px 11px;border-bottom:1px solid #e4ebf5;font-size:11px;font-weight:800}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-row{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 2px;border-bottom:1px solid #e9eff7}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-row:last-child{border-bottom:0}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-icon{flex:0 0 29px;display:grid;place-items:center;width:29px;height:29px;border-radius:8px;background:#eaf2ff;color:#1b60b5}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-info{display:flex;flex:1 1 0;flex-direction:column;gap:4px;min-width:0}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-name{display:block;font-size:11px;font-weight:800;line-height:1.4;white-space:normal;overflow-wrap:break-word}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-info small{color:#72839c;font-size:10px}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount{display:flex;flex:0 0 125px;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount strong{font-size:11px;white-space:nowrap}
+body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font-size:10px;line-height:1.4;white-space:normal}
