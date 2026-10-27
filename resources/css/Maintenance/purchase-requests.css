@@ -5412,3 +5412,55 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
     font-size: 12px;
     box-sizing: border-box;
 }
+
+/* IR-inspired three-section PR review, scoped to creation modal only. */
+#prModal .pr-review-simplified { display: flex; flex-direction: column; gap: 12px; }
+#prModal .pr-review-simplified .pr-step-card {
+  border: 1px solid #dce7f4;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  padding: 0;
+}
+#prModal .pr-review-simplified .pr-step-heading {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0; padding: 11px 14px; background: #f3f7fd;
+  border-bottom: 1px solid #dce7f4;
+}
+#prModal .pr-review-simplified .pr-step-heading h3 { margin: 0; font-size: 13px; }
+#prModal .pr-review-simplified .pr-step-heading p { margin: 3px 0 0; font-size: 11px; color: #64748b; }
+#prModal .pr-review-simplified .pr-step-icon {
+  flex: 0 0 30px; width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; background: #e8f1ff; color: #1753a5;
+  font-size: 11px; font-weight: 800;
+}
+#prModal .pr-review-simplified .pr-step-tag { margin-left: auto; }
+#prModal .pr-simple-body { padding: 13px 15px; display: grid; gap: 11px; }
+#prModal .pr-simple-source-grid,
+#prModal .pr-simple-request-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
+}
+#prModal .pr-simple-source-card {
+  display: grid; gap: 6px; padding: 11px 13px;
+  background: #f3f7fc; border: 1px solid #e0e9f5; border-radius: 9px;
+}
+#prModal .pr-simple-source-card span { color: #64748b; font-size: 11px; }
+#prModal .pr-simple-source-card strong { color: #16345b; font-size: 12px; overflow-wrap: anywhere; }
+#prModal .pr-jo-signature-reference {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
+  color: #65748b; font-size: 11px;
+}
+#prModal .pr-jo-signature-reference img { max-width: 100px; max-height: 40px; object-fit: contain; }
+#prModal .pr-review-parts-table { width: 100%; table-layout: fixed; min-width: 0; }
+#prModal .pr-review-parts-table th:nth-child(1) { width: 47%; }
+#prModal .pr-review-parts-table th:nth-child(2) { width: 26%; }
+#prModal .pr-review-parts-table th:nth-child(3) { width: 27%; }
+#prModal .pr-review-parts-table th,
+#prModal .pr-review-parts-table td { padding: 11px 12px; text-align: left; }
+#prModal .pr-simple-body .pr-document-field { margin: 0; }
+#prModal .pr-simple-body textarea { min-height: 70px; }
+@media (max-width: 600px) {
+  #prModal .pr-simple-source-grid,
+  #prModal .pr-simple-request-grid { grid-template-columns: 1fr; }
+}
