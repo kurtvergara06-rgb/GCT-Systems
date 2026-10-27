@@ -5464,3 +5464,14 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   #prModal .pr-simple-source-grid,
   #prModal .pr-simple-request-grid { grid-template-columns: 1fr; }
 }
+
+/* Same JO authorization layout as Item Request; PR retains its optional target date. */
+#prModal .pr-jo-authorization-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; border-top:1px solid #e2eaf5; padding-top:12px; }
+#prModal .pr-jo-authorization-heading strong { font-size:12px; color:#17375f; }
+#prModal .pr-jo-authorization-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#prModal .pr-jo-signature-reference { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; text-align:center; min-height:80px; padding:11px; border:1px solid #dfe8f5; border-radius:9px; background:#fff; box-sizing:border-box; }
+#prModal .pr-jo-signature-reference img { max-width:100%; max-height:85px; width:auto; height:auto; object-fit:contain; }
+#prModal .pr-jo-signature-reference span { font-size:11px; color:#64748b; }
+#prModal .pr-jo-authorization-grid .pr-simple-source-card { min-height:80px; }
+#prModal .pr-document-footer .ui-form-btn-primary { background:#1760bc; border-color:#1760bc; color:#fff; }
+@media(max-width:540px){#prModal .pr-jo-authorization-grid{grid-template-columns:1fr}}
