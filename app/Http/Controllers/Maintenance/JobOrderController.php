@@ -194,13 +194,12 @@ class JobOrderController extends Controller
                 )
                 ->get();
 
-        $allMechanics =
-            MechanicAttendance::query()
-                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                ->orderBy(
-                    'mechanic_name'
-                )
-                ->get();
+        // Edit JO selections store mechanics.id, not mechanic_attendances.id.
+        // Include existing assignments even if today's attendance has changed;
+        // the update workflow still validates actual availability.
+        $allMechanics = Mechanic::query()
+            ->orderBy('mechanic_name')
+            ->get();
 
         /* =====================================================
            BUSES
