@@ -131,6 +131,26 @@ function renderItemRequestPreview() {
     if (display) display.textContent = jo ? (jo.job_order_no || jo.jobOrderNo || jo.job || 'Approved Job Order') + ' — Bus ' + (jo.bus || '—') : 'No Job Order linked';
     document.getElementById('ir-preview-bus').textContent = jo?.bus || '—';
     document.getElementById('ir-preview-mechanic').textContent = jo?.mechanic || '—';
+    const approver = document.getElementById('ir-preview-approver');
+    if (approver) approver.textContent = jo?.approver || 'Not recorded';
+    const signature = document.getElementById('ir-preview-signature');
+    const signaturePlaceholder = document.getElementById('ir-preview-signature-placeholder');
+    if (signature) {
+        signature.hidden = true;
+        signature.removeAttribute('src');
+        if (signaturePlaceholder) signaturePlaceholder.hidden = false;
+        if (jo?.signature_url) {
+            signature.onerror = () => {
+                signature.hidden = true;
+                if (signaturePlaceholder) signaturePlaceholder.hidden = false;
+            };
+            signature.onload = () => {
+                signature.hidden = false;
+                if (signaturePlaceholder) signaturePlaceholder.hidden = true;
+            };
+            signature.src = jo.signature_url;
+        }
+    }
     tbody.replaceChildren();
     if (!jo || !Array.isArray(jo.parts) || !jo.parts.length) {
         const tr = document.createElement('tr');
