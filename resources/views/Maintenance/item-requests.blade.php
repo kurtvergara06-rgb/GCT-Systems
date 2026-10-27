@@ -64,7 +64,6 @@
                 </div>
             </div>
             @if($view === 'pending')
-            <div class="ir-pending-guidance" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p><strong>Automatic IR recommendations</strong><span>Approved Job Orders with available stock appear here for review. Submitting an IR creates the actual request; Warehouse verifies stock before issuance.</span></p></div>
             <div class="ir-table-wrap"><table class="ir-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>AVAILABLE ITEMS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
             @forelse($pendingJobs as $jo)
             @php
