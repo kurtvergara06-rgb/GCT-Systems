@@ -1066,9 +1066,12 @@ class JobOrderController extends Controller
             }
             $stockReservation = $reservations->reserveForApproval($locked);
             $stockStatus = $stockReservation['status'];
-            if ($stockStatus === 'partial' && ! in_array($validated['parts_issue_strategy'] ?? null, ['complete_before_issuance', 'issue_available_only'], true)) {
-                throw ValidationException::withMessages(['parts_issue_strategy' => 'Choose whether available parts can be issued or must wait for all parts.']);
-            }
+            // The UI may have hidden the choice using an earlier snapshot.
+            // If stock becomes partial while the modal is open, default to the
+            // safer hold policy rather than silently authorizing partial issue.
+            $releasePolicy = $stockStatus === 'partial'
+                ? ($validated['parts_issue_strategy'] ?? 'complete_before_issuance')
+                : 'complete_before_issuance';
             $approvedAt = now();
             $signatureHash = hash_hmac('sha256', implode('|', [
                 $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
@@ -1083,9 +1086,7 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt,
                 'approval_signature_hash' => $signatureHash,
-                'parts_issue_strategy' => $stockStatus === 'partial'
-                    ? $validated['parts_issue_strategy']
-                    : 'complete_before_issuance',
+                'parts_issue_strategy' => $releasePolicy,
                 'inventory_availability' => $stockStatus,
                 'inventory_snapshot' => $stockReservation,
                 'status' => $canStart ? 'On Going' : 'On Hold',
