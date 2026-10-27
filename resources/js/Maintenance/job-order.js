@@ -1498,6 +1498,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     editBusNo.value =
       busValue;
+    editBusNo.dispatchEvent(new Event('change', { bubbles: true }));
 
 
     editBusNo.dataset
@@ -2014,6 +2015,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         toggle?.querySelector('i')?.classList.toggle('fa-chevron-up', !shouldCollapse);
         toggle?.querySelector('i')?.classList.toggle('fa-chevron-down', shouldCollapse);
       });
+      // Refresh the shared searchable controls after loading the JO values.
+      editBusNo?.dispatchEvent(new Event('change', { bubbles: true }));
+      editAssignedMechanic?.dispatchEvent(new Event('change', { bubbles: true }));
 
 
       openModal(
@@ -3023,13 +3027,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
     if (id === 'newJoMaintenanceJob') field?.addEventListener('change', refresh);
   });
 
-  document.querySelectorAll('#jobModal [data-jo-collapsible], #editJobModal [data-jo-collapsible]').forEach((section, index) => {
+  document.querySelectorAll('#jobModal [data-jo-collapsible], #editJobModal [data-jo-collapsible]').forEach((section) => {
     const header = section.querySelector('.jo-create-section-header');
     if (!header || header.querySelector('.jo-collapse-toggle')) return;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'jo-collapse-toggle';
-    const startsCollapsed = index !== 0;
+    const startsCollapsed = [...section.parentElement.querySelectorAll('[data-jo-collapsible]')].indexOf(section) !== 0;
     section.classList.toggle('is-collapsed', startsCollapsed);
     button.setAttribute('aria-expanded', String(!startsCollapsed));
     button.innerHTML = `<i class="fa-solid ${startsCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}"></i><span class="sr-only">${startsCollapsed ? 'Expand' : 'Collapse'} section</span>`;
