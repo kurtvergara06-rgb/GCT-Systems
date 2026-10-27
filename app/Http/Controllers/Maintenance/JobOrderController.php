@@ -987,14 +987,14 @@ class JobOrderController extends Controller
         ]);
     }
 
-    public function approve(Request $request, JobOrder $jobOrder)
+    public function approve(Request $request, JobOrder $jobOrder, \App\Services\Maintenance\PartsReservationService $reservations)
     {
         $this->assertMaintenanceHead();
         $validated = $request->validate([
             'electronic_signature' => 'required|string|max:255',
             'signature_image' => 'required|string|max:550000',
             'duration_decision' => 'required|in:accept,adjust',
-            'parts_issue_strategy' => [Rule::requiredIf(fn () => trim((string) $jobOrder->part_needed) !== ''), Rule::in(['complete_before_issuance', 'issue_available_only'])],
+            'parts_issue_strategy' => ['nullable', Rule::in(['complete_before_issuance', 'issue_available_only'])],
             'verified_duration_value' => 'required_if:duration_decision,adjust|nullable|numeric|gt:0',
             'verified_duration_unit' => 'required_if:duration_decision,adjust|nullable|in:Minutes,Hours,Days',
             'duration_adjustment_reason' => 'required_if:duration_decision,adjust|nullable|string|max:2000',
@@ -1021,7 +1021,7 @@ class JobOrderController extends Controller
             throw ValidationException::withMessages(['signature_image' => 'The drawn signature is invalid. Clear it and sign again.']);
         }
 
-        $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes): JobOrder {
+        $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes, $reservations): JobOrder {
             $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
             if ($locked->review_status !== 'For Review') {
                 throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be approved.']);
@@ -1064,6 +1064,11 @@ class JobOrderController extends Controller
             if (! \Illuminate\Support\Facades\Storage::disk('local')->put($signaturePath, $signatureBytes)) {
                 throw ValidationException::withMessages(['signature_image' => 'Unable to save the signed approval. Please retry.']);
             }
+            $stockReservation = $reservations->reserveForApproval($locked);
+            $stockStatus = $stockReservation['status'];
+            if ($stockStatus === 'partial' && ! in_array($validated['parts_issue_strategy'] ?? null, ['complete_before_issuance', 'issue_available_only'], true)) {
+                throw ValidationException::withMessages(['parts_issue_strategy' => 'Choose whether available parts can be issued or must wait for all parts.']);
+            }
             $approvedAt = now();
             $signatureHash = hash_hmac('sha256', implode('|', [
                 $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
@@ -1078,9 +1083,11 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt,
                 'approval_signature_hash' => $signatureHash,
-                'parts_issue_strategy' => trim((string) $locked->part_needed) !== ''
+                'parts_issue_strategy' => $stockStatus === 'partial'
                     ? $validated['parts_issue_strategy']
                     : 'complete_before_issuance',
+                'inventory_availability' => $stockStatus,
+                'inventory_snapshot' => $stockReservation,
                 'status' => $canStart ? 'On Going' : 'On Hold',
                 'start_date' => $canStart ? $approvedAt : null,
                 'actual_started_at' => $canStart ? $approvedAt : null,
