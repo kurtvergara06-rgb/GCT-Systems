@@ -356,8 +356,8 @@
 
       <x-ui.form-modal
           id="prModal"
-          title="Purchase Requisition"
-          description="Request only the parts unavailable from Warehouse."
+          title="New Purchase Request"
+          description="Review the approved Job Order and shortage parts before submitting for PR approval."
           icon="fa-file-circle-plus"
           size="wide"
           form-id="newPrForm"
@@ -365,16 +365,16 @@
           method="POST"
           close-id="closePrModal"
           :confirm="true"
-          confirm-title="Create Purchase Requisition?"
-          confirm-message="Submit this requisition for the linked Job Order?"
-          confirm-button="Yes, Create PR"
+          confirm-title="Submit Purchase Request for Approval?"
+          confirm-message="Submit this Purchase Request for Maintenance Head approval?"
+          confirm-button="Yes, Submit PR"
           confirm-type="create"
           :show-actions="false"
           class="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
       >
           <div class="pr-document" id="prDocument">
               <section class="pr-step-card pr-step-details" aria-label="Requisition details">
-                  <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Requisition Details</h3><p>Request identification and originating Job Order</p></div><span class="pr-step-tag">Required</span></div>
+                  <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Job Order Information</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Required</span></div>
                   <div class="pr-document-fields">
                   <label class="pr-document-field">
                       <span>To</span>
@@ -389,8 +389,8 @@
                       <input type="text" value="Maintenance Department" readonly>
                   </label>
                   <label class="pr-document-field">
-                      <span>Linked Job Order <span class="ui-required">*</span></span>
-                      <select name="job_order_no" id="jobOrderSelect" required>
+                      <span>Approved Job Order <span class="ui-required">*</span></span>
+                      <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
                           <option value="">Select an approved Job Order</option>
                           @foreach($availablePrJobOrders as $jobOrder)
                               <option
@@ -402,6 +402,7 @@
                               </option>
                           @endforeach
                       </select>
+                      <div id="prReviewLinkedJo" class="pr-review-linked-jo" aria-live="polite">Linked from Pending Requests</div>
                       <input type="hidden" name="bus_no" id="busNoInput">
                   </label>
                   <label class="pr-document-field">
@@ -417,7 +418,7 @@
 
               <section class="pr-document-section pr-document-parts pr-step-card">
                   <div class="pr-document-section-heading">
-                      <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span><div><h3>02 — Items for Purchase</h3><p>Parts requiring procurement</p></div></div>
+                      <div class="pr-step-heading"><span class="pr-step-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span><div><h3>02 — Parts for Purchase</h3><p>Shortage quantities automatically sourced from the approved JO</p></div></div>
                       <span class="pr-missing-only"><i class="fa-regular fa-circle-exclamation"></i> Missing Parts Only</span>
                   </div>
                   <div class="pr-shortage-table-wrap">
@@ -465,7 +466,7 @@
               <section class="pr-document-section pr-authorization pr-step-card">
                   <div class="pr-step-heading">
                       <span class="pr-step-icon"><i class="fa-solid fa-shield-check" aria-hidden="true"></i></span>
-                      <div><h3>04 — Authorization</h3><p>Verified requester and Maintenance Head approval</p></div>
+                      <div><h3>04 — JO Authorization Reference</h3><p>Existing Job Order approval, not Purchase Request approval</p></div>
                       <span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span>
                   </div>
                   <div class="pr-authorization-grid">
@@ -478,7 +479,7 @@
                           <span class="pr-auth-verification"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Authenticated User</span>
                       </div>
                       <div class="pr-authorization-card">
-                          <div class="pr-authorization-card-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Approved By</span></div>
+                          <div class="pr-authorization-card-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>JO Approved By</span></div>
                           <div class="pr-auth-identity">
                               <strong id="prApproverName">Select a Job Order to load its approver</strong>
                               <small>Maintenance Head</small>
@@ -495,7 +496,7 @@
 
           <footer class="pr-document-footer">
               <button type="button" id="cancelPrModal" class="ui-form-btn ui-form-btn-cancel">Cancel</button>
-              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary" disabled><i class="fa-solid fa-check" aria-hidden="true"></i> Create PR</button>
+              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary" disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit for Approval</button>
           </footer>
       </x-ui.form-modal>
 
