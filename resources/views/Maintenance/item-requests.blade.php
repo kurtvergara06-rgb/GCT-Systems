@@ -55,7 +55,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['For Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['For Review', 'Head Decision Required'] : ['Submitted', 'Partially Issued', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
