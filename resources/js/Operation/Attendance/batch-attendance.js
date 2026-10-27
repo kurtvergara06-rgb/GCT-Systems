@@ -203,7 +203,7 @@ function initBatchAttendancePage() {
         if (!rows.length) {
             body.innerHTML = type === 'driver'
                 ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics.</td></tr>';
+                : '<tr><td colspan="8" class="batch-empty">All mechanics have completed attendance for this date.</td></tr>';
             updateSummary();
             return;
         }
@@ -272,7 +272,9 @@ function initBatchAttendancePage() {
         body.querySelectorAll('[data-batch-row]').forEach((row) => {
             initializeRow(row);
             if (row.dataset.recorded === 'true') {
-                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+                row.querySelector('[data-time-in]').readOnly = true;
+                row.querySelector('[data-row-now]').disabled = true;
+                row.querySelectorAll('[data-status-btn]').forEach(button => { button.disabled = true; });
             }
         });
         updateSummary();
@@ -415,6 +417,7 @@ function initBatchAttendancePage() {
     }
 
     function applyStatusRules(row, clear = true) {
+        if (row.dataset.recorded === 'true') return;
         const status = selectedStatus(row);
         const timeIn = row.querySelector('[data-time-in]');
         const timeOut = row.querySelector('[data-time-out]');
@@ -431,6 +434,7 @@ function initBatchAttendancePage() {
     }
 
     function detectLate(row) {
+        if (row.dataset.recorded === 'true') return;
         const status = selectedStatus(row);
         const time = row.querySelector('[data-time-in]').value;
         if (!time || ['Absent', 'On Leave'].includes(status)) return;
@@ -469,7 +473,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
+             .filter((row) => (type === 'mechanic' || row.dataset.recorded !== 'true') && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
