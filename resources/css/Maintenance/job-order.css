@@ -6120,3 +6120,16 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 #editJobModal .jo-edit-parts-table { margin:12px 14px 14px; }
 #editJobModal .jo-edit-add-part-btn { margin-left:auto; }
 @media(max-width:720px){#editJobModal .jo-edit-details-grid { grid-template-columns:1fr; } #editJobModal .jo-edit-duration-content{max-width:none}}
+
+/* Edit JO mirrors Create JO accordion: concise headers, one open step at a time. */
+#editJobModal .jo-edit-creation-step>.jo-edit-section-header { min-height:54px; padding:10px 12px; }
+#editJobModal .jo-edit-creation-step>.jo-edit-section-header p { font-size:10.5px; }
+#editJobModal .jo-edit-creation-step[data-collapsed="true"] { overflow:hidden; }
+#editJobModal .jo-edit-creation-step[data-collapsed="true"] > :not(.jo-edit-section-header) { display:none!important; }
+#editJobModal .jo-edit-step-toggle { margin-left:auto; width:31px; height:31px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; background:transparent; border:0; border-radius:7px; color:#496380; cursor:pointer; }
+#editJobModal .jo-edit-step-toggle:hover,#editJobModal .jo-edit-step-toggle:focus-visible { background:#e4edfa; outline-offset:2px; }
+#editJobModal .jo-edit-step-toggle i { transition:transform .2s ease; }
+#editJobModal [data-collapsed="false"] .jo-edit-step-toggle i { transform:rotate(180deg); }
+#editJobModal .jo-edit-parts-header .jo-edit-add-part-btn { margin-left:auto; }
+#editJobModal .jo-edit-parts-header .jo-edit-step-toggle { margin-left:4px; }
+#editJobModal .jo-edit-creation-step { margin-bottom:10px; }
