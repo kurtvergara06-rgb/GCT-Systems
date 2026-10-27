@@ -72,7 +72,7 @@ class PurchaseRequestPartsService
                 ->where('inventory_item_id', $part['inventory_item_id'] ?? 0)->value('quantity') : null;
             $shortage = $irQuantities->isNotEmpty()
                 ? max(0, $parts->sum('quantity') - (int) $irQuantities->get($key, 0))
-                : max(0, $parts->sum('quantity') - (int) ($reserved ?? $part['available']));
+                : max(0, $parts->sum('quantity') - (int) ($reserved ?? (isset($jobOrder->inventory_snapshot['shortages']) ? 0 : $part['available'])));
             if ($shortage < 1) {
                 continue;
             }
