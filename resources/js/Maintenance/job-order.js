@@ -2828,10 +2828,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
               String(mechanic.id);
 
 
-            option.textContent = `${mechanic.mechanic_name}${mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : ''}`;
+            option.textContent = `${mechanic.mechanic_name}${mechanic.qualified_jobs?.length ? ` · Qualified: ${mechanic.qualified_jobs.join(', ')}` : (mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : '')}`;
             option.dataset.specializations = mechanic.specializations?.join(', ') || '';
             option.dataset.availability = mechanic.availability || 'Available';
             option.dataset.skillMatches = mechanic.skill_matches?.join(', ') || '';
+            option.dataset.qualifiedJobs = mechanic.qualified_jobs?.join(', ') || '';
 
 
             if (
@@ -2895,7 +2896,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
                 String(mechanic.id);
 
 
-              option.textContent = `${mechanic.mechanic_name}${mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : ''}`;
+              option.textContent = `${mechanic.mechanic_name}${mechanic.qualified_jobs?.length ? ` · Qualified: ${mechanic.qualified_jobs.join(', ')}` : (mechanic.specializations?.length ? ` · ${mechanic.specializations.join(', ')}` : '')}`;
 
 
               editAssignedMechanic
