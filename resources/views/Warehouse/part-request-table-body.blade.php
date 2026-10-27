@@ -25,13 +25,10 @@
                   <td>
                     <div class="pr-ref-cell">
                       <strong class="pr-main-num">{{ $partRequest->pr_no ?? '—' }}</strong>
-                      @if($partRequest->job_order_no || $partRequest->bus_no)
+                      @if($partRequest->job_order_no)
                         <div class="pr-sub-tags">
                           @if($partRequest->job_order_no)
                             <span class="pr-meta-tag jo-tag" title="Job Order"><i class="fa-solid fa-wrench"></i> {{ $partRequest->job_order_no }}</span>
-                          @endif
-                          @if($partRequest->bus_no)
-                            <span class="pr-meta-tag bus-tag" title="Bus Number"><i class="fa-solid fa-bus"></i> {{ $partRequest->bus_no }}</span>
                           @endif
                         </div>
                       @endif
