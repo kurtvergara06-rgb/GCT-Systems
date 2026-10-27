@@ -22,9 +22,9 @@ class PurchaseRequestPartsService
         }
 
         $availability = $this->workflow->inventoryAvailability($requestedParts);
-        $partKey = static fn (array $part): string =>
+        $partKey = fn (array $part): string =>
             mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['unit'] ?? '')));
+            $this->partParser->normalizeUnit((string) ($part['unit'] ?? ''));
         $partsByName = collect($availability['parts'])->groupBy($partKey);
         // If a split IR was submitted first, purchase only the JO quantity
         // that is not already accounted for by that IR. This also remains
@@ -54,7 +54,7 @@ class PurchaseRequestPartsService
         $missingParts = [];
 
         foreach ($partsByName as $key => $parts) {
-            $units = $parts->pluck('unit')->map(fn ($unit) => mb_strtolower(trim((string) $unit)))->unique();
+            $units = $parts->pluck('unit')->map(fn ($unit) => $this->partParser->normalizeUnit((string) $unit))->unique();
             if ($units->count() > 1) {
                 throw ValidationException::withMessages([
                     'job_order_no' => 'The linked Job Order lists the same part with different units. Correct the Job Order before creating a Purchase Requisition.',
