@@ -892,3 +892,25 @@ body > .warehouse-jo-parts-popup .warehouse-jo-parts-row strong {
 .warehouse-pr-popup-title{display:block;margin-bottom:7px;padding:5px;color:#526c8e;font-size:10px}
 .warehouse-part-main .warehouse-part-card .warehouse-actions{gap:6px}
 @media(max-width:1050px){.warehouse-part-main .warehouse-part-card .table-wrap{overflow-x:auto}.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean{min-width:900px}}
+
+/* Match the Warehouse IR status chips while preserving PR-specific status values. */
+.warehouse-part-card .warehouse-ir-stock-status,
+.warehouse-part-card .warehouse-ir-process-status,
+.warehouse-pr-page .warehouse-ir-stock-status,
+.warehouse-pr-page .warehouse-ir-process-status {
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:5px 10px;border-radius:999px;border:1px solid transparent;
+  font-size:10px;font-weight:800;line-height:1.35;white-space:nowrap;
+}
+.warehouse-part-card .warehouse-ir-stock-status.is-available,
+.warehouse-pr-page .warehouse-ir-stock-status.is-available {background:#e2faed;color:#176c42;border-color:#8ee5b5}
+.warehouse-part-card .warehouse-ir-stock-status.is-partial,
+.warehouse-pr-page .warehouse-ir-stock-status.is-partial {background:#fff5db;color:#98611a;border-color:#f4ce6d}
+.warehouse-part-card .warehouse-ir-stock-status.is-unavailable,
+.warehouse-pr-page .warehouse-ir-stock-status.is-unavailable {background:#ffe7e7;color:#a72d36;border-color:#ffb5b5}
+.warehouse-part-card .warehouse-ir-process-status.is-submitted,
+.warehouse-pr-page .warehouse-ir-process-status.is-submitted {background:#edf4ff;color:#2759a1;border-color:#c6dbff}
+.warehouse-part-card .warehouse-ir-process-status.is-issued,
+.warehouse-pr-page .warehouse-ir-process-status.is-issued {background:#e2faed;color:#176c42;border-color:#8ee5b5}
+.warehouse-part-card .warehouse-ir-process-status.is-warning,
+.warehouse-pr-page .warehouse-ir-process-status.is-warning {background:#fff5db;color:#98611a;border-color:#f4ce6d}
