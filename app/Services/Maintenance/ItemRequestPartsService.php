@@ -22,9 +22,9 @@ class ItemRequestPartsService
             return [];
         }
 
-        $partKey = static fn (array $part): string =>
+        $partKey = fn (array $part): string =>
             mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
-            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['unit'] ?? '')));
+            $this->parser->normalizeUnit((string) ($part['unit'] ?? ''));
         $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])->groupBy($partKey);
         // When a PR was submitted first, its quantities must not be
         // suggested again in a later IR even if Warehouse stock changes.
@@ -46,7 +46,7 @@ class ItemRequestPartsService
         $result = [];
 
         foreach ($groups as $key => $parts) {
-            $units = $parts->pluck('unit')->map(fn ($unit) => mb_strtolower(trim((string) $unit)))->unique();
+            $units = $parts->pluck('unit')->map(fn ($unit) => $this->parser->normalizeUnit((string) $unit))->unique();
             if ($units->count() !== 1) {
                 throw ValidationException::withMessages([
                     'job_order_id' => 'This Job Order contains the same part with different units. Correct it before requesting parts.',
