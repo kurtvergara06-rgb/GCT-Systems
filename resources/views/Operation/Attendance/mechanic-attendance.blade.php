@@ -186,6 +186,15 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
                       @if($canEditMechanicAttendance)
+                      @if(!$attendance->time_out && $attendance->time_in && in_array($attendance->status, ['Present', 'Late', 'On Duty'], true) && $attendance->attendance_date?->toDateString() === now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+                      <button type="button" class="action-btn open-mechanic-timeout-modal"
+                        title="Record Time-out" aria-label="Record time-out for {{ $attendance->mechanic_name }}"
+                        data-name="{{ $attendance->mechanic_name }}"
+                        data-time-in="{{ date('h:i A', strtotime($attendance->time_in)) }}"
+                        data-action="{{ route('mechanic-attendance.time-out', $attendance->id, false) }}">
+                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                      </button>
+                      @endif
                       <button type="button" class="action-btn edit open-edit-attendance-modal"
                         @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
@@ -240,6 +249,33 @@
       </section>
     </main>
   </div>
+
+  @if($canEditMechanicAttendance)
+  <div id="recordMechanicTimeOutModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="recordMechanicTimeOutTitle" style="max-width:490px">
+      <div class="modal-header">
+        <h2 id="recordMechanicTimeOutTitle">Record Mechanic Time-out</h2>
+        <button type="button" class="close-btn" data-close-mechanic-timeout aria-label="Close">&times;</button>
+      </div>
+      <form id="recordMechanicTimeOutForm" method="POST">
+        @csrf
+        <div style="padding:20px 24px">
+          <p style="margin:0 0 12px">Mechanic: <strong id="mechanicTimeOutName"></strong></p>
+          <p style="margin:0 0 18px">Recorded time-in: <strong id="mechanicTimeOutIn"></strong></p>
+          <div class="form-group">
+            <label for="mechanicTimeOutValue">Actual time-out</label>
+            <input id="mechanicTimeOutValue" name="time_out" type="time" required>
+          </div>
+          <p style="margin:12px 0 0;color:#64748b;font-size:12px">This updates the existing attendance record without changing time-in or status.</p>
+        </div>
+        <div class="modal-actions full-width" style="padding:14px 24px">
+          <button type="button" class="cancel-btn" data-close-mechanic-timeout>Cancel</button>
+          <button type="submit" class="save-btn">Save Time-out</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  @endif
 
   <div id="viewMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="viewMechanicAttendanceTitle">
