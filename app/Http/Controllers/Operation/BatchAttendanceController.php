@@ -107,7 +107,9 @@ class BatchAttendanceController extends Controller
             'type' => $type,
             'date' => $date,
             'grace_minutes' => self::GRACE_MINUTES,
-            'shift_starts' => self::SHIFT_STARTS,
+            'shift_starts' => $type === 'mechanic'
+                ? ['Morning' => self::MECHANIC_SHIFT_START]
+                : self::SHIFT_STARTS,
             'rows' => $rows,
         ]);
     }
