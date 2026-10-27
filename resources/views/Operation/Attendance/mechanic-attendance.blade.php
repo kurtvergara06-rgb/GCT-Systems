@@ -167,7 +167,14 @@
                       </span>
                     </div>
                   </td>
-                  <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
+                  <td>
+                    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;max-width:300px">
+                      <span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span>
+                      @if($attendance->display_assigned_work !== '')
+                        <small style="color:#64748b;line-height:1.4;overflow-wrap:anywhere" title="{{ $attendance->display_assigned_work }}">{{ $attendance->display_assigned_work }}</small>
+                      @endif
+                    </div>
+                  </td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
                   <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
