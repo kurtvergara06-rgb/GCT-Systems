@@ -746,7 +746,7 @@
     <x-ui.form-modal
         id="editJobModal"
         title="Edit Job Order"
-        description="Create and assign a maintenance service request"
+        description="Update the maintenance work, assigned mechanics, duration, and requested parts"
         icon="fa-screwdriver-wrench"
         size="large"
         form-id="editJobForm"
