@@ -184,7 +184,7 @@
                                           <span class="pr-pending-shortage">Multiple items</span>
                                       @endif
                                   </td>
-                                  <td><span class="pr-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i> Pending Review</span></td>
+                                  <td><span class="pr-pending-badge">For Review</span></td>
                                   <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review</button></td>
                               </tr>
                           @empty
