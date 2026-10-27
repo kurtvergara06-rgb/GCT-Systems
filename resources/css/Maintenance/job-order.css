@@ -6003,3 +6003,29 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 #jobModal .jo-maintenance-job-chip > span { min-width: 0; overflow-wrap: anywhere; }
 #jobModal .jo-maintenance-job-chip-remove { display: inline-grid; place-items: center; flex: 0 0 auto; border: 0; background: transparent; color: #39679c; font-size: 17px; line-height: 1; cursor: pointer; padding: 0 2px; }
 #jobModal .jo-maintenance-job-chip-remove:hover { color: #b91c1c; }
+
+/* Head-only stock breakdown: allow partial-availability details to wrap. */
+.jo-head-review-body .jo-review-part-availability,
+.jo-review-panel .jo-review-part-availability {
+  white-space: normal;
+  line-height: 1.35;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 9px;
+}
+.jo-review-part-availability.is-partial {
+  background: #fff3d9;
+  color: #94610b;
+}
+.jo-review-parts-table-header,
+.jo-review-panel .jo-review-part-item,
+.jo-head-review-body .jo-review-part-item {
+  grid-template-columns: minmax(0, 1fr) 85px minmax(175px, 235px);
+}
+@media (max-width: 600px) {
+  .jo-review-parts-table-header,
+  .jo-review-panel .jo-review-part-item,
+  .jo-head-review-body .jo-review-part-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
