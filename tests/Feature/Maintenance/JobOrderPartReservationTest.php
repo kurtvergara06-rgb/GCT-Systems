@@ -210,4 +210,39 @@ class JobOrderPartReservationTest extends TestCase
         $this->assertSame(6, (int) $available[0]['quantity']);
         $this->assertSame(6, (int) $stock->fresh()->quantity_available);
     }
+
+    public function test_selected_inventory_item_id_reserves_only_that_duplicate_named_stock_row(): void
+    {
+        $chosen = InventoryItem::create([
+            'item_code' => 'FLT-OIL', 'item_name' => 'Oil Filter',
+            'parts_name' => 'Oil Filter', 'category' => 'Filters',
+            'quantity_available' => 60, 'on_hand' => 60,
+            'unit' => 'pc', 'unit_of_measurement' => 'pc', 'reorder_level' => 1,
+        ]);
+        $other = InventoryItem::create([
+            'item_code' => 'GCT-PART-002', 'item_name' => 'Oil Filter',
+            'parts_name' => null, 'category' => 'Filters',
+            'quantity_available' => 89, 'on_hand' => 0,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+        $parser = app(PartParser::class);
+        $text = $parser->formatParts($parser->normalizePartsInput([
+            ['inventory_item_id' => $chosen->id, 'name' => 'Oil Filter',
+             'quantity' => 10, 'unit' => 'pc'],
+        ]));
+        $parsed = $parser->parsePartText($text);
+        $this->assertSame($chosen->id, $parsed[0]['inventory_item_id']);
+        $job = JobOrder::create([
+            'job_order_no' => 'JO-ID-SELECT-001', 'bus_no' => 'BUS-ID-001',
+            'problem_issue' => 'Replace oil filter', 'maintenance_type' => 'Corrective',
+            'part_needed' => $text, 'review_status' => 'For Review', 'status' => 'On Hold',
+        ]);
+        $snapshot = DB::transaction(fn () => app(PartsReservationService::class)->reserveForApproval($job));
+        $this->assertSame('sufficient', $snapshot['status']);
+        $this->assertSame(10, (int) JobOrderPartReservation::where('job_order_id', $job->id)
+            ->where('inventory_item_id', $chosen->id)->sum('quantity'));
+        $this->assertSame(0, (int) JobOrderPartReservation::where('job_order_id', $job->id)
+            ->where('inventory_item_id', $other->id)->sum('quantity'));
+        $this->assertSame(60, (int) $chosen->fresh()->quantity_available);
+    }
 }
