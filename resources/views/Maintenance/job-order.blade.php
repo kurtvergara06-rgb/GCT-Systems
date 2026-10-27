@@ -585,7 +585,7 @@
                                                                 @endif
                                                                 <div class="jo-head-authorization">
                                                                     <div class="jo-review-step-heading">
-                                                                        <span class="jo-review-step-number">02</span>
+                                                                        <span class="jo-review-step-number">{{ trim((string) $jobOrder->part_needed) !== '' ? '03' : '02' }}</span>
                                                                         <div><strong>Head Authorization</strong><p>Upload your signature to authorize this Job Order.</p></div>
                                                                     </div>
                                                                     <div class="jo-signature-grid">
