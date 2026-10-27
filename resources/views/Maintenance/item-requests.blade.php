@@ -55,7 +55,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['Ready for IR Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ($view === 'pending' ? ['For Review', 'Head Decision Required'] : ['Submitted', 'Approved', 'Preparing', 'Partial', 'Pending'])) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
@@ -92,7 +92,7 @@
                         <span>—</span>
                     @endif
                 </td>
-                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'Ready for IR Review' }}</span></td>
+                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Head Decision Required' : 'For Review' }}</span></td>
                 <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Maintenance Head must authorize partial release in the Job Order before an IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
             </tr>
             @empty
