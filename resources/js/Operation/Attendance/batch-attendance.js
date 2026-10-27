@@ -140,7 +140,7 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
                 if (!row.classList.contains('is-unavailable')) {
-                    row.querySelector('[data-time-in]').value = currentTime();
+                    row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]').value = currentTime();
                     detectLate(row);
                     updateAvailability(row);
                 }
@@ -358,7 +358,7 @@ function initBatchAttendancePage() {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
+            .filter((row) => row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
             toast('Select at least one available personnel row.', 'warning');
             return;
@@ -403,10 +403,10 @@ function initBatchAttendancePage() {
         let updated = 0;
         modal.querySelectorAll('[data-batch-row]').forEach((row) => {
             if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
-            const timeIn = row.querySelector('[data-time-in]');
-            timeIn.value = time;
-            timeIn.dispatchEvent(new Event('input', { bubbles: true }));
-            timeIn.dispatchEvent(new Event('change', { bubbles: true }));
+            const target = row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]');
+            target.value = time;
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.dispatchEvent(new Event('change', { bubbles: true }));
             detectLate(row);
             updateAvailability(row);
             updated += 1;
