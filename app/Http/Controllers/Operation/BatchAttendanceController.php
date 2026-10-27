@@ -64,10 +64,16 @@ class BatchAttendanceController extends Controller
         // The new-entry roster includes only personnel without a saved
         // attendance record for the selected date. Time-out updates belong
         // to the existing attendance record, not this creation modal.
-        $people = $people->reject(
-            fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
-                && ! in_array($record->status, ['Unmarked', null, ''], true)
-        )->values();
+        $people = $people->reject(function ($person) use ($dateRecords, $idColumn, $type): bool {
+            $record = $dateRecords->get((string) $person->{$idColumn});
+            if (! $record || in_array($record->status, ['Unmarked', null, ''], true)) {
+                return false;
+            }
+            return $type !== 'mechanic'
+                || ! in_array($record->status, ['Present', 'Late', 'On Duty'], true)
+                || ! $record->time_in
+                || (bool) $record->time_out;
+        })->values();
 
         $rows = $people->map(function ($person) use (
             $dateRecords,
@@ -186,11 +192,28 @@ class BatchAttendanceController extends Controller
                         ->whereDate('attendance_date', $date)
                         ->lockForUpdate()->first();
 
-                    // A batch is create-only: never silently replace an existing
-                    // daily record, including one linked to a trip or job order.
+                    // A previously checked-in mechanic may record only the
+                    // missing time-out here. Never overwrite the saved time-in
+                    // or attendance status, and never touch finalized records.
+                    if ($type === 'mechanic' && $existing
+                        && in_array($existing->status, ['Present', 'Late', 'On Duty'], true)
+                        && $existing->time_in && ! $existing->time_out) {
+                        $timeOut = $row['time_out'] ?? null;
+                        $savedIn = substr((string) $existing->time_in, 0, 5);
+                        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+                        if (! $timeOut || $date !== $today || $timeOut <= $savedIn
+                            || $timeOut > now(config('app.business_timezone', 'Asia/Manila'))->format('H:i')) {
+                            throw ValidationException::withMessages([
+                                "rows.{$index}.time_out" => 'Enter a valid actual time-out after the saved time-in and not in the future.',
+                            ]);
+                        }
+                        $existing->update(['time_out' => $timeOut.':00']);
+                        $saved++;
+                        continue;
+                    }
                     if ($existing && ! in_array($existing->status, ['Unmarked', null, ''], true)) {
                         throw ValidationException::withMessages([
-                            "rows.{$index}.person_id" => 'Attendance is already recorded for this person on the selected date. Refresh the roster.',
+                            "rows.{$index}.person_id" => 'Attendance is already finalized for this person on the selected date. Refresh the roster.',
                         ]);
                     }
 
