@@ -163,7 +163,7 @@
                                           <strong class="pr-pending-part-name">{{ $proposal['parts'][0]['name'] ?? '—' }}</strong>
                                           @if(count($proposal['parts']) > 1)
                                               <details class="pr-pending-parts-details">
-                                                  <summary>+{{ count($proposal['parts']) - 1 }} more</summary>
+                                                  <summary>+{{ count($proposal['parts']) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                                   <div class="pr-pending-parts-list">
                                                       @foreach($proposal['parts'] as $part)
                                                           <div><span>{{ $part['name'] }}</span><strong>{{ $part['quantity'] }} {{ $part['unit'] }}</strong></div>
