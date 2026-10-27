@@ -574,7 +574,7 @@
                                                                         <textarea name="duration_adjustment_reason" maxlength="2000" placeholder="Explain the verified estimate" disabled></textarea>
                                                                     </div>
                                                                 </div>
-                                                                @if(trim((string) $jobOrder->part_needed) !== '')
+                                                                @if(trim((string) $jobOrder->part_needed) !== '' && $jobOrder->inventory_availability === 'partial')
                                                                     <div class="jo-head-duration-review jo-head-parts-decision">
                                                                         <div class="jo-review-step-heading">
                                                                             <span class="jo-review-step-number">02</span>
@@ -587,7 +587,7 @@
                                                                                 <option value="complete_before_issuance" @selected(old('parts_issue_strategy') === 'complete_before_issuance')>Wait until all JO parts are available</option>
                                                                                 <option value="issue_available_only" @selected(old('parts_issue_strategy') === 'issue_available_only')>Allow partial release of available parts</option>
                                                                             </select>
-                                                                            <small id="jo-parts-decision-help-{{ $jobOrder->id }}">Warehouse will recheck stock before issuance. Approval does not reserve or deduct parts.</small>
+                                                                            <small id="jo-parts-decision-help-{{ $jobOrder->id }}">Approval reserves currently free stock for this JO. Warehouse deducts physical inventory only upon signed issuance.</small>
                                                                         </div>
                                                                     </div>
                                                                 @endif
