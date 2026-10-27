@@ -109,16 +109,13 @@
             <p>Track time-in, time-out, assigned job, and attendance status</p>
           </div>
           @if($canEditMechanicAttendance)
-          <button type="button" class="primary-btn" id="openBatchMechanicTimeOut" style="background:#1755a6;color:#fff">
-            <i class="fa-solid fa-right-from-bracket"></i> Record Time-outs
-          </button>
           <button
             type="button"
             class="primary-btn batch-attendance-open"
             data-batch-attendance-open
           >
             <i class="fa-solid fa-clipboard-check"></i>
-            Record Daily Attendance
+            Manage Daily Attendance
           </button>
           @endif
 
@@ -274,42 +271,6 @@
         <div class="modal-actions full-width" style="padding:14px 24px">
           <button type="button" class="cancel-btn" data-close-mechanic-timeout>Cancel</button>
           <button type="submit" class="save-btn">Save Time-out</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  @endif
-
-  @if($canEditMechanicAttendance)
-  <div id="batchMechanicTimeOutModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="batchMechanicTimeOutTitle" style="width:min(860px,calc(100vw - 32px));max-width:860px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden">
-      <div class="modal-header" style="flex-shrink:0">
-        <div><h2 id="batchMechanicTimeOutTitle">Record Daily Time-outs</h2><p style="font-size:12px;color:#64748b;margin:6px 0 0">Only mechanics with a saved time-in and no time-out today are shown.</p></div>
-        <button type="button" class="close-btn" data-close-batch-timeout aria-label="Close" style="margin-left:auto">&times;</button>
-      </div>
-      <form method="POST" action="{{ route('mechanic-attendance.batch-time-out', [], false) }}" id="batchMechanicTimeOutForm" style="min-height:0;display:flex;flex-direction:column">
-        @csrf
-        <div style="padding:14px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-bottom:1px solid #e5eaf2">
-          <label style="font-size:12px;font-weight:700"><input type="checkbox" id="batchTimeOutSelectAll"> Select all</label>
-          <button type="button" id="batchTimeOutCurrent" class="cancel-btn">Use Current Time</button>
-          <button type="button" id="batchTimeOutSame" class="cancel-btn">Apply Same Time to Selected</button>
-          <input type="time" id="batchTimeOutShared" value="17:00" aria-label="Shared time-out" style="padding:9px;border:1px solid #d5dfef;border-radius:8px">
-          <span id="batchTimeOutSelectedCount" style="font-size:12px;color:#64748b;margin-left:auto"></span>
-        </div>
-        <div style="overflow:auto;min-height:0;padding:12px 24px">
-          @forelse($timeOutCandidates as $candidate)
-            <label class="batch-timeout-row" style="display:flex;align-items:center;gap:14px;padding:12px;border:1px solid #dce6f3;border-radius:10px;margin-bottom:8px">
-              <input type="checkbox" class="batch-timeout-select" value="{{ $candidate->id }}">
-              <span style="min-width:0;flex:1"><strong style="display:block;font-size:13px">{{ $candidate->mechanic_name }}</strong><small style="color:#64748b">Time-in: {{ date('h:i A', strtotime($candidate->time_in)) }}</small></span>
-              <input type="time" class="batch-timeout-value" value="17:00" aria-label="Time-out for {{ $candidate->mechanic_name }}" style="padding:9px;border:1px solid #d5dfef;border-radius:8px">
-            </label>
-          @empty
-            <p style="padding:24px;text-align:center;color:#64748b">No mechanics are awaiting time-out today.</p>
-          @endforelse
-        </div>
-        <div class="modal-actions full-width" style="flex-shrink:0;padding:16px 24px;margin:0;border-top:1px solid #e5eaf2">
-          <button type="button" class="cancel-btn" data-close-batch-timeout>Cancel</button>
-          <button type="submit" id="batchTimeOutSave" class="save-btn" disabled>Save Time-outs</button>
         </div>
       </form>
     </div>
