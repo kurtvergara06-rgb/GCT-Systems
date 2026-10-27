@@ -626,3 +626,24 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-info small{color:
 body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount{display:flex;flex:0 0 125px;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
 body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount strong{font-size:11px;white-space:nowrap}
 body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font-size:10px;line-height:1.4;white-space:normal}
+
+
+/* PR table: align On Hand header, badge and stock summary to the same column axis. */
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(1),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(1){width:14%}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(2),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(2){width:24%}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(3),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(3){width:9%}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(4),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(4){width:17%;text-align:center}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(5),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(5){width:13%}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(6),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(6){width:13%}
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) th:nth-child(7),
+.warehouse-part-card .warehouse-part-table:not(.warehouse-jo-table) td:nth-child(7){width:10%}
+.warehouse-part-table .warehouse-pr-onhand-summary{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;min-width:0;text-align:center}
+.warehouse-part-table .warehouse-pr-onhand-summary > strong{display:block;line-height:1.3;white-space:nowrap}
+.warehouse-part-table .warehouse-pr-onhand-summary > details{display:inline-block;margin:0}
+.warehouse-part-table td.qty-col .on-hand-pill{display:inline-flex;align-items:center;justify-content:center;margin-inline:auto}
