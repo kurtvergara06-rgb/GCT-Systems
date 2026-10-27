@@ -450,6 +450,13 @@
                                                     </details>
                                                 </template>
                                             @elseif(!($canReviewJobOrders && $isPendingReview))
+                                            @php
+                                                $jobOrderSpecializations = collect(data_get(
+                                                    $jobOrder->audits->whereIn('action', ['created', 'resubmitted'])->sortByDesc('id')->first(),
+                                                    'metadata.required_specializations',
+                                                    []
+                                                ))->filter(fn ($specialization) => is_string($specialization) && trim($specialization) !== '')->values();
+                                            @endphp
                                             <x-ui.action-buttom-modal
                                                 class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal' }}"
                                                 title="{{ $isViewOnly ? 'View Job Order' : 'Edit Job Order' }}"
@@ -465,6 +472,7 @@
                                                 data-estimated-duration-unit="{{ $jobOrder->estimated_duration_unit }}"
                                                 data-assigned-mechanic="{{ $jobOrder->assigned_mechanic }}"
                                                 data-mechanic-ids="{{ $jobOrder->mechanicAssignments->pluck('mechanic_id')->filter()->implode(',') }}"
+                                                data-specializations='@json($jobOrderSpecializations)'
                                                 data-part-needed="{{ $jobOrder->part_needed }}"
                                                 data-status="{{ $jobOrder->status }}"
                                                 data-review-status="{{ $jobOrder->review_status }}"
@@ -726,185 +734,7 @@
         >
         <input type="hidden" name="maintenance_type" value="Repair" data-maintenance-type-hidden="newJo">
 
-        <section class="jo-create-section jo-create-basic jo-create-job-details" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-file-lines"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-create-section-number">01 &mdash;</span> Job Details</h3>
-                </div>
-            </div>
-
-            <div class="ui-form-grid jo-create-basic-grid jo-create-job-details-grid">
-                <x-ui.form-select
-                    label="Bus ID / Plate"
-                    name="bus_no"
-                    id="jobBusNo"
-                    icon="fa-bus"
-                    placeholder="Select bus"
-                    :options="$availableBuses
-                        ->mapWithKeys(function ($bus) {
-                            return [
-                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
-                            ];
-                        })
-                        ->toArray()"
-                    required
-                />
-
-                <div class="jo-maintenance-job-slot" data-maintenance-job-slot="newJo"></div>
-
-                <div id="jobLinkedDriverPreview" class="jo-linked-driver-preview ui-form-full" hidden>
-                    <i class="fa-solid fa-id-card" aria-hidden="true"></i>
-                    <span>Linked driver: <strong id="jobLinkedDriver" aria-live="polite"></strong></span>
-                </div>
-
-                <div class="ui-form-group ui-form-full jo-create-problem-field">
-                    <label for="jobProblemIssue">
-                        Complaint / Problem
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <textarea
-                        name="problem_issue"
-                        id="jobProblemIssue"
-                        placeholder="Describe the reported issue or complaint..."
-                        required
-                    >{{ old(
-                        'problem_issue',
-                        $pmsCreate
-                            ? request(
-                                'problem_issue',
-                                'PMS maintenance is due based on processed GPS mileage.'
-                            )
-                            : ''
-                    ) }}</textarea>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="jo-create-section jo-create-details jo-create-mechanics" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-gears"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-create-section-number">02 &mdash;</span> Mechanic Assignment</h3>
-                    <p class="jo-create-step-description">Assign on-duty mechanics qualified for this repair.</p>
-                </div>
-            </div>
-
-            <div class="jo-create-details-grid">
-                <div class="ui-form-group jo-mechanic-multi-field">
-                    <label for="jobAssignedMechanics">
-                        Assigned Mechanics <span class="ui-required">*</span>
-                    </label>
-                    <div class="ui-input-wrap">
-                        <select name="mechanic_ids[]" id="jobAssignedMechanics" multiple size="4" required>
-                            @foreach($availableMechanics as $mechanic)
-                                <option
-                                    value="{{ $mechanic->id }}"
-                                    data-specializations="{{ $mechanic->specialization }}"
-                                    data-availability="Available"
-                                    {{ in_array($mechanic->id, old('mechanic_ids', [])) ? 'selected' : '' }}
-                                >
-                                    {{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <p class="jo-create-field-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Select one or more qualified, on-duty mechanics for this JO. Click a name to add or remove it; selected mechanics stay visible as chips. Mechanics on conflicting active jobs are excluded.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="jo-create-section jo-create-duration" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon"><i class="fa-regular fa-clock"></i></span>
-                <div><h3><span class="jo-create-section-number">03 &mdash;</span> Estimated Duration</h3><p class="jo-create-step-description">Set the expected repair time for Head review.</p></div>
-            </div>
-
-            <div class="jo-create-duration-grid">
-                <div id="newJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                    <label>Duration <span class="ui-required">*</span></label>
-                    <div class="jo-duration-control">
-                        <div class="ui-input-wrap">
-                            <input type="number" name="estimated_duration_value" min="0.25" step="0.25" value="" placeholder="Enter estimated duration">
-                        </div>
-                        <select name="estimated_duration_unit" id="jobEstimatedDurationUnit" class="jo-duration-unit-select">
-                            @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
-                                <option value="{{ $durationUnit }}" {{ old('estimated_duration_unit', 'Hours') === $durationUnit ? 'selected' : '' }}>{{ $durationUnit }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <small id="jobDurationSuggestion" class="jo-duration-suggestion" data-status="unavailable">
-                        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-                        <span>Insufficient Historical Data</span>
-                    </small>
-                    <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Suggestions use at least 3 completed, approved Job Orders for the same specific maintenance work. Enter your own estimate for Head verification.</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="newRequestedPartsSection" class="jo-create-section jo-create-parts jo-parts-section" data-jo-collapsible data-collapsed="true">
-            <div class="jo-create-section-header jo-create-parts-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-box-open"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-create-section-number">04 &mdash;</span> Requested Parts <small class="jo-section-optional">Optional</small></h3>
-                </div>
-
-                <button type="button" id="addPartBtn" class="jo-create-add-part-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Part
-                </button>
-            </div>
-
-            <div class="jo-create-parts-table">
-                <div class="jo-create-parts-table-head" aria-hidden="true">
-                    <span>#</span>
-                    <span>Item / Part</span>
-                    <span>Qty</span>
-                    <span>Unit</span>
-                    <span>Stock</span>
-                    <span>Actions</span>
-                </div>
-
-                <div id="partsNeededWrapper" class="jo-parts-repeater jo-create-parts-repeater">
-                    <div class="jo-part-row part-needed-row">
-                        <input type="text" name="parts[0][name]" placeholder="Part name">
-                        <input type="number" name="parts[0][quantity]" min="1" placeholder="Qty">
-                        <select name="parts[0][unit]">
-                            <option value="">Unit</option>
-                            <option value="pcs">pcs</option>
-                            <option value="set">set</option>
-                            <option value="liter">liter</option>
-                            <option value="gallon">gallon</option>
-                            <option value="bottle">bottle</option>
-                            <option value="box">box</option>
-                            <option value="meter">meter</option>
-                            <option value="kg">kg</option>
-                            <option value="pack">pack</option>
-                            <option value="pair">pair</option>
-                            <option value="roll">roll</option>
-                            <option value="tube">tube</option>
-                        </select>
-
-                        <button type="button" class="remove-part-btn" title="Remove Part">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <input type="hidden" name="parts_issue_strategy" value="complete_before_issuance">
-
-        </section>
+        @include('Maintenance.partials.job-order-form-sections', ['mode' => 'create'])
 
         <script type="application/json" id="jobBusDriverMap">@json(
             $availableBuses->mapWithKeys(fn ($bus) => [
@@ -916,178 +746,33 @@
     <x-ui.form-modal
         id="editJobModal"
         title="Edit Job Order"
-        description="Update the maintenance work, mechanics and required parts."
-        icon="fa-clipboard-check"
+        description="Create and assign a maintenance service request"
+        icon="fa-screwdriver-wrench"
         size="large"
         form-id="editJobForm"
         action="#"
         method="PUT"
+        submit-text="Update Job Order"
+        submit-id="updateJobOrderBtn"
+        submit-icon="fa-floppy-disk"
         close-id="closeEditJobModal"
+        cancel-id="cancelEditJobModal"
         :confirm="true"
         confirm-title="Update Job Order?"
         confirm-message="Are you sure you want to update this Job Order?"
         confirm-button="Yes, Update Job Order"
         confirm-type="update"
-        :show-actions="false"
-        class="jo-edit-modal-overlay"
+        class="jo-create-modal-overlay jo-edit-modal-overlay"
     >
         <input type="hidden" name="job_order_no" id="edit_job_order_no">
         <input type="hidden" name="maintenance_type" id="edit_maintenance_type" value="Repair">
-        <section data-edit-jo-step="0" class="jo-create-section jo-create-basic jo-create-job-details jo-edit-creation-step jo-edit-collapsible">
-            <div class="jo-create-section-header jo-edit-section-header">
-                <span class="jo-create-section-icon"><i class="fa-solid fa-file-lines"></i></span>
-                <div><h3><span class="jo-create-section-number">01 &mdash;</span> Job Details</h3></div>
-            </div>
-            <div class="ui-form-grid jo-create-basic-grid jo-create-job-details-grid">
-                <x-ui.form-select label="Bus ID / Plate" name="bus_no" id="edit_bus_no"
-                    icon="fa-bus" placeholder="Select Bus"
-                    :options="$buses->mapWithKeys(fn ($bus) => [$bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')])->toArray()" required />
-                <div class="ui-form-group jo-maintenance-job-slot">
-                    <label for="edit_work_to_perform">Maintenance Job <span class="ui-required">*</span></label>
-                    <textarea name="work_to_perform" id="edit_work_to_perform" rows="2" required placeholder="Maintenance work from this Job Order"></textarea>
-                </div>
-                <div class="ui-form-group ui-form-full jo-create-problem-field">
-                    <label for="edit_problem_issue">Complaint / Problem <span class="ui-required">*</span></label>
-                    <textarea name="problem_issue" id="edit_problem_issue" placeholder="Describe the reported issue or complaint..." required></textarea>
-                </div>
-            </div>
-        </section>
+        @include('Maintenance.partials.job-order-form-sections', ['mode' => 'edit'])
 
-        <section data-edit-jo-step="1" data-collapsed="true" class="jo-create-section jo-create-details jo-create-mechanics jo-edit-creation-step jo-edit-collapsible">
-            <div class="jo-edit-section-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-gears"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-edit-step-number">02 &mdash;</span> Mechanic Assignment</h3>
-                    <p>Manage the mechanics assigned to this Job Order.</p>
-                </div>
-            </div>
-
-            <div class="jo-edit-details-grid">
-                <x-ui.form-select
-                    label="Status"
-                    name="status"
-                    id="edit_status"
-                    icon="fa-circle-check"
-                    :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
-                />
-
-                <div class="ui-form-group">
-                    <label for="edit_assigned_mechanic">Assigned Mechanics <small>(optional)</small></label>
-                    <select name="mechanic_ids[]" id="edit_assigned_mechanic" multiple size="4">
-                        @foreach($allMechanics as $mechanic)
-                            <option value="{{ $mechanic->id }}">{{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        </section>
-
-        <section data-edit-jo-step="2" data-collapsed="true" class="jo-create-section jo-create-duration jo-edit-creation-step jo-edit-collapsible jo-edit-duration-section">
-            <div class="jo-edit-section-header"><span class="jo-edit-section-icon"><i class="fa-regular fa-clock"></i></span>
-                <div><h3><span class="jo-edit-step-number">03 &mdash;</span> Estimated Duration</h3><p>Update the expected repair time.</p></div>
-            </div>
-            <div class="jo-edit-duration-content">                <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                    <label>
-                        Estimated Work Duration
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <div class="jo-duration-control">
-                        <div class="ui-input-wrap has-icon">
-                            <span class="ui-input-icon">
-                                <i class="fa-solid fa-clock"></i>
-                            </span>
-
-                            <input
-                                type="number"
-                                name="estimated_duration_value"
-                                min="0.25"
-                                step="0.25"
-                                placeholder="e.g. 4"
-                                required
-                            >
-                        </div>
-
-                        <select
-                            name="estimated_duration_unit"
-                            id="editJobEstimatedDurationUnit"
-                            class="jo-duration-unit-select"
-                            required
-                        >
-                            <option value="Hours">Hours</option>
-                            <option value="Minutes">Minutes</option>
-                            <option value="Days">Days</option>
-                        </select>
-                    </div>
-                </div>
-
-
-            </div>
-        </section>
-
-        <section
-            id="editRequestedPartsSection" data-edit-jo-step="3" data-collapsed="true"
-            class="jo-create-section jo-create-parts jo-parts-section jo-edit-creation-step jo-edit-collapsible"
-        >
-            <div class="jo-edit-section-header jo-edit-parts-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-box-open"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-edit-step-number">04 &mdash;</span> Requested Parts</h3>
-                    <p>Review or update the parts required for this job order.</p>
-                </div>
-
-                <button type="button" id="editAddPartBtn" class="jo-edit-add-part-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Part
-                </button>
-            </div>
-
-            <div id="editPartsLockedNotice" class="jo-parts-locked-notice" style="display: none;">
-                <span class="jo-parts-lock-icon">
-                    <i class="fa-solid fa-lock"></i>
-                </span>
-
-                <div>
-                    <strong>Assign a mechanic first</strong>
-                    <span>Requested parts can only be entered after a mechanic is assigned to inspect the bus.</span>
-                </div>
-            </div>
-
-            <div class="jo-edit-parts-table">
-                <div class="jo-edit-parts-table-head" aria-hidden="true">
-                    <span>#</span>
-                    <span>Item / Part</span>
-                    <span>Qty</span>
-                    <span>Unit</span>
-                    <span>Actions</span>
-                </div>
-
-                <div id="editPartsNeededWrapper" class="jo-parts-repeater jo-edit-parts-repeater"></div>
-            </div>
-        </section>
-
-        <div class="ui-form-actions jo-edit-footer" id="editJobMainActions">
-            <button type="button" id="cancelEditJobModal" class="ui-form-btn ui-form-btn-cancel">
-                Cancel
-            </button>
-
-            <button type="submit" id="updateJobOrderBtn" class="ui-form-btn ui-form-btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span>Update Job Order</span>
-            </button>
-        </div>
-
-        <div class="ui-form-actions jo-edit-footer" id="viewOnlyJobActions" style="display: none;">
-            <button type="button" id="closeViewOnlyJob" class="ui-form-btn ui-form-btn-cancel">
-                Close
-            </button>
-        </div>
+        <script type="application/json" id="editJobBusDriverMap">@json(
+            $buses->mapWithKeys(fn ($bus) => [
+                $bus->bus_no => optional($bus->authorizedDrivers->first())->driver_name,
+            ])
+        )</script>
     </x-ui.form-modal>
 
     <div id="finishJobModal" class="delete-modal-overlay">

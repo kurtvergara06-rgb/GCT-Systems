@@ -1373,15 +1373,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
   const editJobMainActions =
-    document.getElementById(
-      'editJobMainActions'
+    editJobForm?.querySelector(
+      '.ui-form-actions'
     );
 
 
-  const viewOnlyJobActions =
-    document.getElementById(
-      'viewOnlyJobActions'
-    );
+  const viewOnlyJobActions = null;
 
 
   const editAddPartBtn =
@@ -1522,13 +1519,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       isReadonly;
 
 
-    [
-      editBusNo,
-      editProblemIssue,
-      editMaintenanceType,
-      editStatus,
-      editAssignedMechanic,
-    ].forEach((field) => {
+    editJobForm?.querySelectorAll(
+      '.ui-form-modal-scrollable input:not([type="hidden"]), .ui-form-modal-scrollable select, .ui-form-modal-scrollable textarea, .ui-form-modal-scrollable button'
+    ).forEach((field) => {
 
       if (field) {
 
@@ -1562,13 +1555,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     }
 
 
-    if (editJobMainActions) {
+    if (editJobMainActions) editJobMainActions.style.display = 'flex';
 
-      editJobMainActions.style.display =
-        isReadonly
-          ? 'none'
-          : 'flex';
-    }
+    const updateButton = document.getElementById('updateJobOrderBtn');
+    if (updateButton) updateButton.style.display = isReadonly ? 'none' : 'inline-flex';
+    if (cancelEditJobModal) cancelEditJobModal.textContent = isReadonly ? 'Close' : 'Cancel';
 
 
     if (viewOnlyJobActions) {
@@ -1758,6 +1749,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     Array.from(editAssignedMechanic.options).forEach((option) => {
       option.selected = selectedIds.has(String(option.value));
     });
+    editAssignedMechanic.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
 
@@ -1981,11 +1973,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
             .maintenanceType ||
           '';
       }
-      const editWork = document.getElementById('edit_work_to_perform');
-      if (editWork) editWork.value = button.dataset.workToPerform || '';
-
-
-
       if (editStatus) {
 
         editStatus.value =
@@ -2018,6 +2005,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         updateEditJoPartsState();
 
       }
+
+      editJobModal?.querySelectorAll('[data-jo-collapsible]').forEach((section, index) => {
+        const shouldCollapse = index !== 0;
+        section.classList.toggle('is-collapsed', shouldCollapse);
+        const toggle = section.querySelector('.jo-collapse-toggle');
+        toggle?.setAttribute('aria-expanded', String(!shouldCollapse));
+        toggle?.querySelector('i')?.classList.toggle('fa-chevron-up', !shouldCollapse);
+        toggle?.querySelector('i')?.classList.toggle('fa-chevron-down', shouldCollapse);
+      });
 
 
       openModal(
@@ -2735,8 +2731,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     .querySelectorAll(
       '.modal-overlay:not(.global-confirmation-overlay), ' +
       '.delete-modal-overlay, ' +
-      '.success-modal-overlay, ' +
-      '.ui-form-overlay'
+      '.success-modal-overlay'
     )
     .forEach((modal) => {
 
@@ -2792,7 +2787,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       document.getElementById('newJoMaintenanceJob')?.getSelectedJobs?.().forEach((job) => {
         mechanicParams.append('maintenance_jobs[]', job);
       });
-      document.querySelectorAll('#joCustomSpecializations input:checked').forEach((input) => {
+      document.querySelectorAll('#newJoCustomSpecializations input:checked').forEach((input) => {
         mechanicParams.append('specializations[]', input.value);
       });
       const response =
@@ -3028,7 +3023,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
     if (id === 'newJoMaintenanceJob') field?.addEventListener('change', refresh);
   });
 
-  document.querySelectorAll('#jobModal [data-jo-collapsible]').forEach((section, index) => {
+  document.querySelectorAll('#jobModal [data-jo-collapsible], #editJobModal [data-jo-collapsible]').forEach((section, index) => {
     const header = section.querySelector('.jo-create-section-header');
     if (!header || header.querySelector('.jo-collapse-toggle')) return;
     const button = document.createElement('button');
@@ -3088,8 +3083,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
       !!joValue('[name="bus_no"]') && !!joValue('#newJoMaintenanceJob')
         && joValue('[name="problem_issue"]').length > 0
         && (joValue('#newJoMaintenanceJob') !== 'Other'
-          || (joValue('#joCustomWorkName').length >= 3
-            && !!joForm.querySelector('#joCustomSpecializations input:checked')))
+          || (joValue('#newJoCustomWorkName').length >= 3
+            && !!joForm.querySelector('#newJoCustomSpecializations input:checked')))
         ? 'completed' : 'incomplete',
       selectedMechanics ? 'completed' : 'incomplete',
       joDurationValid() ? 'completed' : 'incomplete',
@@ -3125,7 +3120,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
       }
     };
     joForm.querySelector('#jobProblemIssue')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
-    joForm.querySelector('#joCustomWorkName')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
+    joForm.querySelector('#newJoCustomWorkName')?.addEventListener('blur', () => advanceOnCompletion(0, 1));
     joForm.querySelector('#newJoMaintenanceJob')?.addEventListener('change', () => advanceOnCompletion(0, 1));
     // Keep Mechanic Assignment expanded as the user adds multiple mechanics.
     // Completion badge updates on every selection, but moving to Duration is manual.
@@ -3213,8 +3208,62 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
   });
   void loadDuration();
 
-  const partsWrapper = document.getElementById('partsNeededWrapper');
+  let editDurationRequest = 0;
+  const loadEditDuration = async () => {
+    const requestId = ++editDurationRequest;
+    const form = document.getElementById('editJobForm');
+    const typeField = form?.querySelector('[name="maintenance_type"]');
+    const job = document.getElementById('editJoMaintenanceJob')?.value?.trim() || '';
+    const custom = form?.querySelector('[name="custom_maintenance_job"]')?.value?.trim() || '';
+    const actualJob = job === 'Other' ? custom : job;
+    const help = document.getElementById('editJobDurationSuggestion');
+    const helpText = help?.querySelector('span');
 
+    if (help) help.dataset.status = 'unavailable';
+    if (!typeField?.value || !actualJob) {
+      if (helpText) helpText.textContent = 'Select specific maintenance work to check historical duration.';
+      return;
+    }
+
+    if (helpText) helpText.textContent = 'Checking matching completed Job Orders...';
+    const params = new URLSearchParams({
+      maintenance_type: typeField.value,
+      maintenance_job: job,
+      custom_maintenance_job: custom,
+    });
+
+    try {
+      const response = await fetch('/job-orders/duration-suggestion?' + params.toString(), {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      if (!response.ok) throw new Error('Suggestion request failed');
+      const data = await response.json();
+      if (requestId !== editDurationRequest) return;
+      if (data.available && data.suggestion) {
+        if (help) help.dataset.status = 'available';
+        if (helpText) helpText.textContent = 'Suggested: ' + data.suggestion.value + ' ' + data.suggestion.unit
+          + ' · based on ' + data.suggestion.sample_size + ' matching completed JOs. You may enter your own estimate.';
+      } else if (helpText) {
+        helpText.textContent = 'Not enough matching completed Job Orders. Enter your own estimate.';
+      }
+    } catch (_) {
+      if (requestId === editDurationRequest && helpText) helpText.textContent = 'History unavailable. Enter your own estimate.';
+    }
+  };
+  window.GCTLoadEditDurationSuggestion = loadEditDuration;
+  document.getElementById('editJobForm')?.addEventListener('change', (event) => {
+    if (event.target?.matches?.('[name="maintenance_job"], [name="custom_maintenance_job"], #editJoMaintenanceJob')) {
+      void loadEditDuration();
+    }
+  });
+  let editCustomHistoryDelay;
+  document.getElementById('editJobForm')?.addEventListener('input', (event) => {
+    if (!event.target?.matches?.('[name="custom_maintenance_job"]')) return;
+    clearTimeout(editCustomHistoryDelay);
+    editCustomHistoryDelay = setTimeout(() => void loadEditDuration(), 350);
+  });
+
+  const enhanceJobOrderParts = (partsWrapper) => {
   // Stocked parts are selected by inventory ID; units come from Warehouse data.
   if (partsWrapper) {
     fetch('/job-orders/inventory-options', { headers: { Accept: 'application/json' } })
@@ -3236,6 +3285,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           const unitSelect = row.querySelector('select[name$="[unit]"]');
           if (!nameInput || !unitSelect) return;
           const name = nameInput.name;
+          const existingName = nameInput.value;
           const picker = document.createElement('select');
           picker.name = name;
           picker.className = 'jo-warehouse-part-picker';
@@ -3381,6 +3431,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           document.addEventListener('pointerdown', (event) => {
             if (!searchWrap.contains(event.target) && !menu.contains(event.target)) close();
           });
+          picker.value = existingName;
           row.dataset.inventoryPicker = '1';
           updateItem();
         };
@@ -3494,6 +3545,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
       }
     }).observe(partsWrapper, { childList: true, subtree: false });
   }
+  };
+
+  ['partsNeededWrapper', 'editPartsNeededWrapper'].forEach((id) => {
+    enhanceJobOrderParts(document.getElementById(id));
+  });
 
 });
 
@@ -3584,6 +3640,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-comb
       busSelect.value = lockedBusValue;
     }
   });
+
+  // Edit uses the same shared searchable multi-select component as Create.
+  // Keep only the existing immutable-bus guard from this legacy initializer.
+  return;
 
   /*
    * Build a searchable mechanic combobox while retaining the original
@@ -3836,6 +3896,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
   const linkedDriver = document.getElementById('jobLinkedDriver');
   const linkedDriverPreview = document.getElementById('jobLinkedDriverPreview');
   const busDriverMapSource = document.getElementById('jobBusDriverMap');
+  const editModal = document.getElementById('editJobModal');
+  const editBusSelect = document.getElementById('edit_bus_no');
+  const editMechanicSelect = document.getElementById('edit_assigned_mechanic');
+  const editLinkedDriver = document.getElementById('editJobLinkedDriver');
+  const editLinkedDriverPreview = document.getElementById('editJobLinkedDriverPreview');
+  const editBusDriverMapSource = document.getElementById('editJobBusDriverMap');
 
   if (!modal) {
     return;
@@ -3865,6 +3931,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
 
   busSelect?.addEventListener('change', updateLinkedDriver);
   updateLinkedDriver();
+
+  let editBusDriverMap = {};
+  try {
+    editBusDriverMap = JSON.parse(editBusDriverMapSource?.textContent || '{}');
+  } catch {
+    editBusDriverMap = {};
+  }
+  const updateEditLinkedDriver = () => {
+    const driverName = editBusDriverMap[editBusSelect?.value] || '';
+    if (editLinkedDriver) editLinkedDriver.textContent = driverName;
+    if (editLinkedDriverPreview) editLinkedDriverPreview.hidden = driverName === '';
+  };
+  editBusSelect?.addEventListener('change', updateEditLinkedDriver);
 
   function setupSearchableSelect(select, config) {
     if (!select || select.dataset.searchableReady === 'true') {
@@ -3923,7 +4002,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     const searchInput = menu.querySelector('input');
     const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
     const isBusCombobox = config.className === 'jo-bus-combobox';
-    const modalScroller = modal.querySelector('.ui-form-modal-scrollable');
+    const modalScroller = select.closest('.ui-form-overlay')?.querySelector('.ui-form-modal-scrollable');
 
     if (isBusCombobox) {
       menu.classList.add('jo-bus-menu-portal');
@@ -4079,7 +4158,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     };
 
     const openMenu = async () => {
-      if (select.disabled) {
+      if (select.disabled || config.readonly) {
         return;
       }
 
@@ -4089,6 +4168,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
        * user never has to reload the whole JO page.
        */
       if (
+        select.id === 'jobAssignedMechanics' &&
         select === mechanicSelect &&
         typeof window.GCTRefreshJobOrderMechanics === 'function'
       ) {
@@ -4156,6 +4236,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     });
 
     renderOptions();
+    select.addEventListener('change', renderOptions);
   }
 
   function setupMechanicMultiSelect(select) {
@@ -4202,7 +4283,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
     const label = trigger.querySelector('.jo-mechanic-combobox-label');
     const searchInput = menu.querySelector('input');
     const optionsContainer = menu.querySelector('.jo-mechanic-combobox-options');
-    const modalScroller = modal.querySelector('.ui-form-modal-scrollable');
+    const modalScroller = select.closest('.ui-form-overlay')?.querySelector('.ui-form-modal-scrollable');
 
     const selectedOptions = () => Array.from(select.options).filter((option) => option.selected);
     const mechanicName = (option) => option.textContent.split('·')[0].trim();
@@ -4359,7 +4440,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
 
     const openMenu = async () => {
       if (select.disabled) return;
-      if (typeof window.GCTRefreshJobOrderMechanics === 'function') {
+      if (select.id === 'jobAssignedMechanics' && typeof window.GCTRefreshJobOrderMechanics === 'function') {
         await window.GCTRefreshJobOrderMechanics();
       }
       renderOptions();
@@ -4409,8 +4490,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
   });
 
   setupMechanicMultiSelect(mechanicSelect);
-});
+  setupSearchableSelect(editBusSelect, {
+    className: 'jo-bus-combobox',
+    icon: 'fa-bus',
+    placeholder: 'Select bus',
+    searchPlaceholder: 'Search bus ID or plate number...',
+    emptyMessage: 'No bus matches your search.',
+    optionHint: 'Current Job Order bus',
+    formatOptionText: (text) => text,
+    readonly: true,
+  });
+  setupMechanicMultiSelect(editMechanicSelect);
 
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.open-edit-modal')) return;
+    window.setTimeout(updateEditLinkedDriver, 0);
+  });
+});
 
 /* Maintenance Head review: accessible centered modal instead of a table popover. */
 window.GCTPartialNavigation.registerInitializer('maintenance-jo-head-review-dialog', '.jo-page', () => {
@@ -4779,42 +4875,3 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-mechanic-more-po
   });
 });
 
-/* Edit JO accordion: same compact steps as Create JO, preserving existing inputs/handlers. */
-window.GCTPartialNavigation.registerInitializer('maintenance-edit-jo-accordion', '.jo-page', () => {
-  const modal = document.getElementById('editJobModal');
-  const form = document.getElementById('editJobForm');
-  if (!modal || !form || modal.dataset.editAccordionReady === '1') return;
-  modal.dataset.editAccordionReady = '1';
-  const steps = [...modal.querySelectorAll('[data-edit-jo-step]')];
-  const setExpanded = (step, expand) => {
-    step.dataset.collapsed = expand ? 'false' : 'true';
-    const toggle = step.querySelector('.jo-edit-step-toggle');
-    if (toggle) toggle.setAttribute('aria-expanded', String(expand));
-  };
-  steps.forEach((step, index) => {
-    const header = step.querySelector(':scope > .jo-edit-section-header');
-    if (!header) return;
-    const title = header.querySelector('h3');
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'jo-edit-step-toggle';
-    toggle.setAttribute('aria-label', 'Toggle ' + (title?.textContent?.trim() || 'section'));
-    toggle.innerHTML = '<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
-    toggle.addEventListener('click', () => setExpanded(step, step.dataset.collapsed === 'true'));
-    header.appendChild(toggle);
-    setExpanded(step, index === 0);
-  });
-  form.addEventListener('invalid', (event) => {
-    const step = event.target.closest('[data-edit-jo-step]');
-    if (step) setExpanded(step, true);
-  }, true);
-  form.addEventListener('submit', () => {
-    steps.forEach((step) => setExpanded(step, true));
-  });
-  modal.addEventListener('click', (event) => {
-    if (event.target.closest('.jo-edit-add-part-btn')) {
-      const step = modal.querySelector('#editRequestedPartsSection');
-      if (step) setExpanded(step, true);
-    }
-  });
-});

@@ -132,6 +132,7 @@ class JobOrderIndexController extends Controller
         $allMechanics = Mechanic::query()->where('employment_status', 'Active')->orderBy('mechanic_name')->get();
 
         $buses = Bus::query()
+            ->with('authorizedDrivers:id,driver_name')
             ->where('status', 'Active')
             ->orderBy('bus_no')
             ->get();

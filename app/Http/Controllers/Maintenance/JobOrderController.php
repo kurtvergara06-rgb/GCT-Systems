@@ -690,6 +690,12 @@ class JobOrderController extends Controller
             'problem_issue' => 'required|string',
             'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
+            'maintenance_job' => 'nullable|string|max:255',
+            'maintenance_jobs' => 'nullable|array|max:10',
+            'maintenance_jobs.*' => 'string|max:255|distinct',
+            'custom_maintenance_job' => 'nullable|string|max:255',
+            'specializations' => 'nullable|array',
+            'specializations.*' => 'string|max:255',
             'mechanic_ids' => 'nullable|array',
             'mechanic_ids.*' => 'integer|distinct|exists:mechanics,id',
             'assigned_mechanic' => 'nullable|string|max:255',
@@ -700,16 +706,97 @@ class JobOrderController extends Controller
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
             'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
         ]);
+
+        $selectedJobs = array_values(array_unique(array_filter(
+            $validated['maintenance_jobs'] ?? [$validated['maintenance_job'] ?? null],
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )));
+        if (count($selectedJobs) > 1 && in_array('Other', $selectedJobs, true)) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Custom work must be selected on its own, not with preset jobs.',
+            ]);
+        }
+        $jobSkills = collect($selectedJobs)->flatMap(
+            fn ($job) => $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+        )->unique()->values()->all();
+        if ($selectedJobs !== [] && $jobSkills === []) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Select valid Maintenance Jobs with defined specializations.',
+            ]);
+        }
+        if (in_array('Other', $selectedJobs, true)) {
+            $customName = trim((string) ($validated['custom_maintenance_job'] ?? ''));
+            if (mb_strlen($customName) < 3) {
+                throw ValidationException::withMessages([
+                    'custom_maintenance_job' => 'Please describe the custom maintenance job.',
+                ]);
+            }
+            $catalog = DB::table('mechanic_specialization_options')->pluck('name')
+                ->map(fn ($name) => mb_strtolower(trim((string) $name)))->all();
+            $skills = array_unique($validated['specializations'] ?? []);
+            if ($skills === [] || collect($skills)->contains(
+                fn ($skill) => ! in_array(mb_strtolower(trim($skill)), $catalog, true)
+            )) {
+                throw ValidationException::withMessages([
+                    'specializations' => 'Select valid specializations from Mechanic Master List.',
+                ]);
+            }
+        }
 
         $mechanicIds = $validated['mechanic_ids'] ?? [];
         if ($mechanicIds === [] && ! empty($validated['assigned_mechanic'])) {
             $legacyMechanic = Mechanic::query()->where('mechanic_name', $validated['assigned_mechanic'])->first();
             $mechanicIds = $legacyMechanic ? [$legacyMechanic->id] : [];
         }
+        if ($mechanicIds === [] && $selectedJobs !== []) {
+            throw ValidationException::withMessages([
+                'mechanic_ids' => 'Please assign at least one mechanic before updating the Job Order.',
+            ]);
+        }
         $mechanics = $this->workflow->validatedMechanics($mechanicIds, $jobOrder);
-        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        if ($selectedJobs !== []) {
+            foreach ($mechanics as $mechanic) {
+                if (! collect($selectedJobs)->contains(fn ($job) => $this->matchesSpecialization(
+                    $mechanic,
+                    $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                ))) {
+                    throw ValidationException::withMessages([
+                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for any selected maintenance job.",
+                    ]);
+                }
+            }
+            $uncoveredJobs = collect($selectedJobs)->reject(fn ($job) => $mechanics->contains(
+                fn (Mechanic $mechanic) => $this->matchesSpecialization(
+                    $mechanic,
+                    $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                )
+            ))->values();
+            if ($uncoveredJobs->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'mechanic_ids' => 'Assign qualified mechanics for every selected maintenance job. Uncovered: '.$uncoveredJobs->implode(', '),
+                ]);
+            }
+        }
+        // Resolve selected Warehouse items server-side, exactly as the Create JO form does.
+        $partInputs = $request->input('parts', []);
+        foreach ($partInputs as $index => &$partInput) {
+            if (! is_array($partInput) || empty($partInput['inventory_item_id'])) {
+                continue;
+            }
+            $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
+            if (! $item || ! trim((string) $item->unit)) {
+                throw ValidationException::withMessages([
+                    "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
+                ]);
+            }
+            $partInput['name'] = (string) $item->parts_name;
+            $partInput['unit'] = (string) $item->unit;
+        }
+        unset($partInput);
+        $parts = $this->partParser->normalizePartsInput($partInputs);
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -742,6 +829,12 @@ class JobOrderController extends Controller
             'inventory_snapshot' => $inventory,
         ];
 
+        if ($selectedJobs !== []) {
+            $updates['work_to_perform'] = in_array('Other', $selectedJobs, true)
+                ? trim((string) $validated['custom_maintenance_job'])
+                : implode(', ', $selectedJobs);
+        }
+
         if ($wasRevision) {
             $updates['review_status'] = 'For Review';
             $updates['review_notes'] = null;
@@ -755,7 +848,7 @@ class JobOrderController extends Controller
             }
         }
 
-        if (array_key_exists('work_to_perform', $validated)) {
+        if ($selectedJobs === [] && array_key_exists('work_to_perform', $validated)) {
             $updates['work_to_perform'] = $validated['work_to_perform'] !== null
                 ? trim($validated['work_to_perform'])
                 : null;
@@ -769,7 +862,7 @@ class JobOrderController extends Controller
             $updates['estimated_duration_unit'] = $validated['estimated_duration_unit'];
         }
 
-        DB::transaction(function () use ($jobOrder, $mechanics, $updates, $wasRevision): void {
+        DB::transaction(function () use ($jobOrder, $mechanics, $updates, $wasRevision, $selectedJobs, $validated): void {
             $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
             if ($locked->review_status === 'For Review' || $locked->review_status === 'Rejected' || $locked->status === 'Completed') {
                 abort(423, 'This Job Order changed and is no longer editable.');
@@ -791,7 +884,18 @@ class JobOrderController extends Controller
             $locked->update($updates);
             $this->workflow->syncMechanics($locked, $lockedMechanics, auth()->id());
             if ($wasRevision) {
-                $this->workflow->audit($locked, 'resubmitted', 'Revision Required', 'For Review', 'Revised Job Order resubmitted.');
+                $this->workflow->audit(
+                    $locked,
+                    'resubmitted',
+                    'Revision Required',
+                    'For Review',
+                    'Revised Job Order resubmitted.',
+                    [
+                        'maintenance_jobs' => $selectedJobs,
+                        'custom_maintenance_job' => $validated['custom_maintenance_job'] ?? null,
+                        'required_specializations' => $validated['specializations'] ?? [],
+                    ]
+                );
             } else {
                 if ($locked->actual_started_at) {
                     $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
