@@ -28,7 +28,7 @@ class PurchaseRequestIndexController extends Controller
 
     public function __invoke(Request $request, PurchaseRequestPartsService $missingParts)
     {
-        $recordView = in_array($request->input('record_view'), ['pending', 'history'], true)
+        $recordView = in_array($request->input('record_view'), ['pending', 'active', 'history'], true)
             ? $request->input('record_view')
             : 'active';
 
