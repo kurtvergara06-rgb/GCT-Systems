@@ -6496,3 +6496,12 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   #joReadonlyOverlay .jo-view-stock-table { overflow-x: auto; }
   #joReadonlyOverlay .jo-view-stock-head, #joReadonlyOverlay .jo-view-stock-row { min-width: 640px; }
 }
+
+/* View JO audit timeline starts collapsed and expands only on user request. */
+#joReadonlyOverlay details.jo-view-audit:not([open]) > ol {
+  display: none !important;
+}
+#joReadonlyOverlay details.jo-view-audit > summary {
+  cursor: pointer;
+  user-select: none;
+}
