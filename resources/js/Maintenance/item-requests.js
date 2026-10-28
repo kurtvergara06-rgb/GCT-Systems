@@ -141,6 +141,16 @@ document.addEventListener('click', (event) => {
         }
         renderItemRequestDetailParts(trigger.dataset.irParts || '', trigger.dataset.irPrParts || '[]');
         const status = (trigger.dataset.irStatus || '').trim();
+        const statusBadge = document.getElementById('ir-detail-status');
+        if (statusBadge) {
+            const normalized = status.toLowerCase();
+            const tone = ['issued', 'completed'].includes(normalized) ? 'is-complete'
+                : ['cancelled', 'rejected'].includes(normalized) ? 'is-closed'
+                : ['partially issued', 'partial'].includes(normalized) ? 'is-partial'
+                : 'is-active';
+            statusBadge.classList.remove('is-complete', 'is-closed', 'is-partial', 'is-active');
+            statusBadge.classList.add(tone);
+        }
         const description = document.getElementById('ir-detail-status-description');
         if (description) {
             const descriptions = {
@@ -148,6 +158,7 @@ document.addEventListener('click', (event) => {
                 approved: 'Warehouse has approved the request for processing.',
                 preparing: 'Warehouse is preparing the requested parts.',
                 partial: 'Some parts have been issued; quantities remain outstanding.',
+                'partially issued': 'Part of this request has been issued; the remainder is still outstanding.',
                 issued: 'The request has been issued by Warehouse.',
                 completed: 'This request is completed.',
                 cancelled: 'This request was cancelled.',
