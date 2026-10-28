@@ -184,7 +184,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             ->assertJsonPath('parts.0.availability', 'Unavailable')
             ->assertJsonMissingPath('parts.0.available')
             ->assertJsonMissingPath('parts.0.shortage')
-            ->assertJsonMissingPath('parts.0.inventory_item_id');
+            ->assertJsonPath('parts.0.inventory_item_id', $stock->id);
     }
 
     public function test_store_recalculates_missing_quantities_and_preserves_full_job_order_parts(): void
