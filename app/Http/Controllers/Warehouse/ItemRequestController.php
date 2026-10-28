@@ -268,7 +268,37 @@ class ItemRequestController extends Controller
                     ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
                 $allJoPartsIssued = $requiredAcrossJo->every(fn ($required, $partKey) =>
                     (int) ($issuedAcrossJo[$partKey] ?? 0) >= (int) $required);
-                $jo->update(['part_status' => $allJoPartsIssued || $jo->part_status === 'Issued' ? 'Issued' : 'Partial']);
+                $priorPartStatus = $jo->part_status;
+                $newPartStatus = $allJoPartsIssued || $priorPartStatus === 'Issued' ? 'Issued' : 'Partial';
+                $jo->update(['part_status' => $newPartStatus]);
+
+                // Persist the physical handover as a JO audit event inside the
+                // same transaction as its issuance ledger, so rolled-back
+                // handovers cannot leave a misleading audit trail.
+                $issuedLines = collect($allocations)->map(fn (array $allocation) => [
+                    'inventory_item_id' => $allocation['item']->id,
+                    'item_code' => $allocation['item']->item_code,
+                    'part_name' => $allocation['item']->parts_name ?? $allocation['item']->item_name,
+                    'quantity' => (int) $allocation['quantity'],
+                    'unit' => $allocation['item']->unit ?? $allocation['item']->unit_of_measurement,
+                ])->values()->all();
+                $jo->audits()->create([
+                    'user_id' => auth()->id(),
+                    'action' => $newPartStatus === 'Issued' && $priorPartStatus !== 'Issued'
+                        ? 'parts_fully_issued' : 'parts_partially_issued',
+                    'from_status' => $priorPartStatus,
+                    'to_status' => $newPartStatus,
+                    'notes' => 'Warehouse issued '.array_sum($nowTotals).' unit(s) for '.$batchRef
+                        .' to '.trim($validated['received_by']).'.',
+                    'metadata' => [
+                        'item_request_id' => $ir->id,
+                        'inventory_issuance_id' => $issuance->id,
+                        'reference_no' => $batchRef,
+                        'ir_status' => $ir->status,
+                        'received_by' => trim($validated['received_by']),
+                        'issued_parts' => $issuedLines,
+                    ],
+                ]);
             });
         } catch (\Throwable $error) {
             Storage::disk('local')->delete($slipPath);
