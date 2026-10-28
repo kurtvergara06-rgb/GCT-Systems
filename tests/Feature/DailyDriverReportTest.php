@@ -596,7 +596,7 @@ class DailyDriverReportTest extends TestCase
             'estimated_arrival_time' => $arrival,
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Scheduled',
+            'status' => 'Completed',
             'created_by' => $this->user->id,
         ]);
 
