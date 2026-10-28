@@ -817,3 +817,58 @@
 @media (max-width: 780px) {
   #itemRequestModal .ir-review-parts-two-column { grid-template-columns: 1fr; }
 }
+
+/* Fix compressed Review IR sections: scroll the body, never shrink/crop parts. */
+#itemRequestModal .ir-review-document-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 36px);
+}
+#itemRequestModal .ir-review-document-modal > form {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-modal .ir-review-document-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+#itemRequestModal .ir-review-document-body > .ir-review-jo-banner,
+#itemRequestModal .ir-review-document-body > .ir-review-document-top,
+#itemRequestModal .ir-review-document-body > .ir-review-section,
+#itemRequestModal .ir-review-document-body > .ir-note {
+  flex: 0 0 auto;
+}
+#itemRequestModal .ir-review-parts-section,
+#itemRequestModal .ir-review-parts-content,
+#itemRequestModal .ir-review-parts-two-column,
+#itemRequestModal .ir-review-parts-pane {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+}
+#itemRequestModal .ir-review-parts-section { overflow: visible; }
+#itemRequestModal .ir-review-document-modal .ir-modal-footer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+#itemRequestModal .ir-review-jo-banner .ir-jo-approved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  border: 1px solid #a7dfbb;
+  border-radius: 100px;
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  font-size: 11px;
+  font-weight: 800;
+}
+#itemRequestModal .ir-review-jo-banner .ir-jo-approved-badge i { color: #15803d; }
