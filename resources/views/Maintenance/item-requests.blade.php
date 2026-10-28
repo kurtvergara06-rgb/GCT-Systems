@@ -210,22 +210,32 @@
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
         <div class="ir-modal-body ir-view-modal-body">
-            <section class="ir-view-summary-grid" aria-label="Request information">
-                <div class="ir-view-info-card"><span><i class="fa-regular fa-file-lines"></i> IR Number</span><strong id="ir-detail-number"></strong></div>
-                <div class="ir-view-info-card"><span><i class="fa-solid fa-clipboard-list"></i> Job Order</span><strong id="ir-detail-job"></strong></div>
-                <div class="ir-view-info-card"><span><i class="fa-solid fa-bus"></i> Bus</span><strong id="ir-detail-bus"></strong></div>
-                <div class="ir-view-info-card"><span><i class="fa-regular fa-calendar"></i> Date &amp; Time Created</span><strong id="ir-detail-date"></strong></div>
+            <section class="ir-view-document-summary" aria-label="Item Request summary">
+                <div class="ir-view-document-number"><span>ITEM REQUEST NO.</span><strong id="ir-detail-number"></strong><small>Maintenance to Warehouse</small></div>
+                <div><span>IR STATUS</span><strong class="ir-view-status" id="ir-detail-status"></strong></div>
+                <div><span>JOB ORDER</span><strong id="ir-detail-job"></strong></div>
+                <div><span>BUS ID / PLATE</span><strong id="ir-detail-bus"></strong></div>
+                <div><span>SUBMITTED AT</span><strong id="ir-detail-date"></strong></div>
             </section>
-            <section class="ir-view-panel" aria-labelledby="ir-view-parts-heading">
-                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked"></i> Requested Parts</h3><p>Parts submitted to Warehouse for checking and fulfillment.</p></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
-                <div id="ir-detail-parts" class="ir-view-parts-list"></div>
-            </section>
-            <section class="ir-view-panel ir-view-status-panel" aria-labelledby="ir-view-status-heading">
-                <div class="ir-view-status-row"><div><h3 id="ir-view-status-heading"><i class="fa-solid fa-warehouse"></i> Warehouse Status</h3><p id="ir-detail-status-description">Current request processing status.</p></div><strong class="ir-view-status" id="ir-detail-status"></strong></div>
-            </section>
-            <section class="ir-view-panel" aria-labelledby="ir-view-remarks-heading">
-                <header class="ir-view-panel-header"><div><h3 id="ir-view-remarks-heading"><i class="fa-regular fa-message"></i> Remarks</h3></div></header>
-                <div class="ir-view-remarks"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
+            <div class="ir-view-document-columns">
+                <section class="ir-view-panel ir-view-status-panel" aria-labelledby="ir-view-status-heading">
+                    <header class="ir-view-panel-header"><h3 id="ir-view-status-heading"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> Warehouse Processing</h3></header>
+                    <div class="ir-view-document-panel-body">
+                        <strong>Processing Status</strong>
+                        <p id="ir-detail-status-description">Current request processing status.</p>
+                    </div>
+                </section>
+                <section class="ir-view-panel" aria-labelledby="ir-view-remarks-heading">
+                    <header class="ir-view-panel-header"><h3 id="ir-view-remarks-heading"><i class="fa-regular fa-message" aria-hidden="true"></i> Maintenance Remarks</h3></header>
+                    <div class="ir-view-document-panel-body"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
+                </section>
+            </div>
+            <section class="ir-view-panel ir-view-document-parts" aria-labelledby="ir-view-parts-heading">
+                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Requested Parts &amp; Warehouse</h3><p>Actual parts requested for this Item Request.</p></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
+                <div class="ir-view-document-table">
+                    <div class="ir-view-document-table-head"><span>#</span><span>PART NAME</span><span>REQUESTED QTY</span><span>HANDOVER</span></div>
+                    <div id="ir-detail-parts" class="ir-view-parts-list"></div>
+                </div>
             </section>
         </div>
         <footer class="ir-modal-footer ir-view-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
