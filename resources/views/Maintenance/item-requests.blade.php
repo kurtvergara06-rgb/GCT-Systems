@@ -94,7 +94,16 @@
                     @endif
                 </td>
                 <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Waiting for Complete Stock' : 'For Review' }}</span></td>
-                <td><button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Head selected Wait Until Complete. Warehouse must have all outstanding parts allocated before another IR can be submitted.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button></td>
+                <td>
+                    <div class="ir-pending-actions">
+                        <button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Head selected Wait Until Complete. Partial IR is not authorized until sufficient stock is allocated.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button>
+                        @if($hasShortage)
+                            <a class="ir-pr-link" href="{{ route('purchase-requests', ['job_order_id' => $jo->id]) }}" title="Open Maintenance Purchase Requests to requisition missing JO parts">
+                                <i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Request Missing Parts
+                            </a>
+                        @endif
+                    </div>
+                </td>
             </tr>
             @empty
             <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
