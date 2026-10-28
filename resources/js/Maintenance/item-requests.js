@@ -32,40 +32,57 @@ document.addEventListener('keydown', (event) => {
 });
 
 
-function renderItemRequestDetailParts(raw) {
-    const list = document.getElementById('ir-detail-parts');
+function renderItemRequestDetailParts(raw, prRaw) {
+    const availableBody = document.getElementById('ir-detail-available-parts');
+    const missingBody = document.getElementById('ir-detail-missing-parts');
     const count = document.getElementById('ir-detail-parts-count');
-    if (!list) return;
-    const parts = String(raw).split(' | ').map(value => value.trim()).filter(Boolean);
-    if (count) count.textContent = parts.length + (parts.length === 1 ? ' item' : ' items');
-    list.replaceChildren();
-    if (!parts.length) {
-        const empty = document.createElement('p');
-        empty.className = 'ir-view-parts-empty';
-        empty.textContent = 'No requested parts listed.';
-        list.append(empty);
-        return;
-    }
-    parts.forEach((part, index) => {
+    if (!availableBody || !missingBody) return;
+
+    const available = String(raw).split(' | ').map(value => value.trim()).filter(Boolean).map(part => {
         const separator = part.lastIndexOf(' — ');
-        const name = separator >= 0 ? part.slice(0, separator) : part;
-        const quantity = separator >= 0 ? part.slice(separator + 3) : '';
-        const row = document.createElement('div');
-        row.className = 'ir-view-part-row';
-        const main = document.createElement('div');
-        main.className = 'ir-view-part-main';
-        const number = document.createElement('span');
-        number.className = 'ir-view-part-index';
-        number.textContent = String(index + 1).padStart(2, '0');
-        const label = document.createElement('strong');
-        label.textContent = name || '—';
-        main.append(number, label);
-        const amount = document.createElement('span');
-        amount.className = 'ir-view-part-qty';
-        amount.textContent = quantity || '—';
-        row.append(main, amount);
-        list.append(row);
+        return {
+            name: separator >= 0 ? part.slice(0, separator) : part,
+            quantity: separator >= 0 ? part.slice(separator + 3) : '—'
+        };
     });
+    let missing = [];
+    try {
+        const decoded = JSON.parse(prRaw || '[]');
+        if (Array.isArray(decoded)) missing = decoded.filter(part => part && typeof part === 'object');
+    } catch (_) {
+        missing = [];
+    }
+
+    if (count) count.textContent = 'IR: ' + available.length + ' • PR: ' + missing.length;
+    const showRows = (body, parts, label, statusLabel, isPr) => {
+        body.replaceChildren();
+        if (!parts.length) {
+            const row = document.createElement('tr');
+            const empty = document.createElement('td');
+            empty.colSpan = 3;
+            empty.className = 'ir-view-request-empty';
+            empty.textContent = isPr ? 'No linked Purchase Request recorded.' : 'No submitted IR parts.';
+            row.append(empty);
+            body.append(row);
+            return;
+        }
+        parts.forEach(part => {
+            const row = document.createElement('tr');
+            const name = document.createElement('td');
+            name.textContent = part.name || '—';
+            const qty = document.createElement('td');
+            qty.textContent = isPr ? String(part.quantity ?? 0) + ' ' + (part.unit || '') : part.quantity;
+            const status = document.createElement('td');
+            const badge = document.createElement('span');
+            badge.className = 'ir-view-request-badge ' + (isPr ? 'is-pr' : 'is-ir');
+            badge.textContent = statusLabel;
+            status.append(badge);
+            row.append(name, qty, status);
+            body.append(row);
+        });
+    };
+    showRows(availableBody, available, 'IR', 'For Warehouse', false);
+    showRows(missingBody, missing, 'PR', 'For Purchase', true);
 }
 
 function closeItemRequestDetails() {
@@ -91,7 +108,7 @@ document.addEventListener('click', (event) => {
             const element = document.getElementById(id);
             if (element) element.textContent = value || '—';
         });
-        renderItemRequestDetailParts(trigger.dataset.irParts || '');
+        renderItemRequestDetailParts(trigger.dataset.irParts || '', trigger.dataset.irPrParts || '[]');
         const status = (trigger.dataset.irStatus || '').trim();
         const description = document.getElementById('ir-detail-status-description');
         if (description) {
