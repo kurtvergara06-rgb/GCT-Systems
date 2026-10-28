@@ -189,8 +189,14 @@ class JobOrderWorkflowService
                 'ambiguous'=>$matching->count()>1];
         })->values();
         $total = $totals->sum();
-        $available = $breakdown->unique(fn ($part) => ! empty($part['inventory_item_id']) ? 'id:'.$part['inventory_item_id'] : $normal($part['name']).'|'.$unitKey($part['unit']))
-            ->sum(fn ($part) => min((int)$totals->get(! empty($part['inventory_item_id']) ? 'id:'.$part['inventory_item_id'] : $normal($part['name']).'|'.$unitKey($part['unit']),0),$part['available']));
+        // Aggregate against the requested key, not the resolved stock ID:
+        // name-only requests resolve to an item ID after grouping.
+        $available = $breakdown->values()->unique(fn ($part, $index) => $requested[$index]['key'])
+            ->sum(fn ($part) => min((int) $totals->get(
+                ! empty($part['inventory_item_id']) && $totals->has('id:'.$part['inventory_item_id'])
+                    ? 'id:'.$part['inventory_item_id']
+                    : $normal($part['name']).'|'.$unitKey($part['unit']), 0
+            ), (int) $part['available']));
         return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
             'parts'=>$breakdown->all()];
     }
