@@ -193,7 +193,7 @@
                                           </div>
                                       </details>
                                   </td>
-                                  <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
+                                  <td><span class="pr-ir-shortage-status {{ $availableAllocation->isNotEmpty() ? 'is-partial' : '' }}">{{ $availableAllocation->isNotEmpty() ? 'Partial Stock' : 'Unavailable Stock' }}</span></td>
                                   <td><span class="pr-pending-badge pr-ir-status-box">For Review</span></td>
                                   <td><span class="pr-ir-release-policy {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Only' : 'Wait Until Complete' }}</span></td>
                                   <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $sourceJo->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review PR</button></td>
@@ -255,7 +255,7 @@
                                               </div>
                                           </details>
                                       </td>
-                                      <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
+                                      <td><span class="pr-ir-shortage-status {{ $referenceIrParts->isNotEmpty() ? 'is-partial' : '' }}">{{ $referenceIrParts->isNotEmpty() ? 'Partial Stock' : 'Unavailable Stock' }}</span></td>
                                       <td><span class="pr-pending-badge pr-ir-status-box">{{ $displayPrStatus }}</span></td>
                                       <td>@if($sourceJo)<span class="pr-ir-release-policy {{ $releasePartial ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $releasePartial ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releasePartial ? 'Issue Available Only' : 'Wait Until Complete' }}</span>@else<span>—</span>@endif</td>
                                       <td><div class="actions pr-review-action-cell">
