@@ -357,7 +357,7 @@ class DailyDriverReportTest extends TestCase
             'estimated_arrival_time' => '09:00:00',
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Scheduled',
+            'status' => 'Completed',
             'created_by' => $this->user->id,
         ]);
         TripAssignment::create([
@@ -393,7 +393,7 @@ class DailyDriverReportTest extends TestCase
             'estimated_arrival_time' => '07:45:00',
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Ready',
+            'status' => 'Completed',
             'created_by' => $this->user->id,
         ]);
         $secondAssignment = TripAssignment::create([
