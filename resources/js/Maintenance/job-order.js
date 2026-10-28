@@ -4387,7 +4387,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
           : 'All selected maintenance jobs are covered';
         caption.append(headline, detail);
         summary.append(ring, caption);
-        heading.insertAdjacentElement('afterend', summary);
+        coverage.querySelector('.jo-coverage-heading')?.insertAdjacentElement('afterend', summary);
 
         const table = document.createElement('div');
         table.className = 'jo-coverage-table';
