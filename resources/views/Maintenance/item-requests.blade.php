@@ -285,17 +285,18 @@
                 </div>
                 <section class="ir-review-section ir-review-parts-section" aria-labelledby="ir-review-parts-title">
                     <header><h3 id="ir-review-parts-title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3><span class="ir-review-section-note">Quantities calculated from the approved JO</span></header>
-                    <div class="ir-review-parts-content">
+                    <div class="ir-review-parts-content ir-review-parts-two-column"><div class="ir-review-parts-pane is-ir">
                         <div class="ir-review-portion-head"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
                         <div class="ir-preview-table-wrap"><table class="ir-preview-table">
                             <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>AVAILABILITY</th></tr></thead>
                             <tbody id="ir-preview-parts"><tr><td colspan="3" class="ir-preview-placeholder">Select an approved JO to review its required parts.</td></tr></tbody>
                         </table></div>
+                        </div><div class="ir-review-parts-pane is-pr">
                         <div class="ir-review-portion-head is-pr"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
                         <div class="ir-preview-table-wrap"><table class="ir-preview-table">
-                            <thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>REQUEST</th></tr></thead>
+                            <thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>STATUS</th></tr></thead>
                             <tbody id="ir-preview-missing"><tr><td colspan="3" class="ir-preview-placeholder">Choose an approved Job Order.</td></tr></tbody>
-                        </table></div>
+                        </table></div></div>
                     </div>
                 </section>
                 <section class="ir-review-section ir-review-remarks-section" aria-labelledby="ir-review-remarks-title">
