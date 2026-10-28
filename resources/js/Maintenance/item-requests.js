@@ -63,10 +63,7 @@ function renderItemRequestDetailParts(raw) {
         const amount = document.createElement('span');
         amount.className = 'ir-view-part-qty';
         amount.textContent = quantity || '—';
-        const handover = document.createElement('span');
-        handover.className = 'ir-view-part-handover';
-        handover.textContent = 'See Warehouse status';
-        row.append(main, amount, handover);
+        row.append(main, amount);
         list.append(row);
     });
 }
