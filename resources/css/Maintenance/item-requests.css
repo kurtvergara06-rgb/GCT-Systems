@@ -965,3 +965,32 @@
   #viewItemRequestModal .ir-view-document-table-head,
   #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 520px; }
 }
+
+/* View IR structural parity with the approved Review IR modal. */
+#viewItemRequestModal .ir-view-modal { width: min(1100px,calc(100vw - 36px)); max-width: 1100px; }
+#viewItemRequestModal .ir-view-review-layout { gap: 13px; padding: 15px 17px 18px; }
+#viewItemRequestModal .ir-view-review-overview { display: grid; grid-template-columns: 1.15fr .85fr; gap: 13px; align-items: stretch; }
+#viewItemRequestModal .ir-view-review-overview > .ir-view-panel { min-width: 0; }
+#viewItemRequestModal .ir-view-review-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 15px; padding: 16px; }
+#viewItemRequestModal .ir-view-review-info > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#viewItemRequestModal .ir-view-review-info span { color: #627c9b; font-size: 11px; }
+#viewItemRequestModal .ir-view-review-info strong { color: #163b6a; font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-review-info p { grid-column: 1/-1; color: #6b7f98; font-size: 11px; line-height: 1.55; margin: 0; }
+#viewItemRequestModal .ir-view-review-parts { border: 1px solid #e0e8f4; background: white; border-radius: 10px; padding: 13px; margin: 13px; }
+#viewItemRequestModal .ir-view-review-parts-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 11px; }
+#viewItemRequestModal .ir-view-review-parts-heading strong { color: #147348; font-size: 12px; font-weight: 800; }
+#viewItemRequestModal .ir-view-review-parts-heading small { color: #7185a1; font-size: 11px; }
+#viewItemRequestModal .ir-view-review-parts .ir-view-document-table { margin: 0; width: 100%; }
+#viewItemRequestModal .ir-view-review-layout .ir-view-panel-header { min-height: 41px; }
+#viewItemRequestModal .ir-view-review-layout .ir-view-panel-header > small { color: #7286a1; font-size: 10px; }
+#viewItemRequestModal .ir-view-review-remarks { margin: 13px; padding: 12px 14px; border: 1px solid #dde7f3; border-radius: 8px; background: #f7faff; }
+#viewItemRequestModal .ir-view-review-remarks p { margin: 0; color: #617793; font-size: 12px; }
+#viewItemRequestModal .ir-view-review-notice { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border: 1px solid #cdddff; border-radius: 8px; background: #edf5ff; color: #41628a; font-size: 11px; line-height: 1.5; }
+#viewItemRequestModal .ir-view-review-notice i { color: #2162b4; }
+@media(max-width:760px) {
+ #viewItemRequestModal .ir-view-review-overview { grid-template-columns: 1fr; }
+}
+@media(max-width:470px) {
+ #viewItemRequestModal .ir-view-review-info { grid-template-columns: 1fr; }
+ #viewItemRequestModal .ir-view-review-parts-heading { flex-wrap: wrap; }
+}
