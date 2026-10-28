@@ -265,6 +265,7 @@
                                                   title="View Purchase Requisition"
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
+                                                  data-reference-ir-parts="{{ json_encode($referenceIrParts->values()->all()) }}"
                                                   data-jo-approved="{{ $sourceJo?->review_status === 'Approved' ? '1' : '0' }}"
                                                   data-jo-review-status="{{ $sourceJo?->review_status ?? ($sourceJo ? 'Pending' : 'JO not found') }}"
                                                   data-jo-approver="{{ $sourceJo?->approver?->name ?? '' }}"
@@ -455,140 +456,68 @@
           <input type="hidden" name="bus_no" id="edit_bus_no">
           <input type="hidden" name="status_display" id="edit_status_display">
 
-          <div class="pr-review-summary">
-              <div class="pr-review-summary-item">
-                  <span>PR ID</span>
-                  <strong id="reviewPrNo">—</strong>
+          <div class="pr-view-document">
+              <section class="pr-ir-review-summary pr-view-summary" aria-label="Saved Purchase Request summary">
+                  <div class="pr-ir-summary-main"><span>PURCHASE REQUEST NO.</span><strong id="reviewPrNo">—</strong><small>Linked Job Order: <span id="reviewPrSummaryJobOrder">—</span></small></div>
+                  <div><span>PR STATUS</span><strong><span id="reviewPrStatus" class="pr-review-status-pill">—</span></strong></div>
+                  <div><span>BUS ID / PLATE</span><strong id="reviewPrBusNo">—</strong></div>
+                  <div><span>SUBMITTED AT</span><strong id="reviewPrCreated">—</strong></div>
+              </section>
+              <div class="pr-ir-review-top">
+                  <section class="pr-step-card pr-ir-overview" id="prReviewInformation" aria-label="Request overview">
+                      <div class="pr-ir-panel-heading"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><h3>Request Overview</h3></div>
+                      <div class="pr-ir-panel-body">
+                          <div class="pr-ir-overview-facts">
+                              <div><span>Request Type</span><strong id="reviewPrSource">Maintenance Request</strong></div>
+                              <div><span>Processing</span><strong>Shortage Purchase Request</strong></div>
+                          </div>
+                          <p>Saved PR for unavailable parts from the approved Job Order. Available IR quantities are shown for reference only.</p>
+                          <div class="pr-view-secondary-data">
+                              <div><span>Job Order</span><strong id="reviewPrJobOrderNo">—</strong></div>
+                              <div><span>Requested By</span><strong id="reviewPrRequester">—</strong></div>
+                              <div><span>Request Date</span><strong id="reviewPrRequestDate">—</strong></div>
+                              <div><span>Department</span><strong>Maintenance</strong></div>
+                          </div>
+                      </div>
+                  </section>
+                  <section class="pr-step-card pr-ir-head-approval" id="prAuthorizationSection" aria-label="Maintenance Head approval">
+                      <div class="pr-ir-panel-heading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><h3>Head Approval</h3></div>
+                      <div class="pr-ir-approval-body">
+                          <div class="pr-ir-approved-by"><span>Approved By</span><strong id="reviewPrApprover">—</strong><small>Maintenance Head</small></div>
+                          <div class="pr-jo-signature-reference pr-ir-signature"><span>Authorized Signature</span><img id="reviewPrSignature" alt="Saved Job Order approval signature" hidden><small id="reviewPrSignatureFallback">Not available</small></div>
+                      </div>
+                      <div class="pr-view-approval-meta"><span id="reviewPrJoAuthorization">—</span><span id="reviewPrApprovedAt">—</span><span id="reviewPrAuthorizationJobOrder">—</span></div>
+                  </section>
               </div>
-              <div class="pr-review-summary-item">
-                  <span>Current PR Status</span>
-                  <strong><span id="reviewPrStatus" class="pr-review-status-pill">—</span></strong>
-              </div>
-              <div class="pr-review-summary-item">
-                  <span>Source JO ID</span>
-                  <strong id="reviewPrSummaryJobOrder">—</strong>
-                  <small id="reviewPrJoAuthorization">—</small>
-              </div>
-              <div class="pr-review-summary-item pr-review-created">
-                  <span>Created Date</span>
-                  <strong id="reviewPrCreated">—</strong>
-              </div>
+              <section class="pr-step-card pr-document-parts pr-view-parts" id="prReviewItemsSection" aria-label="Parts and Warehouse">
+                  <div class="pr-ir-panel-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><h3>Parts &amp; Warehouse</h3><span id="reviewPrItemCount" class="pr-view-parts-note">0 items</span></div>
+                  <div class="pr-dual-parts-grid">
+                      <div class="pr-dual-parts-pane is-pr">
+                          <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
+                          <div class="pr-shortage-table-wrap"><table class="pr-shortage-table pr-review-parts-table">
+                              <thead><tr><th>#</th><th>PART NAME</th><th>MISSING QTY</th></tr></thead>
+                              <tbody id="reviewPrItemsBody"><tr><td colspan="3" class="pr-review-empty">No requested items recorded.</td></tr></tbody>
+                          </table></div>
+                      </div>
+                      <div class="pr-dual-parts-pane is-ir">
+                          <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
+                          <div class="pr-shortage-table-wrap"><table class="pr-shortage-table pr-review-parts-table">
+                              <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>AVAILABILITY</th></tr></thead>
+                              <tbody id="reviewPrIrPartsBody"><tr><td colspan="3" class="pr-review-empty">No linked allocation.</td></tr></tbody>
+                          </table></div>
+                      </div>
+                  </div>
+                  <div class="pr-view-parts-note-row">IR quantities are JO-minus-PR reference allocations and do not confirm Warehouse issuance.</div>
+                  <div class="pr-view-hidden-totals" hidden><span id="reviewPrTotalQuantity">—</span></div>
+              </section>
+              <section class="pr-step-card pr-view-remarks" id="prRequestDetailsSection" aria-label="Request details">
+                  <div class="pr-ir-panel-heading"><i class="fa-regular fa-message" aria-hidden="true"></i><h3>Request Details</h3><span class="pr-view-parts-note">Read only</span></div>
+                  <div class="pr-ir-panel-body">
+                      <div class="pr-view-secondary-data"><div><span>Work / Repair to Perform</span><strong id="reviewPrWorkToPerform">—</strong></div><div><span>Purpose</span><strong id="reviewPrPurpose">—</strong></div><div><span>Target Date</span><strong id="reviewPrTargetDate">—</strong></div></div>
+                      <div class="pr-view-remarks-field"><span>Remarks</span><strong id="reviewPrRemarks">No remarks provided.</strong></div>
+                  </div>
+              </section>
           </div>
-
-          <section id="prReviewInformation" class="pr-review-information-section">
-              <div class="pr-review-section-heading pr-review-information-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon">
-                          <i class="fa-solid fa-file-lines"></i>
-                      </span>
-                      <div>
-                          <h3>01 — Request Information</h3>
-                          <p>Origin and requester information</p>
-                      </div>
-                  </div>
-              </div>
-
-              <div class="pr-review-information">
-                  <div class="pr-review-detail-row">
-                      <span>Job Order ID</span>
-                      <strong id="reviewPrJobOrderNo">—</strong>
-                  </div>
-                  <div class="pr-review-detail-row">
-                      <span>Bus ID</span>
-                      <strong id="reviewPrBusNo">—</strong>
-                  </div>
-                  <div class="pr-review-detail-row">
-                      <span>Department</span>
-                      <strong>Maintenance</strong>
-                  </div>
-                  <div class="pr-review-detail-row">
-                      <span>Source</span>
-                      <strong id="reviewPrSource">Maintenance Request</strong>
-                  </div>
-                  <div class="pr-review-detail-row">
-                      <span>Requested By</span>
-                      <strong id="reviewPrRequester">—</strong>
-                  </div>
-                  <div class="pr-review-detail-row">
-                      <span>Request Date</span>
-                      <strong id="reviewPrRequestDate">—</strong>
-                  </div>
-              </div>
-          </section>
-
-          <section class="pr-review-section" id="prRequestDetailsSection">
-              <div class="pr-review-section-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
-                      <div><h3>02 — Request Details</h3><p>Repair purpose and requested schedule</p></div>
-                  </div>
-              </div>
-              <div class="pr-review-information">
-                  <div class="pr-review-detail-row pr-review-detail-full">
-                  <span>Work / Repair to Perform</span>
-                  <strong id="reviewPrWorkToPerform">No work / repair details recorded.</strong>
-                  </div>
-                  <div class="pr-review-detail-row pr-review-detail-full"><span>Purpose</span><strong id="reviewPrPurpose">—</strong></div>
-                  <div class="pr-review-detail-row pr-review-detail-full"><span>Remarks</span><strong id="reviewPrRemarks">No remarks provided.</strong></div>
-                  <div class="pr-review-detail-row pr-review-detail-full"><span>Target Date</span><strong id="reviewPrTargetDate">—</strong></div>
-              </div>
-          </section>
-
-          <section id="prReviewItemsSection" class="pr-review-section">
-              <div class="pr-review-section-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon">
-                          <i class="fa-solid fa-clipboard-list"></i>
-                      </span>
-                      <div>
-                          <h3>03 — Requested Items</h3>
-                          <p>Parts and quantities included in this requisition</p>
-                      </div>
-                  </div>
-
-                  <span id="reviewPrItemCount" class="pr-review-count">0 items</span>
-              </div>
-
-              <div class="pr-review-items-table-wrap">
-                  <table class="pr-review-items-table">
-                      <thead>
-                          <tr>
-                              <th>#</th>
-                              <th>Item / Part</th>
-                              <th>Qty</th>
-                          </tr>
-                      </thead>
-                      <tbody id="reviewPrItemsBody">
-                          <tr>
-                              <td colspan="3" class="pr-review-empty">No requested items recorded.</td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
-              <div class="pr-review-items-total">
-                  <span>Total requested quantity</span>
-                  <strong id="reviewPrTotalQuantity">—</strong>
-              </div>
-          </section>
-
-          <section class="pr-review-section" id="prAuthorizationSection">
-              <div class="pr-review-section-heading">
-                  <div class="pr-review-section-title">
-                      <span class="pr-review-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
-                      <div><h3>04 — Authorization</h3><p>Inherited from the source Job Order approval; no second approval required.</p></div>
-                  </div>
-              </div>
-              <div class="pr-review-information">
-                  <div class="pr-review-detail-row"><span>Approved By</span><strong id="reviewPrApprover">—</strong></div>
-                  <div class="pr-review-detail-row"><span>Approval Date and Time</span><strong id="reviewPrApprovedAt">—</strong></div>
-                  <div class="pr-review-detail-row pr-review-detail-full"><span>Source Job Order</span><strong id="reviewPrAuthorizationJobOrder">—</strong></div>
-                  <div class="pr-review-detail-row pr-review-detail-full">
-                      <span>Authorized Handwritten Signature</span>
-                      <div class="pr-review-signature"><img id="reviewPrSignature" alt="Maintenance Head handwritten approval signature" hidden />
-                      <strong id="reviewPrSignatureFallback">Not available</strong></div>
-                  </div>
-              </div>
-          </section>
 
           <section id="prEditableSection" class="pr-edit-workspace" hidden>
               <x-ui.form-section
