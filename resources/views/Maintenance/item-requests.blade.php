@@ -65,7 +65,7 @@
             </div>
             @if($view === 'pending')
             <div class="ir-table-wrap"><table class="ir-table ir-pending-table ir-split-table">
-                <thead><tr><th>JOB ORDER / BUS</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
+                <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                 <tbody>
                 @forelse($pendingJobs as $jo)
                 @php
@@ -76,13 +76,14 @@
                     $missingCount = count($missingParts);
                     $stockLabel = $availableCount && $missingCount ? 'Partial Stock' : ($availableCount ? 'Available' : 'No Stock');
                     $releaseLabel = $jo->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Only' : 'Wait Until Complete';
+                    $latestSubmissionAudit = $jo->audits->first();
+                    $submissionDate = $latestSubmissionAudit?->created_at ?? $jo->created_at;
                 @endphp
                 <tr class="ir-pending-record">
                     <td>
-                        <div class="ir-split-jo"><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong>
-                            <span class="ir-bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $jo->bus_no }}</span>
-                        </div>
+                        <div class="ir-split-jo"><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong></div>
                     </td>
+                    <td><div class="ir-submitted-time"><strong>{{ $submissionDate?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $submissionDate?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? 'Unknown time' }}</small><small>{{ $latestSubmissionAudit ? ($latestSubmissionAudit->action === 'resubmitted' ? 'Resubmitted' : 'Submitted') : 'Created date (fallback)' }}</small></div></td>
                     <td>
                         <div class="ir-split-parts">
                             <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $availableCount }} {{ \Illuminate\Support\Str::plural('part', $availableCount) }}</span>
@@ -119,7 +120,7 @@
                         </details>
                     </td>
                     <td><span class="ir-split-status {{ $missingCount ? ($availableCount ? 'is-partial' : 'is-empty') : 'is-available' }}">{{ $stockLabel }}</span></td>
-                    <td><span class="ir-split-policy">{{ $releaseLabel }}</span></td>
+                    <td><div class="ir-release-policy"><span class="ir-release-badge {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releaseLabel }}</span><small>{{ $jo->parts_issue_strategy === 'issue_available_only' ? 'Warehouse may issue allocated parts while shortages are procured.' : 'Warehouse waits until required stock is ready for handover.' }}</small></div></td>
                     <td>
                         <button type="button" class="ir-view-button ir-split-review" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available IR and missing PR quantities">
                             <i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR &amp; PR
@@ -127,7 +128,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear after an approved Job Order has available stock.</p></div></td></tr>
+                <tr><td colspan="6" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear after an approved Job Order has available stock.</p></div></td></tr>
                 @endforelse
                 </tbody>
             </table></div>
