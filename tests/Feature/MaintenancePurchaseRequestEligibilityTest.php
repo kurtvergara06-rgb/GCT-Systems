@@ -168,7 +168,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         );
         $this->createInventoryItem('Oil Filter', 2);
         $this->createInventoryItem('Brake Pad', 4);
-        $this->createInventoryItem('Fan Belt', 3);
+        $stock = $this->createInventoryItem('Fan Belt', 3);
 
         $response = $this
             ->actingAs($user)
