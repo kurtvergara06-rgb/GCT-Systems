@@ -521,3 +521,66 @@
 .maintenance-ir-page .ir-lifecycle-table th:nth-child(5),
 .maintenance-ir-page .ir-lifecycle-table td:nth-child(5) { min-width: 158px; }
 @media(max-width: 900px) { .maintenance-ir-page .ir-lifecycle-table { min-width: 760px; } }
+
+/* IR View — same enterprise document hierarchy as View Job Order. */
+#viewItemRequestModal .ir-view-modal { width: min(1060px, calc(100vw - 36px)); max-width: 1060px; max-height: calc(100dvh - 36px); }
+#viewItemRequestModal .ir-view-modal-header { padding: 18px 22px; background: #f8fbff; flex-shrink: 0; }
+#viewItemRequestModal .ir-view-modal-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 20px; background: #fff; overflow-y: auto; }
+#viewItemRequestModal .ir-view-document-summary {
+  display: grid; grid-template-columns: minmax(180px,1.5fr) repeat(4,minmax(0,1fr));
+  gap: 0; align-items: center; padding: 15px 11px; border: 1px solid #ccdef6;
+  border-radius: 12px; background: linear-gradient(115deg,#f2f7ff,#fff);
+}
+#viewItemRequestModal .ir-view-document-summary > div {
+  min-width: 0; display: flex; flex-direction: column; gap: 7px;
+  padding: 5px 13px; border-right: 1px solid #e1e8f2;
+}
+#viewItemRequestModal .ir-view-document-summary > div:last-child { border-right: 0; }
+#viewItemRequestModal .ir-view-document-summary span { font-size: 10px; letter-spacing: .04em; font-weight: 750; color: #637795; }
+#viewItemRequestModal .ir-view-document-summary strong { font-size: 12px; font-weight: 800; color: #17365d; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-document-number strong { font-size: 19px; color: #103465; }
+#viewItemRequestModal .ir-view-document-summary small { font-size: 10px; color: #73839b; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-status { width: max-content; max-width: 100%; white-space: normal; font-size: 11px; }
+#viewItemRequestModal .ir-view-document-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch; }
+#viewItemRequestModal .ir-view-document-columns > .ir-view-panel { min-width: 0; margin: 0; }
+#viewItemRequestModal .ir-view-panel { border: 1px solid #d9e5f4; border-radius: 11px; background: #fff; overflow: hidden; }
+#viewItemRequestModal .ir-view-panel-header { padding: 13px 15px; background: #f1f6fd; }
+#viewItemRequestModal .ir-view-panel h3 { font-size: 13px; }
+#viewItemRequestModal .ir-view-document-panel-body { padding: 16px; min-height: 78px; }
+#viewItemRequestModal .ir-view-document-panel-body > strong { color: #24476f; font-size: 12px; }
+#viewItemRequestModal .ir-view-document-panel-body p { margin: 6px 0 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-document-parts { width: 100%; }
+#viewItemRequestModal .ir-view-document-table { margin: 14px; border: 1px solid #dce6f3; border-radius: 9px; overflow: hidden; }
+#viewItemRequestModal .ir-view-document-table-head,
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  display: grid !important; grid-template-columns: minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  gap: 14px; align-items: center; box-sizing: border-box; width: 100%;
+  padding: 12px 14px; margin: 0; min-width: 0;
+}
+#viewItemRequestModal .ir-view-document-table-head {
+  grid-template-columns: 35px minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  background: #eef4fc; color: #415a78; font-size: 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-parts-list { display: block; padding: 0; margin: 0; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  grid-template-columns: minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  border: 0; border-top: 1px solid #e2eaf4; border-radius: 0; background: #fff;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row:nth-child(even) { background: #fafcff; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main { display: flex; align-items: center; min-width: 0; gap: 13px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-index { flex: 0 0 35px; text-align: left; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main strong { min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-qty { text-align: left; font-size: 12px; font-weight: 750; white-space: nowrap; }
+#viewItemRequestModal .ir-view-part-handover { color: #667b96; font-size: 11px; }
+#viewItemRequestModal .ir-view-modal-footer { position: relative; background: #fff; flex-shrink: 0; padding: 12px 20px; }
+@media (max-width: 850px) {
+  #viewItemRequestModal .ir-view-document-summary { grid-template-columns: repeat(3,minmax(0,1fr)); row-gap: 10px; }
+  #viewItemRequestModal .ir-view-document-summary > div { border-right: 0; }
+  #viewItemRequestModal .ir-view-document-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 570px) {
+  #viewItemRequestModal .ir-view-document-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #viewItemRequestModal .ir-view-document-table { overflow-x: auto; }
+  #viewItemRequestModal .ir-view-document-table-head,
+  #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 620px; }
+}
