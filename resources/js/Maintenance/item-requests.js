@@ -152,6 +152,34 @@ function renderItemRequestPreview() {
         }
     }
     tbody.replaceChildren();
+    const missingBody = document.getElementById('ir-preview-missing');
+    if (missingBody) {
+        missingBody.replaceChildren();
+        const missing = Array.isArray(jo?.missing_parts) ? jo.missing_parts : [];
+        if (!missing.length) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 3;
+            cell.textContent = 'No missing parts — Purchase Request not required.';
+            row.append(cell);
+            missingBody.append(row);
+        } else {
+            missing.forEach(part => {
+                const row = document.createElement('tr');
+                const name = document.createElement('td');
+                name.textContent = part.name || '—';
+                const quantity = document.createElement('td');
+                quantity.textContent = String(part.quantity || 0) + ' ' + (part.unit || '');
+                const status = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'ir-stock-badge ir-stock-unavailable';
+                badge.textContent = 'For Purchase';
+                status.append(badge);
+                row.append(name, quantity, status);
+                missingBody.append(row);
+            });
+        }
+    }
     if (!jo || !Array.isArray(jo.parts) || !jo.parts.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
