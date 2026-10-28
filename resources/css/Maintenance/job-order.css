@@ -6166,3 +6166,143 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
     padding-inline: 8px;
   }
 }
+
+/* Two-pane searchable maintenance-job picker, matching approved mockup. */
+#jobModal .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
+  width: min(640px, calc(100vw - 54px));
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #c9d9ed;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(18, 47, 83, .16);
+  z-index: 110600;
+}
+#jobModal .jo-maintenance-job-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
+  min-height: 255px;
+}
+#jobModal .jo-maintenance-job-browser {
+  min-width: 0;
+  padding: 10px;
+}
+#jobModal .jo-maintenance-job-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  height: 37px;
+  border: 1px solid #cbdcf0;
+  border-radius: 8px;
+  background: #fff;
+  color: #52739f;
+}
+#jobModal .jo-maintenance-job-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+  color: #16365d;
+}
+#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 2px 2px;
+}
+#jobModal .jo-maintenance-job-category {
+  display: block;
+  padding: 10px 8px 5px;
+  color: #49607e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 13px;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+}
+#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option[hidden],
+#jobModal .jo-maintenance-job-group[hidden] { display: none !important; }
+#jobModal .jo-maintenance-job-check {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #94afcf;
+  border-radius: 4px;
+  background: #fff;
+}
+#jobModal .jo-maintenance-job-option.is-selected .jo-maintenance-job-check {
+  border-color: #2168ce;
+  background: #2168ce;
+}
+#jobModal .jo-maintenance-job-option.is-selected .jo-maintenance-job-check::after {
+  content: '✓';
+  display: block;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 12px;
+}
+#jobModal .jo-maintenance-job-menu-summary {
+  min-width: 0;
+  border-left: 1px solid #e0e8f4;
+  background: #f8fbff;
+  padding: 12px 11px;
+}
+#jobModal .jo-maintenance-job-menu-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+#jobModal .jo-maintenance-job-menu-summary-head strong { color: #1c3659; font-size: 12px; }
+#jobModal .jo-maintenance-job-menu-summary-head button {
+  border: 0;
+  background: transparent;
+  color: #2364b5;
+  font-size: 10px;
+  cursor: pointer;
+}
+#jobModal .jo-maintenance-job-menu-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  max-height: 245px;
+  overflow: auto;
+}
+#jobModal .jo-maintenance-job-menu-chip {
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d3e3f9;
+  border-radius: 7px;
+  background: #eaf2ff;
+  color: #2059a2;
+  font-size: 11px;
+  font-weight: 650;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+@media (max-width: 620px) {
+  #jobModal .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
+    width: min(440px, calc(100vw - 36px));
+  }
+  #jobModal .jo-maintenance-job-workspace { grid-template-columns: 1fr; }
+  #jobModal .jo-maintenance-job-menu-summary { border-left: 0; border-top: 1px solid #e0e8f4; }
+  #jobModal .jo-maintenance-job-menu-selected { max-height: 100px; }
+  #jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options { max-height: 180px; }
+}
