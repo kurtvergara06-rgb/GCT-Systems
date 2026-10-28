@@ -5661,7 +5661,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 
 
 /* New JO modal — enterprise layout refresh, scoped to create form only. */
-#jobModal .jo-new-stepper {
+:is(#jobModal, #editJobModal) .jo-new-stepper {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 7px;
@@ -5671,14 +5671,14 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   border-radius: 13px;
   background: #f7faff;
 }
-#jobModal .jo-new-step {
+:is(#jobModal, #editJobModal) .jo-new-step {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 9px;
   color: #536783;
 }
-#jobModal .jo-new-step-index {
+:is(#jobModal, #editJobModal) .jo-new-step-index {
   width: 30px;
   height: 30px;
   flex: 0 0 30px;
@@ -5690,61 +5690,61 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-size: 12px;
   font-weight: 800;
 }
-#jobModal .jo-new-step.is-current .jo-new-step-index {
+:is(#jobModal, #editJobModal) .jo-new-step.is-current .jo-new-step-index {
   color: #fff;
   background: #155ec9;
   box-shadow: 0 3px 9px rgba(21,94,201,.16);
 }
-#jobModal .jo-new-step strong,
-#jobModal .jo-new-step small { display: block; line-height: 1.4; }
-#jobModal .jo-new-step strong { color: #233654; font-size: 11px; font-weight: 750; }
-#jobModal .jo-new-step small { color: #71819b; font-size: 10px; }
-#jobModal .jo-create-section {
+:is(#jobModal, #editJobModal) .jo-new-step strong,
+:is(#jobModal, #editJobModal) .jo-new-step small { display: block; line-height: 1.4; }
+:is(#jobModal, #editJobModal) .jo-new-step strong { color: #233654; font-size: 11px; font-weight: 750; }
+:is(#jobModal, #editJobModal) .jo-new-step small { color: #71819b; font-size: 10px; }
+:is(#jobModal, #editJobModal) .jo-create-section {
   border: 1px solid #dbe5f2;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
   box-shadow: 0 2px 6px rgba(20,44,77,.025);
 }
-#jobModal .jo-create-section-header {
+:is(#jobModal, #editJobModal) .jo-create-section-header {
   background: #f7faff;
   border-bottom: 1px solid #e3eaf5;
 }
-#jobModal .jo-create-section-icon {
+:is(#jobModal, #editJobModal) .jo-create-section-icon {
   background: #e8f1ff;
   color: #1458ad;
   border: 1px solid #d5e5ff;
 }
-#jobModal .jo-create-section-header h3 {
+:is(#jobModal, #editJobModal) .jo-create-section-header h3 {
   color: #142c4d;
   letter-spacing: 0;
 }
-#jobModal .jo-mechanic-multi-field .jo-create-field-hint {
+:is(#jobModal, #editJobModal) .jo-mechanic-multi-field .jo-create-field-hint {
   border-radius: 8px;
   background: #f0f6ff;
   border: 1px solid #e0eafd;
 }
-#jobModal .jo-create-section input:focus,
-#jobModal .jo-create-section select:focus,
-#jobModal .jo-create-section textarea:focus {
+:is(#jobModal, #editJobModal) .jo-create-section input:focus,
+:is(#jobModal, #editJobModal) .jo-create-section select:focus,
+:is(#jobModal, #editJobModal) .jo-create-section textarea:focus {
   border-color: #5798e8;
   outline: 2px solid rgba(38,123,230,.12);
   outline-offset: 1px;
 }
-#jobModal .jo-create-problem-field textarea { min-height: 74px; }
+:is(#jobModal, #editJobModal) .jo-create-problem-field textarea { min-height: 74px; }
 @media (max-width: 800px) {
-  #jobModal .jo-new-stepper { grid-template-columns: 1fr 1fr; row-gap: 10px; }
+  :is(#jobModal, #editJobModal) .jo-new-stepper { grid-template-columns: 1fr 1fr; row-gap: 10px; }
 }
 @media (max-width: 490px) {
-  #jobModal .jo-new-stepper { grid-template-columns: repeat(4, minmax(0,1fr)); padding: 9px 7px; }
-  #jobModal .jo-new-step { flex-direction: column; gap: 3px; text-align: center; }
-  #jobModal .jo-new-step-index { width: 25px; height: 25px; flex-basis: 25px; }
-  #jobModal .jo-new-step strong { font-size: 9px; }
-  #jobModal .jo-new-step small { display: none; }
+  :is(#jobModal, #editJobModal) .jo-new-stepper { grid-template-columns: repeat(4, minmax(0,1fr)); padding: 9px 7px; }
+  :is(#jobModal, #editJobModal) .jo-new-step { flex-direction: column; gap: 3px; text-align: center; }
+  :is(#jobModal, #editJobModal) .jo-new-step-index { width: 25px; height: 25px; flex-basis: 25px; }
+  :is(#jobModal, #editJobModal) .jo-new-step strong { font-size: 9px; }
+  :is(#jobModal, #editJobModal) .jo-new-step small { display: none; }
 }
 
 /* JO designer v2: real mechanic coverage and work-section layout */
-#jobModal .jo-mechanic-coverage {
+:is(#jobModal, #editJobModal) .jo-mechanic-coverage {
   margin-top: 14px !important;
   padding: 0 !important;
   overflow: hidden;
@@ -5753,56 +5753,56 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   background: #fff !important;
   font-size: 12px;
 }
-#jobModal .jo-coverage-heading {
+:is(#jobModal, #editJobModal) .jo-coverage-heading {
   display: flex; align-items: center; justify-content: space-between;
   padding: 13px 15px; margin: 0 !important;
   background: #f4f8ff; border-bottom: 1px solid #e0e9f5;
 }
-#jobModal .jo-coverage-heading strong { font-size: 12px; color: #173457; }
-#jobModal .jo-coverage-count { font-weight: 750; font-size: 11px; }
-#jobModal .jo-coverage-summary {
+:is(#jobModal, #editJobModal) .jo-coverage-heading strong { font-size: 12px; color: #173457; }
+:is(#jobModal, #editJobModal) .jo-coverage-count { font-weight: 750; font-size: 11px; }
+:is(#jobModal, #editJobModal) .jo-coverage-summary {
   display: flex; align-items: center; gap: 14px;
   padding: 13px 16px; background: #fff;
 }
-#jobModal .jo-coverage-ring {
+:is(#jobModal, #editJobModal) .jo-coverage-ring {
   --coverage-progress: 0%;
   display: grid; place-items: center; flex: 0 0 52px;
   width: 52px; height: 52px; border-radius: 50%;
   background: radial-gradient(closest-side,#fff 75%,transparent 77%),conic-gradient(#20936a var(--coverage-progress),#e8eef6 0);
   color: #176e52; font-size: 11px; font-weight: 800;
 }
-#jobModal .jo-coverage-summary-copy { display: flex; flex-direction: column; gap: 3px; }
-#jobModal .jo-coverage-summary-copy strong { color: #1c3656; font-size: 13px; }
-#jobModal .jo-coverage-summary-copy small { color: #667993; font-size: 11px; }
-#jobModal .jo-coverage-table { margin: 0 12px 12px; overflow: hidden; border: 1px solid #e4eaf3; border-radius: 9px; }
-#jobModal .jo-coverage-table-head, #jobModal .jo-coverage-table .jo-coverage-row {
+:is(#jobModal, #editJobModal) .jo-coverage-summary-copy { display: flex; flex-direction: column; gap: 3px; }
+:is(#jobModal, #editJobModal) .jo-coverage-summary-copy strong { color: #1c3656; font-size: 13px; }
+:is(#jobModal, #editJobModal) .jo-coverage-summary-copy small { color: #667993; font-size: 11px; }
+:is(#jobModal, #editJobModal) .jo-coverage-table { margin: 0 12px 12px; overflow: hidden; border: 1px solid #e4eaf3; border-radius: 9px; }
+:is(#jobModal, #editJobModal) .jo-coverage-table-head, :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row {
   display: grid !important; grid-template-columns: minmax(0, 1.6fr) minmax(98px,.7fr) minmax(0,1fr);
   align-items: center !important; gap: 10px;
 }
-#jobModal .jo-coverage-table-head {
+:is(#jobModal, #editJobModal) .jo-coverage-table-head {
   padding: 9px 12px; background: #f5f8fc; color: #526680;
   font-size: 9px; letter-spacing: .035em; font-weight: 800;
 }
-#jobModal .jo-coverage-table .jo-coverage-row {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row {
   padding: 11px 12px !important; border-top: 1px solid #e9eef5;
   color: #324866;
 }
-#jobModal .jo-coverage-table .jo-coverage-row strong { font-size: 11px; color: #193657; font-weight: 700; }
-#jobModal .jo-coverage-table .jo-coverage-row > span:last-child { color: #63758d; font-size: 11px; }
-#jobModal .jo-coverage-status { display: inline-flex; width: fit-content; border-radius: 6px; padding: 4px 7px; font-size: 10px; font-weight: 700; }
-#jobModal .jo-coverage-status.is-covered { color: #187347; background: #e8f9ee; }
-#jobModal .jo-coverage-status.is-uncovered { color: #a66608; background: #fff3dd; }
-#jobModal .jo-maintenance-job-slot { min-width: 0; }
-#jobModal .jo-create-section-header { min-height: 52px; }
-#jobModal .jo-create-section-header .jo-create-step-description { line-height: 1.45; }
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row strong { font-size: 11px; color: #193657; font-weight: 700; }
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > span:last-child { color: #63758d; font-size: 11px; }
+:is(#jobModal, #editJobModal) .jo-coverage-status { display: inline-flex; width: fit-content; border-radius: 6px; padding: 4px 7px; font-size: 10px; font-weight: 700; }
+:is(#jobModal, #editJobModal) .jo-coverage-status.is-covered { color: #187347; background: #e8f9ee; }
+:is(#jobModal, #editJobModal) .jo-coverage-status.is-uncovered { color: #a66608; background: #fff3dd; }
+:is(#jobModal, #editJobModal) .jo-maintenance-job-slot { min-width: 0; }
+:is(#jobModal, #editJobModal) .jo-create-section-header { min-height: 52px; }
+:is(#jobModal, #editJobModal) .jo-create-section-header .jo-create-step-description { line-height: 1.45; }
 @media (max-width: 580px) {
-  #jobModal .jo-coverage-table-head { display: none !important; }
-  #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
-  #jobModal .jo-coverage-table .jo-coverage-row > span:last-child { grid-column: 1/-1; }
+  :is(#jobModal, #editJobModal) .jo-coverage-table-head { display: none !important; }
+  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
+  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > span:last-child { grid-column: 1/-1; }
 }
 
 /* Actual Create JO Job Details redesign: full-width selected-work panel. */
-#jobModal .jo-create-job-details-grid > .jo-selected-jobs-panel {
+:is(#jobModal, #editJobModal) .jo-create-job-details-grid > .jo-selected-jobs-panel {
   grid-column: 1 / -1;
   min-width: 0;
   display: grid;
@@ -5815,38 +5815,38 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   border: 1px solid #dce9fb;
   border-radius: 10px;
 }
-#jobModal .jo-selected-jobs-panel[hidden] { display: none !important; }
-#jobModal .jo-selected-jobs-heading {
+:is(#jobModal, #editJobModal) .jo-selected-jobs-panel[hidden] { display: none !important; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-heading {
   grid-column: 1 / -1;
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px;
 }
-#jobModal .jo-selected-jobs-heading strong { color: #1a355c; font-size: 12px; font-weight: 750; }
-#jobModal .jo-selected-jobs-clear,
-#jobModal .jo-selected-jobs-add {
+:is(#jobModal, #editJobModal) .jo-selected-jobs-heading strong { color: #1a355c; font-size: 12px; font-weight: 750; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-clear,
+:is(#jobModal, #editJobModal) .jo-selected-jobs-add {
   display: inline-flex; align-items: center; gap: 6px;
   border-radius: 7px; padding: 7px 10px;
   font-size: 11px; line-height: 1.2; font-weight: 700;
   cursor: pointer; white-space: nowrap;
 }
-#jobModal .jo-selected-jobs-clear { border: 0; background: transparent; color: #1c5fbc; }
-#jobModal .jo-selected-jobs-clear:hover { background: #e0edff; }
-#jobModal .jo-selected-jobs-add { border: 1px solid #9fc3fa; color: #1755ad; background: #fff; }
-#jobModal .jo-selected-jobs-add:hover { background: #e1edff; }
-#jobModal .jo-selected-jobs-panel > .jo-maintenance-job-selected-chips {
+:is(#jobModal, #editJobModal) .jo-selected-jobs-clear { border: 0; background: transparent; color: #1c5fbc; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-clear:hover { background: #e0edff; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-add { border: 1px solid #9fc3fa; color: #1755ad; background: #fff; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-add:hover { background: #e1edff; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-panel > .jo-maintenance-job-selected-chips {
   grid-column: 1;
   display: flex; flex-wrap: wrap; align-content: center;
   gap: 6px; padding: 0; min-height: 32px;
 }
-#jobModal .jo-selected-jobs-actions { grid-column: 2; display: flex; align-items: end; }
-#jobModal .jo-selected-jobs-panel .jo-maintenance-job-chip {
+:is(#jobModal, #editJobModal) .jo-selected-jobs-actions { grid-column: 2; display: flex; align-items: end; }
+:is(#jobModal, #editJobModal) .jo-selected-jobs-panel .jo-maintenance-job-chip {
   max-width: 100%; background: #e5efff; border: 1px solid #c7daf9;
   border-radius: 7px; padding: 5px 8px; color: #1852a4;
 }
-#jobModal .jo-create-job-details-grid .jo-create-problem-field { grid-column: 1/-1; }
+:is(#jobModal, #editJobModal) .jo-create-job-details-grid .jo-create-problem-field { grid-column: 1/-1; }
 @media(max-width: 570px) {
- #jobModal .jo-create-job-details-grid > .jo-selected-jobs-panel { grid-template-columns: 1fr; }
- #jobModal .jo-selected-jobs-actions { grid-column: 1; justify-content: flex-end; }
+ :is(#jobModal, #editJobModal) .jo-create-job-details-grid > .jo-selected-jobs-panel { grid-template-columns: 1fr; }
+ :is(#jobModal, #editJobModal) .jo-selected-jobs-actions { grid-column: 1; justify-content: flex-end; }
 }
 
 /* Mechanic picker: also applies when the dropdown is portaled to <body>. */
@@ -5877,13 +5877,13 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 .jo-mechanic-multi-menu .jo-mechanic-option-status.is-unavailable { color: #bd454b; }
 .jo-mechanic-multi-menu .jo-mechanic-multi-option > i { color: #a6b8cf; font-size: 17px; }
 .jo-mechanic-multi-menu .jo-mechanic-multi-option.is-selected > i { color: #2469ca; }
-#jobModal .jo-coverage-table .jo-coverage-row { display: grid !important; grid-template-columns: minmax(0,1.6fr) minmax(98px,.7fr) minmax(0,1fr); }
-#jobModal .jo-coverage-table .jo-coverage-row > * { min-width: 0; overflow-wrap: anywhere; }
-#jobModal .jo-mechanic-coverage > .jo-coverage-row { display: none !important; }
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row { display: grid !important; grid-template-columns: minmax(0,1.6fr) minmax(98px,.7fr) minmax(0,1fr); }
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > * { min-width: 0; overflow-wrap: anywhere; }
+:is(#jobModal, #editJobModal) .jo-mechanic-coverage > .jo-coverage-row { display: none !important; }
 @media(max-width: 580px) {
  .jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option { grid-template-columns: 30px minmax(0,1fr) 18px; }
  .jo-mechanic-multi-menu .jo-mechanic-option-status { grid-column: 2; grid-row: 2; }
- #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
+ :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
 }
 
 /* Compact polish for the portal-based mechanic picker; no behavior changes. */
@@ -5946,53 +5946,53 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 
 /* Readable qualification coverage table — scoped to the Create JO modal. */
-#jobModal .jo-mechanic-coverage {
+:is(#jobModal, #editJobModal) .jo-mechanic-coverage {
   border-color: #cad9ec !important;
 }
-#jobModal .jo-coverage-heading {
+:is(#jobModal, #editJobModal) .jo-coverage-heading {
   padding: 14px 17px !important;
   background: #edf4fd !important;
 }
-#jobModal .jo-coverage-heading strong {
+:is(#jobModal, #editJobModal) .jo-coverage-heading strong {
   font-size: 14px !important;
   font-weight: 800 !important;
 }
-#jobModal .jo-coverage-count {
+:is(#jobModal, #editJobModal) .jo-coverage-count {
   font-size: 12px !important;
   font-weight: 800;
   padding: 5px 10px;
   border-radius: 7px;
 }
-#jobModal .jo-coverage-count.is-warning {
+:is(#jobModal, #editJobModal) .jo-coverage-count.is-warning {
   color: #9b5804 !important;
   background: #fff0d4;
 }
-#jobModal .jo-coverage-count.is-success {
+:is(#jobModal, #editJobModal) .jo-coverage-count.is-success {
   color: #136b3c !important;
   background: #dcf7e8;
 }
-#jobModal .jo-coverage-summary {
+:is(#jobModal, #editJobModal) .jo-coverage-summary {
   padding: 17px 18px;
   gap: 16px;
 }
-#jobModal .jo-coverage-ring {
+:is(#jobModal, #editJobModal) .jo-coverage-ring {
   flex-basis: 60px;
   width: 60px; height: 60px;
   font-size: 13px;
 }
-#jobModal .jo-coverage-summary-copy strong {
+:is(#jobModal, #editJobModal) .jo-coverage-summary-copy strong {
   font-size: 14px;
   line-height: 1.4;
 }
-#jobModal .jo-coverage-summary-copy small {
+:is(#jobModal, #editJobModal) .jo-coverage-summary-copy small {
   font-size: 12px;
   line-height: 1.4;
 }
-#jobModal .jo-coverage-table {
+:is(#jobModal, #editJobModal) .jo-coverage-table {
   margin: 0 14px 15px;
   border-color: #d5e0ef;
 }
-#jobModal .jo-coverage-table .jo-coverage-table-head {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-table-head {
   grid-template-columns: minmax(0, 1.45fr) minmax(125px, .75fr) minmax(0, .9fr);
   padding: 12px 14px;
   background: #eef4fb;
@@ -6001,7 +6001,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 800;
   letter-spacing: .025em;
 }
-#jobModal .jo-coverage-table .jo-coverage-row {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row {
   grid-template-columns: minmax(0, 1.45fr) minmax(125px, .75fr) minmax(0, .9fr) !important;
   gap: 12px;
   padding: 14px !important;
@@ -6009,22 +6009,22 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   background: #fff;
   border-top: 1px solid #e2eaf4;
 }
-#jobModal .jo-coverage-table .jo-coverage-row:nth-child(odd) {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row:nth-child(odd) {
   background: #f9fbfe;
 }
-#jobModal .jo-coverage-table .jo-coverage-row strong {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row strong {
   font-size: 12px;
   line-height: 1.5;
   font-weight: 750;
   color: #163455;
 }
-#jobModal .jo-coverage-table .jo-coverage-row > span:last-child {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > span:last-child {
   font-size: 12px;
   line-height: 1.4;
   font-weight: 600;
   color: #354d6c;
 }
-#jobModal .jo-coverage-table .jo-coverage-status {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6037,44 +6037,44 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 800 !important;
   white-space: nowrap;
 }
-#jobModal .jo-coverage-table .jo-coverage-status.is-covered {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-status.is-covered {
   color: #126b3b;
   background: #def6e8;
   border-color: #b3e5ca;
 }
-#jobModal .jo-coverage-table .jo-coverage-status.is-uncovered {
+:is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-status.is-uncovered {
   color: #995403;
   background: #fff0d2;
   border-color: #f4d397;
 }
 @media (max-width: 580px) {
-  #jobModal .jo-coverage-table .jo-coverage-table-head { display: none !important; }
-  #jobModal .jo-coverage-table .jo-coverage-row {
+  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-table-head { display: none !important; }
+  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row {
     grid-template-columns: minmax(0, 1fr) auto !important;
     gap: 7px;
     padding: 12px !important;
   }
-  #jobModal .jo-coverage-table .jo-coverage-row > span:last-child {
+  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > span:last-child {
     grid-column: 1 / -1;
   }
 }
 
 /* Estimated Duration: clearer, cohesive entry control and Head-review guidance. */
-#jobModal .jo-create-duration .jo-create-duration-grid {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-create-duration-grid {
   padding: 17px 18px 18px;
 }
-#jobModal .jo-create-duration .jo-estimated-duration-field {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-estimated-duration-field {
   width: 100%;
   max-width: 100%;
 }
-#jobModal .jo-create-duration .jo-estimated-duration-field > label {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-estimated-duration-field > label {
   display: block;
   margin-bottom: 9px;
   font-size: 12px;
   font-weight: 750;
   color: #173557;
 }
-#jobModal .jo-create-duration .jo-duration-control {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control {
   display: flex;
   align-items: stretch;
   width: min(100%, 480px);
@@ -6086,18 +6086,18 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   overflow: hidden;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-#jobModal .jo-create-duration .jo-duration-control:focus-within {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control:focus-within {
   border-color: #397fdb;
   box-shadow: 0 0 0 3px rgba(57,127,219,.10);
 }
-#jobModal .jo-create-duration .jo-duration-control .ui-input-wrap {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control .ui-input-wrap {
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
   border: 0 !important;
   border-radius: 0 !important;
 }
-#jobModal .jo-create-duration .jo-duration-control input {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control input {
   box-sizing: border-box;
   min-height: 46px;
   width: 100%;
@@ -6110,7 +6110,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-size: 13px;
   color: #18375b;
 }
-#jobModal .jo-create-duration .jo-duration-control .jo-duration-unit-select {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control .jo-duration-unit-select {
   flex: 0 0 125px;
   width: 125px;
   min-height: 46px;
@@ -6124,7 +6124,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-size: 12px;
   font-weight: 700;
 }
-#jobModal .jo-create-duration .jo-duration-suggestion[data-status="available"] {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-suggestion[data-status="available"] {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -6137,7 +6137,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-size: 12px;
   line-height: 1.4;
 }
-#jobModal .jo-create-duration .jo-duration-compact-help {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-compact-help {
   display: flex;
   align-items: flex-start;
   width: fit-content;
@@ -6153,14 +6153,14 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 500;
   line-height: 1.55;
 }
-#jobModal .jo-create-duration .jo-duration-compact-help i {
+:is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-compact-help i {
   margin-top: 2px;
   color: #246ac1;
   font-size: 13px;
 }
 @media(max-width: 490px) {
-  #jobModal .jo-create-duration .jo-create-duration-grid { padding: 13px; }
-  #jobModal .jo-create-duration .jo-duration-control .jo-duration-unit-select {
+  :is(#jobModal, #editJobModal) .jo-create-duration .jo-create-duration-grid { padding: 13px; }
+  :is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control .jo-duration-unit-select {
     flex-basis: 102px;
     width: 102px;
     padding-inline: 8px;
@@ -6168,7 +6168,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 
 /* Two-pane searchable maintenance-job picker, matching approved mockup. */
-#jobModal .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
   width: min(640px, calc(100vw - 54px));
   max-width: none;
   padding: 0;
@@ -6179,16 +6179,16 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   box-shadow: 0 16px 36px rgba(18, 47, 83, .16);
   z-index: 110600;
 }
-#jobModal .jo-maintenance-job-workspace {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
   min-height: 255px;
 }
-#jobModal .jo-maintenance-job-browser {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-browser {
   min-width: 0;
   padding: 10px;
 }
-#jobModal .jo-maintenance-job-search {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-search {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -6199,7 +6199,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   background: #fff;
   color: #52739f;
 }
-#jobModal .jo-maintenance-job-search input {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-search input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -6208,12 +6208,12 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-size: 12px;
   color: #16365d;
 }
-#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options {
   max-height: 240px;
   overflow-y: auto;
   padding: 8px 2px 2px;
 }
-#jobModal .jo-maintenance-job-category {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-category {
   display: block;
   padding: 10px 8px 5px;
   color: #49607e;
@@ -6221,7 +6221,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 800;
   letter-spacing: .04em;
 }
-#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) 13px;
   align-items: center;
@@ -6233,20 +6233,20 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   line-height: 1.4;
   text-align: left;
 }
-#jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option[hidden],
-#jobModal .jo-maintenance-job-group[hidden] { display: none !important; }
-#jobModal .jo-maintenance-job-check {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-enhanced .jo-maintenance-job-option[hidden],
+:is(#jobModal, #editJobModal) .jo-maintenance-job-group[hidden] { display: none !important; }
+:is(#jobModal, #editJobModal) .jo-maintenance-job-check {
   width: 14px;
   height: 14px;
   border: 1.5px solid #94afcf;
   border-radius: 4px;
   background: #fff;
 }
-#jobModal .jo-maintenance-job-option.is-selected .jo-maintenance-job-check {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-option.is-selected .jo-maintenance-job-check {
   border-color: #2168ce;
   background: #2168ce;
 }
-#jobModal .jo-maintenance-job-option.is-selected .jo-maintenance-job-check::after {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-option.is-selected .jo-maintenance-job-check::after {
   content: '✓';
   display: block;
   color: #fff;
@@ -6255,28 +6255,28 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   text-align: center;
   line-height: 12px;
 }
-#jobModal .jo-maintenance-job-menu-summary {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-summary {
   min-width: 0;
   border-left: 1px solid #e0e8f4;
   background: #f8fbff;
   padding: 12px 11px;
 }
-#jobModal .jo-maintenance-job-menu-summary-head {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-summary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 5px;
   margin-bottom: 12px;
 }
-#jobModal .jo-maintenance-job-menu-summary-head strong { color: #1c3659; font-size: 12px; }
-#jobModal .jo-maintenance-job-menu-summary-head button {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-summary-head strong { color: #1c3659; font-size: 12px; }
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-summary-head button {
   border: 0;
   background: transparent;
   color: #2364b5;
   font-size: 10px;
   cursor: pointer;
 }
-#jobModal .jo-maintenance-job-menu-selected {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-selected {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -6284,7 +6284,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   max-height: 245px;
   overflow: auto;
 }
-#jobModal .jo-maintenance-job-menu-chip {
+:is(#jobModal, #editJobModal) .jo-maintenance-job-menu-chip {
   max-width: 100%;
   padding: 6px 8px;
   border: 1px solid #d3e3f9;
@@ -6298,31 +6298,31 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   cursor: pointer;
 }
 @media (max-width: 620px) {
-  #jobModal .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
+  :is(#jobModal, #editJobModal) .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced {
     width: min(440px, calc(100vw - 36px));
   }
-  #jobModal .jo-maintenance-job-workspace { grid-template-columns: 1fr; }
-  #jobModal .jo-maintenance-job-menu-summary { border-left: 0; border-top: 1px solid #e0e8f4; }
-  #jobModal .jo-maintenance-job-menu-selected { max-height: 100px; }
-  #jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options { max-height: 180px; }
+  :is(#jobModal, #editJobModal) .jo-maintenance-job-workspace { grid-template-columns: 1fr; }
+  :is(#jobModal, #editJobModal) .jo-maintenance-job-menu-summary { border-left: 0; border-top: 1px solid #e0e8f4; }
+  :is(#jobModal, #editJobModal) .jo-maintenance-job-menu-selected { max-height: 100px; }
+  :is(#jobModal, #editJobModal) .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options { max-height: 180px; }
 }
 
 /* Requested Parts — clearer stock-aware table while preserving Warehouse item IDs and units. */
-#jobModal .jo-create-parts-table {
+:is(#jobModal, #editJobModal) .jo-create-parts-table {
   margin-top: 12px;
   border: 1px solid #d9e5f3;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
 }
-#jobModal .jo-create-parts-table-head,
-#jobModal .jo-create-parts-repeater .jo-part-row {
+:is(#jobModal, #editJobModal) .jo-create-parts-table-head,
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
   display: grid;
   grid-template-columns: 25px minmax(0, 2.4fr) minmax(80px, .65fr) minmax(72px, .65fr) minmax(115px, 1fr) 42px;
   gap: 10px;
   align-items: center;
 }
-#jobModal .jo-create-parts-table-head {
+:is(#jobModal, #editJobModal) .jo-create-parts-table-head {
   min-height: 40px;
   padding: 10px 14px;
   background: #eef4fb;
@@ -6331,15 +6331,15 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 800;
   letter-spacing: .025em;
 }
-#jobModal .jo-create-parts-table-head span:nth-child(2) { font-weight: 800; }
-#jobModal .jo-create-parts-repeater .jo-part-row {
+:is(#jobModal, #editJobModal) .jo-create-parts-table-head span:nth-child(2) { font-weight: 800; }
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
   padding: 13px 14px;
   min-height: 69px;
   border-bottom: 1px solid #e5ecf6;
   background: #fff;
 }
-#jobModal .jo-create-parts-repeater .jo-part-row:nth-child(even) { background: #fafcff; }
-#jobModal .jo-create-parts-repeater .jo-inventory-search-trigger {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row:nth-child(even) { background: #fafcff; }
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-trigger {
   min-height: 43px;
   padding: 9px 11px;
   border: 1px solid #d0deef;
@@ -6349,7 +6349,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 650;
   background: #fff;
 }
-#jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input[type="number"] {
   min-height: 42px;
   padding: 8px;
   border: 1px solid #d1dff0;
@@ -6358,14 +6358,14 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   font-weight: 700;
   text-align: center;
 }
-#jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select {
   min-height: 42px;
   border: 1px solid #dae4f0;
   background: #f3f7fc;
   color: #425b77;
   font-size: 12px;
 }
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge {
   justify-self: start;
   max-width: 100%;
   width: auto;
@@ -6376,24 +6376,24 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-available,
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-sufficient {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge.is-available,
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge.is-sufficient {
   color: #146e43;
   background: #e5f8ed;
   border: 1px solid #b9e8cd;
 }
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-partial {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge.is-partial {
   color: #985900;
   background: #fff2d8;
   border: 1px solid #f0d09a;
 }
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-unavailable,
-#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-none {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge.is-unavailable,
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge.is-none {
   color: #ad303c;
   background: #fff0f1;
   border: 1px solid #fac7cc;
 }
-#jobModal .jo-create-parts-repeater .remove-part-btn {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn {
   display: grid;
   place-items: center;
   justify-self: center;
@@ -6405,24 +6405,24 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   color: #c92f42;
   background: #fff3f5;
 }
-#jobModal .jo-create-parts-repeater .remove-part-btn:hover {
+:is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn:hover {
   background: #ffe5e9;
   border-color: #f2a8b4;
 }
-#jobModal .jo-create-parts-header .jo-create-add-part-btn {
+:is(#jobModal, #editJobModal) .jo-create-parts-header .jo-create-add-part-btn {
   min-height: 35px;
   padding: 7px 13px;
   border-radius: 8px;
 }
 @media (max-width: 760px) {
-  #jobModal .jo-create-parts-table-head { display: none; }
-  #jobModal .jo-create-parts-repeater .jo-part-row {
+  :is(#jobModal, #editJobModal) .jo-create-parts-table-head { display: none; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
     grid-template-columns: 24px minmax(0, 1fr) minmax(75px, .4fr) 42px;
     gap: 9px;
   }
-  #jobModal .jo-create-parts-repeater .jo-inventory-search-wrap { grid-column: 2 / 5; }
-  #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
-  #jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select { grid-column: 3; }
-  #jobModal .jo-create-parts-repeater .jo-row-stock-badge { grid-column: 2 / 4; }
-  #jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-wrap { grid-column: 2 / 5; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select { grid-column: 3; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge { grid-column: 2 / 4; }
+  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
 }
