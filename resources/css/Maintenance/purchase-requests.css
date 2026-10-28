@@ -5632,3 +5632,17 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 .purchase-page .pr-ir-style-table th:nth-child(n) {width:auto;}
 @media(max-width:1100px) {.purchase-page .pr-ir-style-table {min-width:1050px;}}
+
+/* The same seven-column layout is shared by Pending, In Progress, and History. */
+.purchase-page .pr-active-style-table .pr-active-jo-pr {display:flex;flex-direction:column;align-items:flex-start;gap:5px;}
+.purchase-page .pr-active-style-table .pr-active-jo-pr small {font-size:10px;color:#6d81a0;font-weight:700;}
+.purchase-page .pr-active-style-table .pr-review-action-cell {display:flex;align-items:center;gap:5px;}
+.purchase-page .pr-active-style-table .pr-review-btn.open-view-pr-modal {
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:34px;padding:7px 11px;box-sizing:border-box;white-space:nowrap;
+  font-size:11px;font-weight:800;border:1px solid #c9dffe;border-radius:7px;
+  background:#eaf3ff;color:#174e9e;
+}
+.purchase-page .pr-active-style-table .pr-ir-counts {gap:5px;}
+.purchase-page .pr-active-style-table .pr-ir-breakdown {margin-top:6px;}
+.purchase-page .pr-active-style-table .pr-ir-status-box {min-height:34px;}
