@@ -72,6 +72,53 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     const optionsContainer = document.createElement('div');
     optionsContainer.className = 'jo-maintenance-job-options';
     menu.appendChild(optionsContainer);
+    const isCreatePicker = select.id === 'newJoMaintenanceJob';
+    let menuSelection = null;
+    let searchInput = null;
+    if (isCreatePicker) {
+      menu.classList.add('jo-maintenance-job-menu-enhanced');
+      const workspace = document.createElement('div');
+      workspace.className = 'jo-maintenance-job-workspace';
+      const browser = document.createElement('div');
+      browser.className = 'jo-maintenance-job-browser';
+      const search = document.createElement('label');
+      search.className = 'jo-maintenance-job-search';
+      search.innerHTML = '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+      searchInput = document.createElement('input');
+      searchInput.type = 'search';
+      searchInput.placeholder = 'Search maintenance jobs...';
+      searchInput.setAttribute('aria-label', 'Search maintenance jobs');
+      search.append(searchInput);
+      browser.append(search, optionsContainer);
+      const summary = document.createElement('aside');
+      summary.className = 'jo-maintenance-job-menu-summary';
+      const summaryHead = document.createElement('div');
+      summaryHead.className = 'jo-maintenance-job-menu-summary-head';
+      const selectedTitle = document.createElement('strong');
+      selectedTitle.textContent = 'Selected (0)';
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.textContent = '× Clear All';
+      clear.addEventListener('click', () => select.setSelectedJobs?.([]));
+      summaryHead.append(selectedTitle, clear);
+      menuSelection = document.createElement('div');
+      menuSelection.className = 'jo-maintenance-job-menu-selected';
+      summary.append(summaryHead, menuSelection);
+      workspace.append(browser, summary);
+      menu.replaceChildren(workspace);
+      const filter = () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        optionsContainer.querySelectorAll('.jo-maintenance-job-option').forEach(button => {
+          button.hidden = !button.dataset.value.toLocaleLowerCase().includes(query);
+        });
+        optionsContainer.querySelectorAll('.jo-maintenance-job-category').forEach(heading => {
+          const group = heading.closest('.jo-maintenance-job-group');
+          group.hidden = !Array.from(group.querySelectorAll('.jo-maintenance-job-option')).some(button => !button.hidden);
+        });
+      };
+      searchInput.addEventListener('input', filter);
+      menu.addEventListener('jo-jobs-rendered', filter);
+    }
 
     const selectedChips = document.createElement('div');
     selectedChips.className = 'jo-maintenance-job-selected-chips';
@@ -133,6 +180,24 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       if (selectedPanel?.classList.contains('jo-selected-jobs-panel')) {
         selectedPanel.hidden = selectedJobs.length === 0;
       }
+      if (menuSelection) {
+        menuSelection.replaceChildren();
+        menu.querySelector('.jo-maintenance-job-menu-summary-head strong').textContent = 'Selected (' + selectedJobs.length + ')';
+        selectedJobs.forEach(job => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'jo-maintenance-job-menu-chip';
+          chip.textContent = job + '  ×';
+          chip.setAttribute('aria-label', 'Remove ' + job);
+          chip.addEventListener('click', () => select.toggleJobSelection?.(job));
+          menuSelection.append(chip);
+        });
+        if (!selectedJobs.length) {
+          const empty = document.createElement('small');
+          empty.textContent = 'No maintenance jobs selected yet';
+          menuSelection.append(empty);
+        }
+      }
       selectedJobs.forEach((job) => {
         const chip = document.createElement('span');
         chip.className = 'jo-maintenance-job-chip';
@@ -171,34 +236,60 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     const render = () => {
       optionsContainer.innerHTML = '';
 
-      Array.from(select.options).forEach((option) => {
-        if (!option.value) {
-          return;
-        }
-
-        const optionButton = document.createElement('button');
-        optionButton.type = 'button';
-        optionButton.className = 'jo-maintenance-job-option';
-        optionButton.dataset.value = option.value;
-        optionButton.innerHTML = `
-          <span>${option.textContent.trim()}</span>
-          <i class="fa-solid fa-check"></i>
-        `;
-
-        optionButton.addEventListener('click', () => {
-          if (typeof select.toggleJobSelection === 'function') {
-            select.toggleJobSelection(option.value);
-            sync();
-            return;
-          }
-          select.value = option.value;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-          sync();
-          close();
-        });
-
-        optionsContainer.appendChild(optionButton);
+      const categoryFor = (name) => {
+        if (/brake/i.test(name)) return 'BRAKE SYSTEM';
+        if (/oil|filter|fuel|engine|radiator|cooling|exhaust|transmission|clutch/i.test(name)) return 'ENGINE & LUBRICATION';
+        if (/tire|wheel|steering|suspension|chassis/i.test(name)) return 'CHASSIS & SUSPENSION';
+        if (/aircon|battery|headlight|signal|wiring|electrical/i.test(name)) return 'ELECTRICAL & AIRCON';
+        return 'OTHER MAINTENANCE';
+      };
+      const groups = new Map();
+      Array.from(select.options).filter(option => option.value).forEach(option => {
+        const category = categoryFor(option.value);
+        if (!groups.has(category)) groups.set(category, []);
+        groups.get(category).push(option);
       });
+      groups.forEach((options, category) => {
+        const group = document.createElement('div');
+        group.className = 'jo-maintenance-job-group';
+        if (isCreatePicker) {
+          const header = document.createElement('strong');
+          header.className = 'jo-maintenance-job-category';
+          header.textContent = category;
+          group.append(header);
+        }
+        options.forEach(option => {
+          const optionButton = document.createElement('button');
+          optionButton.type = 'button';
+          optionButton.className = 'jo-maintenance-job-option';
+          optionButton.dataset.value = option.value;
+          const tick = document.createElement('i');
+          tick.className = 'fa-solid fa-check';
+          tick.setAttribute('aria-hidden', 'true');
+          if (isCreatePicker) {
+            const box = document.createElement('span');
+            box.className = 'jo-maintenance-job-check';
+            optionButton.append(box);
+          }
+          const name = document.createElement('span');
+          name.textContent = option.textContent.trim();
+          optionButton.append(name, tick);
+          optionButton.addEventListener('click', () => {
+            if (typeof select.toggleJobSelection === 'function') {
+              select.toggleJobSelection(option.value);
+              sync();
+              return;
+            }
+            select.value = option.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            sync();
+            close();
+          });
+          group.append(optionButton);
+        });
+        optionsContainer.append(group);
+      });
+      menu.dispatchEvent(new Event('jo-jobs-rendered'));
 
       sync();
     };
