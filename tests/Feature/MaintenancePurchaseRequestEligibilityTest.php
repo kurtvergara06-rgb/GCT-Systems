@@ -216,7 +216,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertMatchesRegularExpression('/^Fan Belt \\[item:\\d+\\] - Qty: 2 pcs$/', $purchaseRequest->item);
         $this->assertSame(2, $purchaseRequest->quantity);
         $this->assertSame('Repair bus alternator', $purchaseRequest->purpose);
         $this->assertSame($user->id, $purchaseRequest->requested_by);
@@ -274,7 +274,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertMatchesRegularExpression('/^Fan Belt \\[item:\\d+\\] - Qty: 2 pcs$/', $purchaseRequest->item);
         $this->assertSame(2, $purchaseRequest->quantity);
         $this->assertSame(
             'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs',
