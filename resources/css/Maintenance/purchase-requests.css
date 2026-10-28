@@ -5814,3 +5814,28 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(3),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(3) {width:29%!important;}
 #prModal .pr-dual-parts-pane .pr-availability-badge {font-size:11px!important;padding:6px 10px!important;line-height:1.3!important;}
 @media(max-width:780px){#prModal .pr-ir-review-top,#prModal .pr-dual-parts-grid {grid-template-columns:1fr!important;}}
+
+/* Review PR: both side-by-side parts tables must have equal geometry. */
+#prModal .pr-dual-parts-grid {align-items:stretch;}
+#prModal .pr-dual-parts-pane {display:flex;flex-direction:column;}
+#prModal .pr-dual-parts-pane .pr-shortage-table-wrap {flex:1;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table {
+  width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;
+}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table thead tr {height:42px!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table tbody tr {height:49px!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th,
+#prModal .pr-dual-parts-pane table.pr-review-parts-table td {
+  padding:10px 9px!important;font-size:11px!important;line-height:1.4!important;
+  vertical-align:middle!important;box-sizing:border-box!important;
+}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th {
+  font-size:10px!important;white-space:nowrap!important;letter-spacing:0!important;
+}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(1),
+#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(1){width:47%!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(2),
+#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(2){width:25%!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(3),
+#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(3){width:28%!important;}
+#prModal .pr-dual-parts-pane .pr-dual-parts-heading {min-height:30px;}
