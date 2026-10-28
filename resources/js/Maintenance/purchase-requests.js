@@ -41,7 +41,7 @@ window.GCTPartialNavigation.registerInitializer(
     }
 
     prPartsPage?.addEventListener('click', event => {
-      const summary = event.target.closest('.pr-parts-dropdown > summary');
+      const summary = event.target.closest('.pr-parts-dropdown > summary, .pr-ir-breakdown > summary');
       if (!summary || !prPartsPage.contains(summary)) return;
       event.preventDefault();
       event.stopPropagation();
@@ -50,7 +50,7 @@ window.GCTPartialNavigation.registerInitializer(
         return;
       }
       closePartsMenu();
-      const source = summary.parentElement.querySelector('.pr-parts-dropdown-menu');
+      const source = summary.parentElement.querySelector('.pr-parts-dropdown-menu, .pr-pending-parts-list');
       if (!source) return;
       activePartsTrigger = summary;
       summary.parentElement.setAttribute('open', '');
