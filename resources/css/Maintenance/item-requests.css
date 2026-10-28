@@ -405,3 +405,43 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   white-space: nowrap; min-height: 34px;
 }
+
+/* Compact IR/PR breakdown: shares visual language with mechanic +more popover. */
+.maintenance-ir-page .ir-split-breakdown { position: relative; display: inline-block; max-width: 100%; margin-top: 7px; }
+.maintenance-ir-page .ir-split-breakdown > summary {
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  color: #3c5678; cursor: pointer; list-style: none; font-size: 11px;
+}
+.maintenance-ir-page .ir-split-breakdown > summary::-webkit-details-marker { display: none; }
+.maintenance-ir-page .ir-split-breakdown .ir-split-more {
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid #c6dbf7;
+  border-radius: 6px; padding: 4px 7px; color: #1758ad; background: #eaf3ff;
+  font-weight: 750; font-size: 10px;
+}
+.maintenance-ir-page .ir-split-breakdown[open] .ir-split-more i { transform: rotate(180deg); }
+.maintenance-ir-page .ir-split-popover {
+  position: absolute; z-index: 120; top: calc(100% + 7px); left: 0;
+  width: min(335px, calc(100vw - 48px)); box-sizing: border-box;
+  border: 1px solid #d1e0f3; border-radius: 11px; padding: 0;
+  background: #fff; box-shadow: 0 15px 35px rgba(20,47,81,.17);
+}
+.maintenance-ir-page .ir-split-popover-heading {
+  padding: 12px 14px; color: #1b3659; background: #f2f7fe;
+  border-bottom: 1px solid #e0e9f6; font-weight: 800; font-size: 12px;
+}
+.maintenance-ir-page .ir-split-popover-section { padding: 11px 14px; }
+.maintenance-ir-page .ir-split-popover-section + .ir-split-popover-section { border-top: 1px solid #e6edf5; }
+.maintenance-ir-page .ir-split-popover-label {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+  font-size: 11px; font-weight: 800;
+}
+.maintenance-ir-page .ir-split-popover-label.is-ir { color: #117646; }
+.maintenance-ir-page .ir-split-popover-label.is-pr { color: #b43c42; }
+.maintenance-ir-page .ir-split-popover-line {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; padding: 6px 0; font-size: 11px; color: #364d6c;
+}
+.maintenance-ir-page .ir-split-popover-line strong { color: #1a365c; white-space: nowrap; font-size: 11px; }
+.maintenance-ir-page .ir-split-popover-empty { font-size: 11px; color: #7b8799; margin: 0; }
+.maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) { position: relative; z-index: 110; }
+.maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) td { overflow: visible; }
