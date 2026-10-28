@@ -319,6 +319,21 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     trigger.addEventListener('click', () => {
       if (menu.hidden) {
+        if (isCreatePicker) {
+          // Position the two-pane picker at the modal center, not the
+          // right-hand Maintenance Job field, so it stays fully visible.
+          const modal = combobox.closest('.ui-form-modal, .ui-form-modal-content')
+            || document.getElementById('jobModal')?.querySelector('.ui-form-modal');
+          const modalRect = modal?.getBoundingClientRect();
+          const fieldRect = combobox.getBoundingClientRect();
+          if (modalRect) {
+            const width = Math.min(640, modalRect.width - 32, window.innerWidth - 28);
+            const desiredLeft = modalRect.left + (modalRect.width - width) / 2;
+            menu.style.width = Math.max(280, width) + 'px';
+            menu.style.left = (desiredLeft - fieldRect.left) + 'px';
+            menu.style.right = 'auto';
+          }
+        }
         menu.hidden = false;
         combobox.classList.add('is-open');
         trigger.setAttribute('aria-expanded', 'true');
