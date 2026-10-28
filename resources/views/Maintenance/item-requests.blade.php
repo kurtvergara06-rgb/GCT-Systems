@@ -199,7 +199,7 @@
                                     <span class="ir-split-policy">—</span>
                                 @endif
                             </td>
-                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
+                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-approver="{{ $ir->jobOrder?->approver?->name ?? 'Not recorded' }}" data-ir-signature-url="{{ $ir->jobOrder ? route('job-orders.approval-signature', $ir->jobOrder, false) : '' }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="6"><div class="ir-empty">
@@ -248,6 +248,13 @@
                     <div class="ir-view-review-info"><div><span>Current Progress</span><strong id="ir-detail-status-description">Current request processing status.</strong></div></div>
                 </section>
             </div>
+            <section class="ir-view-panel ir-view-head-approval" aria-labelledby="ir-view-head-approval-title">
+                <header class="ir-view-panel-header"><h3 id="ir-view-head-approval-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Maintenance Head Authorization</h3><span class="ir-jo-approved-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></header>
+                <div class="ir-view-head-approval-grid">
+                    <div class="ir-view-head-approver"><span>Approved By</span><strong id="ir-detail-approver">—</strong><small>Maintenance Head</small></div>
+                    <div class="ir-view-head-signature"><span>Authorized Signature</span><img id="ir-detail-signature" alt="Saved Job Order approval signature" hidden><small id="ir-detail-signature-placeholder">Signature unavailable</small></div>
+                </div>
+            </section>
             <section class="ir-view-panel ir-view-document-parts" aria-labelledby="ir-view-parts-heading">
                 <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
                 <div class="ir-view-request-parts-grid">
