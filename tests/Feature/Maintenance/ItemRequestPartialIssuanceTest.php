@@ -67,6 +67,11 @@ class ItemRequestPartialIssuanceTest extends TestCase
         $this->assertSame('Partially Issued', $ir->fresh()->status);
         $this->assertSame(4, (int) $stock->fresh()->quantity_available);
         $this->assertSame(4, (int) JobOrderPartReservation::where('job_order_id', $jo->id)->value('quantity'));
+        $partialAudit = $jo->audits()->where('action', 'parts_partially_issued')->firstOrFail();
+        $this->assertSame($staff->id, $partialAudit->user_id);
+        $this->assertSame('Partial', $partialAudit->to_status);
+        $this->assertSame($ir->id, data_get($partialAudit->metadata, 'item_request_id'));
+        $this->assertSame(6, (int) data_get($partialAudit->metadata, 'issued_parts.0.quantity'));
 
         $this->actingAs($staff)->post(route('warehouse.item-requests.issue', $ir), [
             'received_by' => 'Mechanic Test',
@@ -78,6 +83,12 @@ class ItemRequestPartialIssuanceTest extends TestCase
         $this->assertSame('Issued', $jo->fresh()->part_status);
         $this->assertSame(0, (int) $stock->fresh()->quantity_available);
         $this->assertSame(0, JobOrderPartReservation::where('job_order_id', $jo->id)->sum('quantity'));
+        $completeAudit = $jo->audits()->where('action', 'parts_fully_issued')->firstOrFail();
+        $this->assertSame($staff->id, $completeAudit->user_id);
+        $this->assertSame('Issued', $completeAudit->to_status);
+        $this->assertSame(4, (int) data_get($completeAudit->metadata, 'issued_parts.0.quantity'));
+        $this->assertSame('Mechanic Test', data_get($completeAudit->metadata, 'received_by'));
+        $this->assertSame(2, $jo->audits()->whereIn('action', ['parts_partially_issued', 'parts_fully_issued'])->count());
         $ref = 'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT);
         $this->assertSame(2, InventoryIssuance::where('reference_no', $ref)
             ->orWhere('reference_no', 'like', $ref.'-B%')->count());
