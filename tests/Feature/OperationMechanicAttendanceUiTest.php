@@ -23,7 +23,7 @@ class OperationMechanicAttendanceUiTest extends TestCase
         $this->actingAs($user)
             ->get(route('mechanic-attendance'))
             ->assertOk()
-            ->assertSeeText('Record Daily Attendance')
+            ->assertSeeText('Manage Daily Attendance')
             ->assertDontSeeText('Import Data')
             ->assertSee('data-server-filter="true"', false);
     }
