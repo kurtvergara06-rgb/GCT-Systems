@@ -355,16 +355,20 @@
                                                 </button>
                                                 <template class="jo-view-content">
                                                     <div class="jo-view-summary">
-                                                        <div><span>Job Order</span><strong>{{ $jobOrder->job_order_no }}</strong></div>
-                                                        <div><span>Current Status</span><strong><x-ui.status-badge :status="$jobOrder->display_status" /></strong></div>
+                                                        <div class="jo-view-summary-number"><span>Job Order No.</span><strong>{{ $jobOrder->job_order_no }}</strong><small>Created {{ $jobOrder->created_at?->format('M d, Y · h:i A') ?? '—' }}</small></div>
+                                                        <div><span>Review Status</span><strong><x-ui.status-badge :status="$jobOrder->review_status ?: 'Pending'" /></strong></div>
+                                                        <div><span>Operational Status</span><strong><x-ui.status-badge :status="$jobOrder->status" /></strong></div>
+                                                        <div><span>Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
+                                                        <div><span>Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
                                                     </div>
+                                                    <div class="jo-view-dual-column">
                                                     <section class="jo-view-section">
                                                         <h3><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Basic Information</h3>
                                                         <div class="jo-view-grid">
                                                             <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                             <div><span><i class="fa-solid fa-gears" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
-                                                            <div><span>Complaint / Problem</span><strong>{{ $jobOrder->problem_issue ?: 'Not recorded' }}</strong></div>
                                                             <div><span>Maintenance Work</span><strong>{{ $jobOrder->work_to_perform ?: 'Not recorded' }}</strong></div>
+                                                            <div class="jo-view-complaint"><span>Complaint / Problem</span><strong>{{ $jobOrder->problem_issue ?: 'Not recorded' }}</strong></div>
                                                         </div>
                                                     </section>
                                                     <section class="jo-view-section">
@@ -392,6 +396,7 @@
                                                             </div>
                                                         </div>
                                                     </section>
+                                                    </div>
                                                     <section class="jo-view-section jo-view-warehouse-section">
                                                         <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse <span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></h3>
                                                         <div class="jo-view-grid jo-view-warehouse-grid">
@@ -402,7 +407,8 @@
                                                                     $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
                                                                 @endphp
                                                                 @if(collect($viewRequestedParts ?? [])->isNotEmpty())
-                                                                    <ul class="jo-view-parts-list">
+                                                                    <div class="jo-view-stock-table">
+                                                                        <div class="jo-view-stock-head"><span>#</span><span>Part name</span><span>Item code</span><span>Requested qty</span><span>Stock information</span><span>Status</span></div>
                                                                         @foreach(collect($viewRequestedParts ?? []) as $part)
                                                                             @php
                                                                                 $partKey = mb_strtolower(trim((string) $part['name']));
@@ -415,19 +421,23 @@
                                                                                 $partDemand = (int) $part['quantity'];
                                                                                 $partAvailability = $partStock >= $partDemand ? 'Available' : 'Unavailable';
                                                                             @endphp
-                                                                            <li>
-                                                                                <span class="jo-view-part-name">{{ $part['name'] }}</span>
+                                                                            <div class="jo-view-stock-row">
+                                                                                <span>{{ $loop->iteration }}</span>
+                                                                                <strong class="jo-view-part-name">{{ $part['name'] }}</strong>
+                                                                                <span>{{ $stockItem?->item_code ?: '—' }}</span>
                                                                                 <span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span>
+                                                                                <span class="jo-view-stock-qty">{{ $partStock }} on hand</span>
                                                                                 <span class="jo-view-part-availability {{ $partStock >= $partDemand ? 'is-available' : 'is-unavailable' }}">{{ $partAvailability }}</span>
-                                                                            </li>
+                                                                            </div>
                                                                         @endforeach
-                                                                    </ul>
+                                                                    </div>
                                                                 @else
                                                                     <strong>None required</strong>
                                                                 @endif
                                                             </div>
                                                         </div>
                                                     </section>
+                                                    <div class="jo-view-dual-column jo-view-bottom-columns">
                                                     <section class="jo-view-section jo-view-head-approval-section">
                                                         <h3><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3>
                                                         <div class="jo-view-grid jo-view-approval-grid">
@@ -453,6 +463,7 @@
                                                             @endforelse
                                                         </ol>
                                                     </details>
+                                                    </div>
                                                 </template>
                                             @elseif(!($canReviewJobOrders && $isPendingReview))
                                             @php
