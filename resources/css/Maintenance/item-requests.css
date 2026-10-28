@@ -500,3 +500,24 @@
 .maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 95px; }
 .maintenance-ir-page .ir-split-table th:nth-child(6),
 .maintenance-ir-page .ir-split-table td:nth-child(6) { min-width: 145px; }
+
+/* Consistent Pending / In Progress / History layout, without simulated stock data. */
+.maintenance-ir-page .ir-lifecycle-table tbody td { padding: 12px 13px !important; vertical-align: middle; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-jo { align-items: flex-start; gap: 6px; }
+.maintenance-ir-page .ir-lifecycle-jo { color: #607590; font-size: 11px; font-weight: 650; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-breakdown { margin-top: 7px; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-parts { gap: 6px; }
+.maintenance-ir-page .ir-lifecycle-table .ir-release-badge { max-width: 100%; }
+.maintenance-ir-page .ir-lifecycle-table .ir-status {
+  display: inline-flex; align-items: center; padding: 7px 10px;
+  border-radius: 8px; font-size: 11px; line-height: 1.25;
+  font-weight: 800; white-space: nowrap;
+}
+.maintenance-ir-page .ir-lifecycle-table th:last-child,
+.maintenance-ir-page .ir-lifecycle-table td:last-child { text-align: center; }
+.maintenance-ir-page .ir-lifecycle-table .ir-view-button { min-height: 34px; white-space: nowrap; }
+.maintenance-ir-page .ir-lifecycle-table th:nth-child(2),
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(2) { min-width: 126px; }
+.maintenance-ir-page .ir-lifecycle-table th:nth-child(5),
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(5) { min-width: 158px; }
+@media(max-width: 900px) { .maintenance-ir-page .ir-lifecycle-table { min-width: 760px; } }
