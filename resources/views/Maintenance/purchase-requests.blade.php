@@ -341,40 +341,44 @@
           class="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
       >
           <div class="pr-document pr-review-simplified" id="prDocument">
-              <section class="pr-step-card pr-step-details" aria-label="Linked Job Order">
-                  <div class="pr-step-heading"><span class="pr-step-icon">01</span><div><h3>Job Order Summary</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Source details</span></div>
-                  <div class="pr-simple-body">
-                      <label class="pr-document-field pr-document-field-full">
-                          <span>Approved Job Order <span class="ui-required">*</span></span>
-                          <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
-                              <option value="">Select an approved Job Order</option>
-                              @foreach($availablePrJobOrders as $jobOrder)
-                                  <option value="{{ $jobOrder->job_order_no }}"
-                                      data-job-order-url="{{ route('purchase-requests.job-order-data', $jobOrder, false) }}"
-                                      @selected(old('job_order_no', $selectedJobOrder?->job_order_no) === $jobOrder->job_order_no)>
-                                      {{ $jobOrder->job_order_no }}
-                                  </option>
-                              @endforeach
-                          </select>
-                          <div id="prReviewLinkedJo" class="pr-review-linked-jo" aria-live="polite">Linked from Pending Requests</div>
-                          <input type="hidden" name="bus_no" id="busNoInput">
-                      </label>
-                      <div class="pr-simple-source-grid">
-                          <div class="pr-simple-source-card"><span>Bus Number</span><strong id="prReviewBus">—</strong></div>
-                          <div class="pr-simple-source-card"><span>Assigned Mechanics</span><strong id="prReviewMechanics">—</strong></div>
-                      </div>
-                      <div class="pr-jo-authorization-heading"><strong>Maintenance Head Authorization</strong><span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></div>
-                      <div class="pr-jo-authorization-grid">
-                        <div class="pr-simple-source-card"><span>Approved By</span><strong id="prApproverName">—</strong><small>Maintenance Head</small></div>
-                        <div class="pr-jo-signature-reference">
-                          <img id="prApprovalSignature" alt="Saved Job Order authorization signature" hidden>
-                          <span id="prSignaturePlaceholder">JO signature unavailable</span>
-                        </div>
-                      </div>
-                  </div>
+              <section class="pr-ir-review-summary" aria-label="Approved Job Order summary">
+                  <div class="pr-ir-summary-main"><span>JOB ORDER NO.</span><strong id="prReviewLinkedJo">—</strong><small>Approved Maintenance source</small></div>
+                  <div><span>JO REVIEW STATUS</span><strong class="pr-ir-jo-approved"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved</strong></div>
+                  <div><span>BUS ID / PLATE</span><strong id="prReviewBus">—</strong></div>
+                  <div><span>ASSIGNED MECHANICS</span><strong id="prReviewMechanics">—</strong></div>
               </section>
+              <div class="pr-ir-review-top">
+                  <section class="pr-step-card pr-ir-overview" aria-label="Request overview">
+                      <div class="pr-ir-panel-heading"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><h3>Request Overview</h3></div>
+                      <div class="pr-ir-panel-body">
+                          <label class="pr-document-field pr-document-field-full">
+                              <span>Approved Job Order <span class="ui-required">*</span></span>
+                              <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
+                                  <option value="">Select an approved Job Order</option>
+                                  @foreach($availablePrJobOrders as $jobOrder)
+                                      <option value="{{ $jobOrder->job_order_no }}" data-job-order-url="{{ route('purchase-requests.job-order-data', $jobOrder, false) }}" @selected(old('job_order_no', $selectedJobOrder?->job_order_no) === $jobOrder->job_order_no)>{{ $jobOrder->job_order_no }}</option>
+                                  @endforeach
+                              </select>
+                              <input type="hidden" name="bus_no" id="busNoInput">
+                          </label>
+                          <div class="pr-ir-overview-facts"><div><span>Request Type</span><strong>Job Order Parts Request</strong></div><div><span>Processing</span><strong>Shortage Purchase Request</strong></div></div>
+                          <p>Only missing quantities are requested for procurement. Available parts remain under Warehouse IR processing.</p>
+                      </div>
+                  </section>
+                  <section class="pr-step-card pr-ir-head-approval" aria-label="Head approval">
+                      <div class="pr-ir-panel-heading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><h3>Head Approval</h3></div>
+                      <div class="pr-ir-approval-body">
+                          <div class="pr-ir-approved-by"><span>Approved By</span><strong id="prApproverName">—</strong><small>Maintenance Head</small></div>
+                          <div class="pr-jo-signature-reference pr-ir-signature"><span>Authorized Signature</span>
+                              <img id="prApprovalSignature" alt="Saved Job Order authorization signature" hidden>
+                              <small id="prSignaturePlaceholder">JO signature unavailable</small>
+                          </div>
+                      </div>
+                      <span id="prJoApprovalBadge" class="pr-jo-approval-status" hidden><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span>
+                  </section>
+              </div>
               <section class="pr-step-card pr-document-parts" aria-label="Parts requiring purchase">
-                  <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Missing Parts — Purchase Request (PR)</h3><p>Only unavailable quantities sourced from the approved Job Order</p></div><span class="pr-step-tag">JO shortage</span></div>
+                  <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Parts &amp; Warehouse</h3><p>Missing parts — Purchase Request (PR), for procurement only</p></div><span class="pr-step-tag">JO shortage</span></div>
                   <div class="pr-simple-body">
                       <div class="pr-shortage-table-wrap">
                           <table class="pr-shortage-table pr-review-parts-table">
