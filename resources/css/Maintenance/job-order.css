@@ -5800,3 +5800,51 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
   #jobModal .jo-coverage-table .jo-coverage-row > span:last-child { grid-column: 1/-1; }
 }
+
+/* Actual Create JO Job Details redesign: full-width selected-work panel. */
+#jobModal .jo-create-job-details-grid > .jo-selected-jobs-panel {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  column-gap: 12px;
+  row-gap: 10px;
+  padding: 11px 13px 12px;
+  margin: -3px 0 2px;
+  background: #eff6ff;
+  border: 1px solid #dce9fb;
+  border-radius: 10px;
+}
+#jobModal .jo-selected-jobs-panel[hidden] { display: none !important; }
+#jobModal .jo-selected-jobs-heading {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+#jobModal .jo-selected-jobs-heading strong { color: #1a355c; font-size: 12px; font-weight: 750; }
+#jobModal .jo-selected-jobs-clear,
+#jobModal .jo-selected-jobs-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 7px; padding: 7px 10px;
+  font-size: 11px; line-height: 1.2; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+#jobModal .jo-selected-jobs-clear { border: 0; background: transparent; color: #1c5fbc; }
+#jobModal .jo-selected-jobs-clear:hover { background: #e0edff; }
+#jobModal .jo-selected-jobs-add { border: 1px solid #9fc3fa; color: #1755ad; background: #fff; }
+#jobModal .jo-selected-jobs-add:hover { background: #e1edff; }
+#jobModal .jo-selected-jobs-panel > .jo-maintenance-job-selected-chips {
+  grid-column: 1;
+  display: flex; flex-wrap: wrap; align-content: center;
+  gap: 6px; padding: 0; min-height: 32px;
+}
+#jobModal .jo-selected-jobs-actions { grid-column: 2; display: flex; align-items: end; }
+#jobModal .jo-selected-jobs-panel .jo-maintenance-job-chip {
+  max-width: 100%; background: #e5efff; border: 1px solid #c7daf9;
+  border-radius: 7px; padding: 5px 8px; color: #1852a4;
+}
+#jobModal .jo-create-job-details-grid .jo-create-problem-field { grid-column: 1/-1; }
+@media(max-width: 570px) {
+ #jobModal .jo-create-job-details-grid > .jo-selected-jobs-panel { grid-template-columns: 1fr; }
+ #jobModal .jo-selected-jobs-actions { grid-column: 1; justify-content: flex-end; }
+}
