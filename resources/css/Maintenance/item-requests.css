@@ -465,3 +465,25 @@
 .maintenance-ir-page .ir-split-table td:nth-child(2) { min-width: 125px; }
 .maintenance-ir-page .ir-split-table th:nth-child(5),
 .maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 195px; }
+
+/* Compact pending IR table: preserve clear labels without excessive row height. */
+.maintenance-ir-page .ir-split-table { table-layout: auto; width: 100%; }
+.maintenance-ir-page .ir-split-table thead th { padding: 11px 13px; vertical-align: middle; }
+.maintenance-ir-page .ir-split-table tbody td {
+  padding: 12px 13px !important;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.maintenance-ir-page .ir-split-table .ir-split-jo { gap: 0; }
+.maintenance-ir-page .ir-split-table .ir-split-breakdown { margin-top: 6px; }
+.maintenance-ir-page .ir-split-table .ir-split-breakdown > summary { margin-top: 0; }
+.maintenance-ir-page .ir-split-table .ir-split-parts { gap: 5px; }
+.maintenance-ir-page .ir-split-table .ir-submitted-time { gap: 2px; }
+.maintenance-ir-page .ir-split-table .ir-release-policy { gap: 0; }
+.maintenance-ir-page .ir-split-table .ir-release-badge { padding: 7px 9px; }
+.maintenance-ir-page .ir-split-table .ir-split-review { min-height: 34px; padding: 7px 11px; }
+.maintenance-ir-page .ir-split-table th:last-child,
+.maintenance-ir-page .ir-split-table td:last-child { text-align: center; }
+@media (max-width: 900px) {
+  .maintenance-ir-page .ir-split-table { min-width: 825px; }
+}
