@@ -97,11 +97,6 @@
                 <td>
                     <div class="ir-pending-actions">
                         <button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available quantities for Item Request; Warehouse issuance follows the approved release policy"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button>
-                        @if($hasShortage)
-                            <a class="ir-pr-link" href="{{ route('purchase-requests', ['job_order_id' => $jo->id]) }}" title="Open Maintenance Purchase Requests to requisition missing JO parts">
-                                <i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Request Missing Parts
-                            </a>
-                        @endif
                     </div>
                 </td>
             </tr>
@@ -197,7 +192,7 @@
         <header class="ir-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review available parts for Warehouse issuance</p></div>
+                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review available IR parts and missing PR quantities</p></div>
             </div>
             <button type="button" class="ir-icon-button" id="closeItemRequestModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
@@ -225,7 +220,7 @@
                 </div>
                 <div class="ir-form-section">
                     <h3><span>02</span> Requested Items <small>Automatically sourced from the JO</small></h3>
-                    <p class="ir-form-hint">Only available quantities are suggested here. Missing quantities belong in a separate Purchase Request. Warehouse confirms stock again at issuance.</p>
+                    <p class="ir-form-hint">The system splits available stock into an IR and missing quantities into a PR. Warehouse confirms inventory before physical issuance.</p>
                     <div class="ir-preview-table-wrap">
                         <table class="ir-preview-table">
                             <thead><tr><th>Item / Part</th><th>Suggested Qty</th><th>Availability</th></tr></thead>
@@ -233,19 +228,29 @@
                         </table>
                     </div>
                 </div>
+                <div class="ir-form-section ir-pr-preview-section">
+                    <h3><span>03</span> Missing Parts — Purchase Request <small>Created automatically with the IR</small></h3>
+                    <p class="ir-form-hint">Only the shortage quantities are sent to Purchase. Existing procurement requests are not duplicated.</p>
+                    <div class="ir-preview-table-wrap">
+                        <table class="ir-preview-table">
+                            <thead><tr><th>Item / Part</th><th>Missing Qty</th><th>Request</th></tr></thead>
+                            <tbody id="ir-preview-missing"><tr><td colspan="3" class="ir-preview-placeholder">Choose an approved Job Order.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="ir-form-section">
-                    <h3><span>03</span> Request Details <small>Optional instructions</small></h3>
+                    <h3><span>04</span> Request Details <small>Optional instructions</small></h3>
                     <div class="ir-field">
                         <label for="item_request_remarks">Remarks <small>(Optional)</small></label>
                         <textarea id="item_request_remarks" name="remarks" rows="3" maxlength="2000" placeholder="Additional instructions for Warehouse...">{{ old('remarks') }}</textarea>
                     </div>
                 </div>
-                <div class="ir-note"><i class="fa-solid fa-shield-halved"></i><span><strong>Warehouse verification required.</strong> Submitting an IR does not reserve, issue, or deduct inventory. Availability is checked again during fulfillment.</span></div>
+                <div class="ir-note"><i class="fa-solid fa-shield-halved"></i><span><strong>Warehouse verification required.</strong> Submitting these requests does not physically issue or deduct inventory. Warehouse verifies allocations and follows the Maintenance Head release policy.</span></div>
             </div>
             <script type="application/json" id="ir-job-previews">@json($jobOrderPreviews)</script>
             <footer class="ir-modal-footer">
                 <button type="button" class="ir-secondary-button" id="cancelItemRequestModal">Cancel</button>
-                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit to Warehouse</button>
+                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit IR &amp; PR</button>
             </footer>
         </form>
     </div>
