@@ -6426,3 +6426,73 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge { grid-column: 2 / 4; }
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
 }
+
+/* Readonly Job Order detail — wide document layout */
+#joReadonlyOverlay .jo-view-panel { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
+#joReadonlyOverlay .jo-view-body { padding: 16px 18px 20px; }
+#joReadonlyOverlay .jo-view-summary {
+  display: grid;
+  grid-template-columns: minmax(180px,1.35fr) repeat(4,minmax(0,1fr));
+  align-items: center; gap: 0; padding: 16px 12px;
+  background: linear-gradient(120deg,#f4f8ff,#fff);
+  border: 1px solid #cedff7; border-radius: 12px;
+}
+#joReadonlyOverlay .jo-view-summary > div {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 5px 16px; min-width: 0;
+  border-right: 1px solid #e0e8f3;
+}
+#joReadonlyOverlay .jo-view-summary > div:last-child { border-right: 0; }
+#joReadonlyOverlay .jo-view-summary span { font-size: 11px; color: #5d708d; font-weight: 600; }
+#joReadonlyOverlay .jo-view-summary strong { font-size: 13px; color: #16345b; overflow-wrap: anywhere; }
+#joReadonlyOverlay .jo-view-summary-number strong { font-size: 20px; color: #102b56; }
+#joReadonlyOverlay .jo-view-summary-number small { font-size: 10px; color: #6b7c94; }
+#joReadonlyOverlay .jo-view-dual-column {
+  display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr);
+  gap: 14px; margin-top: 14px; align-items: stretch;
+}
+#joReadonlyOverlay .jo-view-dual-column > .jo-view-section { margin: 0; min-width: 0; }
+#joReadonlyOverlay .jo-view-section { border-radius: 11px; overflow: hidden; }
+#joReadonlyOverlay .jo-view-section h3 { padding: 12px 15px; font-size: 13px; background: #f1f6fd; }
+#joReadonlyOverlay .jo-view-section .jo-view-grid { padding: 14px; gap: 12px; }
+#joReadonlyOverlay .jo-view-complaint {
+  grid-column: 1/-1; background: #f4f8fd; border: 0;
+  border-radius: 9px; padding: 12px !important;
+}
+#joReadonlyOverlay .jo-view-warehouse-section { margin-top: 14px; }
+#joReadonlyOverlay .jo-view-warehouse-grid { display: block; }
+#joReadonlyOverlay .jo-view-parts-cell { display: block; }
+#joReadonlyOverlay .jo-view-stock-table {
+  border: 1px solid #dce7f3; border-radius: 9px;
+  overflow: hidden; width: 100%;
+}
+#joReadonlyOverlay .jo-view-stock-head,
+#joReadonlyOverlay .jo-view-stock-row {
+  display: grid;
+  grid-template-columns: 30px minmax(130px,1.8fr) minmax(70px,.7fr) minmax(90px,.8fr) minmax(100px,.9fr) minmax(90px,.8fr);
+  align-items: center; gap: 10px; padding: 11px 13px; min-width: 0;
+}
+#joReadonlyOverlay .jo-view-stock-head { background: #eef4fb; color: #425b79; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+#joReadonlyOverlay .jo-view-stock-row { border-top: 1px solid #e0e9f4; font-size: 12px; color: #385072; }
+#joReadonlyOverlay .jo-view-stock-row:nth-child(odd) { background: #fafcff; }
+#joReadonlyOverlay .jo-view-stock-row > * { min-width: 0; overflow-wrap: anywhere; }
+#joReadonlyOverlay .jo-view-stock-row strong { color: #19365e; font-size: 12px; }
+#joReadonlyOverlay .jo-view-part-availability { width: fit-content; justify-self: start; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 750; }
+#joReadonlyOverlay .jo-view-bottom-columns { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+#joReadonlyOverlay .jo-view-bottom-columns > .jo-view-audit { margin: 0; align-self: start; }
+#joReadonlyOverlay .jo-view-signature { text-align: center; }
+#joReadonlyOverlay .jo-view-signature img { max-width: 100%; object-fit: contain; }
+@media(max-width: 950px) {
+  #joReadonlyOverlay .jo-view-summary { grid-template-columns: repeat(3,minmax(0,1fr)); row-gap: 10px; }
+  #joReadonlyOverlay .jo-view-summary > div { border-right: 0; }
+  #joReadonlyOverlay .jo-view-dual-column { grid-template-columns: 1fr; }
+  #joReadonlyOverlay .jo-view-stock-head, #joReadonlyOverlay .jo-view-stock-row {
+    grid-template-columns: 24px minmax(90px,1.3fr) minmax(55px,.65fr) minmax(70px,.7fr) minmax(70px,.8fr) minmax(70px,.7fr);
+    gap: 6px; padding: 10px 8px;
+  }
+}
+@media(max-width: 600px) {
+  #joReadonlyOverlay .jo-view-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #joReadonlyOverlay .jo-view-stock-table { overflow-x: auto; }
+  #joReadonlyOverlay .jo-view-stock-head, #joReadonlyOverlay .jo-view-stock-row { min-width: 640px; }
+}
