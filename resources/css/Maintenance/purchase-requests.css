@@ -5563,3 +5563,13 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-counts {display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;}
 .purchase-page .pr-ir-counts .pr-ir-count {white-space:nowrap;}
 .purchase-page .pr-ir-counts .pr-ir-count.is-ir {color:#147348;background:#e8f9ef;border-color:#bce9ce;}
+
+/* Pending PR status uses the same compact rectangular treatment as Stock Status. */
+.purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:max-content;max-width:100%;box-sizing:border-box;
+  padding:6px 9px;border-radius:7px;
+  border:1px solid #c9dffe;background:#eaf3ff;color:#174e9e;
+  font-size:10px;font-weight:800;line-height:1.2;
+  white-space:normal;box-shadow:none;
+}
