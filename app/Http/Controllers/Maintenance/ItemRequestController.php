@@ -55,9 +55,13 @@ class ItemRequestController extends Controller
         $linkedPrPartsByJo = PurchaseRequest::query()
             ->whereIn('job_order_no', $requests->getCollection()->pluck('jobOrder.job_order_no')->filter()->unique()->values())
             ->whereNotIn('status', ['Cancelled', 'Rejected'])
-            ->get(['job_order_no', 'item'])
+            ->get(['job_order_no', 'pr_no', 'item', 'status'])
             ->groupBy('job_order_no')
-            ->map(fn ($prs) => $prs->flatMap(fn ($pr) => $parser->parsePartText((string) $pr->item))->values()->all());
+            ->map(fn ($prs) => $prs->flatMap(fn ($pr) => collect($parser->parsePartText((string) $pr->item))
+                ->map(fn ($part) => array_merge($part, [
+                    'pr_no' => $pr->pr_no,
+                    'status' => $pr->status,
+                ])))->values()->all());
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
