@@ -1051,3 +1051,15 @@
 #viewItemRequestModal .ir-view-request-badge.is-neutral {
   border-color:#d3deec;background:#f1f5fb;color:#385676;
 }
+
+/* Saved JO authorization in submitted IR detail view. */
+#viewItemRequestModal .ir-view-head-approval-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:13px;}
+#viewItemRequestModal .ir-view-head-approver,#viewItemRequestModal .ir-view-head-signature {display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0;padding:13px 16px;border:1px solid #e0e8f3;border-radius:9px;background:#f4f8fd;min-height:98px;}
+#viewItemRequestModal .ir-view-head-approver span,#viewItemRequestModal .ir-view-head-signature span {font-size:11px;color:#657c99;}
+#viewItemRequestModal .ir-view-head-approver strong {font-size:13px;color:#163c69;font-weight:800;}
+#viewItemRequestModal .ir-view-head-approver small,#viewItemRequestModal .ir-view-head-signature small {font-size:10px;color:#7387a1;}
+#viewItemRequestModal .ir-view-head-signature {align-items:center;background:#fff;text-align:center;}
+#viewItemRequestModal .ir-view-head-signature img {display:block;max-width:100%;max-height:115px;object-fit:contain;}
+#viewItemRequestModal .ir-view-head-signature img[hidden] {display:none;}
+#viewItemRequestModal .ir-view-head-approval .ir-jo-approved-badge {border:1px solid #a9e6bc;background:#e4faec;color:#166534;}
+@media(max-width:560px){#viewItemRequestModal .ir-view-head-approval-grid{grid-template-columns:1fr;}}
