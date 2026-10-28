@@ -5682,3 +5682,13 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:7px;}
 .purchase-page .pr-ir-style-table .pr-ir-shortage-status,
 .purchase-page .pr-ir-style-table .pr-ir-release-policy {min-height:34px;align-items:center;}
+
+/* Match Item Requests In Progress row density and alignment on PR tables. */
+.purchase-page .pr-ir-style-table thead th {padding:11px 13px!important;vertical-align:middle;}
+.purchase-page .pr-ir-style-table tbody td {padding:12px 13px!important;vertical-align:middle;line-height:1.4;}
+.purchase-page .pr-ir-style-table .pr-ir-counts {display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:6px;}
+.purchase-page .pr-ir-style-table .pr-ir-date {gap:2px;}
+.purchase-page .pr-ir-style-table .pr-pending-review-btn,
+.purchase-page .pr-ir-style-table .pr-review-btn.open-view-pr-modal {min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.purchase-page .pr-ir-style-table tbody tr {height:auto;}
