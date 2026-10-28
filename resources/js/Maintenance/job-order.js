@@ -4399,7 +4399,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
           labels.appendChild(cell);
         });
         table.appendChild(labels);
-        coverage.querySelectorAll('.jo-coverage-row').forEach((row) => {
+        // Move rows into the table instead of leaving duplicate unstyled rows
+        // above it (the original implementation appended them twice).
+        coverage.querySelectorAll(':scope > .jo-coverage-row').forEach((row) => {
           const title = row.querySelector('strong')?.textContent || '';
           const note = row.querySelector('small')?.textContent || '';
           const coveredRow = row.classList.contains('is-covered');
@@ -4547,18 +4549,34 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
         button.setAttribute('role', 'option');
         button.setAttribute('aria-selected', String(option.selected));
 
+        const avatar = document.createElement('span');
+        avatar.className = 'jo-mechanic-option-avatar';
+        avatar.textContent = name.split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
+        avatar.setAttribute('aria-hidden', 'true');
         const copy = document.createElement('span');
+        copy.className = 'jo-mechanic-option-copy';
         const title = document.createElement('strong');
-        const details = document.createElement('small');
+        const details = document.createElement('span');
+        details.className = 'jo-mechanic-option-skills';
         title.textContent = name;
-        const qualified = option.dataset.qualifiedJobs || '';
-        details.textContent = `${specializations} · ${availability}${qualified ? ' · Covers: ' + qualified : ''}`;
+        specializations.split(',').map(skill => skill.trim()).filter(Boolean).slice(0, 4).forEach(skill => {
+          const badge = document.createElement('small');
+          badge.textContent = skill;
+          details.appendChild(badge);
+        });
         copy.append(title, details);
-
+        const status = document.createElement('span');
+        status.className = 'jo-mechanic-option-status';
+        const isUnavailable = option.disabled || /unavailable|inactive|off duty/i.test(availability);
+        status.classList.toggle('is-unavailable', isUnavailable);
+        status.textContent = availability;
         const check = document.createElement('i');
-        check.className = 'fa-solid fa-check';
-        button.append(copy, check);
+        check.className = 'fa-solid ' + (option.selected ? 'fa-square-check' : 'fa-square');
+        check.setAttribute('aria-hidden', 'true');
+        button.disabled = isUnavailable;
+        button.append(avatar, copy, status, check);
         button.addEventListener('click', () => {
+          if (option.disabled) return;
           option.selected = !option.selected;
           select.dispatchEvent(new Event('change', { bubbles: true }));
           renderLabel();
