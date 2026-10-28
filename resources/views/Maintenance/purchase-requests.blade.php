@@ -349,8 +349,8 @@
 
       <x-ui.form-modal
           id="prModal"
-          title="New Purchase Request"
-          description="Review shortages for Warehouse verification."
+          title="Review Purchase Request"
+          description="Review unavailable parts and their linked approved Job Order."
           icon="fa-file-circle-plus"
           size="wide"
           form-id="newPrForm"
@@ -367,7 +367,7 @@
       >
           <div class="pr-document pr-review-simplified" id="prDocument">
               <section class="pr-step-card pr-step-details" aria-label="Linked Job Order">
-                  <div class="pr-step-heading"><span class="pr-step-icon">01</span><div><h3>Job Order Information</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Source details</span></div>
+                  <div class="pr-step-heading"><span class="pr-step-icon">01</span><div><h3>Job Order Summary</h3><p>Automatically linked approved Job Order</p></div><span class="pr-step-tag">Source details</span></div>
                   <div class="pr-simple-body">
                       <label class="pr-document-field pr-document-field-full">
                           <span>Approved Job Order <span class="ui-required">*</span></span>
@@ -399,11 +399,11 @@
                   </div>
               </section>
               <section class="pr-step-card pr-document-parts" aria-label="Parts requiring purchase">
-                  <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Parts for Purchase</h3><p>Shortages automatically sourced from the approved Job Order</p></div><span class="pr-step-tag">JO shortage</span></div>
+                  <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Missing Parts — Purchase Request (PR)</h3><p>Only unavailable quantities sourced from the approved Job Order</p></div><span class="pr-step-tag">JO shortage</span></div>
                   <div class="pr-simple-body">
                       <div class="pr-shortage-table-wrap">
                           <table class="pr-shortage-table pr-review-parts-table">
-                              <thead><tr><th scope="col">ITEM / PART</th><th scope="col">SHORTAGE QTY</th><th scope="col">AVAILABILITY</th></tr></thead>
+                              <thead><tr><th scope="col">ITEM / PART</th><th scope="col">SHORTAGE QTY</th><th scope="col">STATUS</th></tr></thead>
                               <tbody id="newPrPartsBody"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
                           </table>
                       </div>
