@@ -5885,3 +5885,62 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
  .jo-mechanic-multi-menu .jo-mechanic-option-status { grid-column: 2; grid-row: 2; }
  #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
 }
+
+/* Compact polish for the portal-based mechanic picker; no behavior changes. */
+.jo-mechanic-multi-menu {
+  overflow: hidden;
+  border-radius: 12px !important;
+  border: 1px solid #cbdcf2 !important;
+  background: #fff !important;
+  box-shadow: 0 18px 40px rgba(17, 42, 78, .16) !important;
+}
+.jo-mechanic-multi-menu .jo-mechanic-combobox-search {
+  padding: 10px 11px !important;
+  background: #fff;
+  border-bottom: 1px solid #e8eef7;
+}
+.jo-mechanic-multi-menu .jo-mechanic-combobox-search input {
+  font-size: 12px;
+  border-radius: 8px;
+}
+.jo-mechanic-multi-menu .jo-mechanic-combobox-options {
+  padding: 4px 7px 7px;
+}
+.jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option {
+  grid-template-columns: 36px minmax(0, 1fr) minmax(82px, auto) 19px;
+  gap: 11px;
+  padding: 10px 12px;
+  min-height: 66px;
+  border-radius: 8px;
+  border-bottom: 1px solid #edf1f7;
+  transition: background-color .15s ease;
+}
+.jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option:last-child { border-bottom: 0; }
+.jo-mechanic-multi-menu .jo-mechanic-multi-option.is-selected { background: #f4f8ff; }
+.jo-mechanic-multi-menu .jo-mechanic-multi-option:hover:not(:disabled) { background: #eaf3ff; }
+.jo-mechanic-multi-menu .jo-mechanic-option-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #e1edff, #bfd6f6);
+  font-size: 11px; color: #285487; letter-spacing: .025em;
+}
+.jo-mechanic-multi-menu .jo-mechanic-option-copy { gap: 6px; }
+.jo-mechanic-multi-menu .jo-mechanic-option-copy > strong {
+  font-size: 12px; font-weight: 750; letter-spacing: 0; line-height: 1.3;
+}
+.jo-mechanic-multi-menu .jo-mechanic-option-skills { gap: 5px; }
+.jo-mechanic-multi-menu .jo-mechanic-option-skills small {
+  border-radius: 5px; padding: 3px 7px;
+  font-size: 10px; line-height: 1.25;
+}
+.jo-mechanic-multi-menu .jo-mechanic-option-status {
+  justify-self: end; font-size: 11px; font-weight: 700; letter-spacing: 0;
+}
+.jo-mechanic-multi-menu .jo-mechanic-multi-option > i { justify-self: center; font-size: 18px; }
+@media (max-width: 580px) {
+  .jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option {
+    grid-template-columns: 32px minmax(0,1fr) 18px;
+    gap: 8px; padding: 9px;
+  }
+  .jo-mechanic-multi-menu .jo-mechanic-option-avatar { width: 32px; height: 32px; }
+  .jo-mechanic-multi-menu .jo-mechanic-option-status { grid-column: 2; grid-row: 2; justify-self: start; }
+}
