@@ -5670,3 +5670,15 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-style-table .pr-ir-shortage-status.is-partial {
   background:#fff4dc;border-color:#f0ce8e;color:#935a09;
 }
+
+/* Final Pending PR table polish: consistent badge/icon rhythm and less cramped row. */
+.purchase-page .pr-ir-style-table tbody td {padding-top:15px!important;padding-bottom:15px!important;}
+.purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box {
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:34px;padding:7px 12px;white-space:nowrap;
+}
+.purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box i {font-size:11px;flex:0 0 auto;}
+.purchase-page .pr-ir-style-table .pr-ir-counts {row-gap:6px;column-gap:6px;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:7px;}
+.purchase-page .pr-ir-style-table .pr-ir-shortage-status,
+.purchase-page .pr-ir-style-table .pr-ir-release-policy {min-height:34px;align-items:center;}
