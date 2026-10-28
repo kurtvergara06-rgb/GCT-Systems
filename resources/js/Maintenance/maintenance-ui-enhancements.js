@@ -108,7 +108,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       });
       actions.append(add);
       panel.append(heading, selectedChips, actions);
-      combobox.insertAdjacentElement('afterend', panel);
+      select.closest('.ui-form-group')?.insertAdjacentElement('afterend', panel);
       panel.hidden = true;
       select.addEventListener('change', () => {
         panel.hidden = !(select.getSelectedJobs?.().length);
@@ -129,7 +129,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       label.classList.toggle('placeholder', !hasValue && !selectedJobs.length);
       selectedChips.replaceChildren();
       selectedChips.hidden = selectedJobs.length === 0;
-      const selectedPanel = combobox.nextElementSibling;
+      const selectedPanel = select.closest('.ui-form-group')?.nextElementSibling;
       if (selectedPanel?.classList.contains('jo-selected-jobs-panel')) {
         selectedPanel.hidden = selectedJobs.length === 0;
       }
