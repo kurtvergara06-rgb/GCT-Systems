@@ -218,8 +218,8 @@ class ItemRequestController extends Controller
                         'bus_no' => $jo->bus_no,
                         'item' => $parser->formatParts($missing),
                         'quantity' => $parser->calculateTotalQuantity($missing),
-                        'status' => 'Approved',
-                        'approved_at' => now(),
+                        'status' => 'Submitted',
+                        'approved_at' => null,
                         'source_type' => 'Maintenance Request',
                         'requested_by' => auth()->id(),
                     ]);
