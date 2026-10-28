@@ -5839,3 +5839,17 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(3),
 #prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(3){width:28%!important;}
 #prModal .pr-dual-parts-pane .pr-dual-parts-heading {min-height:30px;}
+
+/* Review PR uses the same edge-to-edge header / 14px content inset as Review IR.
+   Remove legacy form padding responsible for the oversized blank band. */
+#prModal .ui-form-modal {width:min(1006px,calc(100vw - 36px))!important;max-width:1006px!important;max-height:calc(100dvh - 36px)!important;overflow:hidden!important;}
+#prModal .ui-form-content {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;}
+#prModal .ui-form-modal-body {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;}
+#prModal .ui-form-modal-scrollable {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;}
+#prModal .pr-document.pr-review-simplified {padding:13px 16px 16px!important;margin:0!important;gap:11px!important;width:100%;box-sizing:border-box;}
+#prModal .ui-form-modal-header {flex:0 0 auto!important;}
+#prModal .pr-document-footer {flex:0 0 auto!important;position:sticky!important;bottom:0!important;margin:0!important;}
+@media(max-width:600px) {
+ #prModal .ui-form-modal {width:calc(100vw - 20px)!important;}
+ #prModal .pr-document.pr-review-simplified {padding:12px!important;}
+}
