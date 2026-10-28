@@ -61,7 +61,7 @@ function renderItemRequestDetailParts(raw, prRaw) {
             const empty = document.createElement('td');
             empty.colSpan = 3;
             empty.className = 'ir-view-request-empty';
-            empty.textContent = isPr ? 'No linked Purchase Request recorded.' : 'No submitted IR parts.';
+            empty.textContent = isPr ? 'No Purchase Request recorded for this Job Order.' : 'No submitted IR parts.';
             row.append(empty);
             body.append(row);
             return;
