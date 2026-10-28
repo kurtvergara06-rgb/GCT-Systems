@@ -5491,3 +5491,51 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   object-position: center center;
   align-self: center;
 }
+
+/* Item Request visual parity — Purchase Requests remain shortage-only. */
+.purchase-page .purchase-request-card .maintenance-record-tabs { margin:0; }
+.purchase-page .purchase-request-card .section-header h2 {font-size:16px;}
+.purchase-page .pr-ir-style-table {width:100%;table-layout:fixed;border-collapse:collapse;}
+.purchase-page .pr-ir-style-table thead th {background:#f0f5fc;color:#506884;font-size:10px;font-weight:800;letter-spacing:.025em;text-align:left;padding:13px 11px;}
+.purchase-page .pr-ir-style-table tbody td {padding:14px 11px;color:#223b5e;font-size:12px;vertical-align:middle;overflow-wrap:anywhere;border-bottom:1px solid #eaf0f7;}
+.purchase-page .pr-ir-style-table th:nth-child(1) {width:16%;}
+.purchase-page .pr-ir-style-table th:nth-child(2) {width:18%;}
+.purchase-page .pr-ir-style-table th:nth-child(3) {width:23%;}
+.purchase-page .pr-ir-style-table th:nth-child(4) {width:17%;}
+.purchase-page .pr-ir-style-table th:nth-child(5) {width:12%;}
+.purchase-page .pr-ir-style-table th:nth-child(6) {width:14%;}
+.purchase-page .pr-ir-jo-badge {display:inline-flex;color:#193755;background:#f3f7fd;border:1px solid #d7e2f2;border-radius:6px;padding:4px 7px;font-size:11px;font-weight:800;}
+.purchase-page .pr-ir-date {display:flex;flex-direction:column;gap:3px;}
+.purchase-page .pr-ir-date strong {color:#183961;font-size:11px;}
+.purchase-page .pr-ir-date small {font-size:10px;color:#7487a1;}
+.purchase-page .pr-ir-count {display:inline-flex;align-items:center;gap:5px;padding:5px 8px;color:#b43240;background:#fff0f1;border:1px solid #f3c3c9;border-radius:6px;font-size:11px;font-weight:800;}
+.purchase-page .pr-ir-shortage-status {display:inline-flex;padding:6px 9px;border:1px solid #f3c3c9;border-radius:7px;background:#fff0f2;color:#a83a46;font-size:10px;font-weight:800;}
+.purchase-page .pr-ir-breakdown {position:relative;display:block;margin-top:5px;}
+.purchase-page .pr-ir-breakdown > summary {display:inline-flex;align-items:center;gap:5px;list-style:none;cursor:pointer;color:#1451a4;background:#edf4ff;border:1px solid #c9ddff;border-radius:6px;padding:4px 7px;font-size:10px;font-weight:750;}
+.purchase-page .pr-ir-breakdown > summary::-webkit-details-marker {display:none;}
+.purchase-page .pr-ir-breakdown .pr-ir-popover-title {display:block;padding:9px 11px;border-bottom:1px solid #e2eaf4;color:#a83a46;font-size:11px;}
+.purchase-page .pr-ir-style-table .pr-pending-review-btn {white-space:nowrap;background:#eaf3ff;color:#144995;border:1px solid #c9dffe;border-radius:7px;padding:8px 11px;font-size:11px;font-weight:800;}
+/* JO-style review modal: summary/source and authorization above a full-width shortage table. */
+#prModal .ui-form-modal {width:min(1060px,calc(100vw - 36px));max-width:1060px;max-height:calc(100dvh - 36px);display:flex;flex-direction:column;}
+#prModal .pr-document {display:flex;flex-direction:column;gap:13px;}
+#prModal .pr-step-card {border:1px solid #dbe6f4;border-radius:11px;background:#fff;overflow:hidden;margin:0;}
+#prModal .pr-step-heading {background:#f0f5fc;border-bottom:1px solid #dce6f4;padding:12px 15px;}
+#prModal .pr-step-heading h3 {color:#173b6e;font-size:13px;font-weight:800;}
+#prModal .pr-step-heading .pr-step-icon {background:#e6efff;color:#164e9f;border:1px solid #d1e1fa;}
+#prModal .pr-simple-body {padding:14px 15px;}
+#prModal .pr-simple-source-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+#prModal .pr-jo-authorization-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+#prModal .pr-jo-authorization-grid > * {min-width:0;}
+#prModal .pr-shortage-table-wrap {border:1px solid #dce6f3;border-radius:9px;overflow:hidden;}
+#prModal .pr-review-parts-table {width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;}
+#prModal .pr-review-parts-table th {background:#edf3fb;color:#506884;font-size:10px;padding:11px 12px;}
+#prModal .pr-review-parts-table td {padding:12px;color:#244361;font-size:12px;border-top:1px solid #e2eaf3;}
+#prModal .pr-review-parts-table th:first-child {width:48%;}
+#prModal .pr-review-parts-table th:nth-child(2) {width:26%;}
+#prModal .pr-review-parts-table th:nth-child(3) {width:26%;}
+#prModal .pr-document-footer {position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e8f3;z-index:2;}
+@media(max-width:750px) {
+ .purchase-page .pr-pending-table-wrap {overflow-x:auto;}
+ .purchase-page .pr-ir-style-table {min-width:720px;}
+ #prModal .pr-simple-source-grid,#prModal .pr-jo-authorization-grid {grid-template-columns:1fr;}
+}
