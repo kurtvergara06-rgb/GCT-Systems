@@ -584,3 +584,116 @@
   #viewItemRequestModal .ir-view-document-table-head,
   #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 620px; }
 }
+
+/* Review IR: JO-inspired read-only document review with submission controls. */
+#itemRequestModal .ir-review-document-modal {
+  width: min(1050px, calc(100vw - 36px));
+  max-width: 1050px;
+  max-height: calc(100dvh - 36px);
+  border-radius: 16px;
+}
+#itemRequestModal .ir-review-document-modal > .ir-modal-header {
+  padding: 17px 21px;
+  background: #f8fbff;
+  border-bottom: 1px solid #dce6f3;
+}
+#itemRequestModal .ir-review-document-modal form { flex: 1 1 auto; min-height: 0; }
+#itemRequestModal .ir-review-document-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 20px;
+  background: #fff;
+}
+#itemRequestModal .ir-review-document-body .ir-form-section {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #d9e5f4;
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-body .ir-form-section > h3 {
+  margin: 0 0 14px;
+  padding: 12px 15px;
+  background: #f0f5fc;
+  border-bottom: 1px solid #dce6f4;
+  color: #173b6e;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo {
+  padding-bottom: 16px;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-field,
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-preview-grid,
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-jo-authorization {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-field {
+  margin-bottom: 12px;
+}
+#itemRequestModal .ir-review-document-body .ir-jo-authorization {
+  padding: 12px;
+  margin-top: 14px;
+  border: 1px solid #dce6f3;
+  border-radius: 10px;
+}
+#itemRequestModal .ir-review-document-body .ir-jo-authorization-grid {
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+}
+#itemRequestModal .ir-review-document-split {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+#itemRequestModal .ir-review-document-split .ir-form-section {
+  padding: 0 0 14px;
+}
+#itemRequestModal .ir-review-document-split .ir-form-section h3 {
+  font-size: 12px;
+  line-height: 1.4;
+}
+#itemRequestModal .ir-review-document-split .ir-form-hint {
+  min-height: 42px;
+  margin: 0 14px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table-wrap {
+  margin: 0 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table {
+  width: 100%;
+  table-layout: auto;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table th,
+#itemRequestModal .ir-review-document-split .ir-preview-table td {
+  padding: 12px 10px;
+  font-size: 11px;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table th {
+  background: #eaf1fa;
+  color: #445e80;
+  font-size: 10px;
+}
+#itemRequestModal .ir-review-document-remarks { padding-bottom: 15px; }
+#itemRequestModal .ir-review-document-remarks .ir-field {
+  margin: 0 15px;
+}
+#itemRequestModal .ir-review-document-body .ir-note { margin: 0; }
+#itemRequestModal .ir-review-document-modal .ir-modal-footer {
+  flex: 0 0 auto;
+  padding: 13px 20px;
+  background: #fff;
+}
+@media (max-width: 740px) {
+  #itemRequestModal .ir-review-document-split { grid-template-columns: 1fr; }
+  #itemRequestModal .ir-review-document-body { padding: 12px; }
+  #itemRequestModal .ir-review-document-split .ir-form-hint { min-height: 0; }
+}
