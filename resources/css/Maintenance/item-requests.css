@@ -354,3 +354,16 @@
 /* Match the bold date / muted time hierarchy used by Warehouse records. */
 .maintenance-ir-page .ir-records-table .ir-date .maintenance-ir-date-primary { display:block; color:#102b4f; font-size:12px; font-weight:800; line-height:1.35; }
 .maintenance-ir-page .ir-records-table .ir-date small { display:block; margin-top:3px; color:#71839b; font-size:10px; font-weight:400; }
+
+/* Keep blocked IR review distinct from actionable shortage procurement. */
+.maintenance-ir-page .ir-pending-actions { display: flex; align-items: center; justify-content: flex-start; gap: 8px; flex-wrap: wrap; }
+.maintenance-ir-page .ir-pr-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 11px; min-height: 33px;
+  border: 1px solid #b9d2f5; border-radius: 8px;
+  background: #edf5ff; color: #1857a5;
+  font-size: 11px; font-weight: 750; line-height: 1.3;
+  text-decoration: none; white-space: nowrap;
+}
+.maintenance-ir-page .ir-pr-link:hover,
+.maintenance-ir-page .ir-pr-link:focus-visible { background: #dfeeff; border-color: #8bb8ed; }
