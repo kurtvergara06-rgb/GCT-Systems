@@ -768,3 +768,52 @@
  #itemRequestModal .ir-review-overview-grid { grid-template-columns: 1fr; }
  #itemRequestModal .ir-review-section > header { flex-wrap: wrap; }
 }
+
+/* Approved mockup refinement: balanced side-by-side IR and PR allocation tables. */
+#itemRequestModal .ir-review-document-modal { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
+#itemRequestModal .ir-review-jo-banner {
+  grid-template-columns: minmax(190px,1.5fr) repeat(3,minmax(0,1fr));
+}
+#itemRequestModal .ir-review-parts-two-column {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 12px; padding: 12px 13px 13px;
+}
+#itemRequestModal .ir-review-parts-pane {
+  min-width: 0; border: 1px solid #dce7f4; border-radius: 10px;
+  background: #fff; padding: 12px; overflow: hidden;
+}
+#itemRequestModal .ir-review-parts-pane.is-pr { border-color: #e5e6ed; }
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head {
+  min-height: 25px; margin: 0 0 10px; align-items: baseline;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head strong {
+  font-size: 12px; font-weight: 800; line-height: 1.4;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head > span {
+  font-size: 10px; white-space: nowrap;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table-wrap {
+  margin: 0; border-radius: 8px;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table {
+  table-layout: fixed; width: 100%;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th,
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table td {
+  padding: 11px 9px; font-size: 11px; text-align: left;
+  vertical-align: middle; overflow-wrap: anywhere;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th { font-size: 9px; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:first-child { width: 47%; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(2) { width: 25%; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(3) { width: 28%; }
+#itemRequestModal .ir-review-parts-pane.is-pr .ir-stock-unavailable {
+  border: 1px solid #f5b8be; background: #fff0f2; color: #b33d48;
+  border-radius: 7px; padding: 5px 8px; font-size: 10px; font-weight: 800;
+  white-space: nowrap; display: inline-flex;
+}
+#itemRequestModal .ir-review-remarks-section .ir-review-section-content { padding: 12px 14px; }
+#itemRequestModal .ir-review-remarks-section textarea { min-height: 54px; resize: vertical; }
+@media (max-width: 780px) {
+  #itemRequestModal .ir-review-parts-two-column { grid-template-columns: 1fr; }
+}
