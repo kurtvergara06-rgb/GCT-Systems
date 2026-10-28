@@ -895,8 +895,13 @@ class JobOrderController extends Controller
                         ->latest('id')->first()?->update(['status' => 'Present']);
                 }
             }
+            // Capture the previous allocation before updating the snapshot.
+            // Revision resubmission overwrites inventory_snapshot in $updates.
+            $hadSubmissionReservation = isset($locked->inventory_snapshot['reservation_at_submission'])
+                || \App\Models\Maintenance\JobOrderPartReservation::query()
+                    ->where('job_order_id', $locked->id)->exists();
             $locked->update($updates);
-            if ($wasRevision && isset($locked->inventory_snapshot['reservation_at_submission'])) {
+            if ($wasRevision && $hadSubmissionReservation) {
                 // Reconcile changed part quantities while holding the JO transaction lock.
                 $reservationService = app(\App\Services\Maintenance\PartsReservationService::class);
                 $reservationService->release($locked);
