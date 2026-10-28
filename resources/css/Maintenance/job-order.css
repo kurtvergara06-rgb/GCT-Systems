@@ -5742,3 +5742,61 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   #jobModal .jo-new-step strong { font-size: 9px; }
   #jobModal .jo-new-step small { display: none; }
 }
+
+/* JO designer v2: real mechanic coverage and work-section layout */
+#jobModal .jo-mechanic-coverage {
+  margin-top: 14px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid #dce6f3 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  font-size: 12px;
+}
+#jobModal .jo-coverage-heading {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px; margin: 0 !important;
+  background: #f4f8ff; border-bottom: 1px solid #e0e9f5;
+}
+#jobModal .jo-coverage-heading strong { font-size: 12px; color: #173457; }
+#jobModal .jo-coverage-count { font-weight: 750; font-size: 11px; }
+#jobModal .jo-coverage-summary {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 16px; background: #fff;
+}
+#jobModal .jo-coverage-ring {
+  --coverage-progress: 0%;
+  display: grid; place-items: center; flex: 0 0 52px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: radial-gradient(closest-side,#fff 75%,transparent 77%),conic-gradient(#20936a var(--coverage-progress),#e8eef6 0);
+  color: #176e52; font-size: 11px; font-weight: 800;
+}
+#jobModal .jo-coverage-summary-copy { display: flex; flex-direction: column; gap: 3px; }
+#jobModal .jo-coverage-summary-copy strong { color: #1c3656; font-size: 13px; }
+#jobModal .jo-coverage-summary-copy small { color: #667993; font-size: 11px; }
+#jobModal .jo-coverage-table { margin: 0 12px 12px; overflow: hidden; border: 1px solid #e4eaf3; border-radius: 9px; }
+#jobModal .jo-coverage-table-head, #jobModal .jo-coverage-table .jo-coverage-row {
+  display: grid !important; grid-template-columns: minmax(0, 1.6fr) minmax(98px,.7fr) minmax(0,1fr);
+  align-items: center !important; gap: 10px;
+}
+#jobModal .jo-coverage-table-head {
+  padding: 9px 12px; background: #f5f8fc; color: #526680;
+  font-size: 9px; letter-spacing: .035em; font-weight: 800;
+}
+#jobModal .jo-coverage-table .jo-coverage-row {
+  padding: 11px 12px !important; border-top: 1px solid #e9eef5;
+  color: #324866;
+}
+#jobModal .jo-coverage-table .jo-coverage-row strong { font-size: 11px; color: #193657; font-weight: 700; }
+#jobModal .jo-coverage-table .jo-coverage-row > span:last-child { color: #63758d; font-size: 11px; }
+#jobModal .jo-coverage-status { display: inline-flex; width: fit-content; border-radius: 6px; padding: 4px 7px; font-size: 10px; font-weight: 700; }
+#jobModal .jo-coverage-status.is-covered { color: #187347; background: #e8f9ee; }
+#jobModal .jo-coverage-status.is-uncovered { color: #a66608; background: #fff3dd; }
+#jobModal .jo-maintenance-job-slot { min-width: 0; }
+#jobModal .jo-create-section-header { min-height: 52px; }
+#jobModal .jo-create-section-header .jo-create-step-description { line-height: 1.45; }
+@media (max-width: 580px) {
+  #jobModal .jo-coverage-table-head { display: none !important; }
+  #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
+  #jobModal .jo-coverage-table .jo-coverage-row > span:last-child { grid-column: 1/-1; }
+}
