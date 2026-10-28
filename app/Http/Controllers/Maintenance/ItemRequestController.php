@@ -50,6 +50,14 @@ class ItemRequestController extends Controller
         $sortDirection = (string) $request->query('sort_direction', $request->query('direction', 'desc'));
         $sortDirection = $sortDirection === 'asc' ? 'asc' : 'desc';
         $requests = $requestsQuery->orderBy($sortField, $sortDirection)->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        // Use the actual persisted Purchase Requests, not live inventory, for
+        // the PR breakdown on submitted IRs (stable even after stock changes).
+        $linkedPrPartsByJo = PurchaseRequest::query()
+            ->whereIn('job_order_no', $requests->getCollection()->pluck('jobOrder.job_order_no')->filter()->unique()->values())
+            ->whereNotIn('status', ['Cancelled', 'Rejected'])
+            ->get(['job_order_no', 'item'])
+            ->groupBy('job_order_no')
+            ->map(fn ($prs) => $prs->flatMap(fn ($pr) => $parser->parsePartText((string) $pr->item))->values()->all());
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
@@ -124,7 +132,7 @@ class ItemRequestController extends Controller
             $view = 'pending';
         }
 
-        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs'));
+        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs', 'linkedPrPartsByJo'));
     }
 
     public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser, PartsReservationService $reservations, PurchaseRequestPartsService $prParts)
