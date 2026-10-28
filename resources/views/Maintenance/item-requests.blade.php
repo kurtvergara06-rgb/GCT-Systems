@@ -254,55 +254,56 @@
         <form method="POST" action="{{ route('item-requests.store') }}">
             @csrf
             <div class="ir-modal-body ir-review-document-body">
-                <div class="ir-form-section ir-review-document-jo">
-                    <h3><span>01</span> Job Order Summary <small>Approved source document</small></h3>
-                    <div class="ir-field">
-                        <label for="item_request_job_order_display">Approved Job Order <span>*</span></label>
+                <section class="ir-review-jo-banner" aria-label="Approved Job Order summary">
+                    <div class="ir-review-banner-main"><span>JOB ORDER NO.</span>
                         <input type="hidden" id="item_request_job_order" name="job_order_id" value="{{ old('job_order_id', '') }}" required>
-                        <div id="item_request_job_order_display" class="ir-linked-jo-display" aria-live="polite">Linked automatically from the selected Job Order</div>
+                        <strong id="item_request_job_order_display" aria-live="polite">Linked automatically from the selected Job Order</strong>
+                        <small>Approved Maintenance source</small>
                     </div>
-                    <div class="ir-preview-grid">
-                        <div><span class="ir-preview-card-icon"><i class="fa-solid fa-bus-simple"></i></span><span>Bus Number</span><strong id="ir-preview-bus">Select a JO</strong></div>
-                        <div><span class="ir-preview-card-icon"><i class="fa-solid fa-user-gear"></i></span><span>Assigned Mechanics</span><strong id="ir-preview-mechanic">Select a JO</strong></div>
-                    </div>
-                    <div class="ir-jo-authorization">
-                        <div class="ir-jo-authorization-heading"><strong>Maintenance Head Authorization</strong><span class="ir-jo-approved-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></div>
-                        <div class="ir-jo-authorization-grid">
-                            <div class="ir-jo-authorizer"><span>Approved By</span><strong id="ir-preview-approver">—</strong><small>Maintenance Head</small></div>
-                            <div class="ir-jo-signature"><img id="ir-preview-signature" alt="Saved JO approval signature" hidden><span id="ir-preview-signature-placeholder">JO signature unavailable</span></div>
+                    <div><span>JO REVIEW STATUS</span><strong class="ir-jo-approved-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Approved</strong></div>
+                    <div><span>BUS ID / PLATE</span><strong id="ir-preview-bus">—</strong></div>
+                    <div><span>ASSIGNED MECHANICS</span><strong id="ir-preview-mechanic">—</strong></div>
+                </section>
+                <div class="ir-review-document-top">
+                    <section class="ir-review-section" aria-labelledby="ir-review-details-title">
+                        <header><h3 id="ir-review-details-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Request Overview</h3></header>
+                        <div class="ir-review-section-content">
+                            <div class="ir-review-overview-grid">
+                                <div><span>Request Type</span><strong>Job Order Parts Request</strong></div>
+                                <div><span>Processing</span><strong>Warehouse IR + Shortage PR</strong></div>
+                            </div>
+                            <p class="ir-review-muted">Available stock is allocated to the Item Request; only missing quantities proceed to procurement.</p>
                         </div>
-                    </div>
+                    </section>
+                    <section class="ir-review-section" aria-labelledby="ir-review-approval-title">
+                        <header><h3 id="ir-review-approval-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3></header>
+                        <div class="ir-review-section-content ir-review-approval-grid">
+                            <div class="ir-review-approver"><span>Approved By</span><strong id="ir-preview-approver">—</strong><small>Maintenance Head</small></div>
+                            <div class="ir-review-signature"><span>Authorized Signature</span><img id="ir-preview-signature" alt="Saved JO approval signature" hidden><small id="ir-preview-signature-placeholder">JO signature unavailable</small></div>
+                        </div>
+                    </section>
                 </div>
-                <div class="ir-review-document-split">
-                <div class="ir-form-section ir-review-document-ir">
-                    <h3><span>02</span> Available Parts — Item Request <small>Automatically sourced from the JO</small></h3>
-                    <p class="ir-form-hint">The system splits available stock into an IR and missing quantities into a PR. Warehouse confirms inventory before physical issuance.</p>
-                    <div class="ir-preview-table-wrap">
-                        <table class="ir-preview-table">
-                            <thead><tr><th>Item / Part</th><th>Suggested Qty</th><th>Availability</th></tr></thead>
+                <section class="ir-review-section ir-review-parts-section" aria-labelledby="ir-review-parts-title">
+                    <header><h3 id="ir-review-parts-title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3><span class="ir-review-section-note">Quantities calculated from the approved JO</span></header>
+                    <div class="ir-review-parts-content">
+                        <div class="ir-review-portion-head"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
+                        <div class="ir-preview-table-wrap"><table class="ir-preview-table">
+                            <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>AVAILABILITY</th></tr></thead>
                             <tbody id="ir-preview-parts"><tr><td colspan="3" class="ir-preview-placeholder">Select an approved JO to review its required parts.</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="ir-form-section ir-pr-preview-section">
-                    <h3><span>03</span> Missing Parts — Purchase Request <small>Created automatically with the IR</small></h3>
-                    <p class="ir-form-hint">Only the shortage quantities are sent to Purchase. Existing procurement requests are not duplicated.</p>
-                    <div class="ir-preview-table-wrap">
-                        <table class="ir-preview-table">
-                            <thead><tr><th>Item / Part</th><th>Missing Qty</th><th>Request</th></tr></thead>
+                        </table></div>
+                        <div class="ir-review-portion-head is-pr"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
+                        <div class="ir-preview-table-wrap"><table class="ir-preview-table">
+                            <thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>REQUEST</th></tr></thead>
                             <tbody id="ir-preview-missing"><tr><td colspan="3" class="ir-preview-placeholder">Choose an approved Job Order.</td></tr></tbody>
-                        </table>
+                        </table></div>
                     </div>
-                </div>
-                </div>
-                <div class="ir-form-section ir-review-document-remarks">
-                    <h3><span>04</span> Request Details <small>Optional instructions</small></h3>
-                    <div class="ir-field">
-                        <label for="item_request_remarks">Remarks <small>(Optional)</small></label>
-                        <textarea id="item_request_remarks" name="remarks" rows="3" maxlength="2000" placeholder="Additional instructions for Warehouse...">{{ old('remarks') }}</textarea>
-                    </div>
-                </div>
-                <div class="ir-note"><i class="fa-solid fa-shield-halved"></i><span><strong>Warehouse verification required.</strong> Submitting these requests does not physically issue or deduct inventory. Warehouse verifies allocations and follows the Maintenance Head release policy.</span></div>
+                </section>
+                <section class="ir-review-section ir-review-remarks-section" aria-labelledby="ir-review-remarks-title">
+                    <header><h3 id="ir-review-remarks-title"><i class="fa-regular fa-message" aria-hidden="true"></i> Request Remarks</h3><span class="ir-review-section-note">Optional</span></header>
+                    <div class="ir-review-section-content"><label for="item_request_remarks">Instructions for Warehouse</label>
+                        <textarea id="item_request_remarks" name="remarks" rows="2" maxlength="2000" placeholder="Additional instructions for Warehouse...">{{ old('remarks') }}</textarea></div>
+                </section>
+                <div class="ir-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Submitting IR and PR does not physically issue or deduct inventory. Warehouse verifies allocations and follows the Maintenance Head release policy.</span></div>
             </div>
             <script type="application/json" id="ir-job-previews">@json($jobOrderPreviews)</script>
             <footer class="ir-modal-footer">
