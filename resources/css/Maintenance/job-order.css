@@ -6428,7 +6428,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 
 /* Readonly Job Order detail — wide document layout */
-#joReadonlyOverlay .jo-view-panel { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
+#joReadonlyOverlay .jo-view-dialog { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
 #joReadonlyOverlay .jo-view-body { padding: 16px 18px 20px; }
 #joReadonlyOverlay .jo-view-summary {
   display: grid;
