@@ -115,6 +115,30 @@ document.addEventListener('click', (event) => {
             const element = document.getElementById(id);
             if (element) element.textContent = value || '—';
         });
+        const approver = document.getElementById('ir-detail-approver');
+        if (approver) approver.textContent = trigger.dataset.irApprover || 'Not recorded';
+        const signature = document.getElementById('ir-detail-signature');
+        const signaturePlaceholder = document.getElementById('ir-detail-signature-placeholder');
+        if (signature) {
+            signature.hidden = true;
+            signature.removeAttribute('src');
+            if (signaturePlaceholder) {
+                signaturePlaceholder.hidden = false;
+                signaturePlaceholder.textContent = 'Signature unavailable';
+            }
+            const url = trigger.dataset.irSignatureUrl;
+            if (url) {
+                signature.onload = () => {
+                    signature.hidden = false;
+                    if (signaturePlaceholder) signaturePlaceholder.hidden = true;
+                };
+                signature.onerror = () => {
+                    signature.hidden = true;
+                    if (signaturePlaceholder) signaturePlaceholder.hidden = false;
+                };
+                signature.src = url;
+            }
+        }
         renderItemRequestDetailParts(trigger.dataset.irParts || '', trigger.dataset.irPrParts || '[]');
         const status = (trigger.dataset.irStatus || '').trim();
         const description = document.getElementById('ir-detail-status-description');
