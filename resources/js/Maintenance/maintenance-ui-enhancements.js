@@ -80,6 +80,41 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     combobox.append(trigger, selectedChips, menu);
     nativeWrap.insertAdjacentElement('afterend', combobox);
 
+    // Create JO only: show chosen jobs in a separate, actionable summary panel.
+    // Keep the original selectedChips element and native select as the source of truth.
+    if (select.id === 'newJoMaintenanceJob') {
+      const panel = document.createElement('section');
+      panel.className = 'jo-selected-jobs-panel';
+      panel.setAttribute('aria-label', 'Selected Maintenance Jobs');
+      const heading = document.createElement('div');
+      heading.className = 'jo-selected-jobs-heading';
+      const title = document.createElement('strong');
+      title.textContent = 'Selected Maintenance Jobs';
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'jo-selected-jobs-clear';
+      clear.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear All';
+      clear.addEventListener('click', () => select.setSelectedJobs?.([]));
+      heading.append(title, clear);
+      const actions = document.createElement('div');
+      actions.className = 'jo-selected-jobs-actions';
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'jo-selected-jobs-add';
+      add.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i> Add Jobs';
+      add.addEventListener('click', () => {
+        if (menu.hidden) trigger.click();
+        trigger.focus();
+      });
+      actions.append(add);
+      panel.append(heading, selectedChips, actions);
+      combobox.insertAdjacentElement('afterend', panel);
+      panel.hidden = true;
+      select.addEventListener('change', () => {
+        panel.hidden = !(select.getSelectedJobs?.().length);
+      });
+    }
+
     const label = trigger.querySelector('.jo-maintenance-job-label');
 
     const sync = () => {
@@ -94,6 +129,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       label.classList.toggle('placeholder', !hasValue && !selectedJobs.length);
       selectedChips.replaceChildren();
       selectedChips.hidden = selectedJobs.length === 0;
+      const selectedPanel = combobox.nextElementSibling;
+      if (selectedPanel?.classList.contains('jo-selected-jobs-panel')) {
+        selectedPanel.hidden = selectedJobs.length === 0;
+      }
       selectedJobs.forEach((job) => {
         const chip = document.createElement('span');
         chip.className = 'jo-maintenance-job-chip';
