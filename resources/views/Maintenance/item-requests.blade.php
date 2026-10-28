@@ -92,7 +92,31 @@
                                 <span class="ir-split-chip is-no-pr">No PR needed</span>
                             @endif
                         </div>
-                        <span class="ir-split-part-preview">{{ $availableParts[0]['name'] ?? $missingParts[0]['name'] ?? '—' }}{{ $availableCount + $missingCount > 1 ? ' + more' : '' }}</span>
+                        <details class="ir-split-breakdown">
+                            <summary class="ir-split-part-preview" aria-label="Show available and missing parts for {{ $jo->job_order_no }}">
+                                <span>{{ $availableParts[0]['name'] ?? $missingParts[0]['name'] ?? '—' }}</span>
+                                <span class="ir-split-more">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                            </summary>
+                            <div class="ir-split-popover">
+                                <div class="ir-split-popover-heading">Parts Allocation</div>
+                                <div class="ir-split-popover-section">
+                                    <strong class="ir-split-popover-label is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> Available → IR ({{ $availableCount }})</strong>
+                                    @forelse($availableParts as $part)
+                                        <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                    @empty
+                                        <p class="ir-split-popover-empty">No available parts</p>
+                                    @endforelse
+                                </div>
+                                <div class="ir-split-popover-section">
+                                    <strong class="ir-split-popover-label is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing → PR ({{ $missingCount }})</strong>
+                                    @forelse($missingParts as $part)
+                                        <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                    @empty
+                                        <p class="ir-split-popover-empty">No missing parts</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </details>
                     </td>
                     <td><span class="ir-split-status {{ $missingCount ? ($availableCount ? 'is-partial' : 'is-empty') : 'is-available' }}">{{ $stockLabel }}</span></td>
                     <td><span class="ir-split-policy">{{ $releaseLabel }}</span></td>
