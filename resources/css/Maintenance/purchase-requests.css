@@ -5646,3 +5646,22 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-active-style-table .pr-ir-counts {gap:5px;}
 .purchase-page .pr-active-style-table .pr-ir-breakdown {margin-top:6px;}
 .purchase-page .pr-active-style-table .pr-ir-status-box {min-height:34px;}
+
+/* Parts for Purchase: copy Item Requests' compact inline split/breakdown presentation. */
+.purchase-page .pr-ir-style-table td:nth-child(3) {min-width:210px;}
+.purchase-page .pr-ir-style-table .pr-ir-counts {
+ display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+ flex-wrap:wrap;gap:5px;margin:0;
+}
+.purchase-page .pr-ir-style-table .pr-ir-counts .pr-ir-count {
+ display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;
+ gap:5px;min-height:24px;padding:4px 7px;box-sizing:border-box;
+ border-radius:6px;font-size:10px;font-weight:800;line-height:1.2;
+}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown {display:block;margin:6px 0 0;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown > summary {
+ display:inline-flex;align-items:center;gap:5px;min-height:23px;
+ padding:4px 8px;border:1px solid #c9ddff;border-radius:6px;
+ background:#edf4ff;color:#1451a4;font-size:10px;font-weight:800;line-height:1.2;
+}
+.purchase-page .pr-ir-style-table .pr-ir-counts .pr-ir-count.is-ir {color:#147348;background:#e8f9ef;border-color:#bce9ce;}
