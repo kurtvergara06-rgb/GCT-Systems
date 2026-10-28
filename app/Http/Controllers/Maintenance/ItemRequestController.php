@@ -61,7 +61,7 @@ class ItemRequestController extends Controller
             ->whereNotIn('id', ItemRequest::query()->whereIn('status', ['Submitted', 'Partially Issued'])->select('job_order_id'))
             ->where(fn ($query) => $query->whereNull('part_status')
                 ->orWhereNotIn('part_status', ['Issued', 'No Parts Required']))
-            ->with('approver')
+            ->with(['approver', 'audits' => fn ($q) => $q->whereIn('action', ['created', 'resubmitted'])->orderByDesc('id')])
             ->orderByDesc('created_at')
             ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'inventory_snapshot', 'part_status', 'created_at', 'approved_by']);
         $issuedQuantitiesByJo = ItemRequest::query()
