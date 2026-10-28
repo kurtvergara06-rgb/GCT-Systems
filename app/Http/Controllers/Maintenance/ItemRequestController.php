@@ -77,7 +77,7 @@ class ItemRequestController extends Controller
                 return false;
             }
         })->values();
-        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts, $issuedQuantitiesByJo) {
+        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts, $prParts, $issuedQuantitiesByJo) {
             return [$job->id => [
                 'jo' => $job->job_order_no,
                 'previously_issued' => (int) $issuedQuantitiesByJo->get($job->id, 0),
