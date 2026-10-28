@@ -5558,3 +5558,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .pr-pending-parts-list.pr-parts-floating-menu .pr-ir-popover-title.is-ir {color:#147348;}
 .pr-pending-parts-list.pr-parts-floating-menu .pr-ir-allocation-note {margin:0;padding:10px 11px;color:#607997;font-size:10px;line-height:1.45;background:#f7faff;}
 .purchase-page .pr-ir-breakdown > summary {position:relative;z-index:1;}
+
+/* PR-first allocation counts in Pending Purchase Requests. */
+.purchase-page .pr-ir-counts {display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0;}
+.purchase-page .pr-ir-counts .pr-ir-count {white-space:nowrap;}
+.purchase-page .pr-ir-counts .pr-ir-count.is-ir {color:#147348;background:#e8f9ef;border-color:#bce9ce;}
