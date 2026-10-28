@@ -5853,3 +5853,47 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
  #prModal .ui-form-modal {width:calc(100vw - 20px)!important;}
  #prModal .pr-document.pr-review-simplified {padding:12px!important;}
 }
+
+/* Saved View PR / History: same review composition, strictly read-only. */
+#editPrModal .ui-form-modal{width:min(1050px,calc(100vw - 36px));max-width:1050px;}
+#editPrModal .pr-view-document{padding:13px 16px 16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;}
+#editPrModal .pr-view-document .pr-ir-review-summary{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));}
+#editPrModal .pr-view-document .pr-ir-review-top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;}
+#editPrModal .pr-view-document .pr-ir-review-top > section{min-width:0;}
+#editPrModal .pr-view-document .pr-ir-panel-heading{display:flex;align-items:center;gap:8px;min-height:39px;box-sizing:border-box;}
+#editPrModal .pr-view-document .pr-ir-panel-heading h3{font-size:12px;margin:0;}
+#editPrModal .pr-view-document .pr-ir-panel-heading .pr-view-parts-note{margin-left:auto;color:#7185a1;font-size:10px;}
+#editPrModal .pr-view-document .pr-ir-approval-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px;}
+#editPrModal .pr-view-document .pr-ir-approved-by,#editPrModal .pr-view-document .pr-ir-signature{height:auto;min-height:100px;padding:12px;min-width:0;box-sizing:border-box;}
+#editPrModal .pr-view-document .pr-ir-signature img:not([hidden]){display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:82px!important;object-fit:contain;}
+#editPrModal .pr-view-document .pr-ir-signature img[hidden]{display:none!important;}
+#editPrModal .pr-view-document .pr-view-approval-meta{display:none;}
+#editPrModal .pr-view-secondary-data{display:grid;grid-template-columns:1fr 1fr;gap:10px 13px;margin-top:13px;}
+#editPrModal .pr-view-secondary-data>div{display:flex;flex-direction:column;gap:5px;min-width:0;}
+#editPrModal .pr-view-secondary-data span,#editPrModal .pr-view-remarks-field>span{font-size:10px;color:#6a7f9a;}
+#editPrModal .pr-view-secondary-data strong,#editPrModal .pr-view-remarks-field strong{font-size:11px;color:#183b66;overflow-wrap:anywhere;}
+#editPrModal .pr-view-document .pr-dual-parts-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px;}
+#editPrModal .pr-view-document .pr-dual-parts-pane{min-width:0;box-sizing:border-box;padding:12px;border:1px solid #dce7f4;border-radius:10px;}
+#editPrModal .pr-view-document .pr-dual-parts-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;}
+#editPrModal .pr-view-document .pr-dual-parts-heading strong{font-size:11px;color:#ae3742;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong{color:#147348;}
+#editPrModal .pr-view-document .pr-dual-parts-heading span{font-size:10px;color:#7385a0;white-space:nowrap;}
+#editPrModal .pr-view-document .pr-shortage-table-wrap{width:100%;overflow:hidden;}
+#editPrModal .pr-view-document .pr-review-parts-table{display:table!important;width:100%!important;min-width:0!important;max-width:100%;table-layout:fixed!important;border-collapse:collapse;}
+#editPrModal .pr-view-document .pr-review-parts-table thead{display:table-header-group!important;}
+#editPrModal .pr-view-document .pr-review-parts-table tbody{display:table-row-group!important;}
+#editPrModal .pr-view-document .pr-review-parts-table tr{display:table-row!important;}
+#editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td{display:table-cell!important;min-width:0!important;box-sizing:border-box;padding:11px 8px!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere;font-size:11px;}
+#editPrModal .pr-view-document .pr-review-parts-table th{font-size:9px;background:#edf3fb;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(1){width:9%!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(2){width:54%!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(3){width:37%!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(1){width:44%!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(2){width:26%!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(3){width:30%!important;}
+#editPrModal .pr-view-document .pr-availability-badge.is-available{background:#e5faec;color:#166534;border:1px solid #a9e6bc;border-radius:7px;padding:5px 8px;font-weight:800;}
+#editPrModal .pr-view-parts-note-row{padding:0 13px 12px;font-size:10px;color:#647c99;}
+#editPrModal .pr-view-remarks-field{margin-top:10px;display:flex;flex-direction:column;gap:6px;border:1px solid #dde8f4;background:#f7faff;border-radius:8px;padding:10px;}
+#editPrModal .pr-view-document .pr-review-status-pill{white-space:normal;}
+@media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr;}}
+@media(max-width:530px){#editPrModal .pr-view-document .pr-ir-review-summary{grid-template-columns:1fr 1fr;}#editPrModal .pr-view-document .pr-ir-approval-body{grid-template-columns:1fr;}}
