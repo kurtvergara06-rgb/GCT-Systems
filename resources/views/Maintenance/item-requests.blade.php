@@ -156,7 +156,7 @@
                             </div></td>
                             <td>
                                 <div class="ir-split-parts">
-                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> {{ $irParts->count() }} {{ IlluminateSupportStr::plural('part', $irParts->count()) }}</span>
+                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> {{ $irParts->count() }} {{ \Illuminate\Support\Str::plural('part', $irParts->count()) }}</span>
                                 </div>
                                 @if($irParts->isNotEmpty())
                                     <details class="ir-split-breakdown">
