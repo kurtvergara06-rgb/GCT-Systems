@@ -5604,3 +5604,31 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   line-height:1.25;
   border-radius:7px;
 }
+
+/* Match Pending IR table's readable visual scale in Pending PR. */
+.purchase-page .pr-pending-table-wrap {overflow-x:auto;}
+.purchase-page .pr-ir-style-table {table-layout:auto;width:100%;min-width:0;}
+.purchase-page .pr-ir-style-table thead th {
+  padding:11px 13px!important;font-size:10px!important;line-height:1.4;
+  vertical-align:middle;white-space:nowrap;
+}
+.purchase-page .pr-ir-style-table tbody td {
+  padding:12px 13px!important;font-size:12px;line-height:1.4;
+  vertical-align:middle;white-space:normal;
+}
+.purchase-page .pr-ir-style-table .pr-ir-counts {gap:5px;}
+.purchase-page .pr-ir-style-table .pr-ir-count,
+.purchase-page .pr-ir-style-table .pr-ir-jo-badge {font-size:11px;padding:5px 8px;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:6px;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown > summary {padding:5px 8px;font-size:11px;}
+.purchase-page .pr-ir-style-table .pr-ir-date {gap:3px;}
+.purchase-page .pr-ir-style-table .pr-ir-date strong {font-size:12px;}
+.purchase-page .pr-ir-style-table .pr-ir-date small {font-size:10px;}
+.purchase-page .pr-ir-style-table .pr-ir-shortage-status,
+.purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box,
+.purchase-page .pr-ir-style-table .pr-ir-release-policy,
+.purchase-page .pr-ir-style-table .pr-pending-review-btn {
+  min-height:34px;font-size:11px;line-height:1.35;padding:7px 11px;
+}
+.purchase-page .pr-ir-style-table th:nth-child(n) {width:auto;}
+@media(max-width:1100px) {.purchase-page .pr-ir-style-table {min-width:1050px;}}
