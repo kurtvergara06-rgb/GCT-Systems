@@ -5658,3 +5658,87 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 @media (max-width: 380px) {
   .jo-view-section .jo-view-grid .jo-view-time-fields { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* New JO modal — enterprise layout refresh, scoped to create form only. */
+#jobModal .jo-new-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 12px 15px;
+  margin: 0 0 12px;
+  border: 1px solid #e1e9f4;
+  border-radius: 13px;
+  background: #f7faff;
+}
+#jobModal .jo-new-step {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #536783;
+}
+#jobModal .jo-new-step-index {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #536783;
+  background: #e1e9f3;
+  font-size: 12px;
+  font-weight: 800;
+}
+#jobModal .jo-new-step.is-current .jo-new-step-index {
+  color: #fff;
+  background: #155ec9;
+  box-shadow: 0 3px 9px rgba(21,94,201,.16);
+}
+#jobModal .jo-new-step strong,
+#jobModal .jo-new-step small { display: block; line-height: 1.4; }
+#jobModal .jo-new-step strong { color: #233654; font-size: 11px; font-weight: 750; }
+#jobModal .jo-new-step small { color: #71819b; font-size: 10px; }
+#jobModal .jo-create-section {
+  border: 1px solid #dbe5f2;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(20,44,77,.025);
+}
+#jobModal .jo-create-section-header {
+  background: #f7faff;
+  border-bottom: 1px solid #e3eaf5;
+}
+#jobModal .jo-create-section-icon {
+  background: #e8f1ff;
+  color: #1458ad;
+  border: 1px solid #d5e5ff;
+}
+#jobModal .jo-create-section-header h3 {
+  color: #142c4d;
+  letter-spacing: 0;
+}
+#jobModal .jo-mechanic-multi-field .jo-create-field-hint {
+  border-radius: 8px;
+  background: #f0f6ff;
+  border: 1px solid #e0eafd;
+}
+#jobModal .jo-create-section input:focus,
+#jobModal .jo-create-section select:focus,
+#jobModal .jo-create-section textarea:focus {
+  border-color: #5798e8;
+  outline: 2px solid rgba(38,123,230,.12);
+  outline-offset: 1px;
+}
+#jobModal .jo-create-problem-field textarea { min-height: 74px; }
+@media (max-width: 800px) {
+  #jobModal .jo-new-stepper { grid-template-columns: 1fr 1fr; row-gap: 10px; }
+}
+@media (max-width: 490px) {
+  #jobModal .jo-new-stepper { grid-template-columns: repeat(4, minmax(0,1fr)); padding: 9px 7px; }
+  #jobModal .jo-new-step { flex-direction: column; gap: 3px; text-align: center; }
+  #jobModal .jo-new-step-index { width: 25px; height: 25px; flex-basis: 25px; }
+  #jobModal .jo-new-step strong { font-size: 9px; }
+  #jobModal .jo-new-step small { display: none; }
+}
