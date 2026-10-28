@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use App\Services\PartParser;
 use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\Maintenance\ItemRequestPartsService;
+use App\Services\Maintenance\PurchaseRequestPartsService;
 use App\Services\Maintenance\PartsReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class ItemRequestController extends Controller
 {
-    public function index(Request $request, PartParser $parser, JobOrderWorkflowService $workflow, ItemRequestPartsService $irParts)
+    public function index(Request $request, PartParser $parser, JobOrderWorkflowService $workflow, ItemRequestPartsService $irParts, PurchaseRequestPartsService $prParts)
     {
         $view = in_array($request->query('view'), ['pending', 'history'], true) ? $request->query('view') : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
@@ -84,6 +86,7 @@ class ItemRequestController extends Controller
                 'approver' => $job->approver?->name ?? 'Not recorded',
                 'signature_url' => route('job-orders.approval-signature', $job, false),
                 'parts' => $irParts->availableParts((string) $job->part_needed, $job),
+                'missing_parts' => $prParts->missingParts((string) $job->part_needed, $job),
             ]];
         });
 
@@ -124,14 +127,14 @@ class ItemRequestController extends Controller
         return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs'));
     }
 
-    public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser, PartsReservationService $reservations)
+    public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser, PartsReservationService $reservations, PurchaseRequestPartsService $prParts)
     {
         $data = $request->validate([
             'job_order_id' => ['required', 'integer', 'exists:job_orders,id'],
             'remarks' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        DB::transaction(function () use ($data, $irParts, $parser, $reservations): void {
+        DB::transaction(function () use ($data, $irParts, $parser, $reservations, $prParts): void {
             $jo = JobOrder::query()->lockForUpdate()->findOrFail($data['job_order_id']);
             if ($jo->review_status !== 'Approved') {
                 throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved before creating an Item Request.']);
@@ -170,8 +173,49 @@ class ItemRequestController extends Controller
             if (in_array($jo->part_status, [null, 'Not Requested'], true)) {
                 $jo->update(['part_status' => 'Submitted']);
             }
+
+            // Split the JO shortage into one procurement request alongside the
+            // available IR. Both records commit or roll back together.
+            $missing = $prParts->missingParts((string) $jo->part_needed, $jo);
+            if ($missing !== []) {
+                $existing = PurchaseRequest::query()
+                    ->where('job_order_no', $jo->job_order_no)
+                    ->where('pr_no', 'not like', '%-P')
+                    ->where(fn ($query) => $query->whereNull('source_type')
+                        ->orWhere('source_type', 'Maintenance Request'))
+                    ->exists();
+                if (! $existing) {
+                    if (! trim((string) $jo->assigned_mechanic)) {
+                        throw ValidationException::withMessages([
+                            'job_order_id' => 'A mechanic must be assigned before creating the linked Purchase Request.',
+                        ]);
+                    }
+                    $year = now()->format('Y');
+                    $last = PurchaseRequest::query()->where('pr_no', 'like', "PR-{$year}-%")
+                        ->where('pr_no', 'not like', '%-P')->orderByDesc('id')->lockForUpdate()->first();
+                    $serial = 1;
+                    if ($last && preg_match('/^PR-'.preg_quote($year, '/').'-(\\d+)/', $last->pr_no, $matches)) {
+                        $serial = (int) $matches[1] + 1;
+                    }
+                    do {
+                        $prNumber = 'PR-'.$year.'-'.str_pad((string) $serial++, 4, '0', STR_PAD_LEFT);
+                    } while (PurchaseRequest::query()->where('pr_no', $prNumber)->exists());
+                    PurchaseRequest::create([
+                        'pr_no' => $prNumber,
+                        'job_order_no' => $jo->job_order_no,
+                        'bus_no' => $jo->bus_no,
+                        'item' => $parser->formatParts($missing),
+                        'quantity' => $parser->calculateTotalQuantity($missing),
+                        'status' => 'Approved',
+                        'approved_at' => now(),
+                        'source_type' => 'Maintenance Request',
+                        'requested_by' => auth()->id(),
+                    ]);
+                    $jo->update(['part_status' => 'For Purchase']);
+                }
+            }
         });
 
-        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Item Request submitted for Warehouse stock verification.');
+        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Available parts sent to Warehouse; missing quantities were checked for Purchase Request creation.');
     }
 }
