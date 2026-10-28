@@ -150,7 +150,7 @@
                   @if($recordView === 'pending')
                   <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
                       <table class="purchase-request-table pr-pending-table pr-ir-style-table">
-                          <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE STATUS</th><th>PR STATUS</th><th>ACTIONS</th></tr></thead>
+                          <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>STOCK STATUS</th><th>PR STATUS</th><th>ACTIONS</th></tr></thead>
                           <tbody>
                           @forelse($pendingPrJobs as $proposal)
                               @php
@@ -194,7 +194,7 @@
                                       </details>
                                   </td>
                                   <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
-                                  <td><span class="pr-pending-badge">For Review</span></td>
+                                  <td><span class="pr-pending-badge pr-ir-status-box">For Review</span></td>
                                   <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $sourceJo->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review PR</button></td>
                               </tr>
                           @empty
