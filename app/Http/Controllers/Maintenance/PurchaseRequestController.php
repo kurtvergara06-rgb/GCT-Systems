@@ -621,10 +621,9 @@ class PurchaseRequestController extends Controller
                 'bus_no' => $lockedJobOrder->bus_no,
                 'item' => $formattedParts,
                 'quantity' => $totalQuantity,
-                // The Maintenance Head has already approved the source Job Order.
-                // Do not require a second approval of this purchase requisition.
-                'status' => 'Approved',
-                'approved_at' => now(),
+                // JO approval is authorization; PR is merely submitted for procurement.
+                'status' => 'Submitted',
+                'approved_at' => null,
                 'source_type' => 'Maintenance Request',
                 'remarks' => $validated['remarks'] ?? null,
                 'purpose' => $validated['purpose'] ?? null,
@@ -1160,10 +1159,10 @@ class PurchaseRequestController extends Controller
                 ?? 'Revised and resubmitted.',
 
             'status' =>
-                'Approved',
+                'Submitted',
 
             'approved_at' =>
-                $jobOrder->approved_at ?? now(),
+                null,
 
             'rejected_at' =>
                 null,
