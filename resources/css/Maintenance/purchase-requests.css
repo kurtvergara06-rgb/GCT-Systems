@@ -5573,3 +5573,16 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   font-size:10px;font-weight:800;line-height:1.2;
   white-space:normal;box-shadow:none;
 }
+
+/* JO release policy on pending Purchase Requests mirrors IR without affecting PR workflow. */
+.purchase-page .pr-ir-style-table th:nth-child(1){width:14%}
+.purchase-page .pr-ir-style-table th:nth-child(2){width:14%}
+.purchase-page .pr-ir-style-table th:nth-child(3){width:22%}
+.purchase-page .pr-ir-style-table th:nth-child(4){width:13%}
+.purchase-page .pr-ir-style-table th:nth-child(5){width:11%}
+.purchase-page .pr-ir-style-table th:nth-child(6){width:16%}
+.purchase-page .pr-ir-style-table th:nth-child(7){width:10%}
+.purchase-page .pr-ir-release-policy{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:7px;border:1px solid #f2d08c;background:#fff4da;color:#915a08;font-size:10px;font-weight:800;line-height:1.35;white-space:normal}
+.purchase-page .pr-ir-release-policy.is-partial{background:#ebf4ff;border-color:#bfd9fd;color:#1852a0}
+.purchase-page .pr-ir-release-policy.is-waiting{background:#fff4da;border-color:#f2d08c;color:#915a08}
+@media(max-width:900px){.purchase-page .pr-ir-style-table{min-width:900px}.purchase-page .pr-pending-table-wrap{overflow-x:auto}}
