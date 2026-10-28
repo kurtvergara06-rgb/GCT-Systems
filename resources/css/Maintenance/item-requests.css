@@ -1015,3 +1015,28 @@
 #viewItemRequestModal .ir-view-request-badge.is-pr { border-color:#f3b7be;background:#fff0f1;color:#b23845; }
 #viewItemRequestModal .ir-view-request-empty { color:#72839b!important;text-align:center;padding:16px 8px!important; }
 @media(max-width:790px) { #viewItemRequestModal .ir-view-request-parts-grid { grid-template-columns:1fr; } }
+
+/* Prevent global table minimum widths from clipping the two IR/PR detail cards. */
+#viewItemRequestModal .ir-view-request-parts-grid { min-width:0; width:100%; box-sizing:border-box; }
+#viewItemRequestModal .ir-view-request-pane { min-width:0; width:100%; box-sizing:border-box; }
+#viewItemRequestModal .ir-view-request-table-wrap { min-width:0; width:100%; max-width:100%; box-sizing:border-box; overflow:visible; }
+#viewItemRequestModal .ir-view-request-table {
+  display:table; width:100%; min-width:0 !important; max-width:100%;
+  table-layout:fixed; box-sizing:border-box; border-collapse:collapse;
+}
+#viewItemRequestModal .ir-view-request-table th,
+#viewItemRequestModal .ir-view-request-table td {
+  min-width:0 !important; max-width:none; box-sizing:border-box;
+  padding:10px 7px; text-align:left; white-space:normal !important;
+  overflow-wrap:break-word; word-break:normal; vertical-align:middle;
+}
+#viewItemRequestModal .ir-view-request-table th:first-child { width:40%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(2) { width:26%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(3) { width:34%; }
+#viewItemRequestModal .ir-view-request-table th { font-size:9px; line-height:1.35; }
+#viewItemRequestModal .ir-view-request-table td { font-size:11px; line-height:1.4; }
+#viewItemRequestModal .ir-view-request-badge { max-width:100%; box-sizing:border-box; white-space:normal; }
+#viewItemRequestModal .ir-view-request-pane .ir-view-review-parts-heading strong { min-width:0; }
+@media(max-width:940px) {
+ #viewItemRequestModal .ir-view-request-parts-grid { grid-template-columns:1fr; }
+}
