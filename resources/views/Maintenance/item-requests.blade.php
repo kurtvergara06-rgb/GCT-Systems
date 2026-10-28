@@ -65,7 +65,7 @@
             </div>
             @if($view === 'pending')
             <div class="ir-table-wrap"><table class="ir-table ir-pending-table ir-split-table">
-                <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
+                <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                 <tbody>
                 @forelse($pendingJobs as $jo)
                 @php
@@ -120,6 +120,7 @@
                         </details>
                     </td>
                     <td><span class="ir-split-status {{ $missingCount ? ($availableCount ? 'is-partial' : 'is-empty') : 'is-available' }}">{{ $stockLabel }}</span></td>
+                    <td><span class="ir-request-status is-review"><i class="fa-regular fa-clock" aria-hidden="true"></i> For Review</span></td>
                     <td><div class="ir-release-policy"><span class="ir-release-badge {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releaseLabel }}</span></div></td>
                     <td>
                         <button type="button" class="ir-view-button ir-split-review" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available IR and missing PR quantities">
@@ -128,7 +129,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear after an approved Job Order has available stock.</p></div></td></tr>
+                <tr><td colspan="7" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear after an approved Job Order has available stock.</p></div></td></tr>
                 @endforelse
                 </tbody>
             </table></div>
@@ -136,7 +137,7 @@
             <div class="ir-table-wrap">
                 <table class="ir-table ir-records-table">
                     <thead>
-                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>DATE & TIME</th><th>ACTIONS</th></tr>
+                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>IR STATUS</th><th>DATE & TIME</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody>
                         @forelse($requests as $ir)
