@@ -651,7 +651,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $table = $matches[0] ?? '';
 
         $this->assertNotSame('', $table);
-        $this->assertSame(8, substr_count($table, '<th>'));
+        $this->assertSame(10, substr_count($table, '<th>'));
         $this->assertStringContainsString('<th>Item</th>', $table);
         $this->assertStringContainsString('<th>Stock</th>', $table);
         $this->assertStringContainsString('<th>Supplier</th>', $table);
