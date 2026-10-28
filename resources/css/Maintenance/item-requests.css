@@ -487,3 +487,16 @@
 @media (max-width: 900px) {
   .maintenance-ir-page .ir-split-table { min-width: 825px; }
 }
+
+/* Keep request workflow distinct from stock availability and Head release policy. */
+.maintenance-ir-page .ir-request-status.is-review {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border: 1px solid #cbdcf5;
+  border-radius: 8px; background: #edf4ff; color: #215aa2;
+  font-size: 11px; line-height: 1.25; font-weight: 800;
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-split-table th:nth-child(5),
+.maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 95px; }
+.maintenance-ir-page .ir-split-table th:nth-child(6),
+.maintenance-ir-page .ir-split-table td:nth-child(6) { min-width: 145px; }
