@@ -103,7 +103,7 @@
                               aria-selected="{{ $recordView === 'active' ? 'true' : 'false' }}"
                           >
                               <i class="fa-solid fa-list-check"></i>
-                              <span>Active</span>
+                              <span>In Progress</span>
                           </a>
 
                           <a
@@ -149,39 +149,34 @@
 
                   @if($recordView === 'pending')
                   <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
-                      <table class="purchase-request-table pr-pending-table">
-                          <thead><tr><th>JO ID</th><th>BUS</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE QTY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                      <table class="purchase-request-table pr-pending-table pr-ir-style-table">
+                          <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>SHORTAGE STATUS</th><th>PR STATUS</th><th>ACTIONS</th></tr></thead>
                           <tbody>
                           @forelse($pendingPrJobs as $proposal)
+                              @php
+                                  $shortageParts = collect($proposal['parts'] ?? []);
+                                  $sourceJo = $proposal['job'];
+                              @endphp
                               <tr>
-                                  <td><strong>{{ $proposal['job']->job_order_no }}</strong></td>
-                                  <td><span class="pr-pending-bus-badge"><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> {{ $proposal['job']->bus_no }}</span></td>
+                                  <td><strong class="pr-ir-jo-badge">{{ $sourceJo->job_order_no }}</strong></td>
+                                  <td><div class="pr-ir-date"><strong>{{ $sourceJo->created_at?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $sourceJo->created_at?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '—' }}</small><small>JO created date</small></div></td>
                                   <td>
-                                      @if(count($proposal['parts']))
-                                          <strong class="pr-pending-part-name">{{ $proposal['parts'][0]['name'] ?? '—' }}</strong>
-                                          @if(count($proposal['parts']) > 1)
-                                              <details class="pr-pending-parts-details">
-                                                  <summary>+{{ count($proposal['parts']) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                                  <div class="pr-pending-parts-list">
-                                                      @foreach($proposal['parts'] as $part)
-                                                          <div><span>{{ $part['name'] }}</span><strong>{{ $part['quantity'] }} {{ $part['unit'] }}</strong></div>
-                                                      @endforeach
-                                                  </div>
-                                              </details>
-                                          @endif
-                                      @else
-                                          —
-                                      @endif
+                                      <span class="pr-ir-count"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $shortageParts->count() }} {{ \Illuminate\Support\Str::plural('part', $shortageParts->count()) }}</span>
+                                      <details class="pr-pending-parts-details pr-ir-breakdown">
+                                          <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                          <div class="pr-pending-parts-list">
+                                              <strong class="pr-ir-popover-title">Missing → PR ({{ $shortageParts->count() }})</strong>
+                                              @forelse($shortageParts as $part)
+                                                  <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                              @empty
+                                                  <p>No missing parts</p>
+                                              @endforelse
+                                          </div>
+                                      </details>
                                   </td>
-                                  <td>
-                                      @if(count($proposal['parts']) === 1)
-                                          <span class="pr-pending-shortage">{{ $proposal['parts'][0]['quantity'] }} {{ $proposal['parts'][0]['unit'] }}</span>
-                                      @else
-                                          <span class="pr-pending-shortage">Multiple items</span>
-                                      @endif
-                                  </td>
+                                  <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
                                   <td><span class="pr-pending-badge">For Review</span></td>
-                                  <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $proposal['job']->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review</button></td>
+                                  <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $sourceJo->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review PR</button></td>
                               </tr>
                           @empty
                               <tr><td colspan="6" style="text-align:center;padding:30px">No pending purchase suggestions. Shortages from approved Job Orders appear here automatically.</td></tr>
