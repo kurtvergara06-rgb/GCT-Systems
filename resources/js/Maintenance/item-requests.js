@@ -74,8 +74,15 @@ function renderItemRequestDetailParts(raw, prRaw) {
             qty.textContent = isPr ? String(part.quantity ?? 0) + ' ' + (part.unit || '') : part.quantity;
             const status = document.createElement('td');
             const badge = document.createElement('span');
-            badge.className = 'ir-view-request-badge ' + (isPr ? 'is-pr' : 'is-ir');
-            badge.textContent = statusLabel;
+            const actualStatus = isPr ? String(part.status || 'Status unavailable').trim() : statusLabel;
+            const normalizedStatus = actualStatus.toLowerCase();
+            const statusTone = !isPr ? 'is-ir'
+                : ['approved', 'completed', 'received', 'purchased', 'delivered'].includes(normalizedStatus) ? 'is-success'
+                : ['rejected', 'cancelled', 'canceled'].includes(normalizedStatus) ? 'is-danger'
+                : ['pending', 'submitted', 'for review', 'for purchase', 'processing', 'on order'].includes(normalizedStatus) ? 'is-pr'
+                : 'is-neutral';
+            badge.className = 'ir-view-request-badge ' + statusTone;
+            badge.textContent = actualStatus;
             status.append(badge);
             row.append(name, qty, status);
             body.append(row);
