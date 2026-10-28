@@ -5764,3 +5764,21 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #prModal .pr-document-parts .pr-review-parts-table td:nth-child(n+4){width:auto!important}
 #prModal .pr-ir-review-top .pr-step-card,#prModal .pr-document-parts,#prModal .pr-step-additional{box-shadow:none}
 @media(max-width:760px){#prModal .pr-ir-review-top{grid-template-columns:1fr}#prModal .pr-ir-review-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Review PR matches the IR dual table: procurement left, available IR right. */
+#prModal .pr-dual-parts-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 13px;}
+#prModal .pr-dual-parts-pane {min-width:0;padding:12px;border:1px solid #dce7f4;border-radius:10px;background:#fff;}
+#prModal .pr-dual-parts-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;}
+#prModal .pr-dual-parts-heading strong {min-width:0;font-size:11px;font-weight:800;line-height:1.45;color:#ac3642;}
+#prModal .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong {color:#147348;}
+#prModal .pr-dual-parts-heading span {font-size:10px;color:#7385a0;white-space:nowrap;}
+#prModal .pr-dual-parts-pane .pr-shortage-table-wrap {overflow:hidden!important;width:100%;margin:0;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table {display:table!important;table-layout:fixed!important;width:100%!important;min-width:0!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th,#prModal .pr-dual-parts-pane table.pr-review-parts-table td {padding:11px 9px!important;font-size:11px;vertical-align:middle;text-align:left!important;overflow-wrap:anywhere;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th {font-size:9px;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(1),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(1) {width:44%!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(2),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(2) {width:25%!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(3),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(3) {width:31%!important;}
+#prModal .pr-dual-parts-pane.is-ir .pr-availability-badge.is-available {background:#e5faec!important;color:#166534!important;border:1px solid #a9e6bc!important;border-radius:8px;padding:5px 8px;font-weight:800;}
+#prModal .pr-document-parts .pr-stock-note {margin:0 13px 12px;padding:0;font-size:11px;}
+@media(max-width:780px){#prModal .pr-dual-parts-grid{grid-template-columns:1fr;}}
