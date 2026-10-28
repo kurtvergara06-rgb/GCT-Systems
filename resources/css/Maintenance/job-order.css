@@ -6521,3 +6521,62 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 #joReadonlyOverlay .jo-view-audit .jo-view-audit-count { margin-left: auto; }
 #joReadonlyOverlay .jo-view-audit > ol { display: block; margin-top: 15px; }
+
+/* View JO Parts table: a single identical grid for header and body cells.
+   Reset old pill/list styling that was shifting quantity beside stock. */
+#joReadonlyOverlay .jo-view-stock-table {
+  --jo-stock-cols: 30px minmax(0, 2.2fr) minmax(80px, .95fr) minmax(95px, .9fr) minmax(110px, 1.1fr) minmax(105px, .85fr);
+}
+#joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-head,
+#joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-row {
+  display: grid !important;
+  grid-template-columns: var(--jo-stock-cols) !important;
+  column-gap: 16px !important;
+  align-items: center !important;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px !important;
+}
+#joReadonlyOverlay .jo-view-stock-head > *,
+#joReadonlyOverlay .jo-view-stock-row > * {
+  grid-column: auto !important;
+  min-width: 0;
+  margin: 0 !important;
+  text-align: left;
+  justify-self: stretch;
+  align-self: center;
+}
+#joReadonlyOverlay .jo-view-stock-row > .jo-view-part-quantity {
+  display: block !important;
+  width: auto !important;
+  font-size: 12px !important;
+  font-weight: 750;
+  color: #1a3860;
+  white-space: nowrap;
+}
+#joReadonlyOverlay .jo-view-stock-row > .jo-view-stock-qty {
+  display: block;
+  font-size: 12px;
+  color: #4b607a;
+  white-space: nowrap;
+}
+#joReadonlyOverlay .jo-view-stock-row > .jo-view-part-availability {
+  justify-self: start;
+  width: max-content;
+}
+@media (max-width: 950px) {
+  #joReadonlyOverlay .jo-view-stock-table {
+    --jo-stock-cols: 24px minmax(0, 1.6fr) minmax(70px, .8fr) minmax(85px, .8fr) minmax(95px, 1fr) minmax(95px, .8fr);
+  }
+  #joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-head,
+  #joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-row {
+    column-gap: 10px !important;
+  }
+}
+@media (max-width: 680px) {
+  #joReadonlyOverlay .jo-view-stock-table { overflow-x: auto; }
+  #joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-head,
+  #joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-row {
+    min-width: 680px;
+  }
+}
