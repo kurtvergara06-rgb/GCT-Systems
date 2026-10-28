@@ -6306,3 +6306,123 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   #jobModal .jo-maintenance-job-menu-selected { max-height: 100px; }
   #jobModal .jo-maintenance-job-menu-enhanced .jo-maintenance-job-options { max-height: 180px; }
 }
+
+/* Requested Parts — clearer stock-aware table while preserving Warehouse item IDs and units. */
+#jobModal .jo-create-parts-table {
+  margin-top: 12px;
+  border: 1px solid #d9e5f3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+#jobModal .jo-create-parts-table-head,
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 2.4fr) minmax(80px, .65fr) minmax(72px, .65fr) minmax(115px, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+}
+#jobModal .jo-create-parts-table-head {
+  min-height: 40px;
+  padding: 10px 14px;
+  background: #eef4fb;
+  color: #405b7a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .025em;
+}
+#jobModal .jo-create-parts-table-head span:nth-child(2) { font-weight: 800; }
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  padding: 13px 14px;
+  min-height: 69px;
+  border-bottom: 1px solid #e5ecf6;
+  background: #fff;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row:nth-child(even) { background: #fafcff; }
+#jobModal .jo-create-parts-repeater .jo-inventory-search-trigger {
+  min-height: 43px;
+  padding: 9px 11px;
+  border: 1px solid #d0deef;
+  border-radius: 9px;
+  color: #183b68;
+  font-size: 12px;
+  font-weight: 650;
+  background: #fff;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid #d1dff0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+#jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select {
+  min-height: 42px;
+  border: 1px solid #dae4f0;
+  background: #f3f7fc;
+  color: #425b77;
+  font-size: 12px;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge {
+  justify-self: start;
+  max-width: 100%;
+  width: auto;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-available,
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-sufficient {
+  color: #146e43;
+  background: #e5f8ed;
+  border: 1px solid #b9e8cd;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-partial {
+  color: #985900;
+  background: #fff2d8;
+  border: 1px solid #f0d09a;
+}
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-unavailable,
+#jobModal .jo-create-parts-repeater .jo-row-stock-badge.is-none {
+  color: #ad303c;
+  background: #fff0f1;
+  border: 1px solid #fac7cc;
+}
+#jobModal .jo-create-parts-repeater .remove-part-btn {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #ffd1d7;
+  border-radius: 9px;
+  color: #c92f42;
+  background: #fff3f5;
+}
+#jobModal .jo-create-parts-repeater .remove-part-btn:hover {
+  background: #ffe5e9;
+  border-color: #f2a8b4;
+}
+#jobModal .jo-create-parts-header .jo-create-add-part-btn {
+  min-height: 35px;
+  padding: 7px 13px;
+  border-radius: 8px;
+}
+@media (max-width: 760px) {
+  #jobModal .jo-create-parts-table-head { display: none; }
+  #jobModal .jo-create-parts-repeater .jo-part-row {
+    grid-template-columns: 24px minmax(0, 1fr) minmax(75px, .4fr) 42px;
+    gap: 9px;
+  }
+  #jobModal .jo-create-parts-repeater .jo-inventory-search-wrap { grid-column: 2 / 5; }
+  #jobModal .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
+  #jobModal .jo-create-parts-repeater .jo-part-row select.jo-auto-unit-select { grid-column: 3; }
+  #jobModal .jo-create-parts-repeater .jo-row-stock-badge { grid-column: 2 / 4; }
+  #jobModal .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
+}
