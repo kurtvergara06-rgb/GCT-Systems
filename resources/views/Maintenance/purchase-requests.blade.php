@@ -231,6 +231,8 @@
                                           return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortageByKey->get($key, 0))]);
                                       })->filter(fn ($part) => $part['quantity'] > 0)->values();
                                       $releasePartial = $sourceJo?->parts_issue_strategy === 'issue_available_only';
+                                      // Legacy auto-approved PRs inherited JO authorization, not a separate PR approval.
+                                      $displayPrStatus = $pr->status === 'Approved' && $sourceJoApproved && $pr->source_type === 'Maintenance Request' ? 'Submitted' : $pr->status;
                                   @endphp
                                   <tr>
                                       <td><div class="pr-active-jo-pr"><strong class="pr-ir-jo-badge">{{ $pr->job_order_no ?: '—' }}</strong><small>{{ $pr->pr_no }}</small></div></td>
@@ -254,7 +256,7 @@
                                           </details>
                                       </td>
                                       <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
-                                      <td><span class="pr-pending-badge pr-ir-status-box">{{ $pr->status }}</span></td>
+                                      <td><span class="pr-pending-badge pr-ir-status-box">{{ $displayPrStatus }}</span></td>
                                       <td>@if($sourceJo)<span class="pr-ir-release-policy {{ $releasePartial ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $releasePartial ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releasePartial ? 'Issue Available Only' : 'Wait Until Complete' }}</span>@else<span>—</span>@endif</td>
                                       <td><div class="actions pr-review-action-cell">
                                               <button
@@ -272,7 +274,7 @@
                                                   data-bus-no="{{ $pr->bus_no }}"
                                                   data-item="{{ $pr->item }}"
                                                   data-quantity="{{ $pr->quantity }}"
-                                                  data-status="{{ $pr->status }}"
+                                                  data-status="{{ $displayPrStatus }}"
                                                   data-remarks="{{ $pr->remarks }}"
                                                   data-purpose="{{ $pr->purpose }}"
                                                   data-target-date="{{ $pr->target_date?->format('M d, Y') }}"
