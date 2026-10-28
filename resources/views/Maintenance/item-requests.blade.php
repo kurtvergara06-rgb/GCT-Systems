@@ -205,7 +205,7 @@
         <header class="ir-modal-header ir-view-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><h2 id="viewItemRequestTitle">Item Request Details</h2><p>Request information and linked Job Order</p></div>
+                <div><h2 id="viewItemRequestTitle">View Item Request</h2><p>Warehouse request details linked to the approved Job Order</p></div>
             </div>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
@@ -231,9 +231,9 @@
                 </section>
             </div>
             <section class="ir-view-panel ir-view-document-parts" aria-labelledby="ir-view-parts-heading">
-                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Requested Parts &amp; Warehouse</h3><p>Actual parts requested for this Item Request.</p></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
+                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3><p>Available parts submitted to Warehouse under this Item Request.</p></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
                 <div class="ir-view-document-table">
-                    <div class="ir-view-document-table-head"><span>#</span><span>PART NAME</span><span>REQUESTED QTY</span><span>HANDOVER</span></div>
+                    <div class="ir-view-document-table-head"><span>#</span><span>PART NAME</span><span>REQUESTED QTY</span></div>
                     <div id="ir-detail-parts" class="ir-view-parts-list"></div>
                 </div>
             </section>
