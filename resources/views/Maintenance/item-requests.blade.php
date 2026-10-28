@@ -199,7 +199,7 @@
                                     <span class="ir-split-policy">—</span>
                                 @endif
                             </td>
-                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
+                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="6"><div class="ir-empty">
@@ -250,11 +250,22 @@
             </div>
             <section class="ir-view-panel ir-view-document-parts" aria-labelledby="ir-view-parts-heading">
                 <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
-                <div class="ir-view-review-parts">
-                    <div class="ir-view-review-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Submitted Parts — Item Request (IR)</strong><small>For Warehouse</small></div>
-                    <div class="ir-view-document-table">
-                        <div class="ir-view-document-table-head"><span>#</span><span>PART NAME</span><span>REQUESTED QTY</span></div>
-                        <div id="ir-detail-parts" class="ir-view-parts-list"></div>
+                <div class="ir-view-request-parts-grid">
+                    <div class="ir-view-request-pane">
+                        <div class="ir-view-review-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><small>For Warehouse</small></div>
+                        <div class="ir-view-request-table-wrap">
+                            <table class="ir-view-request-table"><thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>STATUS</th></tr></thead>
+                                <tbody id="ir-detail-available-parts"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="ir-view-request-pane is-pr">
+                        <div class="ir-view-review-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><small>For Procurement</small></div>
+                        <div class="ir-view-request-table-wrap">
+                            <table class="ir-view-request-table"><thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>STATUS</th></tr></thead>
+                                <tbody id="ir-detail-missing-parts"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
