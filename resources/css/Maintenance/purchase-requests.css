@@ -5539,3 +5539,22 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
  .purchase-page .pr-ir-style-table {min-width:720px;}
  #prModal .pr-simple-source-grid,#prModal .pr-jo-authorization-grid {grid-template-columns:1fr;}
 }
+
+/* Pending PR breakdown is portaled to document.body so table scroll/overflow cannot crop it. */
+.pr-pending-parts-list.pr-parts-floating-menu {
+  display:block!important;box-sizing:border-box;position:fixed;z-index:10000;
+  padding:0;border:1px solid #d8e4f4;border-radius:11px;background:#fff;
+  box-shadow:0 15px 35px rgba(21,47,81,.19);font-size:11px;min-width:0;
+}
+.pr-pending-parts-list.pr-parts-floating-menu > div {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:9px 11px;border-bottom:1px solid #eff3f8;color:#304b69;
+}
+.pr-pending-parts-list.pr-parts-floating-menu > div strong {white-space:nowrap;color:#17365d;}
+.pr-pending-parts-list.pr-parts-floating-menu .pr-ir-popover-title {
+  display:flex;align-items:center;gap:7px;padding:10px 11px;background:#f2f6fc;
+  border-bottom:1px solid #e1e9f4;color:#a83a46;font-size:11px;
+}
+.pr-pending-parts-list.pr-parts-floating-menu .pr-ir-popover-title.is-ir {color:#147348;}
+.pr-pending-parts-list.pr-parts-floating-menu .pr-ir-allocation-note {margin:0;padding:10px 11px;color:#607997;font-size:10px;line-height:1.45;background:#f7faff;}
+.purchase-page .pr-ir-breakdown > summary {position:relative;z-index:1;}
