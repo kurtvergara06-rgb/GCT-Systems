@@ -151,12 +151,9 @@ class ItemRequestController extends Controller
                 ->sum(fn ($prior) => collect($prior->requested_parts ?? [])
                     ->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
             $remainingJoQuantity = max(0, $fullRequired - $previouslyIssued);
-            if ($availableForIr < $remainingJoQuantity
-                && $jo->parts_issue_strategy !== 'issue_available_only') {
-                throw ValidationException::withMessages([
-                    'job_order_id' => 'This Job Order has a shortage. The Maintenance Head must authorize release of available parts before a partial IR can be submitted.',
-                ]);
-            }
+            // A shortage must be split between available IR quantities and
+            // missing PR quantities. The Head's release policy governs
+            // physical Warehouse issuance, not creation of the IR.
             if ($parts === []) {
                 throw ValidationException::withMessages(['job_order_id' => 'No available quantities remain for this Job Order. Missing quantities belong in a Purchase Request.']);
             }
