@@ -243,19 +243,19 @@
 </div>
 @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
 <div id="itemRequestModal" class="ir-modal-overlay" aria-hidden="true">
-    <div class="ir-modal" role="dialog" aria-modal="true" aria-labelledby="itemRequestModalTitle">
+    <div class="ir-modal ir-review-document-modal" role="dialog" aria-modal="true" aria-labelledby="itemRequestModalTitle">
         <header class="ir-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">New Item Request</h2><p>Review available IR parts and missing PR quantities</p></div>
+                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="itemRequestModalTitle">Review Item Request</h2><p>Review available IR parts and missing PR quantities</p></div>
             </div>
             <button type="button" class="ir-icon-button" id="closeItemRequestModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
         <form method="POST" action="{{ route('item-requests.store') }}">
             @csrf
-            <div class="ir-modal-body">
-                <div class="ir-form-section">
-                    <h3><span>01</span> Job Order Information <small>Source details</small></h3>
+            <div class="ir-modal-body ir-review-document-body">
+                <div class="ir-form-section ir-review-document-jo">
+                    <h3><span>01</span> Job Order Summary <small>Approved source document</small></h3>
                     <div class="ir-field">
                         <label for="item_request_job_order_display">Approved Job Order <span>*</span></label>
                         <input type="hidden" id="item_request_job_order" name="job_order_id" value="{{ old('job_order_id', '') }}" required>
@@ -273,8 +273,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="ir-form-section">
-                    <h3><span>02</span> Requested Items <small>Automatically sourced from the JO</small></h3>
+                <div class="ir-review-document-split">
+                <div class="ir-form-section ir-review-document-ir">
+                    <h3><span>02</span> Available Parts — Item Request <small>Automatically sourced from the JO</small></h3>
                     <p class="ir-form-hint">The system splits available stock into an IR and missing quantities into a PR. Warehouse confirms inventory before physical issuance.</p>
                     <div class="ir-preview-table-wrap">
                         <table class="ir-preview-table">
@@ -293,7 +294,8 @@
                         </table>
                     </div>
                 </div>
-                <div class="ir-form-section">
+                </div>
+                <div class="ir-form-section ir-review-document-remarks">
                     <h3><span>04</span> Request Details <small>Optional instructions</small></h3>
                     <div class="ir-field">
                         <label for="item_request_remarks">Remarks <small>(Optional)</small></label>
