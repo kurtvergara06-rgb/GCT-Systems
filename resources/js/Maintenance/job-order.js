@@ -2769,12 +2769,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
     // Snapshot the selection BEFORE clearing stale choices. Otherwise opening
     // the combobox again removes the first mechanic from a multi-assignment.
-    const selectedMechanics = new Set(
-      Array.from(newJobMechanicSelect?.selectedOptions || []).map(option => String(option.value))
-    );
+    // Preserve the selected options while loading: clearing them here silently
+    // erases user input on focus, attendance broadcasts, and overlapping fetches.
     if (newJobMechanicSelect) {
       newJobMechanicSelect.dataset.lookupStatus = 'loading';
-      newJobMechanicSelect.replaceChildren();
     }
 
     try {
@@ -2826,9 +2824,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
       if (newJobMechanicSelect) {
 
-        newJobMechanicSelect
-          .innerHTML =
-          '';
+        // Read selection at response time, not request time, so interactions
+        // while the lookup is pending are never overwritten by a stale snapshot.
+        const selectedOptions = Array.from(newJobMechanicSelect.selectedOptions);
+        const selectedMechanics = new Set(selectedOptions.map(option => String(option.value)));
+        const availableIds = new Set(mechanics.map(mechanic => String(mechanic.id)));
+        newJobMechanicSelect.replaceChildren();
 
 
         mechanics.forEach(
@@ -2869,9 +2870,22 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         );
 
 
-        // Notify the UI once, after all eligible options and retained selections
-        // have been restored. This also removes previously selected mechanics who
-        // no longer pass attendance or specialization validation.
+        // Keep a visible, non-submittable reminder if a selected mechanic is
+        // no longer eligible. Do not silently remove the user's previous choice.
+        selectedOptions.forEach((previous) => {
+          if (availableIds.has(String(previous.value))) return;
+          const unavailable = document.createElement('option');
+          unavailable.value = previous.value;
+          unavailable.textContent = previous.textContent.replace(/ · No longer available$/, '') + ' · No longer available';
+          unavailable.dataset.availability = 'Unavailable';
+          unavailable.dataset.qualifiedJobs = '';
+          unavailable.dataset.skillMatches = '';
+          unavailable.selected = true;
+          unavailable.disabled = true;
+          newJobMechanicSelect.appendChild(unavailable);
+        });
+        newJobMechanicSelect.dataset.selectionInvalid =
+          selectedOptions.some(option => !availableIds.has(String(option.value))) ? 'true' : 'false';
         newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
         updateNewJoPartsState();
       }
@@ -2935,7 +2949,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       if (lookupSequence !== mechanicLookupSequence) return;
       if (newJobMechanicSelect) {
         newJobMechanicSelect.dataset.lookupStatus = 'error';
-        newJobMechanicSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        // Existing selection remains untouched when lookup fails.
       }
       console.error(
         'Unable to update available mechanic dropdown:',
