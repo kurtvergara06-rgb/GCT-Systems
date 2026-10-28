@@ -170,7 +170,10 @@
                                   <td><strong class="pr-ir-jo-badge">{{ $sourceJo->job_order_no }}</strong></td>
                                   <td><div class="pr-ir-date"><strong>{{ $sourceJo->created_at?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $sourceJo->created_at?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '—' }}</small><small>JO created date</small></div></td>
                                   <td>
-                                      <span class="pr-ir-count"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $shortageParts->count() }} {{ \Illuminate\Support\Str::plural('part', $shortageParts->count()) }}</span>
+                                      <div class="pr-ir-counts">
+                                          <span class="pr-ir-count"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $shortageParts->count() }} {{ \Illuminate\Support\Str::plural('part', $shortageParts->count()) }}</span>
+                                          <span class="pr-ir-count is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $availableAllocation->count() }} {{ \Illuminate\Support\Str::plural('part', $availableAllocation->count()) }}</span>
+                                      </div>
                                       <details class="pr-pending-parts-details pr-ir-breakdown">
                                           <summary aria-label="View IR allocation and PR shortages for {{ $sourceJo->job_order_no }}">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                           <div class="pr-pending-parts-list">
