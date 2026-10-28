@@ -124,7 +124,7 @@
                     <td><div class="ir-release-policy"><span class="ir-release-badge {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $jo->parts_issue_strategy === 'issue_available_only' ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releaseLabel }}</span></div></td>
                     <td>
                         <button type="button" class="ir-view-button ir-split-review" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available IR and missing PR quantities">
-                            <i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR
+                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review IR
                         </button>
                     </td>
                 </tr>
