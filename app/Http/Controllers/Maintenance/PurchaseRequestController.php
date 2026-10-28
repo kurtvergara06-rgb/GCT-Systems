@@ -359,6 +359,15 @@ class PurchaseRequestController extends Controller
             ->first();
         $signaturePath = data_get($approvalAudit?->metadata, 'handwritten_signature_path');
 
+        $missingParts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder);
+        $shortagesByKey = collect($missingParts)->groupBy(fn ($p) => mb_strtolower(trim((string) ($p['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($p['unit'] ?? ''))))
+            ->map(fn ($items) => $items->sum(fn ($p) => (int) ($p['quantity'] ?? 0)));
+        $availableParts = collect($this->partParser->parsePartText((string) $jobOrder->part_needed))
+            ->map(function ($part) use ($shortagesByKey) {
+                $key = mb_strtolower(trim((string) ($part['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortagesByKey->get($key, 0))]);
+            })->filter(fn ($part) => $part['quantity'] > 0)->values()->all();
+
         return response()->json([
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
@@ -368,7 +377,8 @@ class PurchaseRequestController extends Controller
             'signature_url' => is_string($signaturePath) && $signaturePath !== ''
                 ? route('job-orders.approval-signature', $jobOrder, false)
                 : null,
-            'parts' => $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder),
+            'parts' => $missingParts,
+            'available_parts' => $availableParts,
         ]);
     }
 
