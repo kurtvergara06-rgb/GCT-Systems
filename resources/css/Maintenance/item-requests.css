@@ -1357,3 +1357,17 @@
 #viewItemRequestModal .ir-view-modal-footer {position:relative;flex:0 0 auto;background:#fff;}
 @media(max-width:790px) {#viewItemRequestModal .ir-review-parts-two-column {grid-template-columns:1fr;}}
 @media(max-width:740px) {#viewItemRequestModal .ir-review-document-top {grid-template-columns:1fr;}}
+
+/* Shared In Progress and History status badge — reflect actual IR lifecycle. */
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-complete {
+ background:#e4faec!important;color:#166534!important;border-color:#a9e6bc!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-closed {
+ background:#fff0f2!important;color:#ad283a!important;border-color:#f3b7be!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-partial {
+ background:#fff3d8!important;color:#965c09!important;border-color:#f3d38d!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-active {
+ background:#eaf3ff!important;color:#15519e!important;border-color:#bfd7f9!important;
+}
