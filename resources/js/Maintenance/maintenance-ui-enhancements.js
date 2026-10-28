@@ -72,7 +72,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     const optionsContainer = document.createElement('div');
     optionsContainer.className = 'jo-maintenance-job-options';
     menu.appendChild(optionsContainer);
-    const isCreatePicker = select.id === 'newJoMaintenanceJob';
+    const isCreatePicker = ['newJoMaintenanceJob', 'editJoMaintenanceJob'].includes(select.id);
     let menuSelection = null;
     let searchInput = null;
     if (isCreatePicker) {
@@ -129,7 +129,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     // Create JO only: show chosen jobs in a separate, actionable summary panel.
     // Keep the original selectedChips element and native select as the source of truth.
-    if (select.id === 'newJoMaintenanceJob') {
+    if (isCreatePicker) {
       const panel = document.createElement('section');
       panel.className = 'jo-selected-jobs-panel';
       panel.setAttribute('aria-label', 'Selected Maintenance Jobs');
