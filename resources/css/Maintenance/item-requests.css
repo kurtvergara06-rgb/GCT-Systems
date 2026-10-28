@@ -1040,3 +1040,14 @@
 @media(max-width:940px) {
  #viewItemRequestModal .ir-view-request-parts-grid { grid-template-columns:1fr; }
 }
+
+/* View IR: badge colors follow the real linked Purchase Request status. */
+#viewItemRequestModal .ir-view-request-badge.is-success {
+  border-color:#a9e6bc;background:#e4faec;color:#166534;
+}
+#viewItemRequestModal .ir-view-request-badge.is-danger {
+  border-color:#f2b2ba;background:#fff0f2;color:#ad283a;
+}
+#viewItemRequestModal .ir-view-request-badge.is-neutral {
+  border-color:#d3deec;background:#f1f5fb;color:#385676;
+}
