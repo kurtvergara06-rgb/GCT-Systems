@@ -1013,6 +1013,37 @@ window.GCTPartialNavigation.registerInitializer(
       });
     }
 
+    function renderAvailableParts(parts) {
+      const body = document.getElementById('prReviewAvailableParts');
+      if (!body) return;
+      body.replaceChildren();
+      if (!Array.isArray(parts) || parts.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 3;
+        cell.className = 'pr-table-message';
+        cell.textContent = 'No available IR allocation.';
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+      }
+      parts.forEach((part) => {
+        const row = document.createElement('tr');
+        for (const value of [part.name || '—', String(part.quantity ?? 0) + ' ' + (part.unit || '')]) {
+          const cell = document.createElement('td');
+          cell.textContent = value;
+          row.appendChild(cell);
+        }
+        const cell = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'pr-availability-badge is-available';
+        badge.textContent = 'Available';
+        cell.appendChild(badge);
+        row.appendChild(cell);
+        body.appendChild(row);
+      });
+    }
+
     async function loadSelectedJobOrder() {
       const sequence = ++jobOrderRequestSequence;
       const selectedOption = jobOrderSelect?.options[jobOrderSelect.selectedIndex];
@@ -1035,6 +1066,7 @@ window.GCTPartialNavigation.registerInitializer(
 
       if (!dataUrl) {
         renderMissingParts([]);
+        renderAvailableParts([]);
         if (newPrPartsBody) {
           const message = newPrPartsBody.querySelector('.pr-table-message');
           if (message) message.textContent = 'Select an approved Job Order to check its unavailable parts.';
@@ -1045,6 +1077,7 @@ window.GCTPartialNavigation.registerInitializer(
       }
 
       renderMissingParts([]);
+      renderAvailableParts([]);
       if (newPrPartsBody) {
         const message = newPrPartsBody.querySelector('.pr-table-message');
         if (message) message.textContent = 'Checking Warehouse availability…';
@@ -1066,6 +1099,7 @@ window.GCTPartialNavigation.registerInitializer(
         }
 
         renderMissingParts(data.parts);
+        renderAvailableParts(data.available_parts);
         if (prPurposeBus) {
           prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
         }
@@ -1096,6 +1130,7 @@ window.GCTPartialNavigation.registerInitializer(
       } catch (error) {
         if (sequence !== jobOrderRequestSequence) return;
         renderMissingParts([]);
+        renderAvailableParts([]);
         const message = newPrPartsBody?.querySelector('.pr-table-message');
         if (message) message.textContent = 'Availability could not be checked.';
         if (prPartsError) {
