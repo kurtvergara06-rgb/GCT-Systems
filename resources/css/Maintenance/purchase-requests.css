@@ -5586,3 +5586,21 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-release-policy.is-partial{background:#ebf4ff;border-color:#bfd9fd;color:#1852a0}
 .purchase-page .pr-ir-release-policy.is-waiting{background:#fff4da;border-color:#f2d08c;color:#915a08}
 @media(max-width:900px){.purchase-page .pr-ir-style-table{min-width:900px}.purchase-page .pr-pending-table-wrap{overflow-x:auto}}
+
+/* Pending PR: status badges align vertically with the Review PR action button.
+   Preserve natural widths: long stock/policy labels should not be squeezed. */
+.purchase-page .pr-ir-style-table .pr-ir-shortage-status,
+.purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box,
+.purchase-page .pr-ir-style-table .pr-ir-release-policy,
+.purchase-page .pr-ir-style-table .pr-pending-review-btn {
+  box-sizing:border-box;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  vertical-align:middle;
+  padding-top:7px;
+  padding-bottom:7px;
+  line-height:1.25;
+  border-radius:7px;
+}
