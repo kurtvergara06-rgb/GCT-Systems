@@ -156,6 +156,15 @@
                               @php
                                   $shortageParts = collect($proposal['parts'] ?? []);
                                   $sourceJo = $proposal['job'];
+                                  // Reference allocation only: JO requirement minus its PR shortage.
+                                  // This does not submit an IR or change inventory.
+                                  $allJoParts = collect(app(\App\Services\PartParser::class)->parsePartText((string) $sourceJo->part_needed));
+                                  $shortageByKey = $shortageParts->groupBy(fn ($p) => mb_strtolower(trim((string) ($p['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($p['unit'] ?? ''))))
+                                      ->map(fn ($parts) => $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0)));
+                                  $availableAllocation = $allJoParts->map(function ($part) use ($shortageByKey) {
+                                      $key = mb_strtolower(trim((string) ($part['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                                      return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortageByKey->get($key, 0))]);
+                                  })->filter(fn ($part) => $part['quantity'] > 0)->values();
                               @endphp
                               <tr>
                                   <td><strong class="pr-ir-jo-badge">{{ $sourceJo->job_order_no }}</strong></td>
@@ -163,14 +172,21 @@
                                   <td>
                                       <span class="pr-ir-count"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $shortageParts->count() }} {{ \Illuminate\Support\Str::plural('part', $shortageParts->count()) }}</span>
                                       <details class="pr-pending-parts-details pr-ir-breakdown">
-                                          <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                          <summary aria-label="View IR allocation and PR shortages for {{ $sourceJo->job_order_no }}">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                           <div class="pr-pending-parts-list">
-                                              <strong class="pr-ir-popover-title">Missing → PR ({{ $shortageParts->count() }})</strong>
+                                              <strong class="pr-ir-popover-title is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> Available → IR ({{ $availableAllocation->count() }})</strong>
+                                              @forelse($availableAllocation as $part)
+                                                  <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                              @empty
+                                                  <p>No available allocation</p>
+                                              @endforelse
+                                              <strong class="pr-ir-popover-title is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing → PR ({{ $shortageParts->count() }})</strong>
                                               @forelse($shortageParts as $part)
                                                   <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
                                               @empty
                                                   <p>No missing parts</p>
                                               @endforelse
+                                              <p class="pr-ir-allocation-note">IR quantities are a reference allocation from the JO; PR contains shortages only.</p>
                                           </div>
                                       </details>
                                   </td>
