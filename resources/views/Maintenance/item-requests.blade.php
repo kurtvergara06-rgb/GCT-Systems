@@ -218,73 +218,69 @@
 </div>
 
 <div id="viewItemRequestModal" class="ir-modal-overlay" aria-hidden="true">
-    <div class="ir-modal ir-view-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
-        <header class="ir-modal-header ir-view-modal-header">
+    <div class="ir-modal ir-view-modal ir-review-document-modal" role="dialog" aria-modal="true" aria-labelledby="viewItemRequestTitle">
+        <header class="ir-modal-header">
             <div class="ir-modal-heading">
                 <span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><h2 id="viewItemRequestTitle">View Item Request</h2><p>Warehouse request details linked to the approved Job Order</p></div>
+                <div><span class="ir-modal-eyebrow">MAINTENANCE / RESOURCE REQUEST</span><h2 id="viewItemRequestTitle">View Item Request</h2><p>Submitted Item Request and linked Job Order details</p></div>
             </div>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
-        <div class="ir-modal-body ir-view-modal-body ir-view-review-layout">
-            <section class="ir-view-document-summary" aria-label="Item Request summary">
-                <div class="ir-view-document-number"><span>ITEM REQUEST NO.</span><strong id="ir-detail-number"></strong><small>Maintenance to Warehouse</small></div>
-                <div><span>IR STATUS</span><strong class="ir-view-status" id="ir-detail-status"></strong></div>
-                <div><span>JOB ORDER</span><strong id="ir-detail-job"></strong></div>
-                <div><span>BUS ID / PLATE</span><strong id="ir-detail-bus"></strong></div>
-                <div><span>SUBMITTED AT</span><strong id="ir-detail-date"></strong></div>
+        <div class="ir-modal-body ir-view-modal-body ir-review-document-body">
+            <section class="ir-review-jo-banner" aria-label="Submitted Item Request summary">
+                <div class="ir-review-banner-main"><span>ITEM REQUEST NO.</span><strong id="ir-detail-number">—</strong><small>Linked JO: <span id="ir-detail-job">—</span></small></div>
+                <div><span>IR STATUS</span><strong class="ir-view-status" id="ir-detail-status">—</strong></div>
+                <div><span>BUS ID / PLATE</span><strong id="ir-detail-bus">—</strong></div>
+                <div><span>SUBMITTED AT</span><strong id="ir-detail-date">—</strong></div>
             </section>
-            <div class="ir-view-review-overview">
-                <section class="ir-view-panel" aria-labelledby="ir-view-overview-title">
-                    <header class="ir-view-panel-header"><h3 id="ir-view-overview-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Request Overview</h3></header>
-                    <div class="ir-view-review-info">
-                        <div><span>Request Type</span><strong>Job Order Item Request</strong></div>
-                        <div><span>Destination</span><strong>Warehouse Department</strong></div>
-                        <p>This request tracks the Warehouse fulfillment of parts linked to the approved Job Order.</p>
+            <div class="ir-review-document-top">
+                <section class="ir-review-section" aria-labelledby="ir-view-overview-title">
+                    <header><h3 id="ir-view-overview-title"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Request Overview</h3></header>
+                    <div class="ir-review-section-content">
+                        <div class="ir-review-overview-grid">
+                            <div><span>Request Type</span><strong>Job Order Parts Request</strong></div>
+                            <div><span>Destination</span><strong>Warehouse Department</strong></div>
+                        </div>
+                        <p class="ir-review-muted" id="ir-detail-status-description">Current Warehouse processing status.</p>
                     </div>
                 </section>
-                <section class="ir-view-panel" aria-labelledby="ir-view-status-heading">
-                    <header class="ir-view-panel-header"><h3 id="ir-view-status-heading"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> Warehouse Processing</h3></header>
-                    <div class="ir-view-review-info"><div><span>Current Progress</span><strong id="ir-detail-status-description">Current request processing status.</strong></div></div>
+                <section class="ir-review-section" aria-labelledby="ir-view-head-approval-title">
+                    <header><h3 id="ir-view-head-approval-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3></header>
+                    <div class="ir-review-section-content ir-review-approval-grid">
+                        <div class="ir-review-approver"><span>Approved By</span><strong id="ir-detail-approver">—</strong><small>Maintenance Head</small></div>
+                        <div class="ir-review-signature"><span>Authorized Signature</span><img id="ir-detail-signature" alt="Saved Job Order approval signature" hidden><small id="ir-detail-signature-placeholder">Signature unavailable</small></div>
+                    </div>
                 </section>
             </div>
-            <section class="ir-view-panel ir-view-head-approval" aria-labelledby="ir-view-head-approval-title">
-                <header class="ir-view-panel-header"><h3 id="ir-view-head-approval-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Maintenance Head Authorization</h3><span class="ir-jo-approved-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> JO Approved</span></header>
-                <div class="ir-view-head-approval-grid">
-                    <div class="ir-view-head-approver"><span>Approved By</span><strong id="ir-detail-approver">—</strong><small>Maintenance Head</small></div>
-                    <div class="ir-view-head-signature"><span>Authorized Signature</span><img id="ir-detail-signature" alt="Saved Job Order approval signature" hidden><small id="ir-detail-signature-placeholder">Signature unavailable</small></div>
-                </div>
-            </section>
-            <section class="ir-view-panel ir-view-document-parts" aria-labelledby="ir-view-parts-heading">
-                <header class="ir-view-panel-header"><div><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3></div><span id="ir-detail-parts-count" class="ir-view-count"></span></header>
-                <div class="ir-view-request-parts-grid">
-                    <div class="ir-view-request-pane">
-                        <div class="ir-view-review-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><small>For Warehouse</small></div>
-                        <div class="ir-view-request-table-wrap">
-                            <table class="ir-view-request-table"><thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>STATUS</th></tr></thead>
-                                <tbody id="ir-detail-available-parts"></tbody>
-                            </table>
-                        </div>
+            <section class="ir-review-section ir-review-parts-section" aria-labelledby="ir-view-parts-heading">
+                <header><h3 id="ir-view-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Parts &amp; Warehouse</h3><span id="ir-detail-parts-count" class="ir-review-section-note"></span></header>
+                <div class="ir-review-parts-content ir-review-parts-two-column">
+                    <div class="ir-review-parts-pane is-ir">
+                        <div class="ir-review-portion-head"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
+                        <div class="ir-preview-table-wrap"><table class="ir-preview-table">
+                            <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>STATUS</th></tr></thead>
+                            <tbody id="ir-detail-available-parts"></tbody>
+                        </table></div>
                     </div>
-                    <div class="ir-view-request-pane is-pr">
-                        <div class="ir-view-review-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><small>For Procurement</small></div>
-                        <div class="ir-view-request-table-wrap">
-                            <table class="ir-view-request-table"><thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>STATUS</th></tr></thead>
-                                <tbody id="ir-detail-missing-parts"></tbody>
-                            </table>
-                        </div>
+                    <div class="ir-review-parts-pane is-pr">
+                        <div class="ir-review-portion-head is-pr"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
+                        <div class="ir-preview-table-wrap"><table class="ir-preview-table">
+                            <thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>STATUS</th></tr></thead>
+                            <tbody id="ir-detail-missing-parts"></tbody>
+                        </table></div>
                     </div>
                 </div>
             </section>
-            <section class="ir-view-panel" aria-labelledby="ir-view-remarks-heading">
-                <header class="ir-view-panel-header"><h3 id="ir-view-remarks-heading"><i class="fa-regular fa-message" aria-hidden="true"></i> Request Remarks</h3><small>Read only</small></header>
-                <div class="ir-view-review-remarks"><p id="ir-detail-remarks" class="ir-detail-text"></p></div>
+            <section class="ir-review-section ir-review-remarks-section" aria-labelledby="ir-view-remarks-heading">
+                <header><h3 id="ir-view-remarks-heading"><i class="fa-regular fa-message" aria-hidden="true"></i> Request Remarks</h3><span class="ir-review-section-note">Read only</span></header>
+                <div class="ir-review-section-content"><span class="ir-view-remarks-label">Instructions for Warehouse</span><p id="ir-detail-remarks" class="ir-detail-text">—</p></div>
             </section>
-            <div class="ir-view-review-notice"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Submission does not mean parts have been issued. Warehouse fulfillment is tracked by the IR status above.</div>
+            <div class="ir-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Submitting parts does not physically issue inventory. Warehouse fulfills the IR according to the approved release policy.</span></div>
         </div>
         <footer class="ir-modal-footer ir-view-modal-footer"><button type="button" class="ir-primary-button" data-ir-close>Close</button></footer>
     </div>
 </div>
+
 @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
 <div id="itemRequestModal" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal ir-review-document-modal" role="dialog" aria-modal="true" aria-labelledby="itemRequestModalTitle">
