@@ -4947,6 +4947,10 @@ if (!window.__gctJobOrderViewDelegated) {
       if (!overlay || !template || !body) return;
       priorViewFocus = trigger;
       body.replaceChildren(template.content.cloneNode(true));
+      // Each JO opens with audit history collapsed; users can expand it on demand.
+      body.querySelectorAll('details.jo-view-audit').forEach((details) => {
+        details.open = false;
+      });
       overlay.hidden = false;
       document.body.classList.add('jo-readonly-open');
       overlay.querySelector('.jo-view-close')?.focus();
