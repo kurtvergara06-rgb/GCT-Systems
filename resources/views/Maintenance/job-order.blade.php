@@ -739,6 +739,13 @@
         >
         <input type="hidden" name="maintenance_type" value="Repair" data-maintenance-type-hidden="newJo">
 
+        <nav class="jo-new-stepper" aria-label="Job Order form sections">
+            <span class="jo-new-step is-current"><span class="jo-new-step-index">1</span><span><strong>Job Details</strong><small>Bus and maintenance work</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">2</span><span><strong>Mechanic Assignment</strong><small>Qualified technicians</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">3</span><span><strong>Estimated Duration</strong><small>Repair time estimate</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">4</span><span><strong>Requested Parts</strong><small>Parts and stock</small></span></span>
+        </nav>
+
         @include('Maintenance.partials.job-order-form-sections', ['mode' => 'create'])
 
         <script type="application/json" id="jobBusDriverMap">@json(
