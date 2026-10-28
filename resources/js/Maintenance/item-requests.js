@@ -211,3 +211,36 @@ document.addEventListener('change', event => {
 document.addEventListener('click', event => {
     if (event.target.closest('#openItemRequestModal')) renderItemRequestPreview();
 });
+
+/* Close other IR/PR breakdowns and place the open popover above table clipping. */
+if (!window.__gctIrSplitBreakdownBound) {
+    window.__gctIrSplitBreakdownBound = true;
+    document.addEventListener('toggle', (event) => {
+        const details = event.target;
+        if (!(details instanceof HTMLDetailsElement) || !details.matches('.ir-split-breakdown')) return;
+        if (!details.open) return;
+        document.querySelectorAll('.ir-split-breakdown[open]').forEach(other => {
+            if (other !== details) other.open = false;
+        });
+        const popover = details.querySelector('.ir-split-popover');
+        const trigger = details.querySelector('summary');
+        if (!popover || !trigger) return;
+        const bounds = trigger.getBoundingClientRect();
+        const width = Math.min(335, window.innerWidth - 32);
+        popover.style.position = 'fixed';
+        popover.style.width = width + 'px';
+        popover.style.left = Math.max(16, Math.min(bounds.left, window.innerWidth - width - 16)) + 'px';
+        popover.style.top = Math.min(bounds.bottom + 7, window.innerHeight - 32) + 'px';
+    }, true);
+    document.addEventListener('click', event => {
+        document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => {
+            if (!details.contains(event.target)) details.open = false;
+        });
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => details.open = false);
+    });
+    window.addEventListener('scroll', () => {
+        document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => details.open = false);
+    }, true);
+}
