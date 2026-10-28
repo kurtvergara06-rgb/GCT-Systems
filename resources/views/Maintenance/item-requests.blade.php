@@ -142,6 +142,7 @@
                         @php
                             $irParts = collect($ir->requested_parts ?? []);
                             $issueAvailable = $ir->jobOrder?->parts_issue_strategy === 'issue_available_only';
+                            $prParts = collect($linkedPrPartsByJo->get($ir->jobOrder?->job_order_no, []));
                         @endphp
                         <tr class="ir-lifecycle-record">
                             <td>
@@ -156,22 +157,38 @@
                             </div></td>
                             <td>
                                 <div class="ir-split-parts">
-                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> {{ $irParts->count() }} {{ \Illuminate\Support\Str::plural('part', $irParts->count()) }}</span>
+                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $irParts->count() }} {{ \Illuminate\Support\Str::plural('part', $irParts->count()) }}</span>
+                                    @if($prParts->isNotEmpty())
+                                        <span class="ir-split-chip is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $prParts->count() }} {{ \Illuminate\Support\Str::plural('part', $prParts->count()) }}</span>
+                                    @else
+                                        <span class="ir-split-chip is-no-pr">No linked PR</span>
+                                    @endif
                                 </div>
-                                @if($irParts->isNotEmpty())
-                                    <details class="ir-split-breakdown">
-                                        <summary class="ir-split-part-preview" aria-label="Show requested parts for IR {{ $ir->id }}">
-                                            <span class="ir-split-more">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
-                                        </summary>
-                                        <div class="ir-split-popover">
-                                            <div class="ir-split-popover-heading">Requested IR Parts</div>
-                                            <div class="ir-split-popover-section">
-                                                @foreach($irParts as $part)
-                                                    <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
-                                                @endforeach
-                                            </div>
+                                @if($irParts->isNotEmpty() || $prParts->isNotEmpty())
+                                <details class="ir-split-breakdown">
+                                    <summary class="ir-split-part-preview" aria-label="Show available IR parts and linked Purchase Request parts for IR {{ $ir->id }}">
+                                        <span class="ir-split-more">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                                    </summary>
+                                    <div class="ir-split-popover">
+                                        <div class="ir-split-popover-heading">Parts Allocation</div>
+                                        <div class="ir-split-popover-section">
+                                            <strong class="ir-split-popover-label is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> Submitted → IR ({{ $irParts->count() }})</strong>
+                                            @forelse($irParts as $part)
+                                                <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                            @empty
+                                                <p class="ir-split-popover-empty">No IR parts</p>
+                                            @endforelse
                                         </div>
-                                    </details>
+                                        <div class="ir-split-popover-section">
+                                            <strong class="ir-split-popover-label is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Linked → PR ({{ $prParts->count() }})</strong>
+                                            @forelse($prParts as $part)
+                                                <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                            @empty
+                                                <p class="ir-split-popover-empty">No linked Purchase Request recorded</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                </details>
                                 @endif
                             </td>
                             <td><span class="ir-status">{{ $ir->status }}</span></td>
