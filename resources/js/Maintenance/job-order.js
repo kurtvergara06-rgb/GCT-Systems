@@ -1,5 +1,12 @@
 import gsap from 'gsap';
 
+// Delegation survives replacement of the Active tab's New JO button.
+// Register once at module evaluation, not on each AJAX page initializer.
+document.addEventListener('click', (event) => {
+  if (!(event.target instanceof Element) || !event.target.closest('#openJobModal')) return;
+  window.GCTOpenJobOrderModal?.();
+});
+
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
 
   // Maintenance Head review: reveal authorized on-hand quantities and shortages.
@@ -787,24 +794,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
-  if (openJobModal) {
-
-    openJobModal.addEventListener(
-      'click',
-      () => {
-
-        /*
-         * Always pull the latest attendance state before the New JO modal
-         * is used. This keeps newly recorded attended/free mechanics
-         * selectable even when Reverb was temporarily disconnected.
-         */
-        void refreshAvailableMechanicsDropdown();
-
-        openModal(jobModal);
-
-      }
-    );
-  }
+  // The Active/History AJAX swap replaces #openJobModal without reloading
+  // this module. Keep its current action accessible to the single delegated
+  // document listener registered below.
+  window.GCTOpenJobOrderModal = () => {
+    void refreshAvailableMechanicsDropdown();
+    openModal(document.getElementById('jobModal'));
+  };
 
 
   if (closeJobModal) {
