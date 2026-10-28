@@ -17,6 +17,48 @@ class ItemRequestPartialIssuanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_approved_jo_splits_reserved_stock_into_ir_and_shortage_pr_atomically(): void
+    {
+        $staff = User::factory()->create([
+            'department' => 'Maintenance', 'role' => 'staff', 'status' => 'Active',
+        ]);
+        $stock = InventoryItem::create([
+            'item_code' => 'SPLIT-FILTER', 'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter', 'category' => 'Filters',
+            'on_hand' => 6, 'quantity_available' => 6,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-2026-SPLIT',
+            'bus_no' => 'BUS-SPLIT', 'problem_issue' => 'Filter maintenance',
+            'maintenance_type' => 'Corrective', 'assigned_mechanic' => 'Mechanic Test',
+            'part_needed' => 'Oil Filter [item:'.$stock->id.'] - Qty: 10 pcs',
+            'review_status' => 'Approved', 'parts_issue_strategy' => 'wait_until_complete',
+            'inventory_snapshot' => ['shortages' => [], 'reservation_at_submission' => true],
+            'part_status' => 'Not Requested', 'status' => 'On Hold',
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jo->id, 'inventory_item_id' => $stock->id, 'quantity' => 6,
+        ]);
+
+        $this->actingAs($staff)->post(route('item-requests.store'), [
+            'job_order_id' => $jo->id,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $ir = ItemRequest::where('job_order_id', $jo->id)->firstOrFail();
+        $this->assertSame(6, (int) collect($ir->requested_parts)->sum('quantity'));
+        $pr = \App\Models\Maintenance\PurchaseRequest::where('job_order_no', $jo->job_order_no)->firstOrFail();
+        $this->assertSame(4, (int) $pr->quantity);
+        $this->assertSame('Approved', $pr->status);
+        $this->assertSame(6, (int) $stock->fresh()->quantity_available);
+
+        $this->actingAs($staff)->post(route('item-requests.store'), [
+            'job_order_id' => $jo->id,
+        ])->assertSessionHasErrors('job_order_id');
+        $this->assertSame(1, ItemRequest::where('job_order_id', $jo->id)->count());
+        $this->assertSame(1, \App\Models\Maintenance\PurchaseRequest::where('job_order_no', $jo->job_order_no)->count());
+    }
+
     public function test_two_signed_partial_handover_batches_issue_only_the_remaining_quantities(): void
     {
         Storage::fake('local');
