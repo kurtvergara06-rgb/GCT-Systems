@@ -64,46 +64,49 @@
                 </div>
             </div>
             @if($view === 'pending')
-            <div class="ir-table-wrap"><table class="ir-table ir-pending-table"><thead><tr><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
-            @forelse($pendingJobs as $jo)
-            @php
-                $suggestedParts = $jobOrderPreviews->get($jo->id)['parts'] ?? [];
-                $totalRequested = app(\App\Services\PartParser::class)->parsePartText((string) $jo->part_needed);
-                $stillNeeded = max(0, collect($totalRequested)->sum('quantity') - (int) ($jobOrderPreviews->get($jo->id)['previously_issued'] ?? 0));
-                $hasShortage = $stillNeeded > collect($suggestedParts)->sum('quantity');
-                $needsHeadRelease = $hasShortage && $jo->parts_issue_strategy !== 'issue_available_only';
-            @endphp
-            <tr class="ir-pending-record">
-                <td><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong></td>
-                <td><span class="ir-bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $jo->bus_no }}</span></td>
-                <td>
-                    @if(count($suggestedParts))
-                        <span class="ir-part-name">{{ $suggestedParts[0]['name'] ?? '—' }}</span>
-                        @if(count($suggestedParts) > 1)
-                            <details class="ir-parts-details">
-                                <summary>+{{ count($suggestedParts) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                <div class="ir-parts-popover">
-                                    @foreach($suggestedParts as $part)
-                                        <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
-                                    @endforeach
-                                </div>
-                            </details>
-                        @endif
-                    @else
-                        <span>—</span>
-                    @endif
-                </td>
-                <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Waiting for Complete Stock' : 'For Review' }}</span></td>
-                <td>
-                    <div class="ir-pending-actions">
-                        <button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available quantities for Item Request; Warehouse issuance follows the approved release policy"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear here after a Job Order is approved and eligible stock is available.</p></div></td></tr>
-            @endforelse
-            </tbody></table></div>
+            <div class="ir-table-wrap"><table class="ir-table ir-pending-table ir-split-table">
+                <thead><tr><th>JOB ORDER / BUS</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
+                <tbody>
+                @forelse($pendingJobs as $jo)
+                @php
+                    $preview = $jobOrderPreviews->get($jo->id) ?? [];
+                    $availableParts = $preview['parts'] ?? [];
+                    $missingParts = $preview['missing_parts'] ?? [];
+                    $availableCount = count($availableParts);
+                    $missingCount = count($missingParts);
+                    $stockLabel = $availableCount && $missingCount ? 'Partial Stock' : ($availableCount ? 'Available' : 'No Stock');
+                    $releaseLabel = $jo->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Only' : 'Wait Until Complete';
+                @endphp
+                <tr class="ir-pending-record">
+                    <td>
+                        <div class="ir-split-jo"><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong>
+                            <span class="ir-bus-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $jo->bus_no }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="ir-split-parts">
+                            <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $availableCount }} {{ \Illuminate\Support\Str::plural('part', $availableCount) }}</span>
+                            @if($missingCount > 0)
+                                <span class="ir-split-chip is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $missingCount }} {{ \Illuminate\Support\Str::plural('part', $missingCount) }}</span>
+                            @else
+                                <span class="ir-split-chip is-no-pr">No PR needed</span>
+                            @endif
+                        </div>
+                        <span class="ir-split-part-preview">{{ $availableParts[0]['name'] ?? $missingParts[0]['name'] ?? '—' }}{{ $availableCount + $missingCount > 1 ? ' + more' : '' }}</span>
+                    </td>
+                    <td><span class="ir-split-status {{ $missingCount ? ($availableCount ? 'is-partial' : 'is-empty') : 'is-available' }}">{{ $stockLabel }}</span></td>
+                    <td><span class="ir-split-policy">{{ $releaseLabel }}</span></td>
+                    <td>
+                        <button type="button" class="ir-view-button ir-split-review" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available IR and missing PR quantities">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR &amp; PR
+                        </button>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="ir-pending-empty-cell"><div class="ir-pending-empty"><span class="ir-pending-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span><strong>No pending Item Requests</strong><p>New recommendations will appear after an approved Job Order has available stock.</p></div></td></tr>
+                @endforelse
+                </tbody>
+            </table></div>
             @else
             <div class="ir-table-wrap">
                 <table class="ir-table ir-records-table">
