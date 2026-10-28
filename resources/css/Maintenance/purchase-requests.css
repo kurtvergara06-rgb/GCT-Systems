@@ -5665,3 +5665,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
  background:#edf4ff;color:#1451a4;font-size:10px;font-weight:800;line-height:1.2;
 }
 .purchase-page .pr-ir-style-table .pr-ir-counts .pr-ir-count.is-ir {color:#147348;background:#e8f9ef;border-color:#bce9ce;}
+
+/* Mixed availability belongs to the JO-level stock status, not an unavailable-only PR label. */
+.purchase-page .pr-ir-style-table .pr-ir-shortage-status.is-partial {
+  background:#fff4dc;border-color:#f0ce8e;color:#935a09;
+}
