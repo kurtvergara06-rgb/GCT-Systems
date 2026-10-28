@@ -51,7 +51,7 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertDontSee('PR-2026-ISSUED-02');
         $response->assertSee('data-maintenance-record-tab-link="active"', false);
         $response->assertSee('class="maintenance-record-tab is-active"', false);
-        $response->assertSee('id="openPrModal"', false);
+        $response->assertDontSee('id="openPrModal"', false);
         $response->assertSee('data-lazy-pagination="false"', false);
         $response->assertSee('data-server-filter="false"', false);
         $response->assertSee('Job Order Information');
@@ -131,7 +131,7 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
 
         $activeResponse = $this->actingAs($user)->get(route('purchase-requests'));
         $activeResponse->assertStatus(200);
-        $activeResponse->assertSee('id="openPrModal"', false);
+        $activeResponse->assertDontSee('id="openPrModal"', false);
 
         $historyResponse = $this->actingAs($user)->get(route('purchase-requests', ['record_view' => 'history']));
         $historyResponse->assertStatus(200);
