@@ -205,97 +205,58 @@
                       </table>
                   </div>
                   @else
-                  <div class="table-wrap purchase-table-wrap">
-                      <table class="purchase-request-table">
-                          <thead>
-                              <tr>
-                                  <th>PR ID</th>
-                                  <th>JO ID</th>
-                                  <th>Bus #</th>
-                                  <th>Parts for Purchase</th>
-                                  <th>Qty</th>
-                                  <th>Status</th>
-                                  <th>Created</th>
-                                  <th>Actions</th>
-                              </tr>
-                          </thead>
-
+                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
+                      <table class="purchase-request-table pr-ir-style-table pr-active-style-table">
+                          <thead><tr><th>JOB ORDER / PR</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>STOCK STATUS</th><th>PR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                           <tbody>
                               @forelse($purchaseRequests as $pr)
                                   @php
                                       $requestedParts = app(\App\Services\PartParser::class)->parsePartText($pr->item);
-                                      $firstRequestedPart = $requestedParts[0] ?? null;
-                                      $firstRequestedItem = trim((string) ($firstRequestedPart['name'] ?? $pr->item ?? ''));
-                                      $requestedPartCount = count($requestedParts);
-                                      $requestedUnits = collect($requestedParts)->pluck('unit')->map(fn ($unit) => trim((string) $unit))->filter()->unique()->values();
-                                      // Different measurement units cannot be summed into one meaningful unit.
-                                      $hasMixedUnits = $requestedUnits->count() > 1;
-                                      $totalQuantityDisplay = $hasMixedUnits
-                                          ? $requestedPartCount.' items'
-                                          : $pr->quantity.($requestedUnits->first() ? ' '.$requestedUnits->first() : '');
-                                      $quantityBreakdown = collect($requestedParts)
-                                          ->map(fn ($part) => trim(($part['name'] ?? '').': '.($part['quantity'] ?? '').' '.($part['unit'] ?? '')))
-                                          ->implode(' | ');
-                                      $firstPartQuantity = $firstRequestedPart
-                                          ? trim(($firstRequestedPart['quantity'] ?? '').' '.($firstRequestedPart['unit'] ?? ''))
-                                          : null;
-
                                       $sourceJo = ($prJobApprovals ?? collect())->get($pr->job_order_no);
                                       $sourceJoApprovalAudit = $sourceJo?->audits?->first();
                                       $sourceJoSignaturePath = data_get($sourceJoApprovalAudit?->metadata, 'handwritten_signature_path');
                                       $sourceJoApproved = $sourceJo?->review_status === 'Approved';
                                       $legacyAuthorized = $pr->status === 'Submitted' && $sourceJoApproved;
-
                                       $isSubmitted = $pr->status === 'Submitted';
                                       $isRejected = $pr->status === 'Rejected';
                                       $canEdit = $isRejected;
-                                      $canApproveOrReject = false; // Approval already occurred during Job Order review.
+                                      $canApproveOrReject = false;
                                       $canDelete = $isSubmitted;
+                                      $sourceParts = collect(app(\App\Services\PartParser::class)->parsePartText((string) ($sourceJo?->part_needed ?? '')));
+                                      $prParts = collect($requestedParts);
+                                      $shortageByKey = $prParts->groupBy(fn ($p) => mb_strtolower(trim((string) ($p['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($p['unit'] ?? ''))))
+                                          ->map(fn ($parts) => $parts->sum(fn ($p) => (int) ($p['quantity'] ?? 0)));
+                                      $referenceIrParts = $sourceParts->map(function ($part) use ($shortageByKey) {
+                                          $key = mb_strtolower(trim((string) ($part['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                                          return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortageByKey->get($key, 0))]);
+                                      })->filter(fn ($part) => $part['quantity'] > 0)->values();
+                                      $releasePartial = $sourceJo?->parts_issue_strategy === 'issue_available_only';
                                   @endphp
-
                                   <tr>
+                                      <td><div class="pr-active-jo-pr"><strong class="pr-ir-jo-badge">{{ $pr->job_order_no ?: '—' }}</strong><small>{{ $pr->pr_no }}</small></div></td>
+                                      <td><div class="pr-ir-date"><strong>{{ $pr->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $pr->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '—' }}</small></div></td>
                                       <td>
-                                          <span class="pr-no-pill">{{ $pr->pr_no }}</span>
-                                      </td>
-                                      <td><span class="pr-jo-pill">{{ $pr->job_order_no ?: '—' }}</span></td>
-                                      <td>
-                                          <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $pr->bus_no }}</span>
-                                      </td>
-                                      <td class="requested-part-cell">
-                                          <span class="pr-part-name" title="{{ $firstRequestedItem }}">{{ $firstRequestedItem ?: '—' }}</span>
-                                          @if($requestedPartCount > 1)
-                                              <details class="pr-parts-dropdown">
-                                                  <summary aria-label="Show {{ $requestedPartCount - 1 }} additional parts for {{ $pr->pr_no }}">
-                                                      +{{ $requestedPartCount - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                                                  </summary>
-                                                  <div class="pr-parts-dropdown-menu">
-                                                      <strong>Other requested parts</strong>
-                                                      @foreach(array_slice($requestedParts, 1) as $part)
-                                                          <div class="pr-parts-dropdown-item">
-                                                              <span title="{{ $part['name'] }}">{{ $part['name'] }}</span>
-                                                              <b>{{ $part['quantity'] }} {{ $part['unit'] }}</b>
-                                                          </div>
-                                                      @endforeach
-                                                  </div>
-                                              </details>
-                                          @endif
-                                      </td>
-                                      <td title="{{ $quantityBreakdown }}">{{ $requestedPartCount === 1 ? ($firstPartQuantity ?: $totalQuantityDisplay) : $totalQuantityDisplay }}</td>
-                                      <td class="status-col">
-                                          <x-ui.status-badge :status="$pr->status" type="purchase" />
-                                      </td>
-                                      <td class="created-cell">
-                                          @if($pr->created_at)
-                                              <div class="date-time-cell">
-                                                  <strong>{{ $pr->created_at->format('M d, Y') }}</strong>
-                                                  <small>{{ $pr->created_at->format('h:i A') }}</small>
+                                          <div class="pr-ir-counts">
+                                              <span class="pr-ir-count"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $prParts->count() }} {{ \Illuminate\Support\Str::plural('part', $prParts->count()) }}</span>
+                                              @if($sourceJo)<span class="pr-ir-count is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $referenceIrParts->count() }} {{ \Illuminate\Support\Str::plural('part', $referenceIrParts->count()) }}</span>@endif
+                                          </div>
+                                          <details class="pr-pending-parts-details pr-ir-breakdown">
+                                              <summary>View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                              <div class="pr-pending-parts-list">
+                                                  <strong class="pr-ir-popover-title is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Recorded PR ({{ $prParts->count() }})</strong>
+                                                  @forelse($prParts as $part)<div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>@empty<p>No recorded PR items</p>@endforelse
+                                                  @if($sourceJo)
+                                                      <strong class="pr-ir-popover-title is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> Reference IR ({{ $referenceIrParts->count() }})</strong>
+                                                      @forelse($referenceIrParts as $part)<div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>@empty<p>No remaining IR allocation</p>@endforelse
+                                                      <p class="pr-ir-allocation-note">IR figures are JO-minus-PR references, not confirmed Warehouse issuance.</p>
+                                                  @endif
                                               </div>
-                                          @else
-                                              —
-                                          @endif
+                                          </details>
                                       </td>
-                                      <td>
-                                          <div class="actions pr-review-action-cell">
+                                      <td><span class="pr-ir-shortage-status">Unavailable Stock</span></td>
+                                      <td><span class="pr-pending-badge pr-ir-status-box">{{ $pr->status }}</span></td>
+                                      <td>@if($sourceJo)<span class="pr-ir-release-policy {{ $releasePartial ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $releasePartial ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $releasePartial ? 'Issue Available Only' : 'Wait Until Complete' }}</span>@else<span>—</span>@endif</td>
+                                      <td><div class="actions pr-review-action-cell">
                                               <button
                                                   type="button"
                                                   class="pr-review-btn open-view-pr-modal"
@@ -329,9 +290,8 @@
                                                   data-history="{{ $recordView === 'history' ? '1' : '0' }}"
                                               >
                                                   <i class="fa-solid fa-eye"></i>
-                                                  <span>View</span>
+                                                  <span>View PR</span>
                                               </button>
-
                                               @if($recordView !== 'history' && $canDelete)
                                                   <form
                                                       id="deletePrForm-{{ $pr->id }}"
@@ -343,21 +303,14 @@
                                                       @method('DELETE')
                                                   </form>
                                               @endif
-                                          </div>
-                                      </td>
+                                      </div></td>
                                   </tr>
                               @empty
-                                  <x-ui.empty-row
-                                      colspan="8"
-                                      icon="fa-clipboard-list"
-                                      message="No Purchase Requests Found"
-                                      description="No maintenance purchase requisitions match your search or filter criteria."
-                                  />
+                                  <x-ui.empty-row colspan="7" icon="fa-clipboard-list" message="No Purchase Requests Found" description="No maintenance purchase requisitions match your search or filter criteria." />
                               @endforelse
                           </tbody>
                       </table>
                   </div>
-
                   <x-ui.table-footer
                       :items="$purchaseRequests"
                       data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
