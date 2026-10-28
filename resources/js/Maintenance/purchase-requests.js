@@ -1934,6 +1934,43 @@ window.GCTPartialNavigation.registerInitializer(
 
       activePrTrigger =
         button;
+      // Read-only IR context: use the same saved JO-minus-PR allocation
+      // shown by the linked Purchase Requests table. Never submit it in this form.
+      const referenceBody = document.getElementById('reviewPrIrPartsBody');
+      if (referenceBody) {
+        referenceBody.replaceChildren();
+        let parts = [];
+        try {
+          const parsed = JSON.parse(button.dataset.referenceIrParts || '[]');
+          if (Array.isArray(parsed)) parts = parsed;
+        } catch (_) { parts = []; }
+        if (!parts.length) {
+          const row = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 3;
+          cell.className = 'pr-review-empty';
+          cell.textContent = 'No available IR allocation recorded.';
+          row.append(cell);
+          referenceBody.append(row);
+        } else {
+          parts.forEach(part => {
+            const row = document.createElement('tr');
+            const name = document.createElement('td');
+            name.textContent = part.name || '—';
+            const qty = document.createElement('td');
+            qty.textContent = String(part.quantity ?? 0) + ' ' + (part.unit || '');
+            const cell = document.createElement('td');
+            const badge = document.createElement('span');
+            badge.className = 'pr-availability-badge is-available';
+            badge.textContent = 'Reference';
+            cell.append(badge);
+            row.append(name, qty, cell);
+            referenceBody.append(row);
+          });
+        }
+      }
+
+
 
       const approvedJo = button.dataset.joApproved === '1';
       const approver = document.getElementById('reviewPrApprover');
