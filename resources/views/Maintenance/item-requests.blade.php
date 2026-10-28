@@ -135,45 +135,61 @@
             </table></div>
             @else
             <div class="ir-table-wrap">
-                <table class="ir-table ir-records-table">
-                    <thead>
-                        <tr><th>IR NUMBER</th><th>JOB ORDER</th><th>BUS</th><th>REQUESTED PARTS</th><th>IR STATUS</th><th>DATE & TIME</th><th>ACTIONS</th></tr>
-                    </thead>
+                <table class="ir-table ir-records-table ir-split-table ir-lifecycle-table">
+                    <thead><tr><th>IR / JOB ORDER</th><th>SUBMITTED AT</th><th>REQUESTED PARTS</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                         @forelse($requests as $ir)
-                        <tr>
-                            <td><strong class="ir-number maintenance-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</strong></td>
-                            <td><strong>{{ $ir->jobOrder?->job_order_no ?? '—' }}</strong></td>
-                            <td><span class="ir-bus-tag"><i class="fa-solid fa-bus"></i> {{ $ir->jobOrder?->bus_no ?? '—' }}</span></td>
+                        @php
+                            $irParts = collect($ir->requested_parts ?? []);
+                            $issueAvailable = $ir->jobOrder?->parts_issue_strategy === 'issue_available_only';
+                        @endphp
+                        <tr class="ir-lifecycle-record">
                             <td>
-                                @php($parts = collect($ir->requested_parts ?? []))
-                                @if($parts->isNotEmpty())
-                                    <span class="ir-part-name">{{ $parts->first()['name'] ?? '—' }}</span>
-                                    @if($parts->count() > 1)
-                                        <details class="ir-parts-details">
-                                            <summary>+{{ $parts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                            <div class="ir-parts-popover">
-                                                @foreach($parts as $part)
-                                                    <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
+                                <div class="ir-split-jo">
+                                    <strong class="ir-number maintenance-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</strong>
+                                    <small class="ir-lifecycle-jo">{{ $ir->jobOrder?->job_order_no ?? 'JO unavailable' }}</small>
+                                </div>
+                            </td>
+                            <td><div class="ir-submitted-time">
+                                <strong>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong>
+                                <small>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '—' }}</small>
+                            </div></td>
+                            <td>
+                                <div class="ir-split-parts">
+                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> {{ $irParts->count() }} {{ IlluminateSupportStr::plural('part', $irParts->count()) }}</span>
+                                </div>
+                                @if($irParts->isNotEmpty())
+                                    <details class="ir-split-breakdown">
+                                        <summary class="ir-split-part-preview" aria-label="Show requested parts for IR {{ $ir->id }}">
+                                            <span class="ir-split-more">View breakdown <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                                        </summary>
+                                        <div class="ir-split-popover">
+                                            <div class="ir-split-popover-heading">Requested IR Parts</div>
+                                            <div class="ir-split-popover-section">
+                                                @foreach($irParts as $part)
+                                                    <div class="ir-split-popover-line"><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</strong></div>
                                                 @endforeach
                                             </div>
-                                        </details>
-                                    @endif
-                                @else
-                                    <span>—</span>
+                                        </div>
+                                    </details>
                                 @endif
                             </td>
                             <td><span class="ir-status">{{ $ir->status }}</span></td>
-                            <td class="ir-date"><strong class="maintenance-ir-date-primary">{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '' }}</small></td><td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ collect($ir->requested_parts ?? [])->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye"></i> View</button></td>
+                            <td>
+                                @if($ir->jobOrder)
+                                    <span class="ir-release-badge {{ $issueAvailable ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $issueAvailable ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $issueAvailable ? 'Issue Available Only' : 'Wait Until Complete' }}</span>
+                                @else
+                                    <span class="ir-split-policy">—</span>
+                                @endif
+                            </td>
+                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
                         </tr>
                         @empty
-                        <tr><td colspan="7">
-                            <div class="ir-empty">
-                                <span><i class="fa-solid fa-box-open"></i></span>
-                                <strong>{{ $view === 'history' ? 'No historical Item Requests' : 'No Item Requests in progress' }}</strong>
-                                <p>{{ $view === 'history' ? 'Completed or closed requests will appear here.' : 'Submitted Item Requests awaiting Warehouse fulfillment will appear here.' }}</p>
-                            </div>
-                        </td></tr>
+                        <tr><td colspan="6"><div class="ir-empty">
+                            <span><i class="fa-solid fa-box-open"></i></span>
+                            <strong>{{ $view === 'history' ? 'No historical Item Requests' : 'No Item Requests in progress' }}</strong>
+                            <p>{{ $view === 'history' ? 'Completed or closed requests will appear here.' : 'Submitted Item Requests awaiting Warehouse fulfillment will appear here.' }}</p>
+                        </div></td></tr>
                         @endforelse
                     </tbody>
                 </table>
