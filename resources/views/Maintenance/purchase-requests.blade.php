@@ -379,16 +379,28 @@
               </div>
               <section class="pr-step-card pr-document-parts" aria-label="Parts requiring purchase">
                   <div class="pr-step-heading"><span class="pr-step-icon">02</span><div><h3>Parts &amp; Warehouse</h3><p>Missing parts — Purchase Request (PR), for procurement only</p></div><span class="pr-step-tag">JO shortage</span></div>
-                  <div class="pr-simple-body">
-                      <div class="pr-shortage-table-wrap">
-                          <table class="pr-shortage-table pr-review-parts-table">
-                              <thead><tr><th scope="col">ITEM / PART</th><th scope="col">SHORTAGE QTY</th><th scope="col">STATUS</th></tr></thead>
-                              <tbody id="newPrPartsBody"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
-                          </table>
+                  <div class="pr-dual-parts-grid">
+                      <div class="pr-dual-parts-pane is-pr">
+                          <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
+                          <div class="pr-shortage-table-wrap">
+                              <table class="pr-shortage-table pr-review-parts-table">
+                                  <thead><tr><th scope="col">PART NAME</th><th scope="col">MISSING QTY</th><th scope="col">STATUS</th></tr></thead>
+                                  <tbody id="newPrPartsBody"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
+                              </table>
+                          </div>
                       </div>
-                      <p class="pr-stock-note">Only shortage quantities are included. Warehouse verifies availability during processing.</p>
-                      <p id="prPartsError" class="pr-inline-error" role="alert" hidden></p>
+                      <div class="pr-dual-parts-pane is-ir">
+                          <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
+                          <div class="pr-shortage-table-wrap">
+                              <table class="pr-shortage-table pr-review-parts-table">
+                                  <thead><tr><th scope="col">PART NAME</th><th scope="col">REQUESTED QTY</th><th scope="col">AVAILABILITY</th></tr></thead>
+                                  <tbody id="prReviewAvailableParts"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
+                              </table>
+                          </div>
+                      </div>
                   </div>
+                  <p class="pr-stock-note">Only missing quantities are submitted in this PR. IR quantities are reference allocations and are not submitted again.</p>
+                  <p id="prPartsError" class="pr-inline-error" role="alert" hidden></p>
               </section>
               <section class="pr-step-card pr-step-additional" aria-label="Request details">
                   <div class="pr-step-heading"><span class="pr-step-icon">03</span><div><h3>Request Details</h3><p>Purpose and optional purchasing instructions</p></div></div>
