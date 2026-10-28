@@ -5897,3 +5897,40 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #editPrModal .pr-view-document .pr-review-status-pill{white-space:normal;}
 @media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr;}}
 @media(max-width:530px){#editPrModal .pr-view-document .pr-ir-review-summary{grid-template-columns:1fr 1fr;}#editPrModal .pr-view-document .pr-ir-approval-body{grid-template-columns:1fr;}}
+
+/* Shared dimensions for Pending Review PR and In Progress/History View PR.
+   Override older !important width caps on the saved-details dialog. */
+@media (min-width: 761px) {
+  #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+    width:min(1006px,calc(100vw - 36px))!important;
+    max-width:1006px!important;
+    max-height:calc(100dvh - 36px)!important;
+    margin:auto!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  #editPrModal.pr-review-modal-overlay {
+    padding:18px!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+}
+#editPrModal .ui-form-modal-scrollable {
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+}
+#editPrModal .pr-view-document {
+  padding:13px 16px 16px!important;
+  gap:12px!important;
+}
+@media (max-width:760px) {
+  #editPrModal.pr-review-modal-overlay > .ui-form-modal {
+    width:calc(100vw - 20px)!important;
+    max-width:calc(100vw - 20px)!important;
+    max-height:calc(100dvh - 20px)!important;
+  }
+}
