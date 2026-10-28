@@ -5848,3 +5848,40 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
  #jobModal .jo-create-job-details-grid > .jo-selected-jobs-panel { grid-template-columns: 1fr; }
  #jobModal .jo-selected-jobs-actions { grid-column: 1; justify-content: flex-end; }
 }
+
+/* Mechanic picker: also applies when the dropdown is portaled to <body>. */
+.jo-mechanic-multi-menu .jo-mechanic-combobox-options { padding: 3px; overflow-y: auto; }
+.jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option {
+  width: 100%; display: grid; grid-template-columns: 32px minmax(0,1fr) auto 18px;
+  align-items: center; gap: 10px; min-height: 60px; padding: 9px 11px;
+  text-align: left; background: #fff; border: 0; border-bottom: 1px solid #e9eef6;
+  border-radius: 0; color: #183354;
+}
+.jo-mechanic-multi-menu .jo-mechanic-multi-option:hover,
+.jo-mechanic-multi-menu .jo-mechanic-multi-option.is-selected { background: #f1f6ff; }
+.jo-mechanic-multi-menu .jo-mechanic-multi-option:disabled { opacity: .63; cursor: not-allowed; }
+.jo-mechanic-multi-menu .jo-mechanic-option-avatar {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: #d7e6f9; color: #24588e; font-size: 11px; font-weight: 800;
+}
+.jo-mechanic-multi-menu .jo-mechanic-option-copy { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.jo-mechanic-multi-menu .jo-mechanic-option-copy > strong { display: block; color: #152e50; font-size: 12px; font-weight: 750; }
+.jo-mechanic-multi-menu .jo-mechanic-option-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+.jo-mechanic-multi-menu .jo-mechanic-option-skills small {
+  display: inline-flex; width: auto; border: 1px solid #d8e7fa;
+  padding: 3px 6px; border-radius: 5px; background: #eaf2fd;
+  color: #285c9e; font-size: 10px; line-height: 1.1;
+}
+.jo-mechanic-multi-menu .jo-mechanic-option-status { font-size: 11px; color: #218155; font-weight: 700; white-space: nowrap; }
+.jo-mechanic-multi-menu .jo-mechanic-option-status::before { content: '●'; font-size: 9px; margin-right: 5px; }
+.jo-mechanic-multi-menu .jo-mechanic-option-status.is-unavailable { color: #bd454b; }
+.jo-mechanic-multi-menu .jo-mechanic-multi-option > i { color: #a6b8cf; font-size: 17px; }
+.jo-mechanic-multi-menu .jo-mechanic-multi-option.is-selected > i { color: #2469ca; }
+#jobModal .jo-coverage-table .jo-coverage-row { display: grid !important; grid-template-columns: minmax(0,1.6fr) minmax(98px,.7fr) minmax(0,1fr); }
+#jobModal .jo-coverage-table .jo-coverage-row > * { min-width: 0; overflow-wrap: anywhere; }
+#jobModal .jo-mechanic-coverage > .jo-coverage-row { display: none !important; }
+@media(max-width: 580px) {
+ .jo-mechanic-multi-menu .jo-mechanic-combobox-option.jo-mechanic-multi-option { grid-template-columns: 30px minmax(0,1fr) 18px; }
+ .jo-mechanic-multi-menu .jo-mechanic-option-status { grid-column: 2; grid-row: 2; }
+ #jobModal .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
+}
