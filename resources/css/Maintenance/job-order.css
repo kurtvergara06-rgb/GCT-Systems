@@ -6058,3 +6058,111 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
     grid-column: 1 / -1;
   }
 }
+
+/* Estimated Duration: clearer, cohesive entry control and Head-review guidance. */
+#jobModal .jo-create-duration .jo-create-duration-grid {
+  padding: 17px 18px 18px;
+}
+#jobModal .jo-create-duration .jo-estimated-duration-field {
+  width: 100%;
+  max-width: 100%;
+}
+#jobModal .jo-create-duration .jo-estimated-duration-field > label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 12px;
+  font-weight: 750;
+  color: #173557;
+}
+#jobModal .jo-create-duration .jo-duration-control {
+  display: flex;
+  align-items: stretch;
+  width: min(100%, 480px);
+  max-width: 100%;
+  gap: 0;
+  border: 1px solid #cbdcf0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+#jobModal .jo-create-duration .jo-duration-control:focus-within {
+  border-color: #397fdb;
+  box-shadow: 0 0 0 3px rgba(57,127,219,.10);
+}
+#jobModal .jo-create-duration .jo-duration-control .ui-input-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+#jobModal .jo-create-duration .jo-duration-control input {
+  box-sizing: border-box;
+  min-height: 46px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  background: transparent;
+  font-size: 13px;
+  color: #18375b;
+}
+#jobModal .jo-create-duration .jo-duration-control .jo-duration-unit-select {
+  flex: 0 0 125px;
+  width: 125px;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 0 !important;
+  border-left: 1px solid #d8e3f1 !important;
+  border-radius: 0 !important;
+  background: #f3f7fd;
+  box-shadow: none !important;
+  color: #224262;
+  font-size: 12px;
+  font-weight: 700;
+}
+#jobModal .jo-create-duration .jo-duration-suggestion[data-status="available"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 8px 11px;
+  border: 1px solid #cce7d6;
+  border-radius: 8px;
+  background: #effbf3;
+  color: #1a714a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+#jobModal .jo-create-duration .jo-duration-compact-help {
+  display: flex;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 680px;
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  gap: 10px;
+  border: 1px solid #dde8f8;
+  border-radius: 9px;
+  background: #f3f8ff;
+  color: #435d7b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+#jobModal .jo-create-duration .jo-duration-compact-help i {
+  margin-top: 2px;
+  color: #246ac1;
+  font-size: 13px;
+}
+@media(max-width: 490px) {
+  #jobModal .jo-create-duration .jo-create-duration-grid { padding: 13px; }
+  #jobModal .jo-create-duration .jo-duration-control .jo-duration-unit-select {
+    flex-basis: 102px;
+    width: 102px;
+    padding-inline: 8px;
+  }
+}
