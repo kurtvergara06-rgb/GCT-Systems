@@ -196,7 +196,7 @@
                                   <td><span class="pr-ir-shortage-status {{ $availableAllocation->isNotEmpty() ? 'is-partial' : '' }}">{{ $availableAllocation->isNotEmpty() ? 'Partial Stock' : 'Unavailable Stock' }}</span></td>
                                   <td><span class="pr-pending-badge pr-ir-status-box"><i class="fa-regular fa-clock" aria-hidden="true"></i> For Review</span></td>
                                   <td><span class="pr-ir-release-policy {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $sourceJo->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Only' : 'Wait Until Complete' }}</span></td>
-                                  <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $sourceJo->job_order_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review PR</button></td>
+                                  <td><button type="button" class="pr-pending-review-btn" data-pr-review-job="{{ $sourceJo->job_order_no }}"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review PR</button></td>
                               </tr>
                           @empty
                               <tr><td colspan="7" style="text-align:center;padding:30px">No pending purchase suggestions. Shortages from approved Job Orders appear here automatically.</td></tr>
