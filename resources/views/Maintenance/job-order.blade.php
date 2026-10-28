@@ -453,8 +453,8 @@
                                                             <p class="jo-view-help">No saved signature image is available for this record.</p>
                                                         @endif
                                                     </section>
-                                                    <details class="jo-view-audit jo-view-audit-compact">
-                                                        <summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></summary>
+                                                    <section class="jo-view-audit jo-view-audit-compact">
+                                                        <h3 class="jo-view-audit-heading"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></h3>
                                                         <ol>
                                                             @forelse($jobOrder->audits->sortBy(fn ($entry) => sprintf('%020d-%010d', $entry->created_at?->getTimestamp() ?? 0, $entry->id)) as $audit)
                                                                 <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->action === 'created' ? ($jobOrder->creator?->name ?? $audit->user?->name ?? 'Unknown creator') : ($audit->user?->name ?? 'Unknown actor') }} <small>{{ $audit->created_at?->format('M d, Y · h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
@@ -462,7 +462,7 @@
                                                                 <li>No audit records yet.</li>
                                                             @endforelse
                                                         </ol>
-                                                    </details>
+                                                    </section>
                                                     </div>
                                                 </template>
                                             @elseif(!($canReviewJobOrders && $isPendingReview))
