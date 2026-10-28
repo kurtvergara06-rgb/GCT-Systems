@@ -6580,3 +6580,17 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
     min-width: 680px;
   }
 }
+
+/* Final quantity alignment: override legacy list-row right alignment. */
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-stock-table > .jo-view-stock-row > .jo-view-part-quantity {
+  text-align: left !important;
+  justify-self: start !important;
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#joReadonlyOverlay .jo-view-stock-table > .jo-view-stock-head > span:nth-child(4) {
+  text-align: left !important;
+  justify-self: start !important;
+}
