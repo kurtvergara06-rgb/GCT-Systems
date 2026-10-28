@@ -445,3 +445,23 @@
 .maintenance-ir-page .ir-split-popover-empty { font-size: 11px; color: #7b8799; margin: 0; }
 .maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) { position: relative; z-index: 110; }
 .maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) td { overflow: visible; }
+
+/* Pending requests: submitted timestamp and explicit handover policy. */
+.maintenance-ir-page .ir-submitted-time,
+.maintenance-ir-page .ir-release-policy {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+}
+.maintenance-ir-page .ir-submitted-time strong { color: #193c66; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.maintenance-ir-page .ir-submitted-time small { color: #61758e; font-size: 11px; line-height: 1.4; }
+.maintenance-ir-page .ir-submitted-time small:last-child { color: #7d899a; font-size: 10px; }
+.maintenance-ir-page .ir-release-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px;
+  border-radius: 8px; border: 1px solid #ebce8a; background: #fff2d8;
+  color: #965705; font-size: 11px; line-height: 1.25; font-weight: 800; white-space: nowrap;
+}
+.maintenance-ir-page .ir-release-badge.is-partial { background: #e8f3ff; border-color: #c2ddf8; color: #205d9b; }
+.maintenance-ir-page .ir-release-policy small { max-width: 230px; color: #61758d; font-size: 11px; line-height: 1.4; }
+.maintenance-ir-page .ir-split-table th:nth-child(2),
+.maintenance-ir-page .ir-split-table td:nth-child(2) { min-width: 125px; }
+.maintenance-ir-page .ir-split-table th:nth-child(5),
+.maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 195px; }
