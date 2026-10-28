@@ -96,7 +96,7 @@
                 <td><span class="ir-status {{ $needsHeadRelease ? 'ir-status-needs-head' : '' }}">{{ $needsHeadRelease ? 'Waiting for Complete Stock' : 'For Review' }}</span></td>
                 <td>
                     <div class="ir-pending-actions">
-                        <button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" @disabled($needsHeadRelease) title="{{ $needsHeadRelease ? 'The Head selected Wait Until Complete. Partial IR is not authorized until sufficient stock is allocated.' : 'Review proposed available quantities' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button>
+                        <button type="button" class="ir-view-button" data-ir-review-job="{{ $jo->id }}" data-ir-review-number="{{ $jo->job_order_no }}" data-ir-review-bus="{{ $jo->bus_no }}" title="Review available quantities for Item Request; Warehouse issuance follows the approved release policy"><i class="fa-solid fa-eye" aria-hidden="true"></i> Review IR</button>
                         @if($hasShortage)
                             <a class="ir-pr-link" href="{{ route('purchase-requests', ['job_order_id' => $jo->id]) }}" title="Open Maintenance Purchase Requests to requisition missing JO parts">
                                 <i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Request Missing Parts
