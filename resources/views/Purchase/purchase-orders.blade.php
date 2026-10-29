@@ -120,7 +120,7 @@
               <x-slot:filters>
                 <x-ui.table-toolbar-field label="Status" name="status" default="">
                   <option value="">All {{ ($activeTab ?? 'active') === 'history' ? 'Completed' : 'Active' }} Statuses</option>
-                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up'] : ['Ordered', 'For Pick-up', 'For Delivery'] as $status)
+                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up'] : ['For Review', 'Ordered', 'For Pick-up', 'For Delivery'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                   @endforeach
                 </x-ui.table-toolbar-field>
@@ -149,7 +149,9 @@
                   $isInventoryRestock = $hasRequest && str_starts_with(strtoupper($displayRequestNo), 'RST-');
                   $requestType = ! $hasRequest ? 'Manual Purchase' : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance PR');
                   $normalizedPoStatus = strtolower(trim((string) ($purchaseOrder->status ?? '')));
-                  $isEditable = $normalizedPoStatus === 'ordered';
+                  $isEditable = in_array($normalizedPoStatus, ['for review', 'ordered'], true);
+                  $isForReview = $normalizedPoStatus === 'for review';
+                  $canReviewPo = ((strtolower(trim((string) (auth()->user()->department ?? ''))) === 'purchase' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head') || strtolower(trim((string) (auth()->user()->role ?? ''))) === 'system admin' || (strtolower(trim((string) (auth()->user()->department ?? ''))) === 'admin' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head'));
                   $isDraft = $normalizedPoStatus === 'draft';
                   $nextStatuses = $purchaseOrder->status === 'Ordered' ? ['For Pick-up', 'For Delivery'] : [];
                 @endphp
@@ -213,6 +215,18 @@
                         data-items='@json($items)'
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
                       />
+
+                      @if($isForReview && $canReviewPo)
+                        <form action="{{ route('purchase-orders.approve', $purchaseOrder) }}" method="POST"
+                              data-confirm-form data-confirm-title="Approve Purchase Order?"
+                              data-confirm-message="Approve this Purchase Order and move it to Ordered?"
+                              data-confirm-button="Yes, Approve PO" data-confirm-type="approve">
+                          @csrf @method('PATCH')
+                          <button type="submit" class="action-btn po-review-action" title="Review and Approve PO" aria-label="Review and Approve {{ $purchaseOrder->po_no }}">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                          </button>
+                        </form>
+                      @endif
 
                       @if($isEditable)
                         <x-ui.action-button
@@ -301,7 +315,7 @@
       >
         @csrf
         <input type="hidden" name="_method" id="poFormMethod" value="POST">
-        <input type="hidden" name="status" id="po_status" value="Ordered">
+        <input type="hidden" name="status" id="po_status" value="For Review">
         <input type="hidden" name="purchase_request_id" id="purchase_request_id" value="{{ $selectedPurchaseRequest?->id }}">
 
         <section class="po-form-section po-order-information" aria-labelledby="poOrderInfoTitle">
