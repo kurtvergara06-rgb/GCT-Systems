@@ -55,21 +55,6 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                     ->middleware('system.permission:operation,edit')
                     ->name('operation.personnel.drivers.deactivate');
 
-                Route::get('/mechanics', [PersonnelController::class, 'mechanics'])
-                    ->middleware('system.permission:operation,view')
-                    ->name('operation.personnel.mechanics');
-                Route::post('/mechanics', [PersonnelController::class, 'storeMechanic'])
-                    ->middleware('system.permission:operation,edit')
-                    ->name('operation.personnel.mechanics.store');
-                Route::put('/mechanics/{mechanic}', [PersonnelController::class, 'updateMechanic'])
-                    ->middleware('system.permission:operation,edit')
-                    ->name('operation.personnel.mechanics.update');
-                Route::patch('/mechanics/{mechanic}/deactivate', [PersonnelController::class, 'deactivateMechanic'])
-                    ->middleware('system.permission:operation,edit')
-                    ->name('operation.personnel.mechanics.deactivate');
-                Route::patch('/mechanics/{mechanic}/activate', [PersonnelController::class, 'activateMechanic'])
-                    ->middleware('system.permission:operation,edit')
-                    ->name('operation.personnel.mechanics.activate');
             });
 
         Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
