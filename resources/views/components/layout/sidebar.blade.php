@@ -76,7 +76,7 @@
                 'icon' => 'fa-toolbox',
                 'children' => [
                     ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
-                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
+                    ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
                     ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
                     ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
                 ],
