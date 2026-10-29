@@ -1419,3 +1419,33 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
     flex:1 0 auto;
   }
 }
+
+/* Parts Requests typography: match the Maintenance requisition reference. */
+main.purchase-maintenance-requests-page .requested-purchase-table {
+  font-family:inherit !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity {
+  font-family:inherit !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  line-height:1.25 !important;
+  color:#18365c !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] {
+  font-family:inherit !important;
+  font-size:11px !important;
+  font-weight:750 !important;
+  line-height:1.1 !important;
+  min-height:27px !important;
+  height:27px !important;
+  width:max-content !important;
+  max-width:none !important;
+  padding:5px 10px !important;
+  gap:5px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__label {
+  font-family:inherit !important;
+  font-size:11px !important;
+  font-weight:750 !important;
+  line-height:1.1 !important;
+}
