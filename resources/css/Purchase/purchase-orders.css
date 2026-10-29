@@ -1090,3 +1090,69 @@
   #poModal .po-bottom-grid.po-paper-bottom-grid {grid-template-columns:minmax(0,1fr) !important;}
   #poModal .po-modal-actions {margin:0 -14px; padding:10px 14px;}
 }
+
+
+/* Match Parts Requisitions record-table typography, proportions and compact badges. */
+main.purchase-orders-page .purchase-order-card .records-table-wrap { width:100%; overflow-x:auto; }
+main.purchase-orders-page .purchase-order-card .records-table { width:100%; min-width:1050px; table-layout:fixed; }
+main.purchase-orders-page .purchase-order-card .records-table th,
+main.purchase-orders-page .purchase-order-card .records-table td {
+  box-sizing:border-box; padding:12px 10px !important; vertical-align:middle;
+  text-align:left; font-family:inherit; white-space:normal;
+}
+main.purchase-orders-page .purchase-order-card .records-table th {
+  background:#eef3fb; color:#123052; font-size:10px; font-weight:800;
+  letter-spacing:.025em; line-height:1.25;
+}
+main.purchase-orders-page .purchase-order-card .records-table td {
+  color:#18365c; font-size:11px; font-weight:650; line-height:1.35;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(1) {width:11%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:17%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(3) {width:12%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:15%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(5) {width:7%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(6) {width:10%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(7) {width:12%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(8) {width:10%;text-align:left;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9) {width:6%;text-align:right;}
+main.purchase-orders-page .purchase-order-card .records-table td strong,
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-qty,
+main.purchase-orders-page .purchase-order-card .po-amount {font-family:inherit;font-size:11px;font-weight:750;color:#18365c;}
+main.purchase-orders-page .purchase-order-card .po-number-cell {min-width:0;}
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-number-cell strong {white-space:nowrap;}
+main.purchase-orders-page .purchase-order-card .po-request-type {font-family:inherit;font-size:10px;line-height:1.25;white-space:normal;}
+main.purchase-orders-page .purchase-order-card .po-date {min-width:0;}
+main.purchase-orders-page .purchase-order-card .po-date strong {font-size:11px;font-weight:800;color:#17375f;}
+main.purchase-orders-page .purchase-order-card .po-date small {font-size:10px;color:#6981a1;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell {overflow:visible;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] {
+  display:inline-flex !important; align-items:center; justify-content:center;
+  width:max-content !important; max-width:100% !important; min-width:0 !important;
+  height:26px !important; min-height:26px !important;
+  padding:4px 8px !important; gap:4px !important;
+  box-sizing:border-box; border-radius:999px !important;
+  font-family:inherit !important; font-size:10px !important;
+  font-weight:750 !important; white-space:nowrap !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__icon {
+  width:10px !important; min-width:10px !important; height:auto !important;
+  min-height:0 !important; margin:0 !important; padding:0 !important;
+  flex:0 0 10px !important; font-size:10px !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
+  width:auto !important; min-width:0 !important; min-height:0 !important;
+  margin:0 !important; padding:0 !important; font-size:10px !important;
+  font-weight:750 !important; line-height:1.1 !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions {display:inline-flex; gap:5px; align-items:center; justify-content:flex-end; white-space:nowrap;}
+main.purchase-orders-page .purchase-order-card .record-actions .action-btn {
+  display:inline-flex; width:30px; min-width:30px; height:30px; min-height:30px;
+  padding:0; align-items:center; justify-content:center; border-radius:7px;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9) {width:10%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:15%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:13%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(7) {width:13%;}
