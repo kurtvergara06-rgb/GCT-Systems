@@ -453,3 +453,27 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   line-height: 1.5;
   text-decoration: none;
 }
+
+/* Make physical inventory distinct from the JO's issuable allocation in stock popovers. */
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-onhand,
+.warehouse-ir-page .warehouse-ir-stock-popover .warehouse-ir-stock-onhand {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px 7px;
+  border: 1px solid #c8d9ed;
+  border-radius: 6px;
+  background: #eff5fc;
+  color: #24476b;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-onhand strong,
+.warehouse-ir-page .warehouse-ir-stock-popover .warehouse-ir-stock-onhand strong {
+  color: #102c50;
+  font-size: 12px;
+  font-weight: 850;
+}
