@@ -2386,3 +2386,58 @@
 .personnel-master-table thead th.mechanic-table-strong-heading {
   font-weight: 800;
 }
+
+
+/* Maintenance Mechanics toolbar parity with Job Orders; no Active/History tabs. */
+.mechanic-master-layout .personnel-section-header {
+  align-items: flex-start;
+  border: 0;
+  padding-bottom: 0;
+  margin-bottom: 14px;
+}
+.mechanic-master-layout .mechanic-header-create-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 0 15px;
+  min-height: 40px;
+  border-radius: 9px;
+  border: 1px solid #e5a800;
+  background: #ffbd00;
+  color: #14243e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mechanic-master-layout .mechanic-header-create-btn:hover { background: #f1b100; }
+.mechanic-master-layout .attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 0 0 14px;
+}
+.mechanic-master-layout .mechanic-master-toolbar .gct-table-tool {
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  .mechanic-master-layout .personnel-section-header { flex-wrap: wrap; }
+  .mechanic-master-layout .mechanic-header-create-btn { margin-left: auto; }
+  .mechanic-master-layout .attendance-toolbar.personnel-master-toolbar.mechanic-master-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+  }
+}
