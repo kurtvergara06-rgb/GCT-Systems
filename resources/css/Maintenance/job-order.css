@@ -6649,3 +6649,40 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) .jo-create-parts-header .jo-create-add-part-btn:disabled {
   opacity:.55;
 }
+
+/* JO section breathing room and inventory-backed requested part rows. */
+:is(#jobModal,#editJobModal) .jo-create-section[data-jo-collapsible] {
+  margin-block: 0 16px !important;
+  border-radius: 12px;
+}
+:is(#jobModal,#editJobModal) .jo-create-section[data-jo-collapsible] + .jo-create-section[data-jo-collapsible] {
+  margin-top: 8px !important;
+}
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {
+  column-gap: 13px !important;
+  row-gap: 12px !important;
+  min-height: 78px;
+  padding: 14px 16px !important;
+}
+:is(#jobModal,#editJobModal) .jo-inventory-name-field {
+  display: none !important;
+}
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-inventory-picker {
+  min-width:0;width:100%;min-height:42px;
+  border-radius:8px;border:1px solid #cbdcf0;
+  background:#fff;color:#17375c;padding:8px 10px;
+  font:inherit;font-size:12px;
+}
+:is(#jobModal,#editJobModal) .jo-inventory-stock-status {
+  display:inline-flex;align-items:center;justify-content:center;
+  max-width:100%;min-height:29px;padding:5px 8px;
+  border:1px solid #d4e0ef;border-radius:999px;
+  color:#596f88;background:#f4f7fb;font-size:11px;font-weight:750;
+  white-space:nowrap;
+}
+:is(#jobModal,#editJobModal) .jo-inventory-stock-status[data-state="available"] {
+  background:#e9f9ef;border-color:#bcebc9;color:#18723c;
+}
+:is(#jobModal,#editJobModal) .jo-inventory-stock-status[data-state="unavailable"] {
+  background:#fff1f1;border-color:#f3c4c4;color:#ac3434;
+}
