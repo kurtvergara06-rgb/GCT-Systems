@@ -51,113 +51,6 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (visible && event.key === 'Escape') { close(); trigger.focus(); }
     });
   });
-  // Separate read-only stock breakdown modal. Fetch a fresh verification
-  // snapshot instead of trusting potentially stale table row quantities.
-  const stockModal = document.getElementById('warehouseIrStockModal');
-  let stockModalSequence = 0;
-  let stockModalTrigger = null;
-  const closeStockModal = () => {
-    if (!stockModal) return;
-    stockModalSequence++;
-    stockModal.classList.remove('is-open');
-    stockModal.setAttribute('aria-hidden', 'true');
-    stockModalTrigger?.focus();
-    stockModalTrigger = null;
-  };
-  document.addEventListener('click', async (event) => {
-    const trigger = event.target.closest('[data-ir-stock-open]');
-    if (trigger && document.querySelector('.warehouse-ir-page')?.contains(trigger)) {
-      if (!stockModal) return;
-      stockModalTrigger = trigger;
-      const sequence = ++stockModalSequence;
-      stockModal.classList.add('is-open');
-      stockModal.setAttribute('aria-hidden', 'false');
-      stockModal.querySelector('[data-stock-modal-close]')?.focus();
-      const reference = document.getElementById('warehouseIrStockReference');
-      if (reference) reference.textContent = (trigger.dataset.irNumber || 'IR') + ' · ' + (trigger.dataset.irJob || 'JO');
-      const rows = document.getElementById('warehouseIrStockModalRows');
-      const shortages = document.getElementById('warehouseIrStockModalShortages');
-      const message = document.getElementById('warehouseIrStockModalMessage');
-      if (rows) rows.replaceChildren();
-      if (shortages) shortages.textContent = 'Checking linked Job Order...';
-      if (message) message.textContent = 'Checking current inventory...';
-      try {
-        const response = await fetch(trigger.dataset.irVerifyUrl, {
-          credentials: 'same-origin',
-          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        if (!response.ok) throw new Error('Unable to verify stock (HTTP ' + response.status + ').');
-        const data = await response.json();
-        if (sequence !== stockModalSequence) return;
-        const irParts = Array.isArray(data.parts) ? data.parts : [];
-        const joParts = JSON.parse(trigger.dataset.joParts || '[]');
-        const normalize = (part) => String(part.name || '').toLowerCase().replace(/\\s*\\[item:\\d+\\]/g, '').trim() + '|' + String(part.unit || '').toLowerCase().trim();
-        const byPart = new Map(irParts.map(part => [normalize(part), part]));
-        const display = Array.isArray(joParts) && joParts.length ? joParts : irParts;
-        if (rows) {
-          rows.replaceChildren();
-          display.forEach(part => {
-            const live = byPart.get(normalize(part));
-            const row = document.createElement('tr');
-            const req = Number(part.quantity ?? part.requested_total ?? 0);
-            const irQty = Number(live?.requested_total ?? 0);
-            const cells = [
-              part.name || '—',
-              req + ' ' + (part.unit || ''),
-              irQty + ' ' + (part.unit || ''),
-              live ? Number(live.on_hand ?? 0) + ' ' + (part.unit || '') : 'Not in IR',
-              live ? Number(live.available ?? 0) + ' ' + (part.unit || '') : '0 ' + (part.unit || '')
-            ];
-            cells.forEach((value, index) => {
-              const td = document.createElement('td');
-              td.textContent = value;
-              if (index === 3) td.className = 'warehouse-ir-stock-physical';
-              row.appendChild(td);
-            });
-            rows.appendChild(row);
-          });
-          if (!display.length) {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.colSpan = 5; td.textContent = 'No recorded parts.';
-            tr.appendChild(td); rows.appendChild(tr);
-          }
-        }
-        if (shortages) {
-          shortages.replaceChildren();
-          let found = false;
-          display.forEach(part => {
-            const live = byPart.get(normalize(part));
-            const missing = Math.max(0, Number(part.quantity ?? part.requested_total ?? 0) - Number(live?.requested_total ?? 0));
-            if (missing <= 0) return;
-            found = true;
-            const line = document.createElement('div');
-            const name = document.createElement('span');
-            name.textContent = part.name || '—';
-            const qty = document.createElement('strong');
-            qty.textContent = missing + ' ' + (part.unit || '') + ' not in this IR';
-            line.append(name, qty);
-            shortages.appendChild(line);
-          });
-          if (!found) shortages.textContent = 'No quantities outside this IR allocation.';
-        }
-        if (message) message.textContent = 'Live Warehouse stock checked. Physical issuance is managed through the existing authorized action.';
-      } catch (error) {
-        if (sequence !== stockModalSequence) return;
-        if (message) message.textContent = error.message;
-        if (shortages) shortages.textContent = 'Unable to load breakdown.';
-      }
-      return;
-    }
-    if (event.target.closest('[data-stock-modal-close]') && stockModal?.contains(event.target)) closeStockModal();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && stockModal?.classList.contains('is-open')) {
-      event.stopPropagation();
-      closeStockModal();
-    }
-  });
-
   const modal = document.getElementById('warehouseItemRequestDetails');
   if (!modal) return;
   let activeTrigger = null;
@@ -189,7 +82,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     if (!tbody || !url) return;
     tbody.replaceChildren();
     const loading = document.createElement('tr');
-    appendCell(loading, 'Checking current Warehouse stock...', 'warehouse-ir-stock-empty').colSpan = 5;
+    appendCell(loading, 'Checking current Warehouse stock...', 'warehouse-ir-stock-empty').colSpan = 7;
     tbody.appendChild(loading);
     message.textContent = '';
     timestamp.textContent = '';
@@ -201,15 +94,23 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       const data = await response.json();
       if (sequence !== requestSequence) return;
       tbody.replaceChildren();
-      (data.parts || []).forEach((part) => {
+      const irParts = Array.isArray(data.parts) ? data.parts : [];
+      let joParts = [];
+      try { joParts = JSON.parse(activeTrigger?.dataset.irJoParts || '[]'); } catch (_) { joParts = []; }
+      const key = (part) => String(part.name || '').toLowerCase().replace(/\\s*\\[item:\\d+\\]/g, '').trim() + '|' + String(part.unit || '').toLowerCase().trim();
+      const joByKey = new Map(joParts.map(part => [key(part), part]));
+      irParts.forEach((part) => {
         const tr = document.createElement('tr');
-        const required = Number(part.quantity || 0);
         const available = Number(part.available || 0);
-        const shortage = Number(part.shortage || 0);
+        const remaining = Number(part.quantity || 0);
+        const required = Number(part.requested_total ?? remaining);
+        const joPart = joByKey.get(key(part));
         appendCell(tr, part.name);
+        appendCell(tr, joPart ? Number(joPart.quantity || 0) + ' ' + (part.unit || '') : '—');
         appendCell(tr, required + ' ' + (part.unit || ''));
+        appendCell(tr, Number(part.on_hand ?? 0) + ' ' + (part.unit || ''), 'warehouse-ir-stock-physical');
         appendCell(tr, available + ' ' + (part.unit || ''));
-        appendCell(tr, shortage + ' ' + (part.unit || ''));
+        appendCell(tr, Number(part.shortage || 0) + ' ' + (part.unit || ''));
         const status = part.fulfillable ? 'Available' : available > 0 ? 'Partial' : 'Unavailable';
         const cell = appendCell(tr, '');
         const badge = document.createElement('span');
@@ -218,9 +119,28 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         cell.appendChild(badge);
         tbody.appendChild(tr);
       });
+      const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
+      if (coverage) {
+        coverage.replaceChildren();
+        const irQuantities = new Map(irParts.map(part => [key(part), Number(part.requested_total ?? part.quantity ?? 0)]));
+        let found = false;
+        joParts.forEach(part => {
+          const outside = Math.max(0, Number(part.quantity || 0) - (irQuantities.get(key(part)) || 0));
+          if (!outside) return;
+          found = true;
+          const line = document.createElement('div');
+          const label = document.createElement('span');
+          label.textContent = part.name || '—';
+          const amount = document.createElement('strong');
+          amount.textContent = outside + ' ' + (part.unit || '') + ' outside this IR';
+          line.append(label, amount);
+          coverage.appendChild(line);
+        });
+        if (!found) coverage.textContent = 'No additional JO quantities outside this IR.';
+      }
       if (!data.parts?.length) {
         const tr = document.createElement('tr');
-        appendCell(tr, 'No requested parts are recorded.', 'warehouse-ir-stock-empty').colSpan = 5;
+        appendCell(tr, 'No requested parts are recorded.', 'warehouse-ir-stock-empty').colSpan = 7;
         tbody.appendChild(tr);
       }
       timestamp.textContent = 'Checked ' + new Date(data.checked_at).toLocaleString();
