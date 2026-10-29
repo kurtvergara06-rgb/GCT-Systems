@@ -245,7 +245,12 @@
             <section class="warehouse-ir-confirm-section">
                 <h3><i class="fa-solid fa-clipboard-check"></i> Confirm Signed Handover</h3>
                 <p>Enter quantities actually handed over. For a Head-authorized partial release, outstanding quantities remain pending. Upload the signed slip after physical handover.</p>
-                <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data">
+                <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data"
+                      data-confirm-form
+                      data-confirm-title="Confirm Signed Physical Handover?"
+                      data-confirm-message="Confirm the signed withdrawal slip and quantities were physically handed over. Inventory will be deducted for the quantities recorded on this slip. Any remaining Item Request quantities will stay active."
+                      data-confirm-button="Confirm Issuance &amp; Deduct Stock"
+                      data-confirm-type="warning">
                     @csrf
                     <div id="ir-slip-quantities" class="warehouse-ir-confirm-quantities"></div>
                     <div class="warehouse-ir-confirm-fields">
