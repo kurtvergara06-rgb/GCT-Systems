@@ -453,3 +453,11 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
   line-height: 1.5;
   text-decoration: none;
 }
+
+/* Emphasize only the physical on-hand quantity; preserve the plain popup layout. */
+body > .warehouse-ir-stock-popover .warehouse-ir-onhand-value,
+.warehouse-ir-page .warehouse-ir-stock-popover .warehouse-ir-onhand-value {
+  color: #173452;
+  font-size: inherit;
+  font-weight: 800;
+}
