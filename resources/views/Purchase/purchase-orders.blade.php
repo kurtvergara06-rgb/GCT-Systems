@@ -154,12 +154,12 @@
                   $items = is_array($purchaseOrder->items) ? $purchaseOrder->items : [];
                   $firstItem = $items[0] ?? [];
                   $itemName = $firstItem['item_description'] ?? $firstItem['item'] ?? '—';
-                  $firstItemName = trim(explode(',', $itemName)[0] ?? $itemName);
+                  $firstItemName = trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', explode(',', $itemName)[0] ?? $itemName));
                   $rawRequestNo = $firstItem['pr_no'] ?? '—';
                   $displayRequestNo = preg_replace('/-P$/', '', $rawRequestNo);
                   $hasRequest = trim((string) $displayRequestNo) !== '' && $displayRequestNo !== '—';
                   $isInventoryRestock = $hasRequest && str_starts_with(strtoupper($displayRequestNo), 'RST-');
-                  $requestType = ! $hasRequest ? 'Manual Purchase' : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance Request');
+                  $requestType = ! $hasRequest ? 'Manual Purchase' : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance PR');
                   $normalizedPoStatus = strtolower(trim((string) ($purchaseOrder->status ?? '')));
                   $isEditable = $normalizedPoStatus === 'ordered';
                   $isDraft = $normalizedPoStatus === 'draft';
@@ -168,10 +168,27 @@
 
                 <tr>
                   <td><div class="po-number-cell"><strong>{{ $purchaseOrder->po_no }}</strong></div></td>
-                  <td><strong>{{ $firstItemName ?: '—' }}</strong></td>
+                  <td>
+                    <div class="po-item-preview">
+                      <strong>{{ $firstItemName ?: '—' }}</strong>
+                      @if(count($items) > 1)
+                        <button type="button" class="po-items-more-trigger" aria-label="Show all {{ count($items) }} purchase order items" aria-expanded="false">
+                          +{{ count($items) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="po-items-more-source" hidden>
+                          @foreach($items as $poItem)
+                            <div class="po-items-more-row">
+                              <span>{{ trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', $poItem['item_description'] ?? $poItem['item'] ?? '—')) }}</span>
+                              <strong>{{ $poItem['quantity'] ?? '—' }} {{ $poItem['unit'] ?? '' }}</strong>
+                            </div>
+                          @endforeach
+                        </div>
+                      @endif
+                    </div>
+                  </td>
                   <td><span class="po-reference">{{ $hasRequest ? $displayRequestNo : '—' }}</span></td>
                   <td>
-                    <span class="po-request-type {{ $isInventoryRestock ? 'inventory-restock' : 'maintenance-request' }}">
+                    <span class="po-request-type {{ $isInventoryRestock ? 'inventory-restock' : ($hasRequest ? 'maintenance-request' : 'manual-purchase') }}">
                       <i class="fa-solid {{ $isInventoryRestock ? 'fa-boxes-stacked' : ($hasRequest ? 'fa-screwdriver-wrench' : 'fa-file-circle-plus') }}"></i>
                       {{ $requestType }}
                     </span>
