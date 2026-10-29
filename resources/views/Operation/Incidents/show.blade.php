@@ -101,14 +101,7 @@
                 subtitle="{{ $incident->incident_no }} — {{ $incident->incident_type }}"
             />
 
-            @if (session('error') && !request()->boolean('embedded'))
-                <div class="inc-alert inc-alert-error" role="alert">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <div>
-                        <strong>{{ session('error') }}</strong>
-                    </div>
-                </div>
-            @endif
+
 
             @php
                 $hasOicResponse = $incident->responses->count() > 1
