@@ -318,7 +318,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('supplier_name', '');
     ['supplier_address_tel', 'terms', 'terms_of_payment', 'purpose'].forEach((id) => setValue(id, ''));
     ['delivery_fee', 'discount', 'vat'].forEach((id) => setValue(id, '0'));
-    setValue('po_status', 'Ordered');
+    setValue('po_status', 'For Review');
     setValue('main_pr_no', '');
     setText('poRequestJobOrder', '—');
     setText('poRequestBus', '—');
