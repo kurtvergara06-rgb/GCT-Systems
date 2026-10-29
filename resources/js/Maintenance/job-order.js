@@ -658,7 +658,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         .classList
         .toggle(
           'is-locked',
-          !hasMechanic
+          false
         );
     }
 
@@ -669,9 +669,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     if (newPartsLockedNotice) {
 
       newPartsLockedNotice.style.display =
-        hasMechanic
-          ? 'none'
-          : 'flex';
+        'none';
     }
 
 
