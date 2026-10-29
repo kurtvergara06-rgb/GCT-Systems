@@ -301,3 +301,19 @@
     padding: 10px 14px;
   }
 }
+
+/* IR request lifecycle: a reference quantity does not prove stock availability. */
+#prModal .pr-dual-parts-pane.is-ir .pr-availability-badge.is-ir-pending,
+#editPrModal .pr-dual-parts-pane.is-ir .pr-availability-badge.is-ir-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e6d4a6 !important;
+  background: #fff7e6 !important;
+  color: #805b19 !important;
+  padding: 5px 8px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
