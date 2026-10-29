@@ -1131,20 +1131,20 @@ main.purchase-orders-page .purchase-order-card td.po-status-cell {overflow:visib
 main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] {
   display:inline-flex !important; align-items:center; justify-content:center;
   width:max-content !important; max-width:100% !important; min-width:0 !important;
-  height:26px !important; min-height:26px !important;
-  padding:4px 8px !important; gap:4px !important;
+  height:27px !important; min-height:27px !important;
+  padding:5px 10px !important; gap:5px !important;
   box-sizing:border-box; border-radius:999px !important;
-  font-family:inherit !important; font-size:10px !important;
+  font-family:inherit !important; font-size:11px !important;
   font-weight:750 !important; white-space:nowrap !important;
 }
 main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__icon {
-  width:10px !important; min-width:10px !important; height:auto !important;
+  width:11px !important; min-width:11px !important; height:auto !important;
   min-height:0 !important; margin:0 !important; padding:0 !important;
-  flex:0 0 10px !important; font-size:10px !important;
+  flex:0 0 11px !important; font-size:11px !important;
 }
 main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
   width:auto !important; min-width:0 !important; min-height:0 !important;
-  margin:0 !important; padding:0 !important; font-size:10px !important;
+  margin:0 !important; padding:0 !important; font-size:11px !important;
   font-weight:750 !important; line-height:1.1 !important;
 }
 main.purchase-orders-page .purchase-order-card .record-actions {display:inline-flex; gap:5px; align-items:center; justify-content:flex-end; white-space:nowrap;}
