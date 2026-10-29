@@ -16,7 +16,7 @@
 <div class="app">
 <x-layout.sidebar department="Maintenance" />
 
-    <main class="main personnel-master-page">
+    <main class="main personnel-master-page mechanic-master-layout">
         <x-layout.topbar title="Mechanic Master List" subtitle="Manage mechanic profiles, specializations, and employment information" notification-count="0" />
 
         <section data-ajax-region="summary" class="stats-grid personnel-stats-grid">
@@ -32,6 +32,11 @@
                     <h2>Mechanic Records</h2>
                     <p>Permanent mechanic information only. Daily attendance remains separate from mechanic skills and profile data.</p>
                 </div>
+                @if($canEditMaintenance)
+                    <button type="button" id="openMechanicModal" class="primary-btn mechanic-header-create-btn">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Mechanic
+                    </button>
+                @endif
             </div>
 
             <x-ui.table-toolbar
@@ -44,10 +49,6 @@
                 filter-title="Filter Mechanics"
                 :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'employment_status' => 'Status']"
                 default-sort="mechanic_name"
-                button-id="openMechanicModal"
-                button-label="Add Mechanic"
-                button-icon="fa-plus"
-                :show-button="$canEditMaintenance"
             >
                 <x-slot:filters>
                     <x-ui.table-toolbar-field label="Status" name="status" default="">
