@@ -89,7 +89,7 @@
                         <td>
                             @php($parts = collect($ir->requested_parts ?? []))
                             @if($parts->isNotEmpty())
-                                <strong class="ir-part-name warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</strong>
+                                <span class="ir-part-name warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</span>
                                 @if($parts->count() > 1)
                                     <details class="ir-parts-details warehouse-ir-item-more"><summary>+{{ $parts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover">
