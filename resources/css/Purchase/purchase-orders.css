@@ -1014,3 +1014,29 @@
     width: 100%;
   }
 }
+
+
+/* Official paper-PO inspired layout, without introducing a second form workflow. */
+.purchase-orders-page ~ #poModal .po-modal-box,
+#poModal .po-modal-box { max-width: 1020px; }
+#poModal .po-paper-header-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#poModal .po-form-group input,
+#poModal .po-form-group select,
+#poModal .po-form-group textarea { max-width: 100%; box-sizing: border-box; }
+#poModal .po-form-group textarea { width: 100%; resize: vertical; min-height: 74px; }
+#poModal .po-paper-bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, .9fr); align-items: start; gap: 16px; }
+#poModal .po-purpose-field { display: flex; flex-direction: column; gap: 8px; }
+#poModal .po-purpose-hint { margin: 0; font-size: 11px; color: #71829a; }
+#poModal .po-summary-card { min-width: 0; }
+#poModal .po-summary-row.po-adjustment { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 10px; align-items: center; }
+#poModal .po-summary-row.po-adjustment label { font-size: 12px; font-weight: 600; color: #344865; }
+#poModal .po-summary-row.po-adjustment input { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid #d6e2ef; border-radius: 7px; background: white; text-align: right; }
+#poModal .po-approval-roles { padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+#poModal .po-approval-roles > div { display: flex; flex-direction: column; gap: 7px; padding: 11px; border: 1px solid #e1e9f3; border-radius: 8px; background: #f7faff; min-width: 0; }
+#poModal .po-approval-roles span { color: #71829a; font-size: 11px; }
+#poModal .po-approval-roles strong { color: #203b60; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  #poModal .po-paper-header-grid,
+  #poModal .po-paper-bottom-grid { grid-template-columns: minmax(0, 1fr); }
+  #poModal .po-approval-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
