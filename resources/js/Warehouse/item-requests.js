@@ -97,7 +97,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       const irParts = Array.isArray(data.parts) ? data.parts : [];
       let joParts = [];
       try { joParts = JSON.parse(activeTrigger?.dataset.irJoParts || '[]'); } catch (_) { joParts = []; }
-      const key = (part) => String(part.name || '').toLowerCase().replace(/\\s*\\[item:\\d+\\]/g, '').trim() + '|' + String(part.unit || '').toLowerCase().trim();
+      const key = (part) => String(part.name || '').toLowerCase().replace(/\s*\[item:\d+\]/g, '').trim() + '|' + String(part.unit || '').toLowerCase().trim();
       const joByKey = new Map(joParts.map(part => [key(part), part]));
       irParts.forEach((part) => {
         const tr = document.createElement('tr');
