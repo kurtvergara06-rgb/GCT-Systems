@@ -115,7 +115,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   const createItemRow = (item = {}, index = 0) => {
     const requestNo = item.pr_no || getValue('main_pr_no');
-    const description = item.item_description || item.item || item.name || '';
+    const description = String(item.item_description || item.item || item.name || '')
+      .replace(/\s*\[item:\s*\d+\]/gi, '').trim();
     const quantity = item.quantity || item.qty || 1;
     const unit = item.unit || 'PC';
     const cost = item.cost ?? '';
