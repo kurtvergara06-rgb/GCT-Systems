@@ -711,19 +711,48 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   box-sizing:border-box;
 }
 
-/* On-screen issuance slip: all seven reference fields use uniform cards,
-   four across so the Date field no longer occupies an orphaned row.
-   Print-specific three-column form layout remains unchanged. */
-@media screen and (min-width: 780px) {
+/* Slip metadata mirrors the View IR summary strip, without changing the print table. */
+@media screen {
   #warehouseIrSlipModal .warehouse-ir-slip-fields {
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:9px;
-    align-items:stretch;
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:0;
+    padding:9px 6px;
+    margin:0;
+    border:1px solid #dbe6f4;
+    border-radius:11px;
+    background:#fff;
   }
   #warehouseIrSlipModal .warehouse-ir-slip-fields > div {
     min-width:0;
-    min-height:60px;
+    min-height:48px;
+    padding:7px 10px;
+    border:0;
+    border-right:1px solid #e5edf7;
+    border-radius:0;
+    background:transparent;
     justify-content:center;
-    padding:11px 12px;
+    gap:6px;
   }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields > div:last-child {border-right:0;}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields span {font-size:10px;color:#687e9b;}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields strong {font-size:11px;color:#193659;}
+  #warehouseIrSlipModal .warehouse-ir-slip-meta-line {
+    display:flex;flex-wrap:wrap;align-items:center;gap:20px;
+    padding:9px 3px 12px;font-size:11px;color:#6c819e;
+  }
+  #warehouseIrSlipModal .warehouse-ir-slip-meta-line strong {color:#183b65;font-weight:850;}
+}
+@media screen and (max-width:950px) {
+  #warehouseIrSlipModal .warehouse-ir-slip-fields {grid-template-columns:repeat(3,minmax(0,1fr));}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields > div:nth-child(3) {border-right:0;}
+}
+@media screen and (max-width:550px) {
+  #warehouseIrSlipModal .warehouse-ir-slip-fields {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields > div:nth-child(odd) {border-right:1px solid #e5edf7;}
+  #warehouseIrSlipModal .warehouse-ir-slip-fields > div:nth-child(even) {border-right:0;}
+}
+@media print {
+  #warehouseIrSlipModal .warehouse-ir-slip-meta-line {display:flex;gap:14px;margin:4px 0 9px;font-size:9px;color:#111;}
+  #warehouseIrSlipModal .warehouse-ir-slip-meta-line strong {color:#111;}
 }
