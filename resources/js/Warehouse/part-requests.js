@@ -275,6 +275,32 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   }
 
   // Intercept the eligible Send Missing Parts form; no POST occurs until confirmed.
+  const purchaseFeedbackModal = document.getElementById('warehousePurchaseFeedbackModal');
+  const showPurchaseFeedback = (kind, message) => {
+    if (!purchaseFeedbackModal) return;
+    const icon = document.getElementById('warehousePurchaseFeedbackIcon');
+    const title = document.getElementById('warehousePurchaseFeedbackTitle');
+    const subtitle = document.getElementById('warehousePurchaseFeedbackSubtitle');
+    purchaseFeedbackModal.dataset.kind = kind;
+    if (title) title.textContent = kind === 'success' ? 'Parts Request Sent' :
+      kind === 'empty' ? 'No Missing Parts to Submit' : 'Unable to Send Request';
+    if (subtitle) subtitle.textContent = kind === 'success' ? 'Purchase Department processing' :
+      kind === 'empty' ? 'There are no missing parts in this request.' : 'The request was not submitted.';
+    if (icon) {
+      const i = icon.querySelector('i');
+      if (i) i.className = kind === 'success' ? 'fa-solid fa-circle-check' :
+        kind === 'empty' ? 'fa-solid fa-circle-info' : 'fa-solid fa-circle-xmark';
+    }
+    setField('warehousePurchaseFeedbackMessage', message);
+    openModal(purchaseFeedbackModal);
+  };
+  purchaseFeedbackModal?.querySelectorAll('[data-purchase-feedback-close]').forEach(button => {
+    button.addEventListener('click', () => closeModal(purchaseFeedbackModal));
+  });
+  if (purchaseFeedbackModal?.dataset.serverResult) {
+    showPurchaseFeedback(purchaseFeedbackModal.dataset.serverResult, purchaseFeedbackModal.dataset.serverMessage);
+  }
+
   const sendMissingModal = document.getElementById('warehouseSendMissingModal');
   const sendMissingConfirm = document.getElementById('sendMissingConfirm');
   let pendingMissingForm = null;
@@ -307,7 +333,12 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         td.colSpan = 3; td.textContent = 'No requested parts found.'; tr.appendChild(td); rows.appendChild(tr);
       }
     }
-    sendMissingConfirm.disabled = !parts.length;
+    if (!parts.length) {
+      pendingMissingForm = null;
+      showPurchaseFeedback('empty', 'This purchase request has no recorded missing parts to send. Review stock and request quantities before trying again.');
+      return;
+    }
+    sendMissingConfirm.disabled = false;
     openModal(sendMissingModal);
   }, true);
   sendMissingConfirm?.addEventListener('click', () => {
