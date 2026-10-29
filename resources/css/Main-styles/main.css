@@ -2356,3 +2356,43 @@ span[data-ui-component="status-badge"][data-status="neutral"] {
   --gct-status-border: #dce5ed;
   --gct-status-text: #63758c;
 }
+
+
+/* Unified GCT box-type workflow statuses — matches the compact IR reference.
+   Status presentation only; does not affect actions, forms, or state transitions. */
+:is(
+  [data-ui-component="status-badge"],
+  .pr-ir-release-policy,
+  .pr-ir-shortage-status,
+  .pr-ir-status-box,
+  .pr-pending-badge,
+  .pr-ir-count,
+  .jo-row-stock-badge,
+  .jo-section-progress
+) {
+  border-radius: 6px !important;
+  min-width: 0 !important;
+  width: max-content;
+  max-width: 100%;
+  min-height: 23px;
+  padding: 4px 9px !important;
+  font-size: 10px !important;
+  font-weight: 750;
+  line-height: 1.3;
+  box-shadow: none !important;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+:is(
+  [data-ui-component="status-badge"],
+  .pr-ir-release-policy,
+  .pr-ir-shortage-status,
+  .pr-ir-status-box,
+  .pr-pending-badge,
+  .pr-ir-count,
+  .jo-row-stock-badge,
+  .jo-section-progress
+) > i {
+  font-size: 10px;
+  margin-right: 2px;
+}
