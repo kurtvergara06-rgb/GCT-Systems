@@ -512,19 +512,19 @@ class WarehousePartRequestController extends Controller
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
                 ->back()
-                ->with('error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
+                ->with('warehouse_purchase_send_error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
         }
 
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
                 ->back()
-                ->with('error', 'Only approved purchase requests can be sent to purchasing department.');
+                ->with('warehouse_purchase_send_error', 'Only approved purchase requests can be sent to purchasing department.');
         }
 
         if ($this->missingPurchaseRequestExists($purchaseRequest)) {
             return redirect()
                 ->back()
-                ->with('error', 'Missing parts were already sent to the Purchase Department.');
+                ->with('warehouse_purchase_send_error', 'Missing parts were already sent to the Purchase Department.');
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
@@ -533,7 +533,7 @@ class WarehousePartRequestController extends Controller
         if ($inventoryCheck['available']) {
             return redirect()
                 ->back()
-                ->with('error', 'All requested parts are available. Please issue the parts instead.');
+                ->with('warehouse_purchase_send_error', 'All requested parts are available. Please issue the parts instead.');
         }
 
         $missingParts = $inventoryCheck['missing'] ?? [];
@@ -541,7 +541,7 @@ class WarehousePartRequestController extends Controller
         if (count($missingParts) === 0) {
             return redirect()
                 ->back()
-                ->with('error', 'No missing parts found to send to Purchase Department.');
+                ->with('warehouse_purchase_send_error', 'No missing parts found to send to Purchase Department.');
         }
 
         $failure = null;
@@ -588,7 +588,7 @@ class WarehousePartRequestController extends Controller
         });
 
         if (! $missingPurchaseRequest) {
-            return redirect()->back()->with('error', $failure ?? 'Unable to send missing parts to Purchase.');
+            return redirect()->back()->with('warehouse_purchase_send_error', $failure ?? 'Unable to send missing parts to Purchase.');
         }
 
         $this->broadcastSystemDataUpdated(
@@ -609,7 +609,7 @@ class WarehousePartRequestController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Only unavailable parts were sent to Purchase Department.');
+            ->with('warehouse_purchase_send_success', 'Only unavailable parts were sent to Purchase Department.');
     }
 
     private function prepareRequestForWarehouse(PurchaseRequest $purchaseRequest): PurchaseRequest
