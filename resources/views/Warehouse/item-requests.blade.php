@@ -109,21 +109,16 @@
                                 <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['on_hand'] ?? '—').' '.($firstStock['unit'] ?? '')) }}</strong>
                                 <div class="warehouse-ir-onhand-actions">
                                     @if($stockIsMixed && $displayStockParts->isNotEmpty())
-                                    <details class="ir-parts-details warehouse-ir-onhand-more">
-                                        <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                        <div class="ir-parts-popover warehouse-ir-stock-popover">
-                                            <div class="warehouse-ir-stock-popover-title">Physical stock vs. JO allocation</div>
-                                            <div class="warehouse-ir-stock-table-head" aria-hidden="true">
-                                                <span>PART / JO REQUIRED</span><span>ON HAND</span><span>ISSUABLE</span>
-                                            </div>
-                                            @foreach($displayStockParts as $part)
-                                                <div class="warehouse-ir-stock-popover-row warehouse-ir-stock-row">
-                                                    <span class="warehouse-ir-stock-popover-info">
-                                                        <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
-                                                        <small>JO required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
-                                                        @if(($part['shortage'] ?? 0) > 0)
-                                                            <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} {{ $part['unit'] ?? '' }} awaiting supply</small>
-                                                        @endif
+                                    <button type="button" class="warehouse-ir-stock-open ir-secondary-button"
+                                        data-ir-stock-open
+                                        data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
+                                        data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
+                                        data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
+                                        data-jo-parts="{{ json_encode($fullJoParts->values()->all()) }}"
+                                        aria-haspopup="dialog">
+                                        View Stock <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                    </button>
+                                    @endif
                                                     </span>
                                                     <strong class="warehouse-ir-stock-figure">{{ $part['on_hand'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
                                                     <strong class="warehouse-ir-stock-figure">{{ $part['available'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
@@ -181,6 +176,33 @@
             <div class="ir-footer"><span class="warehouse-ir-stock-time">Inventory availability accounts for approved JO reservations. Open View for detailed verification and issuance.</span>{{ $requests->links() }}</div>
         </section>
     </main>
+</div>
+
+<div id="warehouseIrStockModal" class="ir-modal-overlay" aria-hidden="true">
+    <div class="ir-modal warehouse-ir-stock-modal-panel" role="dialog" aria-modal="true" aria-labelledby="warehouseIrStockModalTitle" tabindex="-1">
+        <header class="ir-modal-header">
+            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-boxes-stacked"></i></span>
+                <div><h2 id="warehouseIrStockModalTitle">Stock Breakdown</h2><p id="warehouseIrStockReference">Warehouse physical stock and JO allocations</p></div>
+            </div>
+            <button type="button" class="ir-icon-button" data-stock-modal-close aria-label="Close stock breakdown"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="ir-modal-body warehouse-ir-stock-modal-body">
+            <p class="warehouse-ir-stock-modal-note">Live IR quantities are checked against Warehouse inventory. JO shortages are shown separately and do not authorize issuance.</p>
+            <div class="warehouse-ir-stock-modal-scroll">
+                <table class="warehouse-ir-stock-modal-table">
+                    <thead><tr><th>PART</th><th>JO REQUIRED</th><th>IR QTY</th><th>ON HAND</th><th>ISSUABLE</th></tr></thead>
+                    <tbody id="warehouseIrStockModalRows"><tr><td colspan="5">Select View Stock to load.</td></tr></tbody>
+                </table>
+            </div>
+            <section class="warehouse-ir-stock-modal-shortages">
+                <h3>JO Procurement Shortage / Unallocated Quantities</h3>
+                <p>JO requirement not covered by this IR. Check linked IRs and PRs for fulfillment progress.</p>
+                <div id="warehouseIrStockModalShortages">—</div>
+            </section>
+            <p id="warehouseIrStockModalMessage" role="status"></p>
+        </div>
+        <footer class="ir-modal-footer"><button type="button" class="ir-primary-button" data-stock-modal-close>Close</button></footer>
+    </div>
 </div>
 
 <div id="warehouseItemRequestDetails" class="ir-modal-overlay" aria-hidden="true">
