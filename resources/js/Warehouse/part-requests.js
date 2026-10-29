@@ -139,36 +139,21 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
   function renderPartsBreakdown(parts) {
     const container = document.getElementById('view_parts_breakdown');
-
     if (!container) return;
-
-    if (!Array.isArray(parts) || parts.length === 0) {
+    if (!Array.isArray(parts) || !parts.length) {
       container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
       return;
     }
-
-    let html = `
-      <div class="parts-breakdown-table no-status">
-        <div class="parts-breakdown-head no-status">
-          <span>Part Name</span>
-          <span>Quantity</span>
-          <span>On Hand</span>
-        </div>
-    `;
-
-    parts.forEach(function (part) {
-      html += `
-        <div class="parts-breakdown-row no-status">
-          <span class="part-name">${escapeHtml(part.name || '—')}</span>
-          <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
-          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
-        </div>
-      `;
-    });
-
-    html += '</div>';
-
-    container.innerHTML = html;
+    const cleanName = value => String(value || '—').replace(/\\s*\\[item:\\d+\\]/gi, '').trim();
+    const cells = parts.map(part => {
+      const quantity = part.needed_display ?? String(part.needed ?? part.quantity ?? 0) + ' ' + (part.unit || '');
+      const onHandValue = Number(part.physical_on_hand ?? 0);
+      const onHand = part.physical_on_hand_display ?? String(onHandValue) + ' ' + (part.unit || '');
+      return '<tr><td>' + escapeHtml(cleanName(part.name)) + '</td><td>' +
+        escapeHtml(quantity) + '</td><td class="warehouse-pr-physical-stock">' +
+        escapeHtml(onHand) + '</td></tr>';
+    }).join('');
+    container.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table"><thead><tr><th>PART NAME</th><th>PR QUANTITY</th><th>ON HAND</th></tr></thead><tbody>' + cells + '</tbody></table></div>';
   }
 
   const viewPrModal = document.getElementById('viewPrModal');
@@ -194,6 +179,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
     setField('view_created', button.dataset.created);
+    setField('view_purchase_status', button.dataset.status);
+    setField('view_warehouse_status', button.dataset.warehouseStatus);
+    setField('view_warehouse_status_badge', button.dataset.warehouseStatus);
+    setField('view_pr_parts_count', String(parts.length));
+
     setField('view_remarks', button.dataset.remarks, 'No remarks');
 
     renderPartsBreakdown(parts);
