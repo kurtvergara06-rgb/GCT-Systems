@@ -213,6 +213,7 @@ class WarehousePartRequestController extends Controller
             : $this->statuses;
 
         $query = $this->warehouseMaintenanceRequestQuery()
+            ->with('requester')
             ->whereIn('status', $statusOptions);
 
         if ($request->filled('search')) {

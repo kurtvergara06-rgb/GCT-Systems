@@ -204,7 +204,7 @@
         <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
         <div class="warehouse-modal-title-copy">
           <h2 id="warehouseRequestDetailsTitle">Purchase Request Details</h2>
-          <p>Review requested shortages, Warehouse stock and processing details.</p>
+          <p>Review requested shortages, stock reference, and procurement details.</p>
         </div>
         <span id="view_warehouse_status_badge" class="warehouse-pr-view-status">—</span>
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details"><i class="fa-solid fa-xmark"></i></button>
@@ -213,29 +213,29 @@
         <div class="warehouse-request-summary warehouse-pr-reference-strip" aria-label="Purchase Request summary">
           <div class="warehouse-summary-item"><span>PR ID</span><strong id="view_pr_no">—</strong></div>
           <div class="warehouse-summary-item"><span>Linked JO</span><strong id="view_job_order_no">—</strong></div>
-          <div class="warehouse-summary-item"><span>Purchase Status</span><strong id="view_purchase_status">—</strong></div>
-          <div class="warehouse-summary-item"><span>Warehouse Status</span><strong id="view_warehouse_status">—</strong></div>
+          <div class="warehouse-summary-item"><span>Requested By</span><strong id="view_requested_by">—</strong></div>
           <div class="warehouse-summary-item"><span>Date Requested</span><strong id="view_created">—</strong></div>
+          <div class="warehouse-summary-item"><span>Department</span><strong>Maintenance</strong></div>
           <div class="warehouse-summary-item"><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
         </div>
-        <div class="warehouse-pr-reference-secondary">Bus: <strong id="view_bus_no">—</strong><span> · </span> Department: <strong>Maintenance</strong></div>
+        <div class="warehouse-pr-reference-secondary">Bus: <strong id="view_bus_no">—</strong><span aria-hidden="true"> | </span> Processing: <strong id="view_processing">—</strong></div>
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
-            <div><h3>Purchase Request Parts</h3><p>Requested parts and live-at-page-load physical stock reference</p></div>
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-cube"></i></span>
+            <div><h3>Purchase Request Parts</h3><p>Missing parts requiring procurement, with Warehouse stock reference.</p></div>
           </header>
           <div class="warehouse-modal-section-body">
             <div id="view_parts_breakdown" class="parts-breakdown-box"><div class="parts-breakdown-empty">No parts found.</div></div>
-            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> On Hand shows physical inventory for reference. PR quantities and Warehouse issuance are tracked separately.</p>
+            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Warehouse stock shown for reference only. PR quantities represent unavailable shortages to be procured.</p>
           </div>
         </section>
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-box-open"></i></span>
-            <div><h3>Issuance Record</h3><p>Quantities physically handed over by Warehouse, when recorded</p></div>
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-warehouse"></i></span>
+            <div><h3>Warehouse Stock Reference</h3><p>Physical stock currently visible to Warehouse while reviewing this PR.</p></div>
           </header>
           <div class="warehouse-modal-section-body">
-            <div id="view_issue_quantities" class="warehouse-issued-quantities"><div class="parts-breakdown-empty">No parts have been issued yet.</div></div>
+            <div id="view_stock_reference" class="parts-breakdown-box"><div class="parts-breakdown-empty">No stock reference found.</div></div>
           </div>
         </section>
         <section class="warehouse-modal-section warehouse-pr-reference-section">

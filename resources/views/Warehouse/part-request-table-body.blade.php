@@ -111,6 +111,7 @@
                         data-pr-no="{{ $partRequest->pr_no }}"
                         data-job-order-no="{{ $partRequest->job_order_no }}"
                         data-bus-no="{{ $partRequest->bus_no }}"
+                        data-requested-by="{{ $partRequest->requester?->name ?? '—' }}"
                         data-item="{{ $partRequest->item }}"
                         data-quantity="{{ $quantity }}"
                         data-on-hand="{{ $onHand }}"
@@ -119,8 +120,9 @@
                         data-warehouse-status="{{ $warehouseStatusLabel }}"
                         data-issued-quantities='@json($partRequest->warehouse_issue_quantities ?? [])'
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
-                        data-created="{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}"
+                        data-created="{{ $partRequest->created_at?->format('M d, Y · h:i A') ?? '—' }}"
                         data-parts='@json($partRequest->parts_breakdown ?? [])'
+                        data-jo-parts='@json($partRequest->jo_parts_requirement ?? [])'
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>

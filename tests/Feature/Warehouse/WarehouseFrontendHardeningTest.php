@@ -60,10 +60,10 @@ class WarehouseFrontendHardeningTest extends TestCase
 
         $this->assertStringContainsString('resources/css/Main-styles/form-components.css', $partRequests);
         $this->assertStringContainsString('warehouse-modal-scrollable', $partRequests);
-        $this->assertStringContainsString('01 — Request Information', $partRequests);
-        $this->assertStringContainsString('02 — Requested Parts', $partRequests);
-        $this->assertStringContainsString('03 — Issuance Record', $partRequests);
-        $this->assertStringContainsString('04 — Remarks', $partRequests);
+        $this->assertStringContainsString('Purchase Request Details', $partRequests);
+        $this->assertStringContainsString('Purchase Request Parts', $partRequests);
+        $this->assertStringContainsString('Warehouse Stock Reference', $partRequests);
+        $this->assertStringContainsString('Remarks', $partRequests);
         $this->assertStringContainsString('warehouse-edit-footer', $partRequests);
     }
 

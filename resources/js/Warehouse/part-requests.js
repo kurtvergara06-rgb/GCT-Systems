@@ -137,23 +137,82 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       .replace(/\s+/g, '-');
   }
 
-  function renderPartsBreakdown(parts) {
+  function partIdentity(part) {
+    const name = String(part?.name || '')
+      .replace(/\s*\[item:\d+\]/gi, '')
+      .trim()
+      .toLowerCase();
+    const unit = String(part?.unit || '').trim().toLowerCase();
+    return `${name}|${unit}`;
+  }
+
+  function renderPartsBreakdown(parts, joParts, processingStatus) {
     const container = document.getElementById('view_parts_breakdown');
+    const stockContainer = document.getElementById('view_stock_reference');
     if (!container) return;
     if (!Array.isArray(parts) || !parts.length) {
       container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
+      if (stockContainer) {
+        stockContainer.innerHTML = '<div class="parts-breakdown-empty">No stock reference found.</div>';
+      }
       return;
     }
+
     const cleanName = value => String(value || '—').replace(/\s*\[item:\d+\]/gi, '').trim();
+    const joRequirements = new Map(
+      (Array.isArray(joParts) ? joParts : []).map(part => [partIdentity(part), part])
+    );
+
     const cells = parts.map(part => {
-      const quantity = part.needed_display ?? String(part.needed ?? part.quantity ?? 0) + ' ' + (part.unit || '');
+      const unit = String(part.unit || '').trim();
+      const quantityValue = Number(part.needed ?? part.quantity ?? 0);
+      const quantity = part.needed_display ?? `${quantityValue}${unit ? ` ${unit}` : ''}`;
       const onHandValue = Number(part.physical_on_hand ?? 0);
-      const onHand = part.physical_on_hand_display ?? String(onHandValue) + ' ' + (part.unit || '');
-      return '<tr><td>' + escapeHtml(cleanName(part.name)) + '</td><td>' +
-        escapeHtml(quantity) + '</td><td class="warehouse-pr-physical-stock">' +
-        escapeHtml(onHand) + '</td></tr>';
+      const onHand = part.physical_on_hand_display ?? `${onHandValue}${unit ? ` ${unit}` : ''}`;
+      const joPart = joRequirements.get(partIdentity(part));
+      const joQuantityValue = Number(joPart?.quantity ?? part.jo_required ?? quantityValue);
+      const joQuantity = `${joQuantityValue}${unit ? ` ${unit}` : ''}`;
+      const shortage = part.shortage_display ?? quantity;
+      const needsPurchase = /needs purchase|waiting for purchase|waiting for stock/i.test(processingStatus || '')
+        || onHandValue < joQuantityValue;
+      const status = needsPurchase ? 'Needs Purchase' : (processingStatus || 'Ready to Issue');
+      const statusClass = needsPurchase ? 'is-needs-purchase' : 'is-ready';
+      const stockClass = onHandValue > 0 ? 'is-positive' : 'is-empty';
+
+      return `<tr>
+        <td>${escapeHtml(cleanName(part.name))}</td>
+        <td>${escapeHtml(joQuantity)}</td>
+        <td>${escapeHtml(quantity)}</td>
+        <td class="warehouse-pr-physical-stock ${stockClass}">${escapeHtml(onHand)}</td>
+        <td class="warehouse-pr-shortage">${escapeHtml(shortage)}</td>
+        <td><span class="warehouse-pr-line-status ${statusClass}">${escapeHtml(status)}</span></td>
+      </tr>`;
     }).join('');
-    container.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table"><thead><tr><th>PART NAME</th><th>PR QUANTITY</th><th>ON HAND</th></tr></thead><tbody>' + cells + '</tbody></table></div>';
+
+    container.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table warehouse-pr-parts-table"><thead><tr><th>PART NAME</th><th>JO REQUIRED</th><th>PR QUANTITY</th><th>ON HAND</th><th>SHORTAGE</th><th>STATUS</th></tr></thead><tbody>' + cells + '</tbody></table></div>';
+
+    if (stockContainer) {
+      const stockRows = parts.map(part => {
+        const unit = String(part.unit || '').trim();
+        const onHandValue = Math.max(0, Number(part.physical_on_hand ?? 0));
+        const onHand = part.physical_on_hand_display ?? `${onHandValue}${unit ? ` ${unit}` : ''}`;
+        const joPart = joRequirements.get(partIdentity(part));
+        const required = Math.max(0, Number(joPart?.quantity ?? part.jo_required ?? part.needed ?? part.quantity ?? 0));
+        const issuableValue = Math.min(onHandValue, required);
+        const issuable = `${issuableValue}${unit ? ` ${unit}` : ''}`;
+        const stockClass = onHandValue > 0 ? 'is-positive' : 'is-empty';
+        const remarks = onHandValue <= 0 ? 'Out of stock' : (onHandValue < required ? 'Partial stock only' : 'Available in full');
+
+        return `<tr>
+          <td>${escapeHtml(cleanName(part.name))}</td>
+          <td class="warehouse-pr-stock-value ${stockClass}">${escapeHtml(onHand)}</td>
+          <td class="warehouse-pr-stock-value ${stockClass}">${escapeHtml(issuable)}</td>
+          <td>${escapeHtml(remarks)}</td>
+        </tr>`;
+      }).join('');
+
+      stockContainer.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table warehouse-pr-stock-table"><thead><tr><th>PART NAME</th><th>PHYSICAL ON HAND</th><th>ISSUABLE NOW</th><th>REMARKS</th></tr></thead><tbody>' + stockRows + '</tbody></table></div>';
+    }
   }
 
   const viewPrModal = document.getElementById('viewPrModal');
@@ -168,6 +227,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     event.preventDefault();
 
     let parts = [];
+    let joParts = [];
 
     try {
       parts = JSON.parse(button.dataset.parts || '[]');
@@ -175,18 +235,29 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       parts = [];
     }
 
+    try {
+      joParts = JSON.parse(button.dataset.joParts || '[]');
+    } catch (error) {
+      joParts = [];
+    }
+
     setField('view_pr_no', button.dataset.prNo);
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
+    setField('view_requested_by', button.dataset.requestedBy);
     setField('view_created', button.dataset.created);
-    setField('view_purchase_status', button.dataset.status);
-    setField('view_warehouse_status', button.dataset.warehouseStatus);
+    setField('view_processing', button.dataset.warehouseStatus);
     setField('view_warehouse_status_badge', button.dataset.warehouseStatus);
     setField('view_pr_parts_count', String(parts.length));
 
+    const statusBadge = document.getElementById('view_warehouse_status_badge');
+    if (statusBadge) {
+      statusBadge.dataset.status = slugStatus(button.dataset.warehouseStatus);
+    }
+
     setField('view_remarks', button.dataset.remarks, 'No remarks');
 
-    renderPartsBreakdown(parts);
+    renderPartsBreakdown(parts, joParts, button.dataset.warehouseStatus);
 
     openModal(viewPrModal);
   });
