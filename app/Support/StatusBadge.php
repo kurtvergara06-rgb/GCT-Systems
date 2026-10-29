@@ -96,6 +96,7 @@ final class StatusBadge
             'investigate' => ['tone' => 'progress', 'icon' => 'fa-magnifying-glass-chart'],
 
             // Waiting, review, and procurement states.
+            'for-review' => ['tone' => 'warning', 'icon' => 'fa-clipboard-check'],
             'pending' => ['tone' => 'pending', 'icon' => 'fa-clock'],
             'submitted' => ['tone' => 'pending', 'icon' => 'fa-file-circle-check'],
             'reported' => ['tone' => 'progress', 'icon' => 'fa-flag'],
