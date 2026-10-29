@@ -297,7 +297,7 @@ class PersonnelController extends Controller
         $mechanic = Mechanic::create($this->validateMechanic($request));
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            'Maintenance',
             'Mechanic',
             'created',
             $mechanic->id,
@@ -339,7 +339,7 @@ class PersonnelController extends Controller
         });
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            'Maintenance',
             'Mechanic',
             'updated',
             $mechanic->id,
@@ -364,7 +364,7 @@ class PersonnelController extends Controller
         });
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            'Maintenance',
             'Mechanic',
             'updated',
             $mechanic->id,
@@ -379,7 +379,7 @@ class PersonnelController extends Controller
         $mechanic->update(['employment_status' => 'Active']);
 
         $this->broadcastSystemDataUpdated(
-            'Operation',
+            'Maintenance',
             'Mechanic',
             'updated',
             $mechanic->id,
