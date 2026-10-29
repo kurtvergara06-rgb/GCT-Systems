@@ -86,7 +86,10 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
       total += amount;
     });
 
-    setValue('net_amount_display', money(total));
+    const delivery = Math.max(0, Number.parseFloat(getValue('delivery_fee')) || 0);
+    const discount = Math.max(0, Number.parseFloat(getValue('discount')) || 0);
+    const vat = Math.max(0, Number.parseFloat(getValue('vat')) || 0);
+    setValue('net_amount_display', money(total + delivery - discount + vat));
     setText('po_subtotal_display', money(total));
   };
 
@@ -244,6 +247,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('poFormMethod', 'POST');
     setValue('purchase_request_id', '');
     setValue('supplier_name', '');
+    ['supplier_address_tel', 'terms', 'terms_of_payment', 'purpose'].forEach((id) => setValue(id, ''));
+    ['delivery_fee', 'discount', 'vat'].forEach((id) => setValue(id, '0'));
     setValue('po_status', 'Ordered');
     setValue('main_pr_no', '');
     setText('poRequestJobOrder', '—');
@@ -299,6 +304,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('po_no', button.dataset.poNo || '');
     setValue('po_date', button.dataset.poDate || '');
     setValue('supplier_name', button.dataset.supplierName || 'N/A');
+    setValue('supplier_address_tel', button.dataset.supplierAddressTel || '');
+    setValue('terms', button.dataset.terms || '');
+    setValue('terms_of_payment', button.dataset.termsOfPayment || '');
+    setValue('purpose', button.dataset.purpose || '');
+    setValue('delivery_fee', button.dataset.deliveryFee || '0');
+    setValue('discount', button.dataset.discount || '0');
+    setValue('vat', button.dataset.vat || '0');
     setValue('po_status', status);
     setValue('main_pr_no', firstItem.pr_no || '');
 
@@ -317,8 +329,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     renderItems(items);
     syncRequestReference();
+    calculateTotal();
     setViewMode(isViewOnly);
   };
+
+  ['delivery_fee', 'discount', 'vat'].forEach((id) => field(id)?.addEventListener('input', calculateTotal));
 
   poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
 
