@@ -607,6 +607,7 @@ class WarehousePartRequestController extends Controller
             ]);
 
             JobOrder::where('job_order_no', $lockedRequest->job_order_no)
+                ->whereNotIn('part_status', ['Issued', 'Partial'])
                 ->update(['part_status' => 'For Purchase']);
 
             return $createdRequest;
