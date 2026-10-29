@@ -2276,3 +2276,83 @@ tr.empty-row > td.empty-row {
   line-height: 1.5;
   margin: 0 auto;
 }
+
+
+/* GCT shared status badges: compact, soft rectangular treatment.
+   Applies only to the shared status-badge component; no workflow state changes. */
+span[data-ui-component="status-badge"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 23px;
+  height: auto;
+  padding: 5px 9px;
+  border: 1px solid var(--gct-status-border, #d6e2f0);
+  border-radius: 6px;
+  background: var(--gct-status-bg, #f4f7fb);
+  color: var(--gct-status-text, #526681);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+span[data-ui-component="status-badge"] .status-badge__icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
+  color: inherit;
+}
+span[data-ui-component="status-badge"] .status-badge__label {
+  display: inline;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+span[data-ui-component="status-badge"][data-status="positive"],
+span[data-ui-component="status-badge"][data-status="success"] {
+  --gct-status-bg: #eaf9f0;
+  --gct-status-border: #c4ebd3;
+  --gct-status-text: #187646;
+}
+span[data-ui-component="status-badge"][data-status="negative"] {
+  --gct-status-bg: #fff0f2;
+  --gct-status-border: #f6cbd1;
+  --gct-status-text: #b83d4a;
+}
+span[data-ui-component="status-badge"][data-status="warning"],
+span[data-ui-component="status-badge"][data-status="maintenance"] {
+  --gct-status-bg: #fff5e2;
+  --gct-status-border: #f0dbac;
+  --gct-status-text: #9c6610;
+}
+span[data-ui-component="status-badge"][data-status="pending"],
+span[data-ui-component="status-badge"][data-status="progress"],
+span[data-ui-component="status-badge"][data-status="scheduled"],
+span[data-ui-component="status-badge"][data-status="info"] {
+  --gct-status-bg: #edf4ff;
+  --gct-status-border: #d0e0fa;
+  --gct-status-text: #2762b0;
+}
+span[data-ui-component="status-badge"][data-status="neutral"] {
+  --gct-status-bg: #f3f6fa;
+  --gct-status-border: #dce5ed;
+  --gct-status-text: #63758c;
+}
