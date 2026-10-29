@@ -80,7 +80,7 @@
 
     <main class="main purchase-orders-page purchase-module-page records-page">
       <x-layout.topbar
-        title="Purchase Order"
+        title="Purchase Orders"
         subtitle="Manage procurement records for vehicle parts, equipment & operational materials"
         notification-count="6"
       />
@@ -145,7 +145,7 @@
           <table class="records-table">
             <thead>
               <tr>
-                <th>PO ID</th><th>Item</th><th>Request ID</th><th>Request Type</th><th>Qty</th><th>Total Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+                <th>PO ID</th><th>Item</th><th>Requisition No.</th><th>Source</th><th>Qty</th><th>Total (₱)</th><th>Status</th><th>PO Date</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
