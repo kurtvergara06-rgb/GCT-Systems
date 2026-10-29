@@ -21,12 +21,7 @@
                 subtitle="Monitor and respond to operational incidents reported during trips"
             />
 
-            @if (session('error'))
-                <div class="inc-alert inc-alert-error" role="alert">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    <div><strong>{{ session('error') }}</strong></div>
-                </div>
-            @endif
+
 
             <section class="inc-summary-grid">
                 <article class="inc-summary-card">
