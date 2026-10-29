@@ -21,7 +21,7 @@ class ItemRequestController extends Controller
     {
         $view = in_array($request->query('view'), ['pending', 'history'], true) ? $request->query('view') : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
-        $requestsQuery = ItemRequest::with(['jobOrder.approver']);
+        $requestsQuery = ItemRequest::with(['jobOrder.approver', 'requester']);
         if ($view === 'history') {
             $requestsQuery->whereIn('status', $historyStatuses);
         } else {
