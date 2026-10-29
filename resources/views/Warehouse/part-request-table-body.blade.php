@@ -52,7 +52,7 @@
                   <td class="qty-col">
                     <span class="qty-needed-badge">{{ $multipleParts ? $partDetails->count().' items' : $quantity }}</span>
                   </td>
-                  <td class="qty-col">
+                  <td class="qty-col pr-onhand-cell">
                     <div class="warehouse-pr-onhand-compact">
                       <strong class="warehouse-pr-onhand-main">{{ $onHand }}</strong>
                       @if($multipleParts)
