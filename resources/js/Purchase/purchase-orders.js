@@ -209,6 +209,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   const lockRequisitionItems = (locked) => {
     itemsContainer.classList.toggle('po-pr-items-locked', locked);
+    poForm.classList.toggle('po-has-locked-pr-items', locked);
     itemsContainer.querySelectorAll('.item-description, .item-qty, .item-unit').forEach((input) => {
       input.readOnly = locked;
       input.setAttribute('aria-readonly', locked ? 'true' : 'false');
