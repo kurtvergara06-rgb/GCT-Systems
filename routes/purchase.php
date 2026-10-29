@@ -66,3 +66,7 @@ Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController
         'system.permission:purchase,edit',
     ])
     ->name('purchase-orders.update-status');
+
+Route::patch('/purchase-orders/{purchaseOrder}/review-decision', [PurchaseOrderController::class, 'reviewDecision'])
+    ->middleware(['role:purchase:head,admin:head', 'system.permission:purchase,edit'])
+    ->name('purchase-orders.review-decision');
