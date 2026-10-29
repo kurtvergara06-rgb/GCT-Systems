@@ -11,10 +11,10 @@
     ]"
 >
 @php
-    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    $canEditMaintenance = auth()->user()?->hasSystemPermission('maintenance', 'edit') ?? false;
 @endphp
 <div class="app">
-<x-layout.sidebar department="Operation" />
+<x-layout.sidebar department="Maintenance" />
 
     <main class="main personnel-master-page">
         <x-layout.topbar title="Mechanic Master List" subtitle="Manage mechanic profiles, specializations, and employment information" notification-count="0" />
@@ -35,7 +35,7 @@
             </div>
 
             <x-ui.table-toolbar
-                action="{{ route('operation.personnel.mechanics', [], false) }}"
+                action="{{ route('maintenance.personnel.mechanics', [], false) }}"
                 class="attendance-toolbar personnel-master-toolbar mechanic-master-toolbar"
                 data-server-filter="true"
                 search-label="Search Mechanic Records"
@@ -47,7 +47,7 @@
                 button-id="openMechanicModal"
                 button-label="Add Mechanic"
                 button-icon="fa-plus"
-                :show-button="$canEditOperation"
+                :show-button="$canEditMaintenance"
             >
                 <x-slot:filters>
                     <x-ui.table-toolbar-field label="Status" name="status" default="">
@@ -162,16 +162,16 @@
                             <td>
                                 <div class="actions">
                                     <button type="button" class="action-btn view" title="View" aria-label="View {{ $mechanic->mechanic_name }}" data-personnel-action="view" data-record="{!! $mechanicRecord !!}"><i class="fa-solid fa-eye"></i></button>
-                                    @if($canEditOperation)
-                                    <button type="button" class="action-btn edit" title="Edit" aria-label="Edit {{ $mechanic->mechanic_name }}" data-personnel-action="edit" data-record-id="{{ $mechanic->id }}" data-update-url="{{ route('operation.personnel.mechanics.update', $mechanic, false) }}" data-record="{!! $mechanicRecord !!}"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    @if($canEditMaintenance)
+                                    <button type="button" class="action-btn edit" title="Edit" aria-label="Edit {{ $mechanic->mechanic_name }}" data-personnel-action="edit" data-record-id="{{ $mechanic->id }}" data-update-url="{{ route('maintenance.personnel.mechanics.update', $mechanic, false) }}" data-record="{!! $mechanicRecord !!}"><i class="fa-solid fa-pen-to-square"></i></button>
                                     @if($mechanic->employment_status === 'Active')
-                                    <form method="POST" action="{{ route('operation.personnel.mechanics.deactivate', $mechanic, false) }}" data-confirm-form data-confirm-title="Deactivate Mechanic?" data-confirm-message="This removes the mechanic from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">
+                                    <form method="POST" action="{{ route('maintenance.personnel.mechanics.deactivate', $mechanic, false) }}" data-confirm-form data-confirm-title="Deactivate Mechanic?" data-confirm-message="This removes the mechanic from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="action-btn delete" @if($mechanic->deactivation_locked) disabled aria-disabled="true" title="Locked: ongoing Maintenance Job Order" @else title="Deactivate" @endif aria-label="Deactivate {{ $mechanic->mechanic_name }}"><i class="fa-solid fa-user-slash"></i></button>
                                     </form>
                                     @else
-                                    <form method="POST" action="{{ route('operation.personnel.mechanics.activate', $mechanic, false) }}" data-confirm-form data-confirm-title="Reactivate Mechanic?" data-confirm-message="This restores the mechanic profile to Active so it can be used in future attendance and assignments." data-confirm-button="Reactivate" data-confirm-type="info">
+                                    <form method="POST" action="{{ route('maintenance.personnel.mechanics.activate', $mechanic, false) }}" data-confirm-form data-confirm-title="Reactivate Mechanic?" data-confirm-message="This restores the mechanic profile to Active so it can be used in future attendance and assignments." data-confirm-button="Reactivate" data-confirm-type="info">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="action-btn activate" title="Reactivate" aria-label="Reactivate {{ $mechanic->mechanic_name }}"><i class="fa-solid fa-user-check"></i></button>
@@ -197,7 +197,7 @@
     </main>
 </div>
 
-@if($canEditOperation)
+@if($canEditMaintenance)
 <div class="personnel-modal-overlay" data-personnel-modal data-open-on-error="{{ $errors->any() ? 'true' : 'false' }}" aria-hidden="true">
     <div class="personnel-modal personnel-modal-mechanic" role="dialog" aria-modal="true" aria-labelledby="personnelModalTitle">
         <div class="personnel-modal-header personnel-modal-header-mechanic">
@@ -213,7 +213,7 @@
             </button>
         </div>
 
-        <form method="POST" action="{{ route('operation.personnel.mechanics.store', [], false) }}" data-personnel-form data-store-url="{{ route('operation.personnel.mechanics.store', [], false) }}" class="personnel-modal-form personnel-mechanic-form">
+        <form method="POST" action="{{ route('maintenance.personnel.mechanics.store', [], false) }}" data-personnel-form data-store-url="{{ route('maintenance.personnel.mechanics.store', [], false) }}" class="personnel-modal-form personnel-mechanic-form">
             @csrf
             <input type="hidden" name="_method" value="POST" data-method-field>
             <input type="hidden" name="editing_personnel_id" value="{{ old('editing_personnel_id') }}" data-editing-personnel-id>
