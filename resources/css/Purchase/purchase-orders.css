@@ -1315,3 +1315,15 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
 }
 main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(2) {width:12% !important; text-align:left;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(3) {width:15% !important; text-align:left;}
+
+
+/* Single, prominent review action for Head approval of pending POs. */
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action {
+  width:auto !important; min-width:92px !important; height:32px !important;
+  padding:0 11px !important; gap:7px; border:1px solid #bfd6f5 !important;
+  background:#eaf3ff !important; color:#17509a !important;
+  font-family:inherit; font-size:12px; font-weight:750;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action:hover {
+  border-color:#7da9e9 !important; background:#dcecff !important;
+}
