@@ -5683,15 +5683,42 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-style-table .pr-ir-shortage-status,
 .purchase-page .pr-ir-style-table .pr-ir-release-policy {min-height:34px;align-items:center;}
 
-/* Match Item Requests In Progress row density and alignment on PR tables. */
-.purchase-page .pr-ir-style-table thead th {padding:11px 13px!important;vertical-align:middle;}
-.purchase-page .pr-ir-style-table tbody td {padding:12px 13px!important;vertical-align:middle;line-height:1.4;}
-.purchase-page .pr-ir-style-table .pr-ir-counts {display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
-.purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:6px;}
-.purchase-page .pr-ir-style-table .pr-ir-date {gap:2px;}
+/* Shared seven-column IR-style PR tables: balanced fixed tracks on desktop. */
+.purchase-page .pr-ir-style-table {
+  width:100%;
+  table-layout:fixed;
+  min-width:1030px;
+}
+.purchase-page .pr-ir-style-table th:nth-child(n) { width:auto; }
+.purchase-page .pr-ir-style-table th:nth-child(1) {width:14%;}
+.purchase-page .pr-ir-style-table th:nth-child(2) {width:13%;}
+.purchase-page .pr-ir-style-table th:nth-child(3) {width:24%;}
+.purchase-page .pr-ir-style-table th:nth-child(4) {width:12%;}
+.purchase-page .pr-ir-style-table th:nth-child(5) {width:12%;}
+.purchase-page .pr-ir-style-table th:nth-child(6) {width:15%;}
+.purchase-page .pr-ir-style-table th:nth-child(7) {width:10%;}
+.purchase-page .pr-ir-style-table thead th {
+  padding:12px 14px!important;
+  vertical-align:middle;
+  text-align:left;
+}
+.purchase-page .pr-ir-style-table tbody td {
+  padding:14px 14px!important;
+  vertical-align:middle;
+  line-height:1.45;
+  overflow-wrap:normal;
+}
+.purchase-page .pr-ir-style-table .pr-ir-counts {display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:7px;}
+.purchase-page .pr-ir-style-table .pr-ir-date {gap:3px;}
 .purchase-page .pr-ir-style-table .pr-pending-review-btn,
-.purchase-page .pr-ir-style-table .pr-review-btn.open-view-pr-modal {min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.purchase-page .pr-ir-style-table .pr-review-btn.open-view-pr-modal {
+  min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
 .purchase-page .pr-ir-style-table tbody tr {height:auto;}
+@media (max-width:1100px) {
+  .purchase-page .pr-pending-table-wrap {overflow-x:auto;}
+}
 
 /* Review Purchase Request — layout parity with Item Request's approved review modal. */
 #prModal .ui-form-modal {width:min(1050px,calc(100vw - 36px));max-width:1050px;}
