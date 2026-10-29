@@ -207,6 +207,25 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     calculateTotal();
   };
 
+  const lockRequisitionItems = (locked) => {
+    itemsContainer.classList.toggle('po-pr-items-locked', locked);
+    itemsContainer.querySelectorAll('.item-description, .item-qty, .item-unit').forEach((input) => {
+      input.readOnly = locked;
+      input.setAttribute('aria-readonly', locked ? 'true' : 'false');
+      input.classList.toggle('po-prefilled-readonly', locked);
+    });
+    itemsContainer.querySelectorAll('.remove-po-item-btn').forEach((button) => {
+      button.hidden = locked;
+      button.style.display = locked ? 'none' : 'inline-flex';
+    });
+    if (addPoItemBtn) {
+      addPoItemBtn.hidden = locked;
+      addPoItemBtn.style.display = locked ? 'none' : 'inline-flex';
+    }
+    const heading = poForm.querySelector('.po-item-action-heading');
+    if (heading) heading.hidden = locked;
+  };
+
   const setViewMode = (viewOnly) => {
     poForm.querySelectorAll('input, select, textarea').forEach((input) => {
       if (input.type !== 'hidden') {
@@ -265,6 +284,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     renderItems([]);
     syncRequestReference();
     setViewMode(false);
+    lockRequisitionItems(false);
   };
 
   const configurePrefilledCreateForm = (prefill) => {
@@ -278,6 +298,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     if (poRequestContext) poRequestContext.hidden = false;
     renderItems(prefill?.items || []);
     syncRequestReference();
+    lockRequisitionItems(Boolean(prefill?.id));
   };
 
   const parseItems = (button) => {
@@ -331,6 +352,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     syncRequestReference();
     calculateTotal();
     setViewMode(isViewOnly);
+    lockRequisitionItems(Boolean(button.dataset.purchaseRequestId));
   };
 
   ['delivery_fee', 'discount', 'vat'].forEach((id) => field(id)?.addEventListener('input', calculateTotal));
