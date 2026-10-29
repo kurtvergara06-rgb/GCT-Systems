@@ -642,12 +642,45 @@ class WarehousePartRequestController extends Controller
                 ->values()
                 ->all()
             : [];
+        // Display physical inventory consistently with the linked Warehouse IR.
+        // This is informational only: do not modify PR purchase/issue eligibility,
+        // which continues to use the existing inventoryCheck workflow.
+        $linkedIrParts = collect($purchaseRequest->jo_ir_parts ?? []);
+        $physicalByIdentity = [];
+        foreach ($linkedIrParts as $linkedPart) {
+            $inventoryId = (int) ($linkedPart['inventory_item_id'] ?? 0);
+            if ($inventoryId <= 0) {
+                continue;
+            }
+            $lookupName = $this->normalizeText(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($linkedPart['name'] ?? '')));
+            $lookupUnit = $this->normalizeUnit((string) ($linkedPart['unit'] ?? ''));
+            if ($lookupName !== '') {
+                $physicalByIdentity[$lookupName.'|'.$lookupUnit] = $inventoryId;
+            }
+        }
+        $linkedInventory = InventoryItem::query()
+            ->whereIn('id', array_values(array_unique($physicalByIdentity)))
+            ->get()
+            ->keyBy('id');
+        foreach ($inventoryCheck['breakdown'] as &$stockLine) {
+            $name = $this->normalizeText(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($stockLine['name'] ?? '')));
+            $unit = $this->normalizeUnit((string) ($stockLine['unit'] ?? ''));
+            $inventoryId = $physicalByIdentity[$name.'|'.$unit] ?? null;
+            $physicalItem = $inventoryId ? $linkedInventory->get($inventoryId) : null;
+            if (! $physicalItem) {
+                $physicalItem = $this->findInventoryItem((string) ($stockLine['name'] ?? ''), $unit);
+            }
+            $physical = $physicalItem ? max(0, (int) ($physicalItem->quantity_available ?? $physicalItem->on_hand ?? 0)) : 0;
+            $stockLine['physical_on_hand'] = $physical;
+            $stockLine['physical_on_hand_display'] = trim($physical.' '.($stockLine['unit'] ?? ''));
+        }
+        unset($stockLine);
         $purchaseRequest->parts_breakdown = $inventoryCheck['breakdown'];
         $purchaseRequest->inventory_check = $inventoryCheck;
 
         $purchaseRequest->first_item_display = $firstPart['name'] ?? $purchaseRequest->item ?? '—';
         $purchaseRequest->first_quantity_display = $firstPart['needed_display'] ?? '0';
-        $purchaseRequest->first_on_hand_display = $firstPart['available_display'] ?? '0';
+        $purchaseRequest->first_on_hand_display = $inventoryCheck['breakdown'][0]['physical_on_hand_display'] ?? '0';
 
         $purchaseRequest->inventory_label = $inventoryLabel;
         $purchaseRequest->first_inventory_status = $inventoryLabel;
