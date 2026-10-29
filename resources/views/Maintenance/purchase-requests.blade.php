@@ -267,6 +267,7 @@
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
                                                   data-reference-ir-parts="{{ json_encode($referenceIrParts->values()->all()) }}"
+                                                  data-linked-ir-status="{{ $sourceJo ? ($irStatusesByJo->get($sourceJo->id) ?? '') : '' }}"
                                                   data-jo-approved="{{ $sourceJo?->review_status === 'Approved' ? '1' : '0' }}"
                                                   data-jo-review-status="{{ $sourceJo?->review_status ?? ($sourceJo ? 'Pending' : 'JO not found') }}"
                                                   data-jo-approver="{{ $sourceJo?->approver?->name ?? '' }}"
