@@ -616,3 +616,29 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
 #warehouseItemRequestDetails .ir-modal-footer {justify-content:flex-end;background:#fff}
 @media(max-width:950px){#warehouseItemRequestDetails .warehouse-ir-reference-strip {grid-template-columns:repeat(3,minmax(0,1fr))}#warehouseItemRequestDetails .warehouse-ir-reference-strip>div:nth-child(3){border-right:0}}
 @media(max-width:540px){#warehouseItemRequestDetails .warehouse-ir-reference-strip {grid-template-columns:repeat(2,minmax(0,1fr))}#warehouseItemRequestDetails .warehouse-ir-reference-strip>div:nth-child(odd){border-right:1px solid #e8eef7}#warehouseItemRequestDetails .warehouse-ir-reference-strip>div:nth-child(even){border-right:0}#warehouseItemRequestDetails .warehouse-ir-view-status{padding:5px;font-size:10px}}
+
+/* Final View IR readability and density refinements; presentation only. */
+#warehouseItemRequestDetails .warehouse-ir-details-body {gap:10px;padding:14px 20px;}
+#warehouseItemRequestDetails .warehouse-ir-view-section {padding:13px 14px;}
+#warehouseItemRequestDetails .warehouse-ir-view-section-heading h3 {font-size:14px;}
+#warehouseItemRequestDetails .warehouse-ir-view-section-heading p {font-size:11px;}
+#warehouseItemRequestDetails .warehouse-ir-reference-strip {padding:9px 6px;}
+#warehouseItemRequestDetails .warehouse-ir-reference-strip>div {padding:7px 11px;}
+#warehouseItemRequestDetails .warehouse-ir-reference-strip span {font-size:11px;margin-bottom:5px;}
+#warehouseItemRequestDetails .warehouse-ir-reference-strip strong {font-size:13px;}
+#warehouseItemRequestDetails .warehouse-ir-view-secondary {font-size:12px;}
+#warehouseItemRequestDetails .warehouse-ir-stock-table th {font-size:11px;padding:10px 11px;}
+#warehouseItemRequestDetails .warehouse-ir-stock-table td {font-size:12px;padding:10px 11px;}
+#warehouseItemRequestDetails .warehouse-ir-stock-physical {font-weight:900;color:#153d68;}
+#warehouseItemRequestDetails .warehouse-ir-stock-table tbody td:nth-child(5) {font-weight:900;color:#167045;}
+#warehouseItemRequestDetails .warehouse-ir-jo-table tbody td:nth-child(3) {font-weight:800;color:#167045;}
+#warehouseItemRequestDetails .warehouse-ir-jo-table tbody td:nth-child(4):not(.warehouse-ir-jo-outside) {font-weight:800;color:#167045;}
+#warehouseItemRequestDetails .warehouse-ir-jo-outside {color:#a85224!important;background:#fff5eb;}
+#warehouseItemRequestDetails .warehouse-ir-view-caution {margin-top:9px;padding:9px 11px;font-size:11px;}
+#warehouseItemRequestDetails .warehouse-ir-details-remarks .ir-detail-text {margin-top:8px;padding:10px 12px;font-size:12px;}
+#warehouseItemRequestDetails .ir-modal-footer {padding-top:10px;padding-bottom:10px;min-height:0;}
+#warehouseItemRequestDetails .ir-modal-footer [data-ir-close] {min-height:34px;}
+@media(max-width:700px) {
+  #warehouseItemRequestDetails .warehouse-ir-details-body {padding:12px;gap:10px;}
+  #warehouseItemRequestDetails .warehouse-ir-view-section {padding:12px;}
+}
