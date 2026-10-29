@@ -167,23 +167,26 @@ class JobOrderWorkflowService
             $name = trim((string) ($part['name'] ?? ''));
             $unit = trim((string) ($part['unit'] ?? ''));
             $id = (int) ($part['inventory_item_id'] ?? 0);
-            return ['name'=>$name,'unit'=>$unit,'inventory_item_id'=>$id ?: null,
-                'key'=>$id ? 'id:'.$id : $normal($name).'|'.$unitKey($unit),
+            $code = trim((string) ($part['inventory_item_code'] ?? ''));
+            return ['name'=>$name,'unit'=>$unit,'inventory_item_id'=>$id ?: null,'inventory_item_code'=>$code ?: null,
+                'key'=>$id ? 'id:'.$id : ($code !== '' ? 'code:'.mb_strtolower($code) : $normal($name).'|'.$unitKey($unit)),
                 'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
         $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
         $breakdown = $requested->map(function (array $part) use ($items, $reserved, $normal, $unitKey, $totals): array {
             $matching = ! empty($part['inventory_item_id'])
                 ? $items->where('id', (int) $part['inventory_item_id'])->values()
-                : $items->filter(fn (InventoryItem $item) =>
+                : (! empty($part['inventory_item_code'])
+                    ? $items->filter(fn (InventoryItem $item) => mb_strtolower(trim((string) $item->item_code)) === mb_strtolower($part['inventory_item_code']))->values()
+                    : $items->filter(fn (InventoryItem $item) =>
                     $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
                     && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
-                )->values();
+                )->values());
             $item = $matching->count() === 1 ? $matching->first() : null;
             $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0) - (int) $reserved->get($item->id, 0)) : 0;
             $required = (int)$totals->get($part['key'], $part['quantity']);
             return ['name'=>$part['name'],'quantity'=>$part['quantity'],'unit'=>$part['unit'],
-                'inventory_item_id'=>$item?->id,'category'=>$item?->category,
+                'inventory_item_id'=>$item?->id,'inventory_item_code'=>$part['inventory_item_code'] ?? null,'category'=>$item?->category,
                 'available'=>$stock,'shortage'=>max(0,$required-$stock),
                 'in_stock'=>$stock>0,'fulfillable'=>$stock >= $required,
                 'ambiguous'=>$matching->count()>1];
@@ -195,7 +198,9 @@ class JobOrderWorkflowService
             ->sum(fn ($part) => min((int) $totals->get(
                 ! empty($part['inventory_item_id']) && $totals->has('id:'.$part['inventory_item_id'])
                     ? 'id:'.$part['inventory_item_id']
-                    : $normal($part['name']).'|'.$unitKey($part['unit']), 0
+                    : (! empty($part['inventory_item_code']) && $totals->has('code:'.mb_strtolower($part['inventory_item_code']))
+                        ? 'code:'.mb_strtolower($part['inventory_item_code'])
+                        : $normal($part['name']).'|'.$unitKey($part['unit'])), 0
             ), (int) $part['available']));
         return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
             'parts'=>$breakdown->all()];

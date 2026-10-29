@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Warehouse\InventoryItem;
 use App\Models\Maintenance\JobOrderPartReservation;
 use App\Services\Maintenance\JobOrderWorkflowService;
+use App\Services\PartParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,6 +23,7 @@ class InventoryIdentityAvailabilityTest extends TestCase
             'unit_of_measurement' => 'liter',
             'quantity_available' => 513,
             'on_hand' => 513,
+            'category' => 'Lubricants',
         ]);
         $second = InventoryItem::create([
             'item_code' => 'TEST-OIL-B',
@@ -31,6 +33,7 @@ class InventoryIdentityAvailabilityTest extends TestCase
             'unit_of_measurement' => 'liter',
             'quantity_available' => 135,
             'on_hand' => 135,
+            'category' => 'Lubricants',
         ]);
         $service = app(JobOrderWorkflowService::class);
         $part = ['name' => 'Engine Oil 15W-40', 'unit' => 'liter', 'quantity' => 1000];
@@ -44,5 +47,13 @@ class InventoryIdentityAvailabilityTest extends TestCase
         $this->assertSame('partial', $specific['status']);
         $this->assertSame(135, $specific['parts'][0]['available']);
         $this->assertSame(865, $specific['parts'][0]['shortage']);
+
+        $legacyParts = app(PartParser::class)->parsePartText('Engine Oil 15W-40 [TEST-OIL-B] - Qty: 1000 liter');
+        $this->assertSame('Engine Oil 15W-40', $legacyParts[0]['name']);
+        $this->assertSame('TEST-OIL-B', $legacyParts[0]['inventory_item_code']);
+        $legacySpecific = $service->inventoryAvailability($legacyParts);
+        $this->assertSame('partial', $legacySpecific['status']);
+        $this->assertSame($second->id, $legacySpecific['parts'][0]['inventory_item_id']);
+        $this->assertSame(135, $legacySpecific['parts'][0]['available']);
     }
 }

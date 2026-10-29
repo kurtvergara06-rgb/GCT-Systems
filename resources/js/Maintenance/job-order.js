@@ -424,6 +424,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     row.className =
       'jo-part-row part-needed-row';
 
+    // Legacy JO rows stored an item code in the readable name. Retain it only
+    // as a recovery key until the row is saved with the canonical inventory ID.
+    row.dataset.savedInventoryCode = part.inventory_item_code || '';
+
 
     row.innerHTML = `
       <input type="hidden" name="parts[${index}][inventory_item_id]" value="${escapeInputValue(part.inventory_item_id || '')}">
@@ -1626,7 +1630,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
           const rawName = pieces[0]?.trim() || '';
           const marker = rawName.match(/\s*\[item:(\d+)\]$/i);
-          const name = rawName.replace(/\s*\[item:\d+\]$/i, '').trim();
+          const legacyCode = marker ? null : rawName.match(/\s*\[([^\]]+)\]$/);
+          const name = rawName
+            .replace(/\s*\[item:\d+\]$/i, '')
+            .replace(/\s*\[[^\]]+\]$/, '')
+            .trim();
 
 
           const quantityWithUnit =
@@ -1643,6 +1651,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
             name,
             inventory_item_id: marker ? Number(marker[1]) : null,
+            inventory_item_code: legacyCode ? legacyCode[1].trim() : null,
 
             quantity:
               match
@@ -3280,9 +3289,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
   const enhanceJobOrderParts = (partsWrapper) => {
   // Stocked parts are selected by inventory ID; units come from Warehouse data.
   if (partsWrapper) {
-    fetch('/job-orders/inventory-options', { headers: { Accept: 'application/json' } })
+    const lifecycleController = new AbortController();
+    let rowObserver = null;
+    const openMenuClosers = new Set();
+    window.addEventListener('gct:navigation-before', () => {
+      lifecycleController.abort();
+      rowObserver?.disconnect();
+      openMenuClosers.forEach((closeMenu) => closeMenu());
+      openMenuClosers.clear();
+    }, { once: true });
+
+    fetch('/job-orders/inventory-options', {
+      headers: { Accept: 'application/json' },
+      signal: lifecycleController.signal,
+    })
       .then((response) => { if (!response.ok) throw new Error('Inventory unavailable'); return response.json(); })
       .then((items) => {
+        if (!partsWrapper.isConnected || lifecycleController.signal.aborted) return;
         // A Warehouse item can be requested only once per JO. Removing or
         // changing its row makes it selectable again in the other rows.
         const selectedPartIds = () => new Set(
@@ -3301,6 +3324,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           const name = nameInput.name;
           const existingName = nameInput.value;
           const existingId = String(row.querySelector('input[name$="[inventory_item_id]"]')?.value || existingName.match(/\[item:(\d+)\]/i)?.[1] || '');
+          const existingCode = String(row.dataset.savedInventoryCode || '');
           const plainName = existingName.replace(/\s*\[item:\d+\]$/i, '').trim();
           const picker = document.createElement('select');
           picker.name = name;
@@ -3311,9 +3335,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           picker.append(initial);
           items.forEach((item) => {
             const option = document.createElement('option');
-            option.value = `${item.name} [${item.code || item.id}]`;
-            option.textContent = `${item.name}${item.code ? ' · ' + item.code : ''}`;
+            // The hidden inventory ID is authoritative. Keep the submitted
+            // select value unique without exposing internal IDs/codes in UI.
+            option.value = `inventory-item-${item.id}`;
+            option.textContent = item.name;
             option.dataset.itemId = item.id;
+            option.dataset.itemCode = item.code || '';
             option.dataset.unit = item.unit;
             option.disabled = !item.unit;
             picker.append(option);
@@ -3411,7 +3438,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               const label = document.createElement('strong');
               label.textContent = item.name;
               const hint = document.createElement('small');
-              hint.textContent = `Item Code: ${item.code || 'Not assigned'} · Unit: ${item.unit || 'Not configured'}`;
+              hint.textContent = `Unit: ${item.unit || 'Not configured'}`;
               hint.style.cssText = 'font-size:11px;color:#64748b;';
               description.append(label, hint);
               const identity = document.createElement('span');
@@ -3424,7 +3451,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
                 if (choice) {
                   picker.value = choice.value;
                   picker.dispatchEvent(new Event('change', { bubbles: true }));
-                  trigger.textContent = `${item.name}${item.code ? ' · ' + item.code : ''}`;
+                  trigger.textContent = item.name;
                 }
                 close();
               });
@@ -3455,21 +3482,34 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           });
           document.addEventListener('pointerdown', (event) => {
             if (!searchWrap.contains(event.target) && !menu.contains(event.target)) close();
-          });
-          const savedOption = Array.from(picker.options).find((option) => existingId ? option.dataset.itemId === existingId : (option.value && option.value.split(' [')[0] === plainName));
+          }, { signal: lifecycleController.signal });
+          openMenuClosers.add(close);
+          const options = Array.from(picker.options);
+          const nameMatches = existingId || existingCode
+            ? []
+            : options.filter((option) => option.textContent?.trim() === plainName);
+          const savedOption = existingId
+            ? options.find((option) => option.dataset.itemId === existingId)
+            : existingCode
+              ? options.find((option) => option.dataset.itemCode === existingCode)
+              : (nameMatches.length === 1 ? nameMatches[0] : null);
           picker.value = savedOption?.value || '';
           if (savedOption) trigger.textContent = savedOption.textContent;
+          else if (plainName) trigger.textContent = plainName;
           row.dataset.inventoryPicker = '1';
-          updateItem();
+          // Do not clear a saved ID merely because the asynchronous options
+          // lookup cannot restore it. A deliberate user selection owns updates.
+          if (savedOption) updateItem();
         };
         partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
-        const rowObserver = new MutationObserver(() => {
+        rowObserver = new MutationObserver(() => {
           partsWrapper.querySelectorAll('.part-needed-row').forEach(enhanceRow);
           notifyPartSelectionChanged();
         });
         rowObserver.observe(partsWrapper, { childList: true });
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error?.name === 'AbortError') return;
         // Keep the legacy parts form available if the Warehouse lookup is offline.
       });
   }

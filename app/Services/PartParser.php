@@ -148,6 +148,12 @@ class PartParser
                 if (preg_match('/^(.*?)\\s*\\[item:(\\d+)\\]$/i', $part['name'], $match)) {
                     $part['name'] = trim($match[1]);
                     $part['inventory_item_id'] = (int) $match[2];
+                } elseif (preg_match('/^(.*?)\\s*\\[([^\\]]+)\\]$/', $part['name'], $match)) {
+                    // Older JO rows embedded the Warehouse item code directly
+                    // in the readable label. Keep it as an exact recovery key,
+                    // but never expose it as part of the human-readable name.
+                    $part['name'] = trim($match[1]);
+                    $part['inventory_item_code'] = trim($match[2]);
                 }
                 return $part;
             })

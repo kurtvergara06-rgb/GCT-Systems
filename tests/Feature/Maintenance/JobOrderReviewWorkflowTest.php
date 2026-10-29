@@ -5,6 +5,7 @@ namespace Tests\Feature\Maintenance;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Warehouse\InventoryItem;
@@ -127,6 +128,83 @@ class JobOrderReviewWorkflowTest extends TestCase
         $this->assertSame('For Review', $jobOrder->review_status);
         $this->assertSame(1, $jobOrder->revision_number);
         $this->assertDatabaseHas('job_order_audits', ['job_order_id' => $jobOrder->id, 'action' => 'resubmitted']);
+    }
+
+    public function test_revision_preserves_reservation_but_rejection_is_terminal_and_releases_it(): void
+    {
+        $staff = $this->user('staff');
+        $head = $this->user('head');
+        $part = InventoryItem::create([
+            'item_code' => 'REVISION-LIFECYCLE-PART', 'item_name' => 'Drive Belt',
+            'parts_name' => 'Drive Belt', 'category' => 'Engine Parts',
+            'quantity_available' => 10, 'on_hand' => 10,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+
+        $revision = JobOrder::create([
+            'job_order_no' => 'JO-REVISION-RESERVE', 'bus_no' => 'BUS-REVISION-RESERVE',
+            'problem_issue' => 'Drive belt inspection', 'maintenance_type' => 'Repair',
+            'part_needed' => "Drive Belt [item:{$part->id}] - Qty: 4 pcs",
+            'part_status' => 'Not Requested', 'review_status' => 'For Review',
+            'status' => 'On Hold', 'created_by' => $staff->id,
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $revision->id, 'inventory_item_id' => $part->id, 'quantity' => 4,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.return-for-revision', $revision), [
+                'review_notes' => 'Clarify the replacement scope.',
+            ])->assertRedirect();
+
+        $this->assertSame('Revision Required', $revision->fresh()->review_status);
+        $this->assertDatabaseHas('job_order_part_reservations', [
+            'job_order_id' => $revision->id, 'inventory_item_id' => $part->id, 'quantity' => 4,
+        ]);
+
+        $rejected = JobOrder::create([
+            'job_order_no' => 'JO-REJECT-RESERVE', 'bus_no' => 'BUS-REJECT-RESERVE',
+            'problem_issue' => 'Duplicate request', 'maintenance_type' => 'Repair',
+            'part_needed' => "Drive Belt [item:{$part->id}] - Qty: 2 pcs",
+            'part_status' => 'Not Requested', 'review_status' => 'For Review',
+            'status' => 'On Hold', 'created_by' => $staff->id,
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $rejected->id, 'inventory_item_id' => $part->id, 'quantity' => 2,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.reject', $rejected), [
+                'review_notes' => 'This is a duplicate Job Order.',
+            ])->assertRedirect();
+
+        $rejected->refresh();
+        $this->assertSame('Rejected', $rejected->review_status);
+        $this->assertSame('Completed', $rejected->status);
+        $this->assertDatabaseMissing('job_order_part_reservations', ['job_order_id' => $rejected->id]);
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->put(route('job-orders.update', $rejected), [])->assertRedirect()->assertSessionHas('error');
+    }
+
+    public function test_staff_cannot_use_head_review_actions(): void
+    {
+        $staff = $this->user('staff');
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-STAFF-APPROVAL-GUARD', 'bus_no' => 'BUS-STAFF-GUARD',
+            'problem_issue' => 'Approval permission check', 'maintenance_type' => 'Repair',
+            'part_status' => 'No Parts Required', 'review_status' => 'For Review', 'status' => 'On Hold',
+            'created_by' => $staff->id,
+        ]);
+
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.return-for-revision', $jobOrder), [
+                'review_notes' => 'Unauthorized attempt.',
+            ])->assertForbidden();
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.reject', $jobOrder), [
+                'review_notes' => 'Unauthorized attempt.',
+            ])->assertForbidden();
+        $this->assertSame('For Review', $jobOrder->fresh()->review_status);
     }
 
     public function test_revision_resubmission_releases_old_part_reservation_and_reserves_replacement(): void

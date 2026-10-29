@@ -16,7 +16,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_job_order_parts_flow_from_purchase_request_creation_to_warehouse_issue(): void
+    public function test_submitted_purchase_request_is_visible_but_cannot_issue_before_procurement_ready(): void
     {
         $user = User::factory()->create([
             'department' => 'Maintenance',
@@ -56,13 +56,14 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Approved', $purchaseRequest->status);
-        $this->assertNotNull($purchaseRequest->approved_at);
+        $this->assertSame('Submitted', $purchaseRequest->status);
+        $this->assertNull($purchaseRequest->approved_at);
         $this->assertSame('Maintenance Request', $purchaseRequest->source_type);
         $this->assertSame(2, (int) $purchaseRequest->quantity);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
-        // Warehouse queries approved Maintenance PRs directly: no second approval.
+        // Warehouse may see the request for stock reference, but physical issue
+        // stays locked until the procurement/receipt workflow makes it ready.
         $this->actingAs($warehouseStaff)->get(route('part-requests'))->assertOk()->assertSee($purchaseRequest->pr_no);
 
         $inventoryItem = InventoryItem::create([
@@ -82,20 +83,19 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $purchaseRequest));
 
-        $issueResponse->assertRedirect();
+        $issueResponse->assertRedirect()->assertSessionHasErrors('workflow');
 
-        $this->assertSame('Issued', $purchaseRequest->fresh()->status);
-        $this->assertSame('Issued', $purchaseRequest->fresh()->warehouse_status);
-        $this->assertSame('Issued', $jobOrder->fresh()->part_status);
-        $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
-        $this->assertSame(2, $purchaseRequest->fresh()->warehouse_issue_quantities[0]['issued']);
+        $this->assertSame('Submitted', $purchaseRequest->fresh()->status);
+        $this->assertNotSame('Issued', $purchaseRequest->fresh()->warehouse_status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
+        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
 
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $purchaseRequest))
-            ->assertSessionHas('error');
+            ->assertSessionHasErrors('workflow');
 
-        $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
-        $this->assertSame(1, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
+        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
+        $this->assertSame(0, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
     public function test_warehouse_edit_capability_controls_direct_issue(): void

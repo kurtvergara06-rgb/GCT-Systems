@@ -39,16 +39,17 @@ class JobOrderPartReservationTest extends TestCase
             'bus_no' => 'BUS-RES-'.$n,
             'problem_issue' => 'Oil filter replacement',
             'maintenance_type' => 'Corrective',
-            'part_needed' => 'Oil Filter - Qty: 10 pc',
+            'part_needed' => "Oil Filter [item:{$item->id}] - Qty: 5 pc",
             'part_status' => 'Not Requested',
             'review_status' => 'For Review',
             'status' => 'On Hold',
         ]));
         $results = $orders->map(fn (JobOrder $jo) => DB::transaction(fn () => $service->reserveForApproval($jo)));
-        $this->assertSame([10, 0, 0], $results->map(fn (array $r) => collect($r['parts'])->sum('reserved'))->all());
+        $this->assertSame([5, 5, 0], $results->map(fn (array $r) => collect($r['parts'])->sum('reserved'))->all());
         $this->assertSame(10, (int) JobOrderPartReservation::where('inventory_item_id', $item->id)->sum('quantity'));
         $this->assertSame(10, (int) $item->fresh()->quantity_available);
-        $this->assertSame('none', $results[1]['status']);
+        $this->assertSame('sufficient', $results[0]['status']);
+        $this->assertSame('sufficient', $results[1]['status']);
         $this->assertSame('none', $results[2]['status']);
     }
 
