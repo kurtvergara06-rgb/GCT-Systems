@@ -13,6 +13,54 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     return;
   }
 
+  // Floating item preview matches Parts Requisitions without expanding table rows.
+  let poItemPopover = null;
+  let activePoItemTrigger = null;
+  const closePoItemPopover = () => {
+    poItemPopover?.remove();
+    poItemPopover = null;
+    if (activePoItemTrigger) activePoItemTrigger.setAttribute('aria-expanded', 'false');
+    activePoItemTrigger = null;
+  };
+  const positionPoItemPopover = (trigger) => {
+    if (!poItemPopover || !trigger.isConnected) return closePoItemPopover();
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(320, window.innerWidth - 24);
+    const height = Math.min(poItemPopover.scrollHeight, 260);
+    const below = rect.bottom + 7;
+    const top = window.innerHeight - below - 12 < height && rect.top > height + 16
+      ? Math.max(12, rect.top - height - 7) : below;
+    Object.assign(poItemPopover.style, {
+      position: 'fixed', top: top + 'px',
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - width - 12)) + 'px',
+      width: width + 'px',
+      maxHeight: Math.max(100, window.innerHeight - top - 12) + 'px'
+    });
+  };
+  document.querySelectorAll('.po-items-more-trigger').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      if (activePoItemTrigger === trigger) return closePoItemPopover();
+      closePoItemPopover();
+      const source = trigger.parentElement.querySelector('.po-items-more-source');
+      if (!source) return;
+      poItemPopover = source.cloneNode(true);
+      poItemPopover.removeAttribute('hidden');
+      poItemPopover.classList.add('po-items-floating-popover');
+      document.body.appendChild(poItemPopover);
+      activePoItemTrigger = trigger;
+      trigger.setAttribute('aria-expanded', 'true');
+      positionPoItemPopover(trigger);
+    });
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (poItemPopover && !poItemPopover.contains(event.target) && !activePoItemTrigger?.contains(event.target)) closePoItemPopover();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePoItemPopover();
+  });
+  window.addEventListener('scroll', closePoItemPopover, true);
+  window.addEventListener('resize', closePoItemPopover);
+
   const money = (value) => {
     const amount = Number.parseFloat(value || 0) || 0;
 
