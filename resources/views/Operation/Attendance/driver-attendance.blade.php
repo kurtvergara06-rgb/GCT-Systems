@@ -24,15 +24,7 @@
         notification-count="6"
       />
 
-      @if($errors->any())
-        <div class="alert-error">
-          <ul>
-            @foreach($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        </div>
-      @endif
+
 
       <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card label="Present" value="{{ $present }}" small="Confirmed Present for selected date" icon="fa-user-check" color="green" />
