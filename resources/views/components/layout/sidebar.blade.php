@@ -104,12 +104,12 @@
                 'icon' => 'fa-clipboard-list',
                 'children' => [
                     [
-                        'label' => 'Parts Requests',
+                        'label' => 'Parts Requisitions',
                         'route' => 'maintenance-requests',
                         'icon' => 'fa-screwdriver-wrench',
                         'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
                     ],
-                    ['label' => 'Stock Replenishment', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
+                    ['label' => 'Stock Requisitions', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
             ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
