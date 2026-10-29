@@ -1181,3 +1181,22 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   min-width:0;
   text-align:right;
 }
+
+/* PR ON HAND matches IR: left-aligned label, number, and +more chip. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) thead th:nth-child(4),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) {
+  text-align:left !important;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) .warehouse-pr-onhand-compact {
+  display:inline-flex;
+  width:auto;
+  max-width:100%;
+  margin:0;
+  justify-content:flex-start;
+  align-items:center;
+  gap:8px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-main {
+  min-width:0;
+  text-align:left;
+}
