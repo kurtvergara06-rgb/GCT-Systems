@@ -23,11 +23,7 @@
                 subtitle="Review bus breakdown referrals from Operation and create traceable Job Orders"
             />
 
-            @if (session('error'))
-                <div style="margin:16px 0;padding:12px 14px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#991b1b;">
-                    {{ session('error') }}
-                </div>
-            @endif
+            
 
             <section data-ajax-region="summary" class="stats-grid referral-stats-grid">
                 <x-ui.summary-card label="Pending" :value="$pendingCount" small="Needs review" icon="fa-clock" color="yellow" />
