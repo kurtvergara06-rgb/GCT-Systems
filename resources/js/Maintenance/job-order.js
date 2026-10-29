@@ -2583,10 +2583,35 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
         : originalText;
     };
 
+    const positionBusMenu = () => {
+      if (!config.portal || menu.hidden || !trigger.isConnected) return;
+      const bounds = trigger.getBoundingClientRect();
+      const below = window.innerHeight - bounds.bottom;
+      const above = bounds.top;
+      const menuHeight = Math.min(270, Math.max(130, below - 12));
+      const openAbove = below < 180 && above > below;
+      Object.assign(menu.style, {
+        position: 'fixed',
+        left: Math.max(8, bounds.left) + 'px',
+        top: openAbove ? 'auto' : (bounds.bottom + 5) + 'px',
+        bottom: openAbove ? Math.max(8, window.innerHeight - bounds.top + 5) + 'px' : 'auto',
+        width: bounds.width + 'px',
+        maxHeight: (openAbove ? Math.min(270, above - 12) : menuHeight) + 'px',
+        zIndex: '110500',
+      });
+    };
+
+    const handleOutsideMenuClick = (event) => {
+      if (!combobox.contains(event.target) && !menu.contains(event.target)) closeMenu();
+    };
+
     const closeMenu = () => {
       menu.hidden = true;
       combobox.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
+      window.removeEventListener('resize', positionBusMenu);
+      window.removeEventListener('scroll', positionBusMenu, true);
+      document.removeEventListener('click', handleOutsideMenuClick);
     };
 
     const updateLabel = () => {
