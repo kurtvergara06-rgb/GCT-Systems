@@ -106,6 +106,9 @@ class PurchaseRequestController extends Controller
 
     public function index(Request $request)
     {
+        $recordView = in_array($request->query('record_view'), ['pending', 'active', 'history'], true)
+            ? $request->query('record_view') : 'pending';
+
         $query =
             $this
                 ->maintenancePurchaseRequestQuery();
@@ -168,6 +171,16 @@ class PurchaseRequestController extends Controller
                 'status',
                 $request->status
             );
+        }
+
+        // Pending is a JO shortage proposal, not a persisted PurchaseRequest.
+        // Keep fulfilled procurement in History and in-flight records in Active.
+        if ($recordView === 'history') {
+            $query->whereIn('status', ['Issued', 'Delivered', 'Picked Up', 'Cancelled']);
+        } elseif ($recordView === 'active') {
+            $query->whereNotIn('status', ['Issued', 'Delivered', 'Picked Up', 'Cancelled']);
+        } else {
+            $query->whereRaw('1 = 0');
         }
 
         $purchaseRequests =
@@ -298,6 +311,22 @@ class PurchaseRequestController extends Controller
                 })
                 ->values();
 
+        // Build the Pending tab from approved JOs with outstanding shortages.
+        // This is read-only data; it does not reserve or issue inventory.
+        $pendingPrJobs = $jobOrders->map(function (JobOrder $jobOrder) {
+            return [
+                'job' => $jobOrder,
+                'parts' => $this->purchaseRequestParts->missingParts(
+                    (string) $jobOrder->part_needed,
+                    $jobOrder
+                ),
+            ];
+        })->values();
+
+        $workToPerformByJobOrder = JobOrder::query()
+            ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter())
+            ->pluck('work_to_perform', 'job_order_no');
+
         $selectedJobOrder =
             null;
 
@@ -324,6 +353,9 @@ class PurchaseRequestController extends Controller
             'Maintenance.purchase-requests',
             compact(
                 'purchaseRequests',
+                'recordView',
+                'pendingPrJobs',
+                'workToPerformByJobOrder',
                 'prJobApprovals',
                 'irStatusesByJo',
                 'submitted',
