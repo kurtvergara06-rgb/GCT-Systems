@@ -200,7 +200,7 @@
                                     <span class="ir-split-policy">—</span>
                                 @endif
                             </td>
-                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-approver="{{ $ir->jobOrder?->approver?->name ?? 'Not recorded' }}" data-ir-signature-url="{{ $ir->jobOrder ? route('job-orders.approval-signature', $ir->jobOrder, false) : '' }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
+                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-approver="{{ $ir->jobOrder?->approver?->name ?? 'Not recorded' }}" data-ir-signature-url="{{ $ir->jobOrder ? route('job-orders.approval-signature', $ir->jobOrder, false) : '' }}" data-ir-requester="{{ $ir->requester?->name ?? 'Not recorded' }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="6"><div class="ir-empty">
@@ -243,6 +243,12 @@
                             <div><span>Destination</span><strong>Warehouse Department</strong></div>
                         </div>
                         <p class="ir-review-muted" id="ir-detail-status-description">Current Warehouse processing status.</p>
+                        <div class="ir-review-overview-grid ir-view-secondary-data">
+                            <div><span>Job Order</span><strong id="ir-detail-overview-job">—</strong></div>
+                            <div><span>Requested By</span><strong id="ir-detail-requester">—</strong></div>
+                            <div><span>Request Date</span><strong id="ir-detail-request-date">—</strong></div>
+                            <div><span>Department</span><strong>Maintenance</strong></div>
+                        </div>
                     </div>
                 </section>
                 <section class="ir-review-section" aria-labelledby="ir-view-head-approval-title">
