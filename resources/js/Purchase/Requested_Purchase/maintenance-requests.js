@@ -1,4 +1,67 @@
 window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests', '.purchase-maintenance-requests-page', function () {
+  // Render parts breakdown above table clipping/stacking contexts, like the
+  // Maintenance mechanic "+N more" popover. The row never expands.
+  let partsPopover = null;
+  let activePartsTrigger = null;
+
+  function closePartsPopover() {
+    partsPopover?.remove();
+    partsPopover = null;
+    if (activePartsTrigger) {
+      activePartsTrigger.setAttribute('aria-expanded', 'false');
+      activePartsTrigger = null;
+    }
+  }
+
+  function placePartsPopover(trigger) {
+    if (!partsPopover || !trigger.isConnected) {
+      closePartsPopover();
+      return;
+    }
+    const bounds = trigger.getBoundingClientRect();
+    const width = Math.min(320, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12));
+    const topBelow = bounds.bottom + 7;
+    const availableBelow = window.innerHeight - topBelow - 12;
+    const height = Math.min(partsPopover.scrollHeight, 250);
+    const top = availableBelow < height && bounds.top > height + 16
+      ? Math.max(12, bounds.top - height - 7)
+      : topBelow;
+    Object.assign(partsPopover.style, {
+      position: 'fixed', top: top + 'px', left: left + 'px',
+      width: width + 'px', maxHeight: Math.max(100, window.innerHeight - top - 12) + 'px'
+    });
+  }
+
+  document.querySelectorAll('.requested-pr-more > summary').forEach((trigger) => {
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (activePartsTrigger === trigger) {
+        closePartsPopover();
+        return;
+      }
+      closePartsPopover();
+      const content = trigger.parentElement.querySelector('.requested-pr-more-panel');
+      if (!content) return;
+      partsPopover = content.cloneNode(true);
+      partsPopover.classList.add('requested-pr-floating-popover');
+      document.body.appendChild(partsPopover);
+      activePartsTrigger = trigger;
+      trigger.setAttribute('aria-expanded', 'true');
+      placePartsPopover(trigger);
+    });
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (partsPopover && !partsPopover.contains(event.target) &&
+        !activePartsTrigger?.contains(event.target)) closePartsPopover();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePartsPopover();
+  });
+  window.addEventListener('resize', closePartsPopover);
+  window.addEventListener('scroll', closePartsPopover, true);
+
   function openModal(modal) {
     if (!modal) return;
 
