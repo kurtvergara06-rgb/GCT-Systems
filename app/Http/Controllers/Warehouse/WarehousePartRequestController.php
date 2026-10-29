@@ -976,26 +976,18 @@ class WarehousePartRequestController extends Controller
                 ->orWhereRaw('LOWER(TRIM(parts_name)) = ?', [$partName]);
         };
 
+        // Never take an arbitrary first stock row when names are duplicated.
+        // This must agree with Maintenance's conservative identity policy.
+        $candidates = InventoryItem::query()->where($identityScope)->get();
         if ($unit !== '') {
-            $item = InventoryItem::query()
-                ->where($identityScope)
-                ->whereRaw('LOWER(TRIM(unit_of_measurement)) = ?', [$unit])
-                ->first();
-
-            if ($item) {
-                return $item;
-            }
+            $unitMatched = $candidates->filter(fn (InventoryItem $item) =>
+                $this->normalizeUnit((string) ($item->unit_of_measurement ?: $item->unit)) === $unit
+            );
+            // A mismatch in units is not permission to select a different unit.
+            $candidates = $unitMatched;
         }
 
-        /*
-         * Inventory issuance is intentionally strict. A partial-name fallback
-         * (for example, "Oil Filter" matching "Engine Oil Filter") can deduct
-         * the wrong stock item. If no exact normalized identity exists, treat
-         * the requested part as unavailable and route it through Purchase.
-         */
-        return InventoryItem::query()
-            ->where($identityScope)
-            ->first();
+        return $candidates->count() === 1 ? $candidates->first() : null;
     }
 
     private function buildPartsText(array $parts): string
