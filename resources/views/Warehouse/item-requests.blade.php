@@ -224,13 +224,16 @@
         </header>
         <div class="ir-modal-body warehouse-ir-slip-body">
             <div class="warehouse-ir-slip-fields">
-                <div><span>Item Request</span><strong id="ir-slip-number">—</strong></div>
-                <div><span>Job Order</span><strong id="ir-slip-job">—</strong></div>
-                <div><span>Release Policy</span><strong id="ir-slip-release-policy">—</strong></div>
-                <div><span>Department</span><strong>Maintenance</strong></div>
-                <div><span>Bus / Purpose</span><strong id="ir-slip-bus">—</strong></div>
+                <div><span>IR ID</span><strong id="ir-slip-number">—</strong></div>
+                <div><span>Linked JO</span><strong id="ir-slip-job">—</strong></div>
                 <div><span>Requested By / Mechanic</span><strong id="ir-slip-mechanic">—</strong></div>
                 <div><span>Date</span><strong id="ir-slip-date">—</strong></div>
+                <div><span>Department</span><strong>Maintenance</strong></div>
+                <div><span>Total Parts</span><strong id="ir-slip-total-parts">—</strong></div>
+            </div>
+            <div class="warehouse-ir-slip-meta-line">
+                <span>Bus: <strong id="ir-slip-bus">—</strong></span>
+                <span>Release Policy: <strong id="ir-slip-release-policy">—</strong></span>
             </div>
             <div class="warehouse-ir-stock-table-wrap">
                 <table class="warehouse-ir-stock-table warehouse-ir-slip-table">
