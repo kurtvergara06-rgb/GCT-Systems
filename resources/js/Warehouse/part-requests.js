@@ -294,7 +294,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       parts.forEach(part => {
         const tr = document.createElement('tr');
         const name = document.createElement('td');
-        name.textContent = String(part.name || '—').replace(/\\s*\\[item:\\d+\\]/gi, '').trim();
+        name.textContent = String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim();
         const qty = document.createElement('td');
         qty.textContent = String(part.needed_display ?? (part.needed ?? 0) + ' ' + (part.unit || ''));
         const stock = document.createElement('td');
