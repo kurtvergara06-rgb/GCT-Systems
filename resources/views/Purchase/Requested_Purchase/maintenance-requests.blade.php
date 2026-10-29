@@ -107,7 +107,14 @@
                     />
                   </td>
                   <td class="requested-pr-date">
-                    {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
+                    @if($purchaseRequest->created_at)
+                      <div class="requested-pr-date-stack">
+                        <strong>{{ $purchaseRequest->created_at->format('M d, Y') }}</strong>
+                        <small>{{ $purchaseRequest->created_at->format('h:i A') }}</small>
+                      </div>
+                    @else
+                      <span>—</span>
+                    @endif
                   </td>
                   <td class="requested-pr-actions-cell">
                     <div class="actions record-actions">
