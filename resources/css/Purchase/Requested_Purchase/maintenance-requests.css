@@ -1279,3 +1279,23 @@
   min-height:25px !important;
   font-size:10px !important;
 }
+
+/* Match Maintenance PR status chip: prevent inherited global badge expansion. */
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] {
+  display:inline-flex !important;
+  width:fit-content !important;
+  min-width:0 !important;
+  max-width:110px !important;
+  height:25px !important;
+  min-height:25px !important;
+  padding:3px 8px !important;
+  gap:4px !important;
+  font-size:10px !important;
+  letter-spacing:0 !important;
+  white-space:nowrap !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__icon {
+  width:auto !important;
+  flex:0 0 auto !important;
+  font-size:10px !important;
+}
