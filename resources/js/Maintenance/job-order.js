@@ -353,6 +353,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
           }
 
+          const inventoryId = row.querySelector('.jo-inventory-id');
+          if (inventoryId) inventoryId.name = `parts[${index}][inventory_item_id]`;
+
         }
       );
   }
