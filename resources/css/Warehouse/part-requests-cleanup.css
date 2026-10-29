@@ -1148,3 +1148,17 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   min-height:26px;
   box-sizing:border-box;
 }
+
+/* PR ON HAND: align the entire value and +more control to the left edge. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td.qty-col:nth-child(4) {
+  text-align:left !important;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td.qty-col:nth-child(4) .warehouse-pr-onhand-compact {
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  margin:0;
+  margin-right:auto;
+  width:100%;
+  gap:8px;
+}
