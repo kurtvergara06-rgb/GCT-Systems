@@ -36,7 +36,6 @@
       <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header warehouse-record-header">
           <div>
-            <span class="dashboard-eyebrow">REQUISITION MANAGEMENT</span>
             <h2>{{ $isJo ? 'Job Order Requests' : 'Part Request Records' }}</h2>
             <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
           </div>
