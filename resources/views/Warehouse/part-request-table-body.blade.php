@@ -62,7 +62,7 @@
                             @foreach($partDetails as $part)
                               <div>
                                 <span>{{ trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($part['name'] ?? '—'))) }}</span>
-                                <strong>{{ $part['on_hand_display'] ?? (($part['on_hand'] ?? 0).' '.($part['unit'] ?? '')) }}</strong>
+                                <strong>{{ $part['physical_on_hand_display'] ?? '0 '.($part['unit'] ?? '') }}</strong>
                               </div>
                             @endforeach
                           </div>
