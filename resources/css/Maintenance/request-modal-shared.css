@@ -104,3 +104,14 @@
   #prModal .ui-form-modal,
   #editPrModal .ui-form-modal { width: calc(100vw - 16px) !important; }
 }
+
+/* View PR (active/history) must match Pending Review PR's 1006px desktop dialog.
+   Match the direct modal panel to win over the older, more-specific 872px caps. */
+@media (min-width: 761px) {
+  #editPrModal.pr-review-modal-overlay > .ui-form-modal.ui-form-modal-xl {
+    width: min(1006px, calc(100vw - 36px)) !important;
+    min-width: 0;
+    max-width: 1006px !important;
+    margin-inline: auto;
+  }
+}
