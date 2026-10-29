@@ -57,6 +57,7 @@ class ItemRequestController extends Controller
             $quantity = $part['quantity'];
             $item = $physicalItems->get($id);
             $physical = $item ? (int) ($item->quantity_available ?? $item->on_hand ?? 0) : 0;
+            $part['on_hand'] = max(0, $physical);
             $free = max(0, $physical - (int) $others->get($id, 0));
             $allocated = (int) $own->get($id, 0);
             $part['available'] = $hasAllocation ? min($free, $allocated) : $free;
@@ -82,6 +83,7 @@ class ItemRequestController extends Controller
                 'already_issued' => $part['already_issued'],
                 'unit' => $part['unit'],
                 'available' => $part['available'],
+                'on_hand' => $part['on_hand'],
                 'shortage' => $part['shortage'],
                 'fulfillable' => $part['fulfillable'],
             ])->values(),
