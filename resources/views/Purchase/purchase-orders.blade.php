@@ -366,7 +366,7 @@
             <span class="po-section-icon"><i class="fa-solid fa-box-open"></i></span>
             <div>
               <h3 id="poItemsTitle">Purchase Items</h3>
-              <p>Add the items to be included in this purchase order.</p>
+              <p>Items linked to a Purchase Requisition are automatically populated.</p>
             </div>
           </div>
 
@@ -378,7 +378,7 @@
                 <span>Unit</span>
                 <span>Unit Cost <b>*</b></span>
                 <span>Line Total</span>
-                <span></span>
+                <span class="po-item-action-heading">Action</span>
               </div>
 
               <div id="poItemsContainer" class="po-items-container"></div>
@@ -393,7 +393,6 @@
               <div class="po-form-group po-purpose-field">
                 <label for="purpose">Purpose</label>
                 <textarea name="purpose" id="purpose" rows="3" placeholder="e.g. For maintenance of assigned bus"></textarea>
-                <p class="po-purpose-hint">Use the linked requisition as reference. Optional for manual orders.</p>
               </div>
               <aside class="po-summary-card" aria-label="Purchase order financial summary">
                 <div class="po-summary-title"><span><i class="fa-solid fa-calculator"></i></span><strong>Financial Summary</strong></div>
