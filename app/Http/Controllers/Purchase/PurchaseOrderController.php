@@ -28,7 +28,12 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = PurchaseOrder::query();
+        $activeTab = $request->query('view') === 'history' ? 'history' : 'active';
+        $query = PurchaseOrder::query()
+            ->whereIn('status', $activeTab === 'history'
+                ? ['Delivered', 'Picked Up']
+                : ['Ordered', 'For Pick-up', 'For Delivery']);
+
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -88,6 +93,7 @@ class PurchaseOrderController extends Controller
         $openPoModal = session('open_po_modal') || $selectedPurchaseRequest !== null;
 
         return view('Purchase.purchase-orders', compact(
+            'activeTab',
             'purchaseOrders',
             'totalOrders',
             'ordered',
