@@ -1957,7 +1957,7 @@ window.GCTPartialNavigation.registerInitializer(
             const cell = document.createElement('td');
             const badge = document.createElement('span');
             badge.className = 'pr-availability-badge is-available';
-            badge.textContent = 'Reference';
+            badge.textContent = 'Available';
             cell.append(badge);
             row.append(name, qty, cell);
             referenceBody.append(row);
