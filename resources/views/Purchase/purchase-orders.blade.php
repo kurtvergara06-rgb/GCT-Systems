@@ -329,13 +329,7 @@
                 >
               </div>
 
-              <div class="po-form-group">
-                <label for="po_status">Status <span class="po-required">*</span></label>
-                <div class="po-status-field">
-                  <span class="po-status-dot" aria-hidden="true"></span>
-                  <input type="text" name="status" id="po_status" value="Ordered" readonly required>
-                </div>
-              </div>
+              <input type="hidden" name="status" id="po_status" value="Ordered">
 
               <div class="po-form-group">
                 <label for="supplier_address_tel">Supplier Address / Contact</label>
