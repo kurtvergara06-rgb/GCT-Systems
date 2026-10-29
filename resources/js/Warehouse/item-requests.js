@@ -324,15 +324,6 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       msg.querySelector('span').textContent = 'Unable to prepare the slip until stock verification succeeds.';
     }
   };
-  document.getElementById('warehouseIrSignedIssueForm')?.addEventListener('submit', (event) => {
-    const button = document.getElementById('ir-slip-confirm');
-    updateIssueButton();
-    if (button.disabled || !window.confirm('Confirm signed physical handover? This will deduct the quantities recorded on this slip. Remaining IR quantities stay active.')) {
-      event.preventDefault();
-      return;
-    }
-    button.disabled = true;
-  });
   document.addEventListener('click', (event) => {
     const prepare = event.target.closest('[data-ir-prepare]');
     if (prepare && document.querySelector('.warehouse-ir-page')?.contains(prepare)) void openSlip(prepare);
