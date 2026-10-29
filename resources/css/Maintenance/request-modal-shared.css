@@ -1,0 +1,106 @@
+/* Shared Maintenance request dialog geometry.
+ * Presentation-only: no form actions, status logic, or modal lifecycle rules.
+ * Loaded after the legacy IR/PR styles to unify the reviewed document layout. */
+#itemRequestModal .ir-review-document-modal,
+#viewItemRequestModal .ir-review-document-modal,
+#prModal .ui-form-modal,
+#editPrModal .ui-form-modal {
+  box-sizing: border-box;
+  width: min(1160px, calc(100vw - 36px)) !important;
+  max-width: 1160px !important;
+  max-height: calc(100dvh - 36px);
+}
+#itemRequestModal .ir-modal-header,
+#viewItemRequestModal .ir-modal-header,
+#prModal .ui-form-modal-header,
+#editPrModal .ui-form-modal-header {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 76px;
+  padding: 15px 22px;
+}
+#itemRequestModal .ir-review-document-body,
+#viewItemRequestModal .ir-review-document-body,
+#prModal .ui-form-modal-scrollable,
+#editPrModal .ui-form-modal-scrollable {
+  box-sizing: border-box;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#itemRequestModal .ir-review-document-top,
+#viewItemRequestModal .ir-review-document-top,
+#prModal .pr-ir-review-top,
+#editPrModal .pr-ir-review-top {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 14px;
+  align-items: stretch;
+}
+#itemRequestModal .ir-review-parts-two-column,
+#viewItemRequestModal .ir-review-parts-two-column,
+#prModal .pr-dual-parts-grid,
+#editPrModal .pr-dual-parts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+#itemRequestModal .ir-review-parts-pane,
+#viewItemRequestModal .ir-review-parts-pane,
+#prModal .pr-dual-parts-pane,
+#editPrModal .pr-dual-parts-pane {
+  box-sizing: border-box;
+  min-width: 0;
+  height: 100%;
+}
+#itemRequestModal .ir-preview-table,
+#viewItemRequestModal .ir-preview-table,
+#prModal .pr-review-parts-table,
+#editPrModal .pr-review-parts-table {
+  width: 100%;
+  min-width: 0 !important;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+#itemRequestModal .ir-preview-table th,
+#itemRequestModal .ir-preview-table td,
+#viewItemRequestModal .ir-preview-table th,
+#viewItemRequestModal .ir-preview-table td,
+#prModal .pr-review-parts-table th,
+#prModal .pr-review-parts-table td,
+#editPrModal .pr-review-parts-table th,
+#editPrModal .pr-review-parts-table td {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  padding: 10px 11px;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+#itemRequestModal .ir-modal-footer,
+#viewItemRequestModal .ir-modal-footer,
+#prModal .pr-document-footer,
+#editPrModal .pr-review-footer {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+@media (max-width: 790px) {
+  #itemRequestModal .ir-review-parts-two-column,
+  #viewItemRequestModal .ir-review-parts-two-column,
+  #prModal .pr-dual-parts-grid,
+  #editPrModal .pr-dual-parts-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 740px) {
+  #itemRequestModal .ir-review-document-top,
+  #viewItemRequestModal .ir-review-document-top,
+  #prModal .pr-ir-review-top,
+  #editPrModal .pr-ir-review-top { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 540px) {
+  #itemRequestModal .ir-review-document-modal,
+  #viewItemRequestModal .ir-review-document-modal,
+  #prModal .ui-form-modal,
+  #editPrModal .ui-form-modal { width: calc(100vw - 16px) !important; }
+}
