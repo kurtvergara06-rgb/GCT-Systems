@@ -7,6 +7,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
   const cancelPoModalBtn = document.getElementById('cancelPoModal');
   const addPoItemBtn = document.getElementById('addPoItemBtn');
   const poRequestReference = document.getElementById('poRequestReference');
+  const poRequestContext = document.getElementById('poRequestContext');
 
   if (!poModal || !poForm || !itemsContainer) {
     return;
@@ -114,12 +115,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     const description = item.item_description || item.item || item.name || '';
     const quantity = item.quantity || item.qty || 1;
     const unit = item.unit || 'PC';
-    const cost = item.cost ?? 0;
+    const cost = item.cost ?? '';
     const row = document.createElement('div');
 
     row.className = 'po-item-row';
     row.innerHTML = `
       <input type="hidden" name="items[${index}][pr_no]" class="item-pr-no" value="${escapeHtml(requestNo)}">
+      <input type="hidden" name="items[${index}][bus_no]" class="item-bus-no" value="${escapeHtml(item.bus_no || '')}">
 
       <input
         type="text"
@@ -241,9 +243,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     setValue('poFormMethod', 'POST');
     setValue('purchase_request_id', '');
-    setValue('supplier_name', 'N/A');
+    setValue('supplier_name', '');
     setValue('po_status', 'Ordered');
     setValue('main_pr_no', '');
+    setText('poRequestJobOrder', '—');
+    setText('poRequestBus', '—');
+    setText('poRequestRemarks', '—');
+    if (poRequestContext) poRequestContext.hidden = true;
     setValue('net_amount_display', money(0));
     setText('po_subtotal_display', money(0));
     setText('poModalTitle', 'New Purchase Order');
@@ -261,6 +267,10 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     setValue('purchase_request_id', prefill?.id || '');
     setValue('main_pr_no', prefill?.pr_no || '');
+    setText('poRequestJobOrder', prefill?.job_order_no || '—');
+    setText('poRequestBus', prefill?.bus_no || '—');
+    setText('poRequestRemarks', prefill?.remarks || '—');
+    if (poRequestContext) poRequestContext.hidden = false;
     renderItems(prefill?.items || []);
     syncRequestReference();
   };
@@ -329,6 +339,9 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   field('main_pr_no')?.addEventListener('input', () => {
     syncRequestNoToItems();
+    itemsContainer.querySelectorAll('.item-bus-no').forEach((input) => {
+      input.value = '';
+    });
     syncRequestReference();
   });
 

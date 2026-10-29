@@ -45,20 +45,22 @@
 
         $prefillItems[] = [
           'pr_no' => $selectedPurchaseRequest->pr_no,
+          'bus_no' => $selectedPurchaseRequest->bus_no,
           'item_description' => $itemName,
           'quantity' => $quantity > 0 ? $quantity : 1,
           'unit' => $unit,
-          'cost' => 0,
+          'cost' => '',
         ];
       }
 
       if (count($prefillItems) === 0) {
         $prefillItems[] = [
           'pr_no' => $selectedPurchaseRequest->pr_no,
+          'bus_no' => $selectedPurchaseRequest->bus_no,
           'item_description' => $selectedPurchaseRequest->item ?? '',
           'quantity' => $selectedPurchaseRequest->quantity ?? 1,
           'unit' => 'PC',
-          'cost' => 0,
+          'cost' => '',
         ];
       }
     }
@@ -66,6 +68,9 @@
     $prefillData = $selectedPurchaseRequest ? [
       'id' => $selectedPurchaseRequest->id,
       'pr_no' => $selectedPurchaseRequest->pr_no,
+      'job_order_no' => $selectedPurchaseRequest->job_order_no,
+      'bus_no' => $selectedPurchaseRequest->bus_no,
+      'remarks' => $selectedPurchaseRequest->remarks,
       'items' => $prefillItems,
     ] : null;
   @endphp
@@ -303,7 +308,7 @@
                   type="text"
                   name="supplier_name"
                   id="supplier_name"
-                  value="N/A"
+                  value=""
                   placeholder="Enter supplier name"
                   maxlength="255"
                   required
@@ -323,6 +328,11 @@
                 <input type="text" id="main_pr_no" placeholder="No linked request" value="{{ $selectedPurchaseRequest?->pr_no }}" readonly>
               </div>
             </div>
+            <dl class="po-request-context" id="poRequestContext" @if(!$selectedPurchaseRequest) hidden @endif>
+              <div><dt>Linked Job Order</dt><dd id="poRequestJobOrder">{{ $selectedPurchaseRequest?->job_order_no ?? '—' }}</dd></div>
+              <div><dt>Bus ID</dt><dd id="poRequestBus">{{ $selectedPurchaseRequest?->bus_no ?? '—' }}</dd></div>
+              <div class="po-request-context-remarks"><dt>Request Remarks</dt><dd id="poRequestRemarks">{{ $selectedPurchaseRequest?->remarks ?? '—' }}</dd></div>
+            </dl>
           </div>
         </section>
 

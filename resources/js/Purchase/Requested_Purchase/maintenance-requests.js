@@ -36,15 +36,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     }
   }
 
-  function escapeHtml(value) {
-    return String(value || '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
-  }
-
   function splitQuantityAndUnit(value) {
     const text = String(value || '').trim();
 
@@ -195,6 +186,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
 
     if (!container) return;
 
+    container.replaceChildren();
+
     let parts = [];
 
     try {
@@ -218,34 +211,33 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     }
 
     if (!Array.isArray(parts) || parts.length === 0) {
-      container.innerHTML = `
-        <div class="requested-pr-breakdown-row">
-          <span>—</span>
-          <span>—</span>
-          <span>—</span>
-        </div>
-      `;
+      const row = document.createElement('tr');
+      ['—', '—', '—'].forEach(function (value) {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      container.appendChild(row);
       return;
     }
 
-    let html = '';
-
     parts.forEach(function (part) {
-      html += `
-        <div class="requested-pr-breakdown-row">
-          <span>${escapeHtml(part.name || '—')}</span>
-          <span>${escapeHtml(part.quantity || '1')}</span>
-          <span>${escapeHtml(part.unit || '—')}</span>
-        </div>
-      `;
-    });
+      const row = document.createElement('tr');
 
-    container.innerHTML = html;
+      [part.name || '—', part.quantity || '1', part.unit || '—'].forEach(function (value) {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+
+      container.appendChild(row);
+    });
   }
 
   const viewRequestedPrModal = document.getElementById('viewRequestedPrModal');
   const closeRequestedPrModal = document.getElementById('closeRequestedPrModal');
   const closeRequestedPrModalBottom = document.getElementById('closeRequestedPrModalBottom');
+  const viewRequestedStatus = document.getElementById('viewRequestedStatus');
 
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.open-view-requested-pr-modal');
@@ -259,10 +251,16 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     setField('viewRequestedBusNo', button.dataset.busNo);
     setField('viewRequestedCreated', button.dataset.created);
     setField('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
+    setField('viewRequestedStatus', button.dataset.status);
+    if (viewRequestedStatus) {
+      viewRequestedStatus.className = 'requested-pr-modal-status status-' +
+        String(button.dataset.status || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
 
     renderRequestedParts(button);
 
     openModal(viewRequestedPrModal);
+    closeRequestedPrModal?.focus();
   });
 
   if (closeRequestedPrModal) {
@@ -277,16 +275,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     });
   }
 
-  if (viewRequestedPrModal) {
-    viewRequestedPrModal.addEventListener('click', function (event) {
-      if (event.target === viewRequestedPrModal) {
-        closeModal(viewRequestedPrModal);
-      }
-    });
-  }
-
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && viewRequestedPrModal?.classList.contains('show')) {
       closeModal(viewRequestedPrModal);
     }
   });

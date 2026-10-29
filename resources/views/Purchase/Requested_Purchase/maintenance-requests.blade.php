@@ -3,8 +3,8 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
     'resources/css/Purchase/purchase-module-ui.css',
+    'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
@@ -69,14 +69,12 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
-                <th>PR ID</th>
-                <th>JO No.</th>
-                <th>Bus ID</th>
-                <th>Item</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th scope="col">PR ID / JO</th>
+                <th scope="col">Parts</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Status</th>
+                <th scope="col">Date</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
 
@@ -89,21 +87,29 @@
                 @endphp
 
                 <tr>
-                  <td><strong>{{ $purchaseRequest->display_pr_no }}</strong></td>
-                  <td><strong>{{ $purchaseRequest->job_order_no ?? '—' }}</strong></td>
-                  <td>{{ $purchaseRequest->bus_no ?? '—' }}</td>
-                  <td>{{ $firstItem }}</td>
-                  <td>{{ $firstQuantity }}</td>
                   <td>
+                    <div class="requested-pr-reference">
+                      <strong>{{ $purchaseRequest->display_pr_no }}</strong>
+                      <small>{{ $purchaseRequest->job_order_no ?? '—' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="requested-pr-part">
+                      <strong>{{ $firstItem }}</strong>
+                      <small>{{ $purchaseRequest->bus_no ?? '—' }}</small>
+                    </div>
+                  </td>
+                  <td class="requested-pr-quantity">{{ $firstQuantity }}</td>
+                  <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
-                  <td>
+                  <td class="requested-pr-date">
                     {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
                   </td>
-                  <td>
+                  <td class="requested-pr-actions-cell">
                     <div class="actions record-actions">
                       <button
                         type="button"
@@ -113,6 +119,7 @@
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
+                        data-status="{{ $purchaseRequest->status }}"
                         data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
                         data-item="{{ $purchaseRequest->item }}"
                         data-quantity="{{ $firstQuantity }}"
@@ -142,7 +149,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
+                  colspan="6"
                   icon="fa-wrench"
                   message="No Maintenance Requests Found"
                   description="Maintenance requisitions endorsed for purchasing will appear here."
@@ -158,58 +165,48 @@
   </div>
 
   <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay">
-    <div class="requested-pr-style-modal">
+    <div class="requested-pr-style-modal" role="dialog" aria-modal="true" aria-labelledby="viewRequestedPrTitle">
       <div class="requested-pr-modal-header">
         <div>
-          <h2>Requested Purchase Details</h2>
+          <h2 id="viewRequestedPrTitle">Requested Purchase Details</h2>
           <h3>PR Information</h3>
           <p>This is a read-only view of the selected purchase request.</p>
         </div>
-        <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn">
+        <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn" aria-label="Close purchase request details">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="requested-pr-form-grid">
-        <div class="requested-pr-field">
-          <label>PR No.</label>
-          <input id="viewRequestedPrNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>JO No.</label>
-          <input id="viewRequestedJoNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>Bus ID</label>
-          <input id="viewRequestedBusNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>Created Date</label>
-          <input id="viewRequestedCreated" type="text" value="—" readonly>
-        </div>
-
-        <div class="requested-pr-field requested-pr-full">
-          <label>Requested Item / Part</label>
-          <div class="requested-pr-breakdown-box">
-            <div class="requested-pr-breakdown-head">
-              <span>Part Name</span>
-              <span>Quantity</span>
-              <span>Unit</span>
-            </div>
-            <div id="viewRequestedPartsContainer">
-              <div class="requested-pr-breakdown-row">
-                <span>—</span>
-                <span>—</span>
-                <span>—</span>
-              </div>
-            </div>
+      <div class="requested-pr-modal-body">
+        <dl class="requested-pr-information-strip">
+          <div><dt>PR No.</dt><dd id="viewRequestedPrNo">—</dd></div>
+          <div><dt>JO No.</dt><dd id="viewRequestedJoNo">—</dd></div>
+          <div><dt>Bus ID</dt><dd id="viewRequestedBusNo">—</dd></div>
+          <div><dt>Created Date</dt><dd id="viewRequestedCreated">—</dd></div>
+          <div class="requested-pr-status-information">
+            <dt>Procurement Status</dt>
+            <dd><span id="viewRequestedStatus" class="requested-pr-modal-status">—</span></dd>
           </div>
-        </div>
+        </dl>
 
-        <div class="requested-pr-field requested-pr-full">
-          <label>Remarks</label>
-          <textarea id="viewRequestedRemarks" rows="3" readonly>No remarks</textarea>
-        </div>
+        <section class="requested-pr-detail-section" aria-labelledby="viewRequestedPartsTitle">
+          <h3 id="viewRequestedPartsTitle">Requested Item / Part</h3>
+          <div class="requested-pr-breakdown-box">
+            <table class="requested-pr-breakdown-table">
+              <thead>
+                <tr><th scope="col">Part Name</th><th scope="col">Quantity</th><th scope="col">Unit</th></tr>
+              </thead>
+              <tbody id="viewRequestedPartsContainer">
+                <tr><td>—</td><td>—</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="requested-pr-detail-section requested-pr-remarks-section" aria-labelledby="viewRequestedRemarksTitle">
+          <h3 id="viewRequestedRemarksTitle">Remarks</h3>
+          <p id="viewRequestedRemarks">No remarks</p>
+        </section>
       </div>
 
       <div class="requested-pr-footer">

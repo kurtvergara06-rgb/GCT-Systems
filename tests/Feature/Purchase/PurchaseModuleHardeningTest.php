@@ -70,6 +70,20 @@ class PurchaseModuleHardeningTest extends TestCase
         ]);
     }
 
+    private function maintenanceRequest(string $number = 'PR-MAINT-1', string $status = 'For Purchase'): MaintenanceRequest
+    {
+        return MaintenanceRequest::create([
+            'pr_no' => $number,
+            'job_order_no' => 'JO-'.str_replace('PR-', '', $number),
+            'bus_no' => 'BUS-'.str_replace('PR-', '', $number),
+            'item' => 'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 1 pc',
+            'quantity' => 3,
+            'status' => $status,
+            'source_type' => 'Maintenance Request',
+            'remarks' => 'Parts needed for the linked bus repair.',
+        ]);
+    }
+
     private function orderPayload(?MaintenanceRequest $request = null, array $overrides = []): array
     {
         return array_replace_recursive([
@@ -168,6 +182,80 @@ class PurchaseModuleHardeningTest extends TestCase
             ->assertSessionHasErrors('status');
 
         $this->assertDatabaseMissing('purchase_orders', ['supplier_name' => 'Safe Supplier']);
+    }
+
+    public function test_parts_requests_page_uses_six_columns_and_read_only_details(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-UI-1');
+
+        $response = $this->actingAs($user)->get(route('maintenance-requests'));
+
+        $response->assertOk()
+            ->assertSee('<th scope="col">PR ID / JO</th>', false)
+            ->assertSee('<th scope="col">Parts</th>', false)
+            ->assertSee('<th scope="col">Qty</th>', false)
+            ->assertSee('<th scope="col">Status</th>', false)
+            ->assertSee('<th scope="col">Date</th>', false)
+            ->assertSee('<th scope="col">Actions</th>', false)
+            ->assertDontSee('<th scope="col">JO No.</th>', false)
+            ->assertSee($purchaseRequest->job_order_no)
+            ->assertSee($purchaseRequest->bus_no)
+            ->assertSee('Procurement Status')
+            ->assertSee('id="viewRequestedPartsContainer"', false)
+            ->assertDontSee('<input id="viewRequestedPrNo"', false)
+            ->assertDontSee('<textarea id="viewRequestedRemarks"', false);
+    }
+
+    public function test_create_po_action_only_opens_prefilled_form_without_saving_or_changing_request(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-PREFILL-1');
+
+        $redirect = $this->actingAs($user)
+            ->post(route('maintenance-requests.create-po', $purchaseRequest));
+
+        $redirect->assertRedirect('/purchase-orders?create_from_pr='.$purchaseRequest->id)
+            ->assertSessionHas('open_po_modal', true);
+        $this->assertDatabaseCount('purchase_orders', 0);
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
+
+        $page = $this->actingAs($user)->get(route('purchase-orders', [
+            'create_from_pr' => $purchaseRequest->id,
+        ]));
+
+        $page->assertOk()
+            ->assertSee('window.purchaseOrderShouldOpen = true;', false)
+            ->assertSee('window.purchaseOrderPrefill =', false)
+            ->assertSee($purchaseRequest->pr_no)
+            ->assertSee($purchaseRequest->job_order_no)
+            ->assertSee($purchaseRequest->bus_no)
+            ->assertSee('Parts needed for the linked bus repair.')
+            ->assertSee('"item_description":"Oil Filter"', false)
+            ->assertSee('"quantity":2', false)
+            ->assertSee('"cost":""', false)
+            ->assertSee('id="supplier_name"', false)
+            ->assertSee('value=""', false);
+
+        $this->assertDatabaseCount('purchase_orders', 0);
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
+    }
+
+    public function test_create_po_action_rejects_an_existing_purchase_order_without_changing_request(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-DUPLICATE-1');
+        $existingOrder = $this->order();
+        $existingOrder->update(['purchase_request_id' => $purchaseRequest->id]);
+
+        $this->actingAs($user)
+            ->from(route('maintenance-requests'))
+            ->post(route('maintenance-requests.create-po', $purchaseRequest))
+            ->assertRedirect(route('maintenance-requests'))
+            ->assertSessionHas('error', 'A purchase order already exists for this maintenance request.');
+
+        $this->assertSame(1, PurchaseOrder::query()->where('purchase_request_id', $purchaseRequest->id)->count());
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
     }
 
     public function test_duplicate_purchase_order_submission_for_the_same_request_is_rejected(): void
