@@ -97,7 +97,7 @@
                   <th class="qty-col">Qty</th>
                   <th class="qty-col">On Hand</th>
                   <th class="status-col">Inventory</th>
-                  <th class="status-col">Warehouse</th>
+                  <th class="status-col">Status</th>
                 @endif
                 <th class="actions-col">Actions</th>
               </tr>
