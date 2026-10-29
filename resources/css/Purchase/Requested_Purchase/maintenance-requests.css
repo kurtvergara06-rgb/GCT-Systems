@@ -1206,29 +1206,35 @@
   }
 }
 
-/* Use the shared <x-ui.status-badge> component at its compact table size. */
+/* Compact Purchase status: same visual density as Maintenance JO pills.
+   The shared status-badge component retains its semantic colors and icons. */
 .purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] {
+  box-sizing:border-box !important;
   display:inline-flex !important;
+  flex:0 0 auto !important;
   align-items:center !important;
   justify-content:center !important;
-  gap:5px !important;
-  width:auto !important;
-  max-width:100% !important;
+  column-gap:5px !important;
+  width:fit-content !important;
   min-width:0 !important;
-  min-height:24px !important;
-  height:auto !important;
-  padding:5px 10px !important;
+  max-width:none !important;
+  height:26px !important;
+  min-height:0 !important;
+  padding:4px 9px !important;
   margin:0 !important;
   font-size:10px !important;
-  font-weight:750 !important;
-  line-height:1.25 !important;
-  text-align:center;
-  vertical-align:middle;
-  white-space:nowrap;
+  font-weight:700 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  border-radius:999px !important;
 }
-.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] .status-badge__icon {
-  flex:none;font-size:10px !important;margin:0 !important;
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .status-badge__icon {
+  font-size:10px !important;
+  margin:0 !important;
+  flex:none !important;
 }
-.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] .status-badge__label {
-  font-size:inherit !important;line-height:inherit !important;
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .status-badge__label {
+  font-size:10px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
 }
