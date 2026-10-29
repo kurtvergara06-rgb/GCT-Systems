@@ -528,15 +528,40 @@ class WarehousePartRequestController extends Controller
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
-        $inventoryCheck = $this->checkInventoryAvailability($parts);
-
-        if ($inventoryCheck['available']) {
-            return redirect()
-                ->back()
-                ->with('warehouse_purchase_send_error', 'All requested parts are available. Please issue the parts instead.');
+        $jobOrder = JobOrder::query()->where('job_order_no', $purchaseRequest->job_order_no)->first();
+        if ($jobOrder) {
+            // The Maintenance PR already represents the JO shortage. Do not subtract
+            // the physical on-hand stock a second time: it may be reserved for an IR
+            // or another JO. Use the same shortage calculation as Maintenance.
+            $shortages = app(\App\Services\Maintenance\PurchaseRequestPartsService::class)
+                ->missingParts((string) $jobOrder->part_needed, $jobOrder);
+            $byIdentity = collect($shortages)->groupBy(fn (array $part) =>
+                $this->normalizeText((string) ($part['name'] ?? '')).'|'.
+                $this->normalizeUnit((string) ($part['unit'] ?? ''))
+            );
+            $missingParts = [];
+            foreach ($parts as $part) {
+                $identity = $this->normalizeText((string) $part['name']).'|'.
+                    $this->normalizeUnit((string) $part['unit']);
+                $outstanding = (int) $byIdentity->get($identity, collect())->sum('quantity');
+                $qty = min((int) $part['quantity'], $outstanding);
+                if ($qty <= 0) {
+                    continue;
+                }
+                $unit = $this->normalizeUnit((string) $part['unit']);
+                $missingParts[] = [
+                    'name' => $part['name'],
+                    'needed' => $qty,
+                    'unit' => $unit,
+                    'needed_display' => trim($qty.' '.$unit),
+                ];
+            }
+        } else {
+            // Legacy PRs without a linked Job Order retain their prior behavior.
+            $inventoryCheck = $this->checkInventoryAvailability($parts);
+            $missingParts = $inventoryCheck['missing'] ?? [];
         }
 
-        $missingParts = $inventoryCheck['missing'] ?? [];
 
         if (count($missingParts) === 0) {
             return redirect()
