@@ -1284,13 +1284,13 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td {
   font-weight:500 !important;
 }
 main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
-main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-reference {
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
   font-family:inherit !important;
   font-size:12px !important;
   font-weight:700 !important;
   letter-spacing:0 !important;
 }
-main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-item-preview > strong {
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-item-preview > strong {
   font-family:inherit !important;
   font-size:12px !important;
   font-weight:600 !important;
@@ -1301,3 +1301,17 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
   font-size:12px !important;
   font-weight:650 !important;
 }
+
+/* Same proportional UI font for PO and PR references; no monospace/reference font. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+  font-family: inherit !important;
+  font-variant-numeric: normal !important;
+  font-feature-settings: normal !important;
+  letter-spacing: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(2) {width:12% !important; text-align:left;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(3) {width:15% !important; text-align:left;}
