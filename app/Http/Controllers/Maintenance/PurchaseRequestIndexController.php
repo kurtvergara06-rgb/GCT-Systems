@@ -186,6 +186,14 @@ class PurchaseRequestIndexController extends Controller
             : array_values(array_filter($this->statuses, fn ($status) => $status !== 'Issued'));
         $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
 
+        // Saved IR lifecycle status for each JO displayed in PR records.
+        $irStatusesByJo = \App\Models\Maintenance\ItemRequest::query()
+            ->whereIn('job_order_id', $prJobApprovals->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+
         return view('Maintenance.purchase-requests', compact(
             'purchaseRequests',
             'submitted',
@@ -201,7 +209,8 @@ class PurchaseRequestIndexController extends Controller
             'isMaintenanceAdmin',
             'recordView',
             'workToPerformByJobOrder',
-            'prJobApprovals'
+            'prJobApprovals',
+            'irStatusesByJo'
         ));
     }
 
