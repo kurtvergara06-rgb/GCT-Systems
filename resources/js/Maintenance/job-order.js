@@ -2827,13 +2827,26 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
           button.classList.add('is-selected');
         }
 
-        button.innerHTML = `
-          <span>
-            <strong>${displayText}</strong>
-            <small>${config.optionHint}</small>
-          </span>
-          <i class="fa-solid fa-check"></i>
-        `;
+        // For mechanic assignments, show the actual specialization from
+        // the mechanic master list instead of generic "Available mechanic".
+        const details = document.createElement('span');
+        const title = document.createElement('strong');
+        const skills = document.createElement('small');
+        if (config.multiple) {
+          const rawSkills = (option.dataset.specializations || '').trim();
+          title.textContent = originalText.split(' · ')[0].trim();
+          skills.textContent = rawSkills ? 'Specializes in: ' + rawSkills : 'Specialization not recorded';
+          skills.className = 'jo-mechanic-skill-details';
+          button.dataset.search += ' ' + rawSkills.toLowerCase();
+        } else {
+          title.textContent = displayText;
+          skills.textContent = config.optionHint;
+        }
+        details.append(title, skills);
+        const check = document.createElement('i');
+        check.className = 'fa-solid fa-check';
+        check.setAttribute('aria-hidden', 'true');
+        button.append(details, check);
 
         button.addEventListener('click', () => selectOption(option.value));
         optionsContainer.appendChild(button);
