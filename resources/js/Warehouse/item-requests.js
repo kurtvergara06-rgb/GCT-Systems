@@ -90,7 +90,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     message.textContent = '';
     timestamp.textContent = '';
     const coverageLoading = document.getElementById('warehouse-ir-jo-coverage-rows');
-    if (coverageLoading) { coverageLoading.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'Checking linked Job Order...', 'warehouse-ir-stock-empty').colSpan = 5; coverageLoading.appendChild(row); }
+    if (coverageLoading) { coverageLoading.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'Checking linked Job Order...', 'warehouse-ir-stock-empty').colSpan = 4; coverageLoading.appendChild(row); }
     button.disabled = true;
 
     try {
@@ -139,12 +139,12 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
             appendCell(row, total + ' ' + unit);
             appendCell(row, included + ' ' + unit);
             appendCell(row, outside + ' ' + unit, outside ? 'warehouse-ir-jo-outside' : '');
-            appendCell(row, outside ? 'Not in this IR' : 'Covered by this IR');
+            
             coverage.appendChild(row);
           });
         } else {
           const row = document.createElement('tr');
-          appendCell(row, 'JO requirements are not available for comparison.', 'warehouse-ir-stock-empty').colSpan = 5;
+          appendCell(row, 'JO requirements are not available for comparison.', 'warehouse-ir-stock-empty').colSpan = 4;
           coverage.appendChild(row);
         }
       }
@@ -167,7 +167,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       tbody.appendChild(tr);
       message.textContent = error.message;
       const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
-      if (coverage) { coverage.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'JO coverage could not be verified.', 'warehouse-ir-stock-empty').colSpan = 5; coverage.appendChild(row); }
+      if (coverage) { coverage.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'JO coverage could not be verified.', 'warehouse-ir-stock-empty').colSpan = 4; coverage.appendChild(row); }
     } finally {
       if (sequence === requestSequence) button.disabled = false;
     }
