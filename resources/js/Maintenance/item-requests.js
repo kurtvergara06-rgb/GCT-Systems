@@ -109,6 +109,9 @@ document.addEventListener('click', (event) => {
             'ir-detail-bus': trigger.dataset.irBus,
             'ir-detail-status': trigger.dataset.irStatus,
             'ir-detail-date': trigger.dataset.irDate,
+            'ir-detail-overview-job': trigger.dataset.irJob,
+            'ir-detail-requester': trigger.dataset.irRequester,
+            'ir-detail-request-date': trigger.dataset.irDate,
             'ir-detail-remarks': trigger.dataset.irRemarks || 'No remarks provided.'
         };
         Object.entries(map).forEach(([id, value]) => {
