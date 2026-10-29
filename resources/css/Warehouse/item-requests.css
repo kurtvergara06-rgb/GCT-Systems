@@ -436,3 +436,20 @@ body > .warehouse-ir-stock-popover .warehouse-ir-shortage-quantity{color:#b7472b
 .warehouse-ir-reference-stack{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
 .warehouse-ir-jo-tag{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:3px 6px;border:1px solid #cfe0f6;border-radius:5px;background:#eff6ff;color:#26568c;font-size:10px;font-weight:800;line-height:1.2;white-space:nowrap}
 .warehouse-ir-jo-tag i{font-size:9px}
+
+/* IR ITEM column: render only plain text; do not inherit identifier-pill styling. */
+.warehouse-ir-page .ir-table tbody td .ir-part-name.warehouse-ir-item-label {
+  display: inline !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #173452;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-decoration: none;
+}
