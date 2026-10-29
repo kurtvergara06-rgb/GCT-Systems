@@ -1072,3 +1072,41 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-ok{font-size:10px;font-we
   color:#2057a1;font-size:10px;font-weight:800;white-space:nowrap;
 }
 .warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more[open] > summary{background:#e3efff}
+
+/* PR records: balanced aligned columns and tidy two-column +more popovers. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th,
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td{
+  box-sizing:border-box;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td{
+  padding:13px 12px;vertical-align:middle;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td.item-col{
+  text-align:left;white-space:normal;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td.qty-col{
+  text-align:left;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td.status-col,
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td.actions-col{
+  text-align:center;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-summary {
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-summary .warehouse-pr-parts-more{margin:0;}
+body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover) {
+  width:300px;max-width:calc(100vw - 24px);
+  padding:8px 11px;
+}
+body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div {
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding:10px 3px;line-height:1.45;
+}
+body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>span {
+  flex:1 1 auto;min-width:0;overflow-wrap:anywhere;
+  font-size:11px;color:#254365;
+}
+body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
+  flex:none;font-size:11px;font-weight:850;color:#15395f;
+}
