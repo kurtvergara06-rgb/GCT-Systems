@@ -500,7 +500,7 @@
                       <div class="pr-dual-parts-pane is-pr">
                           <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>
                           <div class="pr-shortage-table-wrap"><table class="pr-shortage-table pr-review-parts-table">
-                              <thead><tr><th>#</th><th>PART NAME</th><th>MISSING QTY</th></tr></thead>
+                              <thead><tr><th>PART NAME</th><th>MISSING QTY</th><th>STATUS</th></tr></thead>
                               <tbody id="reviewPrItemsBody"><tr><td colspan="3" class="pr-review-empty">No requested items recorded.</td></tr></tbody>
                           </table></div>
                       </div>
