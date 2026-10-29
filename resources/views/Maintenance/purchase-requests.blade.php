@@ -6,6 +6,7 @@
           'resources/css/Main-styles/sidebar.css',
           'resources/css/Main-styles/form-components.css',
           'resources/css/Maintenance/purchase-requests.css',
+          'resources/css/Maintenance/request-modal-shared.css',
           'resources/js/Main-js/sidebar.js',
           'resources/js/Maintenance/purchase-requests.js'
       ]"
