@@ -505,115 +505,13 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   }
 }
 
-/* Centered Stock Breakdown modal; read-only, independent from View IR and issuance. */
-#warehouseIrStockModal {
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  backdrop-filter: blur(5px);
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-panel {
-  width: min(900px, calc(100vw - 36px));
-  max-width: 900px;
-  max-height: calc(100dvh - 36px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-#warehouseIrStockModal .ir-modal-header,
-#warehouseIrStockModal .ir-modal-footer { flex: 0 0 auto; }
-#warehouseIrStockModal .warehouse-ir-stock-modal-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 18px 22px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-note {
-  color: #526b89;
-  font-size: 11px;
-  line-height: 1.55;
-  margin-bottom: 14px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-  border: 1px solid #dce5f2;
-  border-radius: 10px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-table {
-  width: 100%;
-  min-width: 610px;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-table th {
-  background: #f2f6fc;
-  color: #4f6987;
-  font-size: 10px;
-  font-weight: 800;
-  text-align: left;
-  padding: 12px 13px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-table td {
-  padding: 13px;
-  color: #233b59;
-  border-top: 1px solid #e8eef7;
-  vertical-align: middle;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-table td:first-child { font-weight: 750; }
-#warehouseIrStockModal .warehouse-ir-stock-physical { font-weight: 850; color: #12385f; }
-#warehouseIrStockModal .warehouse-ir-stock-modal-shortages {
-  margin-top: 15px;
-  padding: 14px;
-  border: 1px solid #e2e9f3;
-  background: #f9fbfe;
-  border-radius: 10px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-shortages h3 {
-  font-size: 12px;
-  color: #17385f;
-  margin: 0 0 5px;
-}
-#warehouseIrStockModal .warehouse-ir-stock-modal-shortages p {
-  font-size: 10px;
-  color: #657b96;
-  margin-bottom: 11px;
-}
-#warehouseIrStockModal #warehouseIrStockModalShortages > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-  color: #294363;
-  font-size: 11px;
-  border-top: 1px solid #e7ecf4;
-}
-#warehouseIrStockModal #warehouseIrStockModalShortages strong { color: #a64e28; }
-#warehouseIrStockModal #warehouseIrStockModalMessage {
-  margin-top: 12px;
-  font-size: 11px;
-  color: #54708b;
-}
-.warehouse-ir-page .warehouse-ir-stock-open {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 9px;
-  min-height: 29px;
-  border: 1px solid #cbddfa;
-  border-radius: 7px;
-  background: #eaf2ff;
-  color: #1554a2;
-  font-size: 10px;
-  font-weight: 800;
-  cursor: pointer;
-}
-@media (max-width: 650px) {
-  #warehouseIrStockModal {padding: 8px;}
-  #warehouseIrStockModal .warehouse-ir-stock-modal-panel {
-    width: calc(100vw - 16px);
-    max-height: calc(100dvh - 16px);
-  }
-  #warehouseIrStockModal .warehouse-ir-stock-modal-body {padding: 12px;}
-}
+
+/* Unified View IR: readable physical stock and separate JO coverage. */
+#warehouseItemRequestDetails .warehouse-ir-details-modal {width:min(900px,calc(100vw - 30px));}
+#warehouseItemRequestDetails .warehouse-ir-stock-table {min-width:730px;}
+#warehouseItemRequestDetails .warehouse-ir-stock-physical {font-weight:850;color:#17385f;}
+#warehouseItemRequestDetails .warehouse-ir-jo-coverage {margin-top:12px;padding:12px 14px;background:#f8fafd;border:1px solid #dce7f4;border-radius:9px;}
+#warehouseItemRequestDetails .warehouse-ir-jo-coverage h3 {font-size:12px;color:#18385c;margin:0 0 4px;}
+#warehouseItemRequestDetails .warehouse-ir-jo-coverage p {font-size:10px;color:#667f9a;margin:0 0 8px;}
+#warehouseItemRequestDetails .warehouse-ir-jo-coverage #warehouse-ir-jo-coverage-rows > div {display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid #e2eaf5;font-size:11px;}
+#warehouseItemRequestDetails .warehouse-ir-jo-coverage #warehouse-ir-jo-coverage-rows strong {color:#a25725;}
