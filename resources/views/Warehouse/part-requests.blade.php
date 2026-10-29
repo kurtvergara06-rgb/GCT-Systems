@@ -199,105 +199,54 @@
   </div>
 
   <div id="viewPrModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
-    <div class="warehouse-edit-style-modal warehouse-request-details-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseRequestDetailsTitle">
+    <div class="warehouse-edit-style-modal warehouse-request-details-modal warehouse-pr-reference-view" role="dialog" aria-modal="true" aria-labelledby="warehouseRequestDetailsTitle">
       <div class="warehouse-edit-header">
-        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
         <div class="warehouse-modal-title-copy">
           <h2 id="warehouseRequestDetailsTitle">Purchase Request Details</h2>
-          <p>Warehouse requisition, stock availability, and issuance information</p>
+          <p>Review requested shortages, Warehouse stock and processing details.</p>
         </div>
-        <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <span id="view_warehouse_status_badge" class="warehouse-pr-view-status">—</span>
+        <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="warehouse-modal-scrollable">
-        <div class="warehouse-request-summary" aria-label="Purchase Request summary">
-          <div class="warehouse-summary-item">
-            <span>PR ID</span>
-            <strong id="view_pr_no">—</strong>
-          </div>
-          <div class="warehouse-summary-item">
-            <span>Purchase Status</span>
-            <strong id="view_purchase_status">—</strong>
-          </div>
-          <div class="warehouse-summary-item">
-            <span>Warehouse Status</span>
-            <strong id="view_warehouse_status">—</strong>
-          </div>
-          <div class="warehouse-summary-item">
-            <span>Date Created</span>
-            <strong id="view_created">—</strong>
-          </div>
+        <div class="warehouse-request-summary warehouse-pr-reference-strip" aria-label="Purchase Request summary">
+          <div class="warehouse-summary-item"><span>PR ID</span><strong id="view_pr_no">—</strong></div>
+          <div class="warehouse-summary-item"><span>Linked JO</span><strong id="view_job_order_no">—</strong></div>
+          <div class="warehouse-summary-item"><span>Purchase Status</span><strong id="view_purchase_status">—</strong></div>
+          <div class="warehouse-summary-item"><span>Warehouse Status</span><strong id="view_warehouse_status">—</strong></div>
+          <div class="warehouse-summary-item"><span>Date Requested</span><strong id="view_created">—</strong></div>
+          <div class="warehouse-summary-item"><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
         </div>
-
-        <section class="warehouse-modal-section">
+        <div class="warehouse-pr-reference-secondary">Bus: <strong id="view_bus_no">—</strong><span> · </span> Department: <strong>Maintenance</strong></div>
+        <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-clipboard-list"></i></span>
-            <div>
-              <h3>01 — Request Information</h3>
-              <p>Linked maintenance and vehicle references</p>
-            </div>
-          </header>
-          <div class="warehouse-modal-section-body warehouse-request-meta-grid">
-            <div class="warehouse-readonly-field">
-              <span>Job Order ID</span>
-              <strong id="view_job_order_no">—</strong>
-            </div>
-            <div class="warehouse-readonly-field">
-              <span>Bus ID</span>
-              <strong id="view_bus_no">—</strong>
-            </div>
-          </div>
-        </section>
-
-        <section class="warehouse-modal-section">
-          <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-packing"></i></span>
-            <div>
-              <h3>02 — Requested Parts</h3>
-              <p>Requested quantities compared with Warehouse stock</p>
-            </div>
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+            <div><h3>Purchase Request Parts</h3><p>Requested parts and live-at-page-load physical stock reference</p></div>
           </header>
           <div class="warehouse-modal-section-body">
-            <div id="view_parts_breakdown" class="parts-breakdown-box">
-              <div class="parts-breakdown-empty">No parts found.</div>
-            </div>
+            <div id="view_parts_breakdown" class="parts-breakdown-box"><div class="parts-breakdown-empty">No parts found.</div></div>
+            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> On Hand shows physical inventory for reference. PR quantities and Warehouse issuance are tracked separately.</p>
           </div>
         </section>
-
-        <section class="warehouse-modal-section">
+        <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
             <span class="warehouse-modal-section-icon"><i class="fa-solid fa-box-open"></i></span>
-            <div>
-              <h3>03 — Issuance Record</h3>
-              <p>Actual quantities physically released by Warehouse</p>
-            </div>
+            <div><h3>Issuance Record</h3><p>Quantities physically handed over by Warehouse, when recorded</p></div>
           </header>
           <div class="warehouse-modal-section-body">
-            <div id="view_issue_quantities" class="warehouse-issued-quantities">
-              <div class="parts-breakdown-empty">No parts have been issued yet.</div>
-            </div>
+            <div id="view_issue_quantities" class="warehouse-issued-quantities"><div class="parts-breakdown-empty">No parts have been issued yet.</div></div>
           </div>
         </section>
-
-        <section class="warehouse-modal-section">
+        <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-note-sticky"></i></span>
-            <div>
-              <h3>04 — Remarks</h3>
-              <p>Request notes and processing context</p>
-            </div>
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-comment-dots"></i></span>
+            <div><h3>Remarks</h3></div>
           </header>
-          <div class="warehouse-modal-section-body">
-            <div class="warehouse-readonly-note" id="view_remarks">No remarks</div>
-          </div>
+          <div class="warehouse-modal-section-body"><div class="warehouse-readonly-note" id="view_remarks">No remarks provided.</div></div>
         </section>
       </div>
-
-      <div class="warehouse-edit-footer">
-        <button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button>
-      </div>
+      <div class="warehouse-edit-footer"><button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button></div>
     </div>
   </div>
 
