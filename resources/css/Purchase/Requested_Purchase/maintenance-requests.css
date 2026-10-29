@@ -1205,3 +1205,30 @@
     flex-wrap:wrap;justify-content:flex-end !important;
   }
 }
+
+/* Use the shared <x-ui.status-badge> component at its compact table size. */
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+  width:auto !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  min-height:24px !important;
+  height:auto !important;
+  padding:5px 10px !important;
+  margin:0 !important;
+  font-size:10px !important;
+  font-weight:750 !important;
+  line-height:1.25 !important;
+  text-align:center;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] .status-badge__icon {
+  flex:none;font-size:10px !important;margin:0 !important;
+}
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] .status-badge__label {
+  font-size:inherit !important;line-height:inherit !important;
+}
