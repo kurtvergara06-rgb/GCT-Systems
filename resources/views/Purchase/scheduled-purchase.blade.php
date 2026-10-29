@@ -25,23 +25,23 @@
     </section>
 
     <section data-ajax-region="records" class="table-card schedule-card records-card">
-      <div class="section-header">
+      <div class="section-header purchase-record-header">
         <div>
           <span class="purchase-section-eyebrow">PROCUREMENT PLANNING</span>
           <h2>Recurring Purchase Schedules</h2>
           <p>Track items, suppliers, frequency, due dates, and estimated costs.</p>
         </div>
         <span class="purchase-section-count">{{ $schedules->total() }} schedules</span>
+        <button type="button" id="openScheduleModal" class="primary-btn purchase-header-create-btn"><i class="fa-solid fa-plus"></i> New Schedule</button>
       </div>
 
-      <div class="gct-table-toolbar-row">
+      <div class="purchase-list-controls purchase-list-controls--toolbar-only">
         <x-ui.table-toolbar action="{{ route('scheduled-purchase') }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Schedules" search-placeholder="Search schedule, supplier, item, or frequency..." :filter-count="(int) (request()->filled('frequency') && request('frequency') !== 'All Frequencies') + (int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase Schedules" :sort-options="['next_purchase_date' => 'Next Purchase', 'schedule_name' => 'Schedule Name', 'supplier_name' => 'Supplier', 'estimated_cost' => 'Estimated Cost', 'status' => 'Status']" default-sort="next_purchase_date">
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Frequency" name="frequency" default="All Frequencies"><option value="All Frequencies">All Frequencies</option>@foreach($frequencies as $frequency)<option value="{{ $frequency }}" @selected(request('frequency') === $frequency)>{{ $frequency }}</option>@endforeach</x-ui.table-toolbar-field>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">@foreach(['All Statuses','Active','Due Soon','Overdue','Paused','Completed'] as $status)<option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
           </x-slot:filters>
         </x-ui.table-toolbar>
-        <button type="button" id="openScheduleModal" class="primary-btn"><i class="fa-solid fa-plus"></i> New Schedule</button>
       </div>
 
       <div class="table-wrap records-table-wrap">

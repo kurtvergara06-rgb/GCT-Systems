@@ -88,7 +88,7 @@
       </section>
 
       <section data-ajax-region="records" class="table-card purchase-order-card records-card">
-        <div class="section-header po-section-header">
+        <div class="section-header po-section-header purchase-record-header">
           <div class="section-heading">
             <span class="section-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
             <div>
@@ -98,9 +98,12 @@
             </div>
           </div>
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
+          @if(($activeTab ?? 'active') === 'active')
+            <button type="button" id="openPoModal" class="primary-btn purchase-header-create-btn"><i class="fa-solid fa-plus"></i> New PO</button>
+          @endif
         </div>
 
-        <div class="po-record-controls">
+        <div class="po-record-controls purchase-list-controls">
           <nav class="po-record-tabs" aria-label="Purchase order record groups">
             <a href="{{ route('purchase-orders', array_merge(request()->except(['page', 'view', 'status']), ['view' => 'active'])) }}"
                class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}"
@@ -113,7 +116,7 @@
               <i class="fa-solid fa-clock-rotate-left"></i> History
             </a>
           </nav>
-          <div class="po-record-actions">
+          <div class="po-record-actions purchase-list-tools">
             <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true"
               search-label="Search Purchase Orders" search-placeholder="PO number, supplier, purpose, or status..."
               :filter-count="(int) request()->filled('status')"
@@ -130,9 +133,6 @@
                 </x-ui.table-toolbar-field>
               </x-slot:filters>
             </x-ui.table-toolbar>
-            @if(($activeTab ?? 'active') === 'active')
-              <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn"><i class="fa-solid fa-plus"></i> New PO</button>
-            @endif
           </div>
         </div>
 

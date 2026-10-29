@@ -832,7 +832,55 @@
 
 .purchase-module-page.records-page .section-header,
 .purchase-module-page.records-page .po-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   margin-bottom: 14px !important;
+}
+
+.purchase-module-page.records-page .purchase-record-header > :first-child {
+  min-width: 0;
+}
+
+.purchase-module-page.records-page .purchase-header-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 15px;
+  flex: 0 0 auto;
+  border: 1px solid #e7aa00;
+  border-radius: 9px;
+  background: #ffbd00;
+  color: #10213c;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.purchase-module-page.records-page .purchase-header-create-btn:hover {
+  background: #f2b000;
+}
+
+.purchase-module-page.records-page .purchase-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 16px;
+}
+
+.purchase-module-page.records-page .purchase-list-controls--toolbar-only {
+  justify-content: flex-end;
+}
+
+.purchase-module-page.records-page .purchase-list-tools {
+  margin-left: auto;
 }
 
 .purchase-module-page.records-page .section-header h2,
@@ -857,12 +905,13 @@
   align-items: center !important;
   flex-wrap: nowrap !important;
   gap: 12px !important;
-  width: 100% !important;
-  margin-bottom: 16px !important;
-  padding: 10px 14px !important;
-  border: 1px solid var(--records-border) !important;
-  border-radius: 13px !important;
-  background: #ffffff !important;
+  width: auto !important;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
@@ -975,11 +1024,11 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 15px !important;
+  padding: 11px 10px !important;
   border-bottom: 0 !important;
   background: var(--records-head) !important;
   color: var(--records-text) !important;
-  font-size: 13px !important;
+  font-size: 10px !important;
   font-weight: 800 !important;
   letter-spacing: .055em !important;
   line-height: 1.25;
@@ -988,7 +1037,7 @@
 }
 
 .purchase-module-page.records-page .records-table td {
-  padding: 15px !important;
+  padding: 10px !important;
   border-bottom: 1px solid var(--records-border) !important;
   color: var(--records-text) !important;
   font-size: 14px !important;
@@ -1129,7 +1178,7 @@
 
 @media (max-width: 1250px) {
   .purchase-module-page.records-page .records-toolbar {
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
   }
 
   .purchase-module-page.records-page .records-toolbar .search-box {
@@ -1152,9 +1201,9 @@
   }
 
   .purchase-module-page.records-page .records-toolbar {
-    align-items: stretch !important;
-    flex-direction: column;
-    padding: 12px !important;
+    align-items: center !important;
+    flex-direction: row;
+    padding: 0 !important;
   }
 
   .purchase-module-page.records-page .records-toolbar .filter-group,
@@ -1162,6 +1211,25 @@
   .purchase-module-page.records-page .records-toolbar .primary-btn,
   .purchase-module-page.records-page .records-toolbar .compact-new-po-btn {
     width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .purchase-module-page.records-page .purchase-record-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .purchase-module-page.records-page .purchase-header-create-btn {
+    margin-left: auto;
+  }
+
+  .purchase-module-page.records-page .purchase-list-controls {
+    align-items: stretch;
+  }
+
+  .purchase-module-page.records-page .purchase-list-controls--toolbar-only {
+    justify-content: flex-start;
   }
 }
 
