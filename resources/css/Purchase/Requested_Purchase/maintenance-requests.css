@@ -1660,3 +1660,27 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
   min-width:11px !important;
   flex:0 0 11px !important;
 }
+
+
+/* Unified Purchase table text scale: same type hierarchy as Purchase Orders. */
+main.purchase-maintenance-requests-page .requested-purchase-table {
+  font-family:inherit !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table thead th {
+  font-family:inherit !important; font-size:11px !important; font-weight:800 !important;
+  line-height:1.35 !important; letter-spacing:0 !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table tbody td {
+  font-family:inherit !important; font-size:12px !important; font-weight:650 !important;
+  line-height:1.4 !important; vertical-align:middle !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference strong,
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-part-inline > strong,
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity,
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-date-stack strong {
+  font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"],
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__label {
+  font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
+}
