@@ -295,6 +295,7 @@
       >
         @csrf
         <input type="hidden" name="_method" id="poFormMethod" value="POST">
+        <input type="hidden" name="status" id="po_status" value="Ordered">
         <input type="hidden" name="purchase_request_id" id="purchase_request_id" value="{{ $selectedPurchaseRequest?->id }}">
 
         <section class="po-form-section po-order-information" aria-labelledby="poOrderInfoTitle">
@@ -331,8 +332,6 @@
                 >
               </div>
 
-              <input type="hidden" name="status" id="po_status" value="Ordered">
-
               <div class="po-form-group">
                 <label for="supplier_address_tel">Supplier Address / Contact</label>
                 <input type="text" name="supplier_address_tel" id="supplier_address_tel" placeholder="Address or telephone (optional)">
@@ -351,7 +350,7 @@
                 </select>
               </div>
               <div class="po-form-group po-request-reference" id="poRequestReference">
-                <label for="main_pr_no">Linked Purchase Request</label>
+                <label for="main_pr_no">Linked Purchase Requisition</label>
                 <input type="text" id="main_pr_no" placeholder="No linked request" value="{{ $selectedPurchaseRequest?->pr_no }}" readonly>
               </div>
             </div>
@@ -380,7 +379,7 @@
                 <span>Unit</span>
                 <span>Unit Cost <b>*</b></span>
                 <span>Line Total</span>
-                <span class="po-item-action-heading">Action</span>
+                <span class="po-item-action-heading" aria-label="Item actions"></span>
               </div>
 
               <div id="poItemsContainer" class="po-items-container"></div>
