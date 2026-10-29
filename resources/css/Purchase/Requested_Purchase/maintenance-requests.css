@@ -1538,3 +1538,46 @@ main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-
 .purchase-maintenance-requests-page .requested-pr-more:not([open]) .requested-pr-more-panel {
   display:none;
 }
+
+/* Floating parts popover: never expand table rows or overlap as clipped content. */
+.purchase-maintenance-requests-page .requested-pr-more > .requested-pr-more-panel {
+  display:none !important;
+}
+.purchase-maintenance-requests-page .requested-pr-more,
+.purchase-maintenance-requests-page .requested-pr-more[open] {
+  flex-basis:auto !important;
+  width:auto !important;
+}
+.requested-pr-floating-popover {
+  box-sizing:border-box;
+  z-index:2147483000 !important;
+  display:block !important;
+  overflow-y:auto;
+  padding:8px 12px;
+  border:1px solid #d7e4f4;
+  border-radius:11px;
+  background:#fff;
+  box-shadow:0 15px 35px rgba(17,44,77,.17);
+  color:#19385b;
+  font-family:inherit;
+}
+.requested-pr-floating-popover .requested-pr-more-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:10px 2px;
+  font-size:11px;
+  line-height:1.35;
+}
+.requested-pr-floating-popover .requested-pr-more-row + .requested-pr-more-row {
+  border-top:1px solid #e5edf6;
+}
+.requested-pr-floating-popover .requested-pr-more-row strong {
+  font-size:11px;
+  white-space:nowrap;
+  flex:none;
+}
+.purchase-maintenance-requests-page .requested-pr-more > summary[aria-expanded="true"] i {
+  transform:rotate(180deg);
+}
