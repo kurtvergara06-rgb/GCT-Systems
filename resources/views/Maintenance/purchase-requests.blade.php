@@ -457,7 +457,7 @@
           <input type="hidden" name="bus_no" id="edit_bus_no">
           <input type="hidden" name="status_display" id="edit_status_display">
 
-          <div class="pr-view-document">
+          <div class="pr-view-document pr-review-simplified">
               <section class="pr-ir-review-summary pr-view-summary" aria-label="Saved Purchase Request summary">
                   <div class="pr-ir-summary-main"><span>PURCHASE REQUEST NO.</span><strong id="reviewPrNo">—</strong><small>Linked Job Order: <span id="reviewPrSummaryJobOrder">—</span></small></div>
                   <div><span>PR STATUS</span><strong><span id="reviewPrStatus" class="pr-review-status-pill">—</span></strong></div>
@@ -515,9 +515,13 @@
                   <div class="pr-view-parts-note-row">IR quantities are JO-minus-PR reference allocations and do not confirm Warehouse issuance.</div>
                   <div class="pr-view-hidden-totals" hidden><span id="reviewPrTotalQuantity">—</span></div>
               </section>
-              <section class="pr-step-card pr-view-remarks" id="prRequestDetailsSection" aria-label="Request details">
-                  <div class="pr-ir-panel-heading"><i class="fa-regular fa-message" aria-hidden="true"></i><h3>Request Details</h3><span class="pr-view-parts-note">Read only</span></div>
-                  <div class="pr-ir-panel-body">
+              <section class="pr-step-card pr-step-additional pr-view-remarks" id="prRequestDetailsSection" aria-label="Request details">
+                  <div class="pr-step-heading">
+                      <span class="pr-step-icon">03</span>
+                      <div><h3>Request Details</h3><p>Purpose and purchasing instructions</p></div>
+                      <span class="pr-step-tag">Read only</span>
+                  </div>
+                  <div class="pr-ir-panel-body pr-simple-body">
                       <div class="pr-view-secondary-data"><div><span>Work / Repair to Perform</span><strong id="reviewPrWorkToPerform">—</strong></div><div><span>Purpose</span><strong id="reviewPrPurpose">—</strong></div><div><span>Target Date</span><strong id="reviewPrTargetDate">—</strong></div></div>
                       <div class="pr-view-remarks-field"><span>Remarks</span><strong id="reviewPrRemarks">No remarks provided.</strong></div>
                   </div>
@@ -550,7 +554,7 @@
               </div>
           </section>
 
-          <div class="ui-form-actions pr-review-footer" id="viewOnlyActions">
+          <div class="ui-form-actions pr-document-footer pr-review-footer" id="viewOnlyActions">
               <button type="button" id="closeViewOnlyPr" class="ui-form-btn ui-form-btn-cancel">
                   Close
               </button>

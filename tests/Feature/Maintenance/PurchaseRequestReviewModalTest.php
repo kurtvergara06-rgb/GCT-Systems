@@ -63,10 +63,10 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('Purchase Requisition Details')
             ->assertSee('Maintenance purchase requisition information and authorization')
             ->assertSee('pr-review-modal-overlay', false)
-            ->assertSee('01 — Request Information')
-            ->assertSee('02 — Request Details')
-            ->assertSee('03 — Requested Items')
-            ->assertSee('04 — Authorization')
+            ->assertSee('Request Overview')
+            ->assertSee('Head Approval')
+            ->assertSee('Parts &amp; Warehouse', false)
+            ->assertSee('Request Details')
             ->assertSee('id="reviewPrSummaryJobOrder"', false)
             ->assertSee('id="reviewPrTotalQuantity"', false)
             ->assertSee('id="reviewPrAuthorizationJobOrder"', false)
@@ -272,65 +272,60 @@ class PurchaseRequestReviewModalTest extends TestCase
 
     public function test_review_modal_css_is_centered_not_a_side_drawer(): void
     {
-        $css = file_get_contents(
+        $legacyCss = file_get_contents(
             resource_path('css/Maintenance/purchase-requests.css')
+        );
+        $sharedCss = file_get_contents(
+            resource_path('css/Maintenance/request-modal-shared.css')
         );
 
         $this->assertStringContainsString(
             '.pr-review-modal-overlay {',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
-            'justify-content: center !important;',
-            $css
+            ':is(#prModal, #editPrModal) > .ui-form-modal.ui-form-modal-xl',
+            $sharedCss
         );
         $this->assertStringContainsString(
-            '#editPrModal.pr-review-modal-overlay > .ui-form-modal',
-            $css
-        );
-        $this->assertStringContainsString(
-            'width: min(850px, 100%) !important;',
-            $css
+            'width: min(1160px, calc(100vw - 36px)) !important;',
+            $sharedCss
         );
         $this->assertStringContainsString(
             'background: rgba(10, 25, 49, .56);',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
             'backdrop-filter: blur(5px);',
-            $css
-        );
-        $this->assertStringContainsString(
-            'border-radius: 17px;',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
             'position: sticky;',
-            $css
+            $sharedCss
         );
         $this->assertStringContainsString(
             'bottom: 0;',
-            $css
+            $sharedCss
         );
         $this->assertStringContainsString(
             'overflow-x: hidden;',
-            $css
+            $sharedCss
         );
         $this->assertStringContainsString(
             '#editPrModal .pr-review-footer [hidden]',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
             '.purchase-page .purchase-request-table .actions .pr-review-btn',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
             'min-width: 92px !important;',
-            $css
+            $legacyCss
         );
         $this->assertStringContainsString(
             'width: auto !important;',
-            $css
+            $legacyCss
         );
     }
 
@@ -359,8 +354,16 @@ class PurchaseRequestReviewModalTest extends TestCase
             $css
         );
         $this->assertStringContainsString(
-            '#editPrModal .pr-view-parts > .pr-step-heading',
+            ':is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading',
             $css
+        );
+
+        $source = file_get_contents(
+            resource_path('js/Maintenance/purchase-requests.js')
+        );
+        $this->assertStringContainsString(
+            "overlay.id === 'prModal' || overlay.id === 'editPrModal'",
+            $source
         );
     }
 

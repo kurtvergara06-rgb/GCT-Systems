@@ -2949,7 +2949,7 @@ window.GCTPartialNavigation.registerInitializer(
           return;
         }
 
-        if (overlay.id === 'prModal') {
+        if (overlay.id === 'prModal' || overlay.id === 'editPrModal') {
           return;
         }
 

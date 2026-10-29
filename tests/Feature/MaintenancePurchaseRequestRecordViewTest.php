@@ -54,11 +54,11 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertDontSee('id="openPrModal"', false);
         $response->assertSee('data-lazy-pagination="false"', false);
         $response->assertSee('data-server-filter="false"', false);
-        $response->assertSee('Job Order Information');
-        $response->assertSee('Parts for Purchase');
-        $response->assertSee('JO shortage');
+        $response->assertSee('Request Overview');
+        $response->assertSee('Head Approval');
+        $response->assertSee('Parts &amp; Warehouse', false);
+        $response->assertSee('Missing Parts');
         $response->assertSee('Request Details');
-        $response->assertSee('Maintenance Head Authorization');
         $response->assertSee('Requested By');
         $response->assertDontSee('Warehouse Acknowledgment');
         $response->assertDontSee('id="printPrPreview"', false);

@@ -100,24 +100,11 @@
 }
 @media (max-width: 540px) {
   #itemRequestModal .ir-review-document-modal,
-  #viewItemRequestModal .ir-review-document-modal,
-  #prModal .ui-form-modal,
-  #editPrModal .ui-form-modal { width: calc(100vw - 16px) !important; }
+  #viewItemRequestModal .ir-review-document-modal { width: calc(100vw - 16px) !important; }
 }
 
-/* Saved View PR exactly matches the approved Pending PR 1006px shell. */
-@media (min-width: 761px) {
-  #editPrModal.pr-review-modal-overlay > .ui-form-modal.ui-form-modal-xl {
-    width: min(1006px, calc(100vw - 36px)) !important;
-    min-width: 0;
-    max-width: 1006px !important;
-    margin-inline: auto;
-  }
-}
-
-/* Saved PR keeps the approved overview/approval cards intact. Only the Parts &
-   Warehouse heading reuses the Pending PR treatment for visual parity. */
-#editPrModal .pr-view-parts > .pr-step-heading {
+/* Pending Review PR is the presentation source of truth for saved View PR. */
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -127,22 +114,22 @@
   border-bottom: 1px solid #dce7f4;
   background: #f3f7fd;
 }
-#editPrModal .pr-view-parts > .pr-step-heading > div {
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading > div {
   flex: 1;
   min-width: 0;
 }
-#editPrModal .pr-view-parts > .pr-step-heading h3 {
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading h3 {
   margin: 0;
   color: #0b2b55;
   font-size: 13px;
   font-weight: 800;
 }
-#editPrModal .pr-view-parts > .pr-step-heading p {
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading p {
   margin: 3px 0 0;
   color: #64748b;
   font-size: 11px;
 }
-#editPrModal .pr-view-parts > .pr-step-heading .pr-step-icon {
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading .pr-step-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -156,7 +143,7 @@
   font-size: 11px;
   font-weight: 800;
 }
-#editPrModal .pr-view-parts > .pr-step-heading .pr-step-tag {
+:is(#prModal, #editPrModal) .pr-review-simplified .pr-step-heading .pr-step-tag {
   margin-left: auto;
   padding: 3px 9px;
   border: 1px solid #e0e8f5;
@@ -181,23 +168,47 @@
   overflow-wrap: anywhere;
 }
 
-/* View PR: scroll the document inside its fixed-height panel, not the page. */
-#editPrModal.pr-review-modal-overlay > .ui-form-modal.ui-form-modal-xl {
+/* One modal shell for Pending, In Progress, and History PR views. */
+:is(#prModal, #editPrModal) {
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+:is(#prModal, #editPrModal) > .ui-form-modal.ui-form-modal-xl {
   display: flex !important;
   flex-direction: column !important;
-  height: min(800px, calc(100dvh - 36px));
+  width: min(1160px, calc(100vw - 36px)) !important;
+  max-width: 1160px !important;
   max-height: calc(100dvh - 36px) !important;
   overflow: hidden !important;
+  margin: auto;
 }
-#editPrModal .ui-form-content,
-#editPrModal .ui-form-modal-body {
+:is(#prModal, #editPrModal) .ui-form-modal-header {
+  flex: 0 0 auto;
+  height: 76px;
+  min-height: 76px;
+  padding: 15px 22px;
+  background: #fff;
+}
+:is(#prModal, #editPrModal) .ui-form-title-icon {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+:is(#prModal, #editPrModal) .ui-form-content,
+:is(#prModal, #editPrModal) .ui-form-modal-body {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow: hidden !important;
+  padding: 0 !important;
 }
-#editPrModal .ui-form-modal-scrollable {
+:is(#prModal, #editPrModal) .ui-form-modal-scrollable {
+  display: flex !important;
+  flex-direction: column !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -205,20 +216,43 @@
   overflow-y: auto !important;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  padding: 0 !important;
 }
-#editPrModal #viewOnlyActions {
+:is(#prModal, #editPrModal) .pr-review-simplified {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 16px 16px !important;
+  gap: 11px !important;
+}
+:is(#prModal, #editPrModal) .pr-document-footer {
   position: sticky;
   bottom: 0;
   flex: 0 0 auto;
   z-index: 2;
+  height: 63px;
+  min-height: 63px;
+  margin: 0 !important;
+  padding: 11px 24px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e0e8f3;
   background: #fff;
 }
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(1),
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(1) {width:54% !important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(2),
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(2) {width:24% !important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(3),
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(3) {width:22% !important;}
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table thead tr {
+  height: 42px;
+}
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table tbody tr {
+  height: 49px;
+}
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table th:nth-child(1),
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table td:nth-child(1) {width:47% !important;}
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table th:nth-child(2),
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table td:nth-child(2) {width:25% !important;}
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table th:nth-child(3),
+:is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table td:nth-child(3) {width:28% !important;}
 #editPrModal .pr-view-shortage-badge {
   display: inline-flex;
   align-items: center;
@@ -231,11 +265,8 @@
   white-space: nowrap;
 }
 
-/* Saved PR: Pending PR's compact body inset and signature, with no image frame.
+/* Saved PR signature keeps Pending PR proportions with no image frame.
    Keep the overview's Job Order / Requested By / Request Date / Department. */
-#editPrModal.pr-review-modal-overlay .ui-form-modal-scrollable {
-  padding: 12px 14px 0 !important;
-}
 #editPrModal .pr-view-document .pr-ir-signature img:not([hidden]) {
   border: 0 !important;
   outline: 0 !important;
@@ -248,4 +279,25 @@
 }
 #editPrModal .pr-view-document .pr-ir-signature {
   background: #fff !important;
+}
+
+@media (max-width: 760px) {
+  :is(#prModal, #editPrModal) {
+    align-items: flex-start;
+    padding: 10px;
+  }
+  :is(#prModal, #editPrModal) > .ui-form-modal.ui-form-modal-xl {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+  :is(#prModal, #editPrModal) .ui-form-modal-header {
+    padding: 14px 16px;
+  }
+  :is(#prModal, #editPrModal) .pr-review-simplified {
+    padding: 12px !important;
+  }
+  :is(#prModal, #editPrModal) .pr-document-footer {
+    padding: 10px 14px;
+  }
 }

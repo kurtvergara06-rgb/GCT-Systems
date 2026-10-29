@@ -140,6 +140,7 @@ export default defineConfig({
                 'resources/css/Maintenance/mechanic-availability-enhancement.css',
                 'resources/css/Maintenance/pms-scheduling.css',
                 'resources/css/Maintenance/purchase-requests.css',
+                'resources/css/Maintenance/request-modal-shared.css',
 
                 'resources/js/Maintenance/fuel-reports.js',
                 'resources/js/Maintenance/job-order.js',

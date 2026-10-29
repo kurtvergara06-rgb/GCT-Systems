@@ -2222,12 +2222,6 @@
    EDIT / VIEW / REVISE PURCHASE REQUEST MODAL
 ========================================================= */
 
-#editPrModal .ui-form-modal {
-    width: min(680px, calc(100vw - 32px));
-    max-width: 680px;
-}
-
-
 /* =========================================================
    CONTENT SPACING
 ========================================================= */
@@ -2779,20 +2773,6 @@
    approved Request Information / Items / History concept.
 ========================================================= */
 
-#editPrModal.pr-review-modal-overlay {
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 22px !important;
-}
-
-#editPrModal.pr-review-modal-overlay > .ui-form-modal {
-    width: min(820px, calc(100vw - 44px)) !important;
-    max-width: 820px !important;
-    max-height: calc(100vh - 44px);
-    margin: auto !important;
-    overflow: hidden;
-}
-
 #editPrModal .ui-form-modal-header {
     padding: 18px 20px 16px;
 }
@@ -3153,12 +3133,6 @@
         padding: 10px !important;
     }
 
-    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
-        width: 100% !important;
-        max-width: 100% !important;
-        max-height: calc(100vh - 20px);
-    }
-
     #editPrModal .ui-form-modal-header {
         padding: 14px;
     }
@@ -3259,37 +3233,11 @@
     color: #0b40b5;
 }
 
-@media (min-width: 761px) {
-    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
-        width: min(780px, calc(100vw - 44px)) !important;
-        max-width: 780px !important;
-    }
-
-    #editPrModal .ui-form-modal-scrollable {
-        max-height: calc(100vh - 150px);
-    }
-}
-
-
 /* =========================================================
    PURCHASE REQUEST DETAILS - GCT SYSTEM THEME SCALE
    Match the shared system visual language and improve
    readability without changing workflow behavior.
 ========================================================= */
-
-#editPrModal.pr-review-modal-overlay {
-    padding: 28px !important;
-}
-
-#editPrModal.pr-review-modal-overlay > .ui-form-modal {
-    width: min(900px, calc(100vw - 56px)) !important;
-    max-width: 900px !important;
-    max-height: calc(100vh - 56px);
-    border: 1px solid var(--border-soft, #dce5f2);
-    border-radius: 18px;
-    background: var(--surface, #ffffff);
-    box-shadow: 0 24px 70px rgba(6, 31, 61, .24);
-}
 
 #editPrModal .ui-form-modal-header {
     padding: 22px 24px 18px;
@@ -3621,16 +3569,6 @@
 }
 
 @media (max-width: 760px) {
-    #editPrModal.pr-review-modal-overlay {
-        padding: 10px !important;
-    }
-
-    #editPrModal.pr-review-modal-overlay > .ui-form-modal {
-        width: 100% !important;
-        max-width: 100% !important;
-        max-height: calc(100vh - 20px);
-    }
-
     #editPrModal .ui-form-modal-header {
         padding: 17px 16px 14px;
     }
@@ -4637,22 +4575,8 @@
 
 /* Read-only Purchase Requisition details — aligned with Job Order Details. */
 #editPrModal.pr-review-modal-overlay {
-  align-items: center;
-  justify-content: center;
-  padding: 20px !important;
   background: rgba(10, 25, 49, .56);
   backdrop-filter: blur(5px);
-}
-#editPrModal.pr-review-modal-overlay > .ui-form-modal {
-  width: min(850px, 100%) !important;
-  max-width: 850px !important;
-  max-height: calc(100dvh - 40px);
-  overflow: hidden;
-  border: 1px solid #d8e4f5;
-  border-radius: 17px;
-  background: #fff;
-  color: #152c4d;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, .24);
 }
 #editPrModal .ui-form-modal-header {
   flex: none;
@@ -4913,10 +4837,7 @@
   color: #fff;
 }
 @media (max-width: 760px) {
-  #editPrModal.pr-review-modal-overlay { padding: 8px !important; }
-  #editPrModal.pr-review-modal-overlay > .ui-form-modal { max-height: calc(100dvh - 16px); }
   #editPrModal .ui-form-modal-header { padding: 15px 16px; }
-  #editPrModal .ui-form-modal-scrollable { max-height: calc(100dvh - 102px); padding: 14px 14px 0; }
   #editPrModal .pr-review-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #editPrModal #viewOnlyActions.pr-review-footer {
     width: auto;
@@ -5882,7 +5803,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 
 /* Saved View PR / History: same review composition, strictly read-only. */
-#editPrModal .ui-form-modal{width:min(1050px,calc(100vw - 36px));max-width:1050px;}
 #editPrModal .pr-view-document{padding:13px 16px 16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;}
 #editPrModal .pr-view-document .pr-ir-review-summary{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));}
 #editPrModal .pr-view-document .pr-ir-review-top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;}
@@ -5912,12 +5832,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #editPrModal .pr-view-document .pr-review-parts-table tr{display:table-row!important;}
 #editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td{display:table-cell!important;min-width:0!important;box-sizing:border-box;padding:11px 8px!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere;font-size:11px;}
 #editPrModal .pr-view-document .pr-review-parts-table th{font-size:9px;background:#edf3fb;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(1){width:9%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(2){width:54%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(3){width:37%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(1){width:44%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(2){width:26%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(3){width:30%!important;}
 #editPrModal .pr-view-document .pr-availability-badge.is-available{background:#e5faec;color:#166534;border:1px solid #a9e6bc;border-radius:7px;padding:5px 8px;font-weight:800;}
 #editPrModal .pr-view-parts-note-row{padding:0 13px 12px;font-size:10px;color:#647c99;}
 #editPrModal .pr-view-remarks-field{margin-top:10px;display:flex;flex-direction:column;gap:6px;border:1px solid #dde8f4;background:#f7faff;border-radius:8px;padding:10px;}
@@ -5925,46 +5839,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 @media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr;}}
 @media(max-width:530px){#editPrModal .pr-view-document .pr-ir-review-summary{grid-template-columns:1fr 1fr;}#editPrModal .pr-view-document .pr-ir-approval-body{grid-template-columns:1fr;}}
 
-/* Shared dimensions for Pending Review PR and In Progress/History View PR.
-   Override older !important width caps on the saved-details dialog. */
-@media (min-width: 761px) {
-  #editPrModal.pr-review-modal-overlay > .ui-form-modal {
-    width:min(1006px,calc(100vw - 36px))!important;
-    max-width:1006px!important;
-    max-height:calc(100dvh - 36px)!important;
-    margin:auto!important;
-    overflow:hidden!important;
-    display:flex!important;
-    flex-direction:column!important;
-  }
-  #editPrModal.pr-review-modal-overlay {
-    padding:18px!important;
-    align-items:center!important;
-    justify-content:center!important;
-  }
-}
-#editPrModal .ui-form-modal-scrollable {
-  flex:1 1 auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow-y:auto!important;
-  overflow-x:hidden!important;
-}
-#editPrModal .pr-view-document {
-  padding:13px 16px 16px!important;
-  gap:12px!important;
-}
-@media (max-width:760px) {
-  #editPrModal.pr-review-modal-overlay > .ui-form-modal {
-    width:calc(100vw - 20px)!important;
-    max-width:calc(100vw - 20px)!important;
-    max-height:calc(100dvh - 20px)!important;
-  }
-}
-
 /* Reused Pending PR visual rules for read-only details. */
 /* Review Purchase Request — layout parity with Item Request's approved review modal. */
-#editPrModal .ui-form-modal {width:min(1050px,calc(100vw - 36px));max-width:1050px;}
 #editPrModal .pr-document.pr-review-simplified {gap:12px;padding:14px 16px;}
 #editPrModal .pr-ir-review-summary {display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));align-items:center;padding:14px 10px;border:1px solid #cee0f8;border-radius:11px;background:linear-gradient(105deg,#f2f7ff,#fff);}
 #editPrModal .pr-ir-review-summary > div {min-width:0;display:flex;flex-direction:column;gap:7px;padding:5px 12px;border-right:1px solid #dfe8f5;}
@@ -6025,10 +5901,4 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #editPrModal .pr-view-document .pr-review-parts-table th {background:#edf3fb!important;font-size:10px!important;color:#506884!important;}
 #editPrModal .pr-view-document .pr-review-parts-table td {border-top:1px solid #e2eaf3!important;}
 #editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td {padding:10px 8px!important;text-align:left!important;font-size:11px!important;vertical-align:middle!important;}
-#editPrModal .pr-view-document .pr-review-parts-table th:nth-child(1),#editPrModal .pr-view-document .pr-review-parts-table td:nth-child(1){width:10%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(2),#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(2){width:61%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(3),#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(3){width:29%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(1),#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table td:nth-child(1){width:44%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(2),#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table td:nth-child(2){width:26%!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table th:nth-child(3),#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-review-parts-table td:nth-child(3){width:30%!important;}
 @media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr!important;}}
