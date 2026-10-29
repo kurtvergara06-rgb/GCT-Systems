@@ -1110,3 +1110,41 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>span {
 body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   flex:none;font-size:11px;font-weight:850;color:#15395f;
 }
+
+/* Keep PR QTY / ON HAND headings and values on the same alignment axis. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) thead th:nth-child(3),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) thead th:nth-child(4),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(3),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) {
+  text-align:left;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) {
+  white-space:nowrap;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-compact {
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:nowrap;
+  gap:8px;
+  width:max-content;
+  max-width:100%;
+  vertical-align:middle;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-main {
+  display:inline-block;
+  flex:none;
+  min-width:45px;
+  text-align:left;
+  line-height:26px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more {
+  display:inline-flex;
+  align-items:center;
+  flex:none;
+  margin:0;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more > summary {
+  min-height:26px;
+  box-sizing:border-box;
+}
