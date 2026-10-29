@@ -1,5 +1,5 @@
 <x-layout.app
-  title="FROMS - Maintenance Requests"
+  title="FROMS - Parts Requisitions"
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
@@ -13,8 +13,8 @@
 
     <main class="main purchase-maintenance-requests-page purchase-module-page records-page">
       <x-layout.topbar
-        title="Requested Purchases"
-        subtitle="Purchase Department request inbox from Warehouse"
+        title="Parts Requisitions"
+        subtitle="Purchase Requisitions submitted for procurement"
         notification-count="6"
       />
 
@@ -72,7 +72,7 @@
                 <th scope="col">Request / JO</th>
                 <th scope="col">Submitted At</th>
                 <th scope="col">Parts for Purchase</th>
-                <th scope="col">Qty</th>
+                <th scope="col" title="Quantity of the first listed part; expand +N more to view all part quantities">Qty</th>
                 <th scope="col">PR Status</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -122,7 +122,7 @@
                       @endif
                     </div>
                   </td>
-                  <td class="requested-pr-quantity">{{ $firstQuantity }}</td>
+                  <td class="requested-pr-quantity" @if(count($parts) > 1) title="First part only — expand +{{ count($parts) - 1 }} more to see quantities for every part" @endif>{{ $firstQuantity }}</td>
                   <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
@@ -134,7 +134,8 @@
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal"
-                        title="View"
+                        title="View Requisition"
+                        aria-label="View Requisition {{ $purchaseRequest->display_pr_no }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
@@ -159,6 +160,7 @@
                             type="submit"
                             class="action-btn create-po"
                             title="Create Purchase Order"
+                            aria-label="Create Purchase Order for {{ $purchaseRequest->display_pr_no }}"
                           >
                             <i class="fa-solid fa-cart-plus"></i>
                           </button>
@@ -171,7 +173,7 @@
                 <x-ui.empty-row
                   colspan="6"
                   icon="fa-wrench"
-                  message="No Maintenance Requests Found"
+                  message="No Purchase Requisitions Found"
                   description="Maintenance requisitions endorsed for purchasing will appear here."
                 />
               @endforelse
@@ -188,9 +190,9 @@
     <div class="requested-pr-style-modal" role="dialog" aria-modal="true" aria-labelledby="viewRequestedPrTitle">
       <div class="requested-pr-modal-header">
         <div>
-          <h2 id="viewRequestedPrTitle">Requested Purchase Details</h2>
+          <h2 id="viewRequestedPrTitle">Purchase Requisition Details</h2>
           <h3>PR Information</h3>
-          <p>This is a read-only view of the selected purchase request.</p>
+          <p>This is a read-only view of the selected Purchase Requisition.</p>
         </div>
         <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn" aria-label="Close purchase request details">
           <i class="fa-solid fa-xmark"></i>
