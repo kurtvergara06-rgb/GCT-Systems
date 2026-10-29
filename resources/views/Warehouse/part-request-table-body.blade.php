@@ -133,11 +133,11 @@
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
                           method="POST"
                           class="inline-action-form"
-                          data-confirm-form
-                          data-confirm-title="Send Missing Parts to Purchase?"
-                          data-confirm-message="Are you sure you want to send the missing parts for {{ $partRequest->pr_no }} to Purchase?"
-                          data-confirm-button="Yes, Send to Purchase"
-                          data-confirm-type="warning"
+                          data-pr-send-form
+                          data-pr-no="{{ $partRequest->pr_no }}"
+                          data-jo-no="{{ $partRequest->job_order_no }}"
+                          data-bus-no="{{ $partRequest->bus_no }}"
+                          data-parts='@json($partRequest->parts_breakdown ?? [])'
                         >
                           @csrf
                           <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
