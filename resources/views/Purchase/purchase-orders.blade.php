@@ -109,18 +109,6 @@
         </div>
 
         <div class="po-record-controls purchase-list-controls">
-          <nav class="po-record-tabs" aria-label="Purchase order record groups">
-            <a href="{{ route('purchase-orders', array_merge(request()->except(['page', 'view', 'status']), ['view' => 'active'])) }}"
-               class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}"
-               @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif>
-              <i class="fa-solid fa-list-check"></i> Active
-            </a>
-            <a href="{{ route('purchase-orders', array_merge(request()->except(['page', 'view', 'status']), ['view' => 'history'])) }}"
-               class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}"
-               @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif>
-              <i class="fa-solid fa-clock-rotate-left"></i> History
-            </a>
-          </nav>
           <div class="po-record-actions purchase-list-tools">
             <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true"
               search-label="Search Purchase Orders" search-placeholder="PO number, supplier, purpose, or status..."
