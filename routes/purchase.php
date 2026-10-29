@@ -57,7 +57,7 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
 });
 
 Route::patch('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])
-    ->middleware(['role:purchase:head,admin:head', 'system.permission:purchase,approve'])
+    ->middleware(['role:purchase:head,admin:head', 'system.permission:purchase,edit'])
     ->name('purchase-orders.approve');
 
 Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])
