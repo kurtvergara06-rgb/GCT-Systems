@@ -1109,19 +1109,7 @@
     />
 
 
- {{-- =========================================================
-    SUCCESS FEEDBACK
-========================================================== --}}
-@if(session('success'))
-
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="success"
-        :message="session('success')"
-        button-text="Okay"
-    />
-
-@endif
+ 
 
 
 {{-- =========================================================
