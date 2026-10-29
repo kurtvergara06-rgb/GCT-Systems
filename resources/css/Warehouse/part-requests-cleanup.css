@@ -1318,3 +1318,31 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 #warehouseSendMissingModal .warehouse-edit-footer {gap:10px;}
 #warehouseSendMissingModal .confirm-issue-btn:disabled {opacity:.55;cursor:not-allowed;}
 
+
+/* Purchase feedback uses the shared Warehouse modal header/footer and real server state. */
+#warehousePurchaseFeedbackModal .warehouse-purchase-feedback-panel {
+  width:min(490px,calc(100vw - 28px));max-width:490px;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#warehousePurchaseFeedbackModal .warehouse-edit-header {display:flex;align-items:center;gap:12px;min-height:75px;padding:14px 18px;}
+#warehousePurchaseFeedbackModal .warehouse-modal-title-copy {flex:1;min-width:0;}
+#warehousePurchaseFeedbackModal .warehouse-modal-title-copy h2 {font-size:14px;font-weight:850;color:#173658;}
+#warehousePurchaseFeedbackModal .warehouse-modal-title-copy p {font-size:11px;color:#687d99;}
+#warehousePurchaseFeedbackModal .warehouse-modal-scrollable {padding:18px;overflow:auto;}
+#warehousePurchaseFeedbackModal .warehouse-purchase-feedback-message {
+  margin:0;padding:14px;border-radius:9px;background:#f2f7ff;
+  border:1px solid #d9e7fb;color:#375579;font-size:12px;line-height:1.6;
+}
+#warehousePurchaseFeedbackModal .warehouse-edit-footer {display:flex;justify-content:flex-end;padding:10px 18px;}
+#warehousePurchaseFeedbackModal[data-kind="success"] .warehouse-modal-title-icon {
+  background:#e3f9eb;color:#15803d;
+}
+#warehousePurchaseFeedbackModal[data-kind="success"] .warehouse-purchase-feedback-message {
+  background:#f0fdf4;border-color:#c4efd2;color:#166534;
+}
+#warehousePurchaseFeedbackModal[data-kind="error"] .warehouse-modal-title-icon {
+  background:#fdebec;color:#b91c1c;
+}
+#warehousePurchaseFeedbackModal[data-kind="error"] .warehouse-purchase-feedback-message {
+  background:#fff2f2;border-color:#f6cccc;color:#b91c1c;
+}
