@@ -126,11 +126,23 @@
     if ($componentDepartment === 'warehouse') {
         $items = [
             ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-            ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-            ['label' => 'Item Requests', 'route' => 'warehouse.item-requests', 'icon' => 'fa-box-open'],
-            ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-            ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-            ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
+            [
+                'label' => 'Requests Management',
+                'icon' => 'fa-clipboard-list',
+                'children' => [
+                    ['label' => 'Item Requests', 'route' => 'warehouse.item-requests', 'icon' => 'fa-box-open'],
+                    ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
+                ],
+            ],
+            [
+                'label' => 'Inventory Management',
+                'icon' => 'fa-boxes-stacked',
+                'children' => [
+                    ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
+                    ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
+                    ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
+                ],
+            ],
         ];
     }
 
