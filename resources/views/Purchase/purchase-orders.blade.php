@@ -408,18 +408,6 @@
           </div>
         </section>
 
-        <section class="po-form-section po-approval-preview" aria-labelledby="poApprovalHeading">
-          <div class="po-form-section-header">
-            <span class="po-section-icon"><i class="fa-solid fa-user-check"></i></span>
-            <div><h3 id="poApprovalHeading">Approval Information</h3><p>Paper-form signatories are not recorded as approvals by this modal.</p></div>
-          </div>
-          <div class="po-approval-roles">
-            <div><span>Requested By</span><strong>Refer to source PR</strong></div>
-            <div><span>Prepared By</span><strong>{{ auth()->user()->name ?? 'Purchase user' }}</strong></div>
-            <div><span>Checked By</span><strong>On printed PO</strong></div>
-            <div><span>Approved By</span><strong>On printed PO</strong></div>
-          </div>
-        </section>
         <div class="po-modal-actions" id="poEditActions">
           <div class="po-action-hint">
             <i class="fa-solid fa-circle-info"></i>
