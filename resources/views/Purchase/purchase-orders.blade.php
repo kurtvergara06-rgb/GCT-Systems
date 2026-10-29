@@ -195,6 +195,7 @@
                   </td>
                   <td>
                     <div class="actions record-actions">
+                      @unless($isForReview)
                       <x-ui.action-button
                         type="view"
                         title="View PO"
@@ -216,6 +217,8 @@
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
                       />
 
+                      @endunless
+
                       @if($isForReview && $canReviewPo)
                         <form action="{{ route('purchase-orders.approve', $purchaseOrder) }}" method="POST"
                               data-confirm-form data-confirm-title="Approve Purchase Order?"
@@ -223,12 +226,12 @@
                               data-confirm-button="Yes, Approve PO" data-confirm-type="approve">
                           @csrf @method('PATCH')
                           <button type="submit" class="action-btn po-review-action" title="Review PO for approval" aria-label="Review {{ $purchaseOrder->po_no }} for approval">
-                            <i class="fa-solid fa-clipboard-check"></i>
+                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i><span>Review</span>
                           </button>
                         </form>
                       @endif
 
-                      @if($isEditable)
+                      @if($isEditable && ! $isForReview)
                         <x-ui.action-button
                           type="edit"
                           title="Edit PO"
