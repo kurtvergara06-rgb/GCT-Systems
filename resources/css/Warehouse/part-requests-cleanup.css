@@ -1282,3 +1282,27 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   #viewPrModal .warehouse-pr-reference-strip .warehouse-summary-item:nth-child(even){border-right:0;}
   #viewPrModal .warehouse-pr-reference-section{padding:11px;}
 }
+
+/* View PR typography density matched to View IR; leave table structure unchanged. */
+#viewPrModal .warehouse-pr-reference-view .warehouse-modal-title-copy h2,
+#warehouseSendMissingModal .warehouse-modal-title-copy h2 {font-size:15px;line-height:1.35;font-weight:850;}
+#viewPrModal .warehouse-pr-reference-view .warehouse-modal-title-copy p,
+#warehouseSendMissingModal .warehouse-modal-title-copy p {font-size:10px;line-height:1.45;}
+#viewPrModal .warehouse-pr-reference-strip .warehouse-summary-item span,
+#warehouseSendMissingModal .warehouse-pr-reference-strip .warehouse-summary-item span {font-size:10px;}
+#viewPrModal .warehouse-pr-reference-strip .warehouse-summary-item strong,
+#warehouseSendMissingModal .warehouse-pr-reference-strip .warehouse-summary-item strong {font-size:11px;}
+#viewPrModal .warehouse-pr-reference-section .warehouse-modal-section-header h3,
+#warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-header h3 {font-size:12px;}
+#viewPrModal .warehouse-pr-view-table th,
+#warehouseSendMissingModal .warehouse-pr-view-table th {font-size:10px;padding:10px;}
+#viewPrModal .warehouse-pr-view-table td,
+#warehouseSendMissingModal .warehouse-pr-view-table td {font-size:11px;padding:10px;}
+#viewPrModal .warehouse-pr-reference-section,
+#warehouseSendMissingModal .warehouse-pr-reference-section {padding:12px;}
+#viewPrModal .warehouse-modal-scrollable,
+#warehouseSendMissingModal .warehouse-modal-scrollable {gap:10px;padding:12px 16px;}
+#warehouseSendMissingModal .warehouse-send-missing-view {width:min(940px,calc(100vw - 32px));}
+#warehouseSendMissingModal .warehouse-send-missing-meta {grid-template-columns:repeat(3,minmax(0,1fr));}
+#warehouseSendMissingModal .warehouse-edit-footer {gap:10px;}
+#warehouseSendMissingModal .confirm-issue-btn:disabled {opacity:.55;cursor:not-allowed;}
