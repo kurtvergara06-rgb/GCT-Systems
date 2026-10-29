@@ -251,7 +251,7 @@
                 <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data"
                       data-confirm-form
                       data-confirm-title="Confirm Signed Physical Handover?"
-                      data-confirm-message="Confirm the signed withdrawal slip and quantities were physically handed over. Inventory will be deducted for the quantities recorded on this slip. Any remaining Item Request quantities will stay active."
+                      data-confirm-message="Confirm signed handover? Issued stock will be deducted. Remaining quantities stay pending."
                       data-confirm-button="Confirm Issuance &amp; Deduct Stock"
                       data-confirm-type="warning">
                     @csrf
