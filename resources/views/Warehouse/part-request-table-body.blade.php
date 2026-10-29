@@ -36,13 +36,13 @@
                   </td>
                   <td class="item-col">
                     <div class="warehouse-pr-item-summary">
-                      <span class="warehouse-pr-item-name" title="{{ $itemName }}">{{ trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) $itemName)) ?: $itemName }}</span>
+                      <span class="warehouse-pr-item-name" title="{{ $itemName }}">{{ trim(preg_replace('/\s*\[item:\d+\]/i', '', (string) $itemName)) ?: $itemName }}</span>
                     @if($multipleParts)
                       <details class="warehouse-pr-parts-more">
                         <summary>+{{ $partDetails->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                         <div class="warehouse-pr-parts-popup">
                           @foreach($partDetails as $part)
-                            <div><span>{{ $part['name'] ?? '—' }}</span><strong>{{ $part['needed_display'] ?? (($part['needed'] ?? 0).' '.($part['unit'] ?? '')) }}</strong></div>
+                            <div><span>{{ trim(preg_replace('/\s*\[item:\d+\]/i', '', (string) ($part['name'] ?? '—'))) }}</span><strong>{{ $part['needed_display'] ?? (($part['needed'] ?? 0).' '.($part['unit'] ?? '')) }}</strong></div>
                           @endforeach
                         </div>
                       </details>
@@ -61,7 +61,7 @@
                           <div class="warehouse-pr-parts-popup">
                             @foreach($partDetails as $part)
                               <div>
-                                <span>{{ trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($part['name'] ?? '—'))) }}</span>
+                                <span>{{ trim(preg_replace('/\s*\[item:\d+\]/i', '', (string) ($part['name'] ?? '—'))) }}</span>
                                 <strong>{{ $part['physical_on_hand_display'] ?? '0 '.($part['unit'] ?? '') }}</strong>
                               </div>
                             @endforeach
