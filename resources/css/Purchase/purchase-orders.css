@@ -1269,3 +1269,35 @@ main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-comp
 main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
   font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
 }
+
+
+/* Reference-matched PO table typography: reference first, then readable item label. */
+main.purchase-orders-page .purchase-order-card .records-table thead th {
+  font-family:inherit !important;
+  font-size:11px !important;
+  font-weight:750 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:500 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-reference {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-item-preview > strong {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(5) .po-qty,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(6) .po-amount {
+  font-size:12px !important;
+  font-weight:650 !important;
+}
