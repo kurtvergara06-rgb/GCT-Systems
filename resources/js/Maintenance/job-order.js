@@ -136,6 +136,106 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   initializeJoSectionProgress('jobModal');
   initializeJoSectionProgress('editJobModal');
 
+
+  // Warehouse inventory is the authoritative catalogue for requested JO parts.
+  // Preserve existing part[name] and part[unit] fields for the backend parser.
+  // No numeric stock quantity is disclosed here; status is advisory until reservation.
+  const inventoryCatalogUrl = '/job-orders/inventory-options';
+  let joInventoryCatalog = [];
+  const joInventoryWrappers = ['partsNeededWrapper', 'editPartsNeededWrapper'];
+
+  function enhanceJoPartRow(row) {
+    if (row.dataset.inventoryEnhanced === '1') return;
+    const name = row.querySelector('input[name*="[name]"]');
+    const qty = row.querySelector('input[name*="[quantity]"]');
+    const unit = row.querySelector('select[name*="[unit]"]');
+    if (!name || !qty || !unit) return;
+    row.dataset.inventoryEnhanced = '1';
+    const inventoryId = document.createElement('input');
+    inventoryId.type = 'hidden';
+    inventoryId.name = name.name.replace('[name]', '[inventory_item_id]');
+    inventoryId.className = 'jo-inventory-id';
+    const selector = document.createElement('select');
+    selector.className = 'jo-inventory-picker';
+    selector.setAttribute('aria-label', 'Select Warehouse inventory part');
+    const stock = document.createElement('span');
+    stock.className = 'jo-inventory-stock-status';
+    stock.setAttribute('aria-live', 'polite');
+    row.insertBefore(selector, name);
+    name.classList.add('jo-inventory-name-field');
+    name.tabIndex = -1;
+    row.insertBefore(inventoryId, qty);
+    row.insertBefore(stock, row.querySelector('.remove-part-btn'));
+    unit.classList.add('jo-auto-unit-select');
+    unit.setAttribute('aria-label','Unit from inventory');
+    unit.tabIndex = -1;
+    const update = () => {
+      const selected = joInventoryCatalog.find(item => String(item.id) === selector.value);
+      inventoryId.value = selected ? String(selected.id) : '';
+      if (selected) {
+        name.value = selected.name;
+        unit.value = selected.unit;
+      } else if (!name.value.trim()) {
+        unit.value = '';
+      }
+      const requested = Number(qty.value);
+      stock.textContent = !selected ? 'Select part' : selected.in_stock ? 'In Stock' : 'Out of Stock';
+      stock.dataset.state = !selected ? 'unknown' : selected.in_stock ? 'available' : 'unavailable';
+      stock.title = selected ? 'Warehouse availability is checked again when submitting and approving.' : '';
+      if (selected && requested > 0) stock.title += ' Requested: ' + requested + ' ' + selected.unit + '.';
+      row.dispatchEvent(new Event('change', { bubbles: false }));
+    };
+    const render = () => {
+      const priorName = name.value.trim();
+      const priorId = inventoryId.value || (priorName.match(/\\[item:\\s*(\\d+)\\]/i)?.[1] || '');
+      selector.replaceChildren(new Option('Select inventory part', ''));
+      joInventoryCatalog.forEach(item => selector.add(new Option(item.name + (item.code ? ' · ' + item.code : ''), String(item.id))));
+      const matched = joInventoryCatalog.find(item => String(item.id) === priorId) ||
+        joInventoryCatalog.find(item => item.name.toLowerCase() === priorName.toLowerCase());
+      if (matched) selector.value = String(matched.id);
+      else if (priorName) selector.add(new Option(priorName + ' (legacy part — reselect)', '', true, true));
+      update();
+    };
+    selector.addEventListener('change', () => { name.value = ''; update(); });
+    qty.addEventListener('input', update);
+    render();
+  }
+
+  function enhanceJoPartRows() {
+    joInventoryWrappers.forEach(id => {
+      const wrapper = document.getElementById(id);
+      if (!wrapper) return;
+      wrapper.querySelectorAll('.part-needed-row').forEach(enhanceJoPartRow);
+      if (wrapper.dataset.joInventoryObserver !== '1') {
+        wrapper.dataset.joInventoryObserver = '1';
+        new MutationObserver(() => wrapper.querySelectorAll('.part-needed-row').forEach(enhanceJoPartRow))
+          .observe(wrapper, { childList: true });
+      }
+    });
+  }
+  enhanceJoPartRows();
+  fetch(inventoryCatalogUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+    .then(response => { if (!response.ok) throw new Error('Inventory catalogue unavailable'); return response.json(); })
+    .then(items => {
+      joInventoryCatalog = Array.isArray(items) ? items.filter(item => item.id && item.name && item.unit) : [];
+      joInventoryWrappers.forEach(id => {
+        document.getElementById(id)?.querySelectorAll('.part-needed-row').forEach(row => {
+          row.dataset.inventoryEnhanced = '';
+        });
+      });
+      // Update existing selectors without losing typed quantities or selected parts.
+      joInventoryWrappers.forEach(id => {
+        document.getElementById(id)?.querySelectorAll('.part-needed-row').forEach(row => {
+          const select = row.querySelector('.jo-inventory-picker');
+          if (select) { select.remove(); row.querySelector('.jo-inventory-id')?.remove(); row.querySelector('.jo-inventory-stock-status')?.remove(); }
+          enhanceJoPartRow(row);
+        });
+      });
+    })
+    .catch(() => {
+      joInventoryWrappers.forEach(id => document.getElementById(id)?.querySelectorAll('.jo-inventory-stock-status').forEach(el => { el.textContent = 'Stock unavailable'; el.dataset.state = 'unknown'; }));
+    });
+
   /* =========================================================
      PART UNITS
   ========================================================= */
