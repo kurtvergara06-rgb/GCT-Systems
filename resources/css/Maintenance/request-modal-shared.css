@@ -115,3 +115,16 @@
     margin-inline: auto;
   }
 }
+
+/* Saved IR overview uses the same supplemental facts arrangement as saved PR. */
+#viewItemRequestModal .ir-view-secondary-data {
+  margin-top: 13px;
+  row-gap: 10px;
+  column-gap: 13px;
+}
+#viewItemRequestModal .ir-view-secondary-data > div {
+  min-width: 0;
+}
+#viewItemRequestModal .ir-view-secondary-data strong {
+  overflow-wrap: anywhere;
+}
