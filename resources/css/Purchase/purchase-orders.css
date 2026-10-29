@@ -1107,7 +1107,7 @@ main.purchase-orders-page .purchase-order-card .records-table th {
 main.purchase-orders-page .purchase-order-card .records-table td {
   color:#18365c; font-size:11px; font-weight:650; line-height:1.35;
 }
-main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(1) {width:11%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(1) {width:10%;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:17%;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(3) {width:12%;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:15%;}
