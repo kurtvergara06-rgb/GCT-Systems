@@ -1248,3 +1248,34 @@
 .purchase-maintenance-requests-page .requested-purchase-table .record-actions .action-btn {
   width:30px;height:30px;min-width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;
 }
+
+/* Date and status follow the Maintenance requisition table's visual hierarchy. */
+.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-date {
+  text-align:left !important;
+  white-space:nowrap;
+}
+.purchase-maintenance-requests-page .requested-pr-date-stack {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+}
+.purchase-maintenance-requests-page .requested-pr-date-stack strong {
+  color:#17375f;
+  font-size:11px;
+  line-height:1.2;
+  font-weight:800;
+}
+.purchase-maintenance-requests-page .requested-pr-date-stack small {
+  color:#6981a1;
+  font-size:10px;
+  font-weight:500;
+  line-height:1.2;
+}
+.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] {
+  padding:4px 9px !important;
+  min-width:0 !important;
+  height:25px !important;
+  min-height:25px !important;
+  font-size:10px !important;
+}
