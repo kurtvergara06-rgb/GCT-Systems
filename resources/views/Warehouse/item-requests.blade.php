@@ -84,6 +84,7 @@
                         $displayStockParts = $fullJoParts->isNotEmpty() ? $fullJoParts : $stockParts;
                         $stockIsMixed = $stockParts->count() > 1;
                         $shortPartsCount = $displayStockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count();
+                        $shortQuantity = $displayStockParts->sum(fn ($part) => max(0, (int) ($part['shortage'] ?? 0)));
                     @endphp
                     <tr>
                         <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span>@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
@@ -111,35 +112,33 @@
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
-                                            <div class="warehouse-ir-stock-popover-title">Physical stock &amp; JO allocation breakdown</div>
+                                            <div class="warehouse-ir-stock-popover-title">Physical stock vs. JO allocation</div>
+                                            <div class="warehouse-ir-stock-table-head" aria-hidden="true">
+                                                <span>PART / JO REQUIRED</span><span>ON HAND</span><span>ISSUABLE</span>
+                                            </div>
                                             @foreach($displayStockParts as $part)
-                                                <div class="warehouse-ir-stock-popover-row">
-                                                    <span class="warehouse-ir-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                                                <div class="warehouse-ir-stock-popover-row warehouse-ir-stock-row">
                                                     <span class="warehouse-ir-stock-popover-info">
                                                         <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
                                                         <small>JO required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
-                                                         <small>On hand: <strong class="warehouse-ir-onhand-value">{{ $part['on_hand'] ?? 0 }}</strong> {{ $part['unit'] ?? '' }}</small>
-                                                    </span>
-                                                    <span class="warehouse-ir-stock-popover-amount">
-                                                        <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} issuable</strong>
                                                         @if(($part['shortage'] ?? 0) > 0)
                                                             <small class="warehouse-ir-shortage-quantity">{{ $part['shortage'] }} {{ $part['unit'] ?? '' }} awaiting supply</small>
-                                                        @else
-                                                            <small class="warehouse-ir-stock-ok">Allocated for issue</small>
                                                         @endif
                                                     </span>
+                                                    <strong class="warehouse-ir-stock-figure">{{ $part['on_hand'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
+                                                    <strong class="warehouse-ir-stock-figure">{{ $part['available'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
                                                 </div>
                                             @endforeach
                                         </div>
                                     </details>
                                     @endif
                                     @if($shortPartsCount > 0)
-                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('item', $shortPartsCount) }} Short</span>
+                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortQuantity }} {{ \Illuminate\Support\Str::plural('unit', $shortQuantity) }} Short</span>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        <td><span class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
+                        <td><span title="IR allocation readiness, not full JO stock coverage" class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td>
                             <span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : 'is-submitted' }}">
                                 <i class="fa-solid {{ $ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane' }}"></i>
