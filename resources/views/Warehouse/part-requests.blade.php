@@ -283,25 +283,8 @@
       </div>
       <div class="warehouse-edit-footer">
         <button type="button" class="warehouse-cancel-btn" data-send-missing-close>Cancel</button>
-        <button type="button" id="sendMissingConfirm" class="confirm-issue-btn"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
+        <button type="button" id="sendMissingConfirm" class="confirm-issue-btn warehouse-send-purchase-yellow"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
       </div>
-    </div>
-  </div>
-
-  <div id="warehousePurchaseFeedbackModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true"
-       data-server-result="{{ session('warehouse_purchase_send_success') ? 'success' : (session('warehouse_purchase_send_error') ? 'error' : '') }}"
-       data-server-message="{{ session('warehouse_purchase_send_success') ?? session('warehouse_purchase_send_error') ?? '' }}">
-    <div class="warehouse-edit-style-modal warehouse-purchase-feedback-panel" role="alertdialog" aria-modal="true" aria-labelledby="warehousePurchaseFeedbackTitle">
-      <div class="warehouse-edit-header">
-        <span id="warehousePurchaseFeedbackIcon" class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
-        <div class="warehouse-modal-title-copy">
-          <h2 id="warehousePurchaseFeedbackTitle">Purchase Request Status</h2>
-          <p id="warehousePurchaseFeedbackSubtitle">Warehouse purchase request processing</p>
-        </div>
-        <button type="button" class="warehouse-edit-close" data-purchase-feedback-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="warehouse-modal-scrollable"><p id="warehousePurchaseFeedbackMessage" class="warehouse-purchase-feedback-message" role="status"></p></div>
-      <div class="warehouse-edit-footer"><button type="button" class="warehouse-cancel-btn" data-purchase-feedback-close>Close</button></div>
     </div>
   </div>
 
