@@ -189,14 +189,14 @@
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-view-jo-section" aria-labelledby="warehouseIrJoCoverageTitle">
-                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Requirement Overview</h3><p>Full JO requirements compared with quantities in this IR</p></div></div>
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Parts Summary</h3><p>Compare what the Job Order needs with what this Item Request includes</p></div></div>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table warehouse-ir-jo-table">
-                        <thead><tr><th>PART NAME</th><th>TOTAL JO REQUIRED</th><th>IN THIS IR</th><th>OUTSIDE THIS IR</th><th>REMARKS</th></tr></thead>
-                        <tbody id="warehouse-ir-jo-coverage-rows"><tr><td colspan="5" class="warehouse-ir-stock-empty">Checking linked Job Order...</td></tr></tbody>
+                        <thead><tr><th>PART</th><th>JO NEEDS</th><th>IR REQUESTED</th><th>REMAINING</th></tr></thead>
+                        <tbody id="warehouse-ir-jo-coverage-rows"><tr><td colspan="4" class="warehouse-ir-stock-empty">Checking linked Job Order...</td></tr></tbody>
                     </table>
                 </div>
-                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Outside-this-IR quantities are not confirmed procurement shortages. Other Item Requests, Purchase Requests or deliveries may cover them.</p>
+                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Remaining quantities are not included in this Item Request. Another IR or Purchase Request may already cover them.</p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-details-remarks" aria-label="Item Request remarks">
                 <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
