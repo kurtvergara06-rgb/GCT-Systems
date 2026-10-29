@@ -426,6 +426,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
 
 
     row.innerHTML = `
+      <input type="hidden" name="parts[${index}][inventory_item_id]" value="${escapeInputValue(part.inventory_item_id || '')}">
       <input
         type="text"
         name="parts[${index}][name]"
@@ -5036,6 +5037,4 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-mechanic-more-po
     });
   });
 });
-       <input type="hidden" name="parts[${index}][inventory_item_id]" value="${escapeInputValue(part.inventory_item_id || '')}">
-
 
