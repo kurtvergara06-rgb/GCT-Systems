@@ -395,7 +395,7 @@
                           <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
                           <div class="pr-shortage-table-wrap">
                               <table class="pr-shortage-table pr-review-parts-table">
-                                  <thead><tr><th scope="col">PART NAME</th><th scope="col">REQUESTED QTY</th><th scope="col">AVAILABILITY</th></tr></thead>
+                                  <thead><tr><th scope="col">PART NAME</th><th scope="col">REQUESTED QTY</th><th scope="col">STATUS</th></tr></thead>
                                   <tbody id="prReviewAvailableParts"><tr><td colspan="3" class="pr-table-message">Loading linked Job Order parts…</td></tr></tbody>
                               </table>
                           </div>
@@ -507,7 +507,7 @@
                       <div class="pr-dual-parts-pane is-ir">
                           <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-box" aria-hidden="true"></i> Available Parts — Item Request (IR)</strong><span>For Warehouse</span></div>
                           <div class="pr-shortage-table-wrap"><table class="pr-shortage-table pr-review-parts-table">
-                              <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>AVAILABILITY</th></tr></thead>
+                              <thead><tr><th>PART NAME</th><th>REQUESTED QTY</th><th>STATUS</th></tr></thead>
                               <tbody id="reviewPrIrPartsBody"><tr><td colspan="3" class="pr-review-empty">No linked allocation.</td></tr></tbody>
                           </table></div>
                       </div>
