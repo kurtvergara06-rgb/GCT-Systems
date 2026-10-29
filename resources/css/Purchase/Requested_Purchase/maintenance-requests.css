@@ -1511,3 +1511,30 @@ main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-
   font-weight:500 !important;
   letter-spacing:0 !important;
 }
+
+/* Fix clipped +N more dropdown: expand the table row rather than overlaying it.
+   This avoids overlapping the preceding row or the table footer. */
+.purchase-maintenance-requests-page .requested-pr-more[open] {
+  flex-basis:100%;
+  width:100%;
+}
+.purchase-maintenance-requests-page .requested-pr-more[open] > summary {
+  width:max-content;
+}
+.purchase-maintenance-requests-page .requested-pr-more .requested-pr-more-panel,
+.purchase-maintenance-requests-page .requested-purchase-table tbody tr:last-child .requested-pr-more .requested-pr-more-panel {
+  position:static !important;
+  top:auto !important;
+  bottom:auto !important;
+  left:auto !important;
+  z-index:auto !important;
+  display:block;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin-top:7px;
+  box-shadow:none !important;
+}
+.purchase-maintenance-requests-page .requested-pr-more:not([open]) .requested-pr-more-panel {
+  display:none;
+}
