@@ -118,7 +118,7 @@
                                                     <span class="warehouse-ir-stock-popover-info">
                                                         <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
                                                         <small>JO required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
-                                                         <small>On hand: <strong class="warehouse-ir-onhand-value">{{ $part['on_hand'] ?? '—' }}</strong> {{ $part['unit'] ?? '' }}</small>
+                                                         <small>On hand: <strong class="warehouse-ir-onhand-value">{{ $part['on_hand'] ?? 0 }}</strong> {{ $part['unit'] ?? '' }}</small>
                                                     </span>
                                                     <span class="warehouse-ir-stock-popover-amount">
                                                         <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} issuable</strong>
