@@ -81,7 +81,7 @@
                             ];
                         });
                         $displayStockParts = $fullJoParts->isNotEmpty() ? $fullJoParts : $stockParts;
-                        $stockIsMixed = $displayStockParts->count() > 1;
+                        $stockIsMixed = $stockParts->count() > 1;
                         $shortPartsCount = $displayStockParts->filter(fn ($part) => (int) ($part['shortage'] ?? 0) > 0)->count();
                     @endphp
                     <tr>
@@ -106,7 +106,7 @@
                             <div class="warehouse-ir-onhand-summary">
                                 <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
                                 <div class="warehouse-ir-onhand-actions">
-                                    @if($displayStockParts->isNotEmpty())
+                                    @if($stockIsMixed && $displayStockParts->isNotEmpty())
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
