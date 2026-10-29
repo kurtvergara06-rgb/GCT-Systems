@@ -11,7 +11,6 @@
     $authUser = auth()->user();
 
     $displayName = trim($authUser?->name ?? $userName ?? 'Guest User');
-    $profilePhotoUrl = $authUser?->profilePhotoUrl();
     $departmentRaw = trim($authUser?->department ?? $department ?? 'Department');
     $roleRaw = strtolower(trim($authUser?->role ?? ''));
 
@@ -73,117 +72,99 @@
                 ],
             ],
             [
-                'label' => 'Mechanic Management',
-                'icon' => 'fa-users-gear',
-                'children' => [
-                    ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
-                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
-                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
-                ],
-            ],
-            [
-                'label' => 'Resources & Requests',
+                'label' => 'Resources',
                 'icon' => 'fa-toolbox',
                 'children' => [
+                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
+                    ['label' => 'Mechanic Master List', 'route' => 'operation.personnel.mechanics', 'icon' => 'fa-users-gear'],
+                    ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
                     ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-                    ['label' => 'Item Requests', 'route' => 'item-requests', 'icon' => 'fa-box-open'],
-                    ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
                 ],
             ],
+            ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
         ];
     }
 
     if ($componentDepartment === 'purchase') {
-        $isPurchaseHistory = request()->routeIs('purchase-orders')
+        $isPurchaseHistory = request()->routeIs('maintenance-requests')
             && request()->query('view') === 'history';
 
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
+            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
             [
-                'label' => 'Purchase Requests',
+                'label' => 'Requested Purchase',
                 'icon' => 'fa-clipboard-list',
                 'children' => [
                     [
-                        'label' => 'Parts Requisitions',
+                        'label' => 'Maintenance Requests',
                         'route' => 'maintenance-requests',
                         'icon' => 'fa-screwdriver-wrench',
-                        'active' => request()->routeIs('maintenance-requests') && request()->query('view') !== 'history',
+                        'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
                     ],
-                    ['label' => 'Stock Requisitions', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
+                    ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
-            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice', 'active' => request()->routeIs('purchase-orders') && ! $isPurchaseHistory],
-            ['label' => 'Scheduled Purchases', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
             [
                 'label' => 'Purchase History',
-                'url' => route('purchase-orders', [], false) . '?view=history',
+                'url' => route('maintenance-requests', [], false) . '?view=history',
                 'icon' => 'fa-clock-rotate-left',
                 'active' => $isPurchaseHistory,
             ],
+            ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
         ];
     }
 
     if ($componentDepartment === 'warehouse') {
         $items = [
             ['label' => 'Dashboard', 'route' => 'warehouse.dashboard', 'icon' => 'fa-table-cells-large'],
-            [
-                'label' => 'Requests Management',
-                'icon' => 'fa-clipboard-list',
-                'children' => [
-                    ['label' => 'Item Requests', 'route' => 'warehouse.item-requests', 'icon' => 'fa-box-open'],
-                    ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
-                ],
-            ],
-            [
-                'label' => 'Inventory Management',
-                'icon' => 'fa-boxes-stacked',
-                'children' => [
-                    ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
-                    ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
-                    ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
-                ],
-            ],
+            ['label' => 'Inventory', 'route' => 'inventory', 'icon' => 'fa-boxes-stacked'],
+            ['label' => 'Part Requests', 'route' => 'part-requests', 'icon' => 'fa-clipboard-list'],
+            ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
+            ['label' => 'Stock Movements', 'route' => 'stock-movements', 'icon' => 'fa-right-left'],
         ];
     }
 
     if (in_array($componentDepartment, ['operation', 'operations'], true)) {
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
+            ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
             [
-                'label' => 'Master Data',
-                'icon' => 'fa-database',
-                'children' => [
-                    ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
-                    ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
-                    ['label' => 'Route Management', 'route' => 'operation.routes', 'icon' => 'fa-route'],
-                ],
-            ],
-            [
-                'label' => 'Attendance & Availability',
-                'icon' => 'fa-calendar-check',
-                'children' => [
-                    ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
-                    ['label' => 'Bus Availability', 'route' => 'bus-availability', 'icon' => 'fa-bus-simple'],
-                ],
-            ],
-            [
-                'label' => 'Trip Planning & Scheduling',
+                'label' => 'Scheduling',
                 'icon' => 'fa-calendar-days',
                 'children' => [
                     ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
                     ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
                     ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
-                    ['label' => 'Client Trip Times', 'route' => 'client-trip-times', 'icon' => 'fa-clock'],
                 ],
             ],
             [
-                'label' => 'Trip Operations',
-                'icon' => 'fa-clipboard-list',
+                'label' => 'Personnel Management',
+                'icon' => 'fa-address-book',
                 'children' => [
-                    ['label' => 'Trip History', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
-                    ['label' => 'Daily Drivers Report', 'route' => 'daily-driver-reports', 'icon' => 'fa-file-lines', 'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*']],
-                    ['label' => 'Incident Management', 'route' => 'incidents', 'icon' => 'fa-triangle-exclamation', 'active_routes' => ['incidents', 'incidents.*']],
+                    ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
                 ],
+            ],
+            [
+                'label' => 'Attendance',
+                'icon' => 'fa-calendar-check',
+                'children' => [
+                    ['label' => 'Driver Attendance', 'route' => 'driver-attendance', 'icon' => 'fa-user-check'],
+                ],
+            ],
+            ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
+            ['label' => 'Trip Records', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
+            [
+                'label' => 'Daily Drivers Report',
+                'route' => 'daily-driver-reports',
+                'icon' => 'fa-file-lines',
+                'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*'],
+            ],
+            [
+                'label' => 'Incidents',
+                'route' => 'incidents',
+                'icon' => 'fa-triangle-exclamation',
+                'active_routes' => ['incidents', 'incidents.*'],
             ],
         ];
     }
@@ -197,7 +178,7 @@
                 'active_routes' => ['admin.dashboard'],
             ],
             [
-                'label' => 'User Management',
+                'label' => 'Account Management',
                 'icon' => 'fa-users-gear',
                 'children' => [
                     [
@@ -205,12 +186,6 @@
                         'route' => 'admin.users',
                         'icon' => 'fa-address-card',
                         'active_routes' => ['admin.users', 'admin.users.*'],
-                    ],
-                    [
-                        'label' => 'Applications',
-                        'route' => 'admin.applications',
-                        'icon' => 'fa-user-clock',
-                        'active_routes' => ['admin.applications', 'admin.applications.*'],
                     ],
                     [
                         'label' => 'Roles & Permissions',
@@ -354,11 +329,7 @@
         || ($normalizedDepartment === 'admin' && $normalizedRole === 'head');
 @endphp
 
-<aside
-    class="sidebar"
-    id="appSidebar"
-    data-gct-shell="{{ $componentDepartment }}"
->
+<aside class="sidebar" id="appSidebar" data-gct-shell="{{ $componentDepartment }}">
     <button
         type="button"
         class="sidebar-collapse-btn"
@@ -478,13 +449,7 @@
             aria-expanded="false"
             title="{{ $displayName }}"
         >
-            <div class="avatar">
-                @if($profilePhotoUrl)
-                    <img src="{{ $profilePhotoUrl }}" alt="">
-                @else
-                    <span>{{ $initials }}</span>
-                @endif
-            </div>
+            <div class="avatar"><span>{{ $initials }}</span></div>
             <div class="user-box-text">
                 <h4>{{ $displayName }}</h4>
                 <p>{{ $displayRole }}</p>
@@ -494,13 +459,7 @@
 
         <div class="sidebar-profile-menu" id="sidebarProfileMenu">
             <div class="profile-menu-header">
-                <div class="profile-menu-avatar">
-                    @if($profilePhotoUrl)
-                        <img src="{{ $profilePhotoUrl }}" alt="">
-                    @else
-                        {{ $initials }}
-                    @endif
-                </div>
+                <div class="profile-menu-avatar">{{ $initials }}</div>
                 <div>
                     <h4>{{ $displayName }}</h4>
                     <p>{{ $displayRole }}</p>
@@ -509,10 +468,10 @@
 
             <div class="profile-menu-divider"></div>
 
-            <a href="{{ route('account.profile', [], false) }}" class="profile-menu-item">
+            <button type="button" class="profile-menu-item" disabled>
                 <i class="fa-solid fa-user"></i>
                 <span>Profile</span>
-            </a>
+            </button>
 
             @if($canOpenMaintenanceSettings && \Illuminate\Support\Facades\Route::has('settings'))
                 <a href="{{ route('settings', [], false) }}" class="profile-menu-item">
@@ -533,16 +492,14 @@
                     action="{{ route('logout', [], false) }}"
                     method="POST"
                     class="profile-logout-form"
-                    id="profileLogoutForm"
                     data-confirm-form
                     data-confirm-title="Log Out"
                     data-confirm-message="Are you sure you want to log out?"
                     data-confirm-button="Log Out"
                     data-confirm-type="logout"
-                    data-confirm-loading-text="Logging out..."
                 >
                     @csrf
-                    <button type="submit" class="profile-menu-item logout" id="sidebarLogoutBtn">
+                    <button type="submit" class="profile-menu-item logout">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Log out</span>
                     </button>

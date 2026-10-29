@@ -507,7 +507,7 @@ class SystemBackendFullAuditTest extends TestCase
         $poResponse = $this->post(route('purchase-orders.store'), [
             'purchase_request_id' => $pr->id,
             'supplier_name' => 'Bendix Brakes Official',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'items' => [[
                 'pr_no' => $pr->pr_no,
                 'bus_no' => $pr->bus_no,
@@ -519,6 +519,11 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
         $poResponse->assertRedirect('/purchase-orders');
         $po = PurchaseOrder::where('supplier_name', 'Bendix Brakes Official')->firstOrFail();
+        $this->assertSame('For Review', $po->status);
+
+        $this->patch(route('purchase-orders.approve', $po))
+            ->assertRedirect('/purchase-orders');
+        $po->refresh();
         $this->assertSame('Ordered', $po->status);
 
         // 6.2 Maintenance Requests
@@ -714,7 +719,7 @@ class SystemBackendFullAuditTest extends TestCase
             ->assertRedirect(route('purchase-requests', ['record_view' => 'active'], false));
 
         $originalPr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->firstOrFail();
-        $this->assertSame('Approved', $originalPr->status);
+        $this->assertSame('Submitted', $originalPr->status);
 
         // Warehouse routes PR to Purchase
         $this->actingAs($warehouseHead)
@@ -730,7 +735,7 @@ class SystemBackendFullAuditTest extends TestCase
         $this->actingAs($purchaseHead)->post(route('purchase-orders.store'), [
             'purchase_request_id' => $purchasePr->id,
             'supplier_name' => 'Asian Transmission Corp',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'items' => [[
                 'pr_no' => $purchasePr->pr_no,
                 'bus_no' => $purchasePr->bus_no,
@@ -742,6 +747,13 @@ class SystemBackendFullAuditTest extends TestCase
         ])->assertRedirect('/purchase-orders');
 
         $po = PurchaseOrder::where('supplier_name', 'Asian Transmission Corp')->firstOrFail();
+        $this->assertSame('For Review', $po->status);
+
+        $this->actingAs($purchaseHead)
+            ->patch(route('purchase-orders.approve', $po))
+            ->assertRedirect('/purchase-orders');
+
+        $po->refresh();
         $this->assertSame('Ordered', $po->status);
 
         // Update PO to For Delivery

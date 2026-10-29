@@ -506,6 +506,7 @@
                                                                 <h4><i class="fa-regular fa-clipboard" aria-hidden="true"></i> Job Order Details</h4>
                                                                 <span>{{ $jobOrder->job_order_no }}</span>
                                                             </div>
+                                                            <p class="jo-review-instructions">Verify details, confirm duration, and authorize the Job Order.</p>
                                                             <div class="jo-review-detail-grid">
                                                                 <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                                 <div><span><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
@@ -704,6 +705,7 @@
                 <x-ui.table-footer
                     :items="$jobOrders"
                     data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                 />
             </section>
         </main>

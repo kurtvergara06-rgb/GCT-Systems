@@ -1183,31 +1183,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
        BACKDROP CLOSE
     ========================================================= */
 
-    document.addEventListener(
-        'click',
-        event => {
-
-            const modal =
-                event.target.closest(
-                    '.ui-form-overlay, ' +
-                    '.pms-modal-overlay'
-                );
-
-
-            if (
-                modal &&
-                event.target === modal
-            ) {
-
-                closeModal(
-                    modal
-                );
-
-            }
-
-        }
-    );
-
 
     /* =========================================================
        ESC CLOSE

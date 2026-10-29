@@ -249,8 +249,20 @@ class WarehousePartRequestController extends Controller
             ->whereIn('status', $this->historyStatuses)
             ->count();
 
+        $approvedJobOrders = JobOrder::query()
+            ->select('job_order_no')
+            ->where('review_status', 'Approved')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->whereColumn('job_orders.bus_no', 'purchase_requests.bus_no');
+
         $approved = $this->warehouseMaintenanceRequestQuery()
-            ->where('status', 'Approved')
+            ->where(function ($query) use ($approvedJobOrders) {
+                $query->where('status', 'Approved')
+                    ->orWhere(function ($submitted) use ($approvedJobOrders) {
+                        $submitted->where('status', 'Submitted')
+                            ->whereIn('job_order_no', $approvedJobOrders);
+                    });
+            })
             ->count();
 
         $forPurchase = $this->missingPartsPurchaseQuery()
@@ -288,14 +300,14 @@ class WarehousePartRequestController extends Controller
 
     /**
      * JO-only Warehouse issuance is retired: all parts must go through an
-     * approved requisition, so direct calls cannot bypass the PR workflow.
+     * authorized requisition, so direct calls cannot bypass the PR workflow.
      */
     public function issueJobOrder(JobOrder $jobOrder)
     {
         $this->authorizeWarehouseCapability('edit');
 
         return redirect()->route('part-requests', ['view' => 'pr'])
-            ->with('error', 'Direct JO issuance is no longer available. Create and approve a linked PR in Maintenance first.');
+            ->with('error', 'Direct JO issuance is no longer available. Create a linked PR from an approved Job Order in Maintenance first.');
     }
 
     public function issue(PurchaseRequest $purchaseRequest)
@@ -515,10 +527,10 @@ class WarehousePartRequestController extends Controller
                 ->with('error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
         }
 
-        if ($purchaseRequest->status !== 'Approved') {
+        if (! $this->isAuthorizedForWarehouse($purchaseRequest)) {
             return redirect()
                 ->back()
-                ->with('error', 'Only approved purchase requests can be sent to purchasing department.');
+                ->with('error', 'Only requests authorized by an approved Job Order can be sent to Purchase.');
         }
 
         if ($this->missingPurchaseRequestExists($purchaseRequest)) {
@@ -572,9 +584,13 @@ class WarehousePartRequestController extends Controller
         $failure = null;
         $missingPurchaseRequest = DB::transaction(function () use ($purchaseRequest, $missingParts, &$failure) {
             $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+            $lockedJobOrder = JobOrder::query()
+                ->where('job_order_no', $lockedRequest->job_order_no)
+                ->lockForUpdate()
+                ->first();
 
-            if ($lockedRequest->status !== 'Approved') {
-                $failure = 'Only approved purchase requests can be sent to purchasing department.';
+            if (! $this->isAuthorizedForWarehouse($lockedRequest, $lockedJobOrder)) {
+                $failure = 'Only requests authorized by an approved Job Order can be sent to Purchase.';
 
                 return null;
             }
@@ -752,11 +768,38 @@ class WarehousePartRequestController extends Controller
                 || ($partialIssuance && $missingPrAlreadyCreated && $inventoryCheck['total_on_hand'] > 0));
 
         $purchaseRequest->needs_purchase =
-            $purchaseRequest->status === 'Approved'
+            $this->isAuthorizedForWarehouse($purchaseRequest, $jobOrder)
             && ! $inventoryCheck['available']
             && ! $missingPrAlreadyCreated;
 
         return $purchaseRequest;
+    }
+
+    private function isAuthorizedForWarehouse(
+        PurchaseRequest $purchaseRequest,
+        ?JobOrder $jobOrder = null
+    ): bool {
+        if ($purchaseRequest->status === 'Approved') {
+            return true;
+        }
+
+        if (
+            $purchaseRequest->status !== 'Submitted'
+            || blank($purchaseRequest->job_order_no)
+            || $this->isRestockRequest($purchaseRequest)
+        ) {
+            return false;
+        }
+
+        $jobOrder ??= JobOrder::query()
+            ->where('job_order_no', $purchaseRequest->job_order_no)
+            ->first();
+
+        return $jobOrder !== null
+            && $jobOrder->review_status === 'Approved'
+            && ! in_array($jobOrder->status, ['Completed', 'Cancelled'], true)
+            && $this->normalizeText((string) $jobOrder->bus_no)
+                === $this->normalizeText((string) $purchaseRequest->bus_no);
     }
 
     private function authorizeWarehouseCapability(string $capability): void

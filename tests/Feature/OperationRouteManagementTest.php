@@ -145,7 +145,7 @@ class OperationRouteManagementTest extends TestCase
             );
     }
 
-    public function test_route_frontend_preserves_confirmed_coordinates_when_only_the_label_is_edited(): void
+    public function test_editing_a_confirmed_location_label_requires_coordinate_reconfirmation(): void
     {
         $javascript = file_get_contents(
             resource_path(
@@ -159,17 +159,17 @@ class OperationRouteManagementTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'editedLabel;',
+            'normalize(input.value) !==',
             $javascript
         );
 
         $this->assertStringContainsString(
-            'function updateAutoRouteName',
+            'clearPlace(input);',
             $javascript
         );
 
         $this->assertStringContainsString(
-            'async function reversePinnedLocation',
+            'delete input.dataset.latitude;',
             $javascript
         );
     }

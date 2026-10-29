@@ -89,7 +89,7 @@ class PurchaseModuleHardeningTest extends TestCase
         return array_replace_recursive([
             'purchase_request_id' => $request?->id,
             'supplier_name' => 'Safe Supplier',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'delivery_fee' => 0,
             'discount' => 0,
             'vat' => 0,

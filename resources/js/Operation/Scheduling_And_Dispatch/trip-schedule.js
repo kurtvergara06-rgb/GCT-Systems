@@ -1,5 +1,10 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
+    const tripPage = document.querySelector('.trip-schedule-page');
+    if (!tripPage) {
+        return;
+    }
     const tripModal = document.getElementById('tripModal');
+    const generateTripsModal = document.getElementById('generateTripsModal');
     const viewTripModal = document.getElementById('viewTripModal');
     const deleteTripModal = document.getElementById('deleteTripModal');
 
@@ -12,19 +17,16 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
     const tripClientName = document.getElementById('tripClientName');
-    const tripRequiredBuses = document.getElementById('tripRequiredBuses');
-    const departureTime = document.getElementById('departureTime');
     const departureTimeSlot = document.getElementById('departureTimeSlot');
     const departureTimeInputWrap = document.getElementById('departureTimeInputWrap');
     const tripTimeConfigNotice = document.getElementById('tripTimeConfigNotice');
+    const departureTime = document.getElementById('departureTime');
     const arrivalTime = document.getElementById('arrivalTime');
     const tripShift = document.getElementById('tripShift');
     const tripStatus = document.getElementById('tripStatus');
     const tripNotes = document.getElementById('tripNotes');
 
     const viewTripContent = document.getElementById('viewTripContent');
-    const viewTripHeroTitle = document.getElementById('viewTripHeroTitle');
-    const tripNotesCount = document.getElementById('tripNotesCount');
     const closeViewTripModal = document.getElementById('closeViewTripModal');
     const closeViewTripButton = document.getElementById('closeViewTripButton');
 
@@ -32,13 +34,20 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
     const confirmDeleteTrip = document.getElementById('confirmDeleteTrip');
 
+    const openTripModal = document.getElementById('openTripModal');
+    const openGenerateTripsModal = document.getElementById('openGenerateTripsModal');
+
     const closeTripModal = document.getElementById('closeTripModal');
     const cancelTripModal = document.getElementById('cancelTripModal');
+    const closeGenerateTripsModal = document.getElementById('closeGenerateTripsModal');
+    const cancelGenerateTripsModal = document.getElementById('cancelGenerateTripsModal');
+
+    const generateTripsForm = document.getElementById('generateTripsForm');
+    const generateTargetDate = document.getElementById('generateTargetDate');
 
     const createAction = '/operation/trip-schedule';
     const clientTripTimesUrl = '/operation/client-trip-times';
     let selectedDeleteForm = null;
-
     let clientTripTimeConfigs = {};
 
     const configScript = document.getElementById('clientTripTimeConfigs');
@@ -47,9 +56,40 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         try {
             clientTripTimeConfigs = JSON.parse(configScript.textContent || '{}');
         } catch (error) {
-            console.warn('Unable to parse client trip time configurations.', error);
-            clientTripTimeConfigs = {};
+            console.error('Unable to parse client trip time configurations.', error);
         }
+    }
+
+    function openModal(modal) {
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add('show', 'active');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal(modal) {
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('show', 'active');
+
+        if (!document.querySelector(
+            '.ui-form-overlay.show, .ui-form-overlay.active, '
+            + '.delete-modal-overlay.show, .delete-modal-overlay.active'
+        )) {
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function activeDepartureValue() {
+        if (departureTimeSlot && !departureTimeSlot.disabled && !departureTimeSlot.hidden) {
+            return departureTimeSlot.value || '';
+        }
+
+        return departureTime?.value || '';
     }
 
     function formatSlotTimeLabel(timeValue) {
@@ -59,22 +99,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return String(timeValue || '');
         }
 
-        const period = hour >= 12 ? 'PM' : 'AM';
         const hour12 = hour % 12 || 12;
-
-        return `${hour12}:${String(minute).padStart(2, '0')} ${period}`;
-    }
-
-    function activeDepartureValue() {
-        if (
-            departureTimeSlot
-            && !departureTimeSlot.disabled
-            && !departureTimeSlot.hidden
-        ) {
-            return departureTimeSlot.value || '';
-        }
-
-        return departureTime?.value || '';
+        return `${hour12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
     }
 
     function showTripTimeNotice(tone, message) {
@@ -84,19 +110,26 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
         tripTimeConfigNotice.hidden = false;
         tripTimeConfigNotice.className = `trip-time-config-notice is-${tone}`;
-        tripTimeConfigNotice.innerHTML = `
-            <i class="fa-solid ${
-                tone === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'
-            }" aria-hidden="true"></i>
-            <span>${escapeHtml(message)} </span>
-            <a href="${clientTripTimesUrl}">Open Client Trip Times</a>
-        `;
+        tripTimeConfigNotice.replaceChildren();
+
+        const icon = document.createElement('i');
+        icon.className = `fa-solid ${tone === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'}`;
+        icon.setAttribute('aria-hidden', 'true');
+
+        const text = document.createElement('span');
+        text.textContent = message;
+
+        const link = document.createElement('a');
+        link.href = clientTripTimesUrl;
+        link.textContent = 'Open Client Trip Times';
+
+        tripTimeConfigNotice.append(icon, text, link);
     }
 
     function hideTripTimeNotice() {
         if (tripTimeConfigNotice) {
             tripTimeConfigNotice.hidden = true;
-            tripTimeConfigNotice.innerHTML = '';
+            tripTimeConfigNotice.replaceChildren();
         }
     }
 
@@ -105,37 +138,29 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return;
         }
 
-        departureTimeSlot.innerHTML = '';
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select configured time';
-        departureTimeSlot.appendChild(placeholder);
+        departureTimeSlot.replaceChildren(new Option('Select configured time', ''));
     }
 
-    // Keep both controls in the same visual position, including when shared
-    // form styles override the native [hidden] attribute.
     function showDepartureControl(mode) {
-        const useSlots = mode === 'slots';
-        if (!departureTimeInputWrap) return;
+        if (!departureTimeInputWrap || !departureTime || !departureTimeSlot) {
+            return;
+        }
 
-        // Physically detach the inactive control. Form component styles can
-        // override [hidden] or display, but cannot render a detached node.
-        // Keep its JS reference for switching back without losing listeners.
+        const useSlots = mode === 'slots';
         const active = useSlots ? departureTimeSlot : departureTime;
         const inactive = useSlots ? departureTime : departureTimeSlot;
         inactive.disabled = true;
         inactive.hidden = true;
         inactive.remove();
         active.hidden = false;
+
         if (active.parentElement !== departureTimeInputWrap) {
             departureTimeInputWrap.appendChild(active);
         }
+
         departureTimeInputWrap.dataset.departureMode = mode;
     }
 
-    // Switch the departure control between the free time input and the
-    // configured slot select based on the selected client, direction, and
-    // AM/PM category. Never shows another client's slots.
     function updateTripTimeOptions({ preserveValue = true } = {}) {
         if (!departureTime || !departureTimeSlot) {
             return;
@@ -149,28 +174,23 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             : {};
         const directionKey = direction.toLowerCase();
         const matchedConfigs = ['am', 'pm']
-            .map((period) => ({
-                period: period.toUpperCase(),
-                config: configurations[`${directionKey}_${period}`] || null,
-            }))
-            .filter((item) => item.config);
-        const slots = [...new Set(matchedConfigs.flatMap(({ config }) =>
+            .map((period) => configurations[`${directionKey}_${period}`] || null)
+            .filter(Boolean);
+        const slots = [...new Set(matchedConfigs.flatMap((config) =>
             config.enabled !== false && Array.isArray(config.slots) ? config.slots : []
         ))].sort();
-        const config = matchedConfigs.length ? matchedConfigs : null;
 
-        if (!config) {
+        if (!matchedConfigs.length) {
             showDepartureControl('manual');
             departureTime.disabled = false;
             departureTime.hidden = false;
             departureTime.required = true;
-            departureTime.setAttribute('name', 'departure_time');
+            departureTime.name = 'departure_time';
             departureTimeSlot.disabled = true;
             departureTimeSlot.hidden = true;
             departureTimeSlot.removeAttribute('name');
             departureTimeSlot.required = false;
             departureTimeSlot.value = '';
-            departureTimeSlot.dataset.selectedValue = '';
             clearDepartureSlotOptions();
 
             if (currentValue) {
@@ -198,31 +218,18 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         departureTimeSlot.disabled = false;
         departureTimeSlot.hidden = false;
         departureTimeSlot.required = true;
-        departureTimeSlot.setAttribute('name', 'departure_time');
-
+        departureTimeSlot.name = 'departure_time';
         clearDepartureSlotOptions();
 
         slots.forEach((slot) => {
-            const option = document.createElement('option');
-            option.value = slot;
-            option.textContent = formatSlotTimeLabel(slot);
-            departureTimeSlot.appendChild(option);
+            departureTimeSlot.add(new Option(formatSlotTimeLabel(slot), slot));
         });
 
-        let selected = '';
-
-        if (currentValue) {
-            const normalized = currentValue.length === 5
-                ? currentValue
-                : currentValue.slice(0, 5);
-
-            if (slots.includes(normalized)) {
-                selected = normalized;
-            }
-        }
-
+        const normalizedCurrentValue = currentValue.length === 5
+            ? currentValue
+            : currentValue.slice(0, 5);
+        const selected = slots.includes(normalizedCurrentValue) ? normalizedCurrentValue : '';
         departureTimeSlot.value = selected;
-        departureTimeSlot.dataset.selectedValue = selected;
 
         if (!slots.length) {
             showTripTimeNotice(
@@ -239,32 +246,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         calculateArrival();
-    }
-
-    function openModal(modal) {
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.add('show', 'active');
-        document.body.classList.add('modal-open');
-    }
-
-    function closeModal(modal) {
-        if (!modal) {
-            return;
-        }
-
-        modal.classList.remove('show', 'active');
-
-        const hasOpenModal = document.querySelector(
-            '.ui-form-overlay.show, .ui-form-overlay.active, '
-            + '.delete-modal-overlay.show, .delete-modal-overlay.active'
-        );
-
-        if (!hasOpenModal) {
-            document.body.classList.remove('modal-open');
-        }
     }
 
     function normalizePath(value, fallback) {
@@ -328,6 +309,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     function calculateArrival() {
         const departureValue = activeDepartureValue();
 
+        if (tripShift) {
+            tripShift.value = detectShift(departureValue);
+        }
+
         const setArrivalValue = (value) => {
             if (!arrivalTime || arrivalTime.value === value) {
                 return;
@@ -336,10 +321,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             arrivalTime.value = value;
             arrivalTime.dispatchEvent(new Event('input', { bubbles: true }));
         };
-
-        if (tripShift) {
-            tripShift.value = detectShift(departureValue);
-        }
 
         if (!departureValue || !tripRoute?.value) {
             setArrivalValue('');
@@ -360,83 +341,25 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         const arrivalMinute = arrivalTotal % 60;
 
         setArrivalValue(
-            `${String(arrivalHour).padStart(2, '0')}:`
-            + `${String(arrivalMinute).padStart(2, '0')}`
+            `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMinute).padStart(2, '0')}`
         );
     }
 
     function getLocalDate() {
-        // Keep client-side date constraints aligned with Laravel's
-        // configured operation timezone (Asia/Manila), not the device timezone.
-        const parts = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'Asia/Manila',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-        }).formatToParts(new Date());
-        const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
 
-        return `${values.year}-${values.month}-${values.day}`;
+        return `${year}-${month}-${day}`;
     }
 
-    function updateNotesCount() {
-        if (!tripNotesCount) {
-            return;
-        }
-
-        const length = tripNotes?.value?.length || 0;
-        tripNotesCount.textContent = `${length} / 2000`;
-    }
-
-    function setStatusCreateMode() {
-        if (!tripStatus) {
-            return;
-        }
-
-        tripStatus.value = 'Scheduled';
-        tripStatus.disabled = true;
-        tripStatus.removeAttribute('required');
-        tripStatus.setAttribute(
-            'title',
-            'New trips always start as Scheduled.'
-        );
-    }
-
-    function setStatusEditMode() {
-        if (!tripStatus) {
-            return;
-        }
-
-        tripStatus.disabled = false;
-        tripStatus.required = true;
-        tripStatus.removeAttribute('title');
-    }
-
-    function setTripClientValue(value) {
-        if (!tripClientName) return;
-        const clientValue = String(value || '').trim();
-        // Older trips may reference clients that are now inactive. Preserve
-        // their saved value for editing without adding inactive clients to
-        // the normal list of selectable clients.
-        tripClientName.querySelectorAll('[data-legacy-client]').forEach((option) => option.remove());
-        if (clientValue && !Array.from(tripClientName.options).some((option) => option.value === clientValue)) {
-            const option = new Option(clientValue + ' (existing allocation)', clientValue, true, true);
-            option.dataset.legacyClient = 'true';
-            tripClientName.add(option);
-        }
-        tripClientName.value = clientValue;
-    }
-
-    function configureCreateMode({ preserveValues = false } = {}) {
+    function resetCreateForm() {
         if (!tripForm) {
             return;
         }
 
-        if (!preserveValues) {
-            tripForm.reset();
-            setTripClientValue('');
-        }
-
+        tripForm.reset();
         tripForm.setAttribute('action', createAction);
 
         if (tripFormMethod) {
@@ -448,23 +371,25 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         if (tripDate) {
-            tripDate.min = getLocalDate();
-
-            if (!preserveValues) {
-                tripDate.value = getLocalDate();
-            }
+            tripDate.value = getLocalDate();
         }
 
-        setStatusCreateMode();
-        if (tripDirection) tripDirection.required = true;
-        if (tripClientName) tripClientName.required = false;
+        if (tripStatus) {
+            tripStatus.value = 'Scheduled';
+        }
 
-        if (tripShift && !preserveValues) {
+        if (tripDirection) {
+            tripDirection.value = '';
+        }
+
+        if (tripClientName) {
+            tripClientName.value = '';
+        }
+
+        updateTripTimeOptions({ preserveValue: false });
+
+        if (tripShift) {
             tripShift.value = 'Automatic';
-        }
-
-        if (arrivalTime && !preserveValues) {
-            arrivalTime.value = '';
         }
 
         if (tripModalTitle) {
@@ -472,59 +397,82 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         if (tripSubmitText) {
-            tripSubmitText.textContent = 'Create Trip';
+            tripSubmitText.textContent = 'Save Trip';
         }
-
-        updateNotesCount();
-        updateTripTimeOptions({ preserveValue: preserveValues });
-        calculateArrival();
     }
 
-    function configureEditMode(button = null, options = {}) {
-        if (!tripForm) {
+    function resetBulkForm(form, targetInput) {
+        if (!form) {
             return;
         }
 
-        const {
-            preserveValues = false,
-            tripId = button?.dataset?.id || '',
-            tripCodeValue = button?.dataset?.tripCode || '',
-            updateUrl = button?.dataset?.updateUrl || '',
-        } = options;
+        form.reset();
 
-        const fallbackUrl = tripId
-            ? `/operation/trip-schedule/${tripId}`
-            : createAction;
+        if (targetInput) {
+            targetInput.value = getLocalDate();
+        }
+    }
 
-        tripForm.setAttribute(
-            'action',
-            normalizePath(updateUrl, fallbackUrl)
-        );
+    openTripModal?.addEventListener('click', () => {
+        resetCreateForm();
+        openModal(tripModal);
+    });
 
-        if (tripFormMethod) {
-            tripFormMethod.disabled = false;
-            tripFormMethod.value = 'PUT';
+    openGenerateTripsModal?.addEventListener('click', () => {
+        resetBulkForm(generateTripsForm, generateTargetDate);
+        openModal(generateTripsModal);
+    });
+
+    [closeTripModal, cancelTripModal]
+        .filter(Boolean)
+        .forEach((button) => {
+            button.addEventListener('click', () => closeModal(tripModal));
+        });
+
+    [closeGenerateTripsModal, cancelGenerateTripsModal]
+        .filter(Boolean)
+        .forEach((button) => {
+            button.addEventListener('click', () => closeModal(generateTripsModal));
+        });
+
+    departureTime?.addEventListener('input', calculateArrival);
+    departureTime?.addEventListener('change', calculateArrival);
+    departureTimeSlot?.addEventListener('change', calculateArrival);
+    tripRoute?.addEventListener('change', calculateArrival);
+
+    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
+    tripClientName?.addEventListener('change', () => updateTripTimeOptions());
+    tripDirection?.addEventListener('change', () => updateTripTimeOptions());
+
+    tripPage?.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
         }
 
-        setStatusEditMode();
+        const button = event.target.closest('.edit-trip, .view-trip, .delete-trip');
 
-        if (tripDate) {
-            const allowPast = options.allowPast !== undefined
-                ? Boolean(options.allowPast)
-                : button?.dataset?.allowPast === 'true';
+        if (!button) {
+            return;
+        }
 
-            const preservingPastValue = preserveValues
-                && tripDate.value
-                && tripDate.value < getLocalDate();
-
-            if (allowPast || preservingPastValue) {
-                tripDate.removeAttribute('min');
-            } else {
-                tripDate.min = getLocalDate();
+        if (button.matches('.edit-trip')) {
+            if (!tripForm) {
+                return;
             }
-        }
 
-        if (!preserveValues && button) {
+            const tripId = button.dataset.id;
+            const fallbackUrl = `/operation/trip-schedule/${tripId}`;
+
+            tripForm.setAttribute(
+                'action',
+                normalizePath(button.dataset.updateUrl, fallbackUrl)
+            );
+
+            if (tripFormMethod) {
+                tripFormMethod.disabled = false;
+                tripFormMethod.value = 'PUT';
+            }
+
             if (tripCode) {
                 tripCode.value = button.dataset.tripCode || '';
             }
@@ -536,20 +484,28 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             if (tripRoute) {
                 tripRoute.value = button.dataset.routeId || '';
             }
-            if (tripDirection) {
-                tripDirection.value = button.dataset.direction || '';
-                tripDirection.required = false; // Historical legacy trips may lack a direction.
-            }
-            if (tripClientName) {
-                setTripClientValue(button.dataset.clientName || '');
-                tripClientName.required = false; // Allow editing pre-migration trips.
-            }
-            if (tripRequiredBuses) tripRequiredBuses.value = button.dataset.requiredBuses || '1';
 
             if (departureTime) {
                 departureTime.value = button.dataset.departureTime || '';
             }
 
+            if (tripDirection) {
+                tripDirection.value = button.dataset.direction || '';
+            }
+
+            if (tripClientName) {
+                tripClientName.value = button.dataset.clientName || '';
+            }
+
+            updateTripTimeOptions({ preserveValue: false });
+            const activeTimeControl = departureTimeSlot?.disabled ? departureTime : departureTimeSlot;
+            if (activeTimeControl) {
+                activeTimeControl.value = button.dataset.departureTime || '';
+            }
+
+            if (arrivalTime) {
+                arrivalTime.value = button.dataset.arrivalTime || '';
+            }
 
             if (tripStatus) {
                 tripStatus.value = button.dataset.status || 'Scheduled';
@@ -558,41 +514,36 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             if (tripNotes) {
                 tripNotes.value = button.dataset.notes || '';
             }
-        } else if (tripCode) {
-            tripCode.value = tripCodeValue || tripCode.value || '';
+
+            if (tripShift) {
+                tripShift.value = detectShift(activeDepartureValue());
+            }
+
+            if (tripModalTitle) {
+                tripModalTitle.textContent = 'Edit Trip';
+            }
+
+            if (tripSubmitText) {
+                tripSubmitText.textContent = 'Update Trip';
+            }
+            openModal(tripModal);
+            return;
         }
 
-        if (tripModalTitle) {
-            tripModalTitle.textContent = 'Edit Trip';
+        if (button.matches('.view-trip')) {
+            const tripData = parseTripData(button.dataset.trip);
+            renderTripDetails(tripData);
+            openModal(viewTripModal);
+            return;
         }
 
-        if (tripSubmitText) {
-            tripSubmitText.textContent = 'Update Trip';
+        selectedDeleteForm = document.getElementById(button.dataset.formId);
+
+        if (deleteTripName) {
+            deleteTripName.textContent = button.dataset.tripCode || 'this trip';
         }
 
-        updateNotesCount();
-        updateTripTimeOptions({ preserveValue: true });
-        calculateArrival();
-    }
-
-    [closeTripModal, cancelTripModal]
-        .filter(Boolean)
-        .forEach((button) => {
-            button.addEventListener('click', () => closeModal(tripModal));
-        });
-
-    tripNotes?.addEventListener('input', updateNotesCount);
-
-    departureTime?.addEventListener('input', calculateArrival);
-    departureTime?.addEventListener('change', calculateArrival);
-    tripRoute?.addEventListener('change', calculateArrival);
-
-    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
-    tripClientName?.addEventListener('change', () => updateTripTimeOptions());
-    tripDirection?.addEventListener('change', () => updateTripTimeOptions());
-    departureTimeSlot?.addEventListener('change', () => {
-        departureTimeSlot.dataset.selectedValue = departureTimeSlot.value || '';
-        calculateArrival();
+        openModal(deleteTripModal);
     });
 
     function parseTripData(rawData) {
@@ -618,90 +569,18 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             .filter(Boolean)
             .join(' - ');
 
-        if (!trip.tripCode || !trip.date) {
-            console.error('Trip Details did not receive the trip data payload.', trip);
-            viewTripContent.innerHTML = '<p class="trip-detail-load-error" role="alert">Trip details could not be loaded. Please refresh the schedule and try again.</p>';
-            return;
-        }
-
-        if (viewTripHeroTitle) {
-            viewTripHeroTitle.textContent =
-                trip.tripCode
-                    ? `${trip.tripCode} · ${routeValue || 'Scheduled Trip'}`
-                    : (routeValue || 'Scheduled Trip');
-        }
-
         const fields = [
-            {
-                label: 'Trip ID',
-                value: trip.tripCode,
-                icon: 'fa-hashtag',
-            },
-            {
-                label: 'Date',
-                value: trip.date,
-                icon: 'fa-calendar-day',
-            },
-            {
-                label: 'Route',
-                value: routeValue,
-                icon: 'fa-route',
-                full: true,
-            },
-            {
-                label: 'Status',
-                value: trip.status,
-                icon: 'fa-circle-check',
-                badge: 'status',
-            },
-            {
-                label: 'Client / Company',
-                value: trip.clientName || 'No client assigned',
-                icon: 'fa-building',
-            },
-            {
-                label: 'Origin',
-                value: trip.origin,
-                icon: 'fa-location-dot',
-            },
-            {
-                label: 'Destination',
-                value: trip.destination,
-                icon: 'fa-location-crosshairs',
-            },
-            {
-                label: 'Departure',
-                value: trip.departure,
-                icon: 'fa-clock',
-            },
-            {
-                label: 'Estimated Arrival',
-                value: trip.arrival,
-                icon: 'fa-clock-rotate-left',
-            },
-            {
-                label: 'Assignment',
-                value: trip.assignment,
-                icon: 'fa-user-group',
-                badge: 'assignment',
-            },
-            {
-                label: 'Service Direction',
-                value: trip.direction || 'Not specified',
-                icon: 'fa-arrows-up-down',
-            },
-            {
-                label: 'Required Buses',
-                value: String(trip.requiredBuses || 1),
-                icon: 'fa-bus',
-                full: true,
-            },
-            {
-                label: 'Notes',
-                value: trip.notes || 'No notes',
-                icon: 'fa-note-sticky',
-                full: true,
-            },
+            { label: 'Trip ID', value: trip.tripCode },
+            { label: 'Date', value: trip.date },
+            { label: 'Route', value: routeValue },
+            { label: 'Status', value: trip.status },
+            { label: 'Origin', value: trip.origin },
+            { label: 'Destination', value: trip.destination },
+            { label: 'Departure', value: trip.departure },
+            { label: 'Estimated Arrival', value: trip.arrival },
+            { label: 'Shift', value: trip.shift },
+            { label: 'Assignment', value: trip.assignment },
+            { label: 'Notes', value: trip.notes || 'No notes', full: true },
         ];
 
         viewTripContent.innerHTML = fields
@@ -709,36 +588,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
                 const fullClass = field.full ? 'full' : '';
                 const safeLabel = escapeHtml(field.label);
                 const safeValue = escapeHtml(field.value || '—');
-                const icon = escapeHtml(field.icon);
-
-                let valueMarkup =
-                    `<div class="trip-detail-value">${safeValue}</div>`;
-
-                if (field.badge) {
-                    const stateClass = String(field.value || '')
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '-');
-
-                    valueMarkup = `
-                        <div class="trip-detail-value">
-                            <span class="trip-detail-pill ${field.badge} ${stateClass}">
-                                ${safeValue}
-                            </span>
-                        </div>
-                    `;
-                }
 
                 return `
-                    <article class="trip-detail-card ${fullClass}">
-                        <span class="trip-detail-icon">
-                            <i class="fa-solid ${icon}"></i>
-                        </span>
-
-                        <div class="trip-detail-copy">
-                            <label>${safeLabel}</label>
-                            ${valueMarkup}
-                        </div>
-                    </article>
+                    <div class="trip-detail-card ${fullClass}">
+                        <label>${safeLabel}</label>
+                        <div class="trip-detail-value">${safeValue}</div>
+                    </div>
                 `;
             })
             .join('');
@@ -750,136 +605,36 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             button.addEventListener('click', () => closeModal(viewTripModal));
         });
 
-    document.addEventListener('click', (event) => {
-        const expandButton = event.target.closest('.service-expand-button');
-        if (expandButton) {
-            const detailRow = expandButton.closest('tr')?.nextElementSibling;
-            if (detailRow?.classList.contains('service-details-row')) {
-                detailRow.hidden = !detailRow.hidden;
-                expandButton.setAttribute('aria-expanded', String(!detailRow.hidden));
-            }
-            return;
-        }
-
-        const openButton = event.target.closest('#openTripModal');
-
-        if (openButton) {
-            configureCreateMode();
-            openModal(tripModal);
-            return;
-        }
-
-        const editButton = event.target.closest('.edit-trip');
-
-        if (editButton) {
-            configureEditMode(editButton);
-            openModal(tripModal);
-            return;
-        }
-
-        const viewButton = event.target.closest('.view-trip');
-
-        if (viewButton) {
-            const tripData = parseTripData(viewButton.dataset.trip);
-            renderTripDetails(tripData);
-            openModal(viewTripModal);
-            return;
-        }
-
-        const deleteButton = event.target.closest('.delete-trip');
-
-        if (deleteButton) {
-            selectedDeleteForm = document.getElementById(
-                deleteButton.dataset.formId
-            );
-
-            if (deleteTripName) {
-                deleteTripName.textContent =
-                    deleteButton.dataset.tripCode || 'this trip';
-            }
-
-            openModal(deleteTripModal);
-        }
-    });
-
     cancelDeleteTrip?.addEventListener('click', () => {
         selectedDeleteForm = null;
         closeModal(deleteTripModal);
     });
 
     confirmDeleteTrip?.addEventListener('click', () => {
-        if (!selectedDeleteForm?.isConnected) {
-            selectedDeleteForm = null;
-            closeModal(deleteTripModal);
+        if (!selectedDeleteForm) {
             return;
         }
 
         selectedDeleteForm.requestSubmit();
     });
 
-    document.addEventListener('keydown', (event) => {
+    const requestedTool = new URLSearchParams(window.location.search)
+        .get('schedule_tool');
+
+    if (requestedTool === 'generate') {
+        openModal(generateTripsModal);
+    }
+
+    tripPage.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') {
             return;
         }
 
         closeModal(tripModal);
+        closeModal(generateTripsModal);
         closeModal(viewTripModal);
         closeModal(deleteTripModal);
     });
-
-    function restoreValidationModal() {
-        const recoveryElement = document.getElementById(
-            'tripValidationRecovery'
-        );
-
-        if (!recoveryElement || !tripForm) {
-            return;
-        }
-
-        let recovery;
-
-        try {
-            recovery = JSON.parse(
-                recoveryElement.textContent || '{}'
-            );
-        } catch (error) {
-            console.warn(
-                'Unable to restore Trip Schedule validation state.',
-                error
-            );
-            return;
-        }
-
-        if (recovery.mode === 'edit') {
-            configureEditMode(
-                null,
-                {
-                    preserveValues: true,
-                    tripId: recovery.tripId,
-                    tripCodeValue: recovery.tripCode,
-                    updateUrl: recovery.updateUrl,
-                }
-            );
-        } else {
-            configureCreateMode({
-                preserveValues: true,
-            });
-        }
-
-        updateTripTimeOptions({ preserveValue: true });
-
-        openModal(tripModal);
-
-        const firstError = tripModal?.querySelector('.ui-field-error');
-
-        firstError
-            ?.closest('.ui-form-group')
-            ?.querySelector('input, select, textarea')
-            ?.focus();
-    }
-
-    updateNotesCount();
-    restoreValidationModal();
 
     function escapeHtml(value) {
         return String(value)

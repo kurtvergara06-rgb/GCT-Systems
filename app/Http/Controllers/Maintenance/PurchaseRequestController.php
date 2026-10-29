@@ -679,7 +679,7 @@ class PurchaseRequestController extends Controller
             'JobOrder',
             'status_updated',
             $jobOrder->id,
-            'Job order part status was updated to Approved.'
+            'Job order part status was updated to For Purchase.'
         );
 
         if ($request->ajax() || $request->expectsJson()) {

@@ -149,7 +149,7 @@
                   $isInventoryRestock = $hasRequest && str_starts_with(strtoupper($displayRequestNo), 'RST-');
                   $requestType = ! $hasRequest ? 'Manual Purchase' : ($isInventoryRestock ? 'Inventory Restock' : 'Maintenance PR');
                   $normalizedPoStatus = strtolower(trim((string) ($purchaseOrder->status ?? '')));
-                  $isEditable = in_array($normalizedPoStatus, ['for review', 'ordered'], true);
+                  $isEditable = $normalizedPoStatus === 'ordered';
                   $isForReview = $normalizedPoStatus === 'for review';
                   $canReviewPo = ((strtolower(trim((string) (auth()->user()->department ?? ''))) === 'purchase' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head') || strtolower(trim((string) (auth()->user()->role ?? ''))) === 'system admin' || (strtolower(trim((string) (auth()->user()->department ?? ''))) === 'admin' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head'));
                   $isDraft = $normalizedPoStatus === 'draft';

@@ -4,6 +4,7 @@ namespace Tests\Feature\Warehouse;
 
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
@@ -79,6 +80,12 @@ class WarehousePermissionEnforcementTest extends TestCase
             'status' => 'For Delivery',
         ]);
 
+        $this->actingAs($staff)
+            ->get(route('inventory'))
+            ->assertOk()
+            ->assertDontSee('openIssueModal', false)
+            ->assertDontSee('openImportModal', false);
+
         $this->actingAs($staff)->post(route('inventory.store'))->assertForbidden();
         $this->actingAs($staff)->post(route('incoming-deliveries.receive', $order))->assertForbidden();
         $this->actingAs($staff)->post(route('part-requests.issue', $request))->assertForbidden();
@@ -126,6 +133,81 @@ class WarehousePermissionEnforcementTest extends TestCase
 
         $this->assertSame('For Purchase', $missingRequest->status);
         $this->assertSame('Approved', $request->fresh()->status);
+    }
+
+    public function test_submitted_pr_is_warehouse_authorized_only_for_matching_approved_open_job_order(): void
+    {
+        $staff = $this->staff();
+        $this->permissions(true, true);
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-SUBMITTED-WH-001',
+            'bus_no' => 'BUS-SUBMITTED-WH-001',
+            'problem_issue' => 'Brake Pad replacement',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Warehouse Workflow Mechanic',
+            'part_needed' => 'Brake Pad - Qty: 2 pcs',
+            'start_date' => now(),
+            'status' => 'On Hold',
+            'part_status' => 'For Purchase',
+            'review_status' => 'Approved',
+        ]);
+        $request = PurchaseRequest::create([
+            'pr_no' => 'PR-SUBMITTED-WH-001',
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no,
+            'item' => 'Brake Pad - Qty: 2 pcs',
+            'quantity' => 2,
+            'status' => 'Submitted',
+            'source_type' => 'Maintenance Request',
+        ]);
+
+        $this->actingAs($staff)
+            ->get(route('part-requests', ['view' => 'pr']))
+            ->assertOk()
+            ->assertSee('Send Missing Parts to Purchase');
+
+        $this->actingAs($staff)
+            ->post(route('part-requests.send-to-purchase', $request))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('purchase_requests', [
+            'job_order_no' => $jobOrder->job_order_no,
+            'status' => 'For Purchase',
+            'remarks' => 'Missing parts from '.$request->pr_no.'. Only unavailable parts were sent to Purchase Department.',
+        ]);
+
+        $mismatchedJobOrder = JobOrder::create([
+            'job_order_no' => 'JO-SUBMITTED-WH-002',
+            'bus_no' => 'BUS-AUTHORITATIVE',
+            'problem_issue' => 'Brake Pad replacement',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Warehouse Workflow Mechanic',
+            'part_needed' => 'Brake Pad - Qty: 1 pcs',
+            'start_date' => now(),
+            'status' => 'On Hold',
+            'part_status' => 'For Purchase',
+            'review_status' => 'Approved',
+        ]);
+        $mismatchedRequest = PurchaseRequest::create([
+            'pr_no' => 'PR-SUBMITTED-WH-002',
+            'job_order_no' => $mismatchedJobOrder->job_order_no,
+            'bus_no' => 'BUS-IMPERSONATED',
+            'item' => 'Brake Pad - Qty: 1 pcs',
+            'quantity' => 1,
+            'status' => 'Submitted',
+            'source_type' => 'Maintenance Request',
+        ]);
+
+        $this->actingAs($staff)
+            ->post(route('part-requests.send-to-purchase', $mismatchedRequest))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseMissing('purchase_requests', [
+            'remarks' => 'Missing parts from '.$mismatchedRequest->pr_no.'. Only unavailable parts were sent to Purchase Department.',
+        ]);
     }
 
     public function test_system_admin_retains_full_warehouse_access(): void

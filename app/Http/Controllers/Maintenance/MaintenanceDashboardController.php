@@ -50,7 +50,10 @@ class MaintenanceDashboardController extends Controller
         $totalActiveJobOrders = $activeJobOrders->count();
         $ongoingCount = $activeJobOrders->where('status', 'On Going')->count();
         $onHoldCount = $activeJobOrders->where('status', 'On Hold')->count();
-        $completedCount = $allJobOrders->where('status', 'Completed')->where('review_status', 'Approved')->count();
+        $completedCount = $allJobOrders
+            ->where('status', 'Completed')
+            ->where('review_status', 'Approved')
+            ->count();
 
         // Breakdown repairs: active JOs linked to a referral or breakdown incident
         $breakdownRepairs = $activeJobOrders->filter(function (JobOrder $jo) {
@@ -91,13 +94,10 @@ class MaintenanceDashboardController extends Controller
 
         foreach ($allPmsSchedules as $schedule) {
             $normalizedBusNo = strtoupper(trim($schedule->bus_no));
-            $gps = $gpsByBus->get($normalizedBusNo);
-
             $assessment = $this->pmsStatusService->assess(
                 $schedule,
-                $gps
+                $gpsByBus->get($normalizedBusNo)
             );
-
             $status = $assessment['status'];
 
             if ($status === 'Overdue') {
@@ -140,8 +140,9 @@ class MaintenanceDashboardController extends Controller
             ->filter(fn (JobOrder $jo) => trim((string)$jo->assigned_mechanic) !== '')
             ->keyBy(fn (JobOrder $jo) => Str::lower(trim($jo->assigned_mechanic)));
 
+        $businessDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $todayAttendance = MechanicAttendance::query()
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+            ->whereDate('attendance_date', $businessDate)
             ->latest('id')
             ->get()
             ->unique('mechanic_id')
@@ -250,36 +251,14 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 6. FLEET READINESS
         // ---------------------------------------------------------------------
-        // Bus master status is the authoritative source of readiness. An active
-        // job order alone must not silently mark an otherwise Active bus as
-        // unavailable, and an Inactive bus must never count as operational.
-        //
-        // This query intentionally lives here rather than in the PMS section.
-        // PMS status now uses processed GPS records, while fleet readiness uses
-        // the Bus master record. Keeping the sources separate prevents one
-        // refactor from silently removing data required by the other.
         $buses = Bus::query()->get();
-
         $totalBuses = $buses->count();
-        $activeBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Active') === 0
-        )->count();
-        $underMaintenanceBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Under Maintenance') === 0
-        )->count();
-        $inactiveBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Inactive') === 0
-        )->count();
+        $activeBusesCount = $buses->where('status', 'Active')->count();
+        $inactiveBusesCount = $buses->where('status', 'Inactive')->count();
+        $underMaintenanceBusesCount = $buses->where('status', 'Under Maintenance')->count();
 
-        // Keep this separately for repair-bay workload context. It is not used
-        // to calculate fleet readiness because JO assignment and bus readiness
-        // are different operational concepts.
-        $busesInRepairBay = $activeJobOrders
-            ->pluck('bus_no')
-            ->filter()
-            ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
-            ->unique()
-            ->count();
+        // Buses currently in the repair bay based on active job orders
+        $busesInRepairBay = $activeJobOrders->pluck('bus_no')->filter()->unique()->count();
 
         $operationalRate = $totalBuses > 0
             ? round(($activeBusesCount / $totalBuses) * 100)
@@ -355,8 +334,8 @@ class MaintenanceDashboardController extends Controller
             // Fleet Readiness
             'totalBuses' => $totalBuses,
             'activeBusesCount' => $activeBusesCount,
-            'underMaintenanceBusesCount' => $underMaintenanceBusesCount,
             'inactiveBusesCount' => $inactiveBusesCount,
+            'underMaintenanceBusesCount' => $underMaintenanceBusesCount,
             'busesInRepairBay' => $busesInRepairBay,
             'operationalRate' => $operationalRate,
 

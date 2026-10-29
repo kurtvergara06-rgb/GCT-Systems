@@ -8,6 +8,7 @@ use App\Models\Operation\OperationClient;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\TripAssignment;
 use App\Services\Maintenance\PmsScheduleSynchronizer;
+use App\Services\Maintenance\PmsStatusService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,8 @@ class BusController extends Controller
     use SystemDataUpdateBroadcaster;
 
     public function __construct(
-        private readonly PmsScheduleSynchronizer $pmsScheduleSynchronizer
+        private readonly PmsScheduleSynchronizer $pmsScheduleSynchronizer,
+        private readonly PmsStatusService $pmsStatusService
     ) {}
 
     public function index(Request $request)
@@ -141,6 +143,13 @@ class BusController extends Controller
             ->count();
 
         $companyOptions = OperationClient::query()->where('status', 'Active')->orderBy('name')->pluck('name');
+        $processedGpsBusNumbers = $this->pmsStatusService->latestProcessedGpsByBus()
+            ->keys()
+            ->flip();
+        $withGpsData = Bus::query()
+            ->pluck('bus_no')
+            ->filter(fn ($busNo) => $processedGpsBusNumbers->has(strtoupper(trim((string) $busNo))))
+            ->count();
 
         return view('Operation.Shuttle_Bus_Management.bus-master-list', compact(
             'buses',
@@ -148,7 +157,8 @@ class BusController extends Controller
             'activeBuses',
             'underMaintenance',
             'availableBuses',
-            'companyOptions'
+            'companyOptions',
+            'withGpsData'
         ));
     }
 

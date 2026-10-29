@@ -2,13 +2,11 @@
   title="FROMS - Warehouse Inventory"
   :assets="[
     'resources/css/Warehouse/inventory.css',
-    'resources/css/Warehouse/stock-movements.css',
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/form-components.css',
     'resources/js/Warehouse/inventory.js'
   ]"
 >
-
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
   @endphp
@@ -17,7 +15,7 @@
 
   <x-layout.sidebar department="Warehouse" />
 
-    <main class="main warehouse-inventory-page">
+    <main class="main">
 
       <x-layout.topbar
         title="Warehouse Inventory"
@@ -71,27 +69,64 @@
           </div>
         </div>
 
-        <div class="gct-table-toolbar-row">
-          <x-ui.table-toolbar action="{{ route('inventory') }}" data-server-filter="true" search-label="Search Inventory" search-placeholder="Search item, code, supplier, or location..." :filter-count="(int) (request()->filled('category') && request('category') !== 'All Categories')" filter-title="Filter Inventory" :sort-options="['item_name' => 'Item Name', 'item_code' => 'Item Code', 'category' => 'Category', 'quantity' => 'Stock Quantity', 'reorder_level' => 'Reorder Level']" default-sort="item_name">
-            <x-slot:filters><x-ui.table-toolbar-field label="Category" name="category" default="All Categories"><option value="All Categories">All Categories</option>@foreach($categories as $category)<option value="{{ $category }}" @selected(request('category') === $category)>{{ $category }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
-          </x-ui.table-toolbar>
+        <form
+          class="toolbar inventory-toolbar"
+          method="GET"
+          action="{{ route('inventory', [], false) }}"
+          data-server-filter="true"
+          data-lazy-pagination="true"
+        >
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              name="search"
+              value=""
+              autocomplete="off"
+              placeholder="Search by item, item code, supplier, or location..."
+              aria-label="Search inventory records"
+            >
+          </div>
+
+          <div class="filter-group">
+            <select name="category" aria-label="Filter inventory by category">
+              <option value="All Categories" selected>All Categories</option>
+
+              @foreach($categories as $category)
+                <option value="{{ $category }}">
+                  {{ $category }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
           @if($canEditWarehouse)
+            <button type="button" class="secondary-btn" id="openIssueModal">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+              Issue Stock
+            </button>
+
+            <button type="button" class="secondary-btn" id="openImportModal">
+              <i class="fa-solid fa-file-import"></i>
+              Import Inventory Data
+            </button>
+
             <button type="button" class="primary-btn" id="openAddModal">
               <i class="fa-solid fa-plus"></i>
               Add Item
             </button>
           @endif
-        </div>
+        </form>
 
         <div class="table-wrap">
           <table class="inventory-table">
             <thead>
               <tr>
-                <th>Item</th>
+                <th>Item Code</th>
+                <th>Parts Name</th>
                 <th>Category</th>
                 <th>On Hand</th>
-                <th>Reserved</th>
-                <th>Free Stock</th>
+                <th>Unit</th>
                 <th>Reorder Level</th>
                 <th>Status</th>
                 <th>Supplier</th>
@@ -114,31 +149,12 @@
 
                 <tr class="{{ $rowClass }}">
                   <td>
-                    <div class="inventory-item-cell">
-                      <strong>{{ $item->item_name }}</strong>
-                      <div class="inventory-item-meta">
-                        <small>{{ $item->item_code }}</small>
-                      </div>
-                    </div>
+                    <x-ui.id-badge :value="$item->item_code" />
                   </td>
+                  <td class="inventory-item-cell">{{ $item->item_name }}</td>
                   <td>{{ $item->category }}</td>
-                  <td>
-                    <span class="inventory-stock-cell">
-                      <strong>{{ $item->quantity_available }}</strong>
-                      <small>{{ $item->unit_of_measurement }}</small>
-                    </span>
-                  </td>
-                  @php
-                    $reservedQuantity = max(0, (int) $reservedByItem->get($item->id, 0));
-                    $freeQuantity = max(0, (int) $item->quantity_available - $reservedQuantity);
-                  @endphp
-                  <td><strong>{{ $reservedQuantity }}</strong></td>
-                  <td>
-                    <span class="inventory-stock-cell">
-                      <strong>{{ $freeQuantity }}</strong>
-                      <small>{{ $item->unit_of_measurement ?: $item->unit }}</small>
-                    </span>
-                  </td>
+                  <td class="inventory-stock-cell"><strong>{{ $item->quantity_available }}</strong></td>
+                  <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
                     <x-ui.status-badge
@@ -146,11 +162,8 @@
                       type="inventory"
                     />
                   </td>
-                  <td class="inventory-supplier" title="{{ $item->supplier ?? 'No supplier recorded' }}">
-                    {{ $item->supplier ?? '—' }}
-                  </td>
+                  <td>{{ $item->supplier ?? '—' }}</td>
                   <td>{{ $item->storage_location ?? '—' }}</td>
-
                   <td>
                     <div class="actions">
 
@@ -158,15 +171,25 @@
                         type="button"
                         class="action-btn openMovementHistory"
                         title="Movement History"
-                        aria-haspopup="dialog"
-                        aria-controls="movementHistoryModal"
-                        data-url="{{ route('inventory.movements', $item) }}"
                         data-item-id="{{ $item->id }}"
+                        data-url="{{ route('inventory.movements', $item) }}"
                       >
                         <i class="fa-solid fa-clock-rotate-left"></i>
                       </button>
 
                       @if($canEditWarehouse)
+                        <button
+                          type="button"
+                          class="action-btn openIssueModal"
+                          title="Issue Stock"
+                          data-item-id="{{ $item->id }}"
+                          data-item-name="{{ $item->item_name }}"
+                          data-quantity="{{ $item->on_hand }}"
+                          data-unit="{{ $item->unit_of_measurement }}"
+                        >
+                          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                        </button>
+
                         <button
                           type="button"
                           class="action-btn edit openEditModal"
@@ -175,7 +198,7 @@
                           data-code="{{ $item->item_code }}"
                           data-name="{{ $item->item_name }}"
                           data-category="{{ $item->category }}"
-                          data-quantity="{{ $item->quantity_available }}"
+                          data-quantity="{{ $item->on_hand }}"
                           data-unit="{{ $item->unit_of_measurement }}"
                           data-reorder="{{ $item->reorder_level }}"
                           data-supplier="{{ $item->supplier }}"
@@ -185,26 +208,25 @@
                         </button>
 
                         <form
-                        action="/inventory/{{ $item->id }}"
-                        method="POST"
-                        data-confirm-form
-                        data-confirm-title="Delete Inventory Item?"
-                        data-confirm-message="Are you sure you want to delete {{ $item->item_name }}? This action cannot be undone."
-                        data-confirm-button="Yes, Delete"
-                        data-confirm-type="delete"
-                        data-ajax-submit="true"
-                      >
-                        @csrf
-                        @method('DELETE')
-
-                        <button
-                          type="submit"
-                          class="action-btn delete"
-                          title="Delete Item"
-                          data-no-loading
+                          action="/inventory/{{ $item->id }}"
+                          method="POST"
+                          data-confirm-form
+                          data-confirm-title="Delete Inventory Item?"
+                          data-confirm-message="Are you sure you want to delete {{ $item->item_name }}? This action cannot be undone."
+                          data-confirm-button="Yes, Delete"
+                          data-confirm-type="delete"
                         >
-                          <i class="fa-solid fa-trash"></i>
-                        </button>
+                          @csrf
+                          @method('DELETE')
+
+                          <button
+                            type="submit"
+                            class="action-btn delete"
+                            title="Delete Item"
+                            data-no-loading
+                          >
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
                         </form>
                       @endif
 
@@ -213,10 +235,8 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
-                  icon="fa-boxes-stacked"
-                  message="No Inventory Items Found"
-                  description="No spare parts or consumables match your search or category filter."
+                  colspan="10"
+                  message="No inventory items found."
                 />
               @endforelse
             </tbody>
@@ -226,521 +246,378 @@
         <x-ui.table-footer
           :items="$inventoryItems"
           data-lazy-pagination="true"
+          data-server-filter="true"
         />
-      </section>
-    </main>
+
+  @if($canEditWarehouse)
+  {{-- ADD MODAL --}}
+  <div class="modal-overlay inventory-form-modal-overlay" id="addModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Add Inventory Item</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form
+        action="/inventory"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Add Inventory Item?"
+        data-confirm-message="Are you sure you want to add this inventory item?"
+        data-confirm-button="Yes, Add Item"
+        data-confirm-type="create"
+      >
+        @csrf
+
+        <section class="inventory-section-basic">
+          <h3>01 — Item Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Item Code</label>
+              <input type="text" name="item_code" required placeholder="Example: PART-001">
+            </div>
+            <div class="form-group">
+              <label>Parts Name</label>
+              <input type="text" name="item_name" required placeholder="Example: Air Filter">
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <input type="text" name="category" required placeholder="Example: Engine Parts">
+            </div>
+          </div>
+        </section>
+
+        <section class="inventory-section-details">
+          <h3>02 — Stock Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Quantity Available</label>
+              <input type="number" name="on_hand" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Unit of Measurement</label>
+              <input type="text" name="unit_of_measurement" required placeholder="Example: pcs, liter, box">
+            </div>
+            <div class="form-group">
+              <label>Reorder Level</label>
+              <input type="number" name="reorder_level" min="0" required>
+            </div>
+          </div>
+        </section>
+
+        <section class="inventory-section-additional">
+          <h3>03 — Supply &amp; Storage</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Supplier</label>
+              <input type="text" name="supplier" placeholder="Supplier name">
+            </div>
+            <div class="form-group">
+              <label>Storage Location</label>
+              <input type="text" name="storage_location" placeholder="Example: A-02">
+            </div>
+          </div>
+        </section>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Save Item</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  {{-- EDIT MODAL --}}
+  <div class="modal-overlay inventory-form-modal-overlay" id="editModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Edit Inventory Item</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form
+        id="editForm"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Update Inventory Item?"
+        data-confirm-message="Are you sure you want to update this inventory item?"
+        data-confirm-button="Yes, Update Item"
+        data-confirm-type="update"
+      >
+        @csrf
+        @method('PUT')
+
+        <section class="inventory-section-basic">
+          <h3>01 — Item Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Item Code</label>
+              <input type="text" name="item_code" id="edit_item_code" required>
+            </div>
+            <div class="form-group">
+              <label>Parts Name</label>
+              <input type="text" name="item_name" id="edit_item_name" required>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <input type="text" name="category" id="edit_category" required>
+            </div>
+          </div>
+        </section>
+
+        <section class="inventory-section-details">
+          <h3>02 — Stock Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Quantity Available</label>
+              <input type="number" name="on_hand" id="edit_quantity" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Unit of Measurement</label>
+              <input type="text" name="unit_of_measurement" id="edit_unit" required>
+            </div>
+            <div class="form-group">
+              <label>Reorder Level</label>
+              <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
+            </div>
+            <div class="form-group full-width">
+              <label for="edit_adjustment_reason">Stock adjustment reason <span id="editAdjustmentRequiredMark" hidden>*</span></label>
+              <textarea name="adjustment_reason" id="edit_adjustment_reason" maxlength="500" placeholder="Explain why the on-hand quantity is changing"></textarea>
+              <small id="editAdjustmentHelp">No reason is required when stock quantity remains unchanged.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="inventory-section-additional">
+          <h3>03 — Supply &amp; Storage</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Supplier</label>
+              <input type="text" name="supplier" id="edit_supplier">
+            </div>
+            <div class="form-group">
+              <label>Storage Location</label>
+              <input type="text" name="storage_location" id="edit_location">
+            </div>
+          </div>
+        </section>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Update Item</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+  @endif
+
+  {{-- VIEW MODAL --}}
+  <div class="modal-overlay inventory-details-modal inventory-form-modal-overlay" id="viewModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Inventory Item Details</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <div class="inventory-details-scrollable">
+        <section class="inventory-details-section inventory-section-basic">
+          <h3>01 — Item Information</h3>
+          <div class="details-grid">
+            <div class="detail-item"><span>Item Code</span><strong id="view_code">—</strong></div>
+            <div class="detail-item"><span>Parts Name</span><strong id="view_name">—</strong></div>
+            <div class="detail-item"><span>Category</span><strong id="view_category">—</strong></div>
+          </div>
+        </section>
+
+        <section class="inventory-details-section inventory-section-details">
+          <h3>02 — Stock Information</h3>
+          <div class="details-grid">
+            <div class="detail-item"><span>Quantity Available</span><strong id="view_quantity">—</strong></div>
+            <div class="detail-item"><span>Unit</span><strong id="view_unit">—</strong></div>
+            <div class="detail-item"><span>Reorder Level</span><strong id="view_reorder">—</strong></div>
+            <div class="detail-item"><span>Status</span><strong id="view_status">—</strong></div>
+          </div>
+        </section>
+
+        <section class="inventory-details-section inventory-section-additional">
+          <h3>03 — Supply &amp; Storage</h3>
+          <div class="details-grid">
+            <div class="detail-item"><span>Supplier</span><strong id="view_supplier">—</strong></div>
+            <div class="detail-item"><span>Storage Location</span><strong id="view_location">—</strong></div>
+            <div class="detail-item"><span>Last Updated</span><strong id="view_updated">—</strong></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-actions full-width inventory-details-footer">
+        <button type="button" class="secondary-btn cancel-btn closeModal">Close</button>
+      </div>
+
+    </div>
   </div>
 
   {{-- MOVEMENT HISTORY MODAL --}}
-  <div
-    class="modal-overlay"
-    id="movementHistoryModal"
-    aria-hidden="true"
-  >
-    <div
-      class="modal-box inventory-movement-modal stock-movement-page"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="movementHistoryModalTitle"
-    >
-      <div class="modal-header inventory-movement-modal__header">
-        <div class="inventory-movement-title-wrap">
-          <span class="inventory-movement-title-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
-          <div>
-            <h2 id="movementHistoryModalTitle">Movement History</h2>
-            <p>Item-level stock receipts, issuances, and inventory adjustments</p>
-          </div>
-        </div>
-        <button type="button" class="close-btn closeModal" aria-label="Close movement history">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+  <div class="modal-overlay" id="movementHistoryModal" aria-hidden="true">
+    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="movementHistoryModalTitle">
+      <div class="modal-header">
+        <h2 id="movementHistoryModalTitle">
+          <span class="inventory-movement-title-icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
+          Movement History
+        </h2>
+        <button type="button" class="close-btn closeModal" aria-label="Close movement history">&times;</button>
       </div>
-
-      <div id="movementHistoryContent" class="inventory-movement-modal__body" aria-live="polite">
-        <div class="movement-history-loading">
-          <i class="fa-solid fa-clock-rotate-left"></i>
-          <span>Select an inventory item to view its movement history.</span>
-        </div>
-      </div>
-
+      <div id="movementHistoryContent" data-movement-history-content></div>
       <div class="inventory-movement-modal__footer">
-        <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">Close</button>
+        <button type="button" class="secondary-btn closeModal">Close</button>
       </div>
     </div>
   </div>
 
   @if($canEditWarehouse)
-    {{-- ADD INVENTORY ITEM MODAL --}}
-    <div class="modal-overlay ui-form-overlay inventory-form-modal-overlay" id="addModal">
-      <div class="ui-form-modal ui-form-modal-xl inventory-form-modal" role="dialog" aria-modal="true" aria-labelledby="addInventoryModalTitle">
-        <div class="ui-form-modal-header inventory-form-modal-header">
-          <div class="ui-form-title-wrap">
-            <div class="ui-form-title-icon">
-              <i class="fa-solid fa-box"></i>
-            </div>
-            <div class="ui-form-heading">
-              <h2 id="addInventoryModalTitle">Add Inventory Item</h2>
-              <p>Enter the required information to add a new item to Warehouse inventory.</p>
-            </div>
-          </div>
+  {{-- IMPORT MODAL --}}
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-box">
 
-          <button type="button" class="ui-form-close closeModal" aria-label="Close Add Inventory Item">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+      <div class="modal-header">
+        <h2>Import Inventory Data</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form
+        action="/inventory/import"
+        method="POST"
+        enctype="multipart/form-data"
+        data-confirm-form
+        data-confirm-title="Import Inventory Data?"
+        data-confirm-message="Are you sure you want to import this inventory data file?"
+        data-confirm-button="Yes, Import Data"
+        data-confirm-type="warning"
+      >
+        @csrf
+
+        <div class="form-group full-width">
+          <label>Upload CSV File</label>
+          <input
+            type="file"
+            name="inventory_file"
+            id="inventoryFile"
+            accept=".csv,.txt"
+            required
+          >
+
+          <small>
+            CSV format: item_code, parts_name, category, on_hand, unit, reorder_level, supplier, storage_location
+          </small>
         </div>
 
-        <form
-          id="addInventoryForm"
-          action="/inventory"
-          method="POST"
-          class="ui-form-content inventory-form-content"
-          data-confirm-form
-          data-confirm-title="Add Inventory Item?"
-          data-confirm-message="Are you sure you want to add this inventory item?"
-          data-confirm-button="Yes, Add Item"
-          data-confirm-type="create"
-          data-ajax-submit="true"
-          data-parent-modal-id="addModal"
-        >
-          @csrf
-
-          <div class="ui-form-modal-body inventory-form-modal-body">
-            <div class="ui-form-modal-scrollable inventory-form-scrollable">
-              <section class="ui-form-section inventory-modal-section inventory-section-basic">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-file-lines"></i>
-                    </div>
-                    <div>
-                      <h3>Basic Information</h3>
-                      <p>Provide the item reference, name, category, and opening stock.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-grid">
-                    <div class="ui-form-group">
-                      <label for="add_item_code">Item Code <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-cube"></i></span>
-                        <input id="add_item_code" type="text" name="item_code" required placeholder="e.g. PART-001" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Unique Warehouse reference for this item.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_item_name">Parts Name <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-tag"></i></span>
-                        <input id="add_item_name" type="text" name="item_name" required placeholder="e.g. Air Filter" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Descriptive name used in requests and stock records.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_category">Category</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-table-cells-large"></i></span>
-                        <input id="add_category" type="text" name="category" placeholder="e.g. Engine Parts" list="inventoryCategoryOptions" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Use an existing category or enter a new one.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_quantity">Quantity Available <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
-                        <input id="add_quantity" type="number" name="on_hand" min="0" value="0" required>
-                      </div>
-                      <small class="inventory-field-help">Opening quantity physically available in Warehouse.</small>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="ui-form-section inventory-modal-section inventory-section-details">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-gears"></i>
-                    </div>
-                    <div>
-                      <h3>Inventory Details</h3>
-                      <p>Set the measurement unit, reorder threshold, supplier, and storage location.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-grid">
-                    <div class="ui-form-group">
-                      <label for="add_unit">Unit of Measurement <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-ruler"></i></span>
-                        <input id="add_unit" type="text" name="unit_of_measurement" required placeholder="e.g. pcs, liter, box" list="inventoryUnitOptions" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Unit used when receiving and issuing this item.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_reorder">Reorder Level <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-chart-simple"></i></span>
-                        <input id="add_reorder" type="number" name="reorder_level" min="0" value="0" required>
-                      </div>
-                      <small class="inventory-field-help">Minimum stock level before replenishment is needed.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_supplier">Supplier</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-truck"></i></span>
-                        <input id="add_supplier" type="text" name="supplier" placeholder="e.g. Supplier name" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Primary supplier for this item, if known.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="add_location">Storage Location</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-location-dot"></i></span>
-                        <input id="add_location" type="text" name="storage_location" placeholder="e.g. Shelf B-1" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Physical Warehouse shelf, rack, or storage area.</small>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="ui-form-section inventory-modal-section inventory-section-additional">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-note-sticky"></i>
-                    </div>
-                    <div>
-                      <h3>Additional Information</h3>
-                      <p>Add an optional note explaining the opening inventory quantity.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-group">
-                    <label for="add_adjustment_reason">Opening Balance Note</label>
-                    <textarea
-                      id="add_adjustment_reason"
-                      name="adjustment_reason"
-                      maxlength="500"
-                      rows="3"
-                      placeholder="e.g. Initial physical count, beginning inventory, transferred stock..."
-                    ></textarea>
-                    <small class="inventory-field-help">This note will be recorded with the initial stock movement when opening stock is greater than zero.</small>
-                  </div>
-                </div>
-              </section>
-
-              <datalist id="inventoryCategoryOptions">
-                @foreach($categories as $category)
-                  <option value="{{ $category }}"></option>
-                @endforeach
-              </datalist>
-
-              <datalist id="inventoryUnitOptions">
-                <option value="pcs"></option>
-                <option value="liter"></option>
-                <option value="box"></option>
-                <option value="set"></option>
-                <option value="pair"></option>
-                <option value="bottle"></option>
-              </datalist>
-            </div>
-
-            <div class="ui-form-actions inventory-form-actions">
-              <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">
-                <i class="fa-solid fa-xmark"></i>
-                <span>Cancel</span>
-              </button>
-              <button type="submit" class="ui-form-btn ui-form-btn-primary">
-                <x-ui.spinner size="sm" hidden />
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span data-loading-label>Save Item</span>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    {{-- EDIT INVENTORY ITEM MODAL --}}
-    <div class="modal-overlay ui-form-overlay inventory-form-modal-overlay" id="editModal">
-      <div class="ui-form-modal ui-form-modal-xl inventory-form-modal" role="dialog" aria-modal="true" aria-labelledby="editInventoryModalTitle">
-        <div class="ui-form-modal-header inventory-form-modal-header">
-          <div class="ui-form-title-wrap">
-            <div class="ui-form-title-icon">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </div>
-            <div class="ui-form-heading">
-              <h2 id="editInventoryModalTitle">Edit Inventory Item</h2>
-              <p>Update item information while keeping stock adjustments traceable.</p>
-            </div>
-          </div>
-
-          <button type="button" class="ui-form-close closeModal" aria-label="Close Edit Inventory Item">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+        <div class="modal-actions full-width">
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn">Import Data</button>
         </div>
 
-        <form
-          id="editForm"
-          method="POST"
-          class="ui-form-content inventory-form-content"
-          data-confirm-form
-          data-confirm-title="Update Inventory Item?"
-          data-confirm-message="Are you sure you want to update this inventory item?"
-          data-confirm-button="Yes, Update Item"
-          data-confirm-type="update"
-          data-ajax-submit="true"
-          data-parent-modal-id="editModal"
-        >
-          @csrf
-          @method('PUT')
+      </form>
 
-          <div class="ui-form-modal-body inventory-form-modal-body">
-            <div class="ui-form-modal-scrollable inventory-form-scrollable">
-              <section class="ui-form-section inventory-modal-section inventory-section-basic">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-file-lines"></i>
-                    </div>
-                    <div>
-                      <h3>Basic Information</h3>
-                      <p>Review the item reference, name, category, and current stock quantity.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-grid">
-                    <div class="ui-form-group">
-                      <label for="edit_item_code">Item Code <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-cube"></i></span>
-                        <input type="text" name="item_code" id="edit_item_code" required autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Unique Warehouse reference for this item.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_item_name">Parts Name <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-tag"></i></span>
-                        <input type="text" name="item_name" id="edit_item_name" required autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Name used across Inventory and Warehouse requests.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_category">Category</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-table-cells-large"></i></span>
-                        <input type="text" name="category" id="edit_category" list="inventoryCategoryOptions" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Inventory classification for this item.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_quantity">Quantity Available <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
-                        <input type="number" name="on_hand" id="edit_quantity" min="0" required>
-                      </div>
-                      <small class="inventory-field-help">Changing this value creates an auditable stock adjustment.</small>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="ui-form-section inventory-modal-section inventory-section-details">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-gears"></i>
-                    </div>
-                    <div>
-                      <h3>Inventory Details</h3>
-                      <p>Maintain the measurement unit, threshold, supplier, and storage details.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-grid">
-                    <div class="ui-form-group">
-                      <label for="edit_unit">Unit of Measurement <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-ruler"></i></span>
-                        <input type="text" name="unit_of_measurement" id="edit_unit" list="inventoryUnitOptions" required autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Unit used for receiving and issuing stock.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_reorder">Reorder Level <span class="ui-required">*</span></label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-chart-simple"></i></span>
-                        <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
-                      </div>
-                      <small class="inventory-field-help">Threshold used for low-stock and restock alerts.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_supplier">Supplier</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-truck"></i></span>
-                        <input type="text" name="supplier" id="edit_supplier" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Primary supplier, if one is assigned.</small>
-                    </div>
-
-                    <div class="ui-form-group">
-                      <label for="edit_location">Storage Location</label>
-                      <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-location-dot"></i></span>
-                        <input type="text" name="storage_location" id="edit_location" autocomplete="off">
-                      </div>
-                      <small class="inventory-field-help">Shelf, rack, or storage area in Warehouse.</small>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="ui-form-section inventory-modal-section inventory-section-additional">
-                <div class="ui-form-section-header">
-                  <div class="ui-form-section-title">
-                    <div class="ui-form-section-icon">
-                      <i class="fa-solid fa-clipboard-list"></i>
-                    </div>
-                    <div>
-                      <h3>Stock Adjustment</h3>
-                      <p>Explain quantity changes so Inventory history remains auditable.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="ui-form-section-body">
-                  <div class="ui-form-group">
-                    <label for="edit_adjustment_reason">
-                      Adjustment Reason
-                      <span id="editAdjustmentRequiredMark" class="ui-required" hidden>*</span>
-                    </label>
-                    <textarea
-                      name="adjustment_reason"
-                      id="edit_adjustment_reason"
-                      maxlength="500"
-                      rows="3"
-                      placeholder="Required only when Quantity Available is changed"
-                    ></textarea>
-                    <small id="editAdjustmentHelp" class="inventory-field-help">No reason is required when stock quantity remains unchanged.</small>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            <div class="ui-form-actions inventory-form-actions">
-              <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">
-                <i class="fa-solid fa-xmark"></i>
-                <span>Cancel</span>
-              </button>
-              <button type="submit" class="ui-form-btn ui-form-btn-primary">
-                <x-ui.spinner size="sm" hidden />
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span data-loading-label>Update Item</span>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  @endif
-
-  {{-- VIEW MODAL --}}
-  <div class="modal-overlay ui-form-overlay inventory-details-overlay" id="viewModal" aria-hidden="true">
-    <div class="ui-form-modal inventory-details-modal" role="dialog" aria-modal="true" aria-labelledby="inventoryDetailsTitle">
-      <div class="ui-form-modal-header inventory-details-header">
-        <div class="ui-form-title-wrap">
-          <span class="ui-form-title-icon"><i class="fa-solid fa-box"></i></span>
-          <div>
-            <h2 id="inventoryDetailsTitle">Inventory Item Details</h2>
-            <p>Warehouse stock identity, quantity, supplier, and location information</p>
-          </div>
-        </div>
-        <button type="button" class="ui-form-close closeModal" aria-label="Close Inventory Item Details">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="inventory-details-scrollable">
-        <section class="ui-form-section inventory-details-section">
-          <header class="ui-form-section-header">
-            <div class="ui-form-section-title">
-              <span class="ui-form-section-icon"><i class="fa-solid fa-tag"></i></span>
-              <div>
-                <h3>01 — Item Information</h3>
-                <p>Warehouse item identity and classification</p>
-              </div>
-            </div>
-          </header>
-          <div class="ui-form-section-body inventory-details-grid">
-            <div class="inventory-detail-value"><span>Item Code</span><strong id="view_code">—</strong></div>
-            <div class="inventory-detail-value"><span>Parts Name</span><strong id="view_name">—</strong></div>
-            <div class="inventory-detail-value"><span>Category</span><strong id="view_category">—</strong></div>
-          </div>
-        </section>
-
-        <section class="ui-form-section inventory-details-section">
-          <header class="ui-form-section-header">
-            <div class="ui-form-section-title">
-              <span class="ui-form-section-icon"><i class="fa-solid fa-cubes-stacked"></i></span>
-              <div>
-                <h3>02 — Stock Information</h3>
-                <p>Current quantity, measurement, threshold, and availability</p>
-              </div>
-            </div>
-          </header>
-          <div class="ui-form-section-body inventory-details-grid inventory-stock-details-grid">
-            <div class="inventory-detail-value"><span>Quantity Available</span><strong id="view_quantity">—</strong></div>
-            <div class="inventory-detail-value"><span>Unit</span><strong id="view_unit">—</strong></div>
-            <div class="inventory-detail-value"><span>Reorder Level</span><strong id="view_reorder">—</strong></div>
-            <div class="inventory-detail-value"><span>Status</span><strong id="view_status">—</strong></div>
-          </div>
-        </section>
-
-        <section class="ui-form-section inventory-details-section">
-          <header class="ui-form-section-header">
-            <div class="ui-form-section-title">
-              <span class="ui-form-section-icon"><i class="fa-solid fa-warehouse"></i></span>
-              <div>
-                <h3>03 — Supply & Storage</h3>
-                <p>Supplier, physical location, and record freshness</p>
-              </div>
-            </div>
-          </header>
-          <div class="ui-form-section-body inventory-details-grid">
-            <div class="inventory-detail-value"><span>Supplier</span><strong id="view_supplier">—</strong></div>
-            <div class="inventory-detail-value"><span>Storage Location</span><strong id="view_location">—</strong></div>
-            <div class="inventory-detail-value"><span>Last Updated</span><strong id="view_updated">—</strong></div>
-          </div>
-        </section>
-      </div>
-
-      <div class="ui-form-actions inventory-details-footer">
-        <button type="button" class="ui-form-btn ui-form-btn-cancel closeModal">Close</button>
-      </div>
     </div>
   </div>
+  @endif
+
+  @if($canEditWarehouse)
+{{-- ISSUE STOCK MODAL --}}
+  <div class="modal-overlay" id="issueModal">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Issue Stock</h2>
+        <button type="button" class="close-btn closeModal">&times;</button>
+      </div>
+
+      <form
+        id="issueForm"
+        action="{{ route('inventory.issue') }}"
+        method="POST"
+        data-confirm-form
+        data-confirm-title="Issue Stock?"
+        data-confirm-message="Confirm the stock out transaction. On-hand inventory will be reduced and a Stock Out movement will be recorded."
+        data-confirm-button="Yes, Issue Stock"
+        data-confirm-type="warning"
+      >
+        @csrf
+
+        <div class="issue-stock-preview">
+          <div>
+            <p class="preview-label">Item</p>
+            <p class="preview-value" id="issue_preview_name">—</p>
+          </div>
+          <div class="preview-quantity">
+            <p class="preview-label">On Hand</p>
+            <p class="preview-value" id="issue_preview_quantity">—</p>
+            <small id="issue_preview_unit">—</small>
+          </div>
+        </div>
+
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+            <label>Inventory Item</label>
+            <select name="inventory_item_id" id="issue_item" required>
+              <option value="" disabled selected>Select an item...</option>
+
+              @foreach($issueItems as $item)
+                <option
+                  value="{{ $item->id }}"
+                  data-quantity="{{ $item->quantity_available }}"
+                  data-unit="{{ $item->unit_of_measurement }}"
+                >
+                  {{ $item->item_name }}
+                  @if($item->item_code) ({{ $item->item_code }}) @endif —
+                  on hand: {{ $item->quantity_available }} {{ $item->unit_of_measurement }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Quantity to Issue</label>
+            <input type="number" name="quantity" id="issue_quantity" min="1" required>
+          </div>
+
+          <div class="form-group">
+            <label>Issued To</label>
+            <input type="text" name="issued_to" required placeholder="e.g., Maintenance">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Purpose</label>
+            <input type="text" name="purpose" required placeholder="e.g., Preventive Maintenance">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Reference No. (optional)</label>
+            <input type="text" name="reference_no" placeholder="e.g., JO-2026-015">
+            <small>An Issue No. is generated automatically (e.g., ISS-2026-0001).</small>
+          </div>
+
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
+          <button type="submit" class="primary-btn" id="issueSubmitBtn">
+            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            Confirm Issue
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+  @endif
 
 </x-layout.app>

@@ -49,7 +49,7 @@ class ItemRequestPartialIssuanceTest extends TestCase
         $this->assertSame(6, (int) collect($ir->requested_parts)->sum('quantity'));
         $pr = \App\Models\Maintenance\PurchaseRequest::where('job_order_no', $jo->job_order_no)->firstOrFail();
         $this->assertSame(4, (int) $pr->quantity);
-        $this->assertSame('Approved', $pr->status);
+        $this->assertSame('Submitted', $pr->status);
         $this->assertSame(6, (int) $stock->fresh()->quantity_available);
 
         $this->actingAs($staff)->post(route('item-requests.store'), [

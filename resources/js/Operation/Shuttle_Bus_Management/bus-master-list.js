@@ -2,135 +2,6 @@ import '../../echo';
 
 window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
-    // A single floating disclosure avoids increasing table row height.
-    let busPopover = null;
-    const dismissBusPopover = () => {
-        if (!busPopover) return;
-        busPopover.node.remove();
-        busPopover.button.setAttribute('aria-expanded', 'false');
-        busPopover = null;
-    };
-    document.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-bus-more]');
-        if (!button) {
-            if (busPopover && !event.target.closest('.bus-floating-popover')) dismissBusPopover();
-            return;
-        }
-        if (busPopover?.button === button) { dismissBusPopover(); return; }
-        dismissBusPopover();
-        const source = button.parentElement.querySelector('.bus-more-source');
-        if (!source) return;
-        const node = document.createElement('div');
-        node.className = 'bus-floating-popover';
-        node.innerHTML = source.innerHTML;
-        document.body.append(node);
-        const rect = button.getBoundingClientRect();
-        const width = Math.min(260, window.innerWidth - 16);
-        node.style.width = width + 'px';
-        node.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
-        node.style.top = '0px';
-        const height = node.getBoundingClientRect().height;
-        node.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - height - 8)) + 'px';
-        button.setAttribute('aria-expanded', 'true');
-        busPopover = { button, node };
-    });
-    document.addEventListener('scroll', dismissBusPopover, true);
-    window.addEventListener('resize', dismissBusPopover);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismissBusPopover(); });
-
-    // Popovers live in the AJAX-swapped records region: bind per initializer run.
-    const compactFilters = document.getElementById('busListFilters');
-    if (compactFilters) {
-        const tools = Array.from(compactFilters.querySelectorAll('[data-bus-tool]'));
-        const closeTools = () => {
-            tools.forEach((tool) => {
-                tool.querySelector('.bus-tool-popover')?.setAttribute('hidden', '');
-                tool.querySelector('[data-bus-tool-trigger]')?.setAttribute('aria-expanded', 'false');
-            });
-        };
-        const syncToolbarTriggerStates = () => {
-            const searchInput = compactFilters.querySelector('input[name="search"]');
-            const searchTrigger = compactFilters.querySelector('[data-bus-tool-trigger="search"]');
-            if (searchTrigger && searchInput) {
-                searchTrigger.classList.toggle('bus-tool-active', searchInput.value.trim() !== '');
-            }
-
-            const statusSelect = compactFilters.querySelector('[name="status"]');
-            const filterBadge = compactFilters.querySelector('[data-bus-filter-count]');
-            const hasStatus = Boolean(statusSelect && statusSelect.value && statusSelect.value !== 'All Status');
-            const statusBox = compactFilters.querySelector('#busStatusFilter')?.closest('.bus-filter-select-box');
-            if (statusBox && statusSelect) {
-                const statusTone = statusSelect.value === 'Active' ? 'active'
-                    : statusSelect.value === 'Under Maintenance' ? 'maintenance'
-                    : statusSelect.value === 'Inactive' ? 'inactive' : 'all';
-                statusBox.dataset.statusTone = statusTone;
-                const label = compactFilters.querySelector('.bus-filter-label');
-                if (label) label.dataset.statusTone = statusTone;
-            }
-            if (filterBadge) {
-                filterBadge.textContent = hasStatus ? '1' : '0';
-                filterBadge.hidden = !hasStatus;
-            }
-
-            const sortSelect = compactFilters.querySelector('[name="sort"]');
-            const directionSelect = compactFilters.querySelector('[name="direction"]');
-            const sortTrigger = compactFilters.querySelector('[data-bus-tool-trigger="sort"]');
-            if (sortTrigger) {
-                const isNonDefaultSort = (sortSelect && sortSelect.value !== 'bus_no')
-                    || (directionSelect && directionSelect.value !== 'asc');
-                sortTrigger.classList.toggle('bus-tool-active', Boolean(isNonDefaultSort));
-            }
-        };
-
-        tools.forEach((tool) => {
-            const trigger = tool.querySelector('[data-bus-tool-trigger]');
-            const popover = tool.querySelector('.bus-tool-popover');
-            trigger?.addEventListener('click', () => {
-                const opening = popover?.hasAttribute('hidden');
-                closeTools();
-                if (opening) {
-                    popover?.removeAttribute('hidden');
-                    trigger.setAttribute('aria-expanded', 'true');
-                    if (tool.dataset.busTool === 'search') popover.querySelector('input')?.focus();
-                }
-            });
-        });
-        const onOutside = (event) => {
-            if (!compactFilters.isConnected) {
-                document.removeEventListener('pointerdown', onOutside);
-                return;
-            }
-            if (!compactFilters.contains(event.target)) closeTools();
-        };
-        document.addEventListener('pointerdown', onOutside);
-        const onEscape = (event) => {
-            if (!compactFilters.isConnected) {
-                document.removeEventListener('keydown', onEscape);
-                return;
-            }
-            if (event.key === 'Escape') closeTools();
-        };
-        document.addEventListener('keydown', onEscape);
-        compactFilters.querySelector('[data-bus-clear-status]')?.addEventListener('click', () => {
-            const status = compactFilters.querySelector('#busStatusFilter');
-            if (status) status.value = 'All Status';
-            compactFilters.requestSubmit();
-        });
-        compactFilters.querySelector('[data-bus-reset-sort]')?.addEventListener('click', () => {
-            const sort = compactFilters.querySelector('#busSortField');
-            const direction = compactFilters.querySelector('#busSortDirection');
-            if (sort) sort.value = 'bus_no';
-            if (direction) direction.value = 'asc';
-            compactFilters.requestSubmit();
-        });
-        compactFilters.querySelectorAll('[data-bus-popover-close]').forEach((button) => {
-            button.addEventListener('click', closeTools);
-        });
-        compactFilters.addEventListener('input', syncToolbarTriggerStates);
-        compactFilters.addEventListener('change', syncToolbarTriggerStates);
-        syncToolbarTriggerStates();
-    }
-
     function normalizeBusPath(
         value,
         fallback = '/bus-master-list'
@@ -190,6 +61,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     const busModal =
         document.getElementById('busModal');
 
+    const importBusModal =
+        document.getElementById('importBusModal');
+
     const editBusModal =
         document.getElementById('editBusModal');
 
@@ -211,6 +85,22 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
     const cancelBusModal =
         document.getElementById('cancelBusModal');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Import Bus
+    |--------------------------------------------------------------------------
+    */
+
+    const openImportBusModal =
+        document.getElementById('openImportBusModal');
+
+    const closeImportBusModal =
+        document.getElementById('closeImportBusModal');
+
+    const cancelImportBusModal =
+        document.getElementById('cancelImportBusModal');
 
 
     /*
@@ -300,133 +190,32 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
-    // Edit client allocations as chips while submitting the existing comma-separated
-    // client_name field to the established pivot-table validation.
-    const clientEditors = new Map();
-    document.querySelectorAll('[data-bus-multi-client]').forEach((editor) => {
-        const hidden = editor.querySelector('input[name="client_name"]');
-        const entry = editor.querySelector('.bus-multi-client-entry input');
-        const tags = editor.querySelector('[data-client-tags]');
-        const addButton = editor.querySelector('[data-add-client]');
-        if (!hidden || !entry || !tags || !addButton) return;
-        let clients = [];
-        const render = () => {
-            hidden.value = clients.join(', ');
-            tags.replaceChildren();
-            clients.forEach((name, index) => {
-                const chip = document.createElement('span');
-                chip.className = 'bus-client-tag';
-                const label = document.createElement('span');
-                label.textContent = name;
-                const remove = document.createElement('button');
-                remove.type = 'button';
-                remove.setAttribute('aria-label', 'Remove ' + name);
-                remove.textContent = '×';
-                remove.addEventListener('click', () => {
-                    clients.splice(index, 1);
-                    render();
-                    entry.focus();
-                });
-                chip.append(label, remove);
-                tags.append(chip);
-            });
-        };
-        const setClients = (value) => {
-            clients = [];
-            String(value || '').split(',').forEach((item) => {
-                const name = item.trim().replace(/\\s+/g, ' ');
-                if (name && !clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
-            });
-            entry.value = '';
-            render();
-        };
-        const addClient = () => {
-            const name = entry.value.trim().replace(/\\s+/g, ' ');
-            if (!name) return;
-            if (clients.length >= 20) { entry.setCustomValidity('Maximum of 20 clients.'); entry.reportValidity(); return; }
-            entry.setCustomValidity('');
-            if (!clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
-            entry.value = '';
-            render();
-            entry.focus();
-        };
-        entry.addEventListener('input', () => entry.setCustomValidity(''));
-        entry.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ',') {
-                event.preventDefault();
-                addClient();
-            }
-        });
-        addButton.addEventListener('click', addClient);
-        editor.closest('form')?.addEventListener('submit', () => {
-            if (entry.value.trim()) addClient();
-        });
-        setClients(hidden.value);
-        clientEditors.set(hidden.id, setClients);
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | Import CSV Modal
+    |--------------------------------------------------------------------------
+    */
 
-    // Reserve is a shared standby asset: client details belong only to Regular buses.
-    const syncBusPurposeSections = (form) => {
-        if (!form) return;
-        const purpose = form.querySelector('select[name="fleet_purpose"]');
-        const reserve = purpose?.value === 'Reserve';
-        form.querySelectorAll('[data-bus-client-panel]').forEach((section) => {
-            section.hidden = reserve;
-            section.style.display = reserve ? 'none' : '';
-            section.querySelectorAll('input[name="client_name"]').forEach((input) => {
-                if (reserve) clientEditors.get(input.id)?.('');
-                input.disabled = reserve;
-            });
+    if (openImportBusModal) {
+        openImportBusModal.addEventListener('click', () => {
+            openModal(importBusModal);
         });
-    };
-    document.querySelectorAll('.bus-master-list-page select[name="fleet_purpose"]').forEach((select) => {
-        const form = select.closest('form');
-        syncBusPurposeSections(form);
-        select.addEventListener('change', () => syncBusPurposeSections(form));
-    });
+    }
 
-    // Delegated view action works after AJAX table filtering and remains read-only.
-    const viewBusModal = document.getElementById('viewBusModal');
-    const viewBusPage = document.querySelector('.bus-master-list-page');
-    viewBusPage?.addEventListener('click', (event) => {
-        const button = event.target.closest('.open-view-bus');
-        if (!button || !viewBusPage.contains(button) || !viewBusModal) return;
-        event.preventDefault();
-        const fields = {
-            busNo: button.dataset.busNo,
-            plateNo: button.dataset.plateNo,
-            busModel: button.dataset.busModel,
-            yearModel: button.dataset.yearModel,
-            capacity: button.dataset.capacity,
-            status: button.dataset.status,
-            fleetPurpose: button.dataset.fleetPurpose,
-            routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
-            clientAllocation: button.dataset.clientAllocationType
-                ? button.dataset.clientAllocationType + ' — ' + (button.dataset.clientNames || '')
-                : 'Not allocated',
-            authorizedDrivers: button.dataset.authorizedDrivers || 'No authorized driver',
-        };
-        for (const [key, value] of Object.entries(fields)) {
-            const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
-            if (target) target.textContent = String(value || '—');
-        }
-        viewBusModal.querySelectorAll('[data-bus-regular-detail]').forEach((item) => {
-            item.hidden = button.dataset.fleetPurpose === 'Reserve';
+
+    if (closeImportBusModal) {
+        closeImportBusModal.addEventListener('click', () => {
+            closeModal(importBusModal);
         });
-        const statusBadge = viewBusModal.querySelector('.bus-details-status');
-        if (statusBadge) {
-            const validStatuses = ['Active', 'Inactive', 'Under Maintenance'];
-            statusBadge.dataset.status = validStatuses.includes(fields.status) ? fields.status : 'Unknown';
-        }
-        viewBusModal.setAttribute('aria-hidden', 'false');
-        openModal(viewBusModal);
-    });
-    ['closeViewBusModal', 'dismissViewBusModal'].forEach((id) => {
-        document.getElementById(id)?.addEventListener('click', () => {
-            closeModal(viewBusModal);
-            viewBusModal?.setAttribute('aria-hidden', 'true');
+    }
+
+
+    if (cancelImportBusModal) {
+        cancelImportBusModal.addEventListener('click', () => {
+            closeModal(importBusModal);
         });
-    });
+    }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -434,12 +223,11 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     |--------------------------------------------------------------------------
     */
 
-    // Delegate table actions so they continue working after AJAX filtering.
-    const busPage = document.querySelector('.bus-master-list-page');
+    document
+        .querySelectorAll('.open-edit-bus')
+        .forEach((button) => {
 
-    busPage?.addEventListener('click', (event) => {
-        const button = event.target.closest('.open-edit-bus');
-        if (!button || !busPage.contains(button)) return;
+            button.addEventListener('click', (event) => {
 
                 event.preventDefault();
 
@@ -497,25 +285,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 |--------------------------------------------------------------------------
                 */
 
-                const clientInput = document.getElementById('edit_client_name');
-                const clientNotice = document.getElementById('existingSharedClientNotice');
-                const isShared = button.dataset.clientAllocationType === 'Shared';
-                // Show all saved clients so editing can add/remove individual names
-                // instead of silently replacing an existing shared allocation.
-                if (clientInput) clientEditors.get('edit_client_name')?.(button.dataset.clientNames || '');
-                if (clientNotice) clientNotice.hidden = !isShared;
-
                 if (editBusNo) {
-                    editBusNo.value = button.dataset.busNo || '';
-                    const locked = button.dataset.busNoLocked === '1';
-                    editBusNo.readOnly = locked;
-                    editBusNo.classList.toggle('bus-locked-input', locked);
-                    editBusNo.setAttribute('aria-readonly', locked ? 'true' : 'false');
-                    editBusNo.title = locked
-                        ? 'Bus No. cannot be changed after operational history exists.'
-                        : '';
-                    const hint = document.getElementById('editBusNoLockHint');
-                    if (hint) hint.hidden = !locked;
+                    editBusNo.value =
+                        button.dataset.busNo || '';
                 }
 
 
@@ -553,59 +325,11 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                     editStatus.value =
                         button.dataset.status || 'Active';
                 }
-                const editFleetPurpose = document.getElementById('edit_fleet_purpose');
-                if (editFleetPurpose) editFleetPurpose.value = button.dataset.fleetPurpose || 'Regular';
-                syncBusPurposeSections(editBusForm);
 
-
-                // Operation cannot edit any master-list field while Maintenance
-                // owns this bus. Preserve displayed values for read-only review.
-                const maintenanceLocked = button.dataset.status === 'Under Maintenance';
-                editBusForm.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach((field) => {
-                    if (maintenanceLocked) {
-                        field.dataset.busMaintenanceLocked = '1';
-                        if (field.matches('select')) {
-                            field.disabled = true;
-                        } else {
-                            field.readOnly = true;
-                        }
-                        field.classList.add('bus-maintenance-locked');
-                    } else if (field.dataset.busMaintenanceLocked === '1') {
-                        field.removeAttribute('data-bus-maintenance-locked');
-                        field.disabled = false;
-                        field.readOnly = field.id === 'edit_route_grouping';
-                        field.classList.remove('bus-maintenance-locked');
-                    }
-                });
-                // Route / Grouping is always view-only, for both Regular and Reserve buses.
-                if (editRouteGrouping) {
-                    editRouteGrouping.readOnly = true;
-                    editRouteGrouping.setAttribute('aria-readonly', 'true');
-                }
-                // Reapply the independent history-based Bus No. restriction.
-                if (!maintenanceLocked && editBusNo) {
-                    editBusNo.readOnly = button.dataset.busNoLocked === '1';
-                }
-                const fleetPurposeLocked = button.dataset.fleetPurposeLocked === '1';
-                if (editFleetPurpose) {
-                    editFleetPurpose.disabled = maintenanceLocked || fleetPurposeLocked;
-                    editFleetPurpose.classList.toggle('bus-maintenance-locked', maintenanceLocked || fleetPurposeLocked);
-                    editFleetPurpose.title = fleetPurposeLocked
-                        ? 'Bus Purpose cannot change while an ongoing or future trip assignment exists.'
-                        : '';
-                }
-                const fleetPurposeHint = document.getElementById('editFleetPurposeLockHint');
-                if (fleetPurposeHint) fleetPurposeHint.hidden = !fleetPurposeLocked;
-                const updateButton = editBusForm.querySelector('button[type="submit"]');
-                if (updateButton) {
-                    updateButton.disabled = maintenanceLocked;
-                    updateButton.hidden = maintenanceLocked;
-                }
-                const lockNotice = document.getElementById('editBusMaintenanceNotice');
-                if (lockNotice) lockNotice.hidden = !maintenanceLocked;
 
                 openModal(editBusModal);
-    });
+            });
+        });
 
 
     if (closeEditBusModal) {
@@ -628,9 +352,11 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     |--------------------------------------------------------------------------
     */
 
-    busPage?.addEventListener('click', (event) => {
-        const button = event.target.closest('.open-delete-bus');
-        if (!button || !busPage.contains(button)) return;
+    document
+        .querySelectorAll('.open-delete-bus')
+        .forEach((button) => {
+
+            button.addEventListener('click', (event) => {
 
                 event.preventDefault();
 
@@ -652,7 +378,8 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
 
                 openModal(deleteBusModal);
-    });
+            });
+        });
 
 
     if (cancelDeleteBus) {
@@ -673,9 +400,6 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             }
         });
     }
-
-
-    // Modal backdrops never close dialogs; use the explicit close/cancel buttons.
 
 
     /*
@@ -712,10 +436,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         }
 
         closeModal(busModal);
+        closeModal(importBusModal);
         closeModal(editBusModal);
         closeModal(deleteBusModal);
-        closeModal(viewBusModal);
-        viewBusModal?.setAttribute('aria-hidden', 'true');
     });
 
 });

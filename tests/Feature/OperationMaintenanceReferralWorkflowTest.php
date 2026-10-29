@@ -562,10 +562,22 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $createPrResponse->assertRedirect();
 
         $pr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->firstOrFail();
-        $this->assertSame('Approved', $pr->fresh()->status);
+        $this->assertSame('Submitted', $pr->fresh()->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
-        // 8. Warehouse Staff issues after the JO-authorized PR is submitted.
+        $deliveredPurchaseRequest = PurchaseRequest::create([
+            'pr_no' => $pr->pr_no.'-P',
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no,
+            'item' => $pr->item,
+            'quantity' => $pr->quantity,
+            'status' => 'Delivered',
+            'warehouse_status' => 'Delivered',
+            'source_type' => 'Maintenance Request',
+            'remarks' => 'Missing parts from '.$pr->pr_no.'. Only unavailable parts were sent to Purchase Department.',
+        ]);
+
+        // 8. Warehouse issues after the linked missing-parts procurement is received.
         $inventoryItem = InventoryItem::create([
             'item_code' => 'ALT-24V-001',
             'item_name' => 'Heavy Duty Alternator 24V',
@@ -582,6 +594,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $issueResponse->assertRedirect();
 
         $this->assertSame('Issued', $pr->fresh()->status);
+        $this->assertSame('Issued', $deliveredPurchaseRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame('On Going', $jobOrder->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->fresh()->quantity_available);

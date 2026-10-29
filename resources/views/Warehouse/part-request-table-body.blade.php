@@ -10,7 +10,7 @@
                   $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
                   $canSendToPurchase = ($partRequest->needs_purchase ?? false) && $canEditWarehouse
                     && !$missingPrAlreadyCreated
-                    && $status === 'Approved';
+                    && in_array($partRequest->status, ['Approved', 'Submitted'], true);
                   $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
                     && $inventoryStatus === 'Available';
                   $warehouseStatus = $isHistory

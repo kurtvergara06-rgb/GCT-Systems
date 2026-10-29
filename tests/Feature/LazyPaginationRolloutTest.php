@@ -169,11 +169,15 @@ class LazyPaginationRolloutTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "event.target.closest(\n          '.open-edit-modal'",
+            "event.target.closest('.open-edit-modal')",
             $source
         );
         $this->assertStringContainsString(
-            "event.target.closest(\n          '.open-delete-modal'",
+            "event.target.closest('.open-delete-modal')",
+            $source
+        );
+        $this->assertStringContainsString(
+            "jobOrderPage.addEventListener('click'",
             $source
         );
     }

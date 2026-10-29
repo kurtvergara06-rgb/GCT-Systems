@@ -3,81 +3,6 @@ window.GCTPartialNavigation.registerInitializer(
   '.purchase-page',
   () => {
 
-    /* Parts dropdown: render above the scrollable table so menus cannot be clipped. */
-    const prPartsPage = document.querySelector('.purchase-page');
-    let activePartsTrigger = null;
-    let activePartsMenu = null;
-
-    function closePartsMenu() {
-      if (activePartsMenu) activePartsMenu.remove();
-      if (activePartsTrigger) {
-        activePartsTrigger.setAttribute('aria-expanded', 'false');
-        activePartsTrigger.closest('details')?.removeAttribute('open');
-      }
-      activePartsMenu = null;
-      activePartsTrigger = null;
-    }
-
-    function positionPartsMenu() {
-      if (!activePartsTrigger || !activePartsMenu || !activePartsTrigger.isConnected) {
-        closePartsMenu();
-        return;
-      }
-      const rect = activePartsTrigger.getBoundingClientRect();
-      const margin = 8;
-      const width = Math.min(330, window.innerWidth - margin * 2);
-      activePartsMenu.style.width = width + 'px';
-      activePartsMenu.style.left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin)) + 'px';
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      const menuHeight = activePartsMenu.offsetHeight;
-      const above = spaceBelow < Math.min(menuHeight + margin, 220) && spaceAbove > spaceBelow;
-      const maxHeight = Math.max(100, (above ? spaceAbove : spaceBelow) - margin * 2);
-      activePartsMenu.style.maxHeight = maxHeight + 'px';
-      activePartsMenu.style.overflowY = 'auto';
-      activePartsMenu.style.top = above
-        ? Math.max(margin, rect.top - Math.min(menuHeight, maxHeight) - margin) + 'px'
-        : Math.min(window.innerHeight - margin, rect.bottom + margin) + 'px';
-    }
-
-    prPartsPage?.addEventListener('click', event => {
-      const summary = event.target.closest('.pr-parts-dropdown > summary, .pr-ir-breakdown > summary');
-      if (!summary || !prPartsPage.contains(summary)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (activePartsTrigger === summary) {
-        closePartsMenu();
-        return;
-      }
-      closePartsMenu();
-      const source = summary.parentElement.querySelector('.pr-parts-dropdown-menu, .pr-pending-parts-list');
-      if (!source) return;
-      activePartsTrigger = summary;
-      summary.parentElement.setAttribute('open', '');
-      summary.setAttribute('aria-expanded', 'true');
-      activePartsMenu = source.cloneNode(true);
-      activePartsMenu.classList.add('pr-parts-floating-menu');
-      Object.assign(activePartsMenu.style, {
-        position: 'fixed', zIndex: '10000', bottom: 'auto', right: 'auto',
-        display: 'block', visibility: 'hidden', margin: '0'
-      });
-      document.body.appendChild(activePartsMenu);
-      positionPartsMenu();
-      activePartsMenu.style.visibility = 'visible';
-    });
-
-    document.addEventListener('click', event => {
-      if (activePartsMenu?.contains(event.target) || activePartsTrigger?.contains(event.target)) return;
-      closePartsMenu();
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closePartsMenu();
-    });
-    window.addEventListener('resize', closePartsMenu);
-    document.addEventListener('scroll', event => {
-      if (activePartsMenu && !activePartsMenu.contains(event.target)) closePartsMenu();
-    }, true);
-
     /* =========================================================
        MODAL HELPERS
     ========================================================= */
@@ -296,156 +221,6 @@ window.GCTPartialNavigation.registerInitializer(
           }
         )
         .filter(Boolean);
-
-    }
-
-
-    /* =========================================================
-       RENDER REVIEW ITEMS
-    ========================================================= */
-
-    function renderReviewParts(
-      partText,
-      fallbackQuantity = ''
-    ) {
-
-      const body =
-        document.getElementById(
-          'reviewPrItemsBody'
-        );
-
-
-      const countLabel =
-        document.getElementById(
-          'reviewPrItemCount'
-        );
-
-
-      if (!body) {
-        return;
-      }
-
-
-      const parts =
-        parseParts(
-          partText
-        );
-
-
-      if (
-        parts.length === 1 &&
-        !parts[0].quantity &&
-        fallbackQuantity
-      ) {
-
-        parts[0].quantity =
-          fallbackQuantity;
-
-      }
-
-
-      body.innerHTML =
-        '';
-
-
-      if (
-        parts.length === 0
-      ) {
-
-        const row =
-          document.createElement(
-            'tr'
-          );
-
-
-        const cell =
-          document.createElement(
-            'td'
-          );
-
-
-        cell.colSpan = 3;
-        cell.className =
-          'pr-review-empty';
-        cell.textContent =
-          'No requested items recorded.';
-
-
-        row.appendChild(
-          cell
-        );
-
-
-        body.appendChild(
-          row
-        );
-
-      } else {
-
-        parts.forEach(
-          (part, index) => {
-
-            const row =
-              document.createElement(
-                'tr'
-              );
-
-
-            const nameCell =
-              document.createElement(
-                'td'
-              );
-
-            nameCell.textContent =
-              part.name || '—';
-
-
-            const quantityCell =
-              document.createElement(
-                'td'
-              );
-
-            quantityCell.textContent =
-              part.quantity || '—';
-
-
-            const statusCell = document.createElement('td');
-            const statusBadge = document.createElement('span');
-            statusBadge.className = 'pr-view-shortage-badge';
-            statusBadge.textContent = 'Unavailable';
-            statusCell.appendChild(statusBadge);
-
-            row.append(nameCell, quantityCell, statusCell);
-
-
-            body.appendChild(
-              row
-            );
-
-          }
-        );
-
-      }
-
-
-      const count =
-        parts.length;
-
-
-      if (
-        countLabel
-      ) {
-
-        countLabel.textContent =
-          String(count) + ' ' +
-          (
-            count === 1
-              ? 'item'
-              : 'items'
-          );
-
-      }
-
 
     }
 
@@ -864,12 +639,6 @@ window.GCTPartialNavigation.registerInitializer(
       document.getElementById(
         'jobOrderSelect'
       );
-    const linkedJobDisplay = document.getElementById('prReviewLinkedJo');
-    const syncLinkedJobDisplay = () => {
-      if (!linkedJobDisplay) return;
-      const value = jobOrderSelect?.value || '';
-      linkedJobDisplay.textContent = value ? value + ' — linked approved Job Order' : 'No Job Order linked';
-    };
 
 
     const busNoInput =
@@ -877,75 +646,31 @@ window.GCTPartialNavigation.registerInitializer(
         'busNoInput'
       );
 
-    const newPrPartsBody =
+
+    const newPrPartsContainer =
       document.getElementById(
-        'newPrPartsBody'
+        'newPrPartsContainer'
       );
 
 
-    const prPurposeBus =
+    const addNewPrPartBtn =
       document.getElementById(
-        'prPurposeBus'
+        'addNewPrPartBtn'
       );
 
-    const prPurpose =
-      document.getElementById(
-        'prPurpose'
+
+    openPrModal
+      ?.addEventListener(
+        'click',
+        () => {
+
+          openModal(
+            prModal
+          );
+
+        }
       );
 
-    const prApproverName =
-      document.getElementById(
-        'prApproverName'
-      );
-
-    const prApprovalSignature =
-      document.getElementById(
-        'prApprovalSignature'
-      );
-    const prSignaturePlaceholder = document.getElementById('prSignaturePlaceholder');
-    const prJoApprovalBadge = document.getElementById('prJoApprovalBadge');
-
-    const prPartsError =
-      document.getElementById(
-        'prPartsError'
-      );
-
-    const createPrBtn =
-      document.getElementById(
-        'createPrBtn'
-      );
-
-    let jobOrderRequestSequence = 0;
-
-    const showPrReviewModal = () => {
-      if (!prModal) return;
-      const modalPanel = prModal.querySelector('.ui-form-modal');
-      const modalScroller = prModal.querySelector('.ui-form-modal-scrollable');
-      prModal.style.setProperty('backdrop-filter', 'blur(7px)');
-      prModal.style.setProperty('-webkit-backdrop-filter', 'blur(7px)');
-      openModal(prModal);
-      const resetScroll = () => {
-        if (modalPanel) modalPanel.scrollTop = 0;
-        if (modalScroller) modalScroller.scrollTop = 0;
-      };
-      resetScroll();
-      window.requestAnimationFrame(resetScroll);
-    };
-
-    openPrModal?.addEventListener('click', showPrReviewModal);
-
-    // The Review action opens the existing validated PR form directly.
-    // It must not depend on the removed New PR toolbar button.
-    document.addEventListener('click', (event) => {
-      const trigger = event.target.closest('[data-pr-review-job]');
-      if (!trigger) return;
-      showPrReviewModal();
-      if (jobOrderSelect) {
-        jobOrderSelect.value = trigger.dataset.prReviewJob || '';
-        jobOrderSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      syncLinkedJobDisplay();
-    });
 
     closePrModal
       ?.addEventListener(
@@ -973,191 +698,143 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
-    function renderMissingParts(parts) {
-      if (!newPrPartsBody) return;
-      newPrPartsBody.replaceChildren();
-      if (!Array.isArray(parts) || parts.length === 0) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 3;
-        cell.className = 'pr-table-message';
-        cell.textContent = 'No missing parts. All requested items are available from Warehouse.';
-        row.appendChild(cell);
-        newPrPartsBody.appendChild(row);
-        return;
-      }
-      parts.forEach((part) => {
-        const row = document.createElement('tr');
-        for (const [label, value] of [
-          ['Item / Part', part.name || '—'],
-          ['Shortage Qty', String(part.quantity) + ' ' + (part.unit || '')],
-        ]) {
-          const cell = document.createElement('td');
-          cell.dataset.label = label;
-          cell.textContent = value;
-          row.appendChild(cell);
-        }
-        const availabilityCell = document.createElement('td');
-        availabilityCell.dataset.label = 'Availability';
-        const badge = document.createElement('span');
-        badge.className = 'pr-availability-badge';
-        badge.textContent = 'Unavailable';
-        availabilityCell.appendChild(badge);
-        row.appendChild(availabilityCell);
-        newPrPartsBody.appendChild(row);
-      });
+    /* =========================================================
+       INITIAL NEW PR PARTS
+    ========================================================= */
+
+    if (
+      newPrPartsContainer
+    ) {
+
+      const initialParts =
+        newPrPartsContainer
+          .dataset
+          .initialParts
+        || '';
+
+
+      renderParts(
+        newPrPartsContainer,
+        initialParts,
+        false
+      );
+
+
+      newPrPartsContainer
+        .addEventListener(
+          'click',
+          event => {
+
+            const removeButton =
+              event.target.closest(
+                '.remove-part-btn'
+              );
+
+
+            if (!removeButton) {
+              return;
+            }
+
+
+            removePartRow(
+              newPrPartsContainer,
+              removeButton
+            );
+
+          }
+        );
+
     }
 
-    function linkedIrBadge(status) {
-      const normalized = String(status || '').trim();
-      const label = normalized || 'Not submitted';
-      const className = ['Issued', 'Completed'].includes(normalized)
-        ? 'pr-availability-badge is-available'
-        : 'pr-availability-badge is-ir-pending';
-      return { label, className };
-    }
 
-    function renderAvailableParts(parts, irStatus = null) {
-      const body = document.getElementById('prReviewAvailableParts');
-      if (!body) return;
-      body.replaceChildren();
-      if (!Array.isArray(parts) || parts.length === 0) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 3;
-        cell.className = 'pr-table-message';
-        cell.textContent = 'No available IR allocation.';
-        row.appendChild(cell);
-        body.appendChild(row);
-        return;
-      }
-      parts.forEach((part) => {
-        const row = document.createElement('tr');
-        for (const value of [part.name || '—', String(part.quantity ?? 0) + ' ' + (part.unit || '')]) {
-          const cell = document.createElement('td');
-          cell.textContent = value;
-          row.appendChild(cell);
+    /* =========================================================
+       ADD NEW PR PART
+    ========================================================= */
+
+    addNewPrPartBtn
+      ?.addEventListener(
+        'click',
+        () => {
+
+          if (
+            !newPrPartsContainer
+          ) {
+            return;
+          }
+
+
+          const index =
+            newPrPartsContainer
+              .querySelectorAll(
+                '.part-needed-row'
+              )
+              .length;
+
+
+          newPrPartsContainer
+            .appendChild(
+              createPartRow(
+                index,
+                {},
+                false
+              )
+            );
+
+
+          refreshPartIndexes(
+            newPrPartsContainer
+          );
+
         }
-        const cell = document.createElement('td');
-        const badge = document.createElement('span');
-        const irBadge = linkedIrBadge(irStatus);
-        badge.className = irBadge.className;
-        badge.textContent = irBadge.label;
-        cell.appendChild(badge);
-        row.appendChild(cell);
-        body.appendChild(row);
-      });
-    }
+      );
 
-    async function loadSelectedJobOrder() {
-      const sequence = ++jobOrderRequestSequence;
-      const selectedOption = jobOrderSelect?.options[jobOrderSelect.selectedIndex];
-      const dataUrl = selectedOption?.dataset.jobOrderUrl;
-      syncLinkedJobDisplay();
 
-      if (createPrBtn) createPrBtn.disabled = true;
-      if (prPartsError) {
-        prPartsError.hidden = true;
-        prPartsError.textContent = '';
-      }
-      if (prApprovalSignature) {
-        prApprovalSignature.hidden = true;
-        prApprovalSignature.removeAttribute('src');
-      }
-      if (prSignaturePlaceholder) prSignaturePlaceholder.hidden = false;
-      if (prJoApprovalBadge) prJoApprovalBadge.hidden = true;
-      if (prApproverName) prApproverName.textContent = 'Select a Job Order to load its approver';
-      if (busNoInput) busNoInput.value = '';
+    /* =========================================================
+       JO → BUS + PARTS
+    ========================================================= */
 
-      if (!dataUrl) {
-        renderMissingParts([]);
-        renderAvailableParts([]);
-        if (newPrPartsBody) {
-          const message = newPrPartsBody.querySelector('.pr-table-message');
-          if (message) message.textContent = 'Select an approved Job Order to check its unavailable parts.';
+    jobOrderSelect
+      ?.addEventListener(
+        'change',
+        () => {
+
+          const selectedOption =
+            jobOrderSelect.options[
+              jobOrderSelect
+                .selectedIndex
+            ];
+
+
+          const busNo =
+            selectedOption
+              ?.dataset
+              .bus
+            || '';
+
+
+          const parts =
+            selectedOption
+              ?.dataset
+              .parts
+            || '';
+
+
+          if (busNoInput) {
+
+            busNoInput.value =
+              busNo;
+
+          }
+
+
+          renderParts(
+            newPrPartsContainer,
+            parts,
+            false
+          );
+
         }
-        if (prPurposeBus) prPurposeBus.value = '';
-        if (prPurpose && !prPurpose.dataset.userEdited) prPurpose.value = '';
-        return;
-      }
-
-      renderMissingParts([]);
-      renderAvailableParts([]);
-      if (newPrPartsBody) {
-        const message = newPrPartsBody.querySelector('.pr-table-message');
-        if (message) message.textContent = 'Checking Warehouse availability…';
-      }
-
-      try {
-        const response = await fetch(dataUrl, {
-          headers: {
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          credentials: 'same-origin',
-        });
-        const data = await response.json();
-
-        if (sequence !== jobOrderRequestSequence) return;
-        if (!response.ok) {
-          throw new Error(data.message || 'Unable to load this Job Order.');
-        }
-
-        renderMissingParts(data.parts);
-        renderAvailableParts(data.available_parts, data.ir_status);
-        if (prPurposeBus) {
-          prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
-        }
-        if (busNoInput) busNoInput.value = data.bus_no || '';
-        const mechanics = document.getElementById('prReviewMechanics');
-        if (mechanics) mechanics.textContent = data.assigned_mechanics || 'Not assigned';
-        const reviewBus = document.getElementById('prReviewBus');
-        if (reviewBus) reviewBus.textContent = data.bus_no || '—';
-        if (prPurpose && !prPurpose.dataset.userEdited) {
-          prPurpose.value = data.work_to_perform || '';
-        }
-        if (prApproverName) {
-          prApproverName.textContent = data.approver_name || 'Approver not recorded';
-        }
-        if (prJoApprovalBadge) prJoApprovalBadge.hidden = false;
-        if (prApprovalSignature && data.signature_url) {
-          prApprovalSignature.src = data.signature_url;
-          prApprovalSignature.hidden = false;
-          if (prSignaturePlaceholder) prSignaturePlaceholder.hidden = true;
-        }
-
-        const hasMissingParts = Array.isArray(data.parts) && data.parts.length > 0;
-        if (createPrBtn) createPrBtn.disabled = !hasMissingParts;
-        if (!hasMissingParts && prPartsError) {
-          prPartsError.textContent = 'A Purchase Requisition cannot be created because all requested parts are available.';
-          prPartsError.hidden = false;
-        }
-      } catch (error) {
-        if (sequence !== jobOrderRequestSequence) return;
-        renderMissingParts([]);
-        renderAvailableParts([]);
-        const message = newPrPartsBody?.querySelector('.pr-table-message');
-        if (message) message.textContent = 'Availability could not be checked.';
-        if (prPartsError) {
-          prPartsError.textContent = error.message || 'Unable to check Warehouse availability. Try again.';
-          prPartsError.hidden = false;
-        }
-      }
-    }
-
-    jobOrderSelect?.addEventListener('change', loadSelectedJobOrder);
-    prApprovalSignature?.addEventListener('error', () => {
-      prApprovalSignature.hidden = true;
-      prApprovalSignature.removeAttribute('src');
-      if (prSignaturePlaceholder) {
-        prSignaturePlaceholder.textContent = 'Saved signature unavailable.';
-        prSignaturePlaceholder.hidden = false;
-      }
-    });
-    prPurpose?.addEventListener('input', () => {
-      prPurpose.dataset.userEdited = 'true';
-    });
-    jobOrderSelect?.value && loadSelectedJobOrder();
+      );
 
 
     /* =========================================================
@@ -1276,164 +953,6 @@ window.GCTPartialNavigation.registerInitializer(
       document.getElementById(
         'closeViewOnlyPr'
       );
-
-
-    const reviewPrNo =
-      document.getElementById(
-        'reviewPrNo'
-      );
-
-
-    const reviewPrStatus =
-      document.getElementById(
-        'reviewPrStatus'
-      );
-
-
-    const reviewPrCreated =
-      document.getElementById(
-        'reviewPrCreated'
-      );
-
-    const reviewPrSummaryJobOrder =
-      document.getElementById(
-        'reviewPrSummaryJobOrder'
-      );
-
-    const reviewPrJoAuthorization =
-      document.getElementById(
-        'reviewPrJoAuthorization'
-      );
-
-    const reviewPrAuthorizationJobOrder =
-      document.getElementById(
-        'reviewPrAuthorizationJobOrder'
-      );
-
-
-    const reviewPrJobOrderNo =
-      document.getElementById(
-        'reviewPrJobOrderNo'
-      );
-
-
-    const reviewPrBusNo =
-      document.getElementById(
-        'reviewPrBusNo'
-      );
-
-
-    const reviewPrRemarks =
-      document.getElementById(
-        'reviewPrRemarks'
-      );
-
-    const reviewPrPurpose =
-      document.getElementById(
-        'reviewPrPurpose'
-      );
-
-    const reviewPrTargetDate =
-      document.getElementById(
-        'reviewPrTargetDate'
-      );
-
-    const reviewPrRequester =
-      document.getElementById(
-        'reviewPrRequester'
-      );
-
-
-    const reviewPrRequestDate =
-      document.getElementById(
-        'reviewPrRequestDate'
-      );
-
-
-    const reviewPrStatusText =
-      document.getElementById(
-        'reviewPrStatusText'
-      );
-
-
-    const reviewPrTotalQuantity =
-      document.getElementById(
-        'reviewPrTotalQuantity'
-      );
-
-
-    const reviewPrSource =
-      document.getElementById(
-        'reviewPrSource'
-      );
-
-
-    const reviewPrWorkToPerform =
-      document.getElementById(
-        'reviewPrWorkToPerform'
-      );
-
-
-    const prReviewInformation =
-      document.getElementById(
-        'prReviewInformation'
-      );
-
-
-    const prReviewItemsSection =
-      document.getElementById(
-        'prReviewItemsSection'
-      );
-
-    const prRequestDetailsSection =
-      document.getElementById(
-        'prRequestDetailsSection'
-      );
-
-    const prAuthorizationSection =
-      document.getElementById(
-        'prAuthorizationSection'
-      );
-
-
-    const prEditableSection =
-      document.getElementById(
-        'prEditableSection'
-      );
-
-
-    const reviewDecisionBlock =
-      document.getElementById(
-        'reviewDecisionBlock'
-      );
-
-
-    const reviewDecisionRemarks =
-      document.getElementById(
-        'reviewDecisionRemarks'
-      );
-
-
-    const reviewEditPrBtn =
-      document.getElementById(
-        'reviewEditPrBtn'
-      );
-
-
-    const reviewApprovePrBtn =
-      document.getElementById(
-        'reviewApprovePrBtn'
-      );
-
-
-    const reviewRejectPrBtn =
-      document.getElementById(
-        'reviewRejectPrBtn'
-      );
-
-
-    let activePrTrigger =
-      null;
 
 
     /* =========================================================
@@ -1599,120 +1118,6 @@ window.GCTPartialNavigation.registerInitializer(
 
 
     /* =========================================================
-       REVIEW ACTIONS
-    ========================================================= */
-
-    function configureReviewActions(
-      button,
-      mode,
-      status
-    ) {
-
-      const isView =
-        mode === 'view';
-
-
-      const canEdit =
-        isView &&
-        button?.dataset
-          .canEdit === '1';
-
-
-      const canApprove =
-        isView &&
-        status === 'Submitted' &&
-        button?.dataset
-          .canApprove === '1';
-
-
-      if (
-        reviewEditPrBtn
-      ) {
-
-        reviewEditPrBtn.hidden =
-          !canEdit;
-
-
-        const label =
-          reviewEditPrBtn
-            .querySelector(
-              'span'
-            );
-
-
-        if (label) {
-
-          label.textContent =
-            status === 'Rejected'
-              ? 'Revise'
-              : 'Edit';
-
-        }
-
-      }
-
-
-      [
-        [
-          reviewApprovePrBtn,
-          canApprove,
-          button?.dataset
-            .approveUrl
-        ],
-        [
-          reviewRejectPrBtn,
-          canApprove,
-          button?.dataset
-            .rejectUrl
-        ],
-      ].forEach(
-        ([
-          control,
-          visible,
-          actionUrl,
-        ]) => {
-
-          if (!control) {
-            return;
-          }
-
-
-          control.hidden =
-            !visible;
-
-
-          if (visible) {
-
-            control.dataset
-              .actionUrl =
-              actionUrl || '';
-
-
-            control.dataset
-              .prNo =
-              button?.dataset
-                .prNo
-              || '';
-
-          }
-
-        }
-      );
-
-
-      if (
-        reviewDecisionBlock
-      ) {
-
-        reviewDecisionBlock.hidden =
-          !canApprove;
-
-      }
-
-    }
-
-
-    /* =========================================================
        MODAL MODE
     ========================================================= */
 
@@ -1752,7 +1157,7 @@ window.GCTPartialNavigation.registerInitializer(
 
           editPrModalTitle
             .textContent =
-            'Purchase Requisition Details';
+            'Purchase Request Details';
 
         } else if (
           isRejected
@@ -1868,37 +1273,7 @@ window.GCTPartialNavigation.registerInitializer(
 
 
       /*
-       * Review / Edit workspace
-       */
-      [
-        prReviewInformation,
-        prReviewItemsSection,
-        prRequestDetailsSection,
-        prAuthorizationSection,
-      ].forEach(
-        element => {
-
-          if (element) {
-            element.hidden =
-              !isView;
-          }
-
-        }
-      );
-
-
-      if (
-        prEditableSection
-      ) {
-
-        prEditableSection.hidden =
-          isView;
-
-      }
-
-
-      /*
-       * Review footer
+       * View Close
        */
       if (
         viewOnlyActions
@@ -1907,18 +1282,11 @@ window.GCTPartialNavigation.registerInitializer(
         viewOnlyActions
           .style
           .display =
-          isView
+          isReadonly
             ? 'flex'
             : 'none';
 
       }
-
-
-      configureReviewActions(
-        activePrTrigger,
-        mode,
-        status
-      );
 
     }
 
@@ -1931,210 +1299,12 @@ window.GCTPartialNavigation.registerInitializer(
       button,
       mode
     ) {
+      activePrNo = button.dataset.prNo || '';
+      activePrMode = mode;
 
       const status =
         button.dataset.status
         || 'Submitted';
-
-
-      activePrTrigger =
-        button;
-      // Read-only IR context: use the same saved JO-minus-PR allocation
-      // shown by the linked Purchase Requests table. Never submit it in this form.
-      const referenceBody = document.getElementById('reviewPrIrPartsBody');
-      if (referenceBody) {
-        referenceBody.replaceChildren();
-        let parts = [];
-        try {
-          const parsed = JSON.parse(button.dataset.referenceIrParts || '[]');
-          if (Array.isArray(parsed)) parts = parsed;
-        } catch (_) { parts = []; }
-        if (!parts.length) {
-          const row = document.createElement('tr');
-          const cell = document.createElement('td');
-          cell.colSpan = 3;
-          cell.className = 'pr-review-empty';
-          cell.textContent = 'No available IR allocation recorded.';
-          row.append(cell);
-          referenceBody.append(row);
-        } else {
-          parts.forEach(part => {
-            const row = document.createElement('tr');
-            const name = document.createElement('td');
-            name.textContent = part.name || '—';
-            const qty = document.createElement('td');
-            qty.textContent = String(part.quantity ?? 0) + ' ' + (part.unit || '');
-            const cell = document.createElement('td');
-            const badge = document.createElement('span');
-            const irBadge = linkedIrBadge(button.dataset.linkedIrStatus);
-            badge.className = irBadge.className;
-            badge.textContent = irBadge.label;
-            cell.append(badge);
-            row.append(name, qty, cell);
-            referenceBody.append(row);
-          });
-        }
-      }
-
-
-
-      const approvedJo = button.dataset.joApproved === '1';
-      const approver = document.getElementById('reviewPrApprover');
-      const approvedAt = document.getElementById('reviewPrApprovedAt');
-      const signature = document.getElementById('reviewPrSignature');
-      const signatureFallback = document.getElementById('reviewPrSignatureFallback');
-      const sourceJoStatus = button.dataset.joReviewStatus || 'Unknown';
-      if (approver) approver.textContent = approvedJo
-        ? (button.dataset.joApprover || 'Approver not recorded')
-        : (sourceJoStatus === 'JO not found' ? 'Source JO not found' : 'Pending JO approval (' + sourceJoStatus + ')');
-      if (approvedAt) approvedAt.textContent = approvedJo ? (button.dataset.joApprovedAt || 'Not recorded') : '—';
-      if (signature) {
-        signature.hidden = true;
-        signature.removeAttribute('src');
-        signature.onload = () => {
-          signature.hidden = false;
-          if (signatureFallback) signatureFallback.hidden = true;
-        };
-        signature.onerror = () => {
-          signature.hidden = true;
-          if (signatureFallback) {
-            signatureFallback.hidden = false;
-            signatureFallback.textContent = 'Signature unavailable';
-          }
-        };
-        if (signatureFallback) {
-          signatureFallback.hidden = false;
-          signatureFallback.textContent = approvedJo ? 'Loading signature…' : 'No approved JO signature available';
-        }
-        if (approvedJo && button.dataset.joSignatureUrl) {
-          signature.src = button.dataset.joSignatureUrl;
-        }
-      }
-
-
-
-      if (reviewPrNo) {
-        reviewPrNo.textContent =
-          button.dataset.prNo || '—';
-      }
-
-
-      if (reviewPrStatus) {
-        reviewPrStatus.textContent =
-          status;
-        reviewPrStatus.dataset.status =
-          status.toLowerCase().replaceAll(' ', '-');
-      }
-
-      const sourceJobOrder =
-        button.dataset.jobOrderNo || '—';
-
-      if (reviewPrSummaryJobOrder) {
-        reviewPrSummaryJobOrder.textContent =
-          sourceJobOrder;
-      }
-
-      if (reviewPrJoAuthorization) {
-        reviewPrJoAuthorization.textContent =
-          approvedJo
-            ? 'JO authorization: Approved'
-            : `JO authorization: ${sourceJoStatus}`;
-      }
-
-      if (reviewPrAuthorizationJobOrder) {
-        reviewPrAuthorizationJobOrder.textContent =
-          approvedJo
-            ? `${sourceJobOrder} · Approved`
-            : `${sourceJobOrder} · ${sourceJoStatus}`;
-      }
-
-
-      if (reviewPrCreated) {
-        reviewPrCreated.textContent =
-          button.dataset.createdAt || '—';
-      }
-
-
-      if (reviewPrJobOrderNo) {
-        reviewPrJobOrderNo.textContent =
-          button.dataset.jobOrderNo || '—';
-      }
-
-
-      if (reviewPrBusNo) {
-        reviewPrBusNo.textContent =
-          button.dataset.busNo || '—';
-      }
-
-
-      if (reviewPrRemarks) {
-        reviewPrRemarks.textContent =
-          button.dataset.remarks?.trim()
-            || 'No remarks provided.';
-      }
-
-      if (reviewPrPurpose) {
-        reviewPrPurpose.textContent =
-          button.dataset.purpose?.trim() || '—';
-      }
-
-      if (reviewPrTargetDate) {
-        reviewPrTargetDate.textContent =
-          button.dataset.targetDate || '—';
-      }
-
-      if (reviewPrRequester) {
-        reviewPrRequester.textContent =
-          button.dataset.requester || '—';
-      }
-
-
-      if (reviewPrRequestDate) {
-        reviewPrRequestDate.textContent =
-          button.dataset.createdAt || '—';
-      }
-
-
-      if (reviewPrStatusText) {
-        reviewPrStatusText.textContent =
-          status === 'Submitted' && approvedJo
-            ? 'Submitted · JO Approved'
-            : status;
-      }
-
-
-      if (reviewPrTotalQuantity) {
-        reviewPrTotalQuantity.textContent =
-          button.dataset.quantity || '—';
-      }
-
-
-      if (reviewPrSource) {
-        reviewPrSource.textContent =
-          button.dataset.sourceType
-            || 'Maintenance Request';
-      }
-
-
-      if (reviewPrWorkToPerform) {
-        reviewPrWorkToPerform.textContent =
-          button.dataset.workToPerform?.trim()
-            || 'No work / repair details recorded.';
-      }
-
-
-      if (
-        reviewDecisionRemarks &&
-        mode === 'view'
-      ) {
-        reviewDecisionRemarks.value = '';
-      }
-
-
-      renderReviewParts(
-        button.dataset.item || '',
-        button.dataset.quantity || ''
-      );
 
 
       const isRejected =
@@ -2247,64 +1417,52 @@ window.GCTPartialNavigation.registerInitializer(
         editPrModal
       );
 
-      const modalScroller =
-        editPrModal?.querySelector(
-          '.ui-form-modal-scrollable'
-        );
-
-      if (modalScroller) {
-        modalScroller.scrollTop = 0;
-      }
-
     }
 
+    let activePrNo = '';
+    let activePrMode = 'view';
+
+    function configureReviewActions(button) {
+      const canEdit = button.dataset.canEdit === '1';
+      const status = button.dataset.status || 'Submitted';
+
+      return activePrMode === 'edit' &&
+        canEdit &&
+        !isProcessedPrStatus(status)
+        ? 'edit'
+        : 'view';
+    }
 
     const syncOpenReviewPermissions = () => {
-
-      if (
-        !activePrTrigger ||
-        !editPrModal?.classList.contains('show')
-      ) {
+      if (!activePrNo || !editPrModal?.classList.contains('show')) {
         return;
       }
 
-      const activePrNo =
-        activePrTrigger.dataset.prNo;
+      const buttons = Array.from(document.querySelectorAll(
+        '.open-view-pr-modal, .open-edit-pr-modal'
+      ));
+      const button = buttons.find((candidate) =>
+        candidate.dataset.prNo === activePrNo &&
+        (activePrMode !== 'edit' || candidate.dataset.canEdit === '1')
+      ) || buttons.find((candidate) => candidate.dataset.prNo === activePrNo);
 
-      if (!activePrNo) {
+      if (!button) {
+        closeModal(editPrModal);
+        activePrNo = '';
+        activePrMode = 'view';
         return;
       }
 
-      const freshTrigger =
-        Array.from(
-          document.querySelectorAll(
-            '.open-view-pr-modal'
-          )
-        ).find(
-          button =>
-            button.dataset.prNo === activePrNo
-        );
-
-      if (!freshTrigger) {
-        return;
-      }
-
-      activePrTrigger =
-        freshTrigger;
-
-      configureReviewActions(
-        freshTrigger,
-        'view',
-        freshTrigger.dataset.status || 'Submitted'
-      );
-
+      openPrDetails(button, configureReviewActions(button));
     };
 
-
-    window.addEventListener(
-      'system-regions-refreshed',
-      syncOpenReviewPermissions
-    );
+    window.GCTSyncOpenPrReview = syncOpenReviewPermissions;
+    if (!window.GCTPrReviewRefreshBound) {
+      window.addEventListener('system-regions-refreshed', async () => {
+        await window.GCTSyncOpenPrReview();
+      });
+      window.GCTPrReviewRefreshBound = true;
+    }
 
 
     /* =========================================================
@@ -2338,25 +1496,6 @@ window.GCTPartialNavigation.registerInitializer(
     );
 
 
-    reviewEditPrBtn
-      ?.addEventListener(
-        'click',
-        () => {
-
-          if (!activePrTrigger) {
-            return;
-          }
-
-
-          openPrDetails(
-            activePrTrigger,
-            'edit'
-          );
-
-        }
-      );
-
-
     /* =========================================================
        EDIT / REVISE BUTTON
     ========================================================= */
@@ -2388,6 +1527,7 @@ window.GCTPartialNavigation.registerInitializer(
           isProcessedPrStatus(
             status
           )
+          || button.dataset.canEdit !== '1'
         ) {
 
           return;
@@ -2498,21 +1638,6 @@ window.GCTPartialNavigation.registerInitializer(
         'click',
         () => {
 
-          if (
-            activePrTrigger
-          ) {
-
-            openPrDetails(
-              activePrTrigger,
-              'view'
-            );
-
-
-            return;
-
-          }
-
-
           closeModal(
             editPrModal
           );
@@ -2548,12 +1673,6 @@ window.GCTPartialNavigation.registerInitializer(
     const rejectPrForm =
       document.getElementById(
         'rejectPrForm'
-      );
-
-
-    const rejectPrRemarks =
-      document.getElementById(
-        'rejectPrRemarks'
       );
 
 
@@ -2726,19 +1845,6 @@ window.GCTPartialNavigation.registerInitializer(
 
                 rejectPrForm.action =
                   actionUrl;
-
-
-                if (
-                  rejectPrRemarks
-                ) {
-
-                  rejectPrRemarks.value =
-                    reviewDecisionRemarks
-                      ?.value
-                      ?.trim()
-                    || 'Rejected by Maintenance';
-
-                }
 
 
                 rejectPrForm
@@ -2931,46 +2037,6 @@ window.GCTPartialNavigation.registerInitializer(
 
         }
       );
-
-
-    /* =========================================================
-       LOCAL BACKDROP CLOSE
-
-       IMPORTANT:
-       Global confirmation is excluded.
-    ========================================================= */
-
-    document.addEventListener(
-      'click',
-      event => {
-
-        const overlay =
-          event.target.closest(
-            '.ui-form-overlay, ' +
-            '.modal-overlay:not(.global-confirmation-overlay), ' +
-            '.delete-modal-overlay'
-          );
-
-
-        if (
-          !overlay ||
-          event.target !==
-            overlay
-        ) {
-          return;
-        }
-
-        if (overlay.id === 'prModal' || overlay.id === 'editPrModal') {
-          return;
-        }
-
-        closeModal(
-          overlay
-        );
-
-      }
-    );
-
 
     /* =========================================================
        ESC CLOSE

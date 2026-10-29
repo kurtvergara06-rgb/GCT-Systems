@@ -1,5 +1,4 @@
 <x-layout.app
-    :partial-navigation="false"
     title="FROMS - Analytics Overview"
     :assets="[
         'resources/css/Admin/Analytics/overview/overview.css',
@@ -14,12 +13,6 @@
             <x-layout.topbar
                 title="Analytics Overview"
                 subtitle="Executive summary of descriptive, diagnostic, predictive, and prescriptive analytics across FROMS"
-            />
-
-            <x-analytics.insight-toast
-                stage="overview"
-                domain="all"
-                :insight="$openRecommendationCount > 0 ? $overviewInsight : null"
             />
 
             <form class="overview-period-filter" method="GET" action="{{ route('analytics.overview') }}">

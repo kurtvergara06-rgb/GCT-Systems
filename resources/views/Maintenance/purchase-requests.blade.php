@@ -319,6 +319,7 @@
                   <x-ui.table-footer
                       :items="$purchaseRequests"
                       data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                      data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                   />
                   @endif
               </section>

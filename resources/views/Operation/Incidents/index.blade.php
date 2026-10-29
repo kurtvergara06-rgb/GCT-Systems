@@ -9,19 +9,32 @@
         'resources/js/Operation/Incidents/incidents.js',
     ]"
 >
-    @php
-        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
-    @endphp
     <div class="app">
         <x-layout.sidebar department="Operation" />
 
         <main class="main inc-page">
+            @php
+                $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+            @endphp
+
             <x-layout.topbar
                 title="Incident Management"
                 subtitle="Monitor and respond to operational incidents reported during trips"
             />
 
+            @if (session('success'))
+                <div class="inc-alert inc-alert-success" role="alert">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div><strong>{{ session('success') }}</strong></div>
+                </div>
+            @endif
 
+            @if (session('error'))
+                <div class="inc-alert inc-alert-error" role="alert">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <div><strong>{{ session('error') }}</strong></div>
+                </div>
+            @endif
 
             <section class="inc-summary-grid">
                 <article class="inc-summary-card">
@@ -49,22 +62,7 @@
                         <p>Operational incidents reported by drivers during active trips.</p>
                     </div>
 
-
-                    @if($canEditOperation)
-                    <button type="button" id="openIncidentReportModal" class="inc-new-btn">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                        Report Incident
-                    </button>
-                    @else
-                    <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
-                      <button type="button" class="inc-new-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-plus" aria-hidden="true"></i> Report Incident</button>
-                    </span>
-                    @endif
-                </div>
-
-
-
-                <div class="gct-table-toolbar-row"><nav class="inc-segmented-tabs" role="tablist" aria-label="Incident record groups">
+                <nav class="inc-segmented-tabs" role="tablist" aria-label="Incident record groups">
                     <a href="{{ route('incidents', array_merge(request()->except(['tab', 'incident_page', 'status']), ['tab' => 'active'])) }}" class="inc-tab-pill {{ $tab === 'active' ? 'is-active' : '' }}" role="tab" aria-selected="{{ $tab === 'active' ? 'true' : 'false' }}">
                         <i class="fa-solid fa-list-check" aria-hidden="true"></i> Active
                     </a>
@@ -72,13 +70,46 @@
                         <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History
                     </a>
                 </nav>
-                <x-ui.table-toolbar action="{{ route('incidents') }}" search-label="Search Incidents" search-placeholder="Search incident, driver, bus, trip, or location..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('type') && request('type') !== 'all')" filter-title="Filter Incidents" :sort-options="['incident_reported_at' => 'Reported Date', 'incident_no' => 'Incident Number', 'incident_type' => 'Incident Type', 'status' => 'Status']" default-sort="incident_reported_at" default-direction="desc">
-                    <x-slot:hidden><input type="hidden" name="tab" value="{{ $tab }}"></x-slot:hidden>
-                    <x-slot:filters>
-                        <x-ui.table-toolbar-field label="Status" name="status" default="all"><option value="all">All Statuses</option>@foreach(['Reported', 'Monitoring', 'Responding', 'Replacement Bus Dispatched', 'Resolved', 'Cancelled'] as $statusOption)<option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>{{ $statusOption }}</option>@endforeach</x-ui.table-toolbar-field>
-                        <x-ui.table-toolbar-field label="Incident Type" name="type" default="all"><option value="all">All Types</option>@foreach(['Traffic', 'Bus Breakdown', 'Accident/Road Incident', 'Other'] as $typeOption)<option value="{{ $typeOption }}" @selected(request('type') == $typeOption)>{{ $typeOption }}</option>@endforeach</x-ui.table-toolbar-field>
-                    </x-slot:filters>
-                </x-ui.table-toolbar></div>
+                </div>
+
+                <form method="GET" action="{{ route('incidents') }}" class="inc-toolbar">
+                    <input type="hidden" name="tab" value="{{ $tab }}">
+                    <div class="inc-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by incident no, driver, bus, trip, location..." />
+                    </div>
+
+                    <div class="inc-filter-select-wrap">
+                        <select id="filterStatus" name="status" onchange="this.form.submit()" aria-label="Filter by Status">
+                            <option value="all">All Statuses</option>
+                            @foreach(['Reported', 'Monitoring', 'Responding', 'Replacement Bus Dispatched', 'Resolved', 'Cancelled'] as $statusOption)
+                                <option value="{{ $statusOption }}" @selected(request('status') == $statusOption)>{{ $statusOption }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="inc-filter-select-wrap">
+                        <select id="filterType" name="type" onchange="this.form.submit()" aria-label="Filter by Incident Type">
+                            <option value="all">All Types</option>
+                            @foreach(['Traffic', 'Bus Breakdown', 'Accident/Road Incident', 'Other'] as $typeOption)
+                                <option value="{{ $typeOption }}" @selected(request('type') == $typeOption)>{{ $typeOption }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    @if($canEditOperation)
+                        <button type="button" id="openIncidentReportModal" class="inc-new-btn">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            Report Incident
+                        </button>
+                    @endif
+
+                    @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('type') && request('type') !== 'all'))
+                        <a href="{{ route('incidents', ['tab' => $tab]) }}" class="inc-clear-btn" title="Reset all filters">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </a>
+                    @endif
+                </form>
 
                 <div class="table-wrap inc-table-wrap">
                     <table class="inc-table">
@@ -108,7 +139,7 @@
                                             && in_array($currentRole, ['head', 'admin', 'operation head', 'operations head', 'operation admin'], true))
                                         || ($currentDepartment === 'admin' && in_array($currentRole, ['head', 'admin', 'system admin'], true)));
                                     $maintenanceReferral = $incident->maintenanceReferral;
-                                    $canDeployReplacement = $currentUser?->hasSystemPermission('operation', 'edit') && $incident->incident_type === 'Bus Breakdown' && !$incident->replacement && !in_array($incident->status, ['Resolved', 'Cancelled'], true);
+                                    $canDeployReplacement = $canEditOperation && $incident->incident_type === 'Bus Breakdown' && !$incident->replacement && !in_array($incident->status, ['Resolved', 'Cancelled'], true);
                                     $canModifyIncident = $canEditOperation && $incident->status === 'Reported' && !$maintenanceReferral && !$incident->replacement && $incident->responses->count() <= 1;
                                     $canArchiveIncident = $canModifyIncident && $incident->incident_type !== 'Bus Breakdown';
                                     $editLockReason = $incident->status !== 'Reported'
@@ -123,6 +154,8 @@
                                     $archiveLockReason = $incident->incident_type === 'Bus Breakdown'
                                         ? 'Archive unavailable: breakdown affects bus maintenance workflow'
                                         : ($canModifyIncident ? 'Archive available' : $editLockReason);
+
+                                    $isFirstActiveBreakdown = $loop->first && $incident->incident_type === 'Bus Breakdown' && !in_array($incident->status, ['Resolved', 'Cancelled'], true);
                                 @endphp
 
                                 <tr data-incident-record
@@ -147,7 +180,9 @@
                                     data-incident-timeline="{{ $incident->responses->map(fn ($response) => ['time' => $response->created_at?->format('M d, Y g:i A'), 'status' => $response->status ?? '', 'note' => $response->remarks ?? $response->notes ?? 'Incident response recorded'])->toJson() }}">
                                     <td>
                                         <div class="inc-incident-id-cell">
-
+                                            <button type="button" class="inc-expand-toggle" aria-expanded="{{ $isFirstActiveBreakdown ? 'true' : 'false' }}" aria-controls="inc-expanded-{{ $incident->id }}" title="{{ $isFirstActiveBreakdown ? 'Collapse incident details' : 'Expand incident details' }}">
+                                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                            </button>
                                             <x-ui.id-badge :value="$incident->incident_no" />
                                         </div>
                                     </td>
@@ -193,35 +228,190 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <x-ui.status-badge :status="$incident->status" :label="$incident->status === 'Replacement Bus Dispatched' ? 'Reserve Deployed' : null" :title="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
+                                        <x-ui.status-badge :status="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
                                     </td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
-                                            <button type="button" class="action-btn view inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident workflow" title="Open Incident Workflow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></button>
-                                            @if($canModifyIncident)
-                                                <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
-                                            @else
-                                                <button type="button" class="action-btn edit inc-action inc-edit-action inc-action-disabled" disabled title="{{ $editLockReason }}" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
-                                            @endif
-                                            @if($canArchiveIncident)
-                                                <form method="POST" action="{{ route('incidents.destroy', ['incident' => $incident->incident_no]) }}" data-confirm-form data-confirm-type="delete" data-confirm-title="Archive Incident" data-confirm-message="Archive this unprocessed incident? It will leave Active records while its audit history remains available.">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <x-ui.action-button type="delete" button-type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident" />
-                                                </form>
-                                            @else
-                                                <button type="button" class="action-btn delete inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-                                            @endif
+                                            <button type="button" class="action-btn view inc-action" data-incident-modal-action="view" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="View incident details" title="View Incident Details"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                                            @if($canEditOperation)
+                                                @if($canModifyIncident)
+                                                    <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                                @else
+                                                    <button type="button" class="inc-action inc-edit-action inc-action-disabled" disabled title="{{ $editLockReason }}" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                                @endif
+                                                @if($canArchiveIncident)
+                                                    <form method="POST" action="{{ route('incidents.destroy', ['incident' => $incident->incident_no]) }}" onsubmit="return confirm('Archive this unprocessed incident? This action will remove it from active records while preserving its audit history.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <x-ui.action-button type="delete" button-type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident" />
+                                                    </form>
+                                                @else
+                                                    <button type="button" class="inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                                @endif
 
-                                            @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
-                                                <form method="POST" action="{{ route('incidents.maintenance-referral.store', $incident) }}">
-                                                    @csrf
-                                                    <button type="submit" class="inc-action view" title="Refer to Maintenance" aria-label="Refer incident to Maintenance">
-                                                        <i class="fa-solid fa-screwdriver-wrench"></i>
-                                                    </button>
-                                                </form>
+                                                @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
+                                                    <form method="POST" action="{{ route('incidents.maintenance-referral.store', $incident) }}">
+                                                        @csrf
+                                                        <button type="submit" class="inc-action view" title="Refer to Maintenance" aria-label="Refer incident to Maintenance">
+                                                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
                                         </div>
+                                    </td>
+                                </tr>
+                                <tr class="inc-expanded-row" id="inc-expanded-{{ $incident->id }}" {{ $isFirstActiveBreakdown ? '' : 'hidden' }}>
+                                    <td colspan="7">
+                                        <section class="inc-expanded-content" aria-label="Details for {{ $incident->incident_no }}">
+                                            <h3 class="inc-drawer-section-title">Incident Details</h3>
+                                            <!-- Drawer Header Banner -->
+                                            <div class="inc-drawer-card-header">
+                                                <div class="inc-drawer-identity">
+                                                    <div class="inc-drawer-bus-badge">
+                                                        <i class="fa-solid fa-{{ $incident->incident_type === 'Bus Breakdown' ? 'bus' : 'triangle-exclamation' }}"></i>
+                                                    </div>
+                                                    <div class="inc-drawer-header-text">
+                                                        <div class="inc-drawer-num-row">
+                                                            <strong class="inc-drawer-num">{{ $incident->incident_no }}</strong>
+                                                            <x-ui.status-badge :status="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
+                                                        </div>
+                                                        <div class="inc-drawer-type-title">{{ $incident->incident_type }}</div>
+                                                        <div class="inc-drawer-meta-sub">
+                                                            Reported {{ $incident->incident_reported_at ? ($incident->incident_reported_at->isToday() ? 'today at ' : '') . $incident->incident_reported_at->format('g:i A') : 'time not recorded' }}
+                                                            <span class="inc-drawer-meta-sep">|</span>
+                                                            {{ $incident->location ?: 'Location not recorded' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="inc-drawer-cta-wrap">
+                                                    @if($incident->incident_type === 'Bus Breakdown' && $canDeployReplacement)
+                                                        <a class="inc-drawer-deploy-btn" href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}">
+                                                            <i class="fa-solid fa-bus"></i> Deploy Reserve Bus
+                                                        </a>
+                                                    @else
+                                                        <a class="inc-drawer-deploy-btn" href="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}">
+                                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Complete Workflow
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- 2-Column Info Details Grid -->
+                                            <div class="inc-drawer-info-grid">
+                                                <div class="inc-drawer-info-col">
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Incident ID</span>
+                                                        <strong class="inc-kv-val">{{ $incident->incident_no }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Incident Type</span>
+                                                        <strong class="inc-kv-val">{{ $incident->incident_type }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Affected Bus</span>
+                                                        <strong class="inc-kv-val">{{ $incident->bus ? ($incident->bus->bus_no . ($incident->bus->body_no ? ' (Body No. ' . $incident->bus->body_no . ')' : ($incident->bus->plate_no ? ' (' . $incident->bus->plate_no . ')' : ''))) : 'Not recorded' }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Original Driver</span>
+                                                        <strong class="inc-kv-val">{{ $incident->driver_name ?: 'Not recorded' }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Route</span>
+                                                        <strong class="inc-kv-val">{{ $routeLabel ?: ($incident->tripSchedule?->shuttleRoute?->route_name ?: 'Not recorded') }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Scheduled Time</span>
+                                                        <strong class="inc-kv-val">{{ $incident->tripSchedule?->departure_time ? \Carbon\Carbon::parse($incident->tripSchedule->departure_time)->format('g:i A') : 'Not recorded' }}</strong>
+                                                    </div>
+                                                </div>
+
+                                                <div class="inc-drawer-info-col">
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Reported By</span>
+                                                        <strong class="inc-kv-val">{{ $incident->reporter?->name ?: ($incident->driver_name ?: 'Driver') }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Coordinated By</span>
+                                                        <strong class="inc-kv-val">OIC</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Current Status</span>
+                                                        <strong class="inc-kv-val inc-status-text-{{ strtolower(str_replace(' ', '-', $incident->status)) }}">
+                                                            <i class="fa-solid fa-circle"></i> {{ $incident->status }}
+                                                        </strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv">
+                                                        <span class="inc-kv-key">Location</span>
+                                                        <strong class="inc-kv-val">{{ $incident->location ?: 'Not recorded' }}</strong>
+                                                    </div>
+                                                    <div class="inc-drawer-kv full-remarks">
+                                                        <span class="inc-kv-key">Remarks</span>
+                                                        <strong class="inc-kv-val">{{ $incident->description ?: 'No remarks recorded' }}</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- 5-Step Progress Stepper -->
+                                            <div class="inc-progress-stepper-wrap">
+                                                <h4 class="inc-stepper-label">Incident Progress</h4>
+                                                @php
+                                                    $hasResponses = $incident->responses->count() > 0 || $incident->status !== 'Reported';
+                                                    $hasReplacement = !is_null($incident->replacement);
+                                                    $isTripResumed = in_array($incident->status, ['Resolved', 'Trip Resumed'], true);
+                                                    $isReferred = !is_null($maintenanceReferral);
+                                                @endphp
+                                                <div class="inc-stepper-container">
+                                                    <!-- Step 1: Breakdown Reported -->
+                                                    <div class="inc-step-node is-completed">
+                                                        <div class="inc-step-badge">1</div>
+                                                        <span class="inc-step-title">Breakdown Reported</span>
+                                                        <small class="inc-step-time">{{ $incident->incident_reported_at ? $incident->incident_reported_at->format('g:i A') : 'Recorded' }}</small>
+                                                    </div>
+                                                    <div class="inc-step-connector {{ $hasResponses || $hasReplacement ? 'is-completed' : '' }}"></div>
+
+                                                    <!-- Step 2: OIC Coordinating Response -->
+                                                    <div class="inc-step-node {{ $hasReplacement ? 'is-completed' : ($hasResponses ? 'is-active' : '') }}">
+                                                        <div class="inc-step-badge">2</div>
+                                                        <span class="inc-step-title">OIC Coordinating Response</span>
+                                                        <small class="inc-step-status {{ $hasReplacement ? 'status-completed' : ($hasResponses ? 'status-in-progress' : '') }}">
+                                                            {{ $hasReplacement ? 'Coordinated' : ($hasResponses ? 'In Progress' : 'Pending') }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="inc-step-connector {{ $hasReplacement ? 'is-completed' : '' }}"></div>
+
+                                                    <!-- Step 3: Reserve Bus Dispatched -->
+                                                    <div class="inc-step-node {{ $isTripResumed ? 'is-completed' : ($hasReplacement ? 'is-active' : '') }}">
+                                                        <div class="inc-step-badge">3</div>
+                                                        <span class="inc-step-title">Reserve Bus Dispatched</span>
+                                                        <small class="inc-step-status {{ $isTripResumed ? 'status-completed' : ($hasReplacement ? 'status-in-progress' : '') }}">
+                                                            {{ $hasReplacement ? ($incident->replacement->dispatched_at ? $incident->replacement->dispatched_at->format('g:i A') : 'Dispatched') : 'Pending' }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="inc-step-connector {{ $isTripResumed ? 'is-completed' : '' }}"></div>
+
+                                                    <!-- Step 4: Driver Resumes Trip -->
+                                                    <div class="inc-step-node {{ $isTripResumed ? 'is-completed' : '' }}">
+                                                        <div class="inc-step-badge">4</div>
+                                                        <span class="inc-step-title">Driver Resumes Trip</span>
+                                                        <small class="inc-step-status {{ $isTripResumed ? 'status-completed' : '' }}">
+                                                            {{ $isTripResumed ? 'Completed' : 'Pending' }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="inc-step-connector {{ $isReferred && $isTripResumed ? 'is-completed' : '' }}"></div>
+
+                                                    <!-- Step 5: Broken Bus Referred to Maintenance -->
+                                                    <div class="inc-step-node {{ $isReferred && $isTripResumed ? 'is-completed' : ($isReferred ? 'is-active' : '') }}">
+                                                        <div class="inc-step-badge">5</div>
+                                                        <span class="inc-step-title">Broken Bus Referred to Maintenance</span>
+                                                        <small class="inc-step-status {{ $isReferred ? 'status-completed' : '' }}">
+                                                            {{ $isReferred ? 'Referral recorded' : 'Pending' }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
                                     </td>
                                 </tr>
                             @empty
@@ -238,9 +428,11 @@
 
                 <x-ui.table-footer :items="$incidents" />
             </section>
-    <!-- Incident modals belong to the navigated main region so fresh elements and
-         event handlers are installed whenever partial navigation returns here. -->
-    <!-- Body-level styling: backdrop click is intentionally not a dismissal action. -->
+        </main>
+    </div>
+
+
+    <!-- Body-level modal: backdrop click is intentionally not a dismissal action. -->
     <div class="inc-record-modal-backdrop" id="incidentRecordModal" hidden>
         <section class="inc-record-modal" role="dialog" aria-modal="true" aria-labelledby="incidentRecordModalTitle" tabindex="-1">
             <header class="inc-record-modal-header">
@@ -294,7 +486,7 @@
                         <div class="inc-modal-timeline" data-incident-timeline-panel></div>
                     </section>
                     <div class="inc-modal-view-footer">
-                        <a href="#" class="inc-record-full-details" data-incident-full-link>Open Incident Details & Workflow</a>
+                        <a href="#" class="inc-record-full-details" data-incident-full-link>Open Complete Incident Workflow</a>
                         <div class="inc-modal-view-actions">
                             <button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Close</button>
                             <button type="button" class="inc-record-modal-save" data-incident-switch-edit><i class="fa-solid fa-pen-to-square"></i> Edit Incident</button>
@@ -316,6 +508,7 @@
                             <div><small>Trip / Route</small><strong data-incident-edit-info="trip">—</strong></div>
                         </div>
                     </section>
+                    @if($canEditOperation)
                     <section class="inc-modal-section inc-edit-fields">
                         <h3><i class="fa-solid fa-pen-to-square"></i> Edit Details</h3>
                         <div class="inc-edit-field-grid">
@@ -325,8 +518,9 @@
                         </div>
                         <div class="inc-edit-restriction"><i class="fa-solid fa-triangle-exclamation"></i><div><strong>Editing Restrictions</strong><p>Only an unprocessed incident can be edited. Once processing begins or dependent records exist, editing is locked to preserve the audit trail.</p></div></div>
                     </section>
+                    @endif
                     <div class="inc-record-modal-error" data-incident-modal-error role="alert" hidden></div>
-                    <div class="inc-record-modal-footer"><button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Cancel</button><button type="submit" class="inc-record-modal-save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button></div>
+                    <div class="inc-record-modal-footer"><button type="button" class="inc-record-modal-cancel" data-incident-modal-close>Close</button>@if($canEditOperation)<button type="submit" class="inc-record-modal-save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>@endif</div>
                 </form>
             </div>
         </section>
@@ -376,25 +570,4 @@
         </div>
     </x-ui.form-modal>
     @endif
-<div id="incidentWorkflowModal" class="inc-workflow-overlay" hidden>
-    <section class="inc-workflow-dialog" role="dialog" aria-modal="true" aria-labelledby="incidentWorkflowModalTitle" tabindex="-1">
-        <header class="inc-workflow-header">
-            <div class="inc-workflow-header-info">
-                <div class="inc-workflow-header-icon">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </div>
-                <div>
-                    <h2 id="incidentWorkflowModalTitle">Incident Details & Workflow</h2>
-                    <p>Review and manage incident operations without leaving this page.</p>
-                </div>
-            </div>
-            <button type="button" class="inc-workflow-close-btn" data-incident-workflow-close aria-label="Close incident workflow" title="Close Workflow">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </header>
-        <iframe class="inc-workflow-frame" title="Incident Details & Workflow" loading="lazy"></iframe>
-    </section>
-</div>
-        </main>
-    </div>
 </x-layout.app>

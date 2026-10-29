@@ -30,7 +30,7 @@ class JobOrderHeadReviewModalLayoutTest extends TestCase
         $this->assertStringContainsString('jo-duration-verification-grid', $view);
         $this->assertStringContainsString('jo-review-step-heading', $view);
         $this->assertStringContainsString('grid-template-columns: minmax(0, 1fr);', $css);
-        $this->assertStringContainsString('Verify details, confirm duration, and authorize the Job Order.', $javascript);
+        $this->assertStringContainsString('Verify details, confirm duration, and authorize the Job Order.', $view);
     }
 
     public function test_review_uses_real_duration_service_data_and_authenticated_signatory(): void

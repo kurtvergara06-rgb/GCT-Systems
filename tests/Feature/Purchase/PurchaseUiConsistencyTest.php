@@ -178,7 +178,11 @@ class PurchaseUiConsistencyTest extends TestCase
             $js
         );
         $this->assertStringContainsString(
-            "setText('po_subtotal_display', money(total))",
+            "setText('po_subtotal_display', money(subtotal))",
+            $js
+        );
+        $this->assertStringContainsString(
+            "money(Math.max(0, subtotal + deliveryFee + vat - discount))",
             $js
         );
     }
@@ -214,7 +218,7 @@ class PurchaseUiConsistencyTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            '@if($isEditable)',
+            '@if($isEditable && ! $isForReview)',
             $view
         );
         $this->assertStringContainsString(
@@ -249,11 +253,11 @@ class PurchaseUiConsistencyTest extends TestCase
         $this->assertStringNotContainsString('id="poViewActions"', $view);
         $this->assertStringNotContainsString('id="closeViewPoModal"', $view);
         $this->assertStringContainsString(
-            "editActions.classList.toggle('hidden', viewOnly)",
+            "editActions.style.display = viewOnly ? 'none' : 'flex'",
             $js
         );
         $this->assertStringContainsString(
-            "viewActions.classList.add('hidden')",
+            "viewActions.style.display = viewOnly ? 'flex' : 'none'",
             $js
         );
     }

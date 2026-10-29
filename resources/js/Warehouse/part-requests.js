@@ -1,76 +1,15 @@
 window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.warehouse-part-main', function () {
-
-  // Floating JO parts menu avoids clipping inside the horizontally scrollable table.
-  let joPartsMenu = null;
-  let joPartsButton = null;
-  const closeJoParts = () => {
-    joPartsMenu?.remove();
-    joPartsButton?.setAttribute('aria-expanded', 'false');
-    joPartsMenu = null;
-    joPartsButton = null;
-  };
-  const positionJoParts = () => {
-    if (!joPartsMenu || !joPartsButton?.isConnected) return closeJoParts();
-    const r = joPartsButton.getBoundingClientRect();
-    const margin = 8;
-    const width = Math.min(330, window.innerWidth - 2 * margin);
-    joPartsMenu.style.width = width + 'px';
-    joPartsMenu.style.left = Math.max(margin, Math.min(r.left, window.innerWidth - width - margin)) + 'px';
-    const below = window.innerHeight - r.bottom;
-    const above = r.top;
-    const height = joPartsMenu.scrollHeight;
-    const flip = below < Math.min(height + margin, 220) && above > below;
-    const available = Math.max(90, (flip ? above : below) - 2 * margin);
-    joPartsMenu.style.maxHeight = Math.min(230, available) + 'px';
-    joPartsMenu.style.top = (flip ? Math.max(margin, r.top - Math.min(height, 230, available) - margin) : r.bottom + margin) + 'px';
-  };
-  const joPartsPage = document.querySelector('.warehouse-part-main');
-  joPartsPage?.addEventListener('click', event => {
-    const button = event.target.closest('.warehouse-jo-parts-more');
-    if (!button || !joPartsPage.contains(button)) return;
-    event.preventDefault();
-    if (joPartsButton === button) return closeJoParts();
-    closeJoParts();
-    const template = button.parentElement.querySelector('.warehouse-jo-parts-template');
-    if (!template) return;
-    joPartsButton = button;
-    joPartsMenu = template.cloneNode(true);
-    joPartsMenu.removeAttribute('hidden');
-    joPartsMenu.classList.remove('warehouse-jo-parts-template');
-    joPartsMenu.classList.add('warehouse-jo-parts-popup');
-    joPartsMenu.setAttribute('role', 'dialog');
-    joPartsMenu.setAttribute('aria-label', 'Other requested parts');
-    document.body.appendChild(joPartsMenu);
-    button.setAttribute('aria-expanded', 'true');
-    positionJoParts();
-  });
-  document.addEventListener('click', event => {
-    if (joPartsButton?.contains(event.target) || joPartsMenu?.contains(event.target)) return;
-    closeJoParts();
-  });
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeJoParts();
-  });
-  window.addEventListener('resize', closeJoParts);
-  document.addEventListener('scroll', event => {
-    if (joPartsMenu && !joPartsMenu.contains(event.target)) closeJoParts();
-  }, true);
-
   function openModal(modal) {
     if (!modal) return;
 
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
-    delete modal.dataset.gsapClosing;
 
-    const scrollable = modal.querySelector('.warehouse-modal-scrollable');
-    if (scrollable) {
-      scrollable.scrollTop = 0;
+    if (window.GCTModalBackdrop?.sync) {
+      window.GCTModalBackdrop.sync();
     }
 
-    window.GCTModalBackdrop?.sync?.();
     window.GCTSystemAnimations?.animateModalOpen?.(modal);
   }
 
@@ -81,8 +20,10 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       modal.classList.remove('show');
       modal.classList.remove('active');
       modal.style.display = 'none';
-      modal.setAttribute('aria-hidden', 'true');
-      window.GCTModalBackdrop?.sync?.();
+
+      if (window.GCTModalBackdrop?.sync) {
+        window.GCTModalBackdrop.sync();
+      }
     };
 
     if (!window.GCTSystemAnimations?.animateModalClose?.(modal, finishClose)) {
@@ -137,82 +78,38 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       .replace(/\s+/g, '-');
   }
 
-  function partIdentity(part) {
-    const name = String(part?.name || '')
-      .replace(/\s*\[item:\d+\]/gi, '')
-      .trim()
-      .toLowerCase();
-    const unit = String(part?.unit || '').trim().toLowerCase();
-    return `${name}|${unit}`;
-  }
-
-  function renderPartsBreakdown(parts, joParts, processingStatus) {
+  function renderPartsBreakdown(parts) {
     const container = document.getElementById('view_parts_breakdown');
-    const stockContainer = document.getElementById('view_stock_reference');
+
     if (!container) return;
-    if (!Array.isArray(parts) || !parts.length) {
+
+    if (!Array.isArray(parts) || parts.length === 0) {
       container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
-      if (stockContainer) {
-        stockContainer.innerHTML = '<div class="parts-breakdown-empty">No stock reference found.</div>';
-      }
       return;
     }
 
-    const cleanName = value => String(value || '—').replace(/\s*\[item:\d+\]/gi, '').trim();
-    const joRequirements = new Map(
-      (Array.isArray(joParts) ? joParts : []).map(part => [partIdentity(part), part])
-    );
+    let html = `
+      <div class="parts-breakdown-table no-status">
+        <div class="parts-breakdown-head no-status">
+          <span>Part Name</span>
+          <span>Quantity</span>
+          <span>On Hand</span>
+        </div>
+    `;
 
-    const cells = parts.map(part => {
-      const unit = String(part.unit || '').trim();
-      const quantityValue = Number(part.needed ?? part.quantity ?? 0);
-      const quantity = part.needed_display ?? `${quantityValue}${unit ? ` ${unit}` : ''}`;
-      const onHandValue = Number(part.physical_on_hand ?? 0);
-      const onHand = part.physical_on_hand_display ?? `${onHandValue}${unit ? ` ${unit}` : ''}`;
-      const joPart = joRequirements.get(partIdentity(part));
-      const joQuantityValue = Number(joPart?.quantity ?? part.jo_required ?? quantityValue);
-      const joQuantity = `${joQuantityValue}${unit ? ` ${unit}` : ''}`;
-      const shortage = part.shortage_display ?? quantity;
-      const needsPurchase = /needs purchase|waiting for purchase|waiting for stock/i.test(processingStatus || '')
-        || onHandValue < joQuantityValue;
-      const status = needsPurchase ? 'Needs Purchase' : (processingStatus || 'Ready to Issue');
-      const statusClass = needsPurchase ? 'is-needs-purchase' : 'is-ready';
-      const stockClass = onHandValue > 0 ? 'is-positive' : 'is-empty';
+    parts.forEach(function (part) {
+      html += `
+        <div class="parts-breakdown-row no-status">
+          <span class="part-name">${escapeHtml(part.name || '—')}</span>
+          <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
+          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
+        </div>
+      `;
+    });
 
-      return `<tr>
-        <td>${escapeHtml(cleanName(part.name))}</td>
-        <td>${escapeHtml(joQuantity)}</td>
-        <td>${escapeHtml(quantity)}</td>
-        <td class="warehouse-pr-physical-stock ${stockClass}">${escapeHtml(onHand)}</td>
-        <td class="warehouse-pr-shortage">${escapeHtml(shortage)}</td>
-        <td><span class="warehouse-pr-line-status ${statusClass}">${escapeHtml(status)}</span></td>
-      </tr>`;
-    }).join('');
+    html += '</div>';
 
-    container.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table warehouse-pr-parts-table"><thead><tr><th>PART NAME</th><th>JO REQUIRED</th><th>PR QUANTITY</th><th>ON HAND</th><th>SHORTAGE</th><th>STATUS</th></tr></thead><tbody>' + cells + '</tbody></table></div>';
-
-    if (stockContainer) {
-      const stockRows = parts.map(part => {
-        const unit = String(part.unit || '').trim();
-        const onHandValue = Math.max(0, Number(part.physical_on_hand ?? 0));
-        const onHand = part.physical_on_hand_display ?? `${onHandValue}${unit ? ` ${unit}` : ''}`;
-        const joPart = joRequirements.get(partIdentity(part));
-        const required = Math.max(0, Number(joPart?.quantity ?? part.jo_required ?? part.needed ?? part.quantity ?? 0));
-        const issuableValue = Math.min(onHandValue, required);
-        const issuable = `${issuableValue}${unit ? ` ${unit}` : ''}`;
-        const stockClass = onHandValue > 0 ? 'is-positive' : 'is-empty';
-        const remarks = onHandValue <= 0 ? 'Out of stock' : (onHandValue < required ? 'Partial stock only' : 'Available in full');
-
-        return `<tr>
-          <td>${escapeHtml(cleanName(part.name))}</td>
-          <td class="warehouse-pr-stock-value ${stockClass}">${escapeHtml(onHand)}</td>
-          <td class="warehouse-pr-stock-value ${stockClass}">${escapeHtml(issuable)}</td>
-          <td>${escapeHtml(remarks)}</td>
-        </tr>`;
-      }).join('');
-
-      stockContainer.innerHTML = '<div class="warehouse-pr-view-table-wrap"><table class="warehouse-pr-view-table warehouse-pr-stock-table"><thead><tr><th>PART NAME</th><th>PHYSICAL ON HAND</th><th>ISSUABLE NOW</th><th>REMARKS</th></tr></thead><tbody>' + stockRows + '</tbody></table></div>';
-    }
+    container.innerHTML = html;
   }
 
   const viewPrModal = document.getElementById('viewPrModal');
@@ -227,7 +124,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     event.preventDefault();
 
     let parts = [];
-    let joParts = [];
 
     try {
       parts = JSON.parse(button.dataset.parts || '[]');
@@ -235,29 +131,13 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       parts = [];
     }
 
-    try {
-      joParts = JSON.parse(button.dataset.joParts || '[]');
-    } catch (error) {
-      joParts = [];
-    }
-
     setField('view_pr_no', button.dataset.prNo);
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
-    setField('view_requested_by', button.dataset.requestedBy);
     setField('view_created', button.dataset.created);
-    setField('view_processing', button.dataset.warehouseStatus);
-    setField('view_warehouse_status_badge', button.dataset.warehouseStatus);
-    setField('view_pr_parts_count', String(parts.length));
-
-    const statusBadge = document.getElementById('view_warehouse_status_badge');
-    if (statusBadge) {
-      statusBadge.dataset.status = slugStatus(button.dataset.warehouseStatus);
-    }
-
     setField('view_remarks', button.dataset.remarks, 'No remarks');
 
-    renderPartsBreakdown(parts, joParts, button.dataset.warehouseStatus);
+    renderPartsBreakdown(parts);
 
     openModal(viewPrModal);
   });
@@ -273,95 +153,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       closeModal(viewPrModal);
     });
   }
-
-  // Intercept the eligible Send Missing Parts form; no POST occurs until confirmed.
-  const showMissingPartsNotice = (message) => {
-    let root = document.querySelector('.system-toast-root');
-    if (!root) {
-      root = document.createElement('div');
-      root.className = 'system-toast-root';
-      root.setAttribute('aria-live', 'polite');
-      document.body.appendChild(root);
-    }
-    const notice = document.createElement('div');
-    notice.className = 'system-toast-notification system-toast-notification--warning';
-    notice.setAttribute('role', 'status');
-    const icon = document.createElement('div');
-    icon.className = 'system-toast-icon';
-    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-    const body = document.createElement('div');
-    body.className = 'system-toast-body';
-    const title = document.createElement('div');
-    title.className = 'system-toast-title';
-    title.textContent = 'No Missing Parts';
-    const detail = document.createElement('div');
-    detail.className = 'system-toast-message';
-    detail.textContent = message;
-    body.append(title, detail);
-    const close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'system-toast-close';
-    close.setAttribute('aria-label', 'Dismiss notification');
-    close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-    close.addEventListener('click', () => notice.remove());
-    notice.append(icon, body, close);
-    root.appendChild(notice);
-  };
-
-  const sendMissingModal = document.getElementById('warehouseSendMissingModal');
-  const sendMissingConfirm = document.getElementById('sendMissingConfirm');
-  let pendingMissingForm = null;
-  document.addEventListener('submit', event => {
-    const form = event.target.closest?.('form[data-pr-send-form]');
-    if (!form || !sendMissingModal || !sendMissingConfirm || form.dataset.confirmedSend === '1') return;
-    event.preventDefault();
-    pendingMissingForm = form;
-    setField('sendMissingPr', form.dataset.prNo);
-    setField('sendMissingJo', form.dataset.joNo);
-    setField('sendMissingBus', form.dataset.busNo);
-    let parts = [];
-    try { parts = JSON.parse(form.dataset.parts || '[]'); } catch (_) { parts = []; }
-    const rows = document.getElementById('sendMissingPartsRows');
-    if (rows) {
-      rows.replaceChildren();
-      parts.forEach(part => {
-        const tr = document.createElement('tr');
-        const name = document.createElement('td');
-        name.textContent = String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim();
-        const qty = document.createElement('td');
-        qty.textContent = String(part.needed_display ?? (part.needed ?? 0) + ' ' + (part.unit || ''));
-        const stock = document.createElement('td');
-        stock.textContent = String(part.physical_on_hand_display ?? '0 ' + (part.unit || ''));
-        tr.append(name, qty, stock);
-        rows.appendChild(tr);
-      });
-      if (!parts.length) {
-        const tr = document.createElement('tr'); const td = document.createElement('td');
-        td.colSpan = 3; td.textContent = 'No requested parts found.'; tr.appendChild(td); rows.appendChild(tr);
-      }
-    }
-    if (!parts.length) {
-      pendingMissingForm = null;
-      showMissingPartsNotice('This purchase request has no recorded missing parts to send. Review stock and request quantities before trying again.');
-      return;
-    }
-    sendMissingConfirm.disabled = false;
-    openModal(sendMissingModal);
-  }, true);
-  sendMissingConfirm?.addEventListener('click', () => {
-    if (!pendingMissingForm || sendMissingConfirm.disabled) return;
-    const form = pendingMissingForm;
-    pendingMissingForm = null;
-    sendMissingConfirm.disabled = true;
-    form.dataset.confirmedSend = '1';
-    HTMLFormElement.prototype.submit.call(form);
-  });
-  sendMissingModal?.querySelectorAll('[data-send-missing-close]').forEach(button => {
-    button.addEventListener('click', () => {
-      pendingMissingForm = null;
-      closeModal(sendMissingModal);
-    });
-  });
 
   const issuePartsModal = document.getElementById('issuePartsModal');
   const issuePartsForm = document.getElementById('issuePartsForm');
@@ -517,59 +308,4 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       closeAllModals();
     }
   });
-});
-
-/* Portal PR stock and item popovers out of the scrollable table so they overlap rows. */
-window.GCTPartialNavigation.registerInitializer('warehouse-pr-stock-popover-portal', '.warehouse-part-main', () => {
-  const root = document.querySelector('.warehouse-part-main');
-  if (!root || root.dataset.prPopoverPortalReady === '1') return;
-  root.dataset.prPopoverPortalReady = '1';
-  let active = null;
-  const close = () => {
-    if (!active) return;
-    const { panel, details, summary } = active;
-    panel.removeAttribute('style');
-    details.appendChild(panel);
-    details.open = false;
-    summary.setAttribute('aria-expanded', 'false');
-    active = null;
-  };
-  const position = () => {
-    if (!active) return;
-    const { panel, summary } = active;
-    if (!summary.isConnected) return close();
-    const r = summary.getBoundingClientRect();
-    const w = Math.min(310, window.innerWidth - 24);
-    const h = Math.min(panel.scrollHeight || 200, window.innerHeight - 24);
-    const above = window.innerHeight - r.bottom < h + 12 && r.top > h + 12;
-    Object.assign(panel.style, {
-      position: 'fixed', zIndex: '110500', width: w + 'px',
-      minWidth: '0', maxWidth: 'calc(100vw - 24px)',
-      left: Math.max(12, Math.min(r.left, window.innerWidth - w - 12)) + 'px',
-      top: above ? 'auto' : (r.bottom + 6) + 'px',
-      bottom: above ? (window.innerHeight - r.top + 6) + 'px' : 'auto',
-      maxHeight: Math.max(90, Math.min(280, above ? r.top - 18 : window.innerHeight - r.bottom - 18)) + 'px'
-    });
-  };
-  root.addEventListener('click', event => {
-    const summary = event.target.closest('.warehouse-pr-parts-more > summary');
-    if (!summary) return;
-    const details = summary.parentElement;
-    const panel = details.querySelector(':scope > .warehouse-pr-parts-popup');
-    if (!panel) return;
-    event.preventDefault();
-    if (active?.details === details) return close();
-    close();
-    details.open = true;
-    document.body.appendChild(panel);
-    active = { panel, details, summary };
-    summary.setAttribute('aria-expanded', 'true');
-    position();
-  });
-  document.addEventListener('click', event => {
-    if (active && !active.summary.contains(event.target) && !active.panel.contains(event.target)) close();
-  });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-  window.addEventListener('resize', position);
-  window.addEventListener('scroll', position, true);
 });

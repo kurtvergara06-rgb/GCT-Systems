@@ -1,5 +1,5 @@
 <x-layout.app
-  title="FROMS - Parts Requisitions"
+  title="FROMS - Maintenance Requests"
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
@@ -11,10 +11,10 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main purchase-maintenance-requests-page purchase-module-page records-page">
+    <main class="main purchase-module-page records-page purchase-maintenance-requests-page">
       <x-layout.topbar
-        title="Parts Requisitions"
-        subtitle="Purchase Requisitions submitted for procurement"
+        title="Requested Purchases"
+        subtitle="Purchase Department request inbox from Warehouse"
         notification-count="6"
       />
 
@@ -50,19 +50,56 @@
       </section>
 
       <section data-ajax-region="records" class="table-card requested-purchase-card records-card">
-        <div class="section-header purchase-record-header">
+        <div class="section-header">
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
-            <h2>Purchase Requisition Records</h2>
-            <p>Purchase Requisitions awaiting procurement. <a href="{{ route('maintenance-requests', ['view' => 'history'], false) }}" data-allow-partial-navigation="true">View Requisition History</a>.</p>
+            <h2>Requested Purchase Records</h2>
+            <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
           </div>
-          <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
-        <div class="purchase-list-controls requested-pr-list-controls">
-          <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Requisitions" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Purchase Requisitions" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
-            <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
-          </x-ui.table-toolbar>
+        <div class="requested-pr-list-controls">
+        <nav class="requested-pr-record-tabs" aria-label="Purchase request views">
+          <a href="{{ route('maintenance-requests', ['record_view' => 'pending'], false) }}"
+             class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'pending' ? 'is-active' : '' }}"
+             data-allow-partial-navigation="true">
+            Pending Requests <span>{{ $forPurchase ?? 0 }}</span>
+          </a>
+          <a href="{{ route('maintenance-requests', ['record_view' => 'in_progress'], false) }}"
+             class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'in_progress' ? 'is-active' : '' }}"
+             data-allow-partial-navigation="true">
+            In Progress <span>{{ ($ordered ?? 0) + ($forPickup ?? 0) + ($forDelivery ?? 0) + ($delivered ?? 0) }}</span>
+          </a>
+          <a href="{{ route('maintenance-requests', ['record_view' => 'history'], false) }}"
+             class="requested-pr-record-tab" data-allow-partial-navigation="true">
+            History <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </a>
+        </nav>
+
+        <x-ui.table-toolbar
+          action="{{ route('maintenance-requests', [], false) }}"
+          class="records-toolbar"
+          data-server-filter="true"
+          search-label="Search Purchase Requests"
+          search-placeholder="Search PR no., JO no., bus, part, or status..."
+          :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')"
+          filter-title="Filter Purchase Requests"
+          :sort-options="['created_at' => 'Submitted At', 'pr_no' => 'PR Number', 'status' => 'Status']"
+          default-sort="created_at"
+          default-direction="desc"
+        >
+          <x-slot:hidden>
+            <input type="hidden" name="record_view" value="{{ $recordView ?? 'pending' }}">
+          </x-slot:hidden>
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All States">
+              <option value="All States">All States</option>
+              @foreach(($statuses ?? []) as $status)
+                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+              @endforeach
+            </x-ui.table-toolbar-field>
+          </x-slot:filters>
+        </x-ui.table-toolbar>
         </div>
 
         <div class="table-wrap records-table-wrap">
@@ -70,10 +107,10 @@
             <thead>
               <tr>
                 <th scope="col">Request / JO</th>
-                <th scope="col">Submitted At</th>
                 <th scope="col">Parts for Purchase</th>
-                <th scope="col" title="Quantity of the first listed part; expand +N more to view all part quantities">Qty</th>
+                <th scope="col">Qty</th>
                 <th scope="col">PR Status</th>
+                <th scope="col">Submitted At</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -90,58 +127,47 @@
                   <td>
                     <div class="requested-pr-reference">
                       <strong>{{ $purchaseRequest->display_pr_no }}</strong>
-                      <small>{{ $purchaseRequest->job_order_no ?? '—' }}</small>
+                      <small>JO {{ $purchaseRequest->job_order_no ?? '—' }}</small>
                     </div>
                   </td>
-                  <td class="requested-pr-date">
-                    @if($purchaseRequest->created_at)
-                      <div class="requested-pr-date-stack">
-                        <strong>{{ $purchaseRequest->created_at->format('M d, Y') }}</strong>
-                        <small>{{ $purchaseRequest->created_at->format('h:i A') }}</small>
-                        <small class="requested-pr-date-note">Request created date</small>
-                      </div>
-                    @else
-                      <span>—</span>
-                    @endif
-                  </td>
                   <td>
-                    <div class="requested-pr-part requested-pr-part-inline">
+                    <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
+                      <small>Bus {{ $purchaseRequest->bus_no ?? '—' }}</small>
                       @if(count($parts) > 1)
                         <details class="requested-pr-more">
-                          <summary>+{{ count($parts) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                          <summary>+{{ count($parts) - 1 }} more parts</summary>
                           <div class="requested-pr-more-panel">
-                            @foreach($parts as $part)
-                              <div class="requested-pr-more-row">
-                                <span>{{ $part['name'] ?? '—' }}</span>
-                                <strong>{{ $part['quantity_display'] ?? '—' }}</strong>
-                              </div>
+                            @foreach(array_slice($parts, 1) as $part)
+                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }} <span>{{ $part['quantity_display'] ?? $part['quantity'] ?? '—' }} {{ $part['unit'] ?? '' }}</span></div>
                             @endforeach
                           </div>
                         </details>
                       @endif
                     </div>
                   </td>
-                  <td class="requested-pr-quantity" @if(count($parts) > 1) title="First part only — expand +{{ count($parts) - 1 }} more to see quantities for every part" @endif>{{ $firstQuantity }}</td>
+                  <td class="requested-pr-quantity">{{ $purchaseRequest->quantity ?? $firstQuantity }}</td>
                   <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
+                  <td class="requested-pr-date">
+                    {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
+                  </td>
                   <td class="requested-pr-actions-cell">
-                    <div class="actions record-actions">
+                    <div class="record-actions">
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal"
-                        title="View Requisition"
-                        aria-label="View Requisition {{ $purchaseRequest->display_pr_no }}"
+                        title="View"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
-                        data-status="{{ $purchaseRequest->status }}"
                         data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
+                        data-status="{{ $purchaseRequest->status ?? '—' }}"
                         data-item="{{ $purchaseRequest->item }}"
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
@@ -160,7 +186,6 @@
                             type="submit"
                             class="action-btn create-po"
                             title="Create Purchase Order"
-                            aria-label="Create Purchase Order for {{ $purchaseRequest->display_pr_no }}"
                           >
                             <i class="fa-solid fa-cart-plus"></i>
                           </button>
@@ -172,9 +197,7 @@
               @empty
                 <x-ui.empty-row
                   colspan="6"
-                  icon="fa-wrench"
-                  message="No Purchase Requisitions Found"
-                  description="Maintenance requisitions endorsed for purchasing will appear here."
+                  message="No requested purchases found."
                 />
               @endforelse
             </tbody>
@@ -186,13 +209,13 @@
     </main>
   </div>
 
-  <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay">
-    <div class="requested-pr-style-modal" role="dialog" aria-modal="true" aria-labelledby="viewRequestedPrTitle">
+  <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay" role="dialog" aria-modal="true" aria-labelledby="requestedPrModalTitle">
+    <div class="requested-pr-style-modal">
       <div class="requested-pr-modal-header">
         <div>
-          <h2 id="viewRequestedPrTitle">Purchase Requisition Details</h2>
-          <h3>PR Information</h3>
-          <p>This is a read-only view of the selected Purchase Requisition.</p>
+          <h2 id="requestedPrModalTitle">Purchase Request Details</h2>
+          <h3>Read-only request information</h3>
+          <p>Review the request, parts, procurement status, and remarks.</p>
         </div>
         <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn" aria-label="Close purchase request details">
           <i class="fa-solid fa-xmark"></i>
@@ -201,22 +224,34 @@
 
       <div class="requested-pr-modal-body">
         <dl class="requested-pr-information-strip">
-          <div><dt>PR No.</dt><dd id="viewRequestedPrNo">—</dd></div>
-          <div><dt>JO No.</dt><dd id="viewRequestedJoNo">—</dd></div>
-          <div><dt>Bus ID</dt><dd id="viewRequestedBusNo">—</dd></div>
-          <div><dt>Created Date</dt><dd id="viewRequestedCreated">—</dd></div>
+          <div>
+            <dt>PR Number</dt>
+            <dd id="viewRequestedPrNo">—</dd>
+          </div>
+          <div>
+            <dt>Linked Job Order</dt>
+            <dd id="viewRequestedJoNo">—</dd>
+          </div>
+          <div>
+            <dt>Bus Number</dt>
+            <dd id="viewRequestedBusNo">—</dd>
+          </div>
+          <div>
+            <dt>Submitted At</dt>
+            <dd id="viewRequestedCreated">—</dd>
+          </div>
           <div class="requested-pr-status-information">
             <dt>Procurement Status</dt>
             <dd><span id="viewRequestedStatus" class="requested-pr-modal-status">—</span></dd>
           </div>
         </dl>
 
-        <section class="requested-pr-detail-section" aria-labelledby="viewRequestedPartsTitle">
-          <h3 id="viewRequestedPartsTitle">Requested Item / Part</h3>
+        <section class="requested-pr-detail-section">
+          <h3>Requested Parts</h3>
           <div class="requested-pr-breakdown-box">
             <table class="requested-pr-breakdown-table">
               <thead>
-                <tr><th scope="col">Part Name</th><th scope="col">Quantity</th><th scope="col">Unit</th></tr>
+                <tr><th>Part Name</th><th>Quantity</th><th>Unit</th></tr>
               </thead>
               <tbody id="viewRequestedPartsContainer">
                 <tr><td>—</td><td>—</td><td>—</td></tr>
@@ -225,8 +260,8 @@
           </div>
         </section>
 
-        <section class="requested-pr-detail-section requested-pr-remarks-section" aria-labelledby="viewRequestedRemarksTitle">
-          <h3 id="viewRequestedRemarksTitle">Remarks</h3>
+        <section class="requested-pr-detail-section requested-pr-remarks-section">
+          <h3>Remarks</h3>
           <p id="viewRequestedRemarks">No remarks</p>
         </section>
       </div>

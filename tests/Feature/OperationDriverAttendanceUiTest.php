@@ -10,7 +10,7 @@ class OperationDriverAttendanceUiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_driver_attendance_displays_ddr_verified_history_without_manual_marking(): void
+    public function test_driver_attendance_exposes_the_permissioned_recording_workflow(): void
     {
         $user = User::factory()->create([
             'department' => 'Operation',
@@ -23,9 +23,8 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->actingAs($user)
             ->get(route('driver-attendance'))
             ->assertOk()
-            ->assertSeeText('Automatically verified from DDR')
-            ->assertDontSeeText('Record Daily Attendance')
-            ->assertDontSeeText('Import Data')
+            ->assertSeeText('Record Daily Attendance')
+            ->assertSeeText('Import Data')
             ->assertSee('data-server-filter="true"', false);
     }
 
@@ -71,10 +70,9 @@ class OperationDriverAttendanceUiTest extends TestCase
             'this.form.submit()',
             $view
         );
-        $this->assertStringNotContainsString(
-            'openImportDriverAttendanceModal',
-            $view
-        );
+        $this->assertStringContainsString('@if($canEditOperation)', $view);
+        $this->assertStringContainsString('openImportDriverAttendanceModal', $view);
+        $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $view);
         $this->assertStringNotContainsString(
             'event.target === modal',
             $driverJs

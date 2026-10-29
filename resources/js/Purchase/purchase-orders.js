@@ -5,61 +5,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
   const openPoModalBtn = document.getElementById('openPoModal');
   const closePoModalBtn = document.getElementById('closePoModal');
   const cancelPoModalBtn = document.getElementById('cancelPoModal');
+  const closeViewPoModalBtn = document.getElementById('closeViewPoModal');
   const addPoItemBtn = document.getElementById('addPoItemBtn');
   const poRequestReference = document.getElementById('poRequestReference');
-  const poRequestContext = document.getElementById('poRequestContext');
 
   if (!poModal || !poForm || !itemsContainer) {
     return;
   }
-
-  // Floating item preview matches Parts Requisitions without expanding table rows.
-  let poItemPopover = null;
-  let activePoItemTrigger = null;
-  const closePoItemPopover = () => {
-    poItemPopover?.remove();
-    poItemPopover = null;
-    if (activePoItemTrigger) activePoItemTrigger.setAttribute('aria-expanded', 'false');
-    activePoItemTrigger = null;
-  };
-  const positionPoItemPopover = (trigger) => {
-    if (!poItemPopover || !trigger.isConnected) return closePoItemPopover();
-    const rect = trigger.getBoundingClientRect();
-    const width = Math.min(320, window.innerWidth - 24);
-    const height = Math.min(poItemPopover.scrollHeight, 260);
-    const below = rect.bottom + 7;
-    const top = window.innerHeight - below - 12 < height && rect.top > height + 16
-      ? Math.max(12, rect.top - height - 7) : below;
-    Object.assign(poItemPopover.style, {
-      position: 'fixed', top: top + 'px',
-      left: Math.max(12, Math.min(rect.left, window.innerWidth - width - 12)) + 'px',
-      width: width + 'px',
-      maxHeight: Math.max(100, window.innerHeight - top - 12) + 'px'
-    });
-  };
-  document.querySelectorAll('.po-items-more-trigger').forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      if (activePoItemTrigger === trigger) return closePoItemPopover();
-      closePoItemPopover();
-      const source = trigger.parentElement.querySelector('.po-items-more-source');
-      if (!source) return;
-      poItemPopover = source.cloneNode(true);
-      poItemPopover.removeAttribute('hidden');
-      poItemPopover.classList.add('po-items-floating-popover');
-      document.body.appendChild(poItemPopover);
-      activePoItemTrigger = trigger;
-      trigger.setAttribute('aria-expanded', 'true');
-      positionPoItemPopover(trigger);
-    });
-  });
-  document.addEventListener('pointerdown', (event) => {
-    if (poItemPopover && !poItemPopover.contains(event.target) && !activePoItemTrigger?.contains(event.target)) closePoItemPopover();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closePoItemPopover();
-  });
-  window.addEventListener('scroll', closePoItemPopover, true);
-  window.addEventListener('resize', closePoItemPopover);
 
   const money = (value) => {
     const amount = Number.parseFloat(value || 0) || 0;
@@ -119,7 +71,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
   };
 
   const calculateTotal = () => {
-    let total = 0;
+    let subtotal = 0;
 
     itemsContainer.querySelectorAll('.po-item-row').forEach((row) => {
       const quantity = Number.parseFloat(row.querySelector('.item-qty')?.value || 0) || 0;
@@ -131,14 +83,14 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
         amountField.value = money(amount);
       }
 
-      total += amount;
+      subtotal += amount;
     });
 
-    const delivery = Math.max(0, Number.parseFloat(getValue('delivery_fee')) || 0);
-    const discount = Math.max(0, Number.parseFloat(getValue('discount')) || 0);
-    const vat = Math.max(0, Number.parseFloat(getValue('vat')) || 0);
-    setValue('net_amount_display', money(total + delivery - discount + vat));
-    setText('po_subtotal_display', money(total));
+    setText('po_subtotal_display', money(subtotal));
+    const deliveryFee = Number.parseFloat(getValue('delivery_fee')) || 0;
+    const discount = Number.parseFloat(getValue('discount')) || 0;
+    const vat = Number.parseFloat(getValue('vat')) || 0;
+    setValue('net_amount_display', money(Math.max(0, subtotal + deliveryFee + vat - discount)));
   };
 
   const syncRequestNoToItems = () => {
@@ -163,8 +115,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   const createItemRow = (item = {}, index = 0) => {
     const requestNo = item.pr_no || getValue('main_pr_no');
-    const description = String(item.item_description || item.item || item.name || '')
-      .replace(/\s*\[item:\s*\d+\]/gi, '').trim();
+    const description = item.item_description || item.item || item.name || '';
     const quantity = item.quantity || item.qty || 1;
     const unit = item.unit || 'PC';
     const cost = item.cost ?? '';
@@ -173,7 +124,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     row.className = 'po-item-row';
     row.innerHTML = `
       <input type="hidden" name="items[${index}][pr_no]" class="item-pr-no" value="${escapeHtml(requestNo)}">
-      <input type="hidden" name="items[${index}][bus_no]" class="item-bus-no" value="${escapeHtml(item.bus_no || '')}">
 
       <input
         type="text"
@@ -256,26 +206,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     calculateTotal();
   };
 
-  const lockRequisitionItems = (locked) => {
-    itemsContainer.classList.toggle('po-pr-items-locked', locked);
-    poForm.classList.toggle('po-has-locked-pr-items', locked);
-    itemsContainer.querySelectorAll('.item-description, .item-qty, .item-unit').forEach((input) => {
-      input.readOnly = locked;
-      input.setAttribute('aria-readonly', locked ? 'true' : 'false');
-      input.classList.toggle('po-prefilled-readonly', locked);
-    });
-    itemsContainer.querySelectorAll('.remove-po-item-btn').forEach((button) => {
-      button.hidden = locked;
-      button.style.display = locked ? 'none' : 'inline-flex';
-    });
-    if (addPoItemBtn) {
-      addPoItemBtn.hidden = locked;
-      addPoItemBtn.style.display = locked ? 'none' : 'inline-flex';
-    }
-    const heading = poForm.querySelector('.po-item-action-heading');
-    if (heading) heading.hidden = locked;
-  };
-
   const setViewMode = (viewOnly) => {
     poForm.querySelectorAll('input, select, textarea').forEach((input) => {
       if (input.type !== 'hidden') {
@@ -297,11 +227,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     const viewActions = field('poViewActions');
 
     if (editActions) {
-      editActions.classList.toggle('hidden', viewOnly);
+      editActions.style.display = viewOnly ? 'none' : 'flex';
     }
 
     if (viewActions) {
-      viewActions.classList.add('hidden');
+      viewActions.style.display = viewOnly ? 'flex' : 'none';
     }
   };
 
@@ -316,25 +246,18 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('poFormMethod', 'POST');
     setValue('purchase_request_id', '');
     setValue('supplier_name', '');
-    ['supplier_address_tel', 'terms', 'terms_of_payment', 'purpose'].forEach((id) => setValue(id, ''));
-    ['delivery_fee', 'discount', 'vat'].forEach((id) => setValue(id, '0'));
     setValue('po_status', 'For Review');
     setValue('main_pr_no', '');
-    setText('poRequestJobOrder', '—');
-    setText('poRequestBus', '—');
-    setText('poRequestRemarks', '—');
-    if (poRequestContext) poRequestContext.hidden = true;
     setValue('net_amount_display', money(0));
-    setText('po_subtotal_display', money(0));
+
     setText('poModalTitle', 'New Purchase Order');
     setText('poModalSubtitle', 'Create and review a supplier purchase order.');
-    setText('poSaveButtonLabel', 'Save Purchase Order');
-    setText('poActionHint', 'Review items before saving.');
+    setText('poSaveButtonLabel', 'Create Purchase Order');
+    setText('poActionHint', 'Supplier details and unit prices are required before submission.');
 
     renderItems([]);
     syncRequestReference();
     setViewMode(false);
-    lockRequisitionItems(false);
   };
 
   const configurePrefilledCreateForm = (prefill) => {
@@ -342,13 +265,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     setValue('purchase_request_id', prefill?.id || '');
     setValue('main_pr_no', prefill?.pr_no || '');
-    setText('poRequestJobOrder', prefill?.job_order_no || '—');
-    setText('poRequestBus', prefill?.bus_no || '—');
-    setText('poRequestRemarks', prefill?.remarks || '—');
-    if (poRequestContext) poRequestContext.hidden = false;
     renderItems(prefill?.items || []);
     syncRequestReference();
-    lockRequisitionItems(Boolean(prefill?.id));
   };
 
   const parseItems = (button) => {
@@ -374,7 +292,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('poFormMethod', 'PUT');
     setValue('po_no', button.dataset.poNo || '');
     setValue('po_date', button.dataset.poDate || '');
+    setValue('purchase_request_id', button.dataset.purchaseRequestId || '');
     setValue('supplier_name', button.dataset.supplierName || 'N/A');
+    setValue('po_status', status);
+    setValue('main_pr_no', firstItem.pr_no || '');
+
     setValue('supplier_address_tel', button.dataset.supplierAddressTel || '');
     setValue('terms', button.dataset.terms || '');
     setValue('terms_of_payment', button.dataset.termsOfPayment || '');
@@ -382,30 +304,18 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('delivery_fee', button.dataset.deliveryFee || '0');
     setValue('discount', button.dataset.discount || '0');
     setValue('vat', button.dataset.vat || '0');
-    setValue('po_status', status);
-    setValue('main_pr_no', firstItem.pr_no || '');
 
-    setText(
-      'poModalTitle',
-      isViewOnly ? 'Purchase Order Details' : 'Edit Purchase Order'
-    );
-    setText(
-      'poModalSubtitle',
-      isViewOnly
-        ? 'Review this purchase order and its item details.'
-        : 'Review and update this supplier purchase order.'
-    );
+    setText('poModalTitle', isViewOnly ? 'Purchase Order Details' : 'Edit Purchase Order');
+    setText('poModalSubtitle', isViewOnly
+      ? 'Review the saved supplier purchase order.'
+      : 'Update the supplier order before procurement is received.');
     setText('poSaveButtonLabel', 'Save Changes');
-    setText('poActionHint', 'Review changes before saving.');
+    setText('poActionHint', 'Verify supplier, line items, and financial totals before saving.');
 
     renderItems(items);
     syncRequestReference();
-    calculateTotal();
     setViewMode(isViewOnly);
-    lockRequisitionItems(Boolean(button.dataset.purchaseRequestId));
   };
-
-  ['delivery_fee', 'discount', 'vat'].forEach((id) => field(id)?.addEventListener('input', calculateTotal));
 
   poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
 
@@ -416,6 +326,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   closePoModalBtn?.addEventListener('click', () => closeModal(poModal));
   cancelPoModalBtn?.addEventListener('click', () => closeModal(poModal));
+  closeViewPoModalBtn?.addEventListener('click', () => closeModal(poModal));
 
   addPoItemBtn?.addEventListener('click', () => {
     createItemRow({}, itemsContainer.querySelectorAll('.po-item-row').length);
@@ -426,10 +337,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   field('main_pr_no')?.addEventListener('input', () => {
     syncRequestNoToItems();
-    itemsContainer.querySelectorAll('.item-bus-no').forEach((input) => {
-      input.value = '';
-    });
     syncRequestReference();
+  });
+
+  ['delivery_fee', 'discount', 'vat'].forEach((id) => {
+    field(id)?.addEventListener('input', calculateTotal);
   });
 
   document.addEventListener('click', (event) => {
@@ -555,12 +467,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   cancelPoStatusModal?.addEventListener('click', closePoStatusModal);
 
-  poStatusModal?.addEventListener('click', (event) => {
-    if (event.target === poStatusModal) {
-      closePoStatusModal();
-    }
-  });
-
   const deletePoModal = field('deletePoModal');
   const deletePoNo = field('deletePoNo');
   const cancelDeletePo = field('cancelDeletePo');
@@ -589,12 +495,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
   confirmDeletePo?.addEventListener('click', () => {
     selectedDeleteForm?.requestSubmit();
-  });
-
-  poModal.addEventListener('click', (event) => {
-    if (event.target === poModal) {
-      closeModal(poModal);
-    }
   });
 
   document.addEventListener('keydown', (event) => {

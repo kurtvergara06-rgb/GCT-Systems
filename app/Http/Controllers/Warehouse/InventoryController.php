@@ -89,6 +89,10 @@ class InventoryController extends Controller
             ->count();
 
         $itemsAtRisk = $forecastedStockouts;
+        $issueItems = InventoryItem::query()
+            ->where('quantity_available', '>', 0)
+            ->orderBy('item_name')
+            ->get();
 
         return view('Warehouse.inventory', compact(
             'inventoryItems',
@@ -98,7 +102,8 @@ class InventoryController extends Controller
             'lowStockAlerts',
             'criticalItems',
             'forecastedStockouts',
-            'itemsAtRisk'
+            'itemsAtRisk',
+            'issueItems'
         ));
     }
 

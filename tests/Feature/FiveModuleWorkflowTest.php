@@ -154,7 +154,7 @@ class FiveModuleWorkflowTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Approved', $originalPr->status);
+        $this->assertSame('Submitted', $originalPr->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
         $this->actingAs($warehouseUser)
@@ -172,7 +172,7 @@ class FiveModuleWorkflowTest extends TestCase
         $this->actingAs($purchaseUser)->post(route('purchase-orders.store'), [
             'purchase_request_id' => $purchasePr->id,
             'supplier_name' => 'Flow Supplier',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'items' => [[
                 'pr_no' => $purchasePr->pr_no,
                 'bus_no' => $purchasePr->bus_no,
@@ -184,6 +184,15 @@ class FiveModuleWorkflowTest extends TestCase
         ])->assertRedirect('/purchase-orders');
 
         $purchaseOrder = PurchaseOrder::query()->firstOrFail();
+        $this->assertSame('For Review', $purchaseOrder->status);
+        $this->assertSame('For Purchase', $purchasePr->fresh()->status);
+        $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
+
+        $this->actingAs($purchaseUser)
+            ->patch(route('purchase-orders.approve', $purchaseOrder))
+            ->assertRedirect('/purchase-orders');
+
+        $purchaseOrder->refresh();
         $this->assertSame('Ordered', $purchaseOrder->status);
         $this->assertSame('Ordered', $purchasePr->fresh()->status);
         $this->assertSame('Ordered', $jobOrder->fresh()->part_status);

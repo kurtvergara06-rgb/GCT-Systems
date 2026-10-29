@@ -1,30 +1,4 @@
 window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '.driver-attendance-page', () => {
-  // Driver attendance is daily. Refresh a page left open across Philippine
-  // midnight; selected historical dates must stay on their chosen date.
-  if (window.__gctDriverAttendanceDayWatcher) {
-    window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-    window.__gctDriverAttendanceDayWatcher = null;
-  }
-  const attendancePage = document.querySelector('.driver-attendance-page');
-  if (attendancePage?.dataset.attendanceAutoToday === '1') {
-    const loadedDay = attendancePage.dataset.attendanceBusinessDate;
-    window.__gctDriverAttendanceDayWatcher = window.setInterval(() => {
-      if (!document.querySelector('.driver-attendance-page')) {
-        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-        window.__gctDriverAttendanceDayWatcher = null;
-        return;
-      }
-      const currentDay = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
-      }).format(new Date());
-      if (currentDay !== loadedDay) {
-        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-        window.__gctDriverAttendanceDayWatcher = null;
-        window.location.reload();
-      }
-    }, 30000);
-  }
-
   function normalizeDriverAttendancePath(
     value,
     fallback = '/driver-attendance'
@@ -68,6 +42,21 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
     modal?.classList.remove('show', 'active');
   }
 
+  const importModal = document.getElementById('importDriverAttendanceModal');
+
+  document
+    .getElementById('openImportDriverAttendanceModal')
+    ?.addEventListener('click', () => openModal(importModal));
+
+  [
+    document.getElementById('closeImportDriverAttendanceModal'),
+    document.getElementById('cancelImportDriverAttendanceModal'),
+  ]
+    .filter(Boolean)
+    .forEach((button) => {
+      button.addEventListener('click', () => closeModal(importModal));
+    });
+
   const attendanceModal = document.getElementById('driverAttendanceModal');
   const attendanceForm = document.getElementById('driverAttendanceForm');
   const attendanceFormMethod = document.getElementById('driverAttendanceFormMethod');
@@ -75,7 +64,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const submitText = document.getElementById('driverAttendanceSubmitText');
   const driverId = document.getElementById('driverAttendanceDriverId');
   const driverName = document.getElementById('driverAttendanceDriverName');
-  const shift = null;
+  const shift = document.getElementById('driverAttendanceShift');
   const attendanceDate = document.getElementById('driverAttendanceDate');
   const timeIn = document.getElementById('driverAttendanceTimeIn');
   const timeOut = document.getElementById('driverAttendanceTimeOut');
@@ -90,9 +79,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
       button.addEventListener('click', () => closeModal(attendanceModal));
     });
 
-  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-edit-driver-attendance-modal');
-    if (!button) return;
+  document
+    .querySelectorAll('.open-edit-driver-attendance-modal')
+    .forEach((button) => {
+      button.addEventListener('click', () => {
         if (!attendanceForm) {
           return;
         }
@@ -121,22 +111,14 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         if (driverId) driverId.value = button.dataset.driverId || '';
         if (driverName) driverName.value = button.dataset.driverName || '';
         if (shift) shift.value = button.dataset.shift || 'Morning';
-        if (attendanceDate) {
-          attendanceDate.value = button.dataset.attendanceDate || '';
-          attendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        if (timeIn) {
-          timeIn.value = button.dataset.timeIn || '';
-          timeIn.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        if (timeOut) {
-          timeOut.value = button.dataset.timeOut || '';
-          timeOut.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+        if (attendanceDate) attendanceDate.value = button.dataset.attendanceDate || '';
+        if (timeIn) timeIn.value = button.dataset.timeIn || '';
+        if (timeOut) timeOut.value = button.dataset.timeOut || '';
         if (status) status.value = button.dataset.status || 'Present';
 
         openModal(attendanceModal);
-  });
+      });
+    });
 
   const viewAttendanceModal = document.getElementById('viewDriverAttendanceModal');
   const viewAttendanceContent = document.getElementById('viewDriverAttendanceContent');
@@ -165,9 +147,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
       .replaceAll("'", '&#039;');
   }
 
-  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-view-driver-attendance-modal');
-    if (!button) return;
+  document
+    .querySelectorAll('.open-view-driver-attendance-modal')
+    .forEach((button) => {
+      button.addEventListener('click', () => {
         const statusValue = button.dataset.status || 'Present';
         const statusClass = getAttendanceStatusClass(statusValue);
 
@@ -179,7 +162,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
           ['Current Assignment', button.dataset.busAssignment || 'Unassigned'],
           ['Date', button.dataset.attendanceDate],
           ['Time-in', button.dataset.timeIn],
-
+          ['Time-out', button.dataset.timeOut],
         ];
 
         if (viewAttendanceContent) {
@@ -209,7 +192,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         }
 
         openModal(viewAttendanceModal);
-  });
+      });
+    });
 
   [
     document.getElementById('closeViewDriverAttendanceModal'),
@@ -224,10 +208,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const deleteName = document.getElementById('deleteDriverAttendanceName');
   let selectedDeleteForm = null;
 
-  document.querySelector('.driver-attendance-page')?.addEventListener('click', (event) => {
-    const button = event.target.closest('.open-delete-driver-attendance-modal');
-    if (!button) return;
-    event.preventDefault();
+  document
+    .querySelectorAll('.open-delete-driver-attendance-modal')
+    .forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
 
         selectedDeleteForm = document.getElementById(
           `deleteDriverAttendanceForm-${button.dataset.id}`
@@ -241,7 +226,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         }
 
         openModal(deleteModal);
-  });
+      });
+    });
 
   document
     .getElementById('cancelDeleteDriverAttendance')
@@ -259,6 +245,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
       return;
     }
 
+    closeModal(importModal);
     closeModal(attendanceModal);
     closeModal(viewAttendanceModal);
     closeModal(deleteModal);

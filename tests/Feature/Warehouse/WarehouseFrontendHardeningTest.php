@@ -53,7 +53,7 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('inventory-details-modal', $inventory);
         $this->assertStringContainsString('01 — Item Information', $inventory);
         $this->assertStringContainsString('02 — Stock Information', $inventory);
-        $this->assertStringContainsString('03 — Supply & Storage', $inventory);
+        $this->assertStringContainsString('03 — Supply &amp; Storage', $inventory);
         $this->assertStringContainsString('inventory-details-footer', $inventory);
         $this->assertStringContainsString('inventory-movement-title-icon', $inventory);
         $this->assertStringContainsString('inventory-movement-modal__footer', $inventory);
@@ -97,7 +97,7 @@ class WarehouseFrontendHardeningTest extends TestCase
     }
 
 
-    public function test_inventory_add_and_edit_modals_use_shared_form_language_without_breaking_ajax_contracts(): void
+    public function test_inventory_add_and_edit_modals_use_shared_form_language_and_server_submission_contracts(): void
     {
         $view = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
 
@@ -106,11 +106,13 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('inventory-section-basic', $view);
         $this->assertStringContainsString('inventory-section-details', $view);
         $this->assertStringContainsString('inventory-section-additional', $view);
-        $this->assertStringContainsString('data-ajax-submit="true"', $view);
-        $this->assertStringContainsString('data-parent-modal-id="addModal"', $view);
-        $this->assertStringContainsString('data-parent-modal-id="editModal"', $view);
+        $this->assertStringContainsString('method="POST"', $view);
+        $this->assertStringContainsString('id="editForm"', $view);
+        $this->assertStringContainsString("@method('PUT')", $view);
+        $this->assertStringContainsString('data-confirm-form', $view);
+        $this->assertStringNotContainsString('data-ajax-submit', $view);
         $this->assertStringContainsString('id="edit_adjustment_reason"', $view);
-        $this->assertStringContainsString('class="ui-form-close closeModal"', $view);
+        $this->assertStringContainsString('class="close-btn closeModal"', $view);
     }
 
 
@@ -208,11 +210,11 @@ class WarehouseFrontendHardeningTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'Approved Requests',
+            'Authorized Requests',
             $view
         );
         $this->assertStringContainsString(
-            'Ready for Warehouse processing',
+            'Approved Job Orders ready for Warehouse',
             $view
         );
         $this->assertStringContainsString(

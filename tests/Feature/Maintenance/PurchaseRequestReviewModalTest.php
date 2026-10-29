@@ -261,7 +261,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "button.dataset.prNo === activePrNo",
+            "candidate.dataset.prNo === activePrNo",
             $source
         );
         $this->assertStringContainsString(
@@ -362,7 +362,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             resource_path('js/Maintenance/purchase-requests.js')
         );
         $this->assertStringContainsString(
-            "overlay.id === 'prModal' || overlay.id === 'editPrModal'",
+            "openModal(\n        editPrModal",
             $source
         );
     }
@@ -429,7 +429,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             ],
         ])->assertSessionHasNoErrors();
 
-        $this->assertSame('Approved', $pr->fresh()->status);
+        $this->assertSame('Submitted', $pr->fresh()->status);
     }
 
 }

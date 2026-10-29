@@ -1,11 +1,6 @@
 import './echo';
 
-/*
- * Shared application assets only.
- * Page-specific CSS and JavaScript are loaded by each Blade page through
- * its x-layout.app assets list. Keeping them out of app.js prevents duplicate
- * initialization and avoids loading unrelated modules on every page.
- */
+/* Cross-page assets and controls used by multiple modules. */
 import '../css/Main-styles/system-toast.css';
 import '../css/Main-styles/shared-ui-enhancements.css';
 import '../css/Main-styles/scroll-record-lists.css';
@@ -24,10 +19,10 @@ import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-animations.js';
-import './Main-js/system-toast.js';
 import './Main-js/page-transitions.js';
-import './Main-js/automatic-table-search.js';
+import './Main-js/system-toast.js';
 import './Operation/Shuttle_Bus_Management/bus-availability-modal.js';
+import './Main-js/automatic-table-search.js';
 import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
 import './Main-js/scroll-table-pagination.js';
@@ -70,10 +65,6 @@ const initializePageOnlyControls = () => {
 
     if (document.getElementById('historyDetailsModal')) {
         import('./Admin/Data_Management/data-history.js');
-    }
-
-    if (document.querySelector('.jo-page')) {
-        // The Job Orders table no longer injects secondary Work labels.
     }
 
     if (document.querySelector('.fuel-page')) {

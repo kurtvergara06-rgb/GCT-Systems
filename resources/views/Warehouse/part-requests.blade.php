@@ -27,7 +27,7 @@
       />
 
       <section data-ajax-region="summary" class="stats-grid inventory-stats">
-        <x-ui.summary-card label="Approved Requests" value="{{ $approved ?? 0 }}" small="Ready for Warehouse processing" icon="fa-clipboard-check" color="yellow" />
+        <x-ui.summary-card label="Authorized Requests" value="{{ $approved ?? 0 }}" small="Approved Job Orders ready for Warehouse" icon="fa-clipboard-check" color="yellow" />
         <x-ui.summary-card label="For Purchase" value="{{ $forPurchase ?? 0 }}" small="Parts unavailable in stock" icon="fa-cart-shopping" color="blue" />
         <x-ui.summary-card label="Delivered" value="{{ $delivered ?? 0 }}" small="Supplier delivered" icon="fa-truck-ramp-box" color="green" />
         <x-ui.summary-card label="Issued" value="{{ $issued ?? 0 }}" small="Released to maintenance" icon="fa-box-open" color="gray" />

@@ -52,6 +52,10 @@ class PersonnelController extends Controller
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('employment_status', 'Active')->count(),
             'inactive' => (clone $query)->where('employment_status', 'Inactive')->count(),
+            'morning' => (clone $query)
+                ->where('employment_status', 'Active')
+                ->where('shift', 'Morning')
+                ->count(),
             'authorized' => (clone $query)
                 ->where('employment_status', 'Active')
                 ->whereHas('authorizedBuses')
