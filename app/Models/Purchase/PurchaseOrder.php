@@ -26,6 +26,12 @@ class PurchaseOrder extends Model
         'net_amount',
         'status',
         'inventory_posted_at',
+        'approved_by',
+        'approved_at',
+        'approval_signature_path',
+        'reviewed_by',
+        'reviewed_at',
+        'review_remarks',
     ];
 
     protected $casts = [
@@ -37,6 +43,8 @@ class PurchaseOrder extends Model
         'vat' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'inventory_posted_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
 
     public function maintenanceRequest(): BelongsTo
