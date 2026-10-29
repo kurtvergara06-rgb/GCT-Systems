@@ -100,6 +100,9 @@
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
+                                data-ir-requester="{{ $ir->requester?->name ?? '—' }}"
+                                data-ir-date="{{ $ir->created_at?->format('M d, Y · h:i A') ?? '—' }}"
+                                data-ir-parts-count="{{ $parts->count() }}"
                                 data-ir-status="{{ $ir->status }}"
                                 data-ir-release-policy="{{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
@@ -137,31 +140,33 @@
 <div id="warehouseItemRequestDetails" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal warehouse-ir-details-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIrDetailsTitle">
         <header class="ir-modal-header">
-            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-clipboard-list"></i></span>
-                <div><h2 id="warehouseIrDetailsTitle">Item Request Details</h2><p>Read-only request information, Warehouse inventory and linked Job Order requirements</p></div>
+            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-file-lines"></i></span>
+                <div><h2 id="warehouseIrDetailsTitle">Item Request Details</h2><p>Review requested parts, inventory availability and JO requirements.</p></div>
             </div>
+            <span id="warehouse-ir-status" class="warehouse-ir-view-status">—</span>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
         <div class="ir-modal-body warehouse-ir-details-body">
-            <section class="warehouse-ir-view-section warehouse-ir-view-overview" aria-label="Item Request overview">
-                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-file-lines" aria-hidden="true"></i><div><h3>Request Overview</h3><p>Submitted Item Request information</p></div></div>
-                <div class="ir-details-grid warehouse-ir-details-meta">
-                    <div><span>Item Request</span><strong id="warehouse-ir-number">—</strong></div>
-                    <div><span>Linked Job Order</span><strong id="warehouse-ir-job">—</strong></div>
-                    <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
-                    <div><span>Warehouse Status</span><strong id="warehouse-ir-status">—</strong></div>
-                    <div><span>Head-Approved Release Policy</span><strong id="warehouse-ir-release-policy">—</strong></div>
-                    <div><span>Department</span><strong>Maintenance</strong></div>
-                </div>
-            </section>
+            <div class="warehouse-ir-reference-strip">
+                <div><span>IR ID</span><strong id="warehouse-ir-number">—</strong></div>
+                <div><span>Linked JO</span><strong id="warehouse-ir-job">—</strong></div>
+                <div><span>Requested By</span><strong id="warehouse-ir-requester">—</strong></div>
+                <div><span>Date Requested</span><strong id="warehouse-ir-date">—</strong></div>
+                <div><span>Department</span><strong>Maintenance</strong></div>
+                <div><span>Total Parts</span><strong id="warehouse-ir-parts-count">—</strong></div>
+            </div>
+            <div class="warehouse-ir-view-secondary">
+                <span>Bus: <strong id="warehouse-ir-bus">—</strong></span>
+                <span>Release Policy: <strong id="warehouse-ir-release-policy">—</strong></span>
+            </div>
             <section class="warehouse-ir-view-section" aria-labelledby="warehouseIrViewStockTitle">
                 <div class="warehouse-ir-verify-heading">
-                    <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><h3 id="warehouseIrViewStockTitle">Parts &amp; Stock Verification</h3><p>Current physical inventory and allocation-aware issuable quantities</p></div></div>
+                    <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><h3 id="warehouseIrViewStockTitle">Item Request Parts</h3><p>Parts &amp; Stock Verification — live physical inventory and approved allocations</p></div></div>
                     <button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button>
                 </div>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table">
-                        <thead><tr><th>PART</th><th>JO REQUIRED</th><th>IR QTY</th><th>ON HAND</th><th>ISSUABLE</th><th>IR SHORTAGE</th><th>STATUS</th></tr></thead>
+                        <thead><tr><th>PART NAME</th><th>JO REQUIRED</th><th>IR QUANTITY</th><th>ON HAND</th><th>ISSUABLE</th><th>IR SHORTAGE</th><th>STATUS</th></tr></thead>
                         <tbody id="warehouse-ir-stock-rows"><tr><td colspan="7" class="warehouse-ir-stock-empty">Checking current inventory...</td></tr></tbody>
                     </table>
                 </div>
@@ -169,19 +174,22 @@
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-view-jo-section" aria-labelledby="warehouseIrJoCoverageTitle">
-                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Requirement Overview</h3><p>Remaining JO quantities outside this Item Request, for reference only</p></div></div>
-                <div class="warehouse-ir-jo-coverage">
-                    <div id="warehouse-ir-jo-coverage-rows">Checking linked Job Order...</div>
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Requirement Overview</h3><p>Full JO requirements compared with quantities in this IR</p></div></div>
+                <div class="warehouse-ir-stock-table-wrap">
+                    <table class="warehouse-ir-stock-table warehouse-ir-jo-table">
+                        <thead><tr><th>PART NAME</th><th>TOTAL JO REQUIRED</th><th>IN THIS IR</th><th>OUTSIDE THIS IR</th><th>REMARKS</th></tr></thead>
+                        <tbody id="warehouse-ir-jo-coverage-rows"><tr><td colspan="5" class="warehouse-ir-stock-empty">Checking linked Job Order...</td></tr></tbody>
+                    </table>
                 </div>
-                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Quantities outside this IR are not necessarily outstanding procurement shortages. Other IRs, PRs or deliveries may already cover them. This view cannot issue parts.</p>
+                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Outside-this-IR quantities are not confirmed procurement shortages. Other Item Requests, Purchase Requests or deliveries may cover them.</p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-details-remarks" aria-label="Item Request remarks">
-                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-lines" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
                 <p id="warehouse-ir-remarks" class="ir-detail-text"></p>
             </section>
         </div>
         <footer class="ir-modal-footer">
-            <span class="warehouse-ir-view-only-label"><i class="fa-solid fa-eye" aria-hidden="true"></i> View only · No changes can be made here</span>
+
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
         </footer>
     </div>
