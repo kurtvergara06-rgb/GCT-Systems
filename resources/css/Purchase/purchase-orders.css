@@ -1156,3 +1156,44 @@ main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-chi
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:15%;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:13%;}
 main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(7) {width:13%;}
+
+
+/* PO request-type indicators and unclipped item breakdown previews. */
+main.purchase-orders-page .purchase-order-card .po-request-type {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  padding:5px 8px; border:1px solid #caddf5; border-radius:999px;
+  background:#edf5ff; color:#1b5294; font-size:10px; font-weight:750;
+  line-height:1.1; white-space:nowrap;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type.inventory-restock {
+  background:#f0f7f0; color:#35734a; border-color:#cce7d4;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type.manual-purchase {
+  background:#f3f5f9; color:#58657a; border-color:#dce3ec;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview {
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-width:0;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview > strong {
+  min-width:0; overflow-wrap:anywhere; font-size:11px; font-weight:750;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  flex:none; padding:4px 7px; border:1px solid #c9ddff; border-radius:6px;
+  background:#edf4ff; color:#17509a; font-family:inherit;
+  font-size:10px; font-weight:750; cursor:pointer; white-space:nowrap;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger[aria-expanded="true"] i {transform:rotate(180deg);}
+.po-items-more-source[hidden] {display:none !important;}
+.po-items-floating-popover {
+  z-index:2147483000 !important; overflow-y:auto; box-sizing:border-box;
+  padding:8px 12px; border:1px solid #d7e4f4; border-radius:11px;
+  background:#fff; box-shadow:0 15px 35px rgba(17,44,77,.17);
+  color:#19385b; font-family:inherit;
+}
+.po-items-floating-popover .po-items-more-row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; padding:10px 2px; font-size:11px; line-height:1.35;
+}
+.po-items-floating-popover .po-items-more-row + .po-items-more-row {border-top:1px solid #e5edf6;}
+.po-items-floating-popover .po-items-more-row strong {flex:none; font-size:11px; white-space:nowrap;}
