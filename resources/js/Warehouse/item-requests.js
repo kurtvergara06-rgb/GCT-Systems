@@ -275,6 +275,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         appendCell(tr, Number(part.shortage) > 0 ? part.shortage + ' ' + part.unit + ' short' : '—');
         tbody.appendChild(tr);
       }
+      set('ir-slip-total-parts', String(data.parts?.length ?? 0));
       if (!data.parts?.length) throw Error('This request has no recorded parts.');
       const policyAllowsPartial = data.release_policy === 'issue_available_only';
       const canPrepare = data.status === 'sufficient' || (policyAllowsPartial && data.status === 'partial');
