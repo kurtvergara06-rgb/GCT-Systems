@@ -181,3 +181,53 @@
 #viewItemRequestModal .ir-view-secondary-data strong {
   overflow-wrap: anywhere;
 }
+
+/* View PR: scroll the document inside its fixed-height panel, not the page. */
+#editPrModal.pr-review-modal-overlay > .ui-form-modal.ui-form-modal-xl {
+  display: flex !important;
+  flex-direction: column !important;
+  height: min(800px, calc(100dvh - 36px));
+  max-height: calc(100dvh - 36px) !important;
+  overflow: hidden !important;
+}
+#editPrModal .ui-form-content,
+#editPrModal .ui-form-modal-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+#editPrModal .ui-form-modal-scrollable {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+#editPrModal #viewOnlyActions {
+  position: sticky;
+  bottom: 0;
+  flex: 0 0 auto;
+  z-index: 2;
+  background: #fff;
+}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(1),
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(1) {width:54% !important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(2),
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(2) {width:24% !important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table th:nth-child(3),
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-review-parts-table td:nth-child(3) {width:22% !important;}
+#editPrModal .pr-view-shortage-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 100px;
+  background: #fff0f0;
+  color: #bb3038;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
