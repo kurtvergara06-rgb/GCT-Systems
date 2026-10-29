@@ -19,6 +19,7 @@ class PurchaseOrderController extends Controller
     use SystemDataUpdateBroadcaster;
 
     private array $statuses = [
+        'For Review',
         'Ordered',
         'For Pick-up',
         'For Delivery',
@@ -32,7 +33,7 @@ class PurchaseOrderController extends Controller
         $query = PurchaseOrder::query()
             ->whereIn('status', $activeTab === 'history'
                 ? ['Delivered', 'Picked Up']
-                : ['Ordered', 'For Pick-up', 'For Delivery']);
+                : ['For Review', 'Ordered', 'For Pick-up', 'For Delivery']);
 
 
         if ($request->filled('search')) {
@@ -61,6 +62,7 @@ class PurchaseOrderController extends Controller
 
         $totalOrders = PurchaseOrder::count();
         $ordered = PurchaseOrder::where('status', 'Ordered')->count();
+        $forReview = PurchaseOrder::where('status', 'For Review')->count();
         $forPickup = PurchaseOrder::where('status', 'For Pick-up')->count();
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
         $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->count();
@@ -97,6 +99,7 @@ class PurchaseOrderController extends Controller
             'purchaseOrders',
             'totalOrders',
             'ordered',
+            'forReview',
             'forPickup',
             'forDelivery',
             'delivered',
@@ -120,7 +123,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered',
+            'status' => 'required|string|in:Ordered,For Review',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -192,27 +195,26 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => 'Ordered',
+                'status' => 'For Review',
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, 'Ordered');
         });
 
         if ($newPurchaseOrder) {
             $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'created', $newPurchaseOrder->id, 'A new purchase order was created.');
         }
 
-        session()->flash('success', 'Purchase order created successfully.');
+        session()->flash('success', 'Purchase order submitted for Purchase Head review.');
 
         return new RedirectResponse('/purchase-orders');
     }
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if (strtolower(trim((string) $purchaseOrder->status)) !== 'ordered') {
+        if (! in_array($purchaseOrder->status, ['For Review', 'Ordered'], true)) {
             return redirect()->back()->with(
                 'error',
-                'Only purchase orders that are still Ordered can be edited.'
+                'Only purchase orders under review or still Ordered can be edited.'
             );
         }
 
@@ -269,9 +271,9 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedOrder->status !== 'Ordered' || $lockedOrder->inventory_posted_at !== null) {
+            if (! in_array($lockedOrder->status, ['For Review', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null) {
                 throw ValidationException::withMessages([
-                    'status' => 'Only an unreceived Ordered purchase order can be edited.',
+                    'status' => 'Only an unreceived PO under review or Ordered can be edited.',
                 ]);
             }
 
@@ -312,11 +314,13 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => 'Ordered',
+                'status' => $lockedOrder->status,
                 'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            if ($lockedOrder->status === 'Ordered') {
+                $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            }
 
             $newRequestIds = $this->relatedMaintenanceRequests($lockedOrder, true)->pluck('id');
             $oldRequests
@@ -328,6 +332,23 @@ class PurchaseOrderController extends Controller
         session()->flash('success', 'Purchase order updated successfully.');
 
         return new RedirectResponse('/purchase-orders');
+    }
+
+    public function approve(PurchaseOrder $purchaseOrder)
+    {
+        DB::transaction(function () use ($purchaseOrder) {
+            $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedOrder->status !== 'For Review') {
+                throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be approved.']);
+            }
+
+            $lockedOrder->update(['status' => 'Ordered']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'approved', $purchaseOrder->id, 'Purchase Head approved a purchase order.');
+        return redirect('/purchase-orders')->with('success', 'Purchase Order approved and marked Ordered.');
     }
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
