@@ -491,7 +491,11 @@
                   </section>
               </div>
               <section class="pr-step-card pr-document-parts pr-view-parts" id="prReviewItemsSection" aria-label="Parts and Warehouse">
-                  <div class="pr-ir-panel-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><h3>Parts &amp; Warehouse</h3><span id="reviewPrItemCount" class="pr-view-parts-note">0 items</span></div>
+                  <div class="pr-step-heading">
+                      <span class="pr-step-icon">02</span>
+                      <div><h3>Parts &amp; Warehouse</h3><p>Missing parts — Purchase Request (PR), for procurement only</p></div>
+                      <span id="reviewPrItemCount" class="pr-step-tag">0 items</span>
+                  </div>
                   <div class="pr-dual-parts-grid">
                       <div class="pr-dual-parts-pane is-pr">
                           <div class="pr-dual-parts-heading"><strong><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Missing Parts — Purchase Request (PR)</strong><span>For Procurement</span></div>

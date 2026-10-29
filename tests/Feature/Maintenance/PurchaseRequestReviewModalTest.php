@@ -334,6 +334,36 @@ class PurchaseRequestReviewModalTest extends TestCase
         );
     }
 
+    public function test_saved_pr_matches_pending_modal_width_and_parts_heading(): void
+    {
+        $head = $this->maintenanceUser('head');
+        $this->purchaseRequest();
+
+        $this->actingAs($head)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('<span class="pr-step-icon">02</span>', false)
+            ->assertSee('id="reviewPrItemCount" class="pr-step-tag"', false)
+            ->assertSee('Missing parts — Purchase Request (PR), for procurement only');
+
+        $css = file_get_contents(
+            resource_path('css/Maintenance/request-modal-shared.css')
+        );
+
+        $this->assertStringContainsString(
+            'width: min(1160px, calc(100vw - 36px)) !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            'max-width: 1160px !important;',
+            $css
+        );
+        $this->assertStringContainsString(
+            '#editPrModal .pr-view-parts > .pr-step-heading',
+            $css
+        );
+    }
+
     public function test_head_cannot_trigger_a_second_pr_approval_or_rejection(): void
     {
         $head = $this->maintenanceUser('head');

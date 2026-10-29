@@ -105,15 +105,68 @@
   #editPrModal .ui-form-modal { width: calc(100vw - 16px) !important; }
 }
 
-/* View PR (active/history) must match Pending Review PR's 1006px desktop dialog.
-   Match the direct modal panel to win over the older, more-specific 872px caps. */
+/* View PR (active/history) uses the same desktop width as Pending Review PR.
+   Match the direct modal panel to win over older, more-specific width caps. */
 @media (min-width: 761px) {
   #editPrModal.pr-review-modal-overlay > .ui-form-modal.ui-form-modal-xl {
-    width: min(1006px, calc(100vw - 36px)) !important;
+    width: min(1160px, calc(100vw - 36px)) !important;
     min-width: 0;
-    max-width: 1006px !important;
+    max-width: 1160px !important;
     margin-inline: auto;
   }
+}
+
+/* Saved PR keeps the approved overview/approval cards intact. Only the Parts &
+   Warehouse heading reuses the Pending PR treatment for visual parity. */
+#editPrModal .pr-view-parts > .pr-step-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 11px 14px;
+  border-bottom: 1px solid #dce7f4;
+  background: #f3f7fd;
+}
+#editPrModal .pr-view-parts > .pr-step-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+#editPrModal .pr-view-parts > .pr-step-heading h3 {
+  margin: 0;
+  color: #0b2b55;
+  font-size: 13px;
+  font-weight: 800;
+}
+#editPrModal .pr-view-parts > .pr-step-heading p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 11px;
+}
+#editPrModal .pr-view-parts > .pr-step-heading .pr-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #d9e7fe;
+  border-radius: 9px;
+  background: #e8f1ff;
+  color: #1753a5;
+  font-size: 11px;
+  font-weight: 800;
+}
+#editPrModal .pr-view-parts > .pr-step-heading .pr-step-tag {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid #e0e8f5;
+  border-radius: 100px;
+  background: #f1f5fb;
+  color: #526882;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Saved IR overview uses the same supplemental facts arrangement as saved PR. */
