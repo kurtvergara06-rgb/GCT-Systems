@@ -53,38 +53,14 @@
         <div class="section-header purchase-record-header">
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
-            <h2>Requested Purchase Records</h2>
-            <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
+            <h2>Purchase Requisition Records</h2>
+            <p>Purchase Requisitions awaiting procurement. Completed records remain available in Purchase History.</p>
           </div>
           <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
         <div class="purchase-list-controls requested-pr-list-controls">
-          <nav class="requested-pr-record-tabs" role="tablist" aria-label="Purchase request record view">
-            <a
-              href="{{ route('maintenance-requests', ['record_view' => 'pending'], false) }}"
-              class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'pending' ? 'is-active' : '' }}"
-              data-allow-partial-navigation="true"
-              role="tab"
-              aria-selected="{{ ($recordView ?? 'pending') === 'pending' ? 'true' : 'false' }}"
-            ><i class="fa-solid fa-clock"></i><span>Pending Requests</span></a>
-            <a
-              href="{{ route('maintenance-requests', ['record_view' => 'in_progress'], false) }}"
-              class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'in_progress' ? 'is-active' : '' }}"
-              data-allow-partial-navigation="true"
-              role="tab"
-              aria-selected="{{ ($recordView ?? 'pending') === 'in_progress' ? 'true' : 'false' }}"
-            ><i class="fa-solid fa-list-check"></i><span>In Progress</span></a>
-            <a
-              href="{{ route('maintenance-requests', ['view' => 'history'], false) }}"
-              class="requested-pr-record-tab"
-              data-allow-partial-navigation="true"
-              role="tab"
-              aria-selected="false"
-            ><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
-          </nav>
-          <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Maintenance Requests" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Maintenance Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
-            <x-slot:hidden><input type="hidden" name="record_view" value="{{ $recordView ?? 'pending' }}"></x-slot:hidden>
+          <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Requisitions" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Purchase Requisitions" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
             <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
           </x-ui.table-toolbar>
         </div>
