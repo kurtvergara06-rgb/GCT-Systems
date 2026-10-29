@@ -2396,3 +2396,73 @@ span[data-ui-component="status-badge"][data-status="neutral"] {
   font-size: 10px;
   margin-right: 2px;
 }
+
+
+/* System-wide rectangular status treatment (Maintenance, Warehouse, Purchase,
+   Administration, Operation). Keep existing semantic colors and state classes.
+   Do not target generic buttons, role labels, or non-status count badges. */
+:where(.app, main.main) :is(
+  [data-ui-component="status-badge"],
+  .status-badge,
+  .status-pill,
+  .system-status-pill,
+  .gct-pill,
+  .pr-pending-badge,
+  .pr-ir-shortage-status,
+  .pr-ir-status-box,
+  .pr-ir-release-policy,
+  .jo-row-stock-badge,
+  .jo-section-progress,
+  .jo-inventory-stock-status,
+  .personnel-status
+) {
+  border-radius: 6px !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  width: max-content;
+  min-height: 23px;
+  height: auto;
+  padding: 4px 9px !important;
+  font-size: 10px !important;
+  font-weight: 750;
+  line-height: 1.25;
+  box-shadow: none !important;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+:where(.app, main.main) :is(
+  [data-ui-component="status-badge"],
+  .status-badge,
+  .status-pill,
+  .system-status-pill,
+  .gct-pill,
+  .pr-pending-badge,
+  .pr-ir-shortage-status,
+  .pr-ir-status-box,
+  .pr-ir-release-policy,
+  .jo-row-stock-badge,
+  .jo-section-progress,
+  .jo-inventory-stock-status,
+  .personnel-status
+) :is(i, .status-badge__icon) {
+  font-size: 10px;
+  line-height: 1;
+}
+:where(.app, main.main) :is(
+  [data-ui-component="status-badge"],
+  .status-badge,
+  .status-pill,
+  .system-status-pill,
+  .gct-pill,
+  .pr-pending-badge,
+  .pr-ir-shortage-status,
+  .pr-ir-status-box,
+  .pr-ir-release-policy,
+  .jo-row-stock-badge,
+  .jo-section-progress,
+  .jo-inventory-stock-status,
+  .personnel-status
+) .status-badge__label {
+  font-size: inherit !important;
+  line-height: inherit;
+}
