@@ -642,3 +642,29 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   #warehouseItemRequestDetails .warehouse-ir-details-body {padding:12px;gap:10px;}
   #warehouseItemRequestDetails .warehouse-ir-view-section {padding:12px;}
 }
+
+/* Warehouse IR records: visible policy, per-part physical on-hand and balanced spacing. */
+.warehouse-ir-page .ir-table {width:100%;table-layout:fixed;min-width:1080px;}
+.warehouse-ir-page .ir-table th,.warehouse-ir-page .ir-table td {box-sizing:border-box;}
+.warehouse-ir-page .ir-table th:nth-child(1){width:15%;}
+.warehouse-ir-page .ir-table th:nth-child(2){width:15%;}
+.warehouse-ir-page .ir-table th:nth-child(3){width:8%;}
+.warehouse-ir-page .ir-table th:nth-child(4){width:17%;}
+.warehouse-ir-page .ir-table th:nth-child(5){width:10%;}
+.warehouse-ir-page .ir-table th:nth-child(6){width:14%;}
+.warehouse-ir-page .ir-table th:nth-child(7){width:11%;}
+.warehouse-ir-page .ir-table th:nth-child(8){width:10%;}
+.warehouse-ir-page .ir-table tbody td {padding:12px 10px;min-width:0;}
+.warehouse-ir-page .ir-table td:nth-child(4) {white-space:normal;min-width:0;}
+.warehouse-ir-page .ir-table td:nth-child(6) {white-space:normal;min-width:0;}
+.warehouse-ir-page .ir-table td:nth-child(7) {min-width:0;}
+.warehouse-ir-page .ir-table td:nth-child(8) {text-align:center;white-space:nowrap;}
+.warehouse-ir-multi-stock {display:flex;flex-direction:column;gap:5px;}
+.warehouse-ir-multi-stock-line {display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:10px;color:#4f6682;line-height:1.4;}
+.warehouse-ir-multi-stock-line span {min-width:0;overflow-wrap:anywhere;}
+.warehouse-ir-multi-stock-line strong {white-space:nowrap;color:#17385f;font-weight:850;font-size:11px;}
+.warehouse-ir-multi-stock-line+.warehouse-ir-multi-stock-line {border-top:1px solid #e8eef6;padding-top:5px;}
+.warehouse-ir-policy {display:inline-flex;align-items:center;max-width:100%;padding:5px 8px;border:1px solid #cfdff6;border-radius:7px;background:#f0f6ff;color:#245891;font-size:10px;font-weight:800;line-height:1.35;white-space:normal;}
+.warehouse-ir-policy.is-partial {border-color:#f3d8a3;background:#fff7e6;color:#8f6019;}
+.warehouse-ir-policy.is-complete {border-color:#cfdff6;background:#f0f6ff;color:#245891;}
+@media(max-width:1190px){.warehouse-ir-page .ir-table {min-width:1080px;}}
