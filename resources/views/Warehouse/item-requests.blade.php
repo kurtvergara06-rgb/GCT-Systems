@@ -133,7 +133,7 @@
                                     </details>
                                     @endif
                                     @if($shortPartsCount > 0)
-                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortQuantity }} {{ \Illuminate\Support\Str::plural('unit', $shortQuantity) }} Short</span>
+                                        <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('part', $shortPartsCount) }} Short</span>
                                     @endif
                                 </div>
                             </div>
