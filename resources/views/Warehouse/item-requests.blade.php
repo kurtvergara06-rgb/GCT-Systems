@@ -86,17 +86,16 @@
                         </td>
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
                         <td>
+                            <strong>{{ $firstStock['on_hand'] ?? 0 }} {{ $firstStock['unit'] ?? '' }}</strong>
                             @if($stockIsMixed)
-                                <div class="warehouse-ir-multi-stock" title="Physical on-hand quantities for each part">
-                                    @foreach($stockParts as $stockPart)
-                                        <div class="warehouse-ir-multi-stock-line">
-                                            <span>{{ $stockPart['name'] ?? '—' }}</span>
-                                            <strong>{{ $stockPart['on_hand'] ?? 0 }} {{ $stockPart['unit'] ?? '' }}</strong>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <strong>{{ $firstStock['on_hand'] ?? 0 }} {{ $firstStock['unit'] ?? '' }}</strong>
+                                <details class="ir-parts-details warehouse-ir-onhand-more">
+                                    <summary>+{{ $stockParts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                    <div class="ir-parts-popover">
+                                        @foreach($stockParts as $stockPart)
+                                            <div><span>{{ $stockPart['name'] ?? '—' }}</span><strong>{{ $stockPart['on_hand'] ?? 0 }} {{ $stockPart['unit'] ?? '' }}</strong></div>
+                                        @endforeach
+                                    </div>
+                                </details>
                             @endif
                         </td>
                         <td><span title="IR allocation readiness, not full JO stock coverage" class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
