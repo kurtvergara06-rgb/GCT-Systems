@@ -244,7 +244,7 @@
             </div>
             <section class="warehouse-ir-confirm-section">
                 <h3><i class="fa-solid fa-clipboard-check"></i> Confirm Signed Handover</h3>
-                <p>Enter quantities actually handed over. For a Head-authorized partial release, outstanding quantities remain pending. Upload the signed slip after physical handover.</p>
+                <p>Upload the signed withdrawal slip after physical handover. Issuance quantities are fixed by the approved Item Request and available allocation.</p>
                 <form id="warehouseIrSignedIssueForm" method="POST" action="#" enctype="multipart/form-data"
                       data-confirm-form
                       data-confirm-title="Confirm Signed Physical Handover?"
