@@ -238,6 +238,8 @@ class IncomingDeliveryController extends Controller
                 JobOrder::query()
                     ->where('job_order_no', $request->job_order_no)
                     ->whereNotNull('part_needed')
+                    // Receiving stock cannot undo an already recorded JO handover.
+                    ->whereNotIn('part_status', ['Issued', 'Partial'])
                     ->update(['part_status' => $status]);
             }
         });
