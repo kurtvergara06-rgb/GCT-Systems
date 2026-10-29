@@ -12,6 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
@@ -20,6 +22,8 @@ class PurchaseOrderController extends Controller
 
     private array $statuses = [
         'For Review',
+        'Revision Required',
+        'Rejected',
         'Ordered',
         'For Pick-up',
         'For Delivery',
@@ -32,8 +36,8 @@ class PurchaseOrderController extends Controller
         $activeTab = $request->query('view') === 'history' ? 'history' : 'active';
         $query = PurchaseOrder::query()
             ->whereIn('status', $activeTab === 'history'
-                ? ['Delivered', 'Picked Up']
-                : ['For Review', 'Ordered', 'For Pick-up', 'For Delivery']);
+                ? ['Delivered', 'Picked Up', 'Rejected']
+                : ['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery']);
 
 
         if ($request->filled('search')) {
@@ -211,7 +215,7 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if (! in_array($purchaseOrder->status, ['For Review', 'Ordered'], true)) {
+        if (! in_array($purchaseOrder->status, ['For Review', 'Revision Required', 'Ordered'], true)) {
             return redirect()->back()->with(
                 'error',
                 'Only purchase orders under review or still Ordered can be edited.'
@@ -230,7 +234,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered,For Review',
+            'status' => 'required|string|in:Ordered,For Review,Revision Required',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -271,7 +275,7 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! in_array($lockedOrder->status, ['For Review', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null) {
+            if (! in_array($lockedOrder->status, ['For Review', 'Revision Required', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null) {
                 throw ValidationException::withMessages([
                     'status' => 'Only an unreceived PO under review or Ordered can be edited.',
                 ]);
@@ -314,7 +318,9 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => $lockedOrder->status,
+                'status' => $lockedOrder->status === 'Revision Required' ? 'For Review' : $lockedOrder->status,
+                'reviewed_by' => $lockedOrder->status === 'Revision Required' ? null : $lockedOrder->reviewed_by,
+                'reviewed_at' => $lockedOrder->status === 'Revision Required' ? null : $lockedOrder->reviewed_at,
                 'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
@@ -334,21 +340,65 @@ class PurchaseOrderController extends Controller
         return new RedirectResponse('/purchase-orders');
     }
 
-    public function approve(PurchaseOrder $purchaseOrder)
+    public function approve(Request $request, PurchaseOrder $purchaseOrder)
     {
-        DB::transaction(function () use ($purchaseOrder) {
-            $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+        $validated = $request->validate([
+            'signature' => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'review_remarks' => ['nullable', 'string', 'max:2000'],
+        ]);
 
-            if ($lockedOrder->status !== 'For Review') {
-                throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be approved.']);
-            }
+        // Keep signature private; do not publish a public storage URL.
+        $signaturePath = $request->file('signature')->store('purchase-order-approvals', 'local');
 
-            $lockedOrder->update(['status' => 'Ordered']);
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
-        });
+        try {
+            DB::transaction(function () use ($purchaseOrder, $request, $validated, $signaturePath) {
+                $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedOrder->status !== 'For Review') {
+                    throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be approved.']);
+                }
+
+                $lockedOrder->update([
+                    'status' => 'Ordered',
+                    'approved_by' => $request->user()->id,
+                    'approved_at' => now(),
+                    'approval_signature_path' => $signaturePath,
+                    'review_remarks' => $validated['review_remarks'] ?? null,
+                ]);
+                $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            });
+        } catch (\Throwable $e) {
+            Storage::disk('local')->delete($signaturePath);
+            throw $e;
+        }
 
         $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'approved', $purchaseOrder->id, 'Purchase Head approved a purchase order.');
         return redirect('/purchase-orders')->with('success', 'Purchase Order approved and marked Ordered.');
+    }
+
+    public function reviewDecision(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $validated = $request->validate([
+            'decision' => ['required', 'in:revision,reject'],
+            'review_remarks' => ['required', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($purchaseOrder, $request, $validated) {
+            $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            if ($lockedOrder->status !== 'For Review') {
+                throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be returned or rejected.']);
+            }
+
+            $lockedOrder->update([
+                'status' => $validated['decision'] === 'revision' ? 'Revision Required' : 'Rejected',
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'review_remarks' => $validated['review_remarks'],
+            ]);
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'reviewed', $purchaseOrder->id, 'A Purchase Head review decision was recorded.');
+        return redirect('/purchase-orders')->with('success', 'Purchase Order review decision saved.');
     }
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
