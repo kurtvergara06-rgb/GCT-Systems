@@ -100,11 +100,40 @@
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
         </div>
 
-        <div class="gct-table-toolbar-row">
-          <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Orders" search-placeholder="Search PO no., item, request no., or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Purchase Orders" :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'total_amount' => 'Total Amount', 'status' => 'Status']" default-sort="po_date" default-direction="desc">
-            <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All Statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
-          </x-ui.table-toolbar>
-          <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn"><i class="fa-solid fa-plus"></i> New PO</button>
+        <div class="po-record-controls">
+          <nav class="po-record-tabs" aria-label="Purchase order record groups">
+            <a href="{{ route('purchase-orders', array_merge(request()->except(['page', 'view', 'status']), ['view' => 'active'])) }}"
+               class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}"
+               @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif>
+              <i class="fa-solid fa-list-check"></i> Active
+            </a>
+            <a href="{{ route('purchase-orders', array_merge(request()->except(['page', 'view', 'status']), ['view' => 'history'])) }}"
+               class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}"
+               @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif>
+              <i class="fa-solid fa-clock-rotate-left"></i> History
+            </a>
+          </nav>
+          <div class="po-record-actions">
+            <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true"
+              search-label="Search Purchase Orders" search-placeholder="PO number, supplier, purpose, or status..."
+              :filter-count="(int) request()->filled('status')"
+              filter-title="Filter Purchase Orders"
+              :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'total_amount' => 'Total Amount', 'status' => 'Status']"
+              default-sort="po_date" default-direction="desc">
+              <x-slot:hidden><input type="hidden" name="view" value="{{ $activeTab ?? 'active' }}"></x-slot:hidden>
+              <x-slot:filters>
+                <x-ui.table-toolbar-field label="Status" name="status" default="">
+                  <option value="">All {{ ($activeTab ?? 'active') === 'history' ? 'Completed' : 'Active' }} Statuses</option>
+                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up'] : ['Ordered', 'For Pick-up', 'For Delivery'] as $status)
+                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                  @endforeach
+                </x-ui.table-toolbar-field>
+              </x-slot:filters>
+            </x-ui.table-toolbar>
+            @if(($activeTab ?? 'active') === 'active')
+              <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn"><i class="fa-solid fa-plus"></i> New PO</button>
+            @endif
+          </div>
         </div>
 
         <div class="table-wrap records-table-wrap">
