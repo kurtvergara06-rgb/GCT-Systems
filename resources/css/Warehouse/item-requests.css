@@ -678,3 +678,35 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   white-space:nowrap;cursor:pointer
 }
 .warehouse-ir-page .ir-parts-details.warehouse-ir-onhand-more[open]>summary{background:#e3efff}
+
+/* Approved Warehouse request table rhythm: IR ON HAND mirrors PR inline stock chips. */
+.warehouse-ir-page .ir-table thead th:nth-child(3),
+.warehouse-ir-page .ir-table thead th:nth-child(4),
+.warehouse-ir-page .ir-table tbody td:nth-child(3),
+.warehouse-ir-page .ir-table tbody td:nth-child(4){
+  text-align:left;
+}
+.warehouse-ir-page .ir-table tbody td:nth-child(4){
+  white-space:nowrap;
+}
+.warehouse-ir-page .ir-table tbody td{
+  padding:13px 12px;
+  vertical-align:middle;
+}
+.warehouse-ir-page .ir-table tbody td:nth-child(4)>strong{
+  display:inline-block;
+  min-width:45px;
+  line-height:26px;
+  font-size:12px;
+  font-weight:850;
+  color:#17385f;
+  vertical-align:middle;
+}
+.warehouse-ir-page .ir-parts-details.warehouse-ir-onhand-more{
+  margin-left:8px;
+  vertical-align:middle;
+}
+.warehouse-ir-page .ir-parts-details.warehouse-ir-onhand-more>summary{
+  min-height:26px;
+  box-sizing:border-box;
+}
