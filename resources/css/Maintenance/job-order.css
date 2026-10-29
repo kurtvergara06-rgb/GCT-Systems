@@ -6594,3 +6594,58 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   text-align: left !important;
   justify-self: start !important;
 }
+
+/* JO accordion: preserve a single scrollable modal body and accessible bottom section. */
+:is(#jobModal,#editJobModal).jo-create-modal-overlay > .ui-form-modal {
+  display:flex !important;
+  flex-direction:column !important;
+  max-height:calc(100dvh - 36px) !important;
+  min-height:0;
+}
+:is(#jobModal,#editJobModal) .ui-form-modal-body {
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+:is(#jobModal,#editJobModal) .ui-form-modal-scrollable {
+  display:block !important;
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden;
+  padding-bottom:52px !important;
+  overscroll-behavior-y:contain;
+}
+:is(#jobModal,#editJobModal) .jo-create-section[data-jo-collapsible] {
+  height:auto !important;
+  min-height:0;
+}
+:is(#jobModal,#editJobModal) .jo-create-section.is-collapsed > :not(.jo-create-section-header) {
+  display:none !important;
+}
+:is(#jobModal,#editJobModal) .jo-create-section-header > .jo-section-progress {
+  margin-left:auto !important;
+}
+:is(#jobModal,#editJobModal) .jo-create-section-header > .jo-collapse-toggle {
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  margin-left:8px !important;
+  flex:0 0 32px;
+}
+:is(#jobModal,#editJobModal) .jo-create-parts-header > .jo-create-add-part-btn {
+  margin-left:auto !important;
+}
+:is(#jobModal,#editJobModal) .jo-create-parts-header > .jo-section-progress {
+  margin-left:8px !important;
+}
+:is(#jobModal,#editJobModal) .jo-new-step.is-complete .jo-new-step-index {
+  background:#e8f8ef;
+  color:#16733d;
+}
+:is(#jobModal,#editJobModal) .jo-create-parts-header .jo-create-add-part-btn:disabled {
+  opacity:.55;
+}
