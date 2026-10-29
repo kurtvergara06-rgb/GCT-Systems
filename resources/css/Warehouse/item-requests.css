@@ -461,3 +461,46 @@ body > .warehouse-ir-stock-popover .warehouse-ir-onhand-value,
   font-size: inherit;
   font-weight: 800;
 }
+
+/* Compact three-column breakdown: physical stock is never confused with JO allocation. */
+body > .ir-parts-popover.warehouse-ir-stock-popover { width: 375px; }
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-table-head,
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 75px 75px;
+  gap: 10px;
+  align-items: center;
+}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-table-head {
+  padding: 10px 3px 6px;
+  color: #627791;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .025em;
+}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-table-head span:not(:first-child) {text-align:right;}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-row {padding: 12px 3px; }
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-stock-figure {
+  text-align: right;
+  color: #153658;
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-stock-figure small {
+  font-size: 9px;
+  font-weight: 500;
+  color: #6b7c93;
+}
+body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortage-quantity {
+  font-size: 10px;
+  color: #b7472b;
+  font-weight: 750;
+}
+@media (max-width: 420px) {
+  body > .warehouse-ir-stock-popover .warehouse-ir-stock-table-head,
+  body > .warehouse-ir-stock-popover .warehouse-ir-stock-row {
+    grid-template-columns: minmax(0,1fr) 58px 58px;
+    gap: 6px;
+  }
+}
