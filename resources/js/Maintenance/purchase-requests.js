@@ -1008,7 +1008,16 @@ window.GCTPartialNavigation.registerInitializer(
       });
     }
 
-    function renderAvailableParts(parts) {
+    function linkedIrBadge(status) {
+      const normalized = String(status || '').trim();
+      const label = normalized || 'Not submitted';
+      const className = ['Issued', 'Completed'].includes(normalized)
+        ? 'pr-availability-badge is-available'
+        : 'pr-availability-badge is-ir-pending';
+      return { label, className };
+    }
+
+    function renderAvailableParts(parts, irStatus = null) {
       const body = document.getElementById('prReviewAvailableParts');
       if (!body) return;
       body.replaceChildren();
@@ -1031,8 +1040,9 @@ window.GCTPartialNavigation.registerInitializer(
         }
         const cell = document.createElement('td');
         const badge = document.createElement('span');
-        badge.className = 'pr-availability-badge is-available';
-        badge.textContent = 'Available';
+        const irBadge = linkedIrBadge(irStatus);
+        badge.className = irBadge.className;
+        badge.textContent = irBadge.label;
         cell.appendChild(badge);
         row.appendChild(cell);
         body.appendChild(row);
@@ -1094,7 +1104,7 @@ window.GCTPartialNavigation.registerInitializer(
         }
 
         renderMissingParts(data.parts);
-        renderAvailableParts(data.available_parts);
+        renderAvailableParts(data.available_parts, data.ir_status);
         if (prPurposeBus) {
           prPurposeBus.value = `Bus ${data.bus_no} — ${data.work_to_perform || data.job_order_no}`;
         }
@@ -1956,8 +1966,9 @@ window.GCTPartialNavigation.registerInitializer(
             qty.textContent = String(part.quantity ?? 0) + ' ' + (part.unit || '');
             const cell = document.createElement('td');
             const badge = document.createElement('span');
-            badge.className = 'pr-availability-badge is-available';
-            badge.textContent = 'Available';
+            const irBadge = linkedIrBadge(button.dataset.linkedIrStatus);
+            badge.className = irBadge.className;
+            badge.textContent = irBadge.label;
             cell.append(badge);
             row.append(name, qty, cell);
             referenceBody.append(row);
