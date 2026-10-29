@@ -59,6 +59,9 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     'warehouse-ir-number': 'irNumber',
     'warehouse-ir-job': 'irJob',
     'warehouse-ir-bus': 'irBus',
+    'warehouse-ir-requester': 'irRequester',
+    'warehouse-ir-date': 'irDate',
+    'warehouse-ir-parts-count': 'irPartsCount',
     'warehouse-ir-status': 'irStatus',
     'warehouse-ir-release-policy': 'irReleasePolicy',
     'warehouse-ir-remarks': 'irRemarks',
@@ -87,7 +90,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     message.textContent = '';
     timestamp.textContent = '';
     const coverageLoading = document.getElementById('warehouse-ir-jo-coverage-rows');
-    if (coverageLoading) coverageLoading.textContent = 'Checking linked Job Order...';
+    if (coverageLoading) { coverageLoading.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'Checking linked Job Order...', 'warehouse-ir-stock-empty').colSpan = 5; coverageLoading.appendChild(row); }
     button.disabled = true;
 
     try {
@@ -125,20 +128,25 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (coverage) {
         coverage.replaceChildren();
         const irQuantities = new Map(irParts.map(part => [key(part), Number(part.requested_total ?? part.quantity ?? 0)]));
-        let found = false;
-        joParts.forEach(part => {
-          const outside = Math.max(0, Number(part.quantity || 0) - (irQuantities.get(key(part)) || 0));
-          if (!outside) return;
-          found = true;
-          const line = document.createElement('div');
-          const label = document.createElement('span');
-          label.textContent = part.name || '—';
-          const amount = document.createElement('strong');
-          amount.textContent = outside + ' ' + (part.unit || '') + ' outside this IR';
-          line.append(label, amount);
-          coverage.appendChild(line);
-        });
-        if (!found) coverage.textContent = 'No additional JO quantities outside this IR.';
+        if (joParts.length) {
+          joParts.forEach(part => {
+            const total = Number(part.quantity || 0);
+            const included = Math.min(total, irQuantities.get(key(part)) || 0);
+            const outside = Math.max(0, total - included);
+            const unit = part.unit || '';
+            const row = document.createElement('tr');
+            appendCell(row, part.name || '—');
+            appendCell(row, total + ' ' + unit);
+            appendCell(row, included + ' ' + unit);
+            appendCell(row, outside + ' ' + unit, outside ? 'warehouse-ir-jo-outside' : '');
+            appendCell(row, outside ? 'Not in this IR' : 'Covered by this IR');
+            coverage.appendChild(row);
+          });
+        } else {
+          const row = document.createElement('tr');
+          appendCell(row, 'JO requirements are not available for comparison.', 'warehouse-ir-stock-empty').colSpan = 5;
+          coverage.appendChild(row);
+        }
       }
       if (!data.parts?.length) {
         const tr = document.createElement('tr');
@@ -159,7 +167,7 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       tbody.appendChild(tr);
       message.textContent = error.message;
       const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
-      if (coverage) coverage.textContent = 'JO coverage could not be verified.';
+      if (coverage) { coverage.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'JO coverage could not be verified.', 'warehouse-ir-stock-empty').colSpan = 5; coverage.appendChild(row); }
     } finally {
       if (sequence === requestSequence) button.disabled = false;
     }
