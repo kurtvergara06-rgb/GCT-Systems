@@ -54,7 +54,7 @@
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
             <h2>Purchase Requisition Records</h2>
-            <p>Purchase Requisitions awaiting procurement. Completed records remain available in Purchase History.</p>
+            <p>Purchase Requisitions awaiting procurement. <a href="{{ route('maintenance-requests', ['view' => 'history'], false) }}" data-allow-partial-navigation="true">View Requisition History</a>.</p>
           </div>
           <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
