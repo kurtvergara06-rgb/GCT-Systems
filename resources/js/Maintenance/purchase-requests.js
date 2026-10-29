@@ -391,17 +391,6 @@ window.GCTPartialNavigation.registerInitializer(
               );
 
 
-            const numberCell =
-              document.createElement(
-                'td'
-              );
-
-            numberCell.textContent =
-              String(
-                index + 1
-              );
-
-
             const nameCell =
               document.createElement(
                 'td'
@@ -420,7 +409,13 @@ window.GCTPartialNavigation.registerInitializer(
               part.quantity || '—';
 
 
-            row.append(numberCell, nameCell, quantityCell);
+            const statusCell = document.createElement('td');
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'pr-view-shortage-badge';
+            statusBadge.textContent = 'Unavailable';
+            statusCell.appendChild(statusBadge);
+
+            row.append(nameCell, quantityCell, statusCell);
 
 
             body.appendChild(
