@@ -77,6 +77,7 @@
                                 'unit' => $part['unit'] ?? '',
                                 'quantity' => $required,
                                 'available' => $allocated,
+                                'on_hand' => $irPart['on_hand'] ?? null,
                                 'shortage' => max(0, $required - $allocated),
                             ];
                         });
@@ -104,19 +105,20 @@
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
                         <td>
                             <div class="warehouse-ir-onhand-summary">
-                                <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['available'] ?? 0).' '.($firstStock['unit'] ?? '')) }}</strong>
+                                <strong>{{ $stockIsMixed ? 'Stock Summary' : (($firstStock['on_hand'] ?? '—').' '.($firstStock['unit'] ?? '')) }}</strong>
                                 <div class="warehouse-ir-onhand-actions">
                                     @if($stockIsMixed && $displayStockParts->isNotEmpty())
                                     <details class="ir-parts-details warehouse-ir-onhand-more">
                                         <summary>View Stock <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                                         <div class="ir-parts-popover warehouse-ir-stock-popover">
-                                            <div class="warehouse-ir-stock-popover-title">JO requirement &amp; issuance breakdown</div>
+                                            <div class="warehouse-ir-stock-popover-title">Physical stock &amp; JO allocation breakdown</div>
                                             @foreach($displayStockParts as $part)
                                                 <div class="warehouse-ir-stock-popover-row">
                                                     <span class="warehouse-ir-stock-popover-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
                                                     <span class="warehouse-ir-stock-popover-info">
                                                         <strong class="warehouse-ir-stock-popover-name">{{ $part['name'] ?? '—' }}</strong>
                                                         <small>JO required: {{ $part['quantity'] ?? 0 }} {{ $part['unit'] ?? '' }}</small>
+                                                         <small>On hand: {{ $part['on_hand'] ?? '—' }} {{ $part['unit'] ?? '' }}</small>
                                                     </span>
                                                     <span class="warehouse-ir-stock-popover-amount">
                                                         <strong>{{ $part['available'] ?? 0 }} {{ $part['unit'] ?? '' }} issuable</strong>
