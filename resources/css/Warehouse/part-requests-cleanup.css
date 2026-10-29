@@ -973,3 +973,74 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-ok{font-size:10px;font-we
 .warehouse-part-main .warehouse-part-card .warehouse-pr-item-summary > .warehouse-pr-parts-more {
   margin-left: 0;
 }
+
+/* PR records visual parity with Warehouse Item Requests.
+   Keep all PR-only labels, actions, and status semantics intact. */
+.warehouse-part-main .warehouse-part-card {
+  padding: 14px 13px 15px;
+  border: 1px solid #dbe5f2;
+  border-radius: 15px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header {
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header h2 {
+  margin: 0;
+  color: #0b2344;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header p {
+  margin-top: 3px;
+  color: #697f9b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-list-controls {
+  margin-bottom: 12px;
+}
+.warehouse-part-main .warehouse-part-card .table-wrap {
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean thead th {
+  padding: 13px 12px;
+  background: #f3f6fb;
+  color: #526781;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: .04em;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean tbody td {
+  padding: 13px 12px;
+  color: #233a59;
+  font-size: 12px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-summary {
+  gap: 5px 8px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-name {
+  color: #173452;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-id {
+  color: #71839b;
+  font-size: 10px;
+  font-weight: 500;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-item-summary .warehouse-pr-parts-more > summary {
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+@media (max-width: 1050px) {
+  .warehouse-part-main .warehouse-part-card .table-wrap { overflow-x: auto; }
+  .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean { min-width: 900px; }
+}
