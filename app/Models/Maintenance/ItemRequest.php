@@ -13,6 +13,11 @@ class ItemRequest extends Model
 
     protected $casts = ['requested_parts' => 'array'];
 
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Admin\User::class, 'requested_by');
+    }
+
     public function jobOrder(): BelongsTo
     {
         return $this->belongsTo(JobOrder::class, 'job_order_id');
