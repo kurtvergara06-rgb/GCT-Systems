@@ -6686,3 +6686,25 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) .jo-inventory-stock-status[data-state="unavailable"] {
   background:#fff1f1;border-color:#f3c4c4;color:#ac3434;
 }
+
+/* JO mechanic picker: make specialization visible in each available option. */
+:is(#jobModal,#editJobModal) .jo-mechanic-combobox-option .jo-mechanic-skill-details {
+  display:block;
+  margin-top:4px;
+  font-size:10px;
+  font-weight:600;
+  line-height:1.45;
+  color:#527499;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:is(#jobModal,#editJobModal) .jo-multi-mechanic-combobox .jo-mechanic-combobox-option {
+  min-height:53px;
+  padding-block:10px;
+  align-items:center;
+}
+:is(#jobModal,#editJobModal) .jo-mechanic-chips .jo-mechanic-chip {
+  max-width:100%;
+  white-space:normal;
+  line-height:1.4;
+}
