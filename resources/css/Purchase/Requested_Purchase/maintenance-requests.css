@@ -1449,3 +1449,35 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
   font-weight:750 !important;
   line-height:1.1 !important;
 }
+
+/* Multi-part request preview: mirrors the compact "+1 more" Warehouse control. */
+.purchase-maintenance-requests-page .requested-pr-part-inline {
+  display:flex;align-items:center;flex-direction:row;flex-wrap:wrap;gap:7px;
+}
+.purchase-maintenance-requests-page .requested-pr-more {position:relative;display:inline-block;flex:none;}
+.purchase-maintenance-requests-page .requested-pr-more > summary {
+  display:inline-flex;align-items:center;gap:5px;list-style:none;cursor:pointer;
+  padding:4px 7px;border:1px solid #c9ddff;border-radius:6px;
+  background:#edf4ff;color:#17509a;font-size:10px;font-weight:750;
+}
+.purchase-maintenance-requests-page .requested-pr-more > summary::-webkit-details-marker {display:none;}
+.purchase-maintenance-requests-page .requested-pr-more > summary i {font-size:9px;}
+.purchase-maintenance-requests-page .requested-pr-more[open] > summary i {transform:rotate(180deg);}
+.purchase-maintenance-requests-page .requested-pr-more-panel {
+  position:absolute;top:calc(100% + 6px);left:0;z-index:35;
+  width:max-content;min-width:245px;max-width:min(350px,80vw);
+  padding:6px 11px;border:1px solid #dce7f6;border-radius:9px;
+  background:#fff;box-shadow:0 12px 30px rgba(19,45,77,.16);
+}
+.purchase-maintenance-requests-page .requested-pr-more-row {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:9px 2px;font-size:10px;color:#19385b;
+}
+.purchase-maintenance-requests-page .requested-pr-more-row + .requested-pr-more-row {border-top:1px solid #e6edf7;}
+.purchase-maintenance-requests-page .requested-pr-more-row strong {
+  font-size:10px;white-space:nowrap;flex:none;
+}
+.purchase-maintenance-requests-page .requested-purchase-card,
+.purchase-maintenance-requests-page .requested-purchase-card .records-table-wrap {
+  overflow:visible;
+}
