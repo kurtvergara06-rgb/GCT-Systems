@@ -3,6 +3,7 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
     'resources/css/Maintenance/item-requests.css',
+          'resources/css/Maintenance/request-modal-shared.css',
     'resources/js/Maintenance/item-requests.js'
 ]">
 <div class="app">
