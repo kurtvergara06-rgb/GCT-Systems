@@ -148,8 +148,8 @@ class ItemRequestController extends Controller
 
         DB::transaction(function () use ($data, $irParts, $parser, $reservations, $prParts): void {
             $jo = JobOrder::query()->lockForUpdate()->findOrFail($data['job_order_id']);
-            if ($jo->review_status !== 'Approved') {
-                throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved before creating an Item Request.']);
+            if ($jo->review_status !== 'Approved' || $jo->status === 'Completed') {
+                throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved and open before creating an Item Request or Purchase Request.']);
             }
             if (ItemRequest::query()->where('job_order_id', $jo->id)
                 ->whereIn('status', ['Submitted', 'Partially Issued'])->exists()) {
