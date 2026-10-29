@@ -169,26 +169,29 @@ class ItemRequestController extends Controller
             // A shortage must be split between available IR quantities and
             // missing PR quantities. The Head's release policy governs
             // physical Warehouse issuance, not creation of the IR.
-            if ($parts === []) {
-                throw ValidationException::withMessages(['job_order_id' => 'No available quantities remain for this Job Order. Missing quantities belong in a Purchase Request.']);
-            }
-            ItemRequest::create([
-                'job_order_id' => $jo->id,
-                'requested_by' => auth()->id(),
-                'status' => 'Submitted',
-                'requested_parts' => $parts,
-                'remarks' => $data['remarks'] ?? null,
-            ]);
-            // An IR is the operational request for JO parts. Creating it
-            // transitions the JO away from "Not Requested" without implying
-            // that Warehouse has physically issued anything; approved JOs may already reserve stock.
-            if (in_array($jo->part_status, [null, 'Not Requested'], true)) {
-                $jo->update(['part_status' => 'Submitted']);
+            // Zero-stock JOs still need a procurement path, but must never
+            // create an empty IR that Warehouse cannot physically fulfill.
+            if ($parts !== []) {
+                ItemRequest::create([
+                    'job_order_id' => $jo->id,
+                    'requested_by' => auth()->id(),
+                    'status' => 'Submitted',
+                    'requested_parts' => $parts,
+                    'remarks' => $data['remarks'] ?? null,
+                ]);
+                if (in_array($jo->part_status, [null, 'Not Requested'], true)) {
+                    $jo->update(['part_status' => 'Submitted']);
+                }
             }
 
             // Split the JO shortage into one procurement request alongside the
             // available IR. Both records commit or roll back together.
             $missing = $prParts->missingParts((string) $jo->part_needed, $jo);
+            if ($parts === [] && $missing === []) {
+                throw ValidationException::withMessages([
+                    'job_order_id' => 'No new IR or PR quantities remain for this Job Order.',
+                ]);
+            }
             if ($missing !== []) {
                 $existing = PurchaseRequest::query()
                     ->where('job_order_no', $jo->job_order_no)
@@ -196,6 +199,11 @@ class ItemRequestController extends Controller
                     ->where(fn ($query) => $query->whereNull('source_type')
                         ->orWhere('source_type', 'Maintenance Request'))
                     ->exists();
+                if ($existing && $parts === []) {
+                    throw ValidationException::withMessages([
+                        'job_order_id' => 'The shortage is already linked to an existing Purchase Request. No new Item Request can be created until stock becomes available.',
+                    ]);
+                }
                 if (! $existing) {
                     if (! trim((string) $jo->assigned_mechanic)) {
                         throw ValidationException::withMessages([
@@ -228,6 +236,6 @@ class ItemRequestController extends Controller
             }
         });
 
-        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Available parts sent to Warehouse; missing quantities were checked for Purchase Request creation.');
+        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Job Order parts were allocated: available quantities submitted to Warehouse when present; shortages checked for Purchase Request creation.');
     }
 }
