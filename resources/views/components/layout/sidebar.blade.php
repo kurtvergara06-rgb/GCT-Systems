@@ -72,17 +72,23 @@
                 ],
             ],
             [
-                'label' => 'Resources',
-                'icon' => 'fa-toolbox',
+                'label' => 'Mechanic Management',
+                'icon' => 'fa-users-gear',
                 'children' => [
-                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
                     ['label' => 'Mechanic Master List', 'route' => 'maintenance.personnel.mechanics', 'icon' => 'fa-users-gear'],
                     ['label' => 'Mechanic Attendance', 'route' => 'mechanic-attendance', 'icon' => 'fa-clipboard-user'],
-                    ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
+                    ['label' => 'Mechanic Availability', 'route' => 'mechanic-list', 'icon' => 'fa-user-gear'],
                 ],
             ],
-            ['label' => 'Item Requests', 'route' => 'item-requests', 'icon' => 'fa-box-open'],
-            ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
+            [
+                'label' => 'Parts & Requests',
+                'icon' => 'fa-box-open',
+                'children' => [
+                    ['label' => 'Item Requests', 'route' => 'item-requests', 'icon' => 'fa-box-open'],
+                    ['label' => 'Purchase Requisitions', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
+                ],
+            ],
+            ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
         ];
     }
 
