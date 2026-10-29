@@ -222,7 +222,7 @@
                               data-confirm-message="Approve this Purchase Order and move it to Ordered?"
                               data-confirm-button="Yes, Approve PO" data-confirm-type="approve">
                           @csrf @method('PATCH')
-                          <button type="submit" class="action-btn po-review-action" title="Review and Approve PO" aria-label="Review and Approve {{ $purchaseOrder->po_no }}">
+                          <button type="submit" class="action-btn po-review-action" title="Review PO for approval" aria-label="Review {{ $purchaseOrder->po_no }} for approval">
                             <i class="fa-solid fa-clipboard-check"></i>
                           </button>
                         </form>
