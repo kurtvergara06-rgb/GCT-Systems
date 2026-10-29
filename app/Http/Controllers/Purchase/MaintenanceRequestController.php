@@ -30,12 +30,19 @@ class MaintenanceRequestController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->query('view') === 'history') {
+        if ($request->query('view') === 'history' || $request->query('record_view') === 'history') {
             return $this->history($request);
         }
 
+        $recordView = $request->query('record_view') === 'in_progress'
+            ? 'in_progress'
+            : 'pending';
+        $visibleStatuses = $recordView === 'pending'
+            ? ['For Purchase']
+            : ['Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'];
+
         $baseQuery = $this->maintenanceBaseQuery();
-        $query = (clone $baseQuery)->whereIn('status', $this->purchaseStatuses);
+        $query = (clone $baseQuery)->whereIn('status', $visibleStatuses);
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -74,7 +81,7 @@ class MaintenanceRequestController extends Controller
             ->whereIn('status', ['Delivered', 'Picked Up'])
             ->count();
         $pickedUp = (clone $baseQuery)->where('status', 'Picked Up')->count();
-        $statuses = $this->purchaseStatuses;
+        $statuses = $visibleStatuses;
 
         return view(
             'Purchase.Requested_Purchase.maintenance-requests',
@@ -87,7 +94,8 @@ class MaintenanceRequestController extends Controller
                 'forDelivery',
                 'delivered',
                 'pickedUp',
-                'statuses'
+                'statuses',
+                'recordView'
             )
         );
     }

@@ -59,8 +59,32 @@
           <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
-        <div class="purchase-list-controls purchase-list-controls--toolbar-only">
+        <div class="purchase-list-controls requested-pr-list-controls">
+          <nav class="requested-pr-record-tabs" role="tablist" aria-label="Purchase request record view">
+            <a
+              href="{{ route('maintenance-requests', ['record_view' => 'pending'], false) }}"
+              class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'pending' ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ ($recordView ?? 'pending') === 'pending' ? 'true' : 'false' }}"
+            ><i class="fa-solid fa-clock"></i><span>Pending Requests</span></a>
+            <a
+              href="{{ route('maintenance-requests', ['record_view' => 'in_progress'], false) }}"
+              class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'in_progress' ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ ($recordView ?? 'pending') === 'in_progress' ? 'true' : 'false' }}"
+            ><i class="fa-solid fa-list-check"></i><span>In Progress</span></a>
+            <a
+              href="{{ route('maintenance-requests', ['view' => 'history'], false) }}"
+              class="requested-pr-record-tab"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="false"
+            ><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+          </nav>
           <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Maintenance Requests" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Maintenance Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+            <x-slot:hidden><input type="hidden" name="record_view" value="{{ $recordView ?? 'pending' }}"></x-slot:hidden>
             <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
           </x-ui.table-toolbar>
         </div>
@@ -69,11 +93,11 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
-                <th scope="col">PR ID / JO</th>
-                <th scope="col">Parts</th>
+                <th scope="col">Request / JO</th>
+                <th scope="col">Submitted At</th>
+                <th scope="col">Parts for Purchase</th>
                 <th scope="col">Qty</th>
-                <th scope="col">Status</th>
-                <th scope="col">Date</th>
+                <th scope="col">PR Status</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -93,10 +117,21 @@
                       <small>{{ $purchaseRequest->job_order_no ?? '—' }}</small>
                     </div>
                   </td>
+                  <td class="requested-pr-date">
+                    @if($purchaseRequest->created_at)
+                      <div class="requested-pr-date-stack">
+                        <strong>{{ $purchaseRequest->created_at->format('M d, Y') }}</strong>
+                        <small>{{ $purchaseRequest->created_at->format('h:i A') }}</small>
+                        <small class="requested-pr-date-note">Request created date</small>
+                      </div>
+                    @else
+                      <span>—</span>
+                    @endif
+                  </td>
                   <td>
                     <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
-                      <small>{{ $purchaseRequest->bus_no ?? '—' }}</small>
+                      <small>{{ $purchaseRequest->bus_no ?? '—' }}@if(count($parts) > 1) · +{{ count($parts) - 1 }} more @endif</small>
                     </div>
                   </td>
                   <td class="requested-pr-quantity">{{ $firstQuantity }}</td>
@@ -105,16 +140,6 @@
                       :status="$purchaseRequest->status ?? '—'"
                       type="purchase"
                     />
-                  </td>
-                  <td class="requested-pr-date">
-                    @if($purchaseRequest->created_at)
-                      <div class="requested-pr-date-stack">
-                        <strong>{{ $purchaseRequest->created_at->format('M d, Y') }}</strong>
-                        <small>{{ $purchaseRequest->created_at->format('h:i A') }}</small>
-                      </div>
-                    @else
-                      <span>—</span>
-                    @endif
                   </td>
                   <td class="requested-pr-actions-cell">
                     <div class="actions record-actions">

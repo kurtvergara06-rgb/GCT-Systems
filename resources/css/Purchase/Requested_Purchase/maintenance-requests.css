@@ -1299,3 +1299,123 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
   flex:0 0 auto !important;
   font-size:10px !important;
 }
+
+/* Purchase PR records follow the Maintenance requisition table hierarchy. */
+.purchase-maintenance-requests-page .requested-pr-list-controls {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:8px 0 16px;
+}
+
+.purchase-maintenance-requests-page .requested-pr-record-tabs {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  flex:0 0 auto;
+  padding:4px;
+  border:1px solid #d6e1ef;
+  border-radius:10px;
+  background:#f3f6fb;
+}
+
+.purchase-maintenance-requests-page .requested-pr-record-tab {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:34px;
+  padding:7px 13px;
+  border-radius:7px;
+  color:#5a6b82;
+  font-size:11px;
+  font-weight:750;
+  line-height:1;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:background-color .16s ease,color .16s ease,box-shadow .16s ease;
+}
+
+.purchase-maintenance-requests-page .requested-pr-record-tab:hover:not(.is-active) {
+  background:#e8eff9;
+  color:#174779;
+}
+
+.purchase-maintenance-requests-page .requested-pr-record-tab.is-active {
+  background:#fff;
+  color:#12396d;
+  box-shadow:0 1px 5px rgba(20,48,91,.12);
+}
+
+.purchase-maintenance-requests-page .requested-pr-list-controls > .records-toolbar {
+  width:auto !important;
+  margin:0 0 0 auto !important;
+}
+
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(1),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(1) {width:14%;text-align:left;}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(2),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(2) {width:17%;text-align:left;}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(3),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(3) {width:34%;text-align:left;}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4) {width:9%;text-align:center;}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5) {width:13%;text-align:center;}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6) {width:13%;text-align:right;}
+
+.purchase-maintenance-requests-page .requested-pr-date-note {
+  color:#8292a8 !important;
+  font-size:9px !important;
+}
+
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] {
+  width:max-content !important;
+  max-width:none !important;
+  padding:3px 7px !important;
+  gap:3px !important;
+}
+
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] > .status-badge__icon {
+  width:10px !important;
+  min-width:10px !important;
+  max-width:10px !important;
+  height:auto !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  flex:0 0 10px !important;
+}
+
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .badge[data-ui-component="status-badge"] > .status-badge__label {
+  width:auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+@media(max-width:900px) {
+  .purchase-maintenance-requests-page .requested-pr-list-controls {
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .purchase-maintenance-requests-page .requested-pr-list-controls > .records-toolbar {
+    margin-left:0 !important;
+    align-self:flex-end;
+  }
+}
+
+@media(max-width:620px) {
+  .purchase-maintenance-requests-page .requested-pr-record-tabs {
+    width:100%;
+    overflow-x:auto;
+  }
+
+  .purchase-maintenance-requests-page .requested-pr-record-tab {
+    flex:1 0 auto;
+  }
+}

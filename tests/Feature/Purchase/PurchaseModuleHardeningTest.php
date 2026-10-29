@@ -192,19 +192,42 @@ class PurchaseModuleHardeningTest extends TestCase
         $response = $this->actingAs($user)->get(route('maintenance-requests'));
 
         $response->assertOk()
-            ->assertSee('<th scope="col">PR ID / JO</th>', false)
-            ->assertSee('<th scope="col">Parts</th>', false)
+            ->assertSee('<th scope="col">Request / JO</th>', false)
+            ->assertSee('<th scope="col">Submitted At</th>', false)
+            ->assertSee('<th scope="col">Parts for Purchase</th>', false)
             ->assertSee('<th scope="col">Qty</th>', false)
-            ->assertSee('<th scope="col">Status</th>', false)
-            ->assertSee('<th scope="col">Date</th>', false)
+            ->assertSee('<th scope="col">PR Status</th>', false)
             ->assertSee('<th scope="col">Actions</th>', false)
-            ->assertDontSee('<th scope="col">JO No.</th>', false)
+            ->assertSee('Pending Requests')
+            ->assertSee('In Progress')
+            ->assertSee('History')
             ->assertSee($purchaseRequest->job_order_no)
             ->assertSee($purchaseRequest->bus_no)
             ->assertSee('Procurement Status')
             ->assertSee('id="viewRequestedPartsContainer"', false)
             ->assertDontSee('<input id="viewRequestedPrNo"', false)
             ->assertDontSee('<textarea id="viewRequestedRemarks"', false);
+    }
+
+    public function test_parts_requests_record_tabs_group_pending_and_in_progress_statuses(): void
+    {
+        $user = $this->purchaseUser('head');
+        $pending = $this->maintenanceRequest('PR-PENDING-TAB', 'For Purchase');
+        $ordered = $this->maintenanceRequest('PR-PROGRESS-TAB', 'Ordered');
+
+        $this->actingAs($user)
+            ->get(route('maintenance-requests', ['record_view' => 'pending']))
+            ->assertOk()
+            ->assertSee($pending->pr_no)
+            ->assertDontSee($ordered->pr_no)
+            ->assertSee('name="record_view" value="pending"', false);
+
+        $this->actingAs($user)
+            ->get(route('maintenance-requests', ['record_view' => 'in_progress']))
+            ->assertOk()
+            ->assertSee($ordered->pr_no)
+            ->assertDontSee($pending->pr_no)
+            ->assertSee('name="record_view" value="in_progress"', false);
     }
 
     public function test_create_po_action_only_opens_prefilled_form_without_saving_or_changing_request(): void
