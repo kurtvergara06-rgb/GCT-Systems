@@ -11,8 +11,6 @@
     <main class="main maintenance-ir-page warehouse-ir-page">
         <x-layout.topbar title="Item Requests" subtitle="Review Item Requests submitted by Maintenance" />
 
-        @if(session("success"))<div class="ir-alert ir-alert-success" role="status">{{ session("success") }}</div>@endif
-        @if($errors->any())<div class="ir-alert ir-alert-error" role="alert">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
         <section class="ir-summary" aria-label="Warehouse Item Request overview">
             <div class="ir-summary-card"><span class="ir-summary-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><span>Total Requests</span><strong>{{ $totalCount }}</strong><small>All received Item Requests</small></div></div>
             <div class="ir-summary-card"><span class="ir-summary-icon ir-summary-icon-blue"><i class="fa-solid fa-paper-plane"></i></span><div><span>Submitted</span><strong>{{ $submittedCount }}</strong><small>Awaiting verification</small></div></div>
