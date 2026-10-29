@@ -133,7 +133,7 @@
           <table class="records-table">
             <thead>
               <tr>
-                <th>PO ID</th><th>Item</th><th>Requisition No.</th><th>Source</th><th>Qty</th><th>Total (₱)</th><th>Status</th><th>PO Date</th><th>Actions</th>
+                <th>PO ID</th><th>PR ID</th><th>Item</th><th>Source</th><th>Qty</th><th>Total (₱)</th><th>Status</th><th>PO Date</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +156,7 @@
 
                 <tr>
                   <td><div class="po-number-cell"><strong>{{ $purchaseOrder->po_no }}</strong></div></td>
+                  <td><span class="po-reference">{{ $hasRequest ? $displayRequestNo : '—' }}</span></td>
                   <td>
                     <div class="po-item-preview">
                       <strong>{{ $firstItemName ?: '—' }}</strong>
@@ -174,7 +175,7 @@
                       @endif
                     </div>
                   </td>
-                  <td><span class="po-reference">{{ $hasRequest ? $displayRequestNo : '—' }}</span></td>
+
                   <td>
                     <span class="po-request-type {{ $isInventoryRestock ? 'inventory-restock' : ($hasRequest ? 'maintenance-request' : 'manual-purchase') }}">
                       <i class="fa-solid {{ $isInventoryRestock ? 'fa-boxes-stacked' : ($hasRequest ? 'fa-screwdriver-wrench' : 'fa-file-circle-plus') }}"></i>
