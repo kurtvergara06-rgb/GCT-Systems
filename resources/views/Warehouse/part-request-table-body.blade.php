@@ -37,9 +37,6 @@
                   <td class="item-col">
                     <div class="warehouse-pr-item-summary">
                       <span class="warehouse-pr-item-name" title="{{ $itemName }}">{{ trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) $itemName)) ?: $itemName }}</span>
-                      @if(preg_match('/\\[item:(\\d+)\\]/i', (string) $itemName, $itemIdMatch))
-                        <small class="warehouse-pr-item-id">Item #{{ $itemIdMatch[1] }}</small>
-                      @endif
                     @if($multipleParts)
                       <details class="warehouse-pr-parts-more">
                         <summary>+{{ $partDetails->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
