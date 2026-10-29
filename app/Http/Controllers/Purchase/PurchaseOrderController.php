@@ -450,6 +450,12 @@ class PurchaseOrderController extends Controller
             return;
         }
 
+        // Purchase progress must never erase physical issuance recorded by Warehouse.
+        // Issued/Partial are ledger-backed JO states, not procurement milestones.
+        if (in_array($jobOrder->part_status, ['Issued', 'Partial'], true)) {
+            return;
+        }
+
         $jobOrder->update(['part_status' => $partStatus]);
     }
 
