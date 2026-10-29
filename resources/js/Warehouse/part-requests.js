@@ -144,7 +144,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
       return;
     }
-    const cleanName = value => String(value || '—').replace(/\\s*\\[item:\\d+\\]/gi, '').trim();
+    const cleanName = value => String(value || '—').replace(/\s*\[item:\d+\]/gi, '').trim();
     const cells = parts.map(part => {
       const quantity = part.needed_display ?? String(part.needed ?? part.quantity ?? 0) + ' ' + (part.unit || '');
       const onHandValue = Number(part.physical_on_hand ?? 0);
