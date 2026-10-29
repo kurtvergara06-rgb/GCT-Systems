@@ -195,6 +195,13 @@
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
                         data-supplier-name="{{ $purchaseOrder->supplier_name }}"
+                        data-supplier-address-tel="{{ $purchaseOrder->supplier_address_tel }}"
+                        data-terms="{{ $purchaseOrder->terms }}"
+                        data-terms-of-payment="{{ $purchaseOrder->terms_of_payment }}"
+                        data-purpose="{{ $purchaseOrder->purpose }}"
+                        data-delivery-fee="{{ $purchaseOrder->delivery_fee }}"
+                        data-discount="{{ $purchaseOrder->discount }}"
+                        data-vat="{{ $purchaseOrder->vat }}"
                         data-status="{{ $purchaseOrder->status }}"
                         data-items='@json($items)'
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
@@ -209,6 +216,13 @@
                           data-po-no="{{ $purchaseOrder->po_no }}"
                           data-po-date="{{ $purchaseOrder->po_date }}"
                           data-supplier-name="{{ $purchaseOrder->supplier_name }}"
+                        data-supplier-address-tel="{{ $purchaseOrder->supplier_address_tel }}"
+                        data-terms="{{ $purchaseOrder->terms }}"
+                        data-terms-of-payment="{{ $purchaseOrder->terms_of_payment }}"
+                        data-purpose="{{ $purchaseOrder->purpose }}"
+                        data-delivery-fee="{{ $purchaseOrder->delivery_fee }}"
+                        data-discount="{{ $purchaseOrder->discount }}"
+                        data-vat="{{ $purchaseOrder->vat }}"
                           data-status="{{ $purchaseOrder->status }}"
                           data-items='@json($items)'
                           data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
@@ -286,12 +300,12 @@
             <span class="po-section-icon"><i class="fa-solid fa-file-invoice"></i></span>
             <div>
               <h3 id="poOrderInfoTitle">Order Information</h3>
-              <p>Enter the purchase order details and supplier information.</p>
+              <p>Supplier, payment terms, and linked requisition details.</p>
             </div>
           </div>
 
           <div class="po-form-section-body">
-            <div class="po-form-grid">
+            <div class="po-form-grid po-paper-header-grid">
               <div class="po-form-group">
                 <label for="po_no">PO ID <span class="po-required">*</span></label>
                 <input type="text" name="po_no" id="po_no" value="{{ $nextPoNo ?? '' }}" readonly>
@@ -323,6 +337,23 @@
                 </div>
               </div>
 
+              <div class="po-form-group">
+                <label for="supplier_address_tel">Supplier Address / Contact</label>
+                <input type="text" name="supplier_address_tel" id="supplier_address_tel" placeholder="Address or telephone (optional)">
+              </div>
+              <div class="po-form-group">
+                <label for="terms">Terms (Days)</label>
+                <input type="text" name="terms" id="terms" placeholder="e.g. 15" maxlength="255">
+              </div>
+              <div class="po-form-group">
+                <label for="terms_of_payment">Terms of Payment</label>
+                <select name="terms_of_payment" id="terms_of_payment">
+                  <option value="">Select payment method</option>
+                  <option value="Check">Check</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
               <div class="po-form-group po-request-reference" id="poRequestReference">
                 <label for="main_pr_no">Linked Purchase Request</label>
                 <input type="text" id="main_pr_no" placeholder="No linked request" value="{{ $selectedPurchaseRequest?->pr_no }}" readonly>
@@ -364,30 +395,36 @@
               </button>
             </div>
 
-            <div class="po-bottom-grid">
-              <div class="po-items-helper">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>Review item quantities and costs before saving.</span>
+            <div class="po-bottom-grid po-paper-bottom-grid">
+              <div class="po-form-group po-purpose-field">
+                <label for="purpose">Purpose</label>
+                <textarea name="purpose" id="purpose" rows="3" placeholder="e.g. For maintenance of assigned bus"></textarea>
+                <p class="po-purpose-hint">Use the linked requisition as reference. Optional for manual orders.</p>
               </div>
-
-              <aside class="po-summary-card" aria-label="Purchase order summary">
-                <div class="po-summary-title">
-                  <span><i class="fa-solid fa-calculator"></i></span>
-                  <strong>Summary</strong>
-                </div>
-                <div class="po-summary-row">
-                  <span>Subtotal</span>
-                  <strong id="po_subtotal_display">₱0.00</strong>
-                </div>
-                <div class="po-summary-row po-summary-total">
-                  <span>Total Amount</span>
-                  <input type="text" id="net_amount_display" value="₱0.00" readonly aria-label="Total amount">
-                </div>
+              <aside class="po-summary-card" aria-label="Purchase order financial summary">
+                <div class="po-summary-title"><span><i class="fa-solid fa-calculator"></i></span><strong>Financial Summary</strong></div>
+                <div class="po-summary-row"><span>Gross Amount</span><strong id="po_subtotal_display">₱0.00</strong></div>
+                <div class="po-summary-row po-adjustment"><label for="delivery_fee">Delivery Fee</label><input type="number" name="delivery_fee" id="delivery_fee" value="0" min="0" step="0.01"></div>
+                <div class="po-summary-row po-adjustment"><label for="discount">Discount</label><input type="number" name="discount" id="discount" value="0" min="0" step="0.01"></div>
+                <div class="po-summary-row po-adjustment"><label for="vat">VAT Amount</label><input type="number" name="vat" id="vat" value="0" min="0" step="0.01"></div>
+                <div class="po-summary-row po-summary-total"><span>Net Amount</span><input type="text" id="net_amount_display" value="₱0.00" readonly aria-label="Net amount"></div>
               </aside>
             </div>
           </div>
         </section>
 
+        <section class="po-form-section po-approval-preview" aria-labelledby="poApprovalHeading">
+          <div class="po-form-section-header">
+            <span class="po-section-icon"><i class="fa-solid fa-user-check"></i></span>
+            <div><h3 id="poApprovalHeading">Approval Information</h3><p>Paper-form signatories are not recorded as approvals by this modal.</p></div>
+          </div>
+          <div class="po-approval-roles">
+            <div><span>Requested By</span><strong>Refer to source PR</strong></div>
+            <div><span>Prepared By</span><strong>{{ auth()->user()->name ?? 'Purchase user' }}</strong></div>
+            <div><span>Checked By</span><strong>On printed PO</strong></div>
+            <div><span>Approved By</span><strong>On printed PO</strong></div>
+          </div>
+        </section>
         <div class="po-modal-actions" id="poEditActions">
           <div class="po-action-hint">
             <i class="fa-solid fa-circle-info"></i>
