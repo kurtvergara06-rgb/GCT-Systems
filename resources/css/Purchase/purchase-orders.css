@@ -1040,3 +1040,16 @@
   #poModal .po-paper-bottom-grid { grid-template-columns: minmax(0, 1fr); }
   #poModal .po-approval-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* Linked PR items are sourced from the requisition: only purchasing costs are entered. */
+#poModal .po-has-locked-pr-items .po-items-header,
+#poModal .po-has-locked-pr-items .po-item-row {
+  grid-template-columns: minmax(0, 1.8fr) 82px 95px minmax(100px, 130px) minmax(110px, 145px) !important;
+}
+#poModal .po-has-locked-pr-items .po-item-action-heading,
+#poModal .po-has-locked-pr-items .remove-po-item-btn,
+#poModal .po-has-locked-pr-items #addPoItemBtn { display: none !important; }
+#poModal .po-prefilled-readonly { background: #f2f6fc !important; color: #284365; cursor: default; border-color: #e1e9f4; }
+#poModal .po-purpose-field { justify-content: flex-start; }
+#poModal .po-purpose-field textarea { min-height: 90px; }
