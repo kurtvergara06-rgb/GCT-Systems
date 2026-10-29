@@ -1044,3 +1044,31 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-ok{font-size:10px;font-we
   .warehouse-part-main .warehouse-part-card .table-wrap { overflow-x: auto; }
   .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean { min-width: 900px; }
 }
+
+/* Warehouse PR / IR alignment: compact physical stock disclosure and balanced columns. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) {
+  width:100%;min-width:980px;table-layout:fixed;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(1){width:15%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(2){width:23%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(3){width:10%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(4){width:15%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(5){width:13%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(6){width:14%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(7){width:10%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td {
+  padding:12px 10px;min-width:0;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-compact {
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-main {
+  color:#17385f;font-size:12px;font-weight:850;white-space:nowrap;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more{margin:0}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more > summary {
+  display:inline-flex;align-items:center;gap:4px;padding:4px 7px;
+  border:1px solid #d2e2f9;border-radius:6px;background:#edf4ff;
+  color:#2057a1;font-size:10px;font-weight:800;white-space:nowrap;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-more[open] > summary{background:#e3efff}
