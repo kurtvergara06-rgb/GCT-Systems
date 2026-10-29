@@ -183,6 +183,15 @@ class PurchaseRequestController extends Controller
             ->get()
             ->keyBy('job_order_no');
 
+        // The IR status is read from the persisted Item Request, never inferred
+        // from the JO-minus-PR quantity shown for reference.
+        $irStatusesByJo = \App\Models\Maintenance\ItemRequest::query()
+            ->whereIn('job_order_id', $prJobApprovals->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+
         $submitted =
             $this
                 ->maintenancePurchaseRequestQuery()
@@ -316,6 +325,7 @@ class PurchaseRequestController extends Controller
             compact(
                 'purchaseRequests',
                 'prJobApprovals',
+                'irStatusesByJo',
                 'submitted',
                 'approved',
                 'rejected',
@@ -379,6 +389,10 @@ class PurchaseRequestController extends Controller
                 : null,
             'parts' => $missingParts,
             'available_parts' => $availableParts,
+            'ir_status' => \App\Models\Maintenance\ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->orderByDesc('id')
+                ->value('status'),
         ]);
     }
 
