@@ -250,6 +250,44 @@
     </div>
   </div>
 
+  <div id="warehouseSendMissingModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
+    <div class="warehouse-edit-style-modal warehouse-request-details-modal warehouse-pr-reference-view warehouse-send-missing-view" role="dialog" aria-modal="true" aria-labelledby="warehouseSendMissingTitle">
+      <div class="warehouse-edit-header">
+        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
+        <div class="warehouse-modal-title-copy">
+          <h2 id="warehouseSendMissingTitle">Send Missing Parts to Purchase</h2>
+          <p>Review the missing parts before submitting the purchase request.</p>
+        </div>
+        <button type="button" class="warehouse-edit-close" data-send-missing-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="warehouse-modal-scrollable">
+        <div class="warehouse-request-summary warehouse-pr-reference-strip warehouse-send-missing-meta">
+          <div class="warehouse-summary-item"><span>PR ID</span><strong id="sendMissingPr">—</strong></div>
+          <div class="warehouse-summary-item"><span>Linked JO</span><strong id="sendMissingJo">—</strong></div>
+          <div class="warehouse-summary-item"><span>Bus</span><strong id="sendMissingBus">—</strong></div>
+        </div>
+        <section class="warehouse-modal-section warehouse-pr-reference-section">
+          <header class="warehouse-modal-section-header">
+            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+            <div><h3>Parts Requiring Purchase</h3><p>Preview of the requested shortages, verified again by the server on submission.</p></div>
+          </header>
+          <div class="warehouse-modal-section-body">
+            <div class="warehouse-pr-view-table-wrap">
+              <table class="warehouse-pr-view-table"><thead><tr><th>PART NAME</th><th>PR QTY</th><th>PHYSICAL ON HAND</th></tr></thead>
+                <tbody id="sendMissingPartsRows"><tr><td colspan="3">No parts selected.</td></tr></tbody>
+              </table>
+            </div>
+            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Only missing quantities will be submitted. Current availability, duplicate requests, and permissions are checked by the existing server workflow.</p>
+          </div>
+        </section>
+      </div>
+      <div class="warehouse-edit-footer">
+        <button type="button" class="warehouse-cancel-btn" data-send-missing-close>Cancel</button>
+        <button type="button" id="sendMissingConfirm" class="confirm-issue-btn"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
+      </div>
+    </div>
+  </div>
+
   <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
     <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal warehouse-issue-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIssuePartsTitle">
       @csrf
