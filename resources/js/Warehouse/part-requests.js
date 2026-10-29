@@ -274,6 +274,57 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     });
   }
 
+  // Intercept the eligible Send Missing Parts form; no POST occurs until confirmed.
+  const sendMissingModal = document.getElementById('warehouseSendMissingModal');
+  const sendMissingConfirm = document.getElementById('sendMissingConfirm');
+  let pendingMissingForm = null;
+  document.addEventListener('submit', event => {
+    const form = event.target.closest?.('form[data-pr-send-form]');
+    if (!form || !sendMissingModal || !sendMissingConfirm || form.dataset.confirmedSend === '1') return;
+    event.preventDefault();
+    pendingMissingForm = form;
+    setField('sendMissingPr', form.dataset.prNo);
+    setField('sendMissingJo', form.dataset.joNo);
+    setField('sendMissingBus', form.dataset.busNo);
+    let parts = [];
+    try { parts = JSON.parse(form.dataset.parts || '[]'); } catch (_) { parts = []; }
+    const rows = document.getElementById('sendMissingPartsRows');
+    if (rows) {
+      rows.replaceChildren();
+      parts.forEach(part => {
+        const tr = document.createElement('tr');
+        const name = document.createElement('td');
+        name.textContent = String(part.name || '—').replace(/\\s*\\[item:\\d+\\]/gi, '').trim();
+        const qty = document.createElement('td');
+        qty.textContent = String(part.needed_display ?? (part.needed ?? 0) + ' ' + (part.unit || ''));
+        const stock = document.createElement('td');
+        stock.textContent = String(part.physical_on_hand_display ?? '0 ' + (part.unit || ''));
+        tr.append(name, qty, stock);
+        rows.appendChild(tr);
+      });
+      if (!parts.length) {
+        const tr = document.createElement('tr'); const td = document.createElement('td');
+        td.colSpan = 3; td.textContent = 'No requested parts found.'; tr.appendChild(td); rows.appendChild(tr);
+      }
+    }
+    sendMissingConfirm.disabled = !parts.length;
+    openModal(sendMissingModal);
+  }, true);
+  sendMissingConfirm?.addEventListener('click', () => {
+    if (!pendingMissingForm || sendMissingConfirm.disabled) return;
+    const form = pendingMissingForm;
+    pendingMissingForm = null;
+    sendMissingConfirm.disabled = true;
+    form.dataset.confirmedSend = '1';
+    HTMLFormElement.prototype.submit.call(form);
+  });
+  sendMissingModal?.querySelectorAll('[data-send-missing-close]').forEach(button => {
+    button.addEventListener('click', () => {
+      pendingMissingForm = null;
+      closeModal(sendMissingModal);
+    });
+  });
+
   const issuePartsModal = document.getElementById('issuePartsModal');
   const issuePartsForm = document.getElementById('issuePartsForm');
   const issuePartsFields = document.getElementById('issue_parts_fields');
