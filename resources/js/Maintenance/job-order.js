@@ -1623,8 +1623,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
             );
 
 
-          const name =
-            pieces[0]?.trim() || '';
+          const rawName = pieces[0]?.trim() || '';
+          const marker = rawName.match(/\s*\[item:(\d+)\]$/i);
+          const name = rawName.replace(/\s*\[item:\d+\]$/i, '').trim();
 
 
           const quantityWithUnit =
@@ -1640,6 +1641,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           return {
 
             name,
+            inventory_item_id: marker ? Number(marker[1]) : null,
 
             quantity:
               match
@@ -3297,6 +3299,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           if (!nameInput || !unitSelect) return;
           const name = nameInput.name;
           const existingName = nameInput.value;
+          const existingId = String(row.querySelector('input[name$="[inventory_item_id]"]')?.value || existingName.match(/\[item:(\d+)\]/i)?.[1] || '');
+          const plainName = existingName.replace(/\s*\[item:\d+\]$/i, '').trim();
           const picker = document.createElement('select');
           picker.name = name;
           picker.className = 'jo-warehouse-part-picker';
@@ -3307,15 +3311,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           items.forEach((item) => {
             const option = document.createElement('option');
             option.value = `${item.name} [${item.code || item.id}]`;
-            option.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
+            option.textContent = `${item.name}${item.code ? ' · ' + item.code : ''}`;
             option.dataset.itemId = item.id;
             option.dataset.unit = item.unit;
             option.disabled = !item.unit;
             picker.append(option);
           });
-          const itemId = document.createElement('input');
+          const itemId = row.querySelector('input[name$="[inventory_item_id]"]') || document.createElement('input');
           itemId.type = 'hidden';
           itemId.name = name.replace('[name]', '[inventory_item_id]');
+          itemId.value = existingId;
           nameInput.replaceWith(picker);
           picker.insertAdjacentElement('afterend', itemId);
           unitSelect.classList.add('jo-auto-unit-select');
@@ -3409,16 +3414,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
               hint.style.cssText = 'font-size:11px;color:#64748b;';
               description.append(label, hint);
               const identity = document.createElement('span');
-              identity.textContent = `ID ${item.id}`;
+              identity.textContent = '';
               identity.style.cssText = 'display:inline-flex;flex:0 0 auto;font-size:10px;font-weight:600;color:#64748b;background:#eef2f7;border-radius:6px;padding:3px 6px;white-space:nowrap;align-self:center;margin-left:auto;';
               button.style.cssText = 'display:flex;flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:10px;width:100%;box-sizing:border-box;';
-              button.append(description, identity);
+              button.append(description);
               button.addEventListener('click', () => {
                 const choice = Array.from(picker.options).find((option) => option.dataset.itemId === String(item.id));
                 if (choice) {
                   picker.value = choice.value;
                   picker.dispatchEvent(new Event('change', { bubbles: true }));
-                  trigger.textContent = `${item.name} · ${item.code || 'ID '+item.id}`;
+                  trigger.textContent = `${item.name}${item.code ? ' · ' + item.code : ''}`;
                 }
                 close();
               });
@@ -3450,7 +3455,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-review-wo
           document.addEventListener('pointerdown', (event) => {
             if (!searchWrap.contains(event.target) && !menu.contains(event.target)) close();
           });
-          picker.value = Array.from(picker.options).find((option) => option.value === existingName || option.value.startsWith(existingName + ' ['))?.value || '';
+          const savedOption = Array.from(picker.options).find((option) => existingId ? option.dataset.itemId === existingId : (option.value && option.value.split(' [')[0] === plainName));
+          picker.value = savedOption?.value || '';
+          if (savedOption) trigger.textContent = savedOption.textContent;
           row.dataset.inventoryPicker = '1';
           updateItem();
         };
@@ -5029,4 +5036,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-mechanic-more-po
     });
   });
 });
+       <input type="hidden" name="parts[${index}][inventory_item_id]" value="${escapeInputValue(part.inventory_item_id || '')}">
+
 
