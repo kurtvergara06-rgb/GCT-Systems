@@ -57,6 +57,11 @@ class BatchAttendanceServiceProvider extends ServiceProvider
 
             });
 
+        // Preserve old bookmarked Mechanics URL while enforcing new Maintenance ownership.
+        Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin', 'system.permission:maintenance,view'])
+            ->get('/operation/personnel/mechanics', fn () => redirect()->route('maintenance.personnel.mechanics'))
+            ->name('operation.personnel.mechanics');
+
         Route::middleware(['web', 'auth', 'role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
             ->prefix('maintenance/mechanics')
             ->group(function (): void {
