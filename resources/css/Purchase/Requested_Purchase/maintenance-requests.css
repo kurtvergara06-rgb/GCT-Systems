@@ -1611,3 +1611,52 @@ main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+
+/* Align Parts Requisitions readability with Purchase Orders and Maintenance IR. */
+main.purchase-maintenance-requests-page .requested-purchase-table th {
+  font-size:11px !important;
+  line-height:1.35 !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td {
+  font-size:12px !important;
+  line-height:1.4 !important;
+  padding-top:15px !important;
+  padding-bottom:15px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td .requested-pr-reference strong,
+main.purchase-maintenance-requests-page .requested-purchase-table td .requested-pr-part-inline > strong,
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity,
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-date-stack strong {
+  font-size:12px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference small,
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-date-stack small {
+  font-size:11px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:max-content !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  height:29px !important;
+  min-height:29px !important;
+  padding:5px 10px !important;
+  gap:5px !important;
+  font-size:12px !important;
+  font-weight:750 !important;
+  white-space:nowrap !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__label {
+  font-size:12px !important;
+  font-weight:750 !important;
+  line-height:1.2 !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__icon {
+  font-size:11px !important;
+  width:11px !important;
+  min-width:11px !important;
+  flex:0 0 11px !important;
+}
