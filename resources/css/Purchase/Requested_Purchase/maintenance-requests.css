@@ -1581,3 +1581,33 @@ main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-
 .purchase-maintenance-requests-page .requested-pr-more > summary[aria-expanded="true"] i {
   transform:rotate(180deg);
 }
+
+
+/* Balanced six-column requisition table: predictable space between labels and values. */
+@media (min-width: 901px) {
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(1) { width: 15%; }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(2) { width: 17%; }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(3) { width: 30%; }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(4) { width: 10%; }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(5) { width: 15%; }
+  .purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table :is(th, td):nth-child(6) { width: 13%; }
+}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table th {
+  padding: 12px 14px !important;
+  vertical-align: middle;
+}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td {
+  padding: 14px 14px !important;
+  vertical-align: middle;
+}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(3) .requested-pr-part-inline {
+  min-width: 0;
+}
+.purchase-module-page.records-page.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(3) .requested-pr-part-inline > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
