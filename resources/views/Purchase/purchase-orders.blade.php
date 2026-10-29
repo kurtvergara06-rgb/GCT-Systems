@@ -220,15 +220,23 @@
                       @endunless
 
                       @if($isForReview && $canReviewPo)
-                        <form action="{{ route('purchase-orders.approve', $purchaseOrder) }}" method="POST"
-                              data-confirm-form data-confirm-title="Approve Purchase Order?"
-                              data-confirm-message="Approve this Purchase Order and move it to Ordered?"
-                              data-confirm-button="Yes, Approve PO" data-confirm-type="approve">
-                          @csrf @method('PATCH')
-                          <button type="submit" class="action-btn po-review-action" title="Review PO for approval" aria-label="Review {{ $purchaseOrder->po_no }} for approval">
-                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i><span>Review</span>
-                          </button>
-                        </form>
+                        <button type="button" class="action-btn po-review-action open-po-review-modal"
+                          data-po-no="{{ $purchaseOrder->po_no }}"
+                          data-po-date="{{ optional($purchaseOrder->po_date)->format('M d, Y') }}"
+                          data-supplier="{{ $purchaseOrder->supplier_name }}"
+                          data-pr-no="{{ $purchaseOrder->first_pr_no }}"
+                          data-purpose="{{ $purchaseOrder->purpose }}"
+                          data-items='@json($items)'
+                          data-gross="{{ $purchaseOrder->gross_amount }}"
+                          data-delivery="{{ $purchaseOrder->delivery_fee }}"
+                          data-discount="{{ $purchaseOrder->discount }}"
+                          data-vat="{{ $purchaseOrder->vat }}"
+                          data-net="{{ $purchaseOrder->net_amount }}"
+                          data-approve-url="{{ route('purchase-orders.approve', $purchaseOrder) }}"
+                          data-decision-url="{{ route('purchase-orders.review-decision', $purchaseOrder) }}"
+                          aria-label="Review {{ $purchaseOrder->po_no }}">
+                          <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i><span>Review</span>
+                        </button>
                       @endif
 
                       @if($isEditable && ! $isForReview)
@@ -476,6 +484,88 @@
       </form>
     </div>
   </div>
+
+  <div id="poHeadReviewModal" class="modal-overlay po-head-review-overlay" role="presentation">
+    <div class="po-head-review-dialog" role="dialog" aria-modal="true" aria-labelledby="poHeadReviewTitle">
+      <header class="po-head-review-header">
+        <div><small>PURCHASE HEAD APPROVAL</small><h2 id="poHeadReviewTitle">Review Purchase Order</h2><p>Verify supplier, ordered items and totals before your decision.</p></div>
+        <button type="button" id="poHeadReviewClose" aria-label="Close review" class="po-head-review-x"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+      <div class="po-head-review-content">
+        <div class="po-head-review-meta">
+          <div><span>Purchase Order</span><strong id="headReviewNo">—</strong></div>
+          <div><span>Date</span><strong id="headReviewDate">—</strong></div>
+          <div><span>Purchase Requisition</span><strong id="headReviewPr">—</strong></div>
+          <div><span>Supplier</span><strong id="headReviewSupplier">—</strong></div>
+        </div>
+        <div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap"><table><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
+        <div class="po-head-review-summary"><span>Gross: <strong id="headReviewGross">—</strong></span><span>Delivery: <strong id="headReviewDelivery">—</strong></span><span>Discount: <strong id="headReviewDiscount">—</strong></span><span>VAT: <strong id="headReviewVat">—</strong></span><strong>NET TOTAL: <span id="headReviewNet">—</span></strong></div>
+        <form id="poHeadReviewForm" method="POST" enctype="multipart/form-data">
+          @csrf @method('PATCH')
+          <div class="po-head-review-fields">
+            <label for="headReviewRemarks">Review Remarks <small>(required for revision or rejection)</small></label>
+            <textarea id="headReviewRemarks" name="review_remarks" rows="3" maxlength="2000" placeholder="Add your review comments"></textarea>
+            <label for="headReviewSignature">Purchase Head Signature <strong>* Required to approve</strong></label>
+            <input id="headReviewSignature" name="signature" type="file" accept="image/png,image/jpeg">
+            <small>PNG or JPG only, maximum 2 MB. Signature stored privately.</small>
+            <img id="headReviewSignaturePreview" alt="Signature preview" hidden>
+          </div>
+          <footer class="po-head-review-footer">
+            <button type="button" id="headReviewRevision" class="po-head-review-revision">Request Revision</button>
+            <button type="button" id="headReviewReject" class="po-head-review-reject">Reject PO</button>
+            <button type="submit" id="headReviewApprove" class="po-head-review-approve">Approve Purchase Order</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  </div>
+  <style>
+    .po-head-review-overlay{align-items:center;justify-content:center;padding:20px;z-index:1100}
+    .po-head-review-dialog{width:min(850px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px #0e27444d;font-family:inherit}
+    .po-head-review-header{display:flex;justify-content:space-between;gap:14px;padding:22px 26px;color:#fff;background:linear-gradient(110deg,#163f79,#265dac)}
+    .po-head-review-header small{font-size:10px;letter-spacing:.13em;font-weight:800;color:#c9e0ff}.po-head-review-header h2{margin:6px 0;font-size:21px}.po-head-review-header p{font-size:12px;margin:0;color:#dceaff}
+    .po-head-review-x{align-self:flex-start;border:0;border-radius:7px;background:#ffffff20;color:#fff;padding:9px;cursor:pointer}
+    .po-head-review-content{padding:22px 26px}.po-head-review-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .po-head-review-meta>div{border:1px solid #e2e9f2;border-radius:8px;padding:11px 13px;min-width:0}
+    .po-head-review-meta span{display:block;font-size:11px;color:#708198;margin-bottom:4px}.po-head-review-meta strong{font-size:13px;color:#15385d;overflow-wrap:anywhere}
+    .po-head-review-section h3{margin:0 0 10px;font-size:14px;color:#183d67}.po-head-review-table-wrap{overflow-x:auto}
+    .po-head-review-table-wrap table{width:100%;border-collapse:collapse;font-size:12px}.po-head-review-table-wrap th{background:#edf3fb;text-align:left;color:#25476e;padding:11px 10px;font-size:11px}.po-head-review-table-wrap td{border-bottom:1px solid #e6edf5;padding:11px 10px;color:#264666}
+    .po-head-review-summary{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-end;padding:15px 0;border-bottom:1px solid #e7edf5;color:#56708c;font-size:11px}.po-head-review-summary>strong{color:#173e73;font-size:14px}
+    .po-head-review-fields{display:flex;flex-direction:column;gap:8px;margin-top:16px}.po-head-review-fields label{font-size:12px;font-weight:750;color:#15385d}.po-head-review-fields label small,.po-head-review-fields>small{font-size:10px;color:#71849c;font-weight:400}
+    .po-head-review-fields textarea,.po-head-review-fields input{border:1px solid #cedaeb;border-radius:7px;padding:10px;font:inherit;font-size:12px;width:100%;box-sizing:border-box}.po-head-review-fields img{max-width:260px;max-height:90px;object-fit:contain;border:1px solid #dce6f2;border-radius:7px;padding:9px}
+    .po-head-review-footer{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:20px}.po-head-review-footer button{border-radius:7px;padding:11px 17px;font-weight:750;font-size:12px;cursor:pointer}
+    .po-head-review-revision{background:#fff6e5;border:1px solid #ecd2a0;color:#91621a}.po-head-review-reject{background:#fff0f1;border:1px solid #e9b0b7;color:#a82e3a}.po-head-review-approve{background:#2054a3;border:1px solid #2054a3;color:#fff}
+    @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
+  </style>
+  <script>
+    (function(){
+      if(!window.GCTPartialNavigation?.registerInitializer)return;
+      window.GCTPartialNavigation.registerInitializer('po-head-review','.purchase-orders-page',function(){
+        const modal=document.getElementById('poHeadReviewModal'),form=document.getElementById('poHeadReviewForm');
+        if(!modal||!form)return;
+        const byId=id=>document.getElementById(id);
+        const money=v=>'₱'+(Number(v)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+        let approveUrl='',decisionUrl='',previewUrl=null;
+        const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const close=()=>{modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
+        document.querySelectorAll('.open-po-review-modal').forEach(button=>button.addEventListener('click',()=>{
+          const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;
+          for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
+          let items=[];try{items=JSON.parse(d.items||'[]')}catch(e){}
+          byId('headReviewItems').innerHTML=items.map(item=>'<tr><td>'+esc(item.item_description)+'</td><td>'+esc(item.quantity)+'</td><td>'+esc(item.unit)+'</td><td>'+money(item.cost)+'</td><td>'+money(item.amount??(Number(item.quantity)*Number(item.cost)))+'</td></tr>').join('')||'<tr><td colspan="5">No items</td></tr>';
+          form.action=approveUrl;modal.style.display='flex';modal.classList.add('show','active');window.GCTModalBackdrop?.sync?.();window.GCTSystemAnimations?.animateModalOpen?.(modal);
+        }));
+        byId('poHeadReviewClose').addEventListener('click',close);
+        const signature=byId('headReviewSignature');signature.addEventListener('change',()=>{if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview');img.hidden=true;if(file&&['image/png','image/jpeg'].includes(file.type)&&file.size<=2097152){previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false}});
+        form.addEventListener('submit',e=>{if(!signature.files?.length){e.preventDefault();signature.setCustomValidity('Upload a signature to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
+        signature.addEventListener('change',()=>signature.setCustomValidity(''));
+        function decide(decision){const remarks=byId('headReviewRemarks');if(!remarks.value.trim()){remarks.setCustomValidity('Please explain your decision.');remarks.reportValidity();return}remarks.setCustomValidity('');form.action=decisionUrl;const input=document.createElement('input');input.type='hidden';input.name='decision';input.value=decision;form.append(input);form.submit()}
+        byId('headReviewRevision').addEventListener('click',()=>decide('revision'));
+        byId('headReviewReject').addEventListener('click',()=>decide('reject'));
+        byId('headReviewRemarks').addEventListener('input',e=>e.target.setCustomValidity(''));
+      });
+    })();
+  </script>
 
   <script>
     window.purchaseOrderPrefill = @json($prefillData);
