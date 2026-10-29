@@ -137,39 +137,51 @@
 <div id="warehouseItemRequestDetails" class="ir-modal-overlay" aria-hidden="true">
     <div class="ir-modal warehouse-ir-details-modal" role="dialog" aria-modal="true" aria-labelledby="warehouseIrDetailsTitle">
         <header class="ir-modal-header">
-            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-box-open"></i></span>
-                <div><h2 id="warehouseIrDetailsTitle">Item Request Details</h2><p>Maintenance request information for Warehouse review</p></div>
+            <div class="ir-modal-heading"><span class="ir-modal-symbol"><i class="fa-solid fa-clipboard-list"></i></span>
+                <div><h2 id="warehouseIrDetailsTitle">Item Request Details</h2><p>Read-only request information, Warehouse inventory and linked Job Order requirements</p></div>
             </div>
             <button type="button" class="ir-icon-button" data-ir-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
         <div class="ir-modal-body warehouse-ir-details-body">
-            <div class="ir-details-grid warehouse-ir-details-meta">
-                <div><span>Item Request</span><strong id="warehouse-ir-number">—</strong></div>
-                <div><span>Linked Job Order</span><strong id="warehouse-ir-job">—</strong></div>
-                <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
-                <div><span>Status</span><strong id="warehouse-ir-status">—</strong></div>
-                <div><span>Head-Approved Release Policy</span><strong id="warehouse-ir-release-policy">—</strong></div>
-            </div>
-            <div class="ir-field">
-                <div class="warehouse-ir-verify-heading"><label>Requested Items &amp; Stock Verification</label><button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button></div>
-                <p class="ir-form-hint warehouse-ir-stock-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Live allocation-aware stock reference. Warehouse rechecks physical inventory before issuance.</p>
+            <section class="warehouse-ir-view-section warehouse-ir-view-overview" aria-label="Item Request overview">
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-file-lines" aria-hidden="true"></i><div><h3>Request Overview</h3><p>Submitted Item Request information</p></div></div>
+                <div class="ir-details-grid warehouse-ir-details-meta">
+                    <div><span>Item Request</span><strong id="warehouse-ir-number">—</strong></div>
+                    <div><span>Linked Job Order</span><strong id="warehouse-ir-job">—</strong></div>
+                    <div><span>Bus</span><strong id="warehouse-ir-bus">—</strong></div>
+                    <div><span>Warehouse Status</span><strong id="warehouse-ir-status">—</strong></div>
+                    <div><span>Head-Approved Release Policy</span><strong id="warehouse-ir-release-policy">—</strong></div>
+                    <div><span>Department</span><strong>Maintenance</strong></div>
+                </div>
+            </section>
+            <section class="warehouse-ir-view-section" aria-labelledby="warehouseIrViewStockTitle">
+                <div class="warehouse-ir-verify-heading">
+                    <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><h3 id="warehouseIrViewStockTitle">Parts &amp; Stock Verification</h3><p>Current physical inventory and allocation-aware issuable quantities</p></div></div>
+                    <button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button>
+                </div>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table">
-                        <thead><tr><th>PART</th><th>JO REQUIRED</th><th>IR QTY</th><th>ON HAND</th><th>ISSUABLE</th><th>IR SHORTAGE</th><th>AVAILABILITY</th></tr></thead>
-                        <tbody id="warehouse-ir-stock-rows"><tr><td colspan="7" class="warehouse-ir-stock-empty">Select View to check current stock.</td></tr></tbody>
+                        <thead><tr><th>PART</th><th>JO REQUIRED</th><th>IR QTY</th><th>ON HAND</th><th>ISSUABLE</th><th>IR SHORTAGE</th><th>STATUS</th></tr></thead>
+                        <tbody id="warehouse-ir-stock-rows"><tr><td colspan="7" class="warehouse-ir-stock-empty">Checking current inventory...</td></tr></tbody>
                     </table>
                 </div>
-                <section class="warehouse-ir-jo-coverage">
-                    <h3>JO quantities outside this IR</h3>
-                    <p>For context only. These quantities may be covered by other IRs or purchase requests.</p>
-                    <div id="warehouse-ir-jo-coverage-rows">—</div>
-                </section>
                 <p id="warehouse-ir-stock-time" class="warehouse-ir-stock-time"></p>
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
-            </div>
-            <div class="ir-field warehouse-ir-details-remarks"><label>Remarks</label><p id="warehouse-ir-remarks" class="ir-detail-text"></p></div>
+            </section>
+            <section class="warehouse-ir-view-section warehouse-ir-view-jo-section" aria-labelledby="warehouseIrJoCoverageTitle">
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Requirement Overview</h3><p>Remaining JO quantities outside this Item Request, for reference only</p></div></div>
+                <div class="warehouse-ir-jo-coverage">
+                    <div id="warehouse-ir-jo-coverage-rows">Checking linked Job Order...</div>
+                </div>
+                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Quantities outside this IR are not necessarily outstanding procurement shortages. Other IRs, PRs or deliveries may already cover them. This view cannot issue parts.</p>
+            </section>
+            <section class="warehouse-ir-view-section warehouse-ir-details-remarks" aria-label="Item Request remarks">
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-lines" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
+                <p id="warehouse-ir-remarks" class="ir-detail-text"></p>
+            </section>
         </div>
         <footer class="ir-modal-footer">
+            <span class="warehouse-ir-view-only-label"><i class="fa-solid fa-eye" aria-hidden="true"></i> View only · No changes can be made here</span>
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
         </footer>
     </div>
