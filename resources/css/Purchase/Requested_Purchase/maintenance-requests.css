@@ -1175,3 +1175,33 @@
     display: flex;
   }
 }
+/* Parts Requests: place table tools directly beneath section heading, without blank toolbar band. */
+.purchase-maintenance-requests-page .requested-purchase-card .purchase-list-controls--toolbar-only {
+  display:flex !important;justify-content:flex-end !important;align-items:center !important;
+  min-height:0 !important;height:auto !important;padding:0 !important;
+  margin:4px 0 12px !important;background:transparent !important;
+  border:0 !important;box-shadow:none !important;
+}
+.purchase-maintenance-requests-page .requested-purchase-card .purchase-list-controls--toolbar-only .records-toolbar {
+  width:auto !important;max-width:100%;min-height:0 !important;height:auto !important;
+  display:inline-flex !important;justify-content:flex-end !important;
+  gap:8px !important;padding:0 !important;margin:0 !important;
+  background:transparent !important;border:0 !important;box-shadow:none !important;
+}
+.purchase-maintenance-requests-page .requested-purchase-card .section-header {margin-bottom:4px !important;}
+.purchase-maintenance-requests-page .requested-purchase-table th {padding:11px 12px !important;}
+.purchase-maintenance-requests-page .requested-purchase-table td {padding:12px 12px !important;}
+.purchase-maintenance-requests-page .requested-purchase-table .status-badge,
+.purchase-maintenance-requests-page .requested-purchase-table [class*="status-badge"] {
+  min-width:0 !important;min-height:25px !important;
+  width:max-content;max-width:100%;padding:5px 10px !important;
+  font-size:10px !important;line-height:1.25 !important;
+}
+.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4) {text-align:center !important;}
+.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6) {text-align:right !important;}
+.purchase-maintenance-requests-page .requested-purchase-table .record-actions {justify-content:flex-end;gap:6px;}
+@media(max-width:750px){
+  .purchase-maintenance-requests-page .requested-purchase-card .purchase-list-controls--toolbar-only .records-toolbar {
+    flex-wrap:wrap;justify-content:flex-end !important;
+  }
+}
