@@ -129,9 +129,21 @@
                     @endif
                   </td>
                   <td>
-                    <div class="requested-pr-part">
+                    <div class="requested-pr-part requested-pr-part-inline">
                       <strong>{{ $firstItem }}</strong>
-                      <small>{{ $purchaseRequest->bus_no ?? '—' }}@if(count($parts) > 1) · +{{ count($parts) - 1 }} more @endif</small>
+                      @if(count($parts) > 1)
+                        <details class="requested-pr-more">
+                          <summary>+{{ count($parts) - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                          <div class="requested-pr-more-panel">
+                            @foreach($parts as $part)
+                              <div class="requested-pr-more-row">
+                                <span>{{ $part['name'] ?? '—' }}</span>
+                                <strong>{{ $part['quantity_display'] ?? '—' }}</strong>
+                              </div>
+                            @endforeach
+                          </div>
+                        </details>
+                      @endif
                     </div>
                   </td>
                   <td class="requested-pr-quantity">{{ $firstQuantity }}</td>
