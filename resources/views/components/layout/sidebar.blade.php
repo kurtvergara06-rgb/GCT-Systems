@@ -94,7 +94,7 @@
     }
 
     if ($componentDepartment === 'purchase') {
-        $isPurchaseHistory = request()->routeIs('maintenance-requests')
+        $isPurchaseHistory = request()->routeIs('purchase-orders')
             && request()->query('view') === 'history';
 
         $items = [
@@ -107,16 +107,16 @@
                         'label' => 'Parts Requisitions',
                         'route' => 'maintenance-requests',
                         'icon' => 'fa-screwdriver-wrench',
-                        'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
+                        'active' => request()->routeIs('maintenance-requests') && request()->query('view') !== 'history',
                     ],
                     ['label' => 'Stock Requisitions', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
-            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
+            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice', 'active' => request()->routeIs('purchase-orders') && ! $isPurchaseHistory],
             ['label' => 'Scheduled Purchases', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
             [
                 'label' => 'Purchase History',
-                'url' => route('maintenance-requests', [], false) . '?view=history',
+                'url' => route('purchase-orders', [], false) . '?view=history',
                 'icon' => 'fa-clock-rotate-left',
                 'active' => $isPurchaseHistory,
             ],
