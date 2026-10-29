@@ -275,31 +275,38 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   }
 
   // Intercept the eligible Send Missing Parts form; no POST occurs until confirmed.
-  const purchaseFeedbackModal = document.getElementById('warehousePurchaseFeedbackModal');
-  const showPurchaseFeedback = (kind, message) => {
-    if (!purchaseFeedbackModal) return;
-    const icon = document.getElementById('warehousePurchaseFeedbackIcon');
-    const title = document.getElementById('warehousePurchaseFeedbackTitle');
-    const subtitle = document.getElementById('warehousePurchaseFeedbackSubtitle');
-    purchaseFeedbackModal.dataset.kind = kind;
-    if (title) title.textContent = kind === 'success' ? 'Parts Request Sent' :
-      kind === 'empty' ? 'No Missing Parts to Submit' : 'Unable to Send Request';
-    if (subtitle) subtitle.textContent = kind === 'success' ? 'Purchase Department processing' :
-      kind === 'empty' ? 'There are no missing parts in this request.' : 'The request was not submitted.';
-    if (icon) {
-      const i = icon.querySelector('i');
-      if (i) i.className = kind === 'success' ? 'fa-solid fa-circle-check' :
-        kind === 'empty' ? 'fa-solid fa-circle-info' : 'fa-solid fa-circle-xmark';
+  const showMissingPartsNotice = (message) => {
+    let root = document.querySelector('.system-toast-root');
+    if (!root) {
+      root = document.createElement('div');
+      root.className = 'system-toast-root';
+      root.setAttribute('aria-live', 'polite');
+      document.body.appendChild(root);
     }
-    setField('warehousePurchaseFeedbackMessage', message);
-    openModal(purchaseFeedbackModal);
+    const notice = document.createElement('div');
+    notice.className = 'system-toast-notification system-toast-notification--warning';
+    notice.setAttribute('role', 'status');
+    const icon = document.createElement('div');
+    icon.className = 'system-toast-icon';
+    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+    const body = document.createElement('div');
+    body.className = 'system-toast-body';
+    const title = document.createElement('div');
+    title.className = 'system-toast-title';
+    title.textContent = 'No Missing Parts';
+    const detail = document.createElement('div');
+    detail.className = 'system-toast-message';
+    detail.textContent = message;
+    body.append(title, detail);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'system-toast-close';
+    close.setAttribute('aria-label', 'Dismiss notification');
+    close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    close.addEventListener('click', () => notice.remove());
+    notice.append(icon, body, close);
+    root.appendChild(notice);
   };
-  purchaseFeedbackModal?.querySelectorAll('[data-purchase-feedback-close]').forEach(button => {
-    button.addEventListener('click', () => closeModal(purchaseFeedbackModal));
-  });
-  if (purchaseFeedbackModal?.dataset.serverResult) {
-    showPurchaseFeedback(purchaseFeedbackModal.dataset.serverResult, purchaseFeedbackModal.dataset.serverMessage);
-  }
 
   const sendMissingModal = document.getElementById('warehouseSendMissingModal');
   const sendMissingConfirm = document.getElementById('sendMissingConfirm');
@@ -335,7 +342,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     }
     if (!parts.length) {
       pendingMissingForm = null;
-      showPurchaseFeedback('empty', 'This purchase request has no recorded missing parts to send. Review stock and request quantities before trying again.');
+      showMissingPartsNotice('This purchase request has no recorded missing parts to send. Review stock and request quantities before trying again.');
       return;
     }
     sendMissingConfirm.disabled = false;
