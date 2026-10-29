@@ -119,14 +119,6 @@
                                         View Stock <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                                     </button>
                                     @endif
-                                                    </span>
-                                                    <strong class="warehouse-ir-stock-figure">{{ $part['on_hand'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
-                                                    <strong class="warehouse-ir-stock-figure">{{ $part['available'] ?? 0 }} <small>{{ $part['unit'] ?? '' }}</small></strong>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </details>
-                                    @endif
                                     @if($shortPartsCount > 0)
                                         <span class="warehouse-ir-shortage-note has-shortage">{{ $shortPartsCount }} {{ \Illuminate\Support\Str::plural('part', $shortPartsCount) }} Short</span>
                                     @endif
