@@ -281,24 +281,13 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (canPrepare && form && lines) {
         (data.parts || []).forEach((part, index) => {
           const cap = Math.min(Number(part.quantity) || 0, Number(part.available) || 0);
-          const label = document.createElement('label');
-          label.className = 'warehouse-ir-issue-quantity-row';
-          label.textContent = part.name + ' — Qty to issue (remaining ' + part.quantity + '): ';
+          // The authorized issue amount is fixed; keep it in the form for
+          // server validation but do not expose an editable quantity field.
           const input = document.createElement('input');
-          input.type = 'number';
+          input.type = 'hidden';
           input.name = 'issued_quantities[' + index + ']';
-          input.min = '0';
-          input.max = String(cap);
-          input.step = '1';
-          input.required = true;
           input.value = String(policyAllowsPartial ? cap : Number(part.quantity));
-          input.addEventListener('input', () => {
-            const cell = tbody.querySelector('[data-issuance-index="' + index + '"]');
-            if (cell) cell.textContent = (input.value || '0') + ' ' + part.unit;
-            updateIssueButton();
-          });
-          label.appendChild(input);
-          lines.appendChild(label);
+          lines.appendChild(input);
           const cell = tbody.querySelector('[data-issuance-index="' + index + '"]');
           if (cell) cell.textContent = input.value + ' ' + part.unit;
         });
