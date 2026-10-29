@@ -48,6 +48,94 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
+
+  // Initialize the four JO sections for both create and edit dialogs.
+  // This intentionally does not disable inputs inside collapsed sections.
+  function initializeJoSectionProgress(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal || modal.dataset.joSectionsInitialized === 'true') return;
+    modal.dataset.joSectionsInitialized = 'true';
+    const sections = [...modal.querySelectorAll('[data-jo-collapsible]')];
+    const steps = [...modal.querySelectorAll('.jo-new-stepper .jo-new-step')];
+    const scrollArea = modal.querySelector('.ui-form-modal-scrollable');
+
+    function isPopulated(control) {
+      if (control.disabled || control.closest('[hidden]')) return true;
+      if (control.tagName === 'SELECT' && control.multiple) return control.selectedOptions.length > 0;
+      if (control.type === 'checkbox' || control.type === 'radio') return control.checked;
+      return String(control.value || '').trim() !== '' && control.checkValidity();
+    }
+
+    function sectionComplete(section, index) {
+      if (index === 3) {
+        const names = [...section.querySelectorAll('.jo-part-row input[name$="[name]"]')];
+        const hasParts = names.some(input => input.value.trim() !== '');
+        if (!hasParts) return { state: 'optional', label: 'Optional' };
+        const validRows = [...section.querySelectorAll('.jo-part-row')].every(row => {
+          const name = row.querySelector('input[name$="[name]"]');
+          const qty = row.querySelector('input[name$="[quantity]"]');
+          const unit = row.querySelector('select[name$="[unit]"]');
+          return !name || (!name.value.trim() && !qty?.value) ||
+            (name.value.trim() && Number(qty?.value) > 0 && Boolean(unit?.value));
+        });
+        return { state: validRows ? 'completed' : 'incomplete', label: validRows ? 'Complete' : 'Incomplete' };
+      }
+      const required = [...section.querySelectorAll('[required]')].filter(el => !el.closest('[hidden]'));
+      const complete = required.length > 0 && required.every(isPopulated);
+      return { state: complete ? 'completed' : 'incomplete', label: complete ? 'Complete' : 'Incomplete' };
+    }
+
+    function update() {
+      sections.forEach((section, index) => {
+        const { state, label } = sectionComplete(section, index);
+        const badge = section.querySelector(':scope > .jo-create-section-header > .jo-section-progress');
+        if (badge) { badge.dataset.state = state; badge.textContent = label; }
+        if (steps[index]) {
+          steps[index].classList.toggle('is-complete', state === 'completed');
+          steps[index].classList.toggle('is-current', state !== 'completed' &&
+            sections.slice(0,index).every((s,i) => sectionComplete(s,i).state !== 'incomplete'));
+          steps[index].setAttribute('aria-label', (index + 1) + '. ' + label);
+        }
+      });
+    }
+
+    sections.forEach((section, index) => {
+      const header = section.querySelector(':scope > .jo-create-section-header');
+      if (!header) return;
+      const badge = document.createElement('span');
+      badge.className = 'jo-section-progress';
+      badge.setAttribute('aria-live', 'polite');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'jo-collapse-toggle';
+      toggle.setAttribute('aria-label', 'Collapse section ' + (index + 1));
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.innerHTML = '<i class="fa-solid fa-chevron-up" aria-hidden="true"></i>';
+      header.append(badge, toggle);
+      toggle.addEventListener('click', () => {
+        const collapsed = section.classList.toggle('is-collapsed');
+        toggle.setAttribute('aria-expanded', String(!collapsed));
+        toggle.setAttribute('aria-label', (collapsed ? 'Expand' : 'Collapse') + ' section ' + (index + 1));
+        toggle.querySelector('i').className = 'fa-solid ' + (collapsed ? 'fa-chevron-down' : 'fa-chevron-up');
+        if (!collapsed && scrollArea) {
+          requestAnimationFrame(() => {
+            const scrollRect = scrollArea.getBoundingClientRect();
+            const rect = header.getBoundingClientRect();
+            scrollArea.scrollTop += rect.top - scrollRect.top - 12;
+          });
+        }
+      });
+    });
+
+    modal.addEventListener('input', update);
+    modal.addEventListener('change', update);
+    // Other application scripts populate maintenance work/mechanics asynchronously.
+    modal.addEventListener('click', () => requestAnimationFrame(update));
+    update();
+  }
+  initializeJoSectionProgress('jobModal');
+  initializeJoSectionProgress('editJobModal');
+
   /* =========================================================
      PART UNITS
   ========================================================= */
@@ -537,9 +625,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
      * Add Part
      */
     if (addPartBtn) {
-
-      addPartBtn.disabled =
-        !hasMechanic;
+      // Requested Parts is optional. Mechanic selection is validated at submission,
+      // but must not prevent the user from entering parts ahead of time.
+      addPartBtn.disabled = false;
     }
 
 
@@ -554,8 +642,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         )
         .forEach((field) => {
 
-          field.disabled =
-            !hasMechanic;
+          // Parts may be prepared before mechanic assignment.
+          field.disabled = false;
 
         });
     }
@@ -590,26 +678,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     /*
      * No mechanic = no requested parts
      */
-    if (
-      !hasMechanic &&
-      partsNeededWrapper
-    ) {
-
-      clearPartInputs(
-        partsNeededWrapper
-      );
-
-
-      partsNeededWrapper
-        .querySelectorAll(
-          'input, select, button'
-        )
-        .forEach((field) => {
-
-          field.disabled = true;
-
-        });
-    }
+    // Do not clear entered parts when mechanic availability changes.
+    // Existing server-side mechanic validation remains authoritative.
 
   }
 
