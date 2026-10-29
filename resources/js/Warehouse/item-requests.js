@@ -86,6 +86,8 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     tbody.appendChild(loading);
     message.textContent = '';
     timestamp.textContent = '';
+    const coverageLoading = document.getElementById('warehouse-ir-jo-coverage-rows');
+    if (coverageLoading) coverageLoading.textContent = 'Checking linked Job Order...';
     button.disabled = true;
 
     try {
@@ -153,9 +155,11 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (sequence !== requestSequence) return;
       tbody.replaceChildren();
       const tr = document.createElement('tr');
-      appendCell(tr, 'Stock verification unavailable. Try Recheck Stock.', 'warehouse-ir-stock-empty').colSpan = 5;
+      appendCell(tr, 'Stock verification unavailable. Try Recheck Stock.', 'warehouse-ir-stock-empty').colSpan = 7;
       tbody.appendChild(tr);
       message.textContent = error.message;
+      const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
+      if (coverage) coverage.textContent = 'JO coverage could not be verified.';
     } finally {
       if (sequence === requestSequence) button.disabled = false;
     }
