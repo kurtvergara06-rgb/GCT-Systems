@@ -710,3 +710,20 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   min-height:26px;
   box-sizing:border-box;
 }
+
+/* On-screen issuance slip: all seven reference fields use uniform cards,
+   four across so the Date field no longer occupies an orphaned row.
+   Print-specific three-column form layout remains unchanged. */
+@media screen and (min-width: 780px) {
+  #warehouseIrSlipModal .warehouse-ir-slip-fields {
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:9px;
+    align-items:stretch;
+  }
+  #warehouseIrSlipModal .warehouse-ir-slip-fields > div {
+    min-width:0;
+    min-height:60px;
+    justify-content:center;
+    padding:11px 12px;
+  }
+}
