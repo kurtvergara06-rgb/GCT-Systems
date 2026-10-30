@@ -95,7 +95,10 @@ class WarehousePartRequestController extends Controller
     private function missingPartsPurchaseQuery()
     {
         return PurchaseRequest::query()
-            ->where('remarks', 'like', 'Missing parts from %')
+            ->where(function ($query) {
+                $query->where('remarks', 'like', 'Missing parts from %')
+                    ->orWhereIn('status', ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up']);
+            })
             ->where(function ($q) {
                 $q->whereNull('job_order_no')
                     ->orWhere('job_order_no', '!=', 'RESTOCK');
@@ -329,136 +332,49 @@ class WarehousePartRequestController extends Controller
         $this->authorizeWarehouseCapability('edit');
 
         if ($this->isRestockRequest($purchaseRequest)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Inventory restock requests cannot be sent from Warehouse Part Requests.');
+            return redirect()->back()->with('error', 'Inventory restock requests cannot be forwarded from Warehouse Purchase Requests.');
         }
 
-        if (! $this->isAuthorizedForWarehouse($purchaseRequest)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Only requests authorized by an approved Job Order can be sent to Purchase.');
-        }
-
-        if ($this->missingPurchaseRequestExists($purchaseRequest)) {
-            return redirect()
-                ->back()
-                ->with('error', 'Missing parts were already sent to the Purchase Department.');
-        }
-
-        $parts = $this->parseParts($purchaseRequest->item);
-        $jobOrder = JobOrder::query()->where('job_order_no', $purchaseRequest->job_order_no)->first();
-        if ($jobOrder) {
-            // The Maintenance PR already represents the JO shortage. Do not subtract
-            // the physical on-hand stock a second time: it may be reserved for an IR
-            // or another JO. Use the same shortage calculation as Maintenance.
-            $shortages = app(\App\Services\Maintenance\PurchaseRequestPartsService::class)
-                ->missingParts((string) $jobOrder->part_needed, $jobOrder);
-            $byIdentity = collect($shortages)->groupBy(fn (array $part) =>
-                $this->normalizeText((string) ($part['name'] ?? '')).'|'.
-                $this->normalizeUnit((string) ($part['unit'] ?? ''))
-            );
-            $missingParts = [];
-            foreach ($parts as $part) {
-                $identity = $this->normalizeText((string) $part['name']).'|'.
-                    $this->normalizeUnit((string) $part['unit']);
-                $outstanding = (int) $byIdentity->get($identity, collect())->sum('quantity');
-                $qty = min((int) $part['quantity'], $outstanding);
-                if ($qty <= 0) {
-                    continue;
-                }
-                $unit = $this->normalizeUnit((string) $part['unit']);
-                $missingParts[] = [
-                    'name' => $part['name'],
-                    'needed' => $qty,
-                    'unit' => $unit,
-                    'needed_display' => trim($qty.' '.$unit),
-                ];
-            }
-        } else {
-            // Legacy PRs without a linked Job Order retain their prior behavior.
-            $inventoryCheck = $this->checkInventoryAvailability($parts);
-            $missingParts = $inventoryCheck['missing'] ?? [];
-        }
-
-
-        if (count($missingParts) === 0) {
-            return redirect()
-                ->back()
-                ->with('error', 'No missing parts found to send to Purchase Department.');
-        }
-
+        // The Maintenance PR already contains the shortages approved through its
+        // linked Job Order. Forward THAT record; never duplicate or subtract stock
+        // again (available units may be allocated to an independent IR).
         $failure = null;
-        $missingPurchaseRequest = DB::transaction(function () use ($purchaseRequest, $missingParts, &$failure) {
-            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
-            $lockedJobOrder = JobOrder::query()
-                ->where('job_order_no', $lockedRequest->job_order_no)
-                ->lockForUpdate()
-                ->first();
+        $forwarded = DB::transaction(function () use ($purchaseRequest, &$failure) {
+            $request = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+            $jobOrder = JobOrder::query()
+                ->where('job_order_no', $request->job_order_no)->lockForUpdate()->first();
 
-            if (! $this->isAuthorizedForWarehouse($lockedRequest, $lockedJobOrder)) {
-                $failure = 'Only requests authorized by an approved Job Order can be sent to Purchase.';
-
-                return null;
+            if (! $this->isAuthorizedForWarehouse($request, $jobOrder)) {
+                $failure = 'Only submitted requests linked to an approved Job Order can be forwarded to Purchasing.';
+                return false;
+            }
+            if ($this->missingPurchaseRequestExists($request)) {
+                $failure = 'This Purchase Request was already forwarded to Purchasing.';
+                return false;
+            }
+            $parts = $this->parseParts($request->item);
+            if (empty($parts) || collect($parts)->every(fn ($part) => (int) ($part['quantity'] ?? 0) <= 0)) {
+                $failure = 'This Purchase Request has no valid shortage quantities.';
+                return false;
             }
 
-            if ($this->missingPurchaseRequestExists($lockedRequest)) {
-                $failure = 'Missing parts were already sent to the Purchase Department.';
-
-                return null;
+            $request->update(['status' => 'For Purchase']);
+            if ($jobOrder && ! in_array($jobOrder->part_status, ['Issued', 'Partial'], true)) {
+                $jobOrder->update(['part_status' => 'For Purchase']);
             }
-
-            $missingItemText = $this->buildPartsText($missingParts);
-            $missingTotalQuantity = collect($missingParts)->sum('needed');
-            $missingPrNo = $this->generateMissingPrNo($lockedRequest->pr_no);
-
-            $createdRequest = PurchaseRequest::create([
-                'pr_no' => $missingPrNo,
-                'job_order_no' => $lockedRequest->job_order_no,
-                'bus_no' => $lockedRequest->bus_no,
-                'item' => $missingItemText,
-                'quantity' => $missingTotalQuantity,
-                'status' => 'For Purchase',
-                'source_type' => 'Maintenance Request',
-                'remarks' => 'Missing parts from '.$lockedRequest->pr_no.'. Only unavailable parts were sent to Purchase Department.',
-                'date_requested' => now(),
-            ]);
-
-            $oldRemarks = trim($lockedRequest->remarks ?? '');
-            $lockedRequest->update([
-                'remarks' => trim($oldRemarks.' Missing parts sent to Purchase as '.$missingPrNo.'.'),
-            ]);
-
-            JobOrder::where('job_order_no', $lockedRequest->job_order_no)
-                ->whereNotIn('part_status', ['Issued', 'Partial'])
-                ->update(['part_status' => 'For Purchase']);
-
-            return $createdRequest;
+            return true;
         });
 
-        if (! $missingPurchaseRequest) {
-            return redirect()->back()->with('error', $failure ?? 'Unable to send missing parts to Purchase.');
+        if (! $forwarded) {
+            return redirect()->back()->with('error', $failure ?? 'Unable to forward the Purchase Request.');
         }
 
         $this->broadcastSystemDataUpdated(
-            'Warehouse',
-            'PurchaseRequest',
-            'created',
-            $missingPurchaseRequest->id,
-            'Warehouse sent missing parts to Purchase Department.'
+            'Warehouse', 'PurchaseRequest', 'sent_to_purchase',
+            $purchaseRequest->id, 'Warehouse forwarded an existing Maintenance PR to Purchasing.'
         );
 
-        $this->broadcastSystemDataUpdated(
-            'Warehouse',
-            'PurchaseRequest',
-            'sent_to_purchase',
-            $purchaseRequest->id,
-            'Warehouse sent unavailable parts to Purchase.'
-        );
-
-        return redirect()
-            ->back()
-            ->with('success', 'Only unavailable parts were sent to Purchase Department.');
+        return redirect()->back()->with('success', 'Purchase Request forwarded to Purchasing.');
     }
 
     private function prepareRequestForWarehouse(PurchaseRequest $purchaseRequest): PurchaseRequest
@@ -633,6 +549,11 @@ class WarehousePartRequestController extends Controller
 
     private function getMissingPurchaseRequest(PurchaseRequest $purchaseRequest): ?PurchaseRequest
     {
+        // Current flow forwards the original PR. Legacy -P copied requests
+        // remain discoverable for compatibility with existing records.
+        if (in_array($purchaseRequest->status, ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'], true)) {
+            return $purchaseRequest;
+        }
         if (! $purchaseRequest->pr_no) {
             return null;
         }
