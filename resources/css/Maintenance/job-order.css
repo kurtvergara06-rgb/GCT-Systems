@@ -7054,3 +7054,12 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled){background:#fbbf24!important;border-color:#e6aa18!important;color:#172a43!important}
 @media(max-width:700px){.jo-head-review-body .jo-signature-grid{grid-template-columns:1fr!important}.jo-head-review-body .jo-signature-draw-wrap{padding-right:0;padding-bottom:14px;border-right:0;border-bottom:1px solid #dfe8f5}}
 @media(max-width:520px){.jo-head-review-dialog{width:calc(100vw - 16px)!important}.jo-head-review-body .jo-review-panel{padding:12px 12px 0!important}.jo-head-review-body .jo-review-footer{margin:0 -12px!important;padding:10px 12px!important}}
+
+
+/* Procurement-linked ETC risk: advisory only, does not alter baseline duration. */
+.jo-type-cell .jo-parts-delay-indicator{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin-top:5px;padding:4px 7px;border:1px solid #f4d18a;border-radius:5px;background:#fff8e8;color:#986000;font-size:10px;font-weight:700;line-height:1.35;white-space:normal}
+.jo-parts-delay-indicator i{flex-shrink:0;color:#c88912}
+.jo-view-section .jo-parts-delay-note{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #f1d5a0;border-radius:8px;background:#fff9ed;color:#76551e;margin:10px 0}
+.jo-parts-delay-note>i{color:#c38a21;margin-top:2px}
+.jo-parts-delay-note strong{font-size:12px;display:block}
+.jo-parts-delay-note p{margin:5px 0 0;font-size:11px;line-height:1.5}
