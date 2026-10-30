@@ -6978,3 +6978,15 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-audit {margin:0;padding:11px 14px;}
 .jo-head-review-body .jo-review-mode {display:grid;gap:13px;min-width:0;}
 @media(max-width:640px){.jo-head-review-body .jo-review-submitted-duration{gap:9px;flex-wrap:wrap;}}
+
+/* Head Review details: align complaint with field labels and amber status text. */
+.jo-head-review-body .jo-review-details .jo-review-complaint {
+  display:grid;grid-template-columns:190px minmax(0,1fr);
+  align-items:center;column-gap:12px;padding:11px 14px;
+}
+.jo-head-review-body .jo-review-details .jo-review-complaint > span {margin:0;}
+.jo-head-review-body .jo-review-details .jo-review-complaint > p {margin:0;min-width:0;text-align:left;}
+.jo-head-review-body .jo-review-details .jo-review-parts-status-badge {
+  color:#986000!important;background:#fff2d7;border-color:#efcd86;
+}
+@media(max-width:640px){.jo-head-review-body .jo-review-details .jo-review-complaint{grid-template-columns:1fr;row-gap:5px;}}
