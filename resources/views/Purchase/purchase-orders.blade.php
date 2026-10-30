@@ -91,8 +91,8 @@
       <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card label="Total Purchase Orders" value="{{ $totalOrders }}" small="All procurement records" icon="fa-file-invoice" color="gray" />
         <x-ui.summary-card label="Ordered" value="{{ $ordered }}" small="Awaiting supplier action" icon="fa-file-invoice" color="blue" />
-        <x-ui.summary-card label="For Pick-up" value="{{ $forPickup }}" small="Ready for collection" icon="fa-box" color="yellow" />
-        <x-ui.summary-card label="Delivered / Picked Up" value="{{ $delivered }}" small="Completed procurement" icon="fa-circle-check" color="green" />
+        <x-ui.summary-card label="For Delivery" value="{{ $forDelivery }}" small="Awaiting Warehouse receipt" icon="fa-truck" color="yellow" />
+        <x-ui.summary-card label="Delivered" value="{{ $delivered }}" small="Completed procurement" icon="fa-circle-check" color="green" />
       </section>
 
       <section data-ajax-region="records" class="table-card purchase-order-card records-card">
@@ -111,6 +111,10 @@
           @endif
         </div>
 
+        <nav class="po-record-tabs" aria-label="Purchase Order record views">
+          <a href="{{ route('purchase-orders', ['view' => 'active']) }}" class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active</a>
+          <a href="{{ route('purchase-orders', ['view' => 'history']) }}" class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+        </nav>
         <div class="po-record-controls purchase-list-controls">
           <div class="po-record-actions purchase-list-tools">
             <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true"
@@ -123,7 +127,7 @@
               <x-slot:filters>
                 <x-ui.table-toolbar-field label="Status" name="status" default="">
                   <option value="">All {{ ($activeTab ?? 'active') === 'history' ? 'Completed' : 'Active' }} Statuses</option>
-                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up'] : ['For Review', 'Ordered', 'For Pick-up', 'For Delivery'] as $status)
+                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up', 'Rejected'] : ['For Review', 'Revision Required', 'Ordered', 'For Delivery'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                   @endforeach
                 </x-ui.table-toolbar-field>
@@ -269,7 +273,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                         </button>
                       @endif
 
-                      @if($isEditable && ! $isForReview)
+                      @if(($activeTab ?? 'active') === 'active' && $isEditable && ! $isForReview)
                         <x-ui.action-button
                           type="edit"
                           title="Edit PO"
@@ -292,7 +296,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                         />
                       @endif
 
-                      @if(count($nextStatuses) > 0)
+                      @if(($activeTab ?? 'active') === 'active' && count($nextStatuses) > 0)
                         <x-ui.action-button
                           type="status"
                           title="Update PO Status"
@@ -304,7 +308,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                         />
                       @endif
 
-                      @if($isDraft)
+                      @if(($activeTab ?? 'active') === 'active' && $isDraft)
                         <form id="deletePoForm-{{ $purchaseOrder->id }}" action="/purchase-orders/{{ $purchaseOrder->id }}" method="POST">
                           @csrf @method('DELETE')
                           <button type="button" class="action-btn delete open-delete-po-modal" title="Delete" data-id="{{ $purchaseOrder->id }}" data-po-no="{{ $purchaseOrder->po_no }}"><i class="fa-solid fa-trash"></i></button>
