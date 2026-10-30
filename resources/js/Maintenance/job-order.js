@@ -336,12 +336,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           const status = row.querySelector('.jo-inventory-stock-status');
           const note = row.querySelector('.jo-part-stock-note');
           if (!status || !note) return;
-          const state = id && item ? item.availability : 'enter_qty';
+          const state = id === '__saved__' ? 'unknown' : (id && item ? item.availability : 'enter_qty');
           status.dataset.state = state;
-          status.textContent = !id ? 'Not Checked' :
+          status.textContent = id === '__saved__' ? 'Not Verified' : !id ? 'Not Checked' :
             ({ enter_qty: 'Enter Qty', sufficient: 'Sufficient',
               partial: 'Partial', unavailable: 'Unavailable' }[state] || 'Not Checked');
-          note.textContent = '';
+          note.textContent = id === '__saved__' ? 'Select the matching inventory item before resubmitting' : '';
           status.title = 'Availability is verified during Job Order reservation.';
         });
       })
