@@ -137,11 +137,23 @@ class PurchaseRequestIndexController extends Controller
         $existingPrJoNumbers = $this->maintenancePurchaseRequestQuery()
             ->whereIn('job_order_no', $jobOrders->pluck('job_order_no'))
             ->pluck('job_order_no');
-        $pendingPrJobs = $jobOrders->reject(fn (JobOrder $job) =>
+        $eligiblePrJobs = $jobOrders->reject(fn (JobOrder $job) =>
             $existingPrJoNumbers->contains($job->job_order_no)
-        )->map(function (JobOrder $job) use ($missingParts) {
+        );
+        // Capture stock and reservations once for this read-only suggestion list.
+        // The live PR submission flow continues to recalculate its own availability.
+        $inventoryItems = $eligiblePrJobs->isEmpty()
+            ? collect()
+            : \App\Models\Warehouse\InventoryItem::query()->get();
+        $inventoryReservations = $eligiblePrJobs->isEmpty()
+            ? collect()
+            : \App\Models\Maintenance\JobOrderPartReservation::query()
+                ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+                ->groupBy('inventory_item_id')
+                ->pluck('reserved', 'inventory_item_id');
+        $pendingPrJobs = $eligiblePrJobs->map(function (JobOrder $job) use ($missingParts, $inventoryItems, $inventoryReservations) {
             try {
-                $parts = $missingParts->missingParts((string) $job->part_needed, $job);
+                $parts = $missingParts->missingParts((string) $job->part_needed, $job, $inventoryItems, $inventoryReservations);
             } catch (ValidationException) {
                 $parts = [];
             }
