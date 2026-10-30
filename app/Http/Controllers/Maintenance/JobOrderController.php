@@ -278,18 +278,37 @@ class JobOrderController extends Controller
         );
     }
 
-    public function inventoryOptions()
+    public function inventoryOptions(Request $request)
     {
-        return response()->json(\App\Models\Warehouse\InventoryItem::query()
-            ->orderBy('parts_name')
-            ->get()
-            ->map(fn ($item) => [
+        // Only return qualitative stock bands to Maintenance. Inventory totals
+        // and existing JO reservation quantities must never enter this payload.
+        $items = \App\Models\Warehouse\InventoryItem::query()
+            ->orderBy('parts_name')->get();
+        $requested = $request->validate([
+            'demand' => ['sometimes', 'array', 'max:100'],
+            'demand.*' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+        ])['demand'] ?? [];
+
+        $reservations = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+
+        return response()->json($items->map(function ($item) use ($requested, $reservations) {
+            $free = max(0, (int) ($item->quantity_available ?? $item->on_hand ?? 0)
+                - (int) ($reservations[$item->id] ?? 0));
+            $required = (int) ($requested[$item->id] ?? 0);
+            $availability = $required <= 0 ? 'enter_qty'
+                : ($free <= 0 ? 'unavailable'
+                    : ($free >= $required ? 'sufficient' : 'partial'));
+            return [
                 'id' => $item->id,
                 'name' => (string) ($item->parts_name ?: $item->item_name),
-                'code' => (string) $item->item_code,
+                'category' => (string) ($item->category ?? ''),
                 'unit' => trim((string) ($item->unit ?: $item->unit_of_measurement)),
-                'in_stock' => (int) ($item->quantity_available ?? $item->on_hand ?? 0) > 0,
-            ]));
+                'in_stock' => $free > 0,
+                'availability' => $availability,
+            ];
+        }));
     }
 
     public function specializationOptions()
