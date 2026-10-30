@@ -1842,3 +1842,54 @@ main.purchase-maintenance-requests-page .requested-purchase-table .record-action
 main.purchase-maintenance-requests-page .requested-pr-more-panel{min-width:170px;width:max-content;max-width:270px;z-index:20;}
 main.purchase-maintenance-requests-page .requested-pr-more-panel > div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;}
 main.purchase-maintenance-requests-page .requested-pr-more-qty .requested-pr-more-panel{min-width:105px;}
+
+
+/* Requisition inbox final alignment: seven columns and square-corner status boxes. */
+main.purchase-maintenance-requests-page .requested-purchase-table {
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table thead th {
+  padding:13px 16px !important;
+  vertical-align:middle !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table tbody td {
+  padding:16px !important;
+  vertical-align:middle !important;
+  line-height:1.4;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table tbody tr {
+  height:70px;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(1),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(1) {width:14%;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(2),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(2) {width:14%;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(3),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(3) {width:23%;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4) {width:13%;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5) {width:11%;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6) {width:15%;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7) {width:10%;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > .badge.purchase-badge {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  box-sizing:border-box!important;
+  min-width:122px!important;
+  min-height:32px!important;
+  padding:7px 12px!important;
+  border-radius:5px!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > .badge.purchase-badge .status-badge__label {
+  font-weight:750;
+}
