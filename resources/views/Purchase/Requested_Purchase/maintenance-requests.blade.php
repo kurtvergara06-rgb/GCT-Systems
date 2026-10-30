@@ -196,8 +196,8 @@
     status-badge-id="viewRequestedStatusBadge"
   >
     <x-slot:footer>
-      <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
       <button type="button" id="closeRequestedPrModalBottom" class="shared-pr-close-button">Close</button>
+      <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
     </x-slot:footer>
   </x-ui.pr-details-modal>
 </x-layout.app>
