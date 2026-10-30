@@ -65,6 +65,13 @@
                             ? collect(app(\App\Services\PartParser::class)->parsePartText((string) $ir->jobOrder->part_needed))
                             : collect();
                     @endphp
+                    @php
+                        $waitForAllParts = $ir->jobOrder?->parts_issue_strategy !== 'issue_available_only';
+                        $totalJoRequired = $joRequirements->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
+                        $totalIrRequested = collect($ir->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
+                        $issueBlockedByPolicy = $waitForAllParts
+                            && ($totalIrRequested < $totalJoRequired || ($stock['status'] ?? '') !== 'sufficient');
+                    @endphp
                     <tr>
                         <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span>@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
                         <td>
@@ -128,7 +135,7 @@
                                 <x-ui.action-button type="view" title="Download Latest Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
                             @endif
                             @if(in_array($ir->status, ['Submitted', 'Partially Issued'], true) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-                                <x-ui.action-button type="issue" icon="fa-file-pen" title="Prepare Issuance Slip" aria-label="Prepare Issuance Slip" data-ir-prepare
+                                <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy" :title="$issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip'" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                     data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
