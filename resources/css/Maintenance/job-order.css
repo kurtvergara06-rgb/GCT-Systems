@@ -6957,3 +6957,24 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-part-availability.is-partial {background:#fff2db;border:1px solid #f1d59c;color:#995d0c;}
 .jo-head-review-body .jo-review-part-availability.is-unavailable {background:#fff0f1;border:1px solid #f3cbd0;color:#b42332;}
 .jo-head-review-body .jo-review-part-availability.is-pending {background:#f1f5fa;border:1px solid #d4e2f0;color:#536984;}
+
+
+/* Head review card separation: details, requested parts and history are siblings. */
+.jo-head-review-body .jo-review-panel {gap:14px!important;}
+.jo-head-review-body .jo-review-details,
+.jo-head-review-body .jo-review-requested-parts,
+.jo-head-review-body .jo-review-audit,
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization {
+  border:1px solid #d9e5f5!important;border-radius:11px;background:#fff;
+  box-shadow:0 1px 2px rgba(20,48,85,.025);
+}
+.jo-head-review-body .jo-review-details {margin:0;padding:14px 16px!important;}
+.jo-head-review-body .jo-review-requested-parts {margin:0;min-width:0;padding:0!important;overflow-x:auto;}
+.jo-head-review-body .jo-review-parts-heading {min-height:43px;margin:0;padding:11px 15px;background:#f3f7fc;}
+.jo-head-review-body .jo-review-submitted-duration {display:flex;align-items:center;gap:18px;padding:12px 16px;border-top:1px solid #dfe9f6;background:#fff;}
+.jo-head-review-body .jo-review-submitted-duration span {display:flex;align-items:center;gap:7px;color:#667f9e;font-size:11px;}
+.jo-head-review-body .jo-review-submitted-duration p {margin:0;color:#203f68;font-size:12px;font-weight:800;}
+.jo-head-review-body .jo-review-audit {margin:0;padding:11px 14px;}
+.jo-head-review-body .jo-review-mode {display:grid;gap:13px;min-width:0;}
+@media(max-width:640px){.jo-head-review-body .jo-review-submitted-duration{gap:9px;flex-wrap:wrap;}}
