@@ -112,8 +112,8 @@
         </div>
 
         <nav class="po-record-tabs" aria-label="Purchase Order record views">
-          <a href="{{ route('purchase-orders', ['view' => 'active']) }}" class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active</a>
-          <a href="{{ route('purchase-orders', ['view' => 'history']) }}" class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+          <a href="{{ route('purchase-orders', ['view' => 'active']) }}" data-allow-partial-navigation class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active</a>
+          <a href="{{ route('purchase-orders', ['view' => 'history']) }}" data-allow-partial-navigation class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
         </nav>
         <div class="po-record-controls purchase-list-controls">
           <div class="po-record-actions purchase-list-tools">
