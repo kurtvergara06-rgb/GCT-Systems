@@ -545,9 +545,12 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                 <i class="fa-solid fa-cloud-arrow-up po-head-upload-icon" aria-hidden="true"></i>
                 <strong id="poHeadUploadTitle">Upload signature</strong>
                 <small>JPG or PNG · Max 2 MB</small>
-                <label for="headReviewSignature" class="po-head-choose-file"><i class="fa-regular fa-image"></i> Choose file</label>
+                <img id="headReviewSignaturePreview" alt="Cropped signature preview" hidden>
+                <div class="po-head-upload-actions">
+                  <label for="headReviewSignature" class="po-head-choose-file"><i class="fa-regular fa-image"></i> Choose file</label>
+                  <button type="button" id="poHeadRemoveSignature" class="po-head-remove-signature" hidden>Remove</button>
+                </div>
                 <input id="headReviewSignature" name="signature" type="file" accept="image/png,image/jpeg" class="po-head-native-file">
-                <img id="headReviewSignaturePreview" alt="Cropped signature preview" hidden><button type="button" id="poHeadRemoveSignature" class="po-head-remove-signature" hidden>Remove</button>
               </div>
               <div id="poHeadCropModal" class="po-head-crop-modal" role="dialog" aria-modal="true" aria-label="Crop Purchase Head signature" hidden>
                 <div class="po-head-crop-dialog">
@@ -749,6 +752,16 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     #poHeadReviewModal #poHeadCropZoom{width:100%;margin:12px 0}
     #poHeadReviewModal .po-head-crop-dialog footer button{border:1px solid #bfd4ed;border-radius:7px;background:#fff;color:#194478;padding:10px 14px;cursor:pointer}
     #poHeadReviewModal #poHeadCropApply{background:#ffbc00;color:#142b49;border-color:#e6a600}
+    /* Cropped signature state matches Maintenance JO: landscape image, then paired actions. */
+    #poHeadReviewModal .po-head-upload-zone.has-preview{gap:0!important;min-height:0!important;padding:0!important;overflow:hidden!important;background:#fff!important;justify-content:flex-start!important}
+    #poHeadReviewModal .po-head-upload-zone.has-preview #poHeadUploadTitle,
+    #poHeadReviewModal .po-head-upload-zone.has-preview > small{display:none!important}
+    #poHeadReviewModal .po-head-upload-actions{display:flex!important;align-items:center;justify-content:center;gap:8px;width:100%}
+    #poHeadReviewModal .po-head-upload-zone.has-preview #headReviewSignaturePreview{display:block!important;order:0;width:100%!important;max-width:100%!important;height:156px!important;max-height:none!important;object-fit:contain!important;box-sizing:border-box!important;background:#fff!important;border:0!important;border-radius:0!important;margin:0!important;padding:5px!important}
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-upload-actions{order:1;min-height:44px;padding:7px!important;background:#f3f7fc!important;border-top:1px solid #e2eaf5}
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-choose-file,
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-remove-signature{display:inline-flex!important;align-items:center;justify-content:center;min-height:29px!important;padding:5px 12px!important;margin:0!important;font-size:11px!important;font-weight:700!important}
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-remove-signature[hidden]{display:none!important}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
