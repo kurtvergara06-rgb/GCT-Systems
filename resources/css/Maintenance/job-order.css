@@ -6794,7 +6794,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) .jo-create-parts-table-head,:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {grid-template-columns:25px minmax(0,2.4fr) minmax(80px,.7fr) minmax(75px,.75fr) minmax(126px,1fr) 42px;gap:11px;}
 :is(#jobModal,#editJobModal) .jo-create-parts-table-head {background:#edf3fb;color:#425f83;min-height:42px;}
 :is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {min-height:78px;padding:13px 14px;background:#fff;}
-:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row .jo-part-stock-group {display:flex;flex-direction:column;gap:5px;align-items:stretch;justify-self:stretch;min-width:0;min-height:51px;}
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row .jo-part-stock-group {display:flex;flex-direction:column;gap:4px;align-items:flex-start;justify-content:center;align-self:center;justify-self:stretch;min-width:0;min-height:43px;}
 :is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status[data-state="unknown"] {background:#f2f5fa;border-color:#d4e0ef;color:#5d708a;}
 :is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status {display:inline-flex;min-height:28px;max-width:100%;align-items:center;justify-content:center;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;white-space:normal;text-align:center;}
 :is(#jobModal,#editJobModal) .jo-part-stock-group .jo-part-stock-note {font-size:9px;line-height:1.35;color:#6e829d;overflow-wrap:anywhere;}
