@@ -150,7 +150,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
         return qty > 0;
       });
       tbody.innerHTML = rows.length ? rows.map(part => {
-        const name = escapeHtml(part.name || part.item || 'Part');
+        const name = escapeHtml(String(part.name || part.item || 'Part').replace(/\s*\[item:\d+\]/gi, '').trim());
         const qty = escapeHtml(part.needed_display || ((part.needed ?? part.quantity ?? 0) + ' ' + (part.unit || '')));
         const stock = escapeHtml(part.physical_on_hand_display || ((part.physical_on_hand ?? 0) + ' ' + (part.unit || '')));
         return '<tr><td>' + name + '</td><td>' + qty + '</td><td>' + stock + '</td></tr>';
