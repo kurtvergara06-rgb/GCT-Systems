@@ -6855,3 +6855,24 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-page .job-orders-table td.part-status-cell .jo-no-parts-required-badge {
   border-radius: 6px !important;
 }
+
+
+/* Head JO review: readable verification table, status and footer at all sizes. */
+.jo-head-review-dialog {width:min(900px,calc(100vw - 32px))!important;max-height:calc(100dvh - 28px)!important;}
+.jo-head-review-body .jo-review-panel {padding:16px 20px 0!important;}
+.jo-head-review-body .jo-review-details {padding:14px 16px!important;}
+.jo-head-review-body .jo-review-details-heading {margin-bottom:8px;}
+.jo-head-review-body .jo-review-detail-grid {column-gap:24px;row-gap:12px;}
+.jo-head-review-body .jo-review-detail-grid > div {min-width:0;}
+.jo-head-review-body .jo-review-requested-parts {overflow-x:auto;overscroll-behavior-x:contain;}
+.jo-head-review-body .jo-review-parts-list {min-width:620px;}
+.jo-head-review-body .jo-review-parts-table-header,
+.jo-head-review-body .jo-review-part-item {grid-template-columns:minmax(170px,2fr) minmax(85px,1fr) minmax(65px,.7fr) minmax(75px,.8fr) minmax(110px,1fr);gap:10px;align-items:center;}
+.jo-head-review-body .jo-review-part-item {min-height:44px;}
+.jo-head-review-body .jo-review-part-availability.is-pending {display:inline-flex;justify-content:center;align-items:center;max-width:max-content;min-height:25px;padding:4px 9px;border:1px solid #d6e2f0;border-radius:6px;background:#f1f5fa;color:#4c6381;font:inherit;font-size:10px;font-weight:750;}
+.jo-head-review-body .jo-review-footer {margin:0 -20px;padding:12px 20px;gap:8px;}
+@media(max-width:640px) {
+ .jo-head-review-body .jo-review-panel {padding:12px 12px 0!important;}
+ .jo-head-review-body .jo-review-detail-grid {grid-template-columns:1fr;}
+ .jo-head-review-body .jo-review-footer {margin:0 -12px;padding:10px 12px;}
+}
