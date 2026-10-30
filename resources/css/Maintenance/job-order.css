@@ -7338,3 +7338,8 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 /* JO Details: distinguish partially available physical stock from zero stock. */
 .jo-view-part-availability.is-partial{display:inline-flex;align-items:center;justify-content:center;background:#fff4df!important;border:1px solid #f4c979!important;color:#9a6100!important;border-radius:6px;font-weight:750}
+
+/* Simplified JO Parts fulfillment labels; procurement milestones stay separate. */
+.part-status-badge.for-purchase,.part-status-badge.is-waiting{background:#fff4df!important;color:#8e5b0e!important;border:1px solid #edce96!important}
+.part-status-badge.issued{background:#e8f8ef!important;color:#177b4b!important;border:1px solid #b8e8cb!important}
+.part-status-badge.rejected{background:#fff0ef!important;color:#b63b3b!important;border:1px solid #f3c5c2!important}
