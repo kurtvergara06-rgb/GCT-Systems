@@ -141,8 +141,70 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   // Preserve existing part[name] and part[unit] fields for the backend parser.
   // No numeric stock quantity is disclosed here; status is advisory until reservation.
   const inventoryCatalogUrl = '/job-orders/inventory-options';
-  let joInventoryCatalog = [];
   const joInventoryWrappers = ['partsNeededWrapper', 'editPartsNeededWrapper'];
+  let joInventoryCatalog = [];
+  const rowUpdateTimers = new WeakMap();
+  const availabilitySequences = new WeakMap();
+
+  const inventoryRows = (form) => Array.from(form.querySelectorAll(
+    '.jo-create-parts-repeater .part-needed-row'
+  )).filter(row => row.dataset.inventoryEnhanced === '1');
+
+  function checkPartAvailability(form) {
+    const rows = inventoryRows(form);
+    const demand = new Map();
+    rows.forEach(row => {
+      const id = row.querySelector('.jo-inventory-picker')?.value;
+      const amount = Number(row.querySelector('input[name*="[quantity]"]')?.value || 0);
+      if (id && amount > 0) demand.set(id, (demand.get(id) || 0) + amount);
+    });
+    const sequence = (availabilitySequences.get(form) || 0) + 1;
+    availabilitySequences.set(form, sequence);
+    const url = new URL(inventoryCatalogUrl, window.location.origin);
+    demand.forEach((amount, id) => url.searchParams.set('demand[' + id + ']', String(amount)));
+    rows.forEach(row => {
+      const status = row.querySelector('.jo-inventory-stock-status');
+      if (!status) return;
+      status.textContent = row.querySelector('.jo-inventory-picker')?.value ? 'Checking…' : 'Not Checked';
+      status.dataset.state = 'unknown';
+    });
+    fetch(url.toString(), { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+      .then(response => {
+        if (!response.ok) throw new Error('Availability lookup failed');
+        return response.json();
+      })
+      .then(items => {
+        if (availabilitySequences.get(form) !== sequence) return;
+        const byId = new Map(items.map(item => [String(item.id), item]));
+        inventoryRows(form).forEach(row => {
+          const id = row.querySelector('.jo-inventory-picker')?.value;
+          const item = byId.get(id);
+          const status = row.querySelector('.jo-inventory-stock-status');
+          const note = row.querySelector('.jo-part-stock-note');
+          if (!status || !note) return;
+          const state = id && item ? item.availability : 'enter_qty';
+          status.dataset.state = state;
+          status.textContent = !id ? 'Not Checked' :
+            ({ enter_qty: 'Enter Qty', sufficient: 'Sufficient',
+              partial: 'Partial', unavailable: 'Unavailable' }[state] || 'Not Checked');
+          note.textContent = id && state !== 'enter_qty' ?
+            'Provisional — verified at reservation' : '';
+        });
+      })
+      .catch(() => {
+        if (availabilitySequences.get(form) !== sequence) return;
+        inventoryRows(form).forEach(row => {
+          const status = row.querySelector('.jo-inventory-stock-status');
+          if (status) { status.textContent = 'Check Failed'; status.dataset.state = 'unknown'; }
+        });
+      });
+  }
+
+  function schedulePartCheck(form) {
+    if (!form) return;
+    window.clearTimeout(rowUpdateTimers.get(form));
+    rowUpdateTimers.set(form, window.setTimeout(() => checkPartAvailability(form), 180));
+  }
 
   function enhanceJoPartRow(row) {
     if (row.dataset.inventoryEnhanced === '1') return;
@@ -151,6 +213,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     const unit = row.querySelector('select[name*="[unit]"]');
     if (!name || !qty || !unit) return;
     row.dataset.inventoryEnhanced = '1';
+    const form = row.closest('form');
     const inventoryId = document.createElement('input');
     inventoryId.type = 'hidden';
     inventoryId.name = name.name.replace('[name]', '[inventory_item_id]');
@@ -158,56 +221,107 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     const selector = document.createElement('select');
     selector.className = 'jo-inventory-picker';
     selector.setAttribute('aria-label', 'Select Warehouse inventory part');
-    const stock = document.createElement('span');
-    stock.className = 'jo-inventory-stock-status';
-    stock.setAttribute('aria-live', 'polite');
+    selector.hidden = true;
+    const picker = document.createElement('div');
+    picker.className = 'jo-part-picker';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'jo-part-picker-trigger';
+    trigger.textContent = 'Select inventory part';
+    trigger.setAttribute('aria-expanded', 'false');
+    const menu = document.createElement('div');
+    menu.className = 'jo-part-picker-menu';
+    menu.hidden = true;
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.className = 'jo-part-picker-search';
+    search.placeholder = 'Search parts...';
+    search.setAttribute('aria-label', 'Search inventory parts');
+    const list = document.createElement('div');
+    list.className = 'jo-part-picker-options';
+    menu.append(search, list);
+    picker.append(trigger, menu);
+    row.insertBefore(picker, name);
     row.insertBefore(selector, name);
     name.classList.add('jo-inventory-name-field');
     name.tabIndex = -1;
     row.insertBefore(inventoryId, qty);
     const stockGroup = document.createElement('span');
     stockGroup.className = 'jo-part-stock-group';
-    const stockNote = document.createElement('small');
-    stockNote.className = 'jo-part-stock-note';
-    stockGroup.append(stock, stockNote);
+    const stock = document.createElement('span');
+    stock.className = 'jo-inventory-stock-status';
+    stock.textContent = 'Not Checked';
+    stock.dataset.state = 'unknown';
+    stock.setAttribute('aria-live', 'polite');
+    const note = document.createElement('small');
+    note.className = 'jo-part-stock-note';
+    stockGroup.append(stock, note);
     row.insertBefore(stockGroup, row.querySelector('.remove-part-btn'));
     unit.classList.add('jo-auto-unit-select');
-    unit.setAttribute('aria-label','Unit from inventory');
+    unit.setAttribute('aria-label', 'Unit from inventory');
     unit.tabIndex = -1;
-    const update = () => {
-      const selected = joInventoryCatalog.find(item => String(item.id) === selector.value);
-      inventoryId.value = selected ? String(selected.id) : '';
-      if (selected) {
-        name.value = selected.name;
-        unit.value = selected.unit;
-      } else if (!name.value.trim()) {
-        unit.value = '';
-      }
-      const requested = Number(qty.value);
-      // The inventory endpoint exposes only in-stock presence, not the free quantity.
-      // Never claim the requested quantity is sufficient based on a boolean.
-      stock.textContent = !selected ? 'Not Checked' : selected.in_stock ? 'In Stock' : 'Unavailable';
-      stock.dataset.state = !selected ? 'unknown' : selected.in_stock ? 'available' : 'unavailable';
-      stockNote.textContent = !selected ? 'Select a part to check stock'
-        : selected.in_stock ? 'Required qty verified at approval' : 'PR may be needed';
-      stock.title = selected ? 'Warehouse availability is checked again when submitting and approving.' : '';
-      if (selected && requested > 0) stock.title += ' Requested: ' + requested + ' ' + selected.unit + '.';
+    const close = () => { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
+    const sync = () => {
+      const item = joInventoryCatalog.find(entry => String(entry.id) === selector.value);
+      inventoryId.value = item ? String(item.id) : '';
+      if (item) { name.value = item.name; unit.value = item.unit; }
+      trigger.textContent = item ? item.name : 'Select inventory part';
+      schedulePartCheck(form);
       row.dispatchEvent(new Event('change', { bubbles: false }));
     };
-    const render = () => {
-      const priorName = name.value.trim();
-      const priorId = inventoryId.value || (priorName.match(/\\[item:\\s*(\\d+)\\]/i)?.[1] || '');
-      selector.replaceChildren(new Option('Select inventory part', ''));
-      joInventoryCatalog.forEach(item => selector.add(new Option(item.name + (item.code ? ' · ' + item.code : ''), String(item.id))));
-      const matched = joInventoryCatalog.find(item => String(item.id) === priorId) ||
-        joInventoryCatalog.find(item => item.name.toLowerCase() === priorName.toLowerCase());
-      if (matched) selector.value = String(matched.id);
-      else if (priorName) selector.add(new Option(priorName + ' (legacy part — reselect)', '', true, true));
-      update();
+    const renderOptions = () => {
+      list.replaceChildren();
+      const query = search.value.trim().toLocaleLowerCase();
+      const matches = joInventoryCatalog.filter(item =>
+        (item.name + ' ' + (item.category || '')).toLocaleLowerCase().includes(query)
+      );
+      matches.forEach(item => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'jo-part-picker-option';
+        const label = document.createElement('strong');
+        label.textContent = item.name;
+        const detail = document.createElement('small');
+        detail.textContent = [item.category, item.unit].filter(Boolean).join(' · ');
+        option.append(label, detail);
+        option.addEventListener('click', () => {
+          selector.value = String(item.id);
+          name.value = item.name;
+          sync();
+          close();
+        });
+        list.append(option);
+      });
+      if (!matches.length) {
+        const empty = document.createElement('p');
+        empty.textContent = 'No matching parts';
+        empty.className = 'jo-part-picker-empty';
+        list.append(empty);
+      }
     };
-    selector.addEventListener('change', () => { name.value = ''; update(); });
-    qty.addEventListener('input', update);
-    render();
+    trigger.addEventListener('click', () => {
+      if (menu.hidden) {
+        menu.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        search.value = '';
+        renderOptions();
+        search.focus();
+      } else close();
+    });
+    search.addEventListener('input', renderOptions);
+    search.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+    document.addEventListener('click', event => {
+      if (!picker.isConnected) return;
+      if (!picker.contains(event.target)) close();
+    });
+    qty.addEventListener('input', () => schedulePartCheck(form));
+    selector.addEventListener('change', sync);
+    const priorName = name.value.trim();
+    selector.replaceChildren(new Option('Select inventory part', ''));
+    joInventoryCatalog.forEach(item => selector.add(new Option(item.name, String(item.id))));
+    const matched = joInventoryCatalog.find(item => item.name.toLocaleLowerCase() === priorName.toLocaleLowerCase());
+    if (matched) selector.value = String(matched.id);
+    sync();
   }
 
   function enhanceJoPartRows() {
@@ -217,32 +331,27 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       wrapper.querySelectorAll('.part-needed-row').forEach(enhanceJoPartRow);
       if (wrapper.dataset.joInventoryObserver !== '1') {
         wrapper.dataset.joInventoryObserver = '1';
-        new MutationObserver(() => wrapper.querySelectorAll('.part-needed-row').forEach(enhanceJoPartRow))
-          .observe(wrapper, { childList: true });
+        new MutationObserver(() => {
+          wrapper.querySelectorAll('.part-needed-row').forEach(enhanceJoPartRow);
+          schedulePartCheck(wrapper.closest('form'));
+        }).observe(wrapper, { childList: true });
       }
+      wrapper.addEventListener('click', event => {
+        if (event.target.closest('.remove-part-btn')) {
+          window.setTimeout(() => schedulePartCheck(wrapper.closest('form')), 0);
+        }
+      });
     });
   }
-  enhanceJoPartRows();
   fetch(inventoryCatalogUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
     .then(response => { if (!response.ok) throw new Error('Inventory catalogue unavailable'); return response.json(); })
     .then(items => {
       joInventoryCatalog = Array.isArray(items) ? items.filter(item => item.id && item.name && item.unit) : [];
-      joInventoryWrappers.forEach(id => {
-        document.getElementById(id)?.querySelectorAll('.part-needed-row').forEach(row => {
-          row.dataset.inventoryEnhanced = '';
-        });
-      });
-      // Update existing selectors without losing typed quantities or selected parts.
-      joInventoryWrappers.forEach(id => {
-        document.getElementById(id)?.querySelectorAll('.part-needed-row').forEach(row => {
-          const select = row.querySelector('.jo-inventory-picker');
-          if (select) { select.remove(); row.querySelector('.jo-inventory-id')?.remove(); row.querySelector('.jo-part-stock-group')?.remove(); }
-          enhanceJoPartRow(row);
-        });
-      });
+      enhanceJoPartRows();
     })
-    .catch(() => {
-      joInventoryWrappers.forEach(id => document.getElementById(id)?.querySelectorAll('.jo-inventory-stock-status').forEach(el => { el.textContent = 'Stock unavailable'; el.dataset.state = 'unknown'; }));
+    .catch(error => {
+      console.error('Unable to load inventory part choices:', error);
+      enhanceJoPartRows();
     });
 
   /* =========================================================
