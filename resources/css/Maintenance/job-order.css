@@ -6895,3 +6895,31 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-mechanic-expanded span {display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:6px;background:#ecf3ff;color:#315d94;font-size:11px;font-weight:650;overflow-wrap:anywhere;}
 .jo-head-review-body .jo-review-mechanic-expanded span i {flex:0 0 auto;font-size:10px;}
 @media(max-width:640px){.jo-head-review-body .jo-review-detail-grid{grid-template-columns:1fr;}.jo-head-review-dialog{width:calc(100vw - 16px)!important;}.jo-head-review-body .jo-review-mechanic-primary{max-width:min(190px,60vw);}.jo-head-review-body .jo-review-mechanic-expanded{right:auto;left:0;max-width:min(280px,80vw);}}
+
+
+/* Approved Head Review reference: icon header, three compact mechanic chips,
+   boxed part status and an uninterrupted full-width complaint row. */
+.jo-head-review-heading {padding:14px 20px;min-height:74px;}
+.jo-head-review-title {display:flex;align-items:center;gap:12px;min-width:0;}
+.jo-head-review-title-icon {display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:11px;border:1px solid #f5dc9c;background:#fff2d1;color:#e9a000;font-size:19px;}
+.jo-head-review-title-text {min-width:0;display:grid;gap:4px;}
+.jo-head-review-title-text strong {font-size:19px;line-height:1.2;color:#142e50;}
+.jo-head-review-title-text small {font-size:11px;color:#6f809a;line-height:1.4;}
+.jo-head-review-body .jo-review-instructions {margin:3px 0 10px;font-size:12px;color:#526b8c;}
+.jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;row-gap:12px;}
+.jo-head-review-body .jo-review-detail-grid > div {min-width:0;}
+.jo-head-review-body .jo-review-mechanic-summary {display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0;}
+.jo-head-review-body .jo-review-mechanic-primary {display:inline-flex;max-width:100%;width:max-content;align-items:center;gap:5px;padding:6px 9px;white-space:normal;border:1px solid #c9dcf8;border-radius:7px;background:#eef5ff;color:#204e88;font-family:inherit;font-size:11px;font-weight:700;line-height:1.3;}
+.jo-head-review-body .jo-review-mechanic-primary i {color:#2568c1;font-size:10px;}
+.jo-head-review-body .jo-review-mechanic-more > summary {padding:6px 9px;line-height:1.3;}
+.jo-head-review-body .jo-review-parts-status-badge {display:inline-flex;width:max-content;max-width:100%;align-items:center;min-height:27px;padding:5px 10px;border:1px solid #f3d293;border-radius:7px;background:#fff3dc;color:#9a610a;font-size:11px;font-weight:750;line-height:1.25;}
+.jo-head-review-body .jo-review-complaint {display:grid;grid-template-columns:minmax(145px,.3fr) minmax(0,1fr);align-items:start;gap:12px;width:100%;padding:10px 12px;border:1px solid #e3ebf6;border-radius:8px;background:#fafcff;}
+.jo-head-review-body .jo-review-complaint > span {font-weight:700;color:#4d6686;}
+.jo-head-review-body .jo-review-complaint p {margin:0;color:#18365b;font-weight:700;line-height:1.5;}
+@media(max-width:680px){
+ .jo-head-review-heading {padding:12px;}
+ .jo-head-review-body .jo-review-detail-grid {grid-template-columns:1fr;}
+ .jo-head-review-body .jo-review-complaint {grid-template-columns:1fr;gap:5px;}
+ .jo-head-review-title-icon {width:37px;height:37px;flex-basis:37px;}
+ .jo-head-review-title-text strong {font-size:17px;}
+}
