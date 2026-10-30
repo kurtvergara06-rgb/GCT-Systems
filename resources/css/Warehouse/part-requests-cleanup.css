@@ -1531,3 +1531,19 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 }
 .warehouse-part-main .warehouse-actions .warehouse-pr-review-action i,
 .warehouse-part-main .warehouse-actions .open-view-pr-modal i{margin:0;position:static;}
+
+
+/* Override older icon-only View rule for the labeled Warehouse PR action. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean td.actions-col .warehouse-actions button.open-view-pr-modal {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;gap:7px!important;
+  width:96px!important;min-width:96px!important;max-width:none!important;
+  height:34px!important;min-height:34px!important;
+  padding:0 12px!important;font-size:11px!important;line-height:1!important;
+  white-space:nowrap!important;flex-shrink:0!important;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean td.actions-col .warehouse-actions button.open-view-pr-modal i,
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean td.actions-col .warehouse-actions button.open-view-pr-modal span {
+  display:inline-block!important;position:static!important;flex:none!important;
+  margin:0!important;transform:none!important;line-height:1!important;
+}
