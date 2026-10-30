@@ -1824,3 +1824,21 @@ main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7
 main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7) {min-width:120px;text-align:center!important;}
 main.purchase-maintenance-requests-page .requested-pr-part-qty strong {font-weight:750;white-space:nowrap;}
 main.purchase-maintenance-requests-page .requested-pr-more-qty {margin-top:5px;}
+
+
+/* Final Purchasing PR inbox refinements */
+main.purchase-maintenance-requests-page .requested-purchase-table td:first-child .requested-pr-reference strong{font-weight:850;white-space:nowrap;}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-status .status-badge,
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-status [class*="badge"]{border-radius:6px!important;min-width:106px;min-height:27px;display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;}
+main.purchase-maintenance-requests-page .requested-purchase-table .record-actions button.requested-pr-review-button {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+  width:100px!important;min-width:100px!important;max-width:none!important;height:34px!important;
+  padding:0 12px!important;white-space:nowrap!important;line-height:1!important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .record-actions button.requested-pr-review-button i,
+main.purchase-maintenance-requests-page .requested-purchase-table .record-actions button.requested-pr-review-button span{
+  position:static!important;display:inline-block!important;transform:none!important;margin:0!important;flex:none!important;
+}
+main.purchase-maintenance-requests-page .requested-pr-more-panel{min-width:170px;width:max-content;max-width:270px;z-index:20;}
+main.purchase-maintenance-requests-page .requested-pr-more-panel > div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;}
+main.purchase-maintenance-requests-page .requested-pr-more-qty .requested-pr-more-panel{min-width:105px;}
