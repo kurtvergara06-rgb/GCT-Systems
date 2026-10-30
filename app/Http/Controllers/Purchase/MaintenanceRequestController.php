@@ -68,6 +68,21 @@ class MaintenanceRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        // A linked PO is the source of truth for Purchasing progress.
+        // Keep the original PR status unchanged for downstream warehouse workflows.
+        $linkedOrders = PurchaseOrder::query()
+            ->whereIn('purchase_request_id', $purchaseRequests->getCollection()->pluck('id'))
+            ->orderByDesc('id')->get(['id', 'po_no', 'purchase_request_id', 'status'])
+            ->unique('purchase_request_id')->keyBy('purchase_request_id');
+        $purchaseRequests->getCollection()->each(function ($pr) use ($linkedOrders) {
+            $po = $linkedOrders->get($pr->id);
+            $pr->linked_po_no = $po?->po_no;
+            $pr->purchasing_display_status = $po
+                ? ($po->status === 'For Review' ? 'PO For Review' : ($po->status === 'Revision Required' ? 'PO Revision Required' : $po->status))
+                : $pr->status;
+            $pr->can_create_po = $pr->status === 'For Purchase' && ! $po;
+        });
+
         $jobOrders = JobOrder::query()
             ->with(['approver', 'audits'])
             ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter()->unique())
@@ -85,7 +100,9 @@ class MaintenanceRequestController extends Controller
         $totalRequests = (clone $baseQuery)
             ->whereIn('status', $this->purchaseStatuses)
             ->count();
-        $forPurchase = (clone $baseQuery)->where('status', 'For Purchase')->count();
+        $forPurchase = (clone $baseQuery)->where('status', 'For Purchase')
+            ->whereNotIn('id', PurchaseOrder::query()->whereNotNull('purchase_request_id')->select('purchase_request_id'))
+            ->count();
         $ordered = (clone $baseQuery)->where('status', 'Ordered')->count();
         $forPickup = (clone $baseQuery)->where('status', 'For Pick-up')->count();
         $forDelivery = (clone $baseQuery)->where('status', 'For Delivery')->count();
