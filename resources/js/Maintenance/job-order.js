@@ -1,6 +1,59 @@
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
   const jobOrderPage = document.querySelector('.jo-page');
 
+  // Show every mechanic that fits; collapse only the actual overflow.
+  const fitReviewMechanics = (summary) => {
+    if (!summary.isConnected || summary.clientWidth < 30) return;
+    const chips = [...summary.querySelectorAll(':scope > [data-mechanic-chip]')];
+    const more = summary.querySelector(':scope > [data-mechanic-overflow]');
+    if (!more || !chips.length) return;
+    chips.forEach(chip => { chip.style.display = 'inline-flex'; });
+    more.style.display = 'none';
+    more.hidden = true;
+    const gap = parseFloat(getComputedStyle(summary).columnGap) || 6;
+    const widths = chips.map(chip => chip.getBoundingClientRect().width);
+    if (widths.reduce((sum, w) => sum + w, 0) + gap * (chips.length - 1) <= summary.clientWidth) return;
+    const count = more.querySelector('[data-overflow-count]');
+    const list = more.querySelector('[data-overflow-list]');
+    more.hidden = false;
+    more.style.display = 'block';
+    count.textContent = '+' + chips.length + ' more';
+    let visible = 0;
+    for (let i = 0; i < chips.length; i++) {
+      count.textContent = '+' + (chips.length - i) + ' more';
+      const moreWidth = more.getBoundingClientRect().width;
+      const used = widths.slice(0, i + 1).reduce((sum, w) => sum + w, 0);
+      if (used + gap * (i + 1) + moreWidth > summary.clientWidth) break;
+      visible = i + 1;
+    }
+    // Preserve a discoverable menu even when the card is extremely narrow.
+    chips.forEach((chip, i) => { chip.style.display = i < visible ? 'inline-flex' : 'none'; });
+    const hidden = chips.slice(visible);
+    more.hidden = hidden.length === 0;
+    more.style.display = hidden.length ? 'block' : 'none';
+    count.textContent = '+' + hidden.length + ' more';
+    list.replaceChildren(...hidden.map(chip => {
+      const clone = chip.cloneNode(true);
+      clone.removeAttribute('data-mechanic-chip');
+      clone.removeAttribute('style');
+      return clone;
+    }));
+  };
+  const mechanicSummaries = [...jobOrderPage.querySelectorAll('[data-fit-mechanics]')];
+  const mechanicResizeObserver = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver(entries => entries.forEach(entry => fitReviewMechanics(entry.target))) : null;
+  mechanicSummaries.forEach(summary => {
+    mechanicResizeObserver?.observe(summary);
+  });
+  const fitOpenMechanics = () => requestAnimationFrame(() => {
+    mechanicSummaries.forEach(fitReviewMechanics);
+  });
+  jobOrderPage.addEventListener('click', event => {
+    if (event.target.closest('.jo-head-review-trigger')) {
+      requestAnimationFrame(fitOpenMechanics);
+    }
+  });
+
   // Review uses a centered modal, never the native <details> dropdown.
   jobOrderPage?.querySelectorAll('details.jo-review-actions').forEach((details) => {
     const trigger = details.querySelector('.jo-head-review-trigger');
