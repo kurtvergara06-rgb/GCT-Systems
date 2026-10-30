@@ -1548,3 +1548,18 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   margin:0!important;transform:none!important;line-height:1!important;
 }
 
+
+/* Warehouse PR list: six clean columns after moving stock details to Review modal. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table){width:100%;table-layout:fixed}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(1),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(1){width:16%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(2),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(2){width:25%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(3),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(3){width:12%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(4),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(4){width:17%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(5),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(5){width:17%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(6),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(6){width:13%}
