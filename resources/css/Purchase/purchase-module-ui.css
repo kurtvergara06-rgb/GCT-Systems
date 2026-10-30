@@ -408,23 +408,28 @@
 .purchase-history-page .requested-purchase-table td:nth-child(9) { width: 9%; text-align: center; }
 
 .scheduled-purchase-page .schedule-table th:nth-child(1),
-.scheduled-purchase-page .schedule-table td:nth-child(1) { width: 14%; }
+.scheduled-purchase-page .schedule-table td:nth-child(1) { width: 13%; }
 .scheduled-purchase-page .schedule-table th:nth-child(2),
 .scheduled-purchase-page .schedule-table td:nth-child(2) { width: 13%; }
 .scheduled-purchase-page .schedule-table th:nth-child(3),
-.scheduled-purchase-page .schedule-table td:nth-child(3) { width: 16%; }
+.scheduled-purchase-page .schedule-table td:nth-child(3) { width: 15%; }
 .scheduled-purchase-page .schedule-table th:nth-child(4),
 .scheduled-purchase-page .schedule-table td:nth-child(4) { width: 7%; }
 .scheduled-purchase-page .schedule-table th:nth-child(5),
-.scheduled-purchase-page .schedule-table td:nth-child(5) { width: 10%; }
+.scheduled-purchase-page .schedule-table td:nth-child(5) { width: 9%; }
 .scheduled-purchase-page .schedule-table th:nth-child(6),
-.scheduled-purchase-page .schedule-table td:nth-child(6) { width: 12%; }
+.scheduled-purchase-page .schedule-table td:nth-child(6) { width: 11%; }
 .scheduled-purchase-page .schedule-table th:nth-child(7),
-.scheduled-purchase-page .schedule-table td:nth-child(7) { width: 12%; }
+.scheduled-purchase-page .schedule-table td:nth-child(7) { width: 10%; }
 .scheduled-purchase-page .schedule-table th:nth-child(8),
-.scheduled-purchase-page .schedule-table td:nth-child(8) { width: 8%; }
+.scheduled-purchase-page .schedule-table td:nth-child(8) { width: 10%; padding-right: 10px; padding-left: 10px; }
 .scheduled-purchase-page .schedule-table th:nth-child(9),
-.scheduled-purchase-page .schedule-table td:nth-child(9) { width: 8%; }
+.scheduled-purchase-page .schedule-table td:nth-child(9) { width: 12%; padding-right: 10px; padding-left: 10px; }
+
+.scheduled-purchase-page .schedule-table td:nth-child(8) [data-ui-component="status-badge"] {
+  min-width: 72px;
+  width: auto;
+}
 
 /* Status pills */
 .purchase-module-page .status-badge,

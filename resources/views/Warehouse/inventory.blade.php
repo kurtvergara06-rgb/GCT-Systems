@@ -15,7 +15,7 @@
 
   <x-layout.sidebar department="Warehouse" />
 
-    <main class="main">
+    <main class="main warehouse-inventory-page records-page">
 
       <x-layout.topbar
         title="Warehouse Inventory"
@@ -67,56 +67,38 @@
             <h2>Inventory Stock Records</h2>
             <p>Track warehouse stock levels, item thresholds, and item availability</p>
           </div>
-        </div>
-
-        <form
-          class="toolbar inventory-toolbar"
-          method="GET"
-          action="{{ route('inventory', [], false) }}"
-          data-server-filter="true"
-          data-lazy-pagination="true"
-        >
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value=""
-              autocomplete="off"
-              placeholder="Search by item, item code, supplier, or location..."
-              aria-label="Search inventory records"
-            >
-          </div>
-
-          <div class="filter-group">
-            <select name="category" aria-label="Filter inventory by category">
-              <option value="All Categories" selected>All Categories</option>
-
-              @foreach($categories as $category)
-                <option value="{{ $category }}">
-                  {{ $category }}
-                </option>
-              @endforeach
-            </select>
-          </div>
 
           @if($canEditWarehouse)
-            <button type="button" class="secondary-btn" id="openIssueModal">
-              <i class="fa-solid fa-arrow-up-from-bracket"></i>
-              Issue Stock
-            </button>
-
-            <button type="button" class="secondary-btn" id="openImportModal">
-              <i class="fa-solid fa-file-import"></i>
-              Import Inventory Data
-            </button>
-
-            <button type="button" class="primary-btn" id="openAddModal">
-              <i class="fa-solid fa-plus"></i>
-              Add Item
-            </button>
+            <div class="inventory-header-actions" aria-label="Inventory actions">
+              <button type="button" class="secondary-btn" id="openIssueModal"><i class="fa-solid fa-arrow-up-from-bracket"></i> Issue Stock</button>
+              <button type="button" class="secondary-btn" id="openImportModal"><i class="fa-solid fa-file-import"></i> Import Data</button>
+              <button type="button" class="primary-btn" id="openAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
+            </div>
           @endif
-        </form>
+        </div>
+
+        <div class="inventory-list-controls">
+          <x-ui.table-toolbar
+            action="{{ route('inventory', [], false) }}"
+            data-server-filter="true"
+            data-lazy-pagination="true"
+            search-label="Search Inventory"
+            search-placeholder="Search item, code, supplier, or location..."
+            :filter-count="(int) (request()->filled('category') && request('category') !== 'All Categories')"
+            filter-title="Filter Inventory"
+            :sort-options="['item_name' => 'Part Name', 'item_code' => 'Item Code', 'category' => 'Category', 'quantity' => 'On Hand', 'reorder_level' => 'Reorder Level']"
+            default-sort="item_name"
+          >
+            <x-slot:filters>
+              <x-ui.table-toolbar-field label="Category" name="category" default="All Categories">
+                <option value="All Categories">All Categories</option>
+                @foreach($categories as $category)
+                  <option value="{{ $category }}" @selected(request('category', 'All Categories') === $category)>{{ $category }}</option>
+                @endforeach
+              </x-ui.table-toolbar-field>
+            </x-slot:filters>
+          </x-ui.table-toolbar>
+        </div>
 
         <div class="table-wrap">
           <table class="inventory-table">

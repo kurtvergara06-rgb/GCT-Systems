@@ -537,21 +537,22 @@ button,
   white-space: nowrap !important;
 }
 
-/* Status components should remain readable even when page CSS is denser. */
+/* Shared status components follow the compact table badge contract. Page-level
+   modules may opt into a wider badge when a status label genuinely needs it. */
 [data-ui-component="status-badge"] {
-  min-width: 92px !important;
-  min-height: 28px !important;
-  padding: 6px 12px !important;
-  border: 1px solid transparent !important;
-  border-radius: 999px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  letter-spacing: 0 !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  gap: 6px !important;
-  vertical-align: middle !important;
+  min-width: 0;
+  min-height: 23px;
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+  gap: 5px;
+  vertical-align: middle;
 }
 
 [data-ui-component="status-badge"] .status-badge__icon {

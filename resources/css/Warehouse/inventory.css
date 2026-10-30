@@ -52,122 +52,54 @@
    TOOLBAR
 ===================================================== */
 
-.inventory-toolbar {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px auto auto auto;
-  align-items: end;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.inventory-toolbar .search-box {
-  position: relative;
-  min-width: 0;
-}
-
-.inventory-toolbar .search-box i {
-  position: absolute;
-  top: 50%;
-  left: 14px;
-  z-index: 1;
-  transform: translateY(-50%);
-  color: #0b40b5;
-  font-size: 13px;
-  pointer-events: none;
-}
-
-.inventory-toolbar .search-box input,
-.inventory-toolbar .filter-group select {
-  width: 100%;
-  height: 40px;
-  box-sizing: border-box;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: #ffffff;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  transition: 0.2s ease;
-}
-
-.inventory-toolbar .search-box input {
-  padding: 0 14px 0 40px;
-}
-
-.inventory-toolbar .search-box input::placeholder {
-  color: #94a3b8;
-}
-
-.inventory-toolbar .search-box input:focus,
-.inventory-toolbar .filter-group select:focus {
-  border-color: #0b40b5;
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.1);
-}
-
-.inventory-toolbar .filter-group {
-  min-width: 0;
+.inventory-header-actions,
+.inventory-list-controls {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.inventory-toolbar .filter-group label {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
+.inventory-list-controls {
+  margin: 0 0 14px;
 }
 
-.inventory-toolbar .filter-group select {
-  padding: 0 34px 0 11px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.inventory-toolbar .primary-btn,
-.inventory-toolbar .secondary-btn {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 9px;
+.inventory-header-actions .primary-btn,
+.inventory-header-actions .secondary-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.inventory-toolbar .primary-btn {
+.inventory-header-actions .primary-btn {
   border: 1px solid #f5a800;
   background: linear-gradient(135deg, #ffc400, #f5a800);
   color: #061f3d;
   box-shadow: 0 5px 12px rgba(255, 196, 0, 0.2);
 }
 
-.inventory-toolbar .primary-btn:hover {
+.inventory-header-actions .primary-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(255, 196, 0, 0.28);
 }
 
-.inventory-toolbar .secondary-btn {
+.inventory-header-actions .secondary-btn {
   border: 1px solid var(--border);
   background: #ffffff;
   color: #061f3d;
 }
 
-.inventory-toolbar .secondary-btn:hover {
+.inventory-header-actions .secondary-btn:hover {
   border-color: #0b40b5;
   background: #f5f8ff;
   color: #0b40b5;
@@ -547,17 +479,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .inventory-toolbar {
-    grid-template-columns: 1fr 1fr;
+  .inventory-card .section-header {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .inventory-toolbar .search-box {
-    grid-column: 1 / -1;
-  }
-
-  .inventory-toolbar .primary-btn,
-  .inventory-toolbar .secondary-btn {
-    width: 100%;
+  .inventory-header-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -566,12 +494,17 @@
     grid-template-columns: 1fr;
   }
 
-  .inventory-toolbar {
-    grid-template-columns: 1fr;
+  .inventory-header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .inventory-toolbar .search-box {
-    grid-column: auto;
+  .inventory-header-actions .primary-btn {
+    grid-column: 1 / -1;
+  }
+
+  .inventory-list-controls .gct-table-toolbar {
+    justify-content: flex-start;
   }
 
   .inventory-card {
