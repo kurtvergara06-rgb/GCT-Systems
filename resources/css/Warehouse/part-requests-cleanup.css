@@ -1331,3 +1331,14 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 #warehouseSendMissingModal .warehouse-send-purchase-yellow:focus-visible {
   outline:2px solid #b57d04;outline-offset:2px;
 }
+
+
+/* Warehouse PR: match Inventory and Status to the IR rectangular badge style. */
+.warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-stock-status,
+.warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-process-status {
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:6px!important;min-height:32px!important;
+  padding:6px 12px!important;border-radius:7px!important;
+  font-family:inherit!important;font-size:11px!important;font-weight:800!important;
+  line-height:1.2!important;white-space:nowrap;
+}
