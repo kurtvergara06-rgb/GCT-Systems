@@ -124,7 +124,7 @@
                     <table class="job-orders-table">
                         <thead>
                             <tr>
-                                <th>Bus ID</th>
+                                <th>JO ID</th>
                                 <th>Maintenance Type</th>
                                 <th>Assigned Mechanic</th>
                                 <th>Start Date & Time</th>
@@ -165,6 +165,12 @@
 
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
+                                    // A linked, still-outstanding procurement request is an objective
+                                    // delay risk. Do not infer delay from "Not Requested" alone or
+                                    // flag an already fulfilled/completed Job Order.
+                                    $hasPartsDelayRisk = $isApprovedReview && !$isCompleted && $hasNeededParts
+                                        && !in_array($partStatus, ['Issued', 'No Parts Needed'], true)
+                                        && $linkedPrs->contains(fn ($pr) => in_array($pr->status, ['Submitted', 'Approved', 'For Purchase', 'Ordered', 'For Delivery'], true));
                                     $linkedPr = $linkedPrs->first();
                                     $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
@@ -222,7 +228,7 @@
                                 <tr class="{{ $isOverdue ? 'jo-overdue-row' : '' }}">
                                     <td class="jo-bus-cell">
                                         <span class="bus-badge-pill">
-                                            <i class="fa-solid fa-bus"></i> {{ $jobOrder->bus_no }}
+                                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i> {{ $jobOrder->job_order_no }}
                                         </span>
                                     </td>
 
@@ -231,6 +237,11 @@
                                         @if($jobOrder->estimated_duration_value && $jobOrder->estimated_duration_unit)
                                             <span class="jo-estimate-inline">
                                                 Est. {{ $jobOrder->formatted_estimated_duration }}
+                                            </span>
+                                        @endif
+                                        @if($hasPartsDelayRisk)
+                                            <span class="jo-parts-delay-indicator" title="An approved Job Order has outstanding procurement parts. Completion may be delayed; the estimated duration is unchanged.">
+                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
                                             </span>
                                         @endif
                                         @if($isOverdue)
@@ -389,7 +400,10 @@
                                                                     @endforelse
                                                                 </div>
                                                             </div>
-                                                            <div class="jo-view-time-fields">
+                                                            @if($hasPartsDelayRisk)
+                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are still in the procurement process. Work may continue on parts already issued, but the original estimated duration could be affected. Maintenance Head should review any required ETC adjustment; this notice does not change the estimate.</p></div></div>
+                                        @endif
+                                        <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
                                                                 <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
                                                                 <div><span>Completed</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
