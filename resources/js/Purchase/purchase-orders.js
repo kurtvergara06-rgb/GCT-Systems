@@ -444,7 +444,9 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
       const put=(id,value)=>{document.getElementById(id).textContent=value||'—'};
       const cash=(x)=>'₱'+Number(x||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
       put('poDetailNo',button.dataset.poNo);put('poDetailPr',button.dataset.detailPr);
-      put('poDetailDate',button.dataset.poDate);put('poDetailStatus',button.dataset.status);
+      const rawDate=button.dataset.poDate||'';const parsedDate=/^\\d{4}-\\d{2}-\\d{2}/.test(rawDate)?new Date(rawDate.slice(0,10)+'T12:00:00'):null;
+      put('poDetailDate',parsedDate&&!Number.isNaN(parsedDate.getTime())?parsedDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):rawDate);
+      put('poDetailStatus',button.dataset.status);
       put('poDetailSupplier',button.dataset.supplierName);put('poDetailJo',button.dataset.detailJo);
       put('poDetailPurpose',button.dataset.purpose);put('poDetailTotal',cash(button.dataset.detailTotal));
       put('poDetailJoApprover',button.dataset.detailJoApprover);put('poDetailJoDate',button.dataset.detailJoDate);
@@ -458,8 +460,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
       const tbody=document.getElementById('poDetailItems');tbody.replaceChildren();
       parseItems(button).forEach((item,i)=>{
         const tr=document.createElement('tr');
-        const qty=Number(item.quantity||0),price=Number(item.unit_cost||item.unit_price||0);
-        [i+1,item.item_description||item.item||'—',qty,item.unit||'—',cash(price),cash(qty*price)].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});
+        const qty=Number(item.quantity||0),price=Number(item.cost??item.unit_cost??item.unit_price??0);
+        [i+1,item.item_description||item.item||'—',qty,item.unit||'—',cash(price),cash(Number(item.amount??(qty*price)))].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});
         tbody.appendChild(tr);
       });
       overlay.style.display='flex';overlay.classList.add('show','active');return;
