@@ -195,20 +195,7 @@
       </div>
 
       <div class="requested-pr-modal-body">
-        <dl class="requested-pr-information-strip">
-          <div>
-            <dt>PR Number</dt>
-            <dd id="viewRequestedPrNo">—</dd>
-          </div>
-          <div>
-            <dt>Linked Job Order</dt>
-            <dd id="viewRequestedJoNo">—</dd>
-          </div>
-          <div>
-            <dt>Bus Number</dt>
-            <dd id="viewRequestedBusNo">—</dd>
-          </div>
-        </dl>
+        <x-ui.pr-summary pr-id="viewRequestedPrNo" jo-id="viewRequestedJoNo" bus-id="viewRequestedBusNo" />
 
         <section class="requested-pr-detail-section">
           <h3>Parts Requiring Purchase</h3>
