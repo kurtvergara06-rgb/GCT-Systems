@@ -1484,3 +1484,29 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   #viewPrModal .warehouse-pr-head-content,
   #warehouseSendMissingModal .warehouse-pr-head-content {grid-template-columns:1fr;}
 }
+
+
+/* The PR View modal mirrors the concise Send Missing Parts dialog. */
+#viewPrModal .warehouse-pr-extra-details {
+  border:1px solid #d8e5f5;border-radius:10px;background:#fff;overflow:hidden;
+}
+#viewPrModal .warehouse-pr-extra-details > summary {
+  display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;
+  padding:13px 15px;color:#193e70;font-size:12px;font-weight:800;background:#f3f7fd;
+}
+#viewPrModal .warehouse-pr-extra-details > summary::-webkit-details-marker{display:none;}
+#viewPrModal .warehouse-pr-extra-details > summary .fa-chevron-down{margin-left:auto;transition:transform .2s;}
+#viewPrModal .warehouse-pr-extra-details[open] > summary .fa-chevron-down{transform:rotate(180deg);}
+#viewPrModal .warehouse-pr-extra-grid {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+  padding:12px 14px;border-top:1px solid #dfe8f5;
+}
+#viewPrModal .warehouse-pr-extra-grid > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
+#viewPrModal .warehouse-pr-extra-grid span{font-size:10px;color:#647c9a;font-weight:700;}
+#viewPrModal .warehouse-pr-extra-grid strong{font-size:12px;color:#193e70;overflow-wrap:anywhere;}
+#viewPrModal .warehouse-pr-extra-details .warehouse-pr-reference-section{margin:12px;}
+#viewPrModal .warehouse-pr-reference-section .parts-breakdown-box{margin:0;}
+#viewPrModal .warehouse-modal-scrollable{gap:12px;}
+@media(max-width:600px){
+  #viewPrModal .warehouse-pr-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
