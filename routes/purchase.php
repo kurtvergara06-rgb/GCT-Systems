@@ -30,6 +30,8 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
                 Route::get('/', 'index')->name('inventory-restock');
             });
 
+        Route::get('/purchase-orders/{purchaseOrder}/approval-signature', [PurchaseOrderController::class, 'approvalSignature'])->name('purchase-orders.approval-signature');
+
         Route::controller(PurchaseOrderController::class)
             ->prefix('purchase-orders')
             ->group(function () {
