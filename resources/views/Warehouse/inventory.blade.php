@@ -106,6 +106,8 @@
                 <th>Parts Name</th>
                 <th>Category</th>
                 <th>On Hand</th>
+                <th>Reserved</th>
+                <th>Available</th>
                 <th>Unit</th>
                 <th>Reorder Level</th>
                 <th>Status</th>
@@ -119,6 +121,9 @@
               @forelse($inventoryItems as $item)
                 @php
                   $status = $item->stock_status;
+                  $reservedQuantity = max(0, (int) ($reservedByItem[$item->id] ?? 0));
+                  $onHandQuantity = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+                  $availableQuantity = max(0, $onHandQuantity - $reservedQuantity);
 
                   $rowClass = match($status) {
                     'Critical' => 'danger-row',
@@ -133,7 +138,9 @@
                   </td>
                   <td class="inventory-item-cell">{{ $item->item_name }}</td>
                   <td>{{ $item->category }}</td>
-                  <td class="inventory-stock-cell"><strong>{{ $item->quantity_available }}</strong></td>
+                  <td class="inventory-stock-cell"><strong>{{ $onHandQuantity }}</strong></td>
+                  <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }}</strong></td>
+                  <td class="inventory-available-cell"><strong>{{ $availableQuantity }}</strong></td>
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
