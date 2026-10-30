@@ -880,3 +880,71 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     });
   });
 });
+
+
+/* JO specialization coverage is informational; staff/head approval remains authoritative.
+   Preset jobs without a saved skills mapping are never treated as fully matched. */
+window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage', '.jo-page', () => {
+  document.querySelectorAll('#jobModal, #editJobModal').forEach((modal) => {
+    const panel = modal.querySelector('[data-jo-skill-coverage]');
+    const select = modal.querySelector('select[name="mechanic_ids[]"]');
+    if (!panel || !select || panel.dataset.initialized === '1') return;
+    panel.dataset.initialized = '1';
+    const tags = panel.querySelector('[data-coverage-tags]');
+    const status = panel.querySelector('[data-coverage-status]');
+    const count = panel.querySelector('[data-coverage-count]');
+    const note = panel.querySelector('[data-coverage-note]');
+    const normalize = value => String(value || '').trim().toLocaleLowerCase();
+    const split = value => String(value || '').split(/[,;|]/).map(v => v.trim()).filter(Boolean);
+    const render = () => {
+      const checked = Array.from(modal.querySelectorAll('input[name="specializations[]"]:checked'));
+      const required = [...new Map(checked.map(input => [normalize(input.value), input.value.trim()])).entries()]
+        .filter(([key]) => key).map(([, label]) => label);
+      const chosen = Array.from(select.selectedOptions).filter(option => option.value);
+      const skills = new Set(chosen.flatMap(option => split(option.dataset.specializations)).map(normalize));
+      const matched = required.filter(skill => skills.has(normalize(skill)));
+      const missing = required.filter(skill => !skills.has(normalize(skill)));
+      let state = 'not-evaluated';
+      let title = 'Not Evaluated';
+      if (required.length) {
+        state = !chosen.length || !matched.length ? 'no-match' : missing.length ? 'partial' : 'full';
+        title = state === 'full' ? 'Full Match' : state === 'partial' ? 'Partial Match' : 'No Match';
+      }
+      panel.dataset.coverage = state;
+      status.textContent = title;
+      tags.replaceChildren();
+      if (!required.length) {
+        const empty = document.createElement('span');
+        empty.className = 'jo-coverage-empty';
+        empty.textContent = 'No specialization requirements recorded for this job.';
+        tags.append(empty);
+        count.textContent = 'Skill coverage cannot be evaluated.';
+        note.textContent = 'Configure required specializations for this maintenance job before interpreting a match.';
+      } else {
+        required.forEach(skill => {
+          const badge = document.createElement('span');
+          badge.className = 'jo-coverage-skill ' + (skills.has(normalize(skill)) ? 'is-matched' : 'is-missing');
+          const icon = document.createElement('i');
+          icon.className = skills.has(normalize(skill)) ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation';
+          icon.setAttribute('aria-hidden', 'true');
+          badge.append(icon, document.createTextNode(skill));
+          tags.append(badge);
+        });
+        count.textContent = matched.length + ' / ' + required.length + ' specializations covered';
+        note.textContent = missing.length
+          ? 'Unmatched: ' + missing.join(', ') + '. You may continue; Maintenance Head should review this assignment.'
+          : 'All recorded required specializations are covered by the selected mechanics.';
+      }
+    };
+    modal.addEventListener('change', event => {
+      if (event.target === select || event.target.matches('input[name="specializations[]"]') ||
+        event.target.matches('select[id$="MaintenanceJob"]')) render();
+    });
+    // The maintenance-job and mechanic pickers are built dynamically.
+    const observer = new MutationObserver(() => render());
+    const jobContainer = modal.querySelector('.jo-maintenance-job-slot');
+    if (jobContainer) observer.observe(jobContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['checked'] });
+    observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['selected', 'data-specializations'] });
+    render();
+  });
+});
