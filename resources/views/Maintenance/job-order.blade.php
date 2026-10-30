@@ -575,9 +575,8 @@
                                                                 @else
                                                                     <p>No parts requested</p>
                                                                 @endif
+                                                                <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
                                                             </div>
-                                                            <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
-                                              </section>
                                                         @if($jobOrder->audits->isNotEmpty())
                                                             <details class="jo-review-audit">
                                                                 <summary>Audit History ({{ $jobOrder->audits->count() }})</summary>
