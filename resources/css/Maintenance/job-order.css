@@ -6708,3 +6708,32 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   white-space:normal;
   line-height:1.4;
 }
+
+
+/* Shared New/Edit JO mechanic assignment and recorded specialization coverage. */
+:is(#jobModal,#editJobModal) .jo-mechanic-chips {display:flex;flex-wrap:wrap;gap:8px;margin-bottom:9px;}
+:is(#jobModal,#editJobModal) .jo-mechanic-chips .jo-mechanic-chip {display:inline-flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #cbdcf5;border-radius:9px;background:#f0f6ff;color:#153d73;font-size:11px;font-weight:700;}
+:is(#jobModal,#editJobModal) .jo-mechanic-chips .jo-mechanic-chip-remove {width:23px;height:23px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #c5d7ed;border-radius:50%;background:#fff;color:#355e8b;cursor:pointer;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage {margin-top:14px;overflow:hidden;border:1px solid #d6e3f4;border-radius:11px;background:#fff;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-header {display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f3f7fe;border-bottom:1px solid #dfe8f5;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-icon {display:flex;align-items:center;justify-content:center;width:33px;height:33px;border-radius:9px;background:#e4eeff;color:#1856a4;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-title {display:flex;flex:1;flex-direction:column;gap:3px;min-width:0;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-title strong {color:#16385f;font-size:13px;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-title small {color:#657d9a;font-size:10px;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-status {padding:7px 10px;border:1px solid #d3dce9;border-radius:7px;background:#eef2f7;color:#5d6d82;font-size:10px;font-weight:800;white-space:nowrap;}
+:is(#jobModal,#editJobModal) [data-coverage="full"] .jo-skill-coverage-status {background:#e7f8ee;border-color:#b9e7c9;color:#166534;}
+:is(#jobModal,#editJobModal) [data-coverage="partial"] .jo-skill-coverage-status {background:#fff5dd;border-color:#f4dd9e;color:#946009;}
+:is(#jobModal,#editJobModal) [data-coverage="no-match"] .jo-skill-coverage-status {background:#fff0f0;border-color:#f5c5c5;color:#a82e36;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-body {display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:13px 15px;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-required {border-right:1px solid #e0e8f3;padding-right:13px;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-body strong {display:block;margin-bottom:9px;font-size:11px;color:#193b68;}
+:is(#jobModal,#editJobModal) .jo-skill-coverage-tags {display:flex;flex-wrap:wrap;gap:7px;}
+:is(#jobModal,#editJobModal) .jo-coverage-skill {display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;font-size:11px;font-weight:750;}
+:is(#jobModal,#editJobModal) .jo-coverage-skill.is-matched {background:#e9f8ed;color:#176c39;}
+:is(#jobModal,#editJobModal) .jo-coverage-skill.is-missing {background:#fff3dc;color:#965600;}
+:is(#jobModal,#editJobModal) .jo-coverage-empty {font-size:11px;color:#71839a;}
+:is(#jobModal,#editJobModal) [data-coverage-count] {display:block;color:#23476e;font-size:12px;font-weight:700;}
+:is(#jobModal,#editJobModal) [data-coverage-note] {margin:9px 0 0;padding:9px 10px;border-radius:7px;background:#f1f6fd;color:#627a98;font-size:11px;line-height:1.5;}
+:is(#jobModal,#editJobModal) [data-coverage="partial"] [data-coverage-note],
+:is(#jobModal,#editJobModal) [data-coverage="no-match"] [data-coverage-note] {background:#fff6e4;color:#99640d;}
+@media(max-width:640px){:is(#jobModal,#editJobModal) .jo-skill-coverage-body{grid-template-columns:1fr;}:is(#jobModal,#editJobModal) .jo-skill-coverage-required{border-right:0;border-bottom:1px solid #e0e8f3;padding:0 0 12px;}:is(#jobModal,#editJobModal) .jo-skill-coverage-header{flex-wrap:wrap;}}
