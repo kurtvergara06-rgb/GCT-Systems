@@ -2827,48 +2827,78 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
           button.classList.add('is-selected');
         }
 
-        // For mechanic assignments, show the actual specialization from
-        // the mechanic master list instead of generic "Available mechanic".
-        const details = document.createElement('span');
-        const title = document.createElement('strong');
-        const skills = document.createElement('small');
         if (config.multiple) {
+          // A button remains the single accessible selection control: avoid nesting
+          // an actual checkbox inside another interactive element.
+          button.classList.add('jo-mechanic-structured-option');
+          button.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
+          const checkbox = document.createElement('span');
+          checkbox.className = 'jo-mechanic-option-check';
+          checkbox.setAttribute('aria-hidden', 'true');
+          checkbox.textContent = option.selected ? '✓' : '';
+
+          const person = document.createElement('span');
+          person.className = 'jo-mechanic-option-person';
+          const name = originalText.split(' · ')[0].trim();
+          const avatar = document.createElement('span');
+          avatar.className = 'jo-mechanic-option-avatar';
+          avatar.textContent = name.split(/\\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+          const nameBlock = document.createElement('span');
+          nameBlock.className = 'jo-mechanic-option-identity';
+          const title = document.createElement('strong');
+          title.textContent = name;
+          const subtitle = document.createElement('small');
           const rawSkills = (option.dataset.specializations || '').trim();
-          title.textContent = originalText.split(' · ')[0].trim();
-          skills.textContent = rawSkills ? 'Specializes in: ' + rawSkills : 'Specialization not recorded';
-          skills.className = 'jo-mechanic-skill-details';
-          button.dataset.search += ' ' + rawSkills.toLowerCase();
-        } else {
-          title.textContent = displayText;
-          skills.textContent = config.optionHint;
-        }
-        details.append(title, skills);
-        if (config.multiple) {
-          const form = select.closest('form');
-          const statusPanel = form?.querySelector('[data-jo-skill-coverage]');
-          const requirementLabels = Array.from(statusPanel?.querySelectorAll('.jo-coverage-skill') || [])
+          subtitle.textContent = rawSkills || 'Specialization not recorded';
+          nameBlock.append(title, subtitle);
+          person.append(avatar, nameBlock);
+
+          const skillsBox = document.createElement('span');
+          skillsBox.className = 'jo-mechanic-option-skills';
+          const requirements = Array.from(select.closest('form')?.querySelectorAll('[data-jo-skill-coverage] .jo-coverage-skill') || [])
             .map(item => item.textContent.trim().toLocaleLowerCase());
-          const known = requirementLabels.length > 0;
-          const mechanicSkills = (option.dataset.specializations || '').split(/[,;|]/)
-            .map(value => value.trim().toLocaleLowerCase()).filter(Boolean);
-          const matched = requirementLabels.filter(skill => mechanicSkills.includes(skill));
+          const known = requirements.length > 0;
+          const skillNames = rawSkills.split(/[,;|]/).map(item => item.trim()).filter(Boolean);
+          const matched = requirements.filter(skill => skillNames.some(name => name.toLocaleLowerCase() === skill));
+          skillNames.forEach(skill => {
+            const chip = document.createElement('span');
+            chip.className = 'jo-mechanic-option-skill' + (requirements.includes(skill.toLocaleLowerCase()) ? ' is-matched' : '');
+            chip.textContent = skill;
+            skillsBox.append(chip);
+          });
+          if (!skillNames.length) skillsBox.textContent = 'No skills recorded';
+          button.dataset.search += ' ' + rawSkills.toLowerCase();
           const score = known ? matched.length : -1;
           button.dataset.matchScore = String(score);
+
+          const availability = document.createElement('span');
+          availability.className = 'jo-mechanic-option-availability';
+          // Do not infer attendance from the legacy "Available" option attribute.
+          availability.textContent = option.disabled ? 'Unavailable' : 'Eligible for selection';
+
+          const outcome = document.createElement('span');
+          outcome.className = 'jo-mechanic-option-outcome';
           const badge = document.createElement('span');
           badge.className = 'jo-mechanic-match-badge';
-          badge.textContent = !known ? 'Not Evaluated'
-            : score === requirementLabels.length ? 'Best Match'
-            : score > 0 ? 'Partial Match' : 'No Match';
-          badge.dataset.match = !known ? 'unknown'
-            : score === requirementLabels.length ? 'full'
-            : score > 0 ? 'partial' : 'none';
-          details.appendChild(badge);
+          badge.dataset.match = !known ? 'unknown' : score === requirements.length ? 'full' : score ? 'partial' : 'none';
+          badge.textContent = !known ? 'Not Evaluated' : score === requirements.length ? 'Best Match' : score ? 'Partial Match' : 'No Match';
+          const explanation = document.createElement('small');
+          explanation.textContent = !known ? 'Skills not configured' : score === requirements.length ? 'Mapped skills covered' : 'Missing: ' + requirements.filter(skill => !skillNames.some(name => name.toLocaleLowerCase() === skill)).join(', ');
+          outcome.append(badge, explanation);
+          button.append(checkbox, person, skillsBox, availability, outcome);
+          button.disabled = option.disabled;
+        } else {
+          const details = document.createElement('span');
+          const title = document.createElement('strong');
+          const hint = document.createElement('small');
+          title.textContent = displayText;
+          hint.textContent = config.optionHint;
+          details.append(title, hint);
+          const check = document.createElement('i');
+          check.className = 'fa-solid fa-check';
+          check.setAttribute('aria-hidden', 'true');
+          button.append(details, check);
         }
-        const check = document.createElement('i');
-        check.className = 'fa-solid fa-check';
-        check.setAttribute('aria-hidden', 'true');
-        button.append(details, check);
-
         button.addEventListener('click', () => selectOption(option.value));
         optionsContainer.appendChild(button);
       });
