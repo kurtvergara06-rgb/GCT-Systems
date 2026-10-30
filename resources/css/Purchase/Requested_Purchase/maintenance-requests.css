@@ -1990,3 +1990,7 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 }
 .purchase-maintenance-requests-page .requested-pr-status,
 .purchase-maintenance-requests-page .requested-pr-actions-cell{vertical-align:middle!important}
+
+/* Final PR Details footer sizing: Create PO matches Close, not global primary button. */
+.requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm:not([hidden]){display:inline-flex!important;width:auto!important;flex:0 0 auto!important;align-items:center;margin:0!important}
+.requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm .requested-pr-create-po-btn{height:34px!important;min-height:34px!important;max-height:34px!important;width:auto!important;min-width:0!important;padding:0 13px!important;font-size:11px!important;line-height:1!important;font-weight:700!important;box-sizing:border-box;flex:0 0 auto}
