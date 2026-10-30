@@ -99,7 +99,6 @@
 
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
-            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
             [
                 'label' => 'Purchase Requisitions',
                 'icon' => 'fa-clipboard-list',
@@ -113,13 +112,14 @@
                     ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
+            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
+            ['label' => 'Scheduled Purchases', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
             [
                 'label' => 'Purchase History',
                 'url' => route('maintenance-requests', [], false) . '?view=history',
                 'icon' => 'fa-clock-rotate-left',
                 'active' => $isPurchaseHistory,
             ],
-            ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
         ];
     }
 
