@@ -68,6 +68,13 @@ class PurchaseRequestPartsService
                 }
             }
         }
+        // Load JO reservations once instead of querying once for each part.
+        // Keep the exact existing coverage calculation and fallback semantics.
+        $jobReservations = $jobOrder
+            ? JobOrderPartReservation::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->pluck('quantity', 'inventory_item_id')
+            : collect();
         $missingParts = [];
 
         foreach ($partsByName as $key => $parts) {
@@ -84,8 +91,9 @@ class PurchaseRequestPartsService
                     'job_order_no' => "Inventory contains multiple matching records for {$part['name']}. Warehouse must resolve the inventory item before purchasing.",
                 ]);
             }
-            $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
-                ->where('inventory_item_id', $part['inventory_item_id'] ?? 0)->value('quantity') : null;
+            $reserved = $jobOrder
+                ? $jobReservations->get($part['inventory_item_id'] ?? 0)
+                : null;
             // IR quantities and live JO reservations can overlap; the greater
             // committed amount is covered, but must never be counted twice.
             $irCovered = (int) $irQuantities->get($key, 0);
