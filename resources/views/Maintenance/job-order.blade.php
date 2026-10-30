@@ -526,7 +526,7 @@
                                                                 <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                                 <div><span><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Estimated Duration</span><strong>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</strong></div>
-                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge">{{ $partStatus }}</span></div>
+                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge {{ $partStatus === 'Not Requested' ? 'is-not-requested' : '' }}">{{ $partStatus }}</span></div>
                                                             </div>
                                                             <div class="jo-review-detail-support-grid">
                                                                 @php
@@ -536,7 +536,7 @@
                                                                     }
                                                                 @endphp
                                                                 <div class="jo-review-mechanic-field">
-                                                                    <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics ({{ $headReviewMechanics->count() }})</span>
+                                                                    <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics <strong class="jo-review-mechanic-count" aria-label="{{ $headReviewMechanics->count() }} assigned mechanics">{{ $headReviewMechanics->count() }}</strong></span>
                                                                     <div class="jo-review-mechanic-summary">
                                                                         @forelse($headReviewMechanics->take(1) as $mechanicName)
                                                                             <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
