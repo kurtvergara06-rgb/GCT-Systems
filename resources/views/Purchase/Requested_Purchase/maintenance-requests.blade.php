@@ -139,10 +139,14 @@
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
                   <td class="requested-pr-status">
-                    <x-ui.status-badge
-                      :status="$purchaseRequest->status ?? '—'"
-                      type="purchase"
-                    />
+                    @if($purchaseRequest->status === 'Ordered')
+                      <span class="requested-pr-ordered-badge"><i class="fa-solid fa-box" aria-hidden="true"></i> Ordered</span>
+                    @else
+                      <x-ui.status-badge
+                        :status="$purchaseRequest->status ?? '—'"
+                        type="purchase"
+                      />
+                    @endif
                   </td>
                   <td class="requested-pr-actions-cell">
                     <div class="record-actions">
