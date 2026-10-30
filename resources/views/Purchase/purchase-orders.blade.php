@@ -531,13 +531,26 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         <div class="po-head-review-summary"><span>Gross: <strong id="headReviewGross">—</strong></span><span>Delivery: <strong id="headReviewDelivery">—</strong></span><span>Discount: <strong id="headReviewDiscount">—</strong></span><span>VAT: <strong id="headReviewVat">—</strong></span><strong>NET TOTAL: <span id="headReviewNet">—</span></strong></div>
         <form id="poHeadReviewForm" method="POST" enctype="multipart/form-data">
           @csrf @method('PATCH')
-          <div class="po-head-review-fields">
-            <label for="headReviewRemarks">Review Remarks <small>(required for revision or rejection)</small></label>
-            <textarea id="headReviewRemarks" name="review_remarks" rows="3" maxlength="2000" placeholder="Add your review comments"></textarea>
-            <label for="headReviewSignature">Purchase Head Signature <strong>* Required to approve</strong></label>
-            <input id="headReviewSignature" name="signature" type="file" accept="image/png,image/jpeg">
-            <small>PNG or JPG only, maximum 2 MB. Signature stored privately.</small>
-            <img id="headReviewSignaturePreview" alt="Signature preview" hidden>
+          <div class="po-head-review-fields po-head-authorization-fields">
+            <div class="po-head-signature-column">
+              <label for="headReviewSignature"><i class="fa-solid fa-file-signature"></i> Signature upload <strong>*</strong></label>
+              <div class="po-head-upload-zone" id="poHeadUploadZone">
+                <i class="fa-solid fa-cloud-arrow-up po-head-upload-icon" aria-hidden="true"></i>
+                <strong id="poHeadUploadTitle">Upload signature</strong>
+                <small>JPG or PNG · Max 2 MB</small>
+                <label for="headReviewSignature" class="po-head-choose-file"><i class="fa-regular fa-image"></i> Choose file</label>
+                <input id="headReviewSignature" name="signature" type="file" accept="image/png,image/jpeg" class="po-head-native-file">
+                <img id="headReviewSignaturePreview" alt="Signature preview" hidden>
+              </div>
+              <small id="poHeadUploadHelp">Your uploaded signature will appear here before approval.</small>
+            </div>
+            <div class="po-head-review-notes-column">
+              <label for="poHeadSignatoryName"><i class="fa-regular fa-user"></i> Signatory name <strong>*</strong></label>
+              <input id="poHeadSignatoryName" type="text" value="{{ auth()->user()->name ?? '' }}" readonly aria-readonly="true">
+              <small>Your authenticated name will appear as the approving officer.</small>
+              <label for="headReviewRemarks"><i class="fa-regular fa-note-sticky"></i> Review notes <small>(required for revision or rejection)</small></label>
+              <textarea id="headReviewRemarks" name="review_remarks" rows="4" maxlength="2000" placeholder="Add any notes or remarks for this approval..."></textarea>
+            </div>
           </div>
           <footer class="po-head-review-footer">
             <button type="button" id="headReviewRevision" class="po-head-review-revision">Request Revision</button>
@@ -668,6 +681,23 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     .purchase-orders-page .po-head-review-summary strong{font-size:12px!important;font-weight:800!important}
     .purchase-orders-page .po-head-review-fields label{font-family:inherit!important;font-size:12px!important;font-weight:750!important;letter-spacing:normal!important}
     .purchase-orders-page .po-head-review-fields textarea,.purchase-orders-page .po-head-review-fields input{font-family:inherit!important;font-size:12px!important;font-weight:500!important}
+    .purchase-orders-page .po-head-authorization-fields{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:16px!important;align-items:start}
+    .purchase-orders-page .po-head-signature-column{border-right:1px solid #dce6f2;padding-right:16px;min-width:0}
+    .purchase-orders-page .po-head-review-notes-column{display:flex;flex-direction:column;gap:7px;min-width:0}
+    .purchase-orders-page .po-head-signature-column>label,.purchase-orders-page .po-head-review-notes-column>label{display:block;margin-bottom:7px}
+    .purchase-orders-page .po-head-signature-column>small,.purchase-orders-page .po-head-review-notes-column>small{display:block;font-size:10px;color:#708198;margin-top:7px}
+    .purchase-orders-page .po-head-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:164px;padding:14px;border:1px dashed #bdd5f8;border-radius:10px;background:#f8faff;text-align:center}
+    .purchase-orders-page .po-head-upload-icon{font-size:23px;color:#587ba9}
+    .purchase-orders-page .po-head-upload-zone>strong{font-size:14px;color:#193d6d}
+    .purchase-orders-page .po-head-upload-zone>small{font-size:10px;color:#6a7e98}
+    .purchase-orders-page .po-head-native-file{position:absolute!important;width:1px!important;height:1px!important;opacity:0;overflow:hidden;pointer-events:none}
+    .purchase-orders-page .po-head-choose-file{cursor:pointer;display:inline-flex!important;gap:6px;align-items:center;padding:8px 12px;border:1px solid #c9dcf5;border-radius:7px;background:#fff;color:#1c4c87;font-size:11px;font-weight:700}
+    .purchase-orders-page .po-head-choose-file:hover{background:#eaf3ff}
+    .purchase-orders-page .po-head-upload-zone.has-preview .po-head-upload-icon{display:none}
+    .purchase-orders-page .po-head-upload-zone.has-preview img{display:block;max-width:100%;max-height:95px;object-fit:contain;background:#fff}
+    .purchase-orders-page .po-head-review-notes-column #poHeadSignatoryName{background:#f1f5fa!important;font-weight:650!important;color:#19385b}
+    .purchase-orders-page .po-head-review-notes-column textarea{min-height:105px!important}
+    @media(max-width:650px){.purchase-orders-page .po-head-authorization-fields{grid-template-columns:1fr!important}.purchase-orders-page .po-head-signature-column{border-right:0;border-bottom:1px solid #dce6f2;padding-right:0;padding-bottom:14px}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
@@ -680,7 +710,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         const money=v=>'₱'+(Number(v)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
         let approveUrl='',decisionUrl='',previewUrl=null;
         const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const close=()=>{modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
+        const close=()=>{modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;byId('poHeadUploadZone').classList.remove('has-preview');byId('poHeadUploadTitle').textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
         document.querySelectorAll('.open-po-review-modal').forEach(button=>button.addEventListener('click',()=>{
           const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
@@ -697,7 +727,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           form.action=approveUrl;modal.style.display='flex';modal.classList.add('show','active');window.GCTModalBackdrop?.sync?.();window.GCTSystemAnimations?.animateModalOpen?.(modal);
         }));
         byId('poHeadReviewClose').addEventListener('click',close);
-        const signature=byId('headReviewSignature');signature.addEventListener('change',()=>{if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview');img.hidden=true;if(file&&['image/png','image/jpeg'].includes(file.type)&&file.size<=2097152){previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false}});
+        const signature=byId('headReviewSignature');signature.addEventListener('change',()=>{if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview'),title=byId('poHeadUploadTitle'),zone=byId('poHeadUploadZone');img.hidden=true;zone.classList.remove('has-preview');title.textContent='Upload signature';if(!file)return;if(!['image/png','image/jpeg'].includes(file.type)||file.size>2097152){signature.value='';signature.setCustomValidity('Choose a JPG or PNG signature no larger than 2 MB.');signature.reportValidity();return}signature.setCustomValidity('');previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false;zone.classList.add('has-preview');title.textContent=file.name});
         form.addEventListener('submit',e=>{if(!signature.files?.length){e.preventDefault();signature.setCustomValidity('Upload a signature to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
         signature.addEventListener('change',()=>signature.setCustomValidity(''));
         function decide(decision){const remarks=byId('headReviewRemarks');if(!remarks.value.trim()){remarks.setCustomValidity('Please explain your decision.');remarks.reportValidity();return}remarks.setCustomValidity('');form.action=decisionUrl;const input=document.createElement('input');input.type='hidden';input.name='decision';input.value=decision;form.append(input);form.submit()}
