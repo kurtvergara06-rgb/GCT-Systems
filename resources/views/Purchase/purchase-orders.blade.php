@@ -223,12 +223,13 @@
                       @endunless
 
                       @if($isForReview && $canReviewPo)
-                        <button type="button" class="action-btn po-review-action open-po-review-modal"
-                          @php
+                        @php
 $prForReview = $purchaseOrder->relatedMaintenanceRequest();
 $joForReview = $prForReview && $prForReview->job_order_no !== 'RESTOCK' ? \App\Models\Maintenance\JobOrder::where('job_order_no', $prForReview->job_order_no)->first() : null;
 $joApproverForReview = $joForReview?->approved_by ? \App\Models\Admin\User::find($joForReview->approved_by) : null;
 @endphp
+                        <button type="button" class="action-btn po-review-action open-po-review-modal"
+                          
 data-jo-no="{{ $joForReview?->job_order_no ?? '' }}"
 data-jo-bus="{{ $joForReview?->bus_no ?? '' }}"
 data-jo-status="{{ $joForReview?->review_status ?? '' }}"
