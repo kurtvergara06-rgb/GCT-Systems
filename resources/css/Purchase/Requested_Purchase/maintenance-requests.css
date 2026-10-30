@@ -1811,3 +1811,16 @@ main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6
 main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
 main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7){min-width:0;}
 main.purchase-maintenance-requests-page .requested-pr-bus strong{white-space:nowrap;font-weight:800;}
+
+
+/* Seven columns: Bus, PR/JO, Part, Qty, Count, Status, Actions. */
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4) {min-width:105px;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5) {min-width:100px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6) {min-width:140px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7) {min-width:120px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-pr-part-qty strong {font-weight:750;white-space:nowrap;}
+main.purchase-maintenance-requests-page .requested-pr-more-qty {margin-top:5px;}
