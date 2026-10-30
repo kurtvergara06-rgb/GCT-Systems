@@ -494,7 +494,7 @@
                                                 data-review-status="{{ $jobOrder->review_status }}"
                                                 data-review-notes="{{ $jobOrder->review_notes }}"
                                                 data-view-only="{{ $isViewOnly ? '1' : '0' }}"
-                                            >@if($isViewOnly)<span>View</span>@endif</x-ui.action-buttom-modal>
+                                            ><span>{{ $isViewOnly ? 'View' : 'Edit' }}</span></x-ui.action-buttom-modal>
                                             @endif
 
                                             @if($canReviewJobOrders && $isPendingReview)
