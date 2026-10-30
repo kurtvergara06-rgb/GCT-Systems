@@ -232,8 +232,8 @@
                                           return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortageByKey->get($key, 0))]);
                                       })->filter(fn ($part) => $part['quantity'] > 0)->values();
                                       $releasePartial = $sourceJo?->parts_issue_strategy === 'issue_available_only';
-                                      // Legacy auto-approved PRs inherited JO authorization, not a separate PR approval.
-                                      $displayPrStatus = $pr->status === 'Approved' && $sourceJoApproved && $pr->source_type === 'Maintenance Request' ? 'Submitted' : $pr->status;
+                                      // Display the actual saved PR status; JO authorization is shown separately.
+                                      $displayPrStatus = $pr->status;
                                   @endphp
                                   <tr>
                                       <td><div class="pr-active-jo-pr"><strong class="pr-ir-jo-badge">{{ $pr->job_order_no ?: '—' }}</strong><small>{{ $pr->pr_no }}</small></div></td>
