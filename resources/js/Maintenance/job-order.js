@@ -92,32 +92,105 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       setSignature('');
       setFeedback('Upload a signature image to approve this Job Order.');
     });
+    const cropModal = panel.querySelector('.jo-signature-crop-modal');
+    const cropImage = panel.querySelector('.jo-signature-crop-image');
+    const cropViewport = panel.querySelector('.jo-signature-crop-viewport');
+    const cropZoom = panel.querySelector('.jo-signature-crop-zoom');
+    let loadedImage = null;
+    let sourceUrl = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let dragStart = null;
+    const positionCropImage = () => {
+      if (!loadedImage || !cropViewport || !cropImage) return;
+      const box = cropViewport.getBoundingClientRect();
+      const base = Math.max(box.width / loadedImage.naturalWidth, box.height / loadedImage.naturalHeight);
+      const scale = base * Number(cropZoom?.value || 1);
+      const width = loadedImage.naturalWidth * scale;
+      const height = loadedImage.naturalHeight * scale;
+      offsetX = Math.max(box.width - width, Math.min(0, offsetX));
+      offsetY = Math.max(box.height - height, Math.min(0, offsetY));
+      Object.assign(cropImage.style, {
+        position: 'absolute', maxWidth: 'none', width: width + 'px', height: height + 'px',
+        left: offsetX + 'px', top: offsetY + 'px', transform: 'none'
+      });
+    };
+    const closeCrop = () => {
+      if (cropModal) cropModal.hidden = true;
+      if (sourceUrl) { URL.revokeObjectURL(sourceUrl); sourceUrl = null; }
+      loadedImage = null;
+      dragStart = null;
+    };
+    cropZoom?.addEventListener('input', positionCropImage);
+    cropViewport?.addEventListener('pointerdown', event => {
+      if (!loadedImage) return;
+      dragStart = { x: event.clientX, y: event.clientY, left: offsetX, top: offsetY };
+      cropViewport.setPointerCapture(event.pointerId);
+    });
+    cropViewport?.addEventListener('pointermove', event => {
+      if (!dragStart) return;
+      offsetX = dragStart.left + event.clientX - dragStart.x;
+      offsetY = dragStart.top + event.clientY - dragStart.y;
+      positionCropImage();
+    });
+    const stopDrag = () => { dragStart = null; };
+    cropViewport?.addEventListener('pointerup', stopDrag);
+    cropViewport?.addEventListener('pointercancel', stopDrag);
+    panel.querySelectorAll('.jo-signature-crop-cancel,.jo-signature-crop-back').forEach(button => {
+      button.addEventListener('click', () => { closeCrop(); if (fileInput) fileInput.value = ''; });
+    });
+    panel.querySelector('.jo-signature-crop-apply')?.addEventListener('click', () => {
+      if (!loadedImage || !cropViewport) return;
+      const box = cropViewport.getBoundingClientRect();
+      const scale = Math.max(box.width / loadedImage.naturalWidth, box.height / loadedImage.naturalHeight) * Number(cropZoom?.value || 1);
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = Math.max(1, Math.round(640 * box.height / box.width));
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const multiplier = canvas.width / box.width;
+      ctx.drawImage(loadedImage, offsetX * multiplier, offsetY * multiplier,
+        loadedImage.naturalWidth * scale * multiplier, loadedImage.naturalHeight * scale * multiplier);
+      const data = canvas.toDataURL('image/png');
+      if (data.length > 530000) {
+        setFeedback('Cropped signature is too large. Try a smaller image.');
+        return;
+      }
+      setSignature(data);
+      setFeedback('Signature cropped and ready for approval.');
+      closeCrop();
+    });
     fileInput?.addEventListener('change', () => {
       const file = fileInput.files?.[0];
       if (!file) return;
       if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
         fileInput.value = '';
-        setSignature('');
         setFeedback('Select a PNG, JPG, or WebP image no larger than 2 MB.');
         return;
       }
+      if (!cropModal || !cropImage || !cropViewport) {
+        setFeedback('Signature crop dialog is unavailable. Please refresh the page.');
+        return;
+      }
+      if (sourceUrl) URL.revokeObjectURL(sourceUrl);
+      sourceUrl = URL.createObjectURL(file);
       const image = new Image();
-      const temporaryUrl = URL.createObjectURL(file);
       image.onload = () => {
-        URL.revokeObjectURL(temporaryUrl);
-        // Server accepts PNG only, limited to 400 KB. Compress to a bounded landscape PNG.
-        const canvas = document.createElement('canvas');
-        const ratio = Math.min(1, 640 / image.naturalWidth, 240 / image.naturalHeight);
-        canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
-        canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
-        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-        const data = canvas.toDataURL('image/png');
-        if (data.length > 530000) { setSignature(''); setFeedback('Signature image is too detailed. Choose a smaller image.'); return; }
-        setSignature(data);
-        setFeedback('Signature uploaded. Review it before approving.');
+        loadedImage = image;
+        cropImage.src = sourceUrl;
+        cropZoom.value = '1';
+        cropModal.hidden = false;
+        requestAnimationFrame(() => {
+          const box = cropViewport.getBoundingClientRect();
+          const base = Math.max(box.width / image.naturalWidth, box.height / image.naturalHeight);
+          offsetX = (box.width - image.naturalWidth * base) / 2;
+          offsetY = (box.height - image.naturalHeight * base) / 2;
+          positionCropImage();
+        });
       };
-      image.onerror = () => { URL.revokeObjectURL(temporaryUrl); setFeedback('Could not read that image.'); setSignature(''); };
-      image.src = temporaryUrl;
+      image.onerror = () => { closeCrop(); setFeedback('Could not read that image.'); };
+      image.src = sourceUrl;
     });
     approveForm?.addEventListener('submit', (event) => {
       if (!signatureInput?.value) {
