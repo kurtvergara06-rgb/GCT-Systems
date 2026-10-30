@@ -26,7 +26,7 @@
                   $sourceApprovalAudit = $sourceJo?->audits?->first(fn ($audit) => data_get($audit->metadata, 'handwritten_signature_path'));
                   $sourceSignaturePath = data_get($sourceApprovalAudit?->metadata, 'handwritten_signature_path');
                   $sourceAuthorized = $sourceJo?->review_status === 'Approved';
-                  $sourceSignatureUrl = $sourceAuthorized && $sourceSignaturePath ? route('job-orders.approval-signature', $sourceJo->id, false) : '';
+                  $sourceSignatureUrl = $sourceAuthorized && $sourceSignaturePath ? route('warehouse.job-orders.approval-signature', $sourceJo->id, false) : '';
                 @endphp
 
                 <tr>
