@@ -1729,3 +1729,51 @@ main.purchase-maintenance-requests-page .requested-purchase-table .record-action
   box-shadow: none !important;
   gap: 9px !important;
 }
+
+
+/* Warehouse-inspired, compact Purchase Requisition details presentation. */
+.purchase-maintenance-requests-page .requested-pr-record-tabs { display:none; }
+.requested-pr-view-overlay .requested-pr-style-modal {
+  width:min(920px,calc(100vw - 32px));max-width:920px;
+  border-radius:15px;overflow:hidden;
+}
+.requested-pr-view-overlay .requested-pr-modal-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid #dce6f5;
+}
+.requested-pr-view-overlay .requested-pr-modal-header h2 {font-size:18px;font-weight:850;}
+.requested-pr-view-overlay .requested-pr-modal-body {
+  padding:18px 20px;display:flex;flex-direction:column;gap:13px;
+}
+.requested-pr-view-overlay .requested-pr-information-strip {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid #d9e5f6;background:#fff;border-radius:11px;padding:10px;gap:8px;
+}
+.requested-pr-view-overlay .requested-pr-information-strip > div {
+  min-width:0;padding:10px 12px;background:#f5f8fd;border-radius:7px;
+}
+.requested-pr-view-overlay .requested-pr-detail-section {
+  border:1px solid #d9e5f6;border-radius:11px;background:#fff;overflow:hidden;
+}
+.requested-pr-view-overlay .requested-pr-detail-section h3 {
+  padding:13px 16px;background:#f1f6fd;color:#173962;font-size:13px;font-weight:800;
+}
+.requested-pr-view-overlay .requested-pr-breakdown-table th,
+.requested-pr-view-overlay .requested-pr-breakdown-table td {padding:13px 16px;}
+.requested-pr-view-overlay .requested-pr-additional {
+  border:1px solid #d9e5f6;border-radius:11px;background:#fff;overflow:hidden;
+}
+.requested-pr-view-overlay .requested-pr-additional > summary {
+  cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;background:#f1f6fd;color:#173962;font-weight:800;font-size:12px;
+}
+.requested-pr-view-overlay .requested-pr-additional > summary::-webkit-details-marker {display:none;}
+.requested-pr-view-overlay .requested-pr-additional-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px;
+}
+.requested-pr-view-overlay .requested-pr-additional-grid > div {display:flex;flex-direction:column;gap:5px;}
+.requested-pr-view-overlay .requested-pr-additional .requested-pr-remarks-section {margin:0 14px 14px;}
+@media(max-width:600px){
+ .requested-pr-view-overlay .requested-pr-information-strip {grid-template-columns:1fr;}
+ .requested-pr-view-overlay .requested-pr-additional-grid {grid-template-columns:1fr;}
+}
