@@ -7322,3 +7322,12 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-view-grid .jo-view-work-more[open]:not(.jo-view-mechanics-more)>summary i{transform:rotate(180deg)}
 .jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded{position:static;display:grid;flex:1 0 100%;width:max-content;min-width:210px;max-width:min(100%,380px);margin-top:8px;padding:7px;border:1px solid #d5e3f5;border-radius:9px;background:#f8fbff;box-shadow:none;gap:4px}
 .jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded>span{display:block;padding:7px 9px;border-radius:6px;background:#fff;border:1px solid #e7edf8;color:#23456e;font-size:11px;line-height:1.55;font-weight:600;overflow-wrap:anywhere}
+
+
+/* Maintenance Work expansion is a floating overlay, never expands the card. */
+.jo-view-grid .jo-view-work-list{position:relative;overflow:visible}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more){position:relative;display:inline-block;overflow:visible;z-index:5}
+.jo-view-grid .jo-view-work-more[open]:not(.jo-view-mechanics-more){z-index:80}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded{position:absolute!important;top:calc(100% + 7px);left:0;display:grid;flex:none;width:max-content;min-width:220px;max-width:min(360px,70vw);margin:0;padding:8px;background:#fff;border:1px solid #cbdcf1;border-radius:9px;box-shadow:0 12px 32px rgba(20,43,78,.18);z-index:90}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded>span{background:#f8fbff}
+.jo-view-section,.jo-view-grid,.jo-view-grid>div{overflow:visible}
