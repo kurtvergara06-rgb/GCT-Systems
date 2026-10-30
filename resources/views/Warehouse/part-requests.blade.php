@@ -53,8 +53,7 @@
         <div class="warehouse-list-controls">
 
           <nav class="warehouse-record-tabs" aria-label="Warehouse request type">
-            <a href="{{ route('warehouse.item-requests') }}" class="warehouse-record-tab" data-allow-partial-navigation="true"><i class="fa-solid fa-box"></i> IR Requests</a>
-            <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" aria-current="{{ !$isJo && !$isHistory ? 'page' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> PR Requests</a>
+            <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" aria-current="{{ !$isJo && !$isHistory ? 'page' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> Active</a>
             <a href="{{ route('part-requests', ['view' => 'history']) }}" class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}" aria-current="{{ $isHistory ? 'page' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
           </nav>
         <div class="gct-table-toolbar-row">
