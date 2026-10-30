@@ -547,7 +547,16 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                 <small>JPG or PNG · Max 2 MB</small>
                 <label for="headReviewSignature" class="po-head-choose-file"><i class="fa-regular fa-image"></i> Choose file</label>
                 <input id="headReviewSignature" name="signature" type="file" accept="image/png,image/jpeg" class="po-head-native-file">
-                <img id="headReviewSignaturePreview" alt="Signature preview" hidden>
+                <img id="headReviewSignaturePreview" alt="Cropped signature preview" hidden><button type="button" id="poHeadRemoveSignature" class="po-head-remove-signature" hidden>Remove</button>
+              </div>
+              <div id="poHeadCropModal" class="po-head-crop-modal" role="dialog" aria-modal="true" aria-label="Crop Purchase Head signature" hidden>
+                <div class="po-head-crop-dialog">
+                  <header><strong>Crop signature</strong><button type="button" id="poHeadCropCancel" aria-label="Cancel crop"><i class="fa-solid fa-xmark"></i></button></header>
+                  <p>Drag the image to position it inside the landscape frame, then adjust the zoom.</p>
+                  <canvas id="poHeadCropCanvas" width="720" height="280" aria-label="Signature cropping preview"></canvas>
+                  <label for="poHeadCropZoom">Zoom</label><input id="poHeadCropZoom" type="range" min="1" max="3" value="1" step="0.01">
+                  <footer><button type="button" id="poHeadCropBack">Cancel</button><button type="button" id="poHeadCropApply">Apply Crop</button></footer>
+                </div>
               </div>
               <small id="poHeadUploadHelp">Your uploaded signature will appear here before approval.</small>
             </div>
@@ -727,6 +736,19 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     #poHeadReviewModal .po-head-review-approve{background:#ffbc00!important;border:1px solid #e6a600!important;color:#152b4d!important;font-weight:800!important;box-shadow:none!important;transform:none!important;transition:background-color .16s ease,border-color .16s ease!important}
     #poHeadReviewModal .po-head-review-approve:not(:disabled):hover{background:#f2aa00!important;border-color:#d99800!important;transform:none!important}
     #poHeadReviewModal .po-head-review-approve:disabled{background:#e5e7eb!important;border-color:#d1d5db!important;color:#727987!important;cursor:not-allowed!important;opacity:1!important;box-shadow:none!important}
+    #poHeadReviewModal .po-head-upload-zone.has-preview img{display:block!important;width:100%!important;max-height:180px!important;height:150px!important;object-fit:contain!important;background:#fff!important}
+    #poHeadReviewModal .po-head-remove-signature{background:#fff;border:1px solid #c9dcf5;border-radius:6px;padding:7px 12px;color:#214c83;cursor:pointer}
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-upload-icon{display:none!important}
+    #poHeadReviewModal .po-head-crop-modal[hidden]{display:none!important}
+    #poHeadReviewModal .po-head-crop-modal{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;background:rgba(9,27,53,.7);padding:16px}
+    #poHeadReviewModal .po-head-crop-dialog{width:min(700px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border-radius:12px;padding:18px;box-shadow:0 18px 75px #0004;text-align:left}
+    #poHeadReviewModal .po-head-crop-dialog header,#poHeadReviewModal .po-head-crop-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    #poHeadReviewModal .po-head-crop-dialog header strong{font-size:16px}
+    #poHeadReviewModal .po-head-crop-dialog p{font-size:12px;color:#667991}
+    #poHeadReviewModal #poHeadCropCanvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab;border:1px dashed #aac9f0;background:white;border-radius:7px}
+    #poHeadReviewModal #poHeadCropZoom{width:100%;margin:12px 0}
+    #poHeadReviewModal .po-head-crop-dialog footer button{border:1px solid #bfd4ed;border-radius:7px;background:#fff;color:#194478;padding:10px 14px;cursor:pointer}
+    #poHeadReviewModal #poHeadCropApply{background:#ffbc00;color:#142b49;border-color:#e6a600}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
@@ -739,7 +761,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         const money=v=>'₱'+(Number(v)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
         let approveUrl='',decisionUrl='',previewUrl=null;
         const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const close=()=>{byId('headReviewApprove').disabled=true;modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;byId('poHeadUploadZone').classList.remove('has-preview');byId('poHeadUploadTitle').textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
+        const close=()=>{byId('headReviewApprove').disabled=true;modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;byId('poHeadUploadZone').classList.remove('has-preview');byId('poHeadUploadTitle').textContent='Upload signature';byId('poHeadRemoveSignature').hidden=true;byId('poHeadCropModal').hidden=true;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
         document.querySelectorAll('.open-po-review-modal').forEach(button=>button.addEventListener('click',()=>{
           const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;byId('headReviewApprove').disabled=true;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
@@ -757,8 +779,22 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           form.action=approveUrl;modal.style.display='flex';modal.classList.add('show','active');window.GCTModalBackdrop?.sync?.();window.GCTSystemAnimations?.animateModalOpen?.(modal);
         }));
         byId('poHeadReviewClose').addEventListener('click',close);
-        const signature=byId('headReviewSignature');const approveButton=byId('headReviewApprove');const validSignature=()=>{const file=signature.files?.[0];return !!file&&['image/png','image/jpeg'].includes(file.type)&&file.size<=2097152};signature.addEventListener('change',()=>{approveButton.disabled=true;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview'),title=byId('poHeadUploadTitle'),zone=byId('poHeadUploadZone');img.hidden=true;zone.classList.remove('has-preview');title.textContent='Upload signature';if(!file)return;if(!['image/png','image/jpeg'].includes(file.type)||file.size>2097152){signature.value='';signature.setCustomValidity('Choose a JPG or PNG signature no larger than 2 MB.');signature.reportValidity();return}signature.setCustomValidity('');previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false;zone.classList.add('has-preview');title.textContent=file.name;approveButton.disabled=!validSignature()});
-        form.addEventListener('submit',e=>{if(!validSignature()){e.preventDefault();signature.setCustomValidity('Upload a valid JPG or PNG signature (maximum 2 MB) to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
+        const signature=byId('headReviewSignature'),approveButton=byId('headReviewApprove'),crop=byId('poHeadCropModal'),canvas=byId('poHeadCropCanvas'),ctx=canvas.getContext('2d'),zoom=byId('poHeadCropZoom'),preview=byId('headReviewSignaturePreview'),zone=byId('poHeadUploadZone'),remove=byId('poHeadRemoveSignature'),title=byId('poHeadUploadTitle');
+        const validSignature=()=>{const f=signature.files?.[0];return !!f&&['image/png','image/jpeg'].includes(f.type)&&f.size<=2097152&&!crop.hidden};
+        let cropImage=null,cropUrl=null,cropX=0,cropY=0,drag=null;
+        const clearSignature=()=>{signature.value='';approveButton.disabled=true;preview.hidden=true;preview.removeAttribute('src');zone.classList.remove('has-preview');remove.hidden=true;title.textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}};
+        const closeCrop=()=>{crop.hidden=true;if(cropUrl){URL.revokeObjectURL(cropUrl);cropUrl=null}cropImage=null;drag=null};
+        const drawCrop=()=>{if(!cropImage)return;const w=canvas.width,h=canvas.height,scale=Math.max(w/cropImage.width,h/cropImage.height)*Number(zoom.value),iw=cropImage.width*scale,ih=cropImage.height*scale;cropX=Math.min(0,Math.max(w-iw,cropX));cropY=Math.min(0,Math.max(h-ih,cropY));ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(cropImage,cropX,cropY,iw,ih)};
+        signature.addEventListener('change',()=>{const file=signature.files?.[0];if(!file){clearSignature();return}if(!['image/png','image/jpeg'].includes(file.type)||file.size>2097152){clearSignature();signature.setCustomValidity('Choose JPG or PNG no larger than 2 MB');signature.reportValidity();return}signature.setCustomValidity('');approveButton.disabled=true;remove.hidden=true;cropUrl=URL.createObjectURL(file);const image=new Image();image.onload=()=>{cropImage=image;zoom.value='1';cropX=(canvas.width-Math.max(canvas.width/image.width,canvas.height/image.height)*image.width)/2;cropY=(canvas.height-Math.max(canvas.width/image.width,canvas.height/image.height)*image.height)/2;crop.hidden=false;drawCrop()};image.onerror=()=>{closeCrop();clearSignature();signature.setCustomValidity('Could not read signature image');signature.reportValidity()};image.src=cropUrl});
+        zoom.addEventListener('input',drawCrop);
+        canvas.addEventListener('pointerdown',e=>{if(!cropImage)return;drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});
+        canvas.addEventListener('pointermove',e=>{if(!drag)return;const rect=canvas.getBoundingClientRect();cropX+=(e.clientX-drag.x)*canvas.width/rect.width;cropY+=(e.clientY-drag.y)*canvas.height/rect.height;drag={x:e.clientX,y:e.clientY};drawCrop()});
+        canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
+        const cancelCrop=()=>{closeCrop();clearSignature()};
+        byId('poHeadCropCancel').addEventListener('click',cancelCrop);byId('poHeadCropBack').addEventListener('click',cancelCrop);
+        remove.addEventListener('click',clearSignature);
+        byId('poHeadCropApply').addEventListener('click',()=>{if(!cropImage)return;drawCrop();canvas.toBlob(blob=>{if(!blob)return;if(blob.size>2097152){signature.setCustomValidity('Cropped image exceeds 2 MB');signature.reportValidity();return}const file=new File([blob],'po-head-signature.png',{type:'image/png'}),dt=new DataTransfer();dt.items.add(file);signature.files=dt.files;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(blob);preview.src=previewUrl;preview.hidden=false;zone.classList.add('has-preview');title.textContent='Cropped signature';remove.hidden=false;closeCrop();approveButton.disabled=!validSignature()},'image/png')});
+                form.addEventListener('submit',e=>{if(!validSignature()){e.preventDefault();signature.setCustomValidity('Upload a valid JPG or PNG signature (maximum 2 MB) to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
         signature.addEventListener('change',()=>signature.setCustomValidity(''));
         function decide(decision){const remarks=byId('headReviewRemarks');if(!remarks.value.trim()){remarks.setCustomValidity('Please explain your decision.');remarks.reportValidity();return}remarks.setCustomValidity('');form.action=decisionUrl;const input=document.createElement('input');input.type='hidden';input.name='decision';input.value=decision;form.append(input);form.submit()}
         byId('headReviewRevision').addEventListener('click',()=>decide('revision'));
