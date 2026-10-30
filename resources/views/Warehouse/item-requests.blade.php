@@ -116,7 +116,7 @@
                             </span>
                         </td>
                         <td>
-                            <button type="button" class="warehouse-ir-labeled-view" title="View Item Request" aria-label="View Item Request" data-ir-view
+                            <button type="button" class="warehouse-ir-labeled-view" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:95px;padding:8px 14px;border:1px solid #bdd5ff;border-radius:8px;background:#eef5ff;color:#1761c5;font-size:12px;font-weight:700;cursor:pointer" title="View Item Request" aria-label="View Item Request" data-ir-view
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
