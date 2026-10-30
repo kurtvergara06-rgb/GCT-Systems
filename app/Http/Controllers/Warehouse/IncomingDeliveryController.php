@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
 use App\Services\Maintenance\PartsReservationService;
+use App\Services\Maintenance\ItemRequestPartsService;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +26,8 @@ class IncomingDeliveryController extends Controller
 
     public function __construct(
         private InventoryLedgerService $ledger,
-        private PartsReservationService $reservations
+        private PartsReservationService $reservations,
+        private ItemRequestPartsService $irParts
     ) {}
 
     public function index(Request $request)
@@ -292,7 +295,50 @@ class IncomingDeliveryController extends Controller
             ->where('status', '!=', 'Completed')
             ->orderBy('id')
             ->lockForUpdate()->get()
-            ->each(fn (JobOrder $jobOrder) => $this->reservations->topUp($jobOrder));
+            ->each(function (JobOrder $jobOrder): void {
+                $this->reservations->topUp($jobOrder);
+                $this->refreshSubmittedItemRequest($jobOrder);
+            });
+    }
+
+    /**
+     * Only a wholly unissued IR may grow after replenishment. A previously
+     * issued IR is an immutable handover record; Maintenance must create its
+     * next linked IR from the remaining-JO suggestion instead.
+     */
+    private function refreshSubmittedItemRequest(JobOrder $jobOrder): void
+    {
+        $ir = ItemRequest::query()
+            ->where('job_order_id', $jobOrder->id)
+            ->where('status', 'Submitted')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$ir) {
+            return;
+        }
+
+        $additionalParts = $this->irParts->availableParts((string) $jobOrder->part_needed, $jobOrder);
+        if ($additionalParts === []) {
+            return;
+        }
+
+        $parts = collect($ir->requested_parts ?? []);
+        foreach ($additionalParts as $newPart) {
+            $index = $parts->search(fn ($part) =>
+                (int) ($part['inventory_item_id'] ?? 0) === (int) ($newPart['inventory_item_id'] ?? 0)
+                && mb_strtolower(trim((string) ($part['name'] ?? ''))) === mb_strtolower(trim((string) ($newPart['name'] ?? '')))
+                && mb_strtolower(trim((string) ($part['unit'] ?? ''))) === mb_strtolower(trim((string) ($newPart['unit'] ?? '')))
+            );
+            if ($index === false) {
+                $parts->push($newPart);
+            } else {
+                $part = $parts[$index];
+                $part['quantity'] = (int) ($part['quantity'] ?? 0) + (int) $newPart['quantity'];
+                $parts[$index] = $part;
+            }
+        }
+        $ir->update(['requested_parts' => $parts->values()->all()]);
     }
 
     private function findInventoryItemForUpdate(string $itemName): ?InventoryItem
