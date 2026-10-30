@@ -329,10 +329,24 @@ class ItemRequestController extends Controller
         $view = $request->query('view') === 'history' ? 'history' : 'active';
         $query = ItemRequest::with('jobOrder');
 
+        // Issued IR handovers remain immutable. An issued IR linked to a JO
+        // with outstanding parts is tracked under Active until JO fulfillment.
+        $waitingForJo = static fn ($q) => $q->whereHas('jobOrder', fn ($jo) => $jo
+            ->where(function ($status) {
+                $status->whereNull('part_status')->orWhere('part_status', '!=', 'Issued');
+            }));
         if ($view === 'history') {
-            $query->whereIn('status', $historyStatuses);
+            $query->where(function ($q) use ($historyStatuses) {
+                $q->whereIn('status', array_diff($historyStatuses, ['Issued']))
+                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')
+                        ->whereDoesntHave('jobOrder', fn ($jo) => $jo
+                            ->whereNull('part_status')->orWhere('part_status', '!=', 'Issued')));
+            });
         } else {
-            $query->whereNotIn('status', $historyStatuses);
+            $query->where(function ($q) use ($historyStatuses, $waitingForJo) {
+                $q->whereNotIn('status', $historyStatuses)
+                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')->where($waitingForJo));
+            });
         }
 
         if ($request->filled('search')) {
@@ -405,8 +419,10 @@ class ItemRequestController extends Controller
             });
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
-        $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
-        $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count();
+        $waitingIssuedCount = ItemRequest::query()->where('status', 'Issued')
+            ->whereHas('jobOrder', fn ($jo) => $jo->whereNull('part_status')->orWhere('part_status', '!=', 'Issued'))->count();
+        $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count() + $waitingIssuedCount;
+        $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count() - $waitingIssuedCount;
 
         return view('Warehouse.item-requests', compact(
             'requests', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'stockByRequest', 'fulfillmentByJob'
