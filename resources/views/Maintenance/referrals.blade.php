@@ -17,11 +17,6 @@
                 subtitle="Review bus breakdown referrals from Operation and create traceable Job Orders"
             />
 
-            @if (session('success'))
-                <div style="margin:16px 0;padding:12px 14px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:10px;color:#166534;">
-                    {{ session('success') }}
-                </div>
-            @endif
 
             @if (session('error'))
                 <div style="margin:16px 0;padding:12px 14px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#991b1b;">
