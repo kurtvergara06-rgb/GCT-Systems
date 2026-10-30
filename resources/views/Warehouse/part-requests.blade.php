@@ -1,5 +1,5 @@
 <x-layout.app
-  title="FROMS - Warehouse Part Requests"
+  title="FROMS - Warehouse Purchase Requests"
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
@@ -21,7 +21,7 @@
 
     <main class="main warehouse-part-main">
       <x-layout.topbar
-        title="Part Requests"
+        title="Purchase Requests"
         subtitle="Review stock availability, prepare releases, and issue parts for maintenance"
         notification-count="6"
       />
@@ -36,8 +36,8 @@
       <section data-ajax-region="records" class="table-card inventory-card warehouse-part-card">
         <div class="section-header warehouse-record-header">
           <div>
-            <h2>{{ $isJo ? 'Job Order Requests' : 'Part Request Records' }}</h2>
-            <p>Review stock availability, authorize releases, and track Warehouse processing.</p>
+            <h2>{{ $isJo ? 'Job Order Requests' : 'Purchase Request Records' }}</h2>
+            <p>Review maintenance purchase shortages and track their procurement status.</p>
           </div>
         <div class="warehouse-request-count">
           <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $isJo ? $jobOrderRequests->total() : $purchaseRequests->total() }} {{ $isJo ? \Illuminate\Support\Str::plural('Job Order', $jobOrderRequests->total()) : \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
@@ -52,9 +52,10 @@
 
         <div class="warehouse-list-controls">
 
-          <nav class="warehouse-record-tabs" aria-label="Warehouse request type" role="tablist">
-            <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ !$isJo && !$isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> PR Requests</a>
-            <a href="{{ route('part-requests', ['view' => 'history']) }}" class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}" role="tab" aria-selected="{{ $isHistory ? 'true' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+          <nav class="warehouse-record-tabs" aria-label="Warehouse request type">
+            <a href="{{ route('warehouse.item-requests') }}" class="warehouse-record-tab" data-allow-partial-navigation="true"><i class="fa-solid fa-box"></i> IR Requests</a>
+            <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="warehouse-record-tab {{ !$isJo && !$isHistory ? 'is-active' : '' }}" aria-current="{{ !$isJo && !$isHistory ? 'page' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-file-lines"></i> PR Requests</a>
+            <a href="{{ route('part-requests', ['view' => 'history']) }}" class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}" aria-current="{{ $isHistory ? 'page' : 'false' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
           </nav>
         <div class="gct-table-toolbar-row">
 
