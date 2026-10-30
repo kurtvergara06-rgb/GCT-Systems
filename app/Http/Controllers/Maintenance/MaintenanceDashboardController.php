@@ -221,16 +221,20 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 5. PARTS & PURCHASE REQUESTS (Bottleneck Tracker)
         // ---------------------------------------------------------------------
-        $allPurchaseRequests = PurchaseRequest::query()->get();
+        // The dashboard only needs grouped counts, not every historical PR model.
+        $purchaseRequestCounts = PurchaseRequest::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         $prPipeline = [
-            'Submitted' => $allPurchaseRequests->where('status', 'Submitted')->count(),
-            'Approved' => $allPurchaseRequests->where('status', 'Approved')->count(),
-            'For Purchase' => $allPurchaseRequests->where('status', 'For Purchase')->count(),
-            'Ordered' => $allPurchaseRequests->where('status', 'Ordered')->count(),
-            'In Transit' => $allPurchaseRequests->filter(fn ($pr) => in_array($pr->status, ['For Delivery', 'For Pick-up']))->count(),
-            'Delivered' => $allPurchaseRequests->filter(fn ($pr) => in_array($pr->status, ['Delivered', 'Picked Up']))->count(),
-            'Issued' => $allPurchaseRequests->where('status', 'Issued')->count(),
+            'Submitted' => (int) ($purchaseRequestCounts['Submitted'] ?? 0),
+            'Approved' => (int) ($purchaseRequestCounts['Approved'] ?? 0),
+            'For Purchase' => (int) ($purchaseRequestCounts['For Purchase'] ?? 0),
+            'Ordered' => (int) ($purchaseRequestCounts['Ordered'] ?? 0),
+            'In Transit' => (int) ($purchaseRequestCounts['For Delivery'] ?? 0) + (int) ($purchaseRequestCounts['For Pick-up'] ?? 0),
+            'Delivered' => (int) ($purchaseRequestCounts['Delivered'] ?? 0) + (int) ($purchaseRequestCounts['Picked Up'] ?? 0),
+            'Issued' => (int) ($purchaseRequestCounts['Issued'] ?? 0),
         ];
 
         // Blocked repairs: active job orders waiting for parts
