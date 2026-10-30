@@ -98,7 +98,7 @@
                   $received = !is_null($delivery->inventory_posted_at);
                   $displayStatus = $received ? 'Received' : $delivery->status;
                   $statusClass = match($displayStatus) {
-                    'For Delivery', 'For Pick-up' => 'for-delivery',
+                    'Ordered', 'For Delivery', 'For Pick-up' => 'for-delivery',
                     'Delivered', 'Picked Up' => 'delivered',
                     'Received' => 'received',
                     default => 'default',
@@ -117,7 +117,7 @@
                   <td>
                     @if($isHistory || $received)
                       <span class="delivery-status received"><i class="fa-solid fa-lock"></i>&nbsp; Read only</span>
-                    @elseif($canEditWarehouse && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
+                    @elseif($canEditWarehouse && in_array($delivery->status, ['Ordered', 'For Delivery', 'For Pick-up'], true))
                       <form
                         action="{{ route('incoming-deliveries.receive', $delivery) }}"
                         method="POST"
@@ -144,7 +144,7 @@
                   colspan="8"
                   icon="fa-truck-ramp-box"
                   :message="$isHistory ? 'No Delivery History Found' : 'No Incoming Deliveries Found'"
-                  :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Purchase Orders marked For Delivery or For Pick-up will appear here automatically.'"
+                  :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Ordered Purchase Orders awaiting Warehouse receipt will appear here automatically.'"
                 />
               @endforelse
             </tbody>
