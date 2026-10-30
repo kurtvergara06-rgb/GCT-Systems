@@ -51,9 +51,30 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     `;
   }
 
+
+  function fillHeadAuthorization(modal, source) {
+    if (!modal || !source) return;
+    const name = modal.querySelector('[data-pr-head-name]');
+    const status = modal.querySelector('[data-pr-head-status]');
+    const date = modal.querySelector('[data-pr-head-date]');
+    const img = modal.querySelector('[data-pr-head-signature]');
+    const unavailable = modal.querySelector('[data-pr-head-no-signature]');
+    if (name) name.textContent = source.joApprover || 'Not available';
+    if (status) status.textContent = 'Linked JO: ' + (source.joApprovalStatus || 'Not verified');
+    if (date) date.textContent = source.joApprovedAt || '';
+    const signatureUrl = source.joApprovalSignature || '';
+    if (img) {
+      img.hidden = !signatureUrl;
+      if (signatureUrl) img.src = signatureUrl;
+      else img.removeAttribute('src');
+    }
+    if (unavailable) unavailable.hidden = Boolean(signatureUrl);
+  }
+
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.open-view-pr-modal');
     if (!button) return;
+    fillHeadAuthorization(document.getElementById('viewPrModal'), button.dataset);
 
     setField('view_purchase_status', button.dataset.status);
     setField('view_warehouse_status', button.dataset.warehouseStatus);
@@ -138,6 +159,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     event.preventDefault();
     if (!sendModal) return;
     pendingSendForm = form;
+    fillHeadAuthorization(sendModal, form.dataset);
     setField('sendMissingPr', form.dataset.prNo);
     setField('sendMissingJo', form.dataset.joNo);
     setField('sendMissingBus', form.dataset.busNo);
