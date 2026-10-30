@@ -800,3 +800,8 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
 .warehouse-ir-page .ir-table td:nth-child(7) .ui-action-btn{vertical-align:middle}
 .warehouse-ir-page .warehouse-ir-policy{font-size:10px}
 @media(min-width:701px){.warehouse-ir-page .ir-table{min-width:0}}
+
+/* Completed fulfillment is green; issued handovers awaiting JO replenishment stay read-only. */
+.warehouse-ir-page .warehouse-ir-fulfillment-track.is-complete>span{background:#16a36b}
+.warehouse-ir-page .warehouse-ir-process-status.is-waiting{background:#fff5df;border:1px solid #f1d7a3;color:#94601c}
+.warehouse-ir-page .warehouse-ir-waiting-action{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;margin-left:4px;border:1px solid #d7dee9;border-radius:7px;background:#e9edf3;color:#8894a6;cursor:not-allowed;vertical-align:middle}
