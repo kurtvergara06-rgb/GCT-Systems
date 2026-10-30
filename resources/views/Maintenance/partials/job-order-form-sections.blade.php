@@ -78,7 +78,24 @@
                     @endforeach
                 </select>
             </div>
-            <p class="jo-create-field-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Select one or more qualified, on-duty mechanics for this JO. Click a name to add or remove it; selected mechanics stay visible as chips. Mechanics on conflicting active jobs are excluded.</p>
+            <div class="jo-skill-coverage" data-jo-skill-coverage aria-live="polite">
+                <div class="jo-skill-coverage-header">
+                    <span class="jo-skill-coverage-icon"><i class="fa-solid fa-bullseye" aria-hidden="true"></i></span>
+                    <span class="jo-skill-coverage-title"><strong>Specialization Coverage</strong><small>Required skills compared with assigned mechanics</small></span>
+                    <span class="jo-skill-coverage-status" data-coverage-status>Not Evaluated</span>
+                </div>
+                <div class="jo-skill-coverage-body">
+                    <div class="jo-skill-coverage-required">
+                        <strong>Required Specializations for This Job</strong>
+                        <div class="jo-skill-coverage-tags" data-coverage-tags><span class="jo-coverage-empty">No skill requirements recorded.</span></div>
+                    </div>
+                    <div class="jo-skill-coverage-summary">
+                        <strong>Coverage Status</strong>
+                        <span data-coverage-count>Awaiting specialization requirements.</span>
+                        <p data-coverage-note>Select a maintenance job and mechanics to evaluate the recorded skill requirements.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
