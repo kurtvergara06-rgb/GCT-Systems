@@ -474,7 +474,7 @@
                                                 ))->filter(fn ($specialization) => is_string($specialization) && trim($specialization) !== '')->values();
                                             @endphp
                                             <x-ui.action-buttom-modal
-                                                class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal' }}"
+                                                class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal jo-labeled-view' }}"
                                                 title="{{ $isViewOnly ? 'View Job Order' : 'Edit Job Order' }}"
                                                 icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                                                 data-id="{{ $jobOrder->id }}"
