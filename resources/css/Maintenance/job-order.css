@@ -6993,16 +6993,27 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 
 /* Consistent Job Orders row spacing and room for labeled Edit/View actions. */
-.jo-page .job-orders-table {table-layout:fixed;width:100%;min-width:1050px;}
+.jo-page .job-orders-table {table-layout:fixed;width:100%;min-width:1160px;}
 .jo-page .job-orders-table th:nth-child(1){width:9%}
-.jo-page .job-orders-table th:nth-child(2){width:18%}
-.jo-page .job-orders-table th:nth-child(3){width:18%}
-.jo-page .job-orders-table th:nth-child(4){width:12%}
-.jo-page .job-orders-table th:nth-child(5){width:15%}
+.jo-page .job-orders-table th:nth-child(2){width:17%}
+.jo-page .job-orders-table th:nth-child(3){width:17%}
+.jo-page .job-orders-table th:nth-child(4){width:11%}
+.jo-page .job-orders-table th:nth-child(5){width:14%}
 .jo-page .job-orders-table th:nth-child(6){width:11%}
 .jo-page .job-orders-table th:nth-child(7){width:10%}
-.jo-page .job-orders-table th:nth-child(8){width:7%}
+.jo-page .job-orders-table th:nth-child(8){width:11%}
 .jo-page .job-orders-table th,.jo-page .job-orders-table td{padding:12px 10px;vertical-align:middle;}
 .jo-page .job-orders-table td.jo-actions-cell{min-width:120px;width:120px;}
 .jo-page .job-orders-table td.jo-actions-cell .actions{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
 .jo-page .job-orders-table td.jo-actions-cell .actions .action-btn{min-height:32px;white-space:nowrap;}
+
+/* Keep icon and caption inside a single centered Edit/View control. */
+.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view {
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:7px!important;flex:0 0 92px!important;width:92px!important;min-width:92px!important;max-width:92px!important;
+  min-height:34px!important;padding:0 10px!important;white-space:nowrap!important;
+}
+.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view i,
+.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view span{
+  position:static!important;flex:none;display:inline-block;margin:0!important;line-height:1.1;
+}
