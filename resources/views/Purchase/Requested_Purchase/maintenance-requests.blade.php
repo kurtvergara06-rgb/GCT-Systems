@@ -139,11 +139,11 @@
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
                   <td class="requested-pr-status">
-                    @if($purchaseRequest->status === 'Ordered')
+                    @if($purchaseRequest->purchasing_display_status === 'Ordered')
                       <span class="requested-pr-ordered-badge"><i class="fa-solid fa-box" aria-hidden="true"></i> Ordered</span>
                     @else
                       <x-ui.status-badge
-                        :status="$purchaseRequest->status ?? '—'"
+                        :status="$purchaseRequest->purchasing_display_status ?? $purchaseRequest->status ?? '—'"
                         type="purchase"
                       />
                     @endif
@@ -153,15 +153,15 @@
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
-                        title="{{ $purchaseRequest->status === 'For Purchase' ? 'Review Purchase Requisition' : 'View Purchase Requisition' }}"
-                        data-create-po-url="{{ $purchaseRequest->status === 'For Purchase' ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
+                        title="{{ $purchaseRequest->can_create_po ? 'Review Purchase Requisition' : 'View Purchase Requisition' }}"
+                        data-create-po-url="{{ $purchaseRequest->can_create_po ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-requested-by="{{ $purchaseRequest->requester?->name ?? '—' }}"
                         data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
-                        data-status="{{ $purchaseRequest->status ?? '—' }}"
+                        data-status="{{ $purchaseRequest->purchasing_display_status ?? $purchaseRequest->status ?? '—' }}"
                         data-jo-approver="{{ $purchaseRequest->jo_approver ?? 'Not available' }}"
                         data-jo-approval-status="{{ $purchaseRequest->jo_approval_status ?? 'Not verified' }}"
                         data-jo-approval-signature="{{ $purchaseRequest->jo_approval_signature ?? '' }}"
@@ -170,7 +170,7 @@
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
                       >
-                        <i class="fa-solid {{ $purchaseRequest->status === 'For Purchase' ? 'fa-clipboard-check' : 'fa-eye' }}"></i><span>{{ $purchaseRequest->status === 'For Purchase' ? 'Review' : 'View' }}</span>
+                        <i class="fa-solid {{ $purchaseRequest->can_create_po ? 'fa-clipboard-check' : 'fa-eye' }}"></i><span>{{ $purchaseRequest->can_create_po ? 'Review' : 'View' }}</span>
                       </button>
 
                     </div>
