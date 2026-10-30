@@ -519,29 +519,29 @@
                                                                 <div class="jo-review-mechanic-field">
                                                                     <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics ({{ $headReviewMechanics->count() }})</span>
                                                                     <div class="jo-review-mechanic-summary">
-                                                                        @if($headReviewMechanics->isNotEmpty())
-                                                                            <strong class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $headReviewMechanics->first() }}</strong>
-                                                                            @if($headReviewMechanics->count() > 1)
-                                                                                <details class="jo-review-mechanic-more">
-                                                                                    <summary aria-label="Show {{ $headReviewMechanics->count() - 1 }} more assigned mechanics">
-                                                                                        <span>+{{ $headReviewMechanics->count() - 1 }} more</span>
-                                                                                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                                                                                    </summary>
-                                                                                    <div class="jo-review-mechanic-expanded">
-                                                                                        @foreach($headReviewMechanics->skip(1) as $mechanicName)
-                                                                                            <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
-                                                                                        @endforeach
-                                                                                    </div>
-                                                                                </details>
-                                                                            @endif
-                                                                        @else
+                                                                        @forelse($headReviewMechanics->take(3) as $mechanicName)
+                                                                            <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                        @empty
                                                                             <strong>Not assigned</strong>
+                                                                        @endforelse
+                                                                        @if($headReviewMechanics->count() > 3)
+                                                                            <details class="jo-review-mechanic-more">
+                                                                                <summary aria-label="Show {{ $headReviewMechanics->count() - 3 }} additional assigned mechanics">
+                                                                                    +{{ $headReviewMechanics->count() - 3 }} more
+                                                                                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                                                                </summary>
+                                                                                <div class="jo-review-mechanic-expanded">
+                                                                                    @foreach($headReviewMechanics->skip(3) as $mechanicName)
+                                                                                        <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                                    @endforeach
+                                                                                </div>
+                                                                            </details>
                                                                         @endif
                                                                     </div>
                                                                 </div>
-                                                                <div><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><strong>{{ $partStatus }}</strong></div>
+                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge">{{ $partStatus }}</span></div>
                                                             </div>
-                                                            <div class="jo-review-detail-long"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
+                                                            <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
                                                             <div class="jo-review-detail-long jo-review-requested-parts">
                                                                 @php($reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
                                                                 @if(count($reviewParts))
