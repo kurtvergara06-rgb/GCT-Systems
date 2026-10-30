@@ -321,8 +321,10 @@ data-po-no="{{ $purchaseOrder->po_no }}"
                 <x-ui.empty-row
                   colspan="9"
                   icon="fa-file-invoice"
-                  message="No Purchase Orders Found"
-                  description="No purchase orders match your search or filter criteria. Try adjusting your filters."
+                  :message="($activeTab ?? 'active') === 'active' ? 'No Active Purchase Orders' : 'No Purchase Order History'"
+                  :description="($activeTab ?? 'active') === 'active'
+                    ? 'All existing purchase orders may already be completed. Check History for delivered orders.'
+                    : 'Completed and rejected purchase orders appear here. Try adjusting your search or filters.'"
                 />
               @endforelse
             </tbody>
