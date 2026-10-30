@@ -87,11 +87,10 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
+                <th scope="col">Bus ID</th>
                 <th scope="col">PR Number / JO</th>
                 <th scope="col">Requested Parts</th>
                 <th scope="col">Total Items</th>
-                <th scope="col">Purpose / Bus</th>
-                <th scope="col">Target Date</th>
                 <th scope="col">PR Status</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -106,6 +105,7 @@
                 @endphp
 
                 <tr>
+                  <td class="requested-pr-bus"><strong>{{ $purchaseRequest->bus_no ?: '—' }}</strong></td>
                   <td>
                     <div class="requested-pr-reference">
                       <strong>{{ $purchaseRequest->display_pr_no }}</strong>
@@ -129,8 +129,6 @@
                     </div>
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
-                  <td class="requested-pr-purpose"><strong>{{ $purchaseRequest->purpose ?: '—' }}</strong><small>Bus {{ $purchaseRequest->bus_no ?: '—' }}</small></td>
-                  <td class="requested-pr-target-date">{{ $purchaseRequest->target_date ? \Illuminate\Support\Carbon::parse($purchaseRequest->target_date)->format('M d, Y') : '—' }}</td>
                   <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
@@ -162,7 +160,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="7"
+                  colspan="6"
                   message="No requested purchases found."
                 />
               @endforelse
