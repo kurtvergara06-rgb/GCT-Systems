@@ -184,58 +184,17 @@ class ItemRequestController extends Controller
                 }
             }
 
-            // Split the JO shortage into one procurement request alongside the
-            // available IR. Both records commit or roll back together.
-            $missing = $prParts->missingParts((string) $jo->part_needed, $jo);
-            if ($parts === [] && $missing === []) {
+            // IR submission must not create or submit a Purchase Request.
+            // Staff submits shortages independently on Purchase Requisitions.
+            // Reject IR-only submissions when no allocatable quantities exist.
+            if ($parts === []) {
                 throw ValidationException::withMessages([
-                    'job_order_id' => 'No new IR or PR quantities remain for this Job Order.',
+                    'job_order_id' => 'No available parts remain for an Item Request. Submit a Purchase Requisition separately for the shortages.',
                 ]);
             }
-            if ($missing !== []) {
-                $existing = PurchaseRequest::query()
-                    ->where('job_order_no', $jo->job_order_no)
-                    ->where('pr_no', 'not like', '%-P')
-                    ->where(fn ($query) => $query->whereNull('source_type')
-                        ->orWhere('source_type', 'Maintenance Request'))
-                    ->exists();
-                if ($existing && $parts === []) {
-                    throw ValidationException::withMessages([
-                        'job_order_id' => 'The shortage is already linked to an existing Purchase Request. No new Item Request can be created until stock becomes available.',
-                    ]);
-                }
-                if (! $existing) {
-                    if (! trim((string) $jo->assigned_mechanic)) {
-                        throw ValidationException::withMessages([
-                            'job_order_id' => 'A mechanic must be assigned before creating the linked Purchase Request.',
-                        ]);
-                    }
-                    $year = now()->format('Y');
-                    $last = PurchaseRequest::query()->where('pr_no', 'like', "PR-{$year}-%")
-                        ->where('pr_no', 'not like', '%-P')->orderByDesc('id')->lockForUpdate()->first();
-                    $serial = 1;
-                    if ($last && preg_match('/^PR-'.preg_quote($year, '/').'-(\\d+)/', $last->pr_no, $matches)) {
-                        $serial = (int) $matches[1] + 1;
-                    }
-                    do {
-                        $prNumber = 'PR-'.$year.'-'.str_pad((string) $serial++, 4, '0', STR_PAD_LEFT);
-                    } while (PurchaseRequest::query()->where('pr_no', $prNumber)->exists());
-                    PurchaseRequest::create([
-                        'pr_no' => $prNumber,
-                        'job_order_no' => $jo->job_order_no,
-                        'bus_no' => $jo->bus_no,
-                        'item' => $parser->formatParts($missing),
-                        'quantity' => $parser->calculateTotalQuantity($missing),
-                        'status' => 'Submitted',
-                        'approved_at' => null,
-                        'source_type' => 'Maintenance Request',
-                        'requested_by' => auth()->id(),
-                    ]);
-                    $jo->update(['part_status' => 'For Purchase']);
-                }
-            }
+
         });
 
-        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Job Order parts were allocated: available quantities submitted to Warehouse when present; shortages checked for Purchase Request creation.');
+        return redirect()->route('item-requests', ['view' => 'active'])->with('success', 'Item Request submitted for available parts. Submit any Purchase Requisition separately.');
     }
 }
