@@ -149,7 +149,7 @@
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
-                        title="Review Purchase Requisition"
+                        title="{{ $purchaseRequest->status === 'For Purchase' ? 'Review Purchase Requisition' : 'View Purchase Requisition' }}"
                         data-create-po-url="{{ $purchaseRequest->status === 'For Purchase' ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
@@ -166,7 +166,7 @@
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
                       >
-                        <i class="fa-solid fa-clipboard-check"></i><span>Review</span>
+                        <i class="fa-solid {{ $purchaseRequest->status === 'For Purchase' ? 'fa-clipboard-check' : 'fa-eye' }}"></i><span>{{ $purchaseRequest->status === 'For Purchase' ? 'Review' : 'View' }}</span>
                       </button>
 
                     </div>
