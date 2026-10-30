@@ -37,10 +37,10 @@ class MaintenanceRequestController extends Controller
             return $this->history($request);
         }
 
-        // Purchasing inbox only contains PRs awaiting PO creation.
-        // Subsequent progress belongs to Purchase Orders and Purchase History.
+        // Keep active maintenance PRs visible throughout purchasing and delivery.
+        // Create PO remains limited to For Purchase; completed receipts move to History.
         $recordView = 'pending';
-        $visibleStatuses = ['For Purchase'];
+        $visibleStatuses = ['For Purchase', 'Ordered', 'For Delivery'];
 
         $baseQuery = $this->maintenanceBaseQuery();
         $query = (clone $baseQuery)->whereIn('status', $visibleStatuses);
@@ -252,7 +252,7 @@ class MaintenanceRequestController extends Controller
                                     ->orWhere('source_type', 'Maintenance Request')
                                     ->orWhere('source_type', 'Job Order');
                             })
-                            ->where('status', 'Issued')
+                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued'])
                             ->where(function ($q) {
                                 $q->whereNull('job_order_no')
                                     ->orWhere('job_order_no', '!=', 'RESTOCK');
