@@ -177,6 +177,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     row.querySelector('.item-cost')?.addEventListener('input', calculateTotal);
 
     row.querySelector('.remove-po-item-btn')?.addEventListener('click', () => {
+      if (field('purchase_request_id')?.value) return;
       const rows = itemsContainer.querySelectorAll('.po-item-row');
 
       if (rows.length <= 1) {
@@ -204,6 +205,28 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
 
     syncRequestNoToItems();
     calculateTotal();
+  };
+
+  // A linked PR determines the line items; Purchasing may edit pricing, not demand.
+  const lockLinkedPrItems = () => {
+    const linked = Boolean(field('purchase_request_id')?.value);
+    itemsContainer.querySelectorAll('.po-item-row').forEach((row) => {
+      row.querySelectorAll('.item-description, .item-qty, .item-unit').forEach((input) => {
+        input.readOnly = linked;
+      });
+      const remove = row.querySelector('.remove-po-item-btn');
+      if (remove) {
+        remove.hidden = linked;
+        remove.style.display = linked ? 'none' : '';
+        remove.disabled = linked;
+      }
+    });
+    if (addPoItemBtn) {
+      addPoItemBtn.hidden = linked;
+      addPoItemBtn.style.display = linked ? 'none' : '';
+      addPoItemBtn.disabled = linked;
+    }
+    itemsContainer.classList.toggle('po-items-pr-locked', linked);
   };
 
   const setViewMode = (viewOnly) => {
@@ -258,6 +281,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     renderItems([]);
     syncRequestReference();
     setViewMode(false);
+    lockLinkedPrItems();
   };
 
   const configurePrefilledCreateForm = (prefill) => {
@@ -267,6 +291,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     setValue('main_pr_no', prefill?.pr_no || '');
     renderItems(prefill?.items || []);
     syncRequestReference();
+    lockLinkedPrItems();
   };
 
   const parseItems = (button) => {
@@ -315,6 +340,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     renderItems(items);
     syncRequestReference();
     setViewMode(isViewOnly);
+    lockLinkedPrItems();
   };
 
   poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
@@ -329,6 +355,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
   closeViewPoModalBtn?.addEventListener('click', () => closeModal(poModal));
 
   addPoItemBtn?.addEventListener('click', () => {
+    if (field('purchase_request_id')?.value) return;
     createItemRow({}, itemsContainer.querySelectorAll('.po-item-row').length);
     reindexRows();
     syncRequestNoToItems();
