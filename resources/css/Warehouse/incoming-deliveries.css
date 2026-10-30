@@ -679,3 +679,25 @@
 .incoming-part-more-list>div{padding:8px 4px;font-size:11px;color:#294464;white-space:normal}
 .incoming-part-more-list>div+div{border-top:1px solid #e7edf5}
 .incoming-delivery-card .table-wrap{overflow:visible}
+
+/* Match Warehouse Item Requests' actual 12px content and 11px strong status text. */
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td,
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td strong,
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .incoming-first-part{
+  font-size:12px!important;font-weight:700!important;line-height:1.45!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status,
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status *,
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .status-badge{
+  font-size:11px!important;font-weight:800!important;line-height:1.2!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status{
+  min-height:27px!important;height:auto!important;padding:6px 11px!important;border-radius:999px!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn{
+  min-height:29px!important;height:auto!important;padding:6px 12px!important;
+  font-size:11px!important;font-weight:800!important;line-height:1.2!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .incoming-part-more summary{
+  font-size:11px!important;font-weight:800!important;padding:5px 8px!important;
+}
