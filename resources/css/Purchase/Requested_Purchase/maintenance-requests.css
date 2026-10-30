@@ -1950,3 +1950,7 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 .requested-pr-view-overlay .requested-pr-footer .requested-pr-create-po-btn {
   gap: 6px;
 }
+
+/* Keep Close immediately before Create PO without changing DOM or submit handling. */
+.requested-pr-view-overlay .requested-pr-footer #closeRequestedPrModalBottom { order: 1; }
+.requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm { order: 2; }
