@@ -1954,3 +1954,16 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 /* Keep Close immediately before Create PO without changing DOM or submit handling. */
 .requested-pr-view-overlay .requested-pr-footer #closeRequestedPrModalBottom { order: 1; }
 .requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm { order: 2; }
+
+
+/* Compact amber Ordered badge in Purchase Requisitions. */
+.purchase-maintenance-requests-page .requested-pr-status .requested-pr-ordered-badge{
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;width:max-content;max-width:100%;min-height:26px;
+  padding:4px 10px;border:1px solid #f2d18a;border-radius:5px;
+  background:#fff2d6;color:#986000;font-family:inherit;font-size:11px;font-weight:700;line-height:1.2;
+  white-space:nowrap;letter-spacing:0;
+}
+.purchase-maintenance-requests-page .requested-pr-status .requested-pr-ordered-badge i{
+  font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
+}
