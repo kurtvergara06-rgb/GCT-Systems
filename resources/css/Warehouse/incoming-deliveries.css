@@ -649,3 +649,17 @@
   border-radius:6px;font-size:10px;line-height:1;white-space:nowrap;
 }
 .incoming-delivery-table .inline-action-form{display:inline-flex;align-items:center;justify-content:center;margin:0}
+
+/* Incoming Deliveries follows the Warehouse Purchase Requests visual system. */
+.incoming-delivery-card .incoming-delivery-table{border-collapse:separate;border-spacing:0;width:100%}
+.incoming-delivery-card .incoming-delivery-table thead th{background:#f0f4f9;color:#344b6b;font-size:10px;font-weight:800;letter-spacing:.035em;padding:11px 12px;border-bottom:1px solid #dbe5f2}
+.incoming-delivery-card .incoming-delivery-table tbody td{padding:11px 12px;border-bottom:1px solid #e5ebf3;font-size:11px;vertical-align:middle}
+.incoming-delivery-card .incoming-delivery-table tbody tr:nth-child(even){background:#f8fafd}
+.incoming-delivery-card .incoming-delivery-table .receive-delivery-btn{
+  background:#edf5ff!important;color:#15549e!important;border:1px solid #bdd6fb!important;
+  border-radius:6px!important;box-shadow:none!important;height:30px!important;min-height:30px!important;
+  padding:0 12px!important;font-size:11px!important;font-weight:750!important;
+}
+.incoming-delivery-card .incoming-delivery-table .receive-delivery-btn:hover{background:#dcecff!important;border-color:#98c0f7!important}
+.incoming-delivery-card .incoming-delivery-table .delivery-status{border-radius:6px!important;height:25px;min-height:25px;padding:0 9px;font-size:10px;font-weight:750}
+.incoming-delivery-card .incoming-delivery-table .delivery-status.for-delivery{background:#fff4df;color:#94601c;border-color:#f1d7a3}
