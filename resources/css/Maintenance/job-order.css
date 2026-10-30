@@ -6947,3 +6947,13 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-part-index {color:#536e91;font-size:11px;font-weight:750;}
 .jo-head-review-body .jo-review-part-name {color:#18365b;font-weight:750;}
 .jo-head-review-body .jo-review-part-availability {width:max-content;max-width:100%;border-radius:7px;}
+
+
+/* Review displays allocated/reserved quantities from JO snapshot, not total warehouse stock. */
+.jo-head-review-body .jo-review-parts-heading {justify-content:flex-start;}
+.jo-head-review-body .jo-review-parts-heading strong {text-align:left;}
+.jo-head-review-body .jo-review-part-stock,.jo-head-review-body .jo-review-part-shortage {font-weight:750;font-size:11px;}
+.jo-head-review-body .jo-review-part-availability.is-available {background:#e7f8ee;border:1px solid #b7e6c9;color:#177444;}
+.jo-head-review-body .jo-review-part-availability.is-partial {background:#fff2db;border:1px solid #f1d59c;color:#995d0c;}
+.jo-head-review-body .jo-review-part-availability.is-unavailable {background:#fff0f1;border:1px solid #f3cbd0;color:#b42332;}
+.jo-head-review-body .jo-review-part-availability.is-pending {background:#f1f5fa;border:1px solid #d4e2f0;color:#536984;}
