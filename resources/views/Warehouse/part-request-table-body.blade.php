@@ -112,6 +112,7 @@
                   </td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
+                      @if(!$canSendToPurchase)
                       <button
                         type="button"
                         class="action-btn view view-btn open-view-pr-modal"
@@ -136,8 +137,9 @@
                         data-parts='@json($partRequest->parts_breakdown ?? [])'
                         data-jo-parts='@json($partRequest->jo_parts_requirement ?? [])'
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-eye"></i> <span>View</span>
                       </button>
+                      @endif
 
                       @unless($isHistory)
                       @if($canSendToPurchase)
@@ -156,8 +158,8 @@
                           data-parts='@json($partRequest->parts_breakdown ?? [])'
                         >
                           @csrf
-                          <button type="submit" class="send-purchase-btn icon-only-btn" title="Send Missing Parts to Purchase">
-                            <i class="fa-solid fa-cart-shopping"></i>
+                          <button type="submit" class="send-purchase-btn warehouse-pr-review-action" title="Review missing parts before forwarding to Purchasing">
+                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span>Review</span>
                           </button>
                         </form>
                       @endif
