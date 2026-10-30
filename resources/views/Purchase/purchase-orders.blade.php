@@ -156,7 +156,7 @@
                   $isForReview = $normalizedPoStatus === 'for review';
                   $canReviewPo = ((strtolower(trim((string) (auth()->user()->department ?? ''))) === 'purchase' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head') || strtolower(trim((string) (auth()->user()->role ?? ''))) === 'system admin' || (strtolower(trim((string) (auth()->user()->department ?? ''))) === 'admin' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head'));
                   $isDraft = $normalizedPoStatus === 'draft';
-                  $nextStatuses = $purchaseOrder->status === 'Ordered' ? ['For Pick-up', 'For Delivery'] : [];
+                  $nextStatuses = $purchaseOrder->status === 'Ordered' ? ['For Delivery'] : [];
                 @endphp
 
                 <tr>
