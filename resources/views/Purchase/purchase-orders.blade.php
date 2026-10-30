@@ -199,9 +199,24 @@
                   <td>
                     <div class="actions record-actions">
                       @unless($isForReview)
+                      @php
+                        $detailPr = $purchaseOrder->relatedMaintenanceRequest();
+                        $detailJo = $detailPr && $detailPr->job_order_no !== 'RESTOCK' ? \App\Models\Maintenance\JobOrder::where('job_order_no', $detailPr->job_order_no)->first() : null;
+                        $detailJoApprover = $detailJo?->approved_by ? \App\Models\Admin\User::find($detailJo->approved_by) : null;
+                        $detailPoApprover = $purchaseOrder->approved_by ? \App\Models\Admin\User::find($purchaseOrder->approved_by) : null;
+                      @endphp
                       <button type="button"
                         title="View PO"
                         class="action-btn view open-view-po-modal po-labeled-view"
+                        data-detail-pr="{{ $detailPr?->pr_no ?? $purchaseOrder->first_pr_no ?? '' }}"
+                        data-detail-jo="{{ $detailJo?->job_order_no ?? '' }}"
+                        data-detail-jo-approver="{{ $detailJoApprover?->name ?? '' }}"
+                        data-detail-jo-date="{{ $detailJo?->approved_at?->format('M d, Y h:i A') ?? '' }}"
+                        data-detail-jo-signature="{{ $detailJo && $detailJo->review_status === 'Approved' ? route('purchase.job-orders.approval-signature', $detailJo) : '' }}"
+                        data-detail-po-approver="{{ $detailPoApprover?->name ?? '' }}"
+                        data-detail-po-date="{{ $purchaseOrder->approved_at?->format('M d, Y h:i A') ?? '' }}"
+                        data-detail-po-signature="{{ $purchaseOrder->approval_signature_path && $purchaseOrder->approved_at ? route('purchase-orders.approval-signature', $purchaseOrder) : '' }}"
+                        data-detail-total="{{ $purchaseOrder->net_amount }}"
                         data-id="{{ $purchaseOrder->id }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
@@ -471,6 +486,24 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     </div>
   </div>
 
+  <div id="poDetailOverlay" class="modal-overlay po-detail-overlay" style="display:none" role="presentation">
+    <div class="po-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="poDetailTitle">
+      <header class="po-detail-header"><div><h2 id="poDetailTitle">Purchase Order Details</h2><p>View purchase items and recorded approval signatures.</p></div><button type="button" id="poDetailCloseTop" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
+      <div class="po-detail-body">
+        <section class="po-detail-card"><div class="po-detail-facts">
+          <div><small>PO Number</small><strong id="poDetailNo">—</strong></div><div><small>PR Number</small><strong id="poDetailPr">—</strong></div>
+          <div><small>Date</small><strong id="poDetailDate">—</strong></div><div><small>Status</small><strong id="poDetailStatus">—</strong></div>
+          <div><small>Supplier</small><strong id="poDetailSupplier">—</strong></div><div><small>Linked JO</small><strong id="poDetailJo">—</strong></div>
+          <div><small>Purpose</small><strong id="poDetailPurpose">—</strong></div>
+        </div></section>
+        <section class="po-detail-card"><h3><i class="fa-solid fa-box"></i> Purchase Items</h3><div class="po-detail-table-scroll"><table><thead><tr><th>#</th><th>Item Description</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="poDetailItems"></tbody></table></div><div class="po-detail-total"><span>NET TOTAL</span><strong id="poDetailTotal">—</strong></div></section>
+        <section class="po-detail-card"><h3><i class="fa-solid fa-file-signature"></i> Authorization Signatures</h3><div class="po-detail-signatures">
+          <div class="po-detail-signature-card"><h4>Maintenance Head — JO Approval</h4><div class="po-detail-signature-image"><img id="poDetailJoSignature" alt="Maintenance Head JO approval" hidden><p id="poDetailJoMissing">No approved JO signature available</p></div><strong id="poDetailJoApprover">—</strong><small id="poDetailJoDate">—</small></div>
+          <div class="po-detail-signature-card"><h4>Purchase Head — PO Approval</h4><div class="po-detail-signature-image"><img id="poDetailPoSignature" alt="Purchase Head PO approval" hidden><p id="poDetailPoMissing">No approved PO signature available</p></div><strong id="poDetailPoApprover">—</strong><small id="poDetailPoDate">—</small></div>
+        </div></section>
+      </div><footer class="po-detail-footer"><button type="button" id="poDetailCloseBottom">Close</button></footer>
+    </div>
+  </div>
   <div id="poStatusModal" class="modal-overlay po-status-modal-overlay">
     <div class="po-status-modal" role="dialog" aria-modal="true" aria-labelledby="poStatusModalTitle">
       <div class="po-status-modal-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
