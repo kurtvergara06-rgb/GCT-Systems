@@ -295,7 +295,12 @@
             </div>
             <button type="button" class="ir-icon-button" id="closeItemRequestModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         </header>
-        <form method="POST" action="{{ route('item-requests.store') }}">
+        <form method="POST" action="{{ route('item-requests.store') }}"
+              data-confirm-form
+              data-confirm-title="Submit Item Request?"
+              data-confirm-message="Submit the available parts for Warehouse processing? Missing parts must be submitted separately through Purchase Requisitions. This does not issue or deduct inventory."
+              data-confirm-button="Yes, Submit IR"
+              data-confirm-type="create">
             @csrf
             <div class="ir-modal-body ir-review-document-body">
                 <section class="ir-review-jo-banner" aria-label="Approved Job Order summary">
@@ -348,12 +353,12 @@
                     <div class="ir-review-section-content"><label for="item_request_remarks">Instructions for Warehouse</label>
                         <textarea id="item_request_remarks" name="remarks" rows="2" maxlength="2000" placeholder="Additional instructions for Warehouse...">{{ old('remarks') }}</textarea></div>
                 </section>
-                <div class="ir-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Submitting IR and PR does not physically issue or deduct inventory. Warehouse verifies allocations and follows the Maintenance Head release policy.</span></div>
+                <div class="ir-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Submitting an IR does not automatically create a PR, physically issue parts, or deduct inventory. Warehouse verifies allocations and follows the Maintenance Head release policy.</span></div>
             </div>
             <script type="application/json" id="ir-job-previews">@json($jobOrderPreviews)</script>
             <footer class="ir-modal-footer">
                 <button type="button" class="ir-secondary-button" id="cancelItemRequestModal">Cancel</button>
-                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit IR &amp; PR</button>
+                <button type="submit" class="ir-primary-button"><i class="fa-solid fa-paper-plane"></i> Submit Item Request</button>
             </footer>
         </form>
     </div>
