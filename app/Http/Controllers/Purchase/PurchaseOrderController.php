@@ -340,6 +340,26 @@ class PurchaseOrderController extends Controller
         return new RedirectResponse('/purchase-orders');
     }
 
+    public function approvalSignature(PurchaseOrder $purchaseOrder)
+    {
+        $path = (string) ($purchaseOrder->approval_signature_path ?? '');
+        if (!$purchaseOrder->approved_at || !$path || !str_starts_with($path, 'purchase-order-approvals/')
+            || !preg_match('/^[a-zA-Z0-9_\\/.-]+$/', $path)) {
+            abort(404);
+        }
+        $disk = Storage::disk('local');
+        if (!$disk->exists($path)) {
+            abort(404);
+        }
+        $type = strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'png' ? 'image/png' : 'image/jpeg';
+        return response($disk->get($path), 200, [
+            'Content-Type' => $type,
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
     public function approve(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validated = $request->validate([
