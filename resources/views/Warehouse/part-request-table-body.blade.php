@@ -21,6 +21,14 @@
                   $multipleParts = $partDetails->count() > 1;
                 @endphp
 
+                @php
+                  $sourceJo = \App\Models\Maintenance\JobOrder::query()->with(['approver', 'audits'])->where('job_order_no', $partRequest->job_order_no)->first();
+                  $sourceApprovalAudit = $sourceJo?->audits?->first(fn ($audit) => data_get($audit->metadata, 'handwritten_signature_path'));
+                  $sourceSignaturePath = data_get($sourceApprovalAudit?->metadata, 'handwritten_signature_path');
+                  $sourceAuthorized = $sourceJo?->review_status === 'Approved';
+                  $sourceSignatureUrl = $sourceAuthorized && $sourceSignaturePath ? route('job-orders.approval-signature', $sourceJo->id, false) : '';
+                @endphp
+
                 <tr>
                   <td>
                     <div class="pr-ref-cell">
@@ -108,6 +116,10 @@
                         type="button"
                         class="action-btn view view-btn open-view-pr-modal"
                         title="View Requisition Details"
+                        data-jo-approver="{{ $sourceAuthorized ? ($sourceJo?->approver?->name ?? '—') : 'Not approved' }}"
+                        data-jo-approval-status="{{ $sourceJo?->review_status ?? 'JO not found' }}"
+                        data-jo-approval-signature="{{ $sourceSignatureUrl }}"
+                        data-jo-approved-at="{{ ($sourceJo?->approved_at ?? $sourceApprovalAudit?->created_at)?->format('M d, Y · h:i A') ?? '' }}"
                         data-pr-no="{{ $partRequest->pr_no }}"
                         data-job-order-no="{{ $partRequest->job_order_no }}"
                         data-bus-no="{{ $partRequest->bus_no }}"
@@ -134,6 +146,10 @@
                           method="POST"
                           class="inline-action-form"
                           data-pr-send-form
+                        data-jo-approver="{{ $sourceAuthorized ? ($sourceJo?->approver?->name ?? '—') : 'Not approved' }}"
+                        data-jo-approval-status="{{ $sourceJo?->review_status ?? 'JO not found' }}"
+                        data-jo-approval-signature="{{ $sourceSignatureUrl }}"
+                        data-jo-approved-at="{{ ($sourceJo?->approved_at ?? $sourceApprovalAudit?->created_at)?->format('M d, Y · h:i A') ?? '' }}"
                           data-pr-no="{{ $partRequest->pr_no }}"
                           data-jo-no="{{ $partRequest->job_order_no }}"
                           data-bus-no="{{ $partRequest->bus_no }}"
