@@ -87,11 +87,12 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
-                <th scope="col">Request / JO</th>
+                <th scope="col">PR Number / JO</th>
                 <th scope="col">Requested Parts</th>
                 <th scope="col">Total Items</th>
+                <th scope="col">Purpose / Bus</th>
+                <th scope="col">Target Date</th>
                 <th scope="col">PR Status</th>
-                <th scope="col">Submitted At</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
@@ -114,13 +115,13 @@
                   <td>
                     <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
-                      <small>Bus {{ $purchaseRequest->bus_no ?? '—' }}</small>
+                      <small>{{ $firstQuantity }}</small>
                       @if(count($parts) > 1)
                         <details class="requested-pr-more">
                           <summary>+{{ count($parts) - 1 }} more parts</summary>
                           <div class="requested-pr-more-panel">
                             @foreach(array_slice($parts, 1) as $part)
-                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }} <span>{{ $part['quantity_display'] ?? $part['quantity'] ?? '—' }} {{ $part['unit'] ?? '' }}</span></div>
+                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }} <span>{{ $part['quantity_display'] ?? ($part['quantity'] ?? '—') }}</span></div>
                             @endforeach
                           </div>
                         </details>
@@ -128,21 +129,21 @@
                     </div>
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
+                  <td class="requested-pr-purpose"><strong>{{ $purchaseRequest->purpose ?: '—' }}</strong><small>Bus {{ $purchaseRequest->bus_no ?: '—' }}</small></td>
+                  <td class="requested-pr-target-date">{{ $purchaseRequest->target_date ? \Illuminate\Support\Carbon::parse($purchaseRequest->target_date)->format('M d, Y') : '—' }}</td>
                   <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
-                  <td class="requested-pr-date">
-                    {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
-                  </td>
                   <td class="requested-pr-actions-cell">
                     <div class="record-actions">
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal"
-                        title="View"
+                        title="Review Purchase Requisition"
+                        data-create-po-url="{{ $purchaseRequest->status === 'For Purchase' ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
@@ -153,31 +154,15 @@
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-clipboard-check"></i><span>Review</span>
                       </button>
 
-                      @if($purchaseRequest->status === 'For Purchase')
-                        <form
-                          action="{{ route('maintenance-requests.create-po', $purchaseRequest->id, false) }}"
-                          method="POST"
-                          class="inline-action-form"
-                        >
-                          @csrf
-                          <button
-                            type="submit"
-                            class="action-btn create-po"
-                            title="Create Purchase Order"
-                          >
-                            <i class="fa-solid fa-cart-plus"></i>
-                          </button>
-                        </form>
-                      @endif
                     </div>
                   </td>
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="6"
+                  colspan="7"
                   message="No requested purchases found."
                 />
               @endforelse
@@ -254,6 +239,7 @@
       </div>
 
       <div class="requested-pr-footer">
+        <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
         <button type="button" id="closeRequestedPrModalBottom" class="requested-pr-close-bottom">
           Close
         </button>
