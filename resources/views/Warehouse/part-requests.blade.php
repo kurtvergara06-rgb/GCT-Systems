@@ -210,11 +210,7 @@
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="warehouse-modal-scrollable">
-        <div class="warehouse-request-summary warehouse-pr-reference-strip warehouse-send-missing-meta" aria-label="Purchase Request summary">
-          <div class="warehouse-summary-item"><span>PR ID</span><strong id="view_pr_no">—</strong></div>
-          <div class="warehouse-summary-item"><span>Linked JO</span><strong id="view_job_order_no">—</strong></div>
-          <div class="warehouse-summary-item"><span>Bus</span><strong id="view_bus_no">—</strong></div>
-        </div>
+        <x-ui.pr-summary pr-id="view_pr_no" jo-id="view_job_order_no" bus-id="view_bus_no" />
         <section class="warehouse-modal-section warehouse-pr-reference-section warehouse-pr-approval-panel">
           <header class="warehouse-modal-section-header"><span class="warehouse-modal-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
             <div><h3>Maintenance Head Authorization</h3><p>Approval recorded on the linked Job Order (not a separate PR signature).</p></div>
