@@ -1510,3 +1510,24 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 @media(max-width:600px){
   #viewPrModal .warehouse-pr-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
+
+
+/* One labeled Warehouse PR action at a time: Review before forwarding, View after. */
+.warehouse-part-main .warehouse-actions .warehouse-pr-review-action,
+.warehouse-part-main .warehouse-actions .open-view-pr-modal {
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  gap:7px;min-width:90px;min-height:34px;padding:7px 12px;
+  border-radius:7px;font-family:inherit;font-size:11px;font-weight:800;
+  line-height:1.1;white-space:nowrap;cursor:pointer;
+}
+.warehouse-part-main .warehouse-actions .warehouse-pr-review-action {
+  background:#fff4d6;color:#8a5600;border:1px solid #f0c662;
+}
+.warehouse-part-main .warehouse-actions .warehouse-pr-review-action:hover {
+  background:#ffebad;border-color:#e9b640;
+}
+.warehouse-part-main .warehouse-actions .open-view-pr-modal {
+  width:auto;max-width:none;background:#ecf3ff;color:#1551a8;border:1px solid #bdd5ff;
+}
+.warehouse-part-main .warehouse-actions .warehouse-pr-review-action i,
+.warehouse-part-main .warehouse-actions .open-view-pr-modal i{margin:0;position:static;}
