@@ -663,3 +663,19 @@
 .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn:hover{background:#dcecff!important;border-color:#98c0f7!important}
 .incoming-delivery-card .incoming-delivery-table .delivery-status{border-radius:6px!important;height:25px;min-height:25px;padding:0 9px;font-size:10px;font-weight:750}
 .incoming-delivery-card .incoming-delivery-table .delivery-status.for-delivery{background:#fff4df;color:#94601c;border-color:#f1d7a3}
+
+/* Readable Warehouse deliveries and expandable unboxed part names. */
+.incoming-delivery-card .incoming-delivery-table thead th{font-size:11px!important}
+.incoming-delivery-card .incoming-delivery-table tbody td{font-size:12px!important}
+.incoming-delivery-card .incoming-delivery-table tbody td strong{font-size:12px}
+.incoming-delivery-card .incoming-delivery-table .delivery-status{font-size:11px!important}
+.incoming-delivery-card .incoming-delivery-table .receive-delivery-btn{font-size:12px!important}
+.incoming-part-cell{white-space:normal;text-align:left!important}
+.incoming-first-part{font-weight:700;color:#172c4a}
+.incoming-part-more{position:relative;display:inline-block;margin-left:7px;vertical-align:middle}
+.incoming-part-more summary{display:inline-flex;align-items:center;gap:5px;cursor:pointer;list-style:none;border:1px solid #cfe0fa;border-radius:5px;background:#edf5ff;color:#15549e;padding:4px 7px;font-size:10px;font-weight:700;white-space:nowrap}
+.incoming-part-more summary::-webkit-details-marker{display:none}
+.incoming-part-more[open] .incoming-part-more-list{position:absolute;top:calc(100% + 5px);left:0;z-index:80;width:max-content;min-width:180px;max-width:320px;background:#fff;border:1px solid #dbe6f4;box-shadow:0 12px 28px #16375924;border-radius:8px;padding:5px 11px}
+.incoming-part-more-list>div{padding:8px 4px;font-size:11px;color:#294464;white-space:normal}
+.incoming-part-more-list>div+div{border-top:1px solid #e7edf5}
+.incoming-delivery-card .table-wrap{overflow:visible}
