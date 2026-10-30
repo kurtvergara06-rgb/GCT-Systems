@@ -134,6 +134,14 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
+                        @php
+                            // One shared live stock snapshot for all Head Review rows.
+                            // Free means physically available less allocations to every JO.
+                            $reviewStockItems = \App\Models\Warehouse\InventoryItem::query()->get();
+                            $reviewCommittedStock = \App\Models\Maintenance\JobOrderPartReservation::query()
+                                ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) AS reserved'))
+                                ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+                        @endphp
                         <tbody>
                             @forelse($jobOrders as $jobOrder)
                                 @php
@@ -561,6 +569,9 @@
                                                                 @php
                                                                     $reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
                                                                     $reviewAllocations = collect($jobOrder->inventory_snapshot['parts'] ?? []);
+                                                                    $reviewLiveStock = collect(app(\App\Services\Maintenance\JobOrderWorkflowService::class)
+                                                                        ->inventoryAvailability($reviewParts, $reviewStockItems, $reviewCommittedStock)['parts'] ?? []);
+
                                                                     $reviewRequiredTotal = collect($reviewParts)->sum(fn ($part) => max(0, (int) ($part['quantity'] ?? 0)));
                                                                     $reviewReservedTotal = $reviewAllocations->sum(fn ($part) => max(0, (int) ($part['reserved'] ?? 0)));
                                                                     $reviewAvailablePartCount = collect($reviewParts)->filter(function ($part, $index) use ($reviewAllocations) {
@@ -594,7 +605,13 @@
                                                                                 $requiredQty = (int) ($reviewPart['quantity'] ?? 0);
                                                                                 $reservedQty = $allocation !== null ? min($requiredQty, max(0, (int) ($allocation['reserved'] ?? 0))) : null;
                                                                                 $shortageQty = $reservedQty === null ? null : max(0, $requiredQty - $reservedQty);
-                                                                                $reviewAvailability = $reservedQty === null ? 'Not Verified' : ($shortageQty === 0 ? 'Sufficient' : ($reservedQty > 0 ? 'Partial' : 'Unavailable'));
+                                                                                $livePart = $reviewLiveStock->get($loop->index, []);
+                                                                                $freeToAllocate = max(0, (int) ($livePart['available'] ?? 0));
+                                                                                $ambiguousStock = (bool) ($livePart['ambiguous'] ?? false);
+                                                                                $reviewAvailability = $reservedQty === null || $ambiguousStock ? 'Not Verified'
+                                                                                    : ($shortageQty === 0 ? 'Sufficient'
+                                                                                    : ($reservedQty > 0 ? 'Partial'
+                                                                                    : ($freeToAllocate > 0 ? 'Not Allocated' : 'Unavailable')));
                                                                             @endphp
                                                                             <div class="jo-review-part-item">
                                                                                 <span class="jo-review-part-index">{{ $loop->iteration }}</span>
@@ -602,7 +619,7 @@
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
                                                                                 <span class="jo-review-part-stock">{{ $reservedQty === null ? '—' : $reservedQty.' '.$reviewPart['unit'] }}</span>
                                                                                 <span class="jo-review-part-shortage">{{ $shortageQty === null ? '—' : $shortageQty.' '.$reviewPart['unit'] }}</span>
-                                                                                <span class="jo-review-part-availability {{ $reviewAvailability === 'Sufficient' ? 'is-available' : ($reviewAvailability === 'Partial' ? 'is-partial' : ($reviewAvailability === 'Unavailable' ? 'is-unavailable' : 'is-pending')) }}" title="Based on this Job Order's recorded stock reservation, not the Warehouse's total on-hand quantity.">{{ $reviewAvailability }}</span>
+                                                                                <span class="jo-review-part-availability {{ $reviewAvailability === 'Sufficient' ? 'is-available' : ($reviewAvailability === 'Partial' ? 'is-partial' : ($reviewAvailability === 'Unavailable' ? 'is-unavailable' : 'is-pending')) }}" title="{{ $reviewAvailability === 'Not Allocated' ? 'Free Warehouse stock exists but has not been allocated to this JO.' : 'Status is based on the JO allocation and uncommitted Warehouse stock; other JOs reservations are excluded.' }}">{{ $reviewAvailability }}</span>
                                                                             </div>
                                                                         @endforeach
                                                                     </div>
