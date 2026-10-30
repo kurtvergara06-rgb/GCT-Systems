@@ -1556,3 +1556,22 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 .po-detail-fact-icon i{font-size:13px}
 .po-detail-fact-copy{display:flex;flex-direction:column;min-width:0;gap:3px}
 .po-detail-fact-copy small{margin:0}
+
+
+/* Purchase Orders: visible Active / History navigation. */
+main.purchase-orders-page .po-record-tabs{
+  display:flex;align-items:center;gap:8px;margin:14px 16px 6px;
+  padding:4px;background:#f4f7fc;border:1px solid #e0e9f6;border-radius:9px;
+  width:max-content;max-width:calc(100% - 32px);
+}
+main.purchase-orders-page .po-record-tab{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-width:110px;min-height:33px;padding:8px 15px;border:1px solid transparent;
+  border-radius:7px;text-decoration:none;font-size:12px;font-weight:700;
+  color:#627891;transition:background-color .15s ease,color .15s ease,border-color .15s ease;
+}
+main.purchase-orders-page .po-record-tab:hover{background:#e9f2ff;color:#164b8a}
+main.purchase-orders-page .po-record-tab.is-active{
+  background:white;color:#1555a4;border-color:#cce0fc;box-shadow:0 1px 4px #183c6215;
+}
+main.purchase-orders-page .po-record-tab:focus-visible{outline:2px solid #2068c7;outline-offset:2px}
