@@ -87,8 +87,8 @@
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
+                <th scope="col">PR ID</th>
                 <th scope="col">Bus ID</th>
-                <th scope="col">PR Number / JO</th>
                 <th scope="col">Requested Parts</th>
                 <th scope="col">QTY</th>
                 <th scope="col">Total Items</th>
@@ -106,13 +106,8 @@
                 @endphp
 
                 <tr>
+                  <td><div class="requested-pr-reference"><strong>{{ $purchaseRequest->display_pr_no }}</strong></div></td>
                   <td class="requested-pr-bus"><strong>{{ $purchaseRequest->bus_no ?: '—' }}</strong></td>
-                  <td>
-                    <div class="requested-pr-reference">
-                      <strong>{{ $purchaseRequest->display_pr_no }}</strong>
-                      <small>JO {{ $purchaseRequest->job_order_no ?? '—' }}</small>
-                    </div>
-                  </td>
                   <td>
                     <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
@@ -152,7 +147,7 @@
                     <div class="record-actions">
                       <button
                         type="button"
-                        class="action-btn view open-view-requested-pr-modal"
+                        class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
                         title="Review Purchase Requisition"
                         data-create-po-url="{{ $purchaseRequest->status === 'For Purchase' ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
