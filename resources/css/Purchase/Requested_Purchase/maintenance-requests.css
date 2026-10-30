@@ -1799,3 +1799,15 @@ main.purchase-maintenance-requests-page .requested-pr-actions-cell .open-view-re
 .requested-pr-footer #requestedPrCreatePoForm:not([hidden]){display:inline-flex;margin-left:auto;}
 .requested-pr-footer #requestedPrCreatePoForm[hidden]{display:none!important;}
 .requested-pr-create-po-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #e2a900;background:#ffbd17;color:#172b49;border-radius:7px;padding:11px 16px;font-weight:800;cursor:pointer;}
+
+
+/* Final six-column purchasing requisition layout (Bus ID first). */
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4){min-width:110px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5){min-width:145px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6){min-width:116px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7){min-width:0;}
+main.purchase-maintenance-requests-page .requested-pr-bus strong{white-space:nowrap;font-weight:800;}
