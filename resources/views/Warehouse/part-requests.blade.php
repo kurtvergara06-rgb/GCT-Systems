@@ -219,6 +219,15 @@
           <div class="warehouse-summary-item"><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
         </div>
         <div class="warehouse-pr-reference-secondary">Bus: <strong id="view_bus_no">—</strong><span aria-hidden="true"> | </span> Processing: <strong id="view_processing">—</strong></div>
+        <section class="warehouse-modal-section warehouse-pr-reference-section warehouse-pr-approval-panel">
+          <header class="warehouse-modal-section-header"><span class="warehouse-modal-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <div><h3>Maintenance Head Authorization</h3><p>Approval recorded on the linked Job Order (not a separate PR signature).</p></div>
+          </header>
+          <div class="warehouse-modal-section-body warehouse-pr-head-content">
+            <div class="warehouse-pr-head-person"><span>Approved By</span><strong data-pr-head-name>—</strong><small data-pr-head-status>Pending verification</small><small data-pr-head-date></small></div>
+            <div class="warehouse-pr-head-signature"><span>Authorized JO Signature</span><img data-pr-head-signature alt="Maintenance Head's saved Job Order approval signature" hidden><small data-pr-head-no-signature>Signature unavailable</small></div>
+          </div>
+        </section>
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
             <span class="warehouse-modal-section-icon"><i class="fa-solid fa-cube"></i></span>
@@ -266,6 +275,15 @@
           <div class="warehouse-summary-item"><span>Linked JO</span><strong id="sendMissingJo">—</strong></div>
           <div class="warehouse-summary-item"><span>Bus</span><strong id="sendMissingBus">—</strong></div>
         </div>
+        <section class="warehouse-modal-section warehouse-pr-reference-section warehouse-pr-approval-panel">
+          <header class="warehouse-modal-section-header"><span class="warehouse-modal-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <div><h3>Maintenance Head Authorization</h3><p>Approval recorded on the linked Job Order (not a separate PR signature).</p></div>
+          </header>
+          <div class="warehouse-modal-section-body warehouse-pr-head-content">
+            <div class="warehouse-pr-head-person"><span>Approved By</span><strong data-pr-head-name>—</strong><small data-pr-head-status>Pending verification</small><small data-pr-head-date></small></div>
+            <div class="warehouse-pr-head-signature"><span>Authorized JO Signature</span><img data-pr-head-signature alt="Maintenance Head's saved Job Order approval signature" hidden><small data-pr-head-no-signature>Signature unavailable</small></div>
+          </div>
+        </section>
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
             <span class="warehouse-modal-section-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
