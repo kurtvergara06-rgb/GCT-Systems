@@ -1202,7 +1202,7 @@ class JobOrderController extends Controller
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'revision_required', $jobOrder->id, 'A Job Order was returned for revision.');
 
-        return redirect()->back()->with('success', 'Job Order returned for revision.');
+        return redirect()->back()->with('success', 'Job Order returned for revision. Existing stock reservations remain allocated until resubmission or final release.');
     }
 
     public function reject(Request $request, JobOrder $jobOrder)
