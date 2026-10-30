@@ -498,11 +498,28 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     qty.addEventListener('input', () => schedulePartCheck(form));
     selector.addEventListener('change', sync);
     const priorName = name.value.trim();
+    const normalizePart = value => String(value || '').trim().toLocaleLowerCase()
+      .replace(/\\s+/g, ' ').replace(/\\s*[-–]\\s*(?:test-)?[a-z0-9-]+$/i, '');
     selector.replaceChildren(new Option('Select inventory part', ''));
     joInventoryCatalog.forEach(item => selector.add(new Option(item.name, String(item.id))));
-    const matched = joInventoryCatalog.find(item => item.name.toLocaleLowerCase() === priorName.toLocaleLowerCase());
-    if (matched) selector.value = String(matched.id);
-    sync();
+    const matched = joInventoryCatalog.find(item => normalizePart(item.name) === normalizePart(priorName))
+      || joInventoryCatalog.find(item => String(item.name).trim().toLocaleLowerCase() === priorName.toLocaleLowerCase());
+    if (matched) {
+      selector.value = String(matched.id);
+      sync();
+    } else if (priorName) {
+      // Legacy/saved names must never disappear when the inventory catalogue
+      // has been renamed, not loaded, or no longer contains that part.
+      const savedOption = new Option(priorName + ' (saved request)', '__saved__');
+      selector.add(savedOption);
+      selector.value = '__saved__';
+      trigger.textContent = priorName;
+      stock.textContent = 'Not Verified';
+      stock.dataset.state = 'unknown';
+      stockNote.textContent = 'Previously requested part';
+    } else {
+      sync();
+    }
   }
 
   function enhanceJoPartRows() {
