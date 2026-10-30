@@ -793,7 +793,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         }));
         byId('poHeadReviewClose').addEventListener('click',close);
         const signature=byId('headReviewSignature'),approveButton=byId('headReviewApprove'),crop=byId('poHeadCropModal'),canvas=byId('poHeadCropCanvas'),ctx=canvas.getContext('2d'),zoom=byId('poHeadCropZoom'),preview=byId('headReviewSignaturePreview'),zone=byId('poHeadUploadZone'),remove=byId('poHeadRemoveSignature'),title=byId('poHeadUploadTitle');
-        const validSignature=()=>{const f=signature.files?.[0];return !!f&&['image/png','image/jpeg'].includes(f.type)&&f.size<=2097152&&!crop.hidden};
+        const validSignature=()=>{const f=signature.files?.[0];return !!f&&['image/png','image/jpeg'].includes(f.type)&&f.size<=2097152&&zone.classList.contains('has-preview')&&!preview.hidden};
         let cropImage=null,cropUrl=null,cropX=0,cropY=0,drag=null;
         const clearSignature=()=>{signature.value='';approveButton.disabled=true;preview.hidden=true;preview.removeAttribute('src');zone.classList.remove('has-preview');remove.hidden=true;title.textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}};
         const closeCrop=()=>{crop.hidden=true;if(cropUrl){URL.revokeObjectURL(cropUrl);cropUrl=null}cropImage=null;drag=null};
