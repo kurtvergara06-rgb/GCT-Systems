@@ -1451,3 +1451,36 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   #viewPrModal .warehouse-modal-scrollable,
   #warehouseSendMissingModal .warehouse-modal-scrollable {padding:12px;}
 }
+
+
+/* Shared read-only JO authorization block for Warehouse PR review/forwarding. */
+#viewPrModal .warehouse-pr-head-content,
+#warehouseSendMissingModal .warehouse-pr-head-content {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;
+}
+#viewPrModal .warehouse-pr-head-person,
+#warehouseSendMissingModal .warehouse-pr-head-person,
+#viewPrModal .warehouse-pr-head-signature,
+#warehouseSendMissingModal .warehouse-pr-head-signature {
+  min-height:115px;display:flex;flex-direction:column;justify-content:center;
+  gap:7px;padding:14px;border:1px solid #dae5f4;background:#f5f8fd;
+  border-radius:9px;min-width:0;
+}
+#viewPrModal .warehouse-pr-head-person span,
+#warehouseSendMissingModal .warehouse-pr-head-person span,
+#viewPrModal .warehouse-pr-head-signature span,
+#warehouseSendMissingModal .warehouse-pr-head-signature span {
+  color:#647c9a;font-size:11px;font-weight:700;
+}
+#viewPrModal .warehouse-pr-head-person strong,
+#warehouseSendMissingModal .warehouse-pr-head-person strong {font-size:14px;font-weight:850;color:#12345e}
+#viewPrModal .warehouse-pr-head-signature img,
+#warehouseSendMissingModal .warehouse-pr-head-signature img {
+  object-fit:contain;width:100%;max-height:95px;background:#fff;
+}
+#viewPrModal .warehouse-pr-head-content small,
+#warehouseSendMissingModal .warehouse-pr-head-content small {font-size:11px;color:#5d738e}
+@media(max-width:550px){
+  #viewPrModal .warehouse-pr-head-content,
+  #warehouseSendMissingModal .warehouse-pr-head-content {grid-template-columns:1fr;}
+}
