@@ -7017,3 +7017,19 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view span{
   position:static!important;flex:none;display:inline-block;margin:0!important;line-height:1.1;
 }
+
+
+/* Match both Job Order status columns to the 28px completion control. */
+.jo-page .job-orders-table td.status-col .gct-status-badge,
+.jo-page .job-orders-table td.status-col .status-badge,
+.jo-page .job-orders-table td.status-col .badge,
+.jo-page .job-orders-table td.status-col .part-status-badge,
+.jo-page .job-orders-table td.status-col .jo-for-review-badge,
+.jo-page .job-orders-table td.status-col .jo-no-pr-badge,
+.jo-page .job-orders-table td.status-col .jo-parts-not-requested-badge,
+.jo-page .job-orders-table td.status-col .jo-no-parts-required-badge {
+  box-sizing:border-box!important;display:inline-flex!important;
+  min-height:28px!important;padding:0 11px!important;
+  align-items:center!important;justify-content:center!important;
+  border-radius:6px!important;line-height:1!important;white-space:nowrap;
+}
