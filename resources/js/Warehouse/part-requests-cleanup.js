@@ -120,4 +120,55 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
   window.addEventListener('resize', placeBreakdown);
   window.addEventListener('scroll', () => { if (breakdown) closeBreakdown(); }, true);
 
+
+  // Preview missing PR lines before allowing the Warehouse send action.
+  const sendModal = document.getElementById('warehouseSendMissingModal');
+  const sendConfirm = document.getElementById('sendMissingConfirm');
+  let pendingSendForm = null;
+  function closeSendModal() {
+    if (!sendModal) return;
+    sendModal.classList.remove('show', 'active');
+    sendModal.setAttribute('aria-hidden', 'true');
+    sendModal.style.display = 'none';
+    pendingSendForm = null;
+  }
+  document.addEventListener('submit', function (event) {
+    const form = event.target.closest('.warehouse-part-main form[data-pr-send-form]');
+    if (!form || form.dataset.sendConfirmed === '1') return;
+    event.preventDefault();
+    if (!sendModal) return;
+    pendingSendForm = form;
+    setField('sendMissingPr', form.dataset.prNo);
+    setField('sendMissingJo', form.dataset.joNo);
+    setField('sendMissingBus', form.dataset.busNo);
+    let parts = [];
+    try { parts = JSON.parse(form.dataset.parts || '[]'); } catch (_) {}
+    const tbody = document.getElementById('sendMissingPartsRows');
+    if (tbody) {
+      const rows = parts.filter(part => {
+        const qty = Number(part.needed ?? part.quantity ?? 0);
+        return qty > 0;
+      });
+      tbody.innerHTML = rows.length ? rows.map(part => {
+        const name = escapeHtml(part.name || part.item || 'Part');
+        const qty = escapeHtml(part.needed_display || ((part.needed ?? part.quantity ?? 0) + ' ' + (part.unit || '')));
+        const stock = escapeHtml(part.physical_on_hand_display || ((part.physical_on_hand ?? 0) + ' ' + (part.unit || '')));
+        return '<tr><td>' + name + '</td><td>' + qty + '</td><td>' + stock + '</td></tr>';
+      }).join('') : '<tr><td colspan="3">No requested parts available for preview.</td></tr>';
+    }
+    sendModal.style.display = 'flex';
+    sendModal.classList.add('show', 'active');
+    sendModal.setAttribute('aria-hidden', 'false');
+    sendModal.querySelector('.warehouse-edit-style-modal')?.focus();
+  });
+  sendConfirm?.addEventListener('click', function () {
+    if (!pendingSendForm) return;
+    pendingSendForm.dataset.sendConfirmed = '1';
+    sendConfirm.disabled = true;
+    pendingSendForm.requestSubmit();
+  });
+  sendModal?.querySelectorAll('[data-send-missing-close]').forEach(button => button.addEventListener('click', closeSendModal));
+  sendModal?.addEventListener('click', event => { if (event.target === sendModal) closeSendModal(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && sendModal?.classList.contains('show')) closeSendModal(); });
+
 });
