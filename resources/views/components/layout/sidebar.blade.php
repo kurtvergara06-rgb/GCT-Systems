@@ -101,7 +101,7 @@
             ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
             ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
             [
-                'label' => 'Requested Purchase',
+                'label' => 'Purchase Requisitions',
                 'icon' => 'fa-clipboard-list',
                 'children' => [
                     [
