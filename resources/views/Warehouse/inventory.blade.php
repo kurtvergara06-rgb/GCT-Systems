@@ -70,8 +70,6 @@
 
           @if($canEditWarehouse)
             <div class="inventory-header-actions" aria-label="Inventory actions">
-              <button type="button" class="secondary-btn" id="openIssueModal"><i class="fa-solid fa-arrow-up-from-bracket"></i> Issue Stock</button>
-              <button type="button" class="secondary-btn" id="openImportModal"><i class="fa-solid fa-file-import"></i> Import Data</button>
               <button type="button" class="primary-btn" id="openAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
             </div>
           @endif
