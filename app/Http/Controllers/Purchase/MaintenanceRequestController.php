@@ -34,12 +34,10 @@ class MaintenanceRequestController extends Controller
             return $this->history($request);
         }
 
-        $recordView = $request->query('record_view') === 'in_progress'
-            ? 'in_progress'
-            : 'pending';
-        $visibleStatuses = $recordView === 'pending'
-            ? ['For Purchase']
-            : ['Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'];
+        // Purchasing inbox only contains PRs awaiting PO creation.
+        // Subsequent progress belongs to Purchase Orders and Purchase History.
+        $recordView = 'pending';
+        $visibleStatuses = ['For Purchase'];
 
         $baseQuery = $this->maintenanceBaseQuery();
         $query = (clone $baseQuery)->whereIn('status', $visibleStatuses);
