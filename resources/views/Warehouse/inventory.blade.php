@@ -222,7 +222,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="10"
+                  colspan="12"
                   message="No inventory items found."
                 />
               @endforelse
