@@ -7309,3 +7309,16 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-view-work-expanded>span{font-size:11px;white-space:normal;overflow-wrap:anywhere}
 .jo-view-mechanic-chips{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .jo-view-mechanics-more>summary{white-space:nowrap}
+
+
+/* Maintenance Work: polished, in-flow expansion that never covers Complaint. */
+.jo-view-grid .jo-view-work-list{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+.jo-view-grid .jo-view-work-list>strong{font-size:12px;line-height:1.55}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more){position:relative;display:inline-flex;flex-wrap:wrap;align-items:center;max-width:100%}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>summary{display:inline-flex;gap:7px;align-items:center;padding:5px 10px;border:1px solid #bdd3f6;border-radius:8px;background:#f0f6ff;color:#1558b5;font-size:11px;font-weight:800;line-height:1.3;box-shadow:none;transition:background .15s,border-color .15s}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>summary:hover,.jo-view-grid .jo-view-work-more[open]:not(.jo-view-mechanics-more)>summary{background:#e2eeff;border-color:#90b5ed}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>summary:focus-visible{outline:2px solid #1768d0;outline-offset:2px}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>summary i{transition:transform .15s}
+.jo-view-grid .jo-view-work-more[open]:not(.jo-view-mechanics-more)>summary i{transform:rotate(180deg)}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded{position:static;display:grid;flex:1 0 100%;width:max-content;min-width:210px;max-width:min(100%,380px);margin-top:8px;padding:7px;border:1px solid #d5e3f5;border-radius:9px;background:#f8fbff;box-shadow:none;gap:4px}
+.jo-view-grid .jo-view-work-more:not(.jo-view-mechanics-more)>.jo-view-work-expanded>span{display:block;padding:7px 9px;border-radius:6px;background:#fff;border:1px solid #e7edf8;color:#23456e;font-size:11px;line-height:1.55;font-weight:600;overflow-wrap:anywhere}
