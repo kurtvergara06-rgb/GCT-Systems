@@ -75,7 +75,7 @@ class JobOrderIndexController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'job_order_no' => 'job_order_no', 'bus_no' => 'bus_no', 'start_date' => 'start_date', 'status' => 'status', 'part_status' => 'part_status'], 'created_at', 'desc');
         $jobOrders = $query
-            ->paginate($recordView === 'history' ? 20 : 1000)
+            ->paginate(25)
             ->withQueryString();
 
         // Batch linked IR statuses for the visible JOs. Older requests may
@@ -153,6 +153,9 @@ class JobOrderIndexController extends Controller
             $pmsCreate = PmsSchedule::find($request->integer('pms_schedule_id'));
         }
 
+        // Load stock reference once for the rendered list, not once per Job Order modal.
+        $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
+
         return view('Maintenance.job-order', compact(
             'existingIrStatuses',
             'jobOrders',
@@ -168,7 +171,8 @@ class JobOrderIndexController extends Controller
             'durationSuggestions',
             'linkedPrsByJobOrderNo',
             'pmsCreate',
-            'recordView'
+            'recordView',
+            'viewPartsStock'
         ));
     }
 
