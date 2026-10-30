@@ -914,14 +914,11 @@ class JobOrderController extends Controller
                         ->latest('id')->first()?->update(['status' => 'Present']);
                 }
             }
-            // Capture the previous allocation before updating the snapshot.
-            // Revision resubmission overwrites inventory_snapshot in $updates.
-            $hadSubmissionReservation = isset($locked->inventory_snapshot['reservation_at_submission'])
-                || \App\Models\Maintenance\JobOrderPartReservation::query()
-                    ->where('job_order_id', $locked->id)->exists();
             $locked->update($updates);
-            if ($wasRevision && $hadSubmissionReservation) {
-                // Reconcile changed part quantities while holding the JO transaction lock.
+            if ($wasRevision) {
+                // Always reconcile when Staff resubmits a revision, including legacy
+                // JOs without a reservation snapshot. A transaction rollback restores
+                // the previous allocation if reconciliation fails.
                 $reservationService = app(\App\Services\Maintenance\PartsReservationService::class);
                 $reservationService->release($locked);
                 $locked->update(['inventory_snapshot' => null]);
@@ -1193,8 +1190,14 @@ class JobOrderController extends Controller
             if ($locked->review_status !== 'For Review') {
                 throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be returned.']);
             }
+            // The JO is still active. Retain its reserved parts until Staff
+            // resubmits, the request is rejected, or the JO is safely deleted.
             $locked->update(['review_status' => 'Revision Required', 'review_notes' => $validated['review_notes']]);
-            $this->workflow->audit($locked, 'returned_for_revision', 'For Review', 'Revision Required', $validated['review_notes']);
+            $this->workflow->audit(
+                $locked, 'returned_for_revision', 'For Review', 'Revision Required',
+                $validated['review_notes'],
+                ['reservation_policy' => 'retained_until_resubmission_or_terminal_release']
+            );
         });
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'revision_required', $jobOrder->id, 'A Job Order was returned for revision.');
