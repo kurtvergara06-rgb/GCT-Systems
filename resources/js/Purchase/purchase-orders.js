@@ -439,10 +439,39 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     if (!button) return;
 
     event.preventDefault();
+    if (viewButton && document.getElementById('poDetailOverlay')) {
+      const overlay=document.getElementById('poDetailOverlay');
+      const put=(id,value)=>{document.getElementById(id).textContent=value||'—'};
+      const cash=(x)=>'₱'+Number(x||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+      put('poDetailNo',button.dataset.poNo);put('poDetailPr',button.dataset.detailPr);
+      put('poDetailDate',button.dataset.poDate);put('poDetailStatus',button.dataset.status);
+      put('poDetailSupplier',button.dataset.supplierName);put('poDetailJo',button.dataset.detailJo);
+      put('poDetailPurpose',button.dataset.purpose);put('poDetailTotal',cash(button.dataset.detailTotal));
+      put('poDetailJoApprover',button.dataset.detailJoApprover);put('poDetailJoDate',button.dataset.detailJoDate);
+      put('poDetailPoApprover',button.dataset.detailPoApprover);put('poDetailPoDate',button.dataset.detailPoDate);
+      for(const kind of ['Jo','Po']){
+        const img=document.getElementById('poDetail'+kind+'Signature'),missing=document.getElementById('poDetail'+kind+'Missing');
+        img.hidden=true;img.removeAttribute('src');missing.hidden=false;
+        const url=button.dataset['detail'+kind+'Signature'];
+        if(url){img.onload=()=>{img.hidden=false;missing.hidden=true};img.onerror=()=>{img.hidden=true;missing.hidden=false};img.src=url}
+      }
+      const tbody=document.getElementById('poDetailItems');tbody.replaceChildren();
+      parseItems(button).forEach((item,i)=>{
+        const tr=document.createElement('tr');
+        const qty=Number(item.quantity||0),price=Number(item.unit_cost||item.unit_price||0);
+        [i+1,item.item_description||item.item||'—',qty,item.unit||'—',cash(price),cash(qty*price)].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});
+        tbody.appendChild(tr);
+      });
+      overlay.style.display='flex';overlay.classList.add('show','active');return;
+    }
     configureExistingForm(button, viewButton ? 'view' : 'edit');
     openModal(poModal);
   });
 
+  const detailOverlay=document.getElementById('poDetailOverlay');
+  const closePoDetails=()=>{if(detailOverlay){detailOverlay.classList.remove('show','active');detailOverlay.style.display='none'}};
+  document.getElementById('poDetailCloseTop')?.addEventListener('click',closePoDetails);
+  document.getElementById('poDetailCloseBottom')?.addEventListener('click',closePoDetails);
   /* Controlled PO status workflow */
   const poStatusModal = field('poStatusModal');
   const poStatusForm = field('poStatusForm');
