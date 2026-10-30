@@ -42,9 +42,9 @@ class IncomingDeliveryController extends Controller
             $statusOptions = ['Delivered', 'Picked Up'];
         } else {
             $deliveryQuery
-                ->whereIn('status', ['For Delivery', 'For Pick-up'])
+                ->whereIn('status', ['Ordered', 'For Delivery', 'For Pick-up'])
                 ->whereNull('inventory_posted_at');
-            $statusOptions = ['For Delivery', 'For Pick-up'];
+            $statusOptions = ['Ordered', 'For Delivery', 'For Pick-up'];
         }
 
         if ($request->filled('search')) {
@@ -67,7 +67,7 @@ class IncomingDeliveryController extends Controller
             ->withQueryString();
 
         $activeCount = PurchaseOrder::query()
-            ->whereIn('status', ['For Delivery', 'For Pick-up'])
+            ->whereIn('status', ['Ordered', 'For Delivery', 'For Pick-up'])
             ->whereNull('inventory_posted_at')
             ->count();
 
@@ -112,6 +112,7 @@ class IncomingDeliveryController extends Controller
             }
 
             $receivedStatus = match ($lockedOrder->status) {
+                'Ordered' => 'Delivered',
                 'For Delivery' => 'Delivered',
                 'For Pick-up' => 'Picked Up',
                 default => null,
@@ -119,7 +120,7 @@ class IncomingDeliveryController extends Controller
 
             if (! $receivedStatus) {
                 throw ValidationException::withMessages([
-                    'delivery' => 'Only purchase orders marked For Delivery or For Pick-up may be received.',
+                    'delivery' => 'Only ordered purchase orders awaiting receipt may be received.',
                 ]);
             }
 
