@@ -93,12 +93,13 @@
                         <td>
                             <?php
                                 $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
+                                $waitingForJoParts = $ir->status === 'Issued' && $fulfillment['remaining'] > 0;
                                 $fulfillmentPercent = $fulfillment['required'] > 0
                                     ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
                             ?>
                             <div class="warehouse-ir-fulfillment" title="Cumulative physically issued parts for the linked Job Order">
                                 <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
-                                <span class="warehouse-ir-fulfillment-track" role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}" aria-label="JO parts issued">
+                                <span class="warehouse-ir-fulfillment-track {{ $fulfillmentPercent === 100 ? 'is-complete' : '' }}" role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}" aria-label="JO parts issued">
                                     <span style="width:{{ $fulfillmentPercent }}%"></span>
                                 </span>
                                 <small>{{ $fulfillment['remaining'] }} remaining</small>
@@ -110,9 +111,9 @@
                             </span>
                         </td>
                         <td>
-                            <span class="warehouse-ir-process-status {{ $ir->status === 'Issued' ? 'is-issued' : 'is-submitted' }}">
-                                <i class="fa-solid {{ $ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane' }}"></i>
-                                {{ $ir->status }}
+                            <span class="warehouse-ir-process-status {{ $waitingForJoParts ? 'is-waiting' : ($ir->status === 'Issued' ? 'is-issued' : 'is-submitted') }}">
+                                <i class="fa-solid {{ $waitingForJoParts ? 'fa-clock' : ($ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane') }}"></i>
+                                {{ $waitingForJoParts ? 'Waiting for Parts' : $ir->status }}
                             </span>
                         </td>
                         <td>
@@ -132,6 +133,9 @@
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"
                                 data-ir-signed-slip-url="{{ in_array($ir->status, ['Issued', 'Partially Issued'], true) ? route('warehouse.item-requests.signed-slip', $ir) : '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                            @if($waitingForJoParts)
+                                <button type="button" class="warehouse-ir-waiting-action" disabled title="Waiting for remaining JO parts. A follow-up IR is required after replenishment." aria-label="Issuance unavailable while waiting for parts"><i class="fa-solid fa-lock" aria-hidden="true"></i></button>
+                            @endif
                             @if(in_array($ir->status, ['Submitted', 'Partially Issued'], true) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
                                 <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy" :title="$issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip'" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
