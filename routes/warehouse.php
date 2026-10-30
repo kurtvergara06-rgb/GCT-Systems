@@ -30,6 +30,11 @@ Route::middleware([
         Route::get('/inventory/{inventoryItem}/movements', [InventoryMovementController::class, 'show'])
             ->name('inventory.movements');
 
+        // Warehouse may read the approved JO authorization supporting a maintenance PR.
+        // Reuse the existing controller's private-disk and approved-audit validation.
+        Route::get('/warehouse/job-orders/{jobOrder}/approval-signature', [\App\Http\Controllers\Maintenance\JobOrderController::class, 'approvalSignature'])
+            ->name('warehouse.job-orders.approval-signature');
+
         Route::get('/warehouse/item-requests', [ItemRequestController::class, 'index'])->name('warehouse.item-requests');
         Route::get('/warehouse/item-requests/{itemRequest}/verify', [ItemRequestController::class, 'verify'])->name('warehouse.item-requests.verify');
         Route::post('/warehouse/item-requests/{itemRequest}/issue', [ItemRequestController::class, 'issue'])->middleware('system.permission:warehouse,edit')->name('warehouse.item-requests.issue');
