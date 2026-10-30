@@ -13,6 +13,66 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     return;
   }
 
+  // Render item breakdown above table overflow rather than inside a clipped cell.
+  let activeItemsPopover = null;
+  let activeItemsTrigger = null;
+  const closeItemsPopover = () => {
+    activeItemsPopover?.remove();
+    activeItemsPopover = null;
+    activeItemsTrigger?.setAttribute('aria-expanded', 'false');
+    activeItemsTrigger = null;
+  };
+  const positionItemsPopover = () => {
+    if (!activeItemsPopover || !activeItemsTrigger) return;
+    const rect = activeItemsTrigger.getBoundingClientRect();
+    const width = Math.min(340, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+    const below = window.innerHeight - rect.bottom >= 140;
+    activeItemsPopover.style.position = 'fixed';
+    activeItemsPopover.style.width = width + 'px';
+    activeItemsPopover.style.left = left + 'px';
+    activeItemsPopover.style.maxHeight = Math.min(280, window.innerHeight - 24) + 'px';
+    if (below) {
+      activeItemsPopover.style.top = Math.min(rect.bottom + 6, window.innerHeight - 12) + 'px';
+      activeItemsPopover.style.bottom = 'auto';
+    } else {
+      activeItemsPopover.style.top = 'auto';
+      activeItemsPopover.style.bottom = Math.max(12, window.innerHeight - rect.top + 6) + 'px';
+    }
+  };
+  const onItemTrigger = (event) => {
+    const trigger = event.target.closest('.po-items-more-trigger');
+    if (!trigger) {
+      if (activeItemsPopover && !event.target.closest('.po-items-floating-popover')) closeItemsPopover();
+      return;
+    }
+    event.preventDefault();
+    if (trigger === activeItemsTrigger) {
+      closeItemsPopover();
+      return;
+    }
+    closeItemsPopover();
+    const source = trigger.parentElement?.querySelector('.po-items-more-source');
+    if (!source) return;
+    activeItemsPopover = document.createElement('div');
+    activeItemsPopover.className = 'po-items-floating-popover';
+    activeItemsPopover.setAttribute('role', 'dialog');
+    activeItemsPopover.setAttribute('aria-label', 'Purchase order item details');
+    activeItemsPopover.innerHTML = source.innerHTML;
+    document.body.appendChild(activeItemsPopover);
+    activeItemsTrigger = trigger;
+    trigger.setAttribute('aria-expanded', 'true');
+    positionItemsPopover();
+  };
+  const page = document.querySelector('.purchase-orders-page');
+  page?.addEventListener('click', onItemTrigger);
+  document.addEventListener('click', (event) => {
+    if (activeItemsPopover && !event.target.closest('.po-items-floating-popover') && !event.target.closest('.po-items-more-trigger')) closeItemsPopover();
+  });
+  window.addEventListener('scroll', closeItemsPopover, { passive: true });
+  window.addEventListener('resize', closeItemsPopover);
+  window.addEventListener('gct:navigation-before', closeItemsPopover);
+
   const money = (value) => {
     const amount = Number.parseFloat(value || 0) || 0;
 
