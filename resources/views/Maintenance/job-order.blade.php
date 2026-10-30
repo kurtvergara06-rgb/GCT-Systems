@@ -378,7 +378,7 @@
                                                         <div class="jo-view-grid">
                                                             <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                             <div><span><i class="fa-solid fa-gears" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
-                                                            <div><span>Maintenance Work</span><strong>{{ $jobOrder->work_to_perform ?: 'Not recorded' }}</strong></div>
+                                                            <div><span>Maintenance Work</span>@php $workTypes = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->work_to_perform))->map(fn ($v) => trim($v))->filter()->values(); @endphp <div class="jo-view-work-list">@if($workTypes->isEmpty())<strong>Not recorded</strong>@else<strong>{{ $workTypes->first() }}</strong>@if($workTypes->count() > 1)<details class="jo-view-work-more"><summary>+{{ $workTypes->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="jo-view-work-expanded">@foreach($workTypes->skip(1) as $work)<span>{{ $work }}</span>@endforeach</div></details>@endif @endif</div></div>
                                                             <div class="jo-view-complaint"><span>Complaint / Problem</span><strong>{{ $jobOrder->problem_issue ?: 'Not recorded' }}</strong></div>
                                                         </div>
                                                     </section>
@@ -393,11 +393,14 @@
                                                                             $viewMechanicNames = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic))->filter();
                                                                         }
                                                                     @endphp
-                                                                    @forelse($viewMechanicNames as $mechanicName)
+                                                                    @forelse($viewMechanicNames->unique()->values()->take(4) as $mechanicName)
                                                                         <span class="jo-view-mechanic-chip">{{ $mechanicName }}</span>
                                                                     @empty
                                                                         <strong>Not assigned</strong>
                                                                     @endforelse
+                                                                    @if($viewMechanicNames->unique()->count() > 4)
+                                                                        <details class="jo-view-work-more jo-view-mechanics-more"><summary>+{{ $viewMechanicNames->unique()->count() - 4 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="jo-view-work-expanded">@foreach($viewMechanicNames->unique()->values()->skip(4) as $mechanicName)<span>{{ $mechanicName }}</span>@endforeach</div></details>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                             @if($hasPartsDelayRisk)
