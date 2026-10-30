@@ -224,7 +224,19 @@
 
                       @if($isForReview && $canReviewPo)
                         <button type="button" class="action-btn po-review-action open-po-review-modal"
-                          data-po-no="{{ $purchaseOrder->po_no }}"
+                          @php
+$prForReview = $purchaseOrder->relatedMaintenanceRequest();
+$joForReview = $prForReview && $prForReview->job_order_no !== 'RESTOCK' ? \App\Models\Maintenance\JobOrder::where('job_order_no', $prForReview->job_order_no)->first() : null;
+$joApproverForReview = $joForReview?->approved_by ? \App\Models\Admin\User::find($joForReview->approved_by) : null;
+@endphp
+data-jo-no="{{ $joForReview?->job_order_no ?? '' }}"
+data-jo-bus="{{ $joForReview?->bus_no ?? '' }}"
+data-jo-status="{{ $joForReview?->review_status ?? '' }}"
+data-jo-type="{{ $joForReview?->maintenance_type ?? '' }}"
+data-jo-approver="{{ $joApproverForReview?->name ?? '' }}"
+data-jo-date="{{ $joForReview?->approved_at?->format('M d, Y h:i A') ?? '' }}"
+data-jo-signature="{{ $joForReview && $joForReview->review_status === 'Approved' ? route('purchase.job-orders.approval-signature', $joForReview) : '' }}"
+data-po-no="{{ $purchaseOrder->po_no }}"
                           data-po-date="{{ optional($purchaseOrder->po_date)->format('M d, Y') }}"
                           data-supplier="{{ $purchaseOrder->supplier_name }}"
                           data-pr-no="{{ $purchaseOrder->first_pr_no }}"
@@ -501,7 +513,20 @@
           <div><span>Purchase Requisition</span><strong id="headReviewPr">—</strong></div>
           <div><span>Supplier</span><strong id="headReviewSupplier">—</strong></div>
         </div>
-        <div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap"><table><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
+        <section class="po-head-review-section po-jo-review">
+<h3><i class="fa-solid fa-link"></i> Linked Job Order Authorization</h3>
+<div class="po-jo-review-grid">
+<div class="po-jo-review-facts">
+<div><span>Job Order</span><strong id="poJoNo">—</strong></div>
+<div><span>Bus / Plate</span><strong id="poJoBus">—</strong></div>
+<div><span>Maintenance Type</span><strong id="poJoType">—</strong></div>
+<div><span>Approval Status</span><strong id="poJoStatus">—</strong></div>
+<div><span>Approved By</span><strong id="poJoApprover">—</strong></div>
+<div><span>Approved At</span><strong id="poJoDate">—</strong></div>
+</div>
+<div class="po-jo-review-signature"><strong>Authorized JO Signature</strong><img id="poJoSignature" alt="Authorized Maintenance Job Order approval signature" hidden><p id="poJoSignatureEmpty">No approved JO signature available.</p></div>
+</div></section>
+<div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap"><table><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
         <div class="po-head-review-summary"><span>Gross: <strong id="headReviewGross">—</strong></span><span>Delivery: <strong id="headReviewDelivery">—</strong></span><span>Discount: <strong id="headReviewDiscount">—</strong></span><span>VAT: <strong id="headReviewVat">—</strong></span><strong>NET TOTAL: <span id="headReviewNet">—</span></strong></div>
         <form id="poHeadReviewForm" method="POST" enctype="multipart/form-data">
           @csrf @method('PATCH')
@@ -572,6 +597,16 @@
     .po-head-review-fields textarea{min-height:65px;resize:vertical}
     .po-head-review-footer{position:sticky;bottom:0;z-index:2;margin:0 -18px!important;padding:12px 18px!important;background:#fff;border-top:1px solid #dce6f2;gap:8px!important}
     .po-head-review-footer button{padding:10px 13px!important;border-radius:7px!important}
+    .po-jo-review-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:12px}
+    .po-jo-review-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .po-jo-review-facts>div{padding:9px;border:1px solid #e0e9f6;background:#f8faff;border-radius:7px}
+    .po-jo-review-facts span{display:block;font-size:10px;color:#657d9a;margin-bottom:4px}
+    .po-jo-review-facts strong{font-size:12px;color:#15385d;overflow-wrap:anywhere}
+    .po-jo-review-signature{padding:12px;border:1px solid #dbe6f6;border-radius:8px;background:#f1f6ff;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .po-jo-review-signature strong{font-size:11px;color:#32567d}
+    .po-jo-review-signature img{width:100%;height:100px;object-fit:contain;background:white;border-radius:6px;margin-top:8px}
+    .po-jo-review-signature p{font-size:11px;color:#71849c}
+    @media(max-width:650px){.po-jo-review-grid{grid-template-columns:1fr}}
     @media(max-width:650px){.po-head-review-overlay{padding:9px!important}.po-head-review-dialog{max-height:calc(100dvh - 18px)!important}.po-head-review-content{padding:12px 12px 0!important}.po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}.po-head-review-summary>strong{margin-left:0}.po-head-review-table-wrap table{min-width:560px}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
@@ -589,6 +624,14 @@
         document.querySelectorAll('.open-po-review-modal').forEach(button=>button.addEventListener('click',()=>{
           const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
+          for(const [id,val] of Object.entries({poJoNo:d.joNo,poJoBus:d.joBus,poJoType:d.joType,poJoStatus:d.joStatus,poJoApprover:d.joApprover,poJoDate:d.joDate})){byId(id).textContent=val||'—'}
+          const joImg=byId('poJoSignature'),joEmpty=byId('poJoSignatureEmpty');
+          joImg.hidden=true;joImg.removeAttribute('src');joEmpty.hidden=false;
+          if(d.joSignature&&d.joStatus==='Approved'){
+            joImg.onload=()=>{joImg.hidden=false;joEmpty.hidden=true};
+            joImg.onerror=()=>{joImg.hidden=true;joEmpty.hidden=false};
+            joImg.src=d.joSignature;
+          }
           let items=[];try{items=JSON.parse(d.items||'[]')}catch(e){}
           byId('headReviewItems').innerHTML=items.map(item=>'<tr><td>'+esc(item.item_description)+'</td><td>'+esc(item.quantity)+'</td><td>'+esc(item.unit)+'</td><td>'+money(item.cost)+'</td><td>'+money(item.amount??(Number(item.quantity)*Number(item.cost)))+'</td></tr>').join('')||'<tr><td colspan="5">No items</td></tr>';
           form.action=approveUrl;modal.style.display='flex';modal.classList.add('show','active');window.GCTModalBackdrop?.sync?.();window.GCTSystemAnimations?.animateModalOpen?.(modal);
