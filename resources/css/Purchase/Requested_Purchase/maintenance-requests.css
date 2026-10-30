@@ -1967,3 +1967,26 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 .purchase-maintenance-requests-page .requested-pr-status .requested-pr-ordered-badge i{
   font-family:"Font Awesome 6 Free";font-weight:900;font-size:11px;
 }
+
+
+/* Align PR part expansion and status with neighboring QTY / View controls. */
+.purchase-maintenance-requests-page .requested-pr-part{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;gap:8px!important;flex-wrap:nowrap!important;min-width:0;
+}
+.purchase-maintenance-requests-page .requested-pr-part>strong{
+ min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.purchase-maintenance-requests-page .requested-pr-part>.requested-pr-more{
+ display:inline-flex!important;flex:0 0 auto;align-items:center!important;margin:0!important;
+}
+.purchase-maintenance-requests-page .requested-pr-part>.requested-pr-more>summary{
+ white-space:nowrap!important;margin:0!important;
+}
+.purchase-maintenance-requests-page .requested-pr-status .requested-pr-ordered-badge{
+ min-width:88px!important;height:31px!important;min-height:31px!important;
+ padding:0 12px!important;display:inline-flex!important;align-items:center!important;
+ justify-content:center!important;gap:6px!important;border-radius:5px!important;
+}
+.purchase-maintenance-requests-page .requested-pr-status,
+.purchase-maintenance-requests-page .requested-pr-actions-cell{vertical-align:middle!important}
