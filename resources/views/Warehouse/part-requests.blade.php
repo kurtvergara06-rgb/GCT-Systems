@@ -95,9 +95,8 @@
                 @if($isJo)
                   <th class="status-col">Availability</th>
                 @else
-                  <th class="qty-col">Qty</th>
-                  <th class="qty-col">On Hand</th>
-                  <th class="status-col">Inventory</th>
+                  <th class="qty-col">PR Qty</th>
+                  <th class="status-col">Stock Status</th>
                   <th class="status-col">Status</th>
                 @endif
                 <th class="actions-col">Actions</th>
