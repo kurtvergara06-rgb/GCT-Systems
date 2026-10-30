@@ -784,3 +784,19 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
 .warehouse-ir-fulfillment small{font-size:10px;color:#74849a}
 .warehouse-ir-fulfillment-track{display:block;width:100%;height:6px;overflow:hidden;border-radius:99px;background:#e6edf6}
 .warehouse-ir-fulfillment-track>span{display:block;height:100%;border-radius:99px;background:#d59a22;transition:width .2s ease}
+
+/* Compact 7-column IR list; detailed physical stock remains inside View modal. */
+.warehouse-ir-page .ir-table{width:100%;min-width:0;table-layout:fixed}
+.warehouse-ir-page .ir-table th:nth-child(1){width:16%}
+.warehouse-ir-page .ir-table th:nth-child(2){width:15%}
+.warehouse-ir-page .ir-table th:nth-child(3){width:8%}
+.warehouse-ir-page .ir-table th:nth-child(4){width:16%}
+.warehouse-ir-page .ir-table th:nth-child(5){width:17%}
+.warehouse-ir-page .ir-table th:nth-child(6){width:12%}
+.warehouse-ir-page .ir-table th:nth-child(7){width:16%}
+.warehouse-ir-page .ir-table th:nth-child(8){width:auto}
+.warehouse-ir-page .ir-table th,.warehouse-ir-page .ir-table td{padding:10px 7px;min-width:0;white-space:normal}
+.warehouse-ir-page .ir-table td:nth-child(7){text-align:center;white-space:nowrap}
+.warehouse-ir-page .ir-table td:nth-child(7) .ui-action-btn{vertical-align:middle}
+.warehouse-ir-page .warehouse-ir-policy{font-size:10px}
+@media(min-width:701px){.warehouse-ir-page .ir-table{min-width:0}}
