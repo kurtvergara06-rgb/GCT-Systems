@@ -11,9 +11,6 @@
     <main class="main maintenance-ir-page">
         <x-layout.topbar title="Item Requests" subtitle="Manage JO-linked parts requests for Warehouse" />
 
-        @if(session('success'))
-            <div class="ir-alert ir-alert-success" role="status">{{ session('success') }}</div>
-        @endif
         @if($errors->any())
             <div class="ir-alert ir-alert-error" role="alert">
                 <strong>Please check your request.</strong>
