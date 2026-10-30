@@ -93,7 +93,7 @@
               @forelse($deliveries as $delivery)
                 @php
                   $items = collect($delivery->items ?? []);
-                  $itemSummary = $items->pluck('item_description')->filter()->implode(', ');
+                  $partNames = $items->pluck('item_description')->filter()->map(fn ($name) => trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', (string) $name)))->filter()->values();
                   $quantitySummary = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
                   $received = !is_null($delivery->inventory_posted_at);
                   $displayStatus = $received ? 'Received' : $delivery->status;
@@ -107,7 +107,19 @@
                 <tr>
                   <td><strong>{{ $delivery->po_no }}</strong></td>
                   <td>{{ $delivery->supplier_name ?: '—' }}</td>
-                  <td>{{ $itemSummary ?: '—' }}</td>
+                  <td class="incoming-part-cell">
+                    <span class="incoming-first-part">{{ $partNames->first() ?: '—' }}</span>
+                    @if($partNames->count() > 1)
+                      <details class="incoming-part-more">
+                        <summary>+{{ $partNames->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                        <div class="incoming-part-more-list">
+                          @foreach($partNames->skip(1) as $partName)
+                            <div>{{ $partName }}</div>
+                          @endforeach
+                        </div>
+                      </details>
+                    @endif
+                  </td>
                   <td>{{ $quantitySummary }}</td>
                   <td>{{ $delivery->po_date?->format('M d, Y') ?? '—' }}</td>
                   <td>{{ $delivery->inventory_posted_at?->format('M d, Y') ?? '—' }}</td>
