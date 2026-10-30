@@ -542,6 +542,37 @@
     .po-head-review-fields textarea,.po-head-review-fields input{border:1px solid #cedaeb;border-radius:7px;padding:10px;font:inherit;font-size:12px;width:100%;box-sizing:border-box}.po-head-review-fields img{max-width:260px;max-height:90px;object-fit:contain;border:1px solid #dce6f2;border-radius:7px;padding:9px}
     .po-head-review-footer{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:20px}.po-head-review-footer button{border-radius:7px;padding:11px 17px;font-weight:750;font-size:12px;cursor:pointer}
     .po-head-review-revision{background:#fff6e5;border:1px solid #ecd2a0;color:#91621a}.po-head-review-reject{background:#fff0f1;border:1px solid #e9b0b7;color:#a82e3a}.po-head-review-approve{background:#2054a3;border:1px solid #2054a3;color:#fff}
+
+    /* Align Purchase Head review with the Purchase Request Details modal. */
+    .po-head-review-overlay{padding:18px!important}
+    .po-head-review-dialog{width:min(815px,100%)!important;max-height:calc(100dvh - 36px)!important;display:flex;flex-direction:column;overflow:hidden!important;border-radius:14px!important;background:#fff!important;box-shadow:0 24px 70px rgba(13,35,66,.24)!important}
+    .po-head-review-header{flex:none;align-items:center;padding:16px 20px!important;background:#fff!important;color:#112f55!important;border-bottom:1px solid #dce6f2!important}
+    .po-head-review-header small{display:block;color:#3572b9!important;font-size:10px!important;letter-spacing:.09em}
+    .po-head-review-header h2{font-size:18px!important;color:#102d50!important;margin:3px 0!important}
+    .po-head-review-header p{color:#657b96!important;font-size:11px!important}
+    .po-head-review-x{background:#f7faff!important;border:1px solid #dce6f2!important;color:#17365b!important;width:34px;height:34px;padding:0!important;display:grid;place-items:center;border-radius:7px!important}
+    .po-head-review-x:hover{background:#eaf2ff!important}
+    .po-head-review-content{overflow-y:auto;min-height:0;padding:16px 18px 0!important;background:#f8fafd}
+    .po-head-review-meta{grid-template-columns:repeat(2,minmax(0,1fr));gap:0!important;margin-bottom:12px!important;background:#fff;border:1px solid #dae5f5;border-radius:10px;padding:5px 8px}
+    .po-head-review-meta>div{border:0!important;border-radius:0!important;padding:11px 13px!important}
+    .po-head-review-meta>div:nth-child(odd){border-right:1px solid #dfe8f4!important}
+    .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #dfe8f4!important}
+    .po-head-review-meta span{text-transform:uppercase;letter-spacing:.06em;font-size:10px!important;font-weight:750}
+    .po-head-review-meta strong{font-size:12px!important}
+    .po-head-review-section{border:1px solid #d9e5f5;border-radius:10px;background:white;padding:13px;margin-bottom:12px}
+    .po-head-review-section h3{font-size:12px!important;margin:0 0 12px!important}
+    .po-head-review-table-wrap{max-width:100%;overflow-x:auto}
+    .po-head-review-table-wrap table{width:100%;min-width:0;table-layout:auto}
+    .po-head-review-table-wrap th{white-space:nowrap;padding:10px 9px!important;background:#eaf1fa!important}
+    .po-head-review-table-wrap td{padding:10px 9px!important;overflow-wrap:anywhere}
+    .po-head-review-table-wrap th:last-child,.po-head-review-table-wrap td:last-child{text-align:right;white-space:nowrap}
+    .po-head-review-summary{background:#fff;border:1px solid #dae5f5;border-radius:9px;padding:12px!important;gap:9px 15px!important;margin-bottom:12px;justify-content:flex-start!important}
+    .po-head-review-summary>strong{margin-left:auto}
+    .po-head-review-fields{background:#fff;border:1px solid #dae5f5;border-radius:10px;padding:13px;margin:0 0 12px!important}
+    .po-head-review-fields textarea{min-height:65px;resize:vertical}
+    .po-head-review-footer{position:sticky;bottom:0;z-index:2;margin:0 -18px!important;padding:12px 18px!important;background:#fff;border-top:1px solid #dce6f2;gap:8px!important}
+    .po-head-review-footer button{padding:10px 13px!important;border-radius:7px!important}
+    @media(max-width:650px){.po-head-review-overlay{padding:9px!important}.po-head-review-dialog{max-height:calc(100dvh - 18px)!important}.po-head-review-content{padding:12px 12px 0!important}.po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}.po-head-review-summary>strong{margin-left:0}.po-head-review-table-wrap table{min-width:560px}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
