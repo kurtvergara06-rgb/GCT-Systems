@@ -90,6 +90,7 @@
                 <th scope="col">Bus ID</th>
                 <th scope="col">PR Number / JO</th>
                 <th scope="col">Requested Parts</th>
+                <th scope="col">QTY</th>
                 <th scope="col">Total Items</th>
                 <th scope="col">PR Status</th>
                 <th scope="col">Actions</th>
@@ -115,18 +116,30 @@
                   <td>
                     <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
-                      <small>{{ $firstQuantity }}</small>
                       @if(count($parts) > 1)
                         <details class="requested-pr-more">
                           <summary>+{{ count($parts) - 1 }} more parts</summary>
                           <div class="requested-pr-more-panel">
                             @foreach(array_slice($parts, 1) as $part)
-                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }} <span>{{ $part['quantity_display'] ?? ($part['quantity'] ?? '—') }}</span></div>
+                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }}</div>
                             @endforeach
                           </div>
                         </details>
                       @endif
                     </div>
+                  </td>
+                  <td class="requested-pr-part-qty">
+                    <strong>{{ $firstQuantity }}</strong>
+                    @if(count($parts) > 1)
+                      <details class="requested-pr-more requested-pr-more-qty">
+                        <summary>+{{ count($parts) - 1 }} more</summary>
+                        <div class="requested-pr-more-panel">
+                          @foreach(array_slice($parts, 1) as $part)
+                            <div>{{ $part['quantity_display'] ?? ($part['quantity'] ?? '—') }}</div>
+                          @endforeach
+                        </div>
+                      </details>
+                    @endif
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
                   <td class="requested-pr-status">
@@ -160,7 +173,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="6"
+                  colspan="7"
                   message="No requested purchases found."
                 />
               @endforelse
