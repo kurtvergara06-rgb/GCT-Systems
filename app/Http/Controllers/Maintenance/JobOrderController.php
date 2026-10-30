@@ -73,27 +73,6 @@ class JobOrderController extends Controller
             });
         }
 
-        if (
-            $request->filled('part_status')
-            && $request->part_status !== 'All Part Statuses'
-        ) {
-            if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
-                $query->where(function ($q) {
-                    $q->whereNull('part_needed')
-                        ->orWhereRaw("TRIM(COALESCE(part_needed, '')) = ''")
-                        ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
-                });
-            } elseif ($request->part_status === 'Not Requested') {
-                $query->where('part_status', 'Not Requested')
-                    ->whereNotNull('part_needed')
-                    ->whereRaw("TRIM(part_needed) != ''");
-            } else {
-                $query->where(
-                    'part_status',
-                    $request->part_status
-                );
-            }
-        }
 
         if (
             $request->filled('maintenance_type')
@@ -163,6 +142,11 @@ class JobOrderController extends Controller
             if ($resByJo->get($jo->id, collect())->sum('quantity') <= 0) return [$jo->id => 'Waiting for Parts'];
             return [$jo->id => $issued > 0 ? 'Partially Issued' : 'Not Issued'];
         });
+        if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
+            $matching = $joPartsDisplayStatuses->filter(fn ($status) => $status === $request->part_status);
+            $jobOrders->setCollection($jobOrders->getCollection()
+                ->filter(fn ($jo) => $matching->has($jo->id))->values());
+        }
         // Preserve the IR mapping as explicit view data. Mutating an Eloquent
         // model in a paginator does not reliably describe the persisted workflow.
 
