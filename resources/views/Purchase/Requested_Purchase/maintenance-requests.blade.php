@@ -13,7 +13,7 @@
 
     <main class="main purchase-module-page records-page purchase-maintenance-requests-page">
       <x-layout.topbar
-        title="Requested Purchases"
+        title="Purchase Requisitions"
         subtitle="Purchase Department request inbox from Warehouse"
         notification-count="6"
       />
@@ -53,29 +53,12 @@
         <div class="section-header">
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
-            <h2>Requested Purchase Records</h2>
+            <h2>Purchase Requisition Records</h2>
             <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
           </div>
         </div>
 
         <div class="requested-pr-list-controls">
-        <nav class="requested-pr-record-tabs" aria-label="Purchase request views">
-          <a href="{{ route('maintenance-requests', ['record_view' => 'pending'], false) }}"
-             class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'pending' ? 'is-active' : '' }}"
-             data-allow-partial-navigation="true">
-            Pending Requests <span>{{ $forPurchase ?? 0 }}</span>
-          </a>
-          <a href="{{ route('maintenance-requests', ['record_view' => 'in_progress'], false) }}"
-             class="requested-pr-record-tab {{ ($recordView ?? 'pending') === 'in_progress' ? 'is-active' : '' }}"
-             data-allow-partial-navigation="true">
-            In Progress <span>{{ ($ordered ?? 0) + ($forPickup ?? 0) + ($forDelivery ?? 0) + ($delivered ?? 0) }}</span>
-          </a>
-          <a href="{{ route('maintenance-requests', ['record_view' => 'history'], false) }}"
-             class="requested-pr-record-tab" data-allow-partial-navigation="true">
-            History <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-          </a>
-        </nav>
-
         <x-ui.table-toolbar
           action="{{ route('maintenance-requests', [], false) }}"
           class="records-toolbar"
@@ -88,9 +71,7 @@
           default-sort="created_at"
           default-direction="desc"
         >
-          <x-slot:hidden>
-            <input type="hidden" name="record_view" value="{{ $recordView ?? 'pending' }}">
-          </x-slot:hidden>
+
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All States">
               <option value="All States">All States</option>
@@ -107,8 +88,8 @@
             <thead>
               <tr>
                 <th scope="col">Request / JO</th>
-                <th scope="col">Parts for Purchase</th>
-                <th scope="col">Qty</th>
+                <th scope="col">Requested Parts</th>
+                <th scope="col">Total Items</th>
                 <th scope="col">PR Status</th>
                 <th scope="col">Submitted At</th>
                 <th scope="col">Actions</th>
@@ -146,7 +127,7 @@
                       @endif
                     </div>
                   </td>
-                  <td class="requested-pr-quantity">{{ $purchaseRequest->quantity ?? $firstQuantity }}</td>
+                  <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
                   <td class="requested-pr-status">
                     <x-ui.status-badge
                       :status="$purchaseRequest->status ?? '—'"
