@@ -404,11 +404,11 @@ class PurchaseOrderController extends Controller
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:For Pick-up,For Delivery',
+            'status' => 'required|string|in:For Delivery',
         ]);
 
         $allowedTransitions = [
-            'Ordered' => ['For Pick-up', 'For Delivery'],
+            'Ordered' => ['For Delivery'],
         ];
 
         if (! in_array($validated['status'], $allowedTransitions[$purchaseOrder->status] ?? [], true)) {
