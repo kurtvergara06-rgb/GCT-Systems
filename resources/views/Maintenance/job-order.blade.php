@@ -543,21 +543,31 @@
                                                             </div>
                                                             <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
                                                             <div class="jo-review-detail-long jo-review-requested-parts">
-                                                                @php($reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
+                                                                @php
+                                                                    $reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
+                                                                    $reviewAllocations = collect($jobOrder->inventory_snapshot['parts'] ?? []);
+                                                                @endphp
                                                                 <div class="jo-review-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><strong>Requested Parts ({{ count($reviewParts) }})</strong></div>
                                                                 @if(count($reviewParts))
                                                                     <div class="jo-review-parts-list" data-parts='@json($reviewParts)'>
                                                                         <div class="jo-review-parts-table-header" aria-hidden="true">
-                                                                            <span>#</span><span>Part Description</span><span>Required</span><span>Stock</span><span>Shortage</span><span>Status</span>
+                                                                            <span>#</span><span>Part Description</span><span>Required</span><span>Reserved</span><span>Shortage</span><span>Status</span>
                                                                         </div>
                                                                         @foreach($reviewParts as $reviewPart)
+                                                                            @php
+                                                                                $allocation = $reviewAllocations->get($loop->index);
+                                                                                $requiredQty = (int) ($reviewPart['quantity'] ?? 0);
+                                                                                $reservedQty = $allocation !== null ? min($requiredQty, max(0, (int) ($allocation['reserved'] ?? 0))) : null;
+                                                                                $shortageQty = $reservedQty === null ? null : max(0, $requiredQty - $reservedQty);
+                                                                                $reviewAvailability = $reservedQty === null ? 'Not Verified' : ($shortageQty === 0 ? 'Sufficient' : ($reservedQty > 0 ? 'Partial' : 'Unavailable'));
+                                                                            @endphp
                                                                             <div class="jo-review-part-item">
                                                                                 <span class="jo-review-part-index">{{ $loop->iteration }}</span>
                                                                                 <strong class="jo-review-part-name">{{ $reviewPart['name'] }}</strong>
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
-                                                                                <span class="jo-review-part-stock">—</span>
-                                                                                <span class="jo-review-part-shortage">—</span>
-                                                                                <span class="jo-review-part-availability is-pending" title="Stock quantities and shortages must be verified against current warehouse reservations before approval.">Verify Stock</span>
+                                                                                <span class="jo-review-part-stock">{{ $reservedQty === null ? '—' : $reservedQty.' '.$reviewPart['unit'] }}</span>
+                                                                                <span class="jo-review-part-shortage">{{ $shortageQty === null ? '—' : $shortageQty.' '.$reviewPart['unit'] }}</span>
+                                                                                <span class="jo-review-part-availability {{ $reviewAvailability === 'Sufficient' ? 'is-available' : ($reviewAvailability === 'Partial' ? 'is-partial' : ($reviewAvailability === 'Unavailable' ? 'is-unavailable' : 'is-pending')) }}" title="Based on this Job Order's recorded stock reservation, not the Warehouse's total on-hand quantity.">{{ $reviewAvailability }}</span>
                                                                             </div>
                                                                         @endforeach
                                                                     </div>
