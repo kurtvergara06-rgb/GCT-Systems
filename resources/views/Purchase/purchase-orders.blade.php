@@ -509,21 +509,21 @@ data-po-no="{{ $purchaseOrder->po_no }}"
       </header>
       <div class="po-head-review-content">
         <div class="po-head-review-meta">
-          <div><span>Purchase Order</span><strong id="headReviewNo">—</strong></div>
-          <div><span>Date</span><strong id="headReviewDate">—</strong></div>
-          <div><span>Purchase Requisition</span><strong id="headReviewPr">—</strong></div>
-          <div><span>Supplier</span><strong id="headReviewSupplier">—</strong></div>
+          <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-file-invoice"></i></span><span class="po-review-field-copy"><span>Purchase Order</span><strong id="headReviewNo">—</strong></span></div>
+          <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span><span class="po-review-field-copy"><span>Date</span><strong id="headReviewDate">—</strong></span></div>
+          <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span><span class="po-review-field-copy"><span>Purchase Requisition</span><strong id="headReviewPr">—</strong></span></div>
+          <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="po-review-field-copy"><span>Supplier</span><strong id="headReviewSupplier">—</strong></span></div>
         </div>
         <section class="po-head-review-section po-jo-review">
 <h3><i class="fa-solid fa-link"></i> Linked Job Order Authorization</h3>
 <div class="po-jo-review-grid">
 <div class="po-jo-review-facts">
-<div><span>Job Order</span><strong id="poJoNo">—</strong></div>
-<div><span>Bus / Plate</span><strong id="poJoBus">—</strong></div>
-<div><span>Maintenance Type</span><strong id="poJoType">—</strong></div>
-<div><span>Approval Status</span><strong id="poJoStatus">—</strong></div>
-<div><span>Approved By</span><strong id="poJoApprover">—</strong></div>
-<div><span>Approved At</span><strong id="poJoDate">—</strong></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span><span class="po-review-field-copy"><span>Job Order</span><strong id="poJoNo">—</strong></span></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-bus"></i></span><span class="po-review-field-copy"><span>Bus / Plate</span><strong id="poJoBus">—</strong></span></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-screwdriver-wrench"></i></span><span class="po-review-field-copy"><span>Maintenance Type</span><strong id="poJoType">—</strong></span></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span><span class="po-review-field-copy"><span>Approval Status</span><strong id="poJoStatus">—</strong></span></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="po-review-field-copy"><span>Approved By</span><strong id="poJoApprover">—</strong></span></div>
+<div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-clock"></i></span><span class="po-review-field-copy"><span>Approved At</span><strong id="poJoDate">—</strong></span></div>
 </div>
 <div class="po-jo-review-signature"><strong>Authorized JO Signature</strong><img id="poJoSignature" alt="Authorized Maintenance Job Order approval signature" hidden><p id="poJoSignatureEmpty">No approved JO signature available.</p></div>
 </div></section>
@@ -698,6 +698,13 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     #poHeadReviewModal .po-head-review-notes-column #poHeadSignatoryName{background:#f1f5fa!important;font-weight:650!important;color:#19385b}
     #poHeadReviewModal .po-head-review-notes-column textarea{min-height:105px!important}
     @media(max-width:650px){#poHeadReviewModal .po-head-authorization-fields{grid-template-columns:1fr!important}#poHeadReviewModal .po-head-signature-column{border-right:0;border-bottom:1px solid #dce6f2;padding-right:0;padding-bottom:14px}}
+    /* Reference-matched blue icon tiles for PO and JO summary fields. */
+    #poHeadReviewModal .po-head-review-meta>div,#poHeadReviewModal .po-jo-review-facts>div{display:flex!important;align-items:center!important;gap:11px!important;min-width:0}
+    #poHeadReviewModal .po-review-field-icon{display:grid;place-items:center;flex:0 0 35px;width:35px;height:35px;border-radius:9px;background:#eaf3ff;color:#1767c9;font-size:14px}
+    #poHeadReviewModal .po-review-field-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+    #poHeadReviewModal .po-review-field-copy>span{font-size:10px!important;text-transform:uppercase;letter-spacing:.035em;color:#7084a0;font-weight:700}
+    #poHeadReviewModal .po-review-field-copy>strong{font-size:12px!important;color:#0f315d;overflow-wrap:anywhere}
+    #poHeadReviewModal #poJoStatus[data-approved="true"]{display:inline-flex;align-items:center;align-self:flex-start;border:1px solid #a8e1b9;border-radius:6px;padding:3px 9px;background:#e6f9ed;color:#17823c}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
@@ -715,6 +722,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
           for(const [id,val] of Object.entries({poJoNo:d.joNo,poJoBus:d.joBus,poJoType:d.joType,poJoStatus:d.joStatus,poJoApprover:d.joApprover,poJoDate:d.joDate})){byId(id).textContent=val||'—'}
+          byId('poJoStatus').dataset.approved=d.joStatus==='Approved'?'true':'false';
           const joImg=byId('poJoSignature'),joEmpty=byId('poJoSignatureEmpty');
           joImg.hidden=true;joImg.removeAttribute('src');joEmpty.hidden=false;
           if(d.joSignature&&d.joStatus==='Approved'){
