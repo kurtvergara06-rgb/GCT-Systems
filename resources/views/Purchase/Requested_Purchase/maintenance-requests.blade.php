@@ -201,7 +201,7 @@
   >
     <x-slot:footer>
       <button type="button" id="closeRequestedPrModalBottom" class="shared-pr-close-button">Close</button>
-      <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
+      <form id="requestedPrCreatePoForm" method="POST" hidden data-confirm-form data-confirm-title="Create Purchase Order?" data-confirm-message="Create a Purchase Order from this approved Purchase Requisition? You will review the PO details before ordering from the supplier." data-confirm-button="Yes, Create PO" data-confirm-type="create">@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
     </x-slot:footer>
   </x-ui.pr-details-modal>
 </x-layout.app>
