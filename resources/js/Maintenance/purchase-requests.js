@@ -1295,12 +1295,85 @@ window.GCTPartialNavigation.registerInitializer(
        OPEN PR DETAILS
     ========================================================= */
 
+    // Populate saved read-only details from the selected persisted PR row.
+    // Never render dataset values as HTML.
+    function populateSavedPrDetails(button) {
+      const data = button.dataset;
+      const setText = (id, value, fallback = '—') => {
+        const element = editPrModal?.querySelector('#' + id);
+        if (element) element.textContent = String(value ?? '').trim() || fallback;
+      };
+      setText('reviewPrNo', data.prNo);
+      setText('reviewPrSummaryJobOrder', data.jobOrderNo);
+      setText('reviewPrStatus', data.status);
+      setText('reviewPrBusNo', data.busNo);
+      setText('reviewPrCreated', data.createdAt);
+      setText('reviewPrSource', data.sourceType, 'Maintenance Request');
+      setText('reviewPrJobOrderNo', data.jobOrderNo);
+      setText('reviewPrRequester', data.requester);
+      setText('reviewPrRequestDate', data.createdAt);
+      setText('reviewPrApprover', data.joApprover, 'Not recorded');
+      setText('reviewPrJoAuthorization', data.joReviewStatus);
+      setText('reviewPrApprovedAt', data.joApprovedAt);
+      setText('reviewPrAuthorizationJobOrder', data.jobOrderNo);
+      setText('reviewPrWorkToPerform', data.workToPerform);
+      setText('reviewPrPurpose', data.purpose);
+      setText('reviewPrTargetDate', data.targetDate);
+      setText('reviewPrRemarks', data.remarks, 'No remarks provided.');
+      const pill = editPrModal?.querySelector('#reviewPrStatus');
+      if (pill) pill.dataset.status = (data.status || '').toLowerCase().replaceAll(' ', '-');
+      const signature = editPrModal?.querySelector('#reviewPrSignature');
+      const signatureFallback = editPrModal?.querySelector('#reviewPrSignatureFallback');
+      if (signature) {
+        const url = data.joApproved === '1' ? data.joSignatureUrl : '';
+        signature.hidden = !url;
+        signature.removeAttribute('src');
+        if (url) signature.src = url;
+        if (signatureFallback) signatureFallback.hidden = !!url;
+      }
+      const renderTable = (bodyId, parts, emptyText, status) => {
+        const body = editPrModal?.querySelector('#' + bodyId);
+        if (!body) return;
+        body.replaceChildren();
+        if (!parts.length) {
+          const row = body.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 3;
+          cell.className = 'pr-review-empty';
+          cell.textContent = emptyText;
+          return;
+        }
+        parts.forEach(part => {
+          const row = body.insertRow();
+          const name = row.insertCell();
+          const qty = row.insertCell();
+          const state = row.insertCell();
+          name.textContent = part.name || '—';
+          qty.textContent = [part.quantity ?? 0, part.unit || ''].join(' ').trim();
+          state.textContent = status;
+        });
+      };
+      const purchased = parseParts(data.item || '');
+      let reference = [];
+      try {
+        const parsed = JSON.parse(data.referenceIrParts || '[]');
+        if (Array.isArray(parsed)) reference = parsed;
+      } catch (_) {
+        reference = [];
+      }
+      renderTable('reviewPrItemsBody', purchased, 'No requested items recorded.', data.status || 'Submitted');
+      renderTable('reviewPrIrPartsBody', reference, 'No linked allocation.', data.linkedIrStatus || 'Reference only');
+      setText('reviewPrItemCount', purchased.length + (purchased.length === 1 ? ' item' : ' items'));
+      setText('reviewPrTotalQuantity', purchased.reduce((total, part) => total + Number(part.quantity || 0), 0));
+    }
+
     function openPrDetails(
       button,
       mode
     ) {
       activePrNo = button.dataset.prNo || '';
       activePrMode = mode;
+      populateSavedPrDetails(button);
 
       const status =
         button.dataset.status
