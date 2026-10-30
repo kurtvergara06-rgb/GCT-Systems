@@ -25,7 +25,6 @@
             </header>
             <div class="ir-toolbar">
                 <nav class="ir-tabs" aria-label="Item Request view">
-                    <a href="{{ route('part-requests', ['view' => 'pr']) }}" class="ir-active-tab" data-allow-partial-navigation="true"><i class="fa-solid fa-file-invoice"></i> PR Requests</a>
                     <a href="{{ route('warehouse.item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active</a>
                     <a href="{{ route('warehouse.item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                 </nav>
