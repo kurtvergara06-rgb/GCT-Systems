@@ -46,6 +46,86 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     body.className = 'jo-head-review-body';
     dialog.append(heading, body);
     overlay.append(dialog);
+    // Controls inside the Head review are dynamically portaled into this modal.
+    // Bind directly to the live panel, rather than relying on handlers from old page initializers.
+    const mode = panel.querySelector('.jo-review-mode');
+    const approveForm = panel.querySelector('.jo-review-approve-form');
+    const revisionForm = panel.querySelector('.jo-review-revision-form');
+    const rejectForm = panel.querySelector('.jo-review-reject-form');
+    const approveSubmit = panel.querySelector('.jo-review-approve-submit');
+    const showMode = (value) => {
+      if (mode) mode.dataset.reviewMode = value;
+      [approveForm, revisionForm, rejectForm].forEach((form) => {
+        if (!form) return;
+        const active = form === (value === 'revision' ? revisionForm : value === 'reject' ? rejectForm : approveForm);
+        form.hidden = !active;
+        form.querySelectorAll('textarea[required]').forEach(field => { field.disabled = !active; });
+      });
+      panel.querySelector('.jo-review-revision-trigger')?.toggleAttribute('hidden', value !== 'approve');
+      panel.querySelector('.jo-review-reject-trigger')?.toggleAttribute('hidden', value !== 'approve');
+      panel.querySelector('.jo-review-back')?.toggleAttribute('hidden', value === 'approve');
+      panel.querySelector('.jo-review-revision-submit')?.toggleAttribute('hidden', value !== 'revision');
+      panel.querySelector('.jo-review-reject-submit')?.toggleAttribute('hidden', value !== 'reject');
+      panel.querySelector('.jo-review-approve-submit')?.toggleAttribute('hidden', value !== 'approve');
+    };
+    panel.querySelector('.jo-review-revision-trigger')?.addEventListener('click', () => showMode('revision'));
+    panel.querySelector('.jo-review-reject-trigger')?.addEventListener('click', () => showMode('reject'));
+    panel.querySelector('.jo-review-back')?.addEventListener('click', () => showMode('approve'));
+
+    const fileInput = panel.querySelector('.jo-signature-file');
+    const chooseFile = panel.querySelector('.jo-signature-choose');
+    const signatureInput = panel.querySelector('.jo-signature-image');
+    const signaturePreview = panel.querySelector('.jo-signature-preview');
+    const removeSignature = panel.querySelector('.jo-signature-remove');
+    const feedback = panel.querySelector('.jo-signature-feedback');
+    const setFeedback = (message) => { if (feedback) feedback.textContent = message; };
+    const setSignature = (data) => {
+      if (signatureInput) signatureInput.value = data;
+      if (signaturePreview) { signaturePreview.hidden = !data; if (data) signaturePreview.src = data; else signaturePreview.removeAttribute('src'); }
+      if (removeSignature) removeSignature.hidden = !data;
+      panel.querySelector('.jo-signature-upload-placeholder')?.toggleAttribute('hidden', Boolean(data));
+      if (approveSubmit) { approveSubmit.disabled = !data; approveSubmit.setAttribute('aria-disabled', String(!data)); }
+    };
+    chooseFile?.addEventListener('click', () => fileInput?.click());
+    removeSignature?.addEventListener('click', () => {
+      if (fileInput) fileInput.value = '';
+      setSignature('');
+      setFeedback('Upload a signature image to approve this Job Order.');
+    });
+    fileInput?.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+        fileInput.value = '';
+        setSignature('');
+        setFeedback('Select a PNG, JPG, or WebP image no larger than 2 MB.');
+        return;
+      }
+      const image = new Image();
+      const temporaryUrl = URL.createObjectURL(file);
+      image.onload = () => {
+        URL.revokeObjectURL(temporaryUrl);
+        // Server accepts PNG only, limited to 400 KB. Compress to a bounded landscape PNG.
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(1, 640 / image.naturalWidth, 240 / image.naturalHeight);
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        const data = canvas.toDataURL('image/png');
+        if (data.length > 530000) { setSignature(''); setFeedback('Signature image is too detailed. Choose a smaller image.'); return; }
+        setSignature(data);
+        setFeedback('Signature uploaded. Review it before approving.');
+      };
+      image.onerror = () => { URL.revokeObjectURL(temporaryUrl); setFeedback('Could not read that image.'); setSignature(''); };
+      image.src = temporaryUrl;
+    });
+    approveForm?.addEventListener('submit', (event) => {
+      if (!signatureInput?.value) {
+        event.preventDefault();
+        setFeedback('Upload your signature before approving.');
+        chooseFile?.focus();
+      }
+    });
     const close = () => {
       if (overlay.hidden) return;
       overlay.hidden = true;
