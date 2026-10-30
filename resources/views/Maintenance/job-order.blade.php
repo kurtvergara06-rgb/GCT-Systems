@@ -404,7 +404,6 @@
                                                                 <span>Requested Parts</span>
                                                                 @php
                                                                     $viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
-                                                                    $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
                                                                 @endphp
                                                                 @if(collect($viewRequestedParts ?? [])->isNotEmpty())
                                                                     <div class="jo-view-stock-table">
