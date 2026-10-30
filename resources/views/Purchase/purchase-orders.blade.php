@@ -527,7 +527,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
 </div>
 <div class="po-jo-review-signature"><strong>Authorized JO Signature</strong><img id="poJoSignature" alt="Authorized Maintenance Job Order approval signature" hidden><p id="poJoSignatureEmpty">No approved JO signature available.</p></div>
 </div></section>
-<div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap"><table><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
+<div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap records-table-wrap"><table class="records-table po-review-items-table"><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
         <div class="po-head-review-summary"><span>Gross: <strong id="headReviewGross">—</strong></span><span>Delivery: <strong id="headReviewDelivery">—</strong></span><span>Discount: <strong id="headReviewDiscount">—</strong></span><span>VAT: <strong id="headReviewVat">—</strong></span><strong>NET TOTAL: <span id="headReviewNet">—</span></strong></div>
         <form id="poHeadReviewForm" method="POST" enctype="multipart/form-data">
           @csrf @method('PATCH')
@@ -653,6 +653,21 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     .purchase-orders-page .po-jo-review-signature{border:1px solid #dbe6f6;border-radius:9px;background:#f3f7ff}
     @media(max-width:900px){.purchase-orders-page .po-head-review-meta>div:nth-child(2)::after{display:none}.purchase-orders-page .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #e2eaf5!important}}
     @media(max-width:560px){.purchase-orders-page .po-head-review-meta>div::after{display:none}.purchase-orders-page .po-head-review-meta>div:not(:last-child){border-bottom:1px solid #e2eaf5!important}.purchase-orders-page .po-head-review-heading-icon{width:37px;height:37px;flex-basis:37px;font-size:16px}}
+    /* Reuse GCT records-table typography, scoped to Purchase Head review. */
+    .purchase-orders-page .po-head-review-dialog,
+    .purchase-orders-page .po-head-review-dialog button,
+    .purchase-orders-page .po-head-review-dialog input,
+    .purchase-orders-page .po-head-review-dialog textarea{font-family:inherit!important}
+    .purchase-orders-page .po-review-items-table{font-family:inherit!important;font-size:12px!important;border-collapse:collapse!important;letter-spacing:normal!important}
+    .purchase-orders-page .po-review-items-table thead th{font-family:inherit!important;font-size:11px!important;font-weight:800!important;letter-spacing:0!important;line-height:1.35!important;text-transform:uppercase!important;color:#18365c!important}
+    .purchase-orders-page .po-review-items-table tbody td{font-family:inherit!important;font-size:12px!important;font-weight:600!important;letter-spacing:0!important;line-height:1.45!important;color:#18365c!important}
+    .purchase-orders-page .po-review-items-table tbody td:first-child{font-weight:700!important}
+    .purchase-orders-page .po-review-items-table tbody tr:last-child td{border-bottom:0!important}
+    .purchase-orders-page .po-head-review-summary,.purchase-orders-page .po-head-review-summary span,.purchase-orders-page .po-head-review-summary strong{font-family:inherit!important;letter-spacing:normal!important}
+    .purchase-orders-page .po-head-review-summary span{font-size:11px!important;font-weight:500}
+    .purchase-orders-page .po-head-review-summary strong{font-size:12px!important;font-weight:800!important}
+    .purchase-orders-page .po-head-review-fields label{font-family:inherit!important;font-size:12px!important;font-weight:750!important;letter-spacing:normal!important}
+    .purchase-orders-page .po-head-review-fields textarea,.purchase-orders-page .po-head-review-fields input{font-family:inherit!important;font-size:12px!important;font-weight:500!important}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
