@@ -202,7 +202,7 @@
                       <x-ui.action-button
                         type="view"
                         title="View PO"
-                        class="open-view-po-modal"
+                        class="open-view-po-modal po-labeled-view"
                         data-id="{{ $purchaseOrder->id }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
