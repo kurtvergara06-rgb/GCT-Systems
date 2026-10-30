@@ -1547,3 +1547,6 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   display:inline-block!important;position:static!important;flex:none!important;
   margin:0!important;transform:none!important;line-height:1!important;
 }
+
+/* Compact icon-only PR Review action; preserve existing form and confirmation workflow. */
+.warehouse-part-table .warehouse-pr-review-action.icon-only-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;min-width:34px;height:32px;padding:0;gap:0;border-radius:7px}
