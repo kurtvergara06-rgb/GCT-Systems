@@ -67,4 +67,57 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
 
     renderIssuedQuantities(issuedQuantities);
   });
+
+  // Floating On Hand/Item breakdown: native <details> inside overflow-x:auto
+  // is clipped even when overflow-y is set to visible. Portal the popover.
+  let breakdown = null;
+  const closeBreakdown = () => {
+    if (!breakdown) return;
+    breakdown.details.open = false;
+    breakdown.popup.remove();
+    breakdown = null;
+  };
+  const placeBreakdown = () => {
+    if (!breakdown) return;
+    const rect = breakdown.summary.getBoundingClientRect();
+    const width = Math.min(350, Math.max(210, window.innerWidth - 24));
+    const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+    const preferredHeight = Math.min(breakdown.popup.scrollHeight, 290);
+    const below = window.innerHeight - rect.bottom - 12;
+    const above = rect.top - 12;
+    const openAbove = below < Math.min(preferredHeight, 140) && above > below;
+    Object.assign(breakdown.popup.style, {
+      position: 'fixed', zIndex: '12000', left: left + 'px',
+      width: width + 'px', right: 'auto',
+      top: openAbove ? 'auto' : rect.bottom + 6 + 'px',
+      bottom: openAbove ? window.innerHeight - rect.top + 6 + 'px' : 'auto',
+      maxHeight: Math.max(80, Math.min(290, openAbove ? above : below)) + 'px',
+      overflowY: 'auto', display: 'block', visibility: 'visible'
+    });
+  };
+  document.addEventListener('click', function (event) {
+    const summary = event.target.closest('.warehouse-part-main .warehouse-pr-parts-more > summary');
+    if (summary) {
+      event.preventDefault();
+      const details = summary.parentElement;
+      if (breakdown?.details === details) { closeBreakdown(); return; }
+      closeBreakdown();
+      const template = details.querySelector('.warehouse-pr-parts-popup');
+      if (!template) return;
+      const popup = template.cloneNode(true);
+      popup.classList.add('warehouse-pr-floating-popup');
+      document.body.appendChild(popup);
+      details.open = true;
+      breakdown = { details, summary, popup };
+      placeBreakdown();
+      return;
+    }
+    if (breakdown && !breakdown.popup.contains(event.target)) closeBreakdown();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && breakdown) { closeBreakdown(); }
+  });
+  window.addEventListener('resize', placeBreakdown);
+  window.addEventListener('scroll', () => { if (breakdown) closeBreakdown(); }, true);
+
 });
