@@ -499,7 +499,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     selector.addEventListener('change', sync);
     const priorName = name.value.trim();
     const normalizePart = value => String(value || '').trim().toLocaleLowerCase()
-      .replace(/\\s+/g, ' ').replace(/\\s*[-–]\\s*(?:test-)?[a-z0-9-]+$/i, '');
+      .replace(/\s+/g, ' ').replace(/\s*[-–]\s*TEST-[a-z0-9-]+$/i, '');
     selector.replaceChildren(new Option('Select inventory part', ''));
     joInventoryCatalog.forEach(item => selector.add(new Option(item.name, String(item.id))));
     const matched = joInventoryCatalog.find(item => normalizePart(item.name) === normalizePart(priorName))
