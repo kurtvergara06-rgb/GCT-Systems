@@ -206,17 +206,22 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 4. MAINTENANCE REFERRALS (Operation -> Maintenance)
         // ---------------------------------------------------------------------
-        $allReferrals = MaintenanceReferral::query()
+        // Count all referral statuses in SQL while loading only five recent details.
+        $referralCounts = MaintenanceReferral::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $referralPendingCount = (int) ($referralCounts['Pending'] ?? 0);
+        $referralApprovedCount = (int) ($referralCounts['Approved'] ?? 0);
+        $referralRejectedCount = (int) ($referralCounts['Rejected'] ?? 0);
+        $referralJobCreatedCount = (int) ($referralCounts['Job Order Created'] ?? 0);
+
+        $recentReferrals = MaintenanceReferral::query()
             ->with(['incident.bus', 'jobOrder'])
             ->latest('created_at')
+            ->limit(5)
             ->get();
-
-        $referralPendingCount = $allReferrals->where('status', 'Pending')->count();
-        $referralApprovedCount = $allReferrals->where('status', 'Approved')->count();
-        $referralRejectedCount = $allReferrals->where('status', 'Rejected')->count();
-        $referralJobCreatedCount = $allReferrals->where('status', 'Job Order Created')->count();
-
-        $recentReferrals = $allReferrals->take(5);
 
         // ---------------------------------------------------------------------
         // 5. PARTS & PURCHASE REQUESTS (Bottleneck Tracker)
