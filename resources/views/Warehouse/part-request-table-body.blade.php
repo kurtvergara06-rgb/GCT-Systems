@@ -60,24 +60,6 @@
                   <td class="qty-col">
                     <span class="qty-needed-badge">{{ $multipleParts ? $partDetails->count().' items' : $quantity }}</span>
                   </td>
-                  <td class="qty-col pr-onhand-cell">
-                    <div class="warehouse-pr-onhand-compact">
-                      <strong class="warehouse-pr-onhand-main">{{ $onHand }}</strong>
-                      @if($multipleParts)
-                        <details class="warehouse-pr-parts-more warehouse-pr-onhand-more">
-                          <summary>+{{ $partDetails->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                          <div class="warehouse-pr-parts-popup">
-                            @foreach($partDetails as $part)
-                              <div>
-                                <span>{{ trim(preg_replace('/\s*\[item:\d+\]/i', '', (string) ($part['name'] ?? '—'))) }}</span>
-                                <strong>{{ $part['physical_on_hand_display'] ?? '0 '.($part['unit'] ?? '') }}</strong>
-                              </div>
-                            @endforeach
-                          </div>
-                        </details>
-                      @endif
-                    </div>
-                  </td>
                   @php
                     $inventoryLabel = match (strtolower(trim((string) $inventoryStatus))) {
                       'available', 'sufficient' => 'Available',
@@ -183,7 +165,7 @@
               @endforeach
               @if($purchaseRequests->isEmpty())
                 <x-ui.empty-row
-                  colspan="7"
+                  colspan="6"
                   icon="fa-clipboard-list"
                   :message="$isHistory ? 'No Part Request History Found' : 'No Active Part Requests Found'"
                   :description="$isHistory ? 'Issued and fulfilled part requests will appear here.' : 'Maintenance part requisitions awaiting fulfillment will appear here.'"
