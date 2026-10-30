@@ -260,11 +260,15 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 6. FLEET READINESS
         // ---------------------------------------------------------------------
-        $buses = Bus::query()->get();
-        $totalBuses = $buses->count();
-        $activeBusesCount = $buses->where('status', 'Active')->count();
-        $inactiveBusesCount = $buses->where('status', 'Inactive')->count();
-        $underMaintenanceBusesCount = $buses->where('status', 'Under Maintenance')->count();
+        // Fleet KPIs need status totals, not every Bus model.
+        $busStatusCounts = Bus::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+        $totalBuses = (int) $busStatusCounts->sum();
+        $activeBusesCount = (int) ($busStatusCounts['Active'] ?? 0);
+        $inactiveBusesCount = (int) ($busStatusCounts['Inactive'] ?? 0);
+        $underMaintenanceBusesCount = (int) ($busStatusCounts['Under Maintenance'] ?? 0);
 
         // Buses currently in the repair bay based on active job orders
         $busesInRepairBay = $activeJobOrders->pluck('bus_no')->filter()->unique()->count();
