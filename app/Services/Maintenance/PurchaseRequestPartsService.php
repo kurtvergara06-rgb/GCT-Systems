@@ -7,6 +7,7 @@ use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\ItemRequest;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Collection;
 
 class PurchaseRequestPartsService
 {
@@ -15,14 +16,14 @@ class PurchaseRequestPartsService
         private JobOrderWorkflowService $workflow
     ) {}
 
-    public function missingParts(string $partText, ?JobOrder $jobOrder = null): array
+    public function missingParts(string $partText, ?JobOrder $jobOrder = null, ?Collection $inventoryItems = null, ?Collection $inventoryReservations = null): array
     {
         $requestedParts = $this->partParser->parsePartText($partText);
         if ($requestedParts === []) {
             return [];
         }
 
-        $availability = $this->workflow->inventoryAvailability($requestedParts);
+        $availability = $this->workflow->inventoryAvailability($requestedParts, $inventoryItems, $inventoryReservations);
         $partKey = fn (array $part): string => ! empty($part['inventory_item_id'])
             ? 'id:'.(int) $part['inventory_item_id']
             : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
