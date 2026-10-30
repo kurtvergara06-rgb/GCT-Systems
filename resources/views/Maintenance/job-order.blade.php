@@ -443,7 +443,7 @@
                                                                                     || (in_array($requestedUnit, ['pc', 'pcs', 'piece', 'pieces']) && in_array($stockUnit, ['pc', 'pcs', 'piece', 'pieces']));
                                                                                 $partStock = $stockItem && $partUnitsMatch ? max(0, (int) $stockItem->quantity_available) : 0;
                                                                                 $partDemand = (int) $part['quantity'];
-                                                                                $partAvailability = $partStock >= $partDemand ? 'Available' : 'Unavailable';
+                                                                                $partAvailability = $partStock >= $partDemand ? 'Sufficient' : ($partStock > 0 ? 'Partial' : 'Unavailable');
                                                                             @endphp
                                                                             <div class="jo-view-stock-row">
                                                                                 <span>{{ $loop->iteration }}</span>
@@ -451,7 +451,7 @@
                                                                                 <span>{{ $stockItem?->item_code ?: '—' }}</span>
                                                                                 <span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span>
                                                                                 <span class="jo-view-stock-qty">{{ $partStock }} on hand</span>
-                                                                                <span class="jo-view-part-availability {{ $partStock >= $partDemand ? 'is-available' : 'is-unavailable' }}">{{ $partAvailability }}</span>
+                                                                                <span class="jo-view-part-availability {{ $partAvailability === 'Sufficient' ? 'is-available' : ($partAvailability === 'Partial' ? 'is-partial' : 'is-unavailable') }}">{{ $partAvailability }}</span>
                                                                             </div>
                                                                         @endforeach
                                                                     </div>
