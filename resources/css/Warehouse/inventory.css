@@ -178,44 +178,32 @@
   border-bottom: none;
 }
 
-/* Ten real inventory columns. Avoid an unused 11th-column width rule. */
-.inventory-table th:nth-child(1),.inventory-table td:nth-child(1) {width:9%}
-.inventory-table th:nth-child(2),.inventory-table td:nth-child(2) {width:14%}
-.inventory-table th:nth-child(3),.inventory-table td:nth-child(3) {width:11%}
-.inventory-table th:nth-child(4),.inventory-table td:nth-child(4) {width:7%}
-.inventory-table th:nth-child(5),.inventory-table td:nth-child(5) {width:6%}
-.inventory-table th:nth-child(6),.inventory-table td:nth-child(6) {width:10%}
-.inventory-table th:nth-child(7),.inventory-table td:nth-child(7) {width:10%}
-.inventory-table th:nth-child(8),.inventory-table td:nth-child(8) {width:12%}
-.inventory-table th:nth-child(9),.inventory-table td:nth-child(9) {width:9%}
-.inventory-table th:nth-child(10),.inventory-table td:nth-child(10) {width:12%}
-
-/* Alignment */
-.inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4),
-.inventory-table th:nth-child(5),
-.inventory-table td:nth-child(5),
-.inventory-table th:nth-child(6),
-.inventory-table td:nth-child(6),
-.inventory-table th:nth-child(7),
-.inventory-table td:nth-child(7),
-.inventory-table th:nth-child(10),
-.inventory-table td:nth-child(10) {
-  text-align: center !important;
-}
-
-.inventory-table td:nth-child(1),
-.inventory-table td:nth-child(10) {
-  white-space: nowrap;
-}
-
-.inventory-table td:nth-child(2),
-.inventory-table td:nth-child(8),
-.inventory-table td:nth-child(9) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* Twelve inventory columns, including reservation and free stock balances. */
+.inventory-table {min-width:1250px}
+.inventory-table th:nth-child(1),.inventory-table td:nth-child(1){width:9%}
+.inventory-table th:nth-child(2),.inventory-table td:nth-child(2){width:13%}
+.inventory-table th:nth-child(3),.inventory-table td:nth-child(3){width:9%}
+.inventory-table th:nth-child(4),.inventory-table td:nth-child(4){width:7%}
+.inventory-table th:nth-child(5),.inventory-table td:nth-child(5){width:7%}
+.inventory-table th:nth-child(6),.inventory-table td:nth-child(6){width:8%}
+.inventory-table th:nth-child(7),.inventory-table td:nth-child(7){width:6%}
+.inventory-table th:nth-child(8),.inventory-table td:nth-child(8){width:9%}
+.inventory-table th:nth-child(9),.inventory-table td:nth-child(9){width:9%}
+.inventory-table th:nth-child(10),.inventory-table td:nth-child(10){width:9%}
+.inventory-table th:nth-child(11),.inventory-table td:nth-child(11){width:7%}
+.inventory-table th:nth-child(12),.inventory-table td:nth-child(12){width:7%}
+.inventory-table th:nth-child(4),.inventory-table td:nth-child(4),
+.inventory-table th:nth-child(5),.inventory-table td:nth-child(5),
+.inventory-table th:nth-child(6),.inventory-table td:nth-child(6),
+.inventory-table th:nth-child(7),.inventory-table td:nth-child(7),
+.inventory-table th:nth-child(8),.inventory-table td:nth-child(8),
+.inventory-table th:nth-child(9),.inventory-table td:nth-child(9),
+.inventory-table th:nth-child(12),.inventory-table td:nth-child(12){text-align:center!important}
+.inventory-table td:nth-child(1),.inventory-table td:nth-child(12){white-space:nowrap}
+.inventory-table td:nth-child(2),.inventory-table td:nth-child(10),
+.inventory-table td:nth-child(11){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inventory-table .inventory-reserved-cell strong{color:#9b620c}
+.inventory-table .inventory-available-cell strong{color:#185995}
 
 /* =====================================================
    BADGES
