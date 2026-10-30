@@ -634,3 +634,18 @@
     max-width: 100%;
   }
 }
+
+/* Compact Warehouse table controls, matching Item Requests and Purchase Requests. */
+.incoming-delivery-table .receive-delivery-btn{
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:6px!important;width:auto!important;min-width:0!important;
+  height:32px!important;min-height:32px!important;padding:0 12px!important;
+  border-radius:7px!important;font-size:11px!important;font-weight:750!important;
+  line-height:1!important;white-space:nowrap!important;
+}
+.incoming-delivery-table .delivery-status{
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  gap:5px;min-width:0;min-height:25px;height:25px;padding:0 9px;
+  border-radius:6px;font-size:10px;line-height:1;white-space:nowrap;
+}
+.incoming-delivery-table .inline-action-form{display:inline-flex;align-items:center;justify-content:center;margin:0}
