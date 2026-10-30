@@ -197,10 +197,25 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     sendModal.querySelector('.warehouse-edit-style-modal')?.focus();
   });
   sendConfirm?.addEventListener('click', function () {
-    if (!pendingSendForm) return;
-    pendingSendForm.dataset.sendConfirmed = '1';
-    sendConfirm.disabled = true;
-    pendingSendForm.requestSubmit();
+    if (!pendingSendForm || sendConfirm.disabled) return;
+    const form = pendingSendForm;
+    if (typeof window.openSystemConfirmation !== 'function') {
+      // Never bypass a required authorization confirmation.
+      return;
+    }
+    window.openSystemConfirmation({
+      title: 'Send Purchase Request to Purchasing?',
+      message: 'Confirm forwarding ' + (form.dataset.prNo || 'this Purchase Request')
+        + ' to Purchasing for the missing parts. Warehouse will not issue inventory.',
+      button: 'Yes, Send to Purchasing',
+      type: 'approve',
+      closeOnConfirm: true,
+    }, () => {
+      if (!form.isConnected || sendConfirm.disabled) return;
+      form.dataset.sendConfirmed = '1';
+      sendConfirm.disabled = true;
+      form.requestSubmit();
+    });
   });
   sendModal?.querySelectorAll('[data-send-missing-close]').forEach(button => button.addEventListener('click', closeSendModal));
   sendModal?.addEventListener('click', event => { if (event.target === sendModal) closeSendModal(); });
