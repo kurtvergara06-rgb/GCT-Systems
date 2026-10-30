@@ -78,19 +78,19 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       .replace(/\s+/g, '-');
   }
 
-  function renderPartsBreakdown(parts) {
-    const container = document.getElementById('view_parts_breakdown');
+  function renderPartsBreakdown(parts, containerId = 'view_parts_breakdown') {
+    const container = document.getElementById(containerId);
 
     if (!container) return;
 
     if (!Array.isArray(parts) || parts.length === 0) {
-      container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
+      container.innerHTML = '<div class="shared-pr-empty">No parts found.</div>';
       return;
     }
 
     let html = `
-      <div class="parts-breakdown-table no-status">
-        <div class="parts-breakdown-head no-status">
+      <div class="shared-pr-parts-table">
+        <div class="shared-pr-parts-head">
           <span>Part Name</span>
           <span>Quantity</span>
           <span>On Hand</span>
@@ -99,10 +99,10 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
     parts.forEach(function (part) {
       html += `
-        <div class="parts-breakdown-row no-status">
+        <div class="shared-pr-parts-row">
           <span class="part-name">${escapeHtml(String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim())}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
-          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
+          <span>${escapeHtml(part.physical_on_hand_display || part.available_display || part.available || '0')}</span>
         </div>
       `;
     });
@@ -135,9 +135,14 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
     setField('view_created', button.dataset.created);
+    setField('view_requested_by', button.dataset.requestedBy);
+    setField('view_processing', button.dataset.warehouseStatus || button.dataset.status);
     setField('view_remarks', button.dataset.remarks, 'No remarks');
+    setField('view_pr_parts_count', Array.isArray(parts) ? `${parts.length} ${parts.length === 1 ? 'part' : 'parts'}` : '0 parts');
+    setField('view_warehouse_status_badge', button.dataset.warehouseStatus || button.dataset.status);
 
     renderPartsBreakdown(parts);
+    renderPartsBreakdown(parts, 'view_stock_reference');
 
     openModal(viewPrModal);
   });

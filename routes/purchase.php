@@ -12,6 +12,9 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
         Route::get('/purchase/dashboard', [PurchaseDashboardController::class, 'index'])
             ->name('dashboard-purchase');
 
+        Route::get('/purchase/job-orders/{jobOrder}/approval-signature', [\App\Http\Controllers\Maintenance\JobOrderController::class, 'approvalSignature'])
+            ->name('purchase.job-orders.approval-signature');
+
         Route::controller(MaintenanceRequestController::class)
             ->prefix('maintenance-requests')
             ->group(function () {

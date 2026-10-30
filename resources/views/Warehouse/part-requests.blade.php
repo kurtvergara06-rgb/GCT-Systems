@@ -4,6 +4,7 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
+    'resources/css/Main-styles/pr-details-modal.css',
     'resources/css/Warehouse/part-requests.css',
     'resources/css/Warehouse/part-requests-cleanup.css',
     'resources/js/Warehouse/part-requests.js',
@@ -198,69 +199,16 @@
     </main>
   </div>
 
-  <div id="viewPrModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
-    <div class="warehouse-edit-style-modal warehouse-request-details-modal warehouse-pr-reference-view" role="dialog" aria-modal="true" aria-labelledby="warehouseRequestDetailsTitle">
-      <div class="warehouse-edit-header">
-        <span class="warehouse-modal-title-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
-        <div class="warehouse-modal-title-copy">
-          <h2 id="warehouseRequestDetailsTitle">Purchase Request Details</h2>
-          <p>Review requested shortages, stock reference, and procurement details.</p>
-        </div>
-        <span id="view_warehouse_status_badge" class="warehouse-pr-view-status">—</span>
-        <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="warehouse-modal-scrollable">
-        <x-ui.pr-summary pr-id="view_pr_no" jo-id="view_job_order_no" bus-id="view_bus_no" />
-        <section class="warehouse-modal-section warehouse-pr-reference-section warehouse-pr-approval-panel">
-          <header class="warehouse-modal-section-header"><span class="warehouse-modal-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
-            <div><h3>Maintenance Head Authorization</h3><p>Approval recorded on the linked Job Order (not a separate PR signature).</p></div>
-          </header>
-          <div class="warehouse-modal-section-body warehouse-pr-head-content">
-            <div class="warehouse-pr-head-person"><span>Approved By</span><strong data-pr-head-name>—</strong><small data-pr-head-status>Pending verification</small><small data-pr-head-date></small></div>
-            <div class="warehouse-pr-head-signature"><span>Authorized JO Signature</span><img data-pr-head-signature alt="Maintenance Head's saved Job Order approval signature" hidden><small data-pr-head-no-signature>Signature unavailable</small></div>
-          </div>
-        </section>
-        <section class="warehouse-modal-section warehouse-pr-reference-section">
-          <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-cube"></i></span>
-            <div><h3>Parts Requiring Purchase</h3><p>Requested shortages and Warehouse stock reference.</p></div>
-          </header>
-          <div class="warehouse-modal-section-body">
-            <div id="view_parts_breakdown" class="parts-breakdown-box"><div class="parts-breakdown-empty">No parts found.</div></div>
-            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Warehouse stock shown for reference only. PR quantities represent unavailable shortages to be procured.</p>
-          </div>
-        </section>
-        <details class="warehouse-pr-extra-details">
-          <summary><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Additional request information <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-          <div class="warehouse-pr-extra-grid">
-            <div><span>Requested By</span><strong id="view_requested_by">—</strong></div>
-            <div><span>Date Requested</span><strong id="view_created">—</strong></div>
-            <div><span>Department</span><strong>Maintenance</strong></div>
-            <div><span>Processing</span><strong id="view_processing">—</strong></div>
-            <div><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
-          </div>
-        <section class="warehouse-modal-section warehouse-pr-reference-section">
-          <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-warehouse"></i></span>
-            <div><h3>Warehouse Stock Reference</h3><p>Physical stock currently visible to Warehouse while reviewing this PR.</p></div>
-          </header>
-          <div class="warehouse-modal-section-body">
-            <div id="view_stock_reference" class="parts-breakdown-box"><div class="parts-breakdown-empty">No stock reference found.</div></div>
-          </div>
-        </section>
-        <section class="warehouse-modal-section warehouse-pr-reference-section">
-          <header class="warehouse-modal-section-header">
-            <span class="warehouse-modal-section-icon"><i class="fa-solid fa-comment-dots"></i></span>
-            <div><h3>Remarks</h3></div>
-          </header>
-          <div class="warehouse-modal-section-body"><div class="warehouse-readonly-note" id="view_remarks">No remarks provided.</div></div>
-        </section>
-
-        </details>
-      </div>
-      <div class="warehouse-edit-footer"><button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button></div>
-    </div>
-  </div>
+  <x-ui.pr-details-modal
+    modal-id="viewPrModal" title-id="warehouseRequestDetailsTitle" close-id="closeViewPrModal"
+    pr-id="view_pr_no" jo-id="view_job_order_no" bus-id="view_bus_no"
+    parts-id="view_parts_breakdown" requested-by-id="view_requested_by" created-id="view_created"
+    processing-id="view_processing" parts-count-id="view_pr_parts_count"
+    stock-reference-id="view_stock_reference" remarks-id="view_remarks"
+    status-badge-id="view_warehouse_status_badge"
+  >
+    <x-slot:footer><button type="button" id="closeViewPrModalBottom" class="shared-pr-close-button">Close</button></x-slot:footer>
+  </x-ui.pr-details-modal>
 
   <div id="warehouseSendMissingModal" class="modal-overlay warehouse-view-overlay" aria-hidden="true">
     <div class="warehouse-edit-style-modal warehouse-request-details-modal warehouse-pr-reference-view warehouse-send-missing-view" role="dialog" aria-modal="true" aria-labelledby="warehouseSendMissingTitle">

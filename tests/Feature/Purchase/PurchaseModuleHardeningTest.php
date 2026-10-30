@@ -8,6 +8,7 @@ use App\Models\Admin\User;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\ScheduledPurchase;
+use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -184,29 +185,64 @@ class PurchaseModuleHardeningTest extends TestCase
         $this->assertDatabaseMissing('purchase_orders', ['supplier_name' => 'Safe Supplier']);
     }
 
-    public function test_parts_requests_page_uses_six_columns_and_read_only_details(): void
+    public function test_parts_requests_page_uses_current_columns_and_shared_read_only_details(): void
     {
         $user = $this->purchaseUser('head');
         $purchaseRequest = $this->maintenanceRequest('PR-MAINT-UI-1');
+        $linkedInventory = InventoryItem::create([
+            'item_code' => 'TEST-PART-1',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 4,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        InventoryItem::create([
+            'item_code' => 'TEST-PART-2',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 99,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $purchaseRequest->update([
+            'item' => "Oil Filter [item:{$linkedInventory->id}] - Qty: 2 pcs, Fan Belt - Qty: 1 pc",
+        ]);
+
+        $prepare = new \ReflectionMethod(
+            \App\Http\Controllers\Purchase\MaintenanceRequestController::class,
+            'prepareRequestForDisplay'
+        );
+        $prepared = $prepare->invoke(
+            app(\App\Http\Controllers\Purchase\MaintenanceRequestController::class),
+            $purchaseRequest->fresh(),
+            null,
+            InventoryItem::all()
+        );
+        $this->assertSame(4, $prepared->parts_breakdown[0]['physical_on_hand']);
 
         $response = $this->actingAs($user)->get(route('maintenance-requests'));
 
         $response->assertOk()
-            ->assertSee('<th scope="col">Request / JO</th>', false)
-            ->assertSee('<th scope="col">Submitted At</th>', false)
-            ->assertSee('<th scope="col">Parts for Purchase</th>', false)
-            ->assertSee('<th scope="col">Qty</th>', false)
+            ->assertSee('<th scope="col">PR ID</th>', false)
+            ->assertSee('<th scope="col">Bus ID</th>', false)
+            ->assertSee('<th scope="col">Requested Parts</th>', false)
+            ->assertSee('<th scope="col">QTY</th>', false)
+            ->assertSee('<th scope="col">Total Items</th>', false)
             ->assertSee('<th scope="col">PR Status</th>', false)
             ->assertSee('<th scope="col">Actions</th>', false)
-            ->assertSee('Pending Requests')
-            ->assertSee('In Progress')
-            ->assertSee('History')
             ->assertSee($purchaseRequest->job_order_no)
             ->assertSee($purchaseRequest->bus_no)
-            ->assertSee('Procurement Status')
+            ->assertSee('Maintenance Head Authorization')
+            ->assertSee('Authorized JO Signature')
+            ->assertSee('Parts Requiring Purchase')
+            ->assertSee('Additional Request Information')
             ->assertSee('id="viewRequestedPartsContainer"', false)
             ->assertDontSee('<input id="viewRequestedPrNo"', false)
             ->assertDontSee('<textarea id="viewRequestedRemarks"', false);
+
     }
 
     public function test_parts_requests_record_tabs_group_pending_and_in_progress_statuses(): void

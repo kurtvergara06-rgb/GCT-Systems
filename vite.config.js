@@ -26,6 +26,7 @@ export default defineConfig({
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/record-action-buttons.css',
                 'resources/css/Main-styles/gct-scrollbar.css',
+                'resources/css/Main-styles/pr-details-modal.css',
                 'resources/css/Account/account.css',
 
                 'resources/js/Main-js/partial-navigation.js',

@@ -49,6 +49,7 @@ class WarehouseFrontendHardeningTest extends TestCase
     {
         $inventory = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
         $partRequests = file_get_contents(resource_path('views/Warehouse/part-requests.blade.php'));
+        $sharedPrDetails = file_get_contents(resource_path('views/components/ui/pr-details-modal.blade.php'));
 
         $this->assertStringContainsString('inventory-details-modal', $inventory);
         $this->assertStringContainsString('01 — Item Information', $inventory);
@@ -59,12 +60,14 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('inventory-movement-modal__footer', $inventory);
 
         $this->assertStringContainsString('resources/css/Main-styles/form-components.css', $partRequests);
-        $this->assertStringContainsString('warehouse-modal-scrollable', $partRequests);
-        $this->assertStringContainsString('Purchase Request Details', $partRequests);
-        $this->assertStringContainsString('Purchase Request Parts', $partRequests);
-        $this->assertStringContainsString('Warehouse Stock Reference', $partRequests);
-        $this->assertStringContainsString('Remarks', $partRequests);
-        $this->assertStringContainsString('warehouse-edit-footer', $partRequests);
+        $this->assertStringContainsString('resources/css/Main-styles/pr-details-modal.css', $partRequests);
+        $this->assertStringContainsString('<x-ui.pr-details-modal', $partRequests);
+        $this->assertStringContainsString('Purchase Request Details', $sharedPrDetails);
+        $this->assertStringContainsString('Parts Requiring Purchase', $sharedPrDetails);
+        $this->assertStringContainsString('Maintenance Head Authorization', $sharedPrDetails);
+        $this->assertStringContainsString('Warehouse Stock Reference', $sharedPrDetails);
+        $this->assertStringContainsString('Remarks', $sharedPrDetails);
+        $this->assertStringContainsString('shared-pr-details-footer', $sharedPrDetails);
     }
 
     public function test_dashboard_uses_unique_realtime_regions(): void

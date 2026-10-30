@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
+use App\Models\Warehouse\InventoryItem;
 use App\Services\PartParser;
 use App\Support\TableSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class MaintenanceRequestController extends Controller
 {
@@ -61,11 +64,22 @@ class MaintenanceRequestController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
+            ->with('requester')
             ->paginate(8)
             ->withQueryString();
 
+        $jobOrders = JobOrder::query()
+            ->with(['approver', 'audits'])
+            ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter()->unique())
+            ->get()
+            ->keyBy('job_order_no');
+        $inventoryItems = InventoryItem::query()->get();
         $purchaseRequests->getCollection()->transform(
-            fn ($purchaseRequest) => $this->prepareRequestForDisplay($purchaseRequest)
+            fn ($purchaseRequest) => $this->prepareRequestForDisplay(
+                $purchaseRequest,
+                $jobOrders->get($purchaseRequest->job_order_no),
+                $inventoryItems
+            )
         );
 
         $totalRequests = (clone $baseQuery)
@@ -259,13 +273,33 @@ class MaintenanceRequestController extends Controller
     }
 
     private function prepareRequestForDisplay(
-        MaintenanceRequest $purchaseRequest
+        MaintenanceRequest $purchaseRequest,
+        ?JobOrder $jobOrder = null,
+        ?Collection $inventoryItems = null
     ): MaintenanceRequest {
+        $inventoryIdsByPartIndex = collect(preg_split('/\s*,\s*/', (string) $purchaseRequest->item))
+            ->map(function (string $part): ?int {
+                return preg_match('/\[item:(\d+)\]/i', $part, $match)
+                    ? (int) $match[1]
+                    : null;
+            });
+        $inventoryItemsById = $inventoryItems?->keyBy('id');
+
         $parts = collect(
             $this->partParser->parsePartText($purchaseRequest->item)
         )
-            ->map(function ($part) {
+            ->map(function ($part, $index) use ($inventoryItems, $inventoryItemsById, $inventoryIdsByPartIndex) {
                 $unit = ($part['unit'] ?? '') !== '' ? $part['unit'] : '—';
+                $linkedInventoryId = $inventoryIdsByPartIndex->get($index);
+                $inventoryItem = $linkedInventoryId
+                    ? $inventoryItemsById?->get($linkedInventoryId)
+                    : null;
+                $inventoryItem ??= $inventoryItems
+                    ? $this->findPhysicalInventoryItem($inventoryItems, (string) ($part['name'] ?? ''), $unit)
+                    : null;
+                $physicalOnHand = $inventoryItem
+                    ? max(0, (int) ($inventoryItem->quantity_available ?? $inventoryItem->on_hand ?? 0))
+                    : 0;
 
                 return [
                     'name' => $part['name'] ?? '',
@@ -274,13 +308,15 @@ class MaintenanceRequestController extends Controller
                     'quantity_display' => trim(
                         ($part['quantity'] ?? 1).' '.$unit
                     ),
+                    'physical_on_hand' => $physicalOnHand,
+                    'physical_on_hand_display' => trim($physicalOnHand.' '.$unit),
                 ];
             })
             ->filter(fn ($part) => is_array($part) && ! empty($part['name']))
             ->values()
             ->toArray();
 
-        $purchaseRequest->parts_breakdown = $parts;
+        $purchaseRequest->withDisplayPartsBreakdown($parts);
         $purchaseRequest->first_item_display =
             $parts[0]['name'] ?? $purchaseRequest->item ?? '—';
 
@@ -295,6 +331,40 @@ class MaintenanceRequestController extends Controller
             $purchaseRequest->first_quantity_display = $purchaseRequest->quantity ?? '—';
         }
 
+        $approvalAudit = $jobOrder?->audits?->first(fn ($audit) =>
+            $audit->action === 'approved'
+            && is_string(data_get($audit->metadata, 'handwritten_signature_path'))
+        );
+        $signaturePath = data_get($approvalAudit?->metadata, 'handwritten_signature_path');
+        $isAuthorized = $jobOrder?->review_status === 'Approved';
+        $purchaseRequest->jo_approver = $isAuthorized
+            ? ($jobOrder?->approver?->name ?? 'Not available')
+            : 'Not approved';
+        $purchaseRequest->jo_approval_status = $jobOrder?->review_status ?? 'JO not found';
+        $purchaseRequest->jo_approved_at = ($jobOrder?->approved_at ?? $approvalAudit?->created_at)?->format('M d, Y · h:i A') ?? '';
+        $purchaseRequest->jo_approval_signature = $isAuthorized && is_string($signaturePath) && $signaturePath !== ''
+            ? route('purchase.job-orders.approval-signature', $jobOrder, false)
+            : '';
+
         return $purchaseRequest;
+    }
+
+    private function findPhysicalInventoryItem(Collection $items, string $name, string $unit): ?InventoryItem
+    {
+        $normalize = static fn (string $value): string => mb_strtolower(
+            preg_replace('/[^a-z0-9]+/i', '', trim($value))
+        );
+        $nameKey = $normalize(preg_replace('/\s*\[item:\d+\]/i', '', $name));
+        $unitKey = $this->partParser->normalizeUnit($unit === '—' ? '' : $unit);
+        $matches = $items->filter(function (InventoryItem $item) use ($normalize, $nameKey, $unitKey) {
+            $itemName = $normalize((string) ($item->parts_name ?? $item->item_name ?? ''));
+            $itemCode = $normalize((string) ($item->item_code ?? ''));
+            $itemUnit = $this->partParser->normalizeUnit((string) ($item->unit_of_measurement ?? $item->unit ?? ''));
+
+            return ($itemName === $nameKey || $itemCode === $nameKey)
+                && ($unitKey === '' || $itemUnit === $unitKey);
+        })->values();
+
+        return $matches->count() === 1 ? $matches->first() : null;
     }
 }

@@ -3,6 +3,7 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-styles/pr-details-modal.css',
     'resources/css/Purchase/purchase-module-ui.css',
     'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
@@ -154,8 +155,13 @@
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
+                        data-requested-by="{{ $purchaseRequest->requester?->name ?? '—' }}"
                         data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
                         data-status="{{ $purchaseRequest->status ?? '—' }}"
+                        data-jo-approver="{{ $purchaseRequest->jo_approver ?? 'Not available' }}"
+                        data-jo-approval-status="{{ $purchaseRequest->jo_approval_status ?? 'Not verified' }}"
+                        data-jo-approval-signature="{{ $purchaseRequest->jo_approval_signature ?? '' }}"
+                        data-jo-approved-at="{{ $purchaseRequest->jo_approved_at ?? '' }}"
                         data-item="{{ $purchaseRequest->item }}"
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
@@ -181,62 +187,17 @@
     </main>
   </div>
 
-  <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay" role="dialog" aria-modal="true" aria-labelledby="requestedPrModalTitle">
-    <div class="requested-pr-style-modal">
-      <div class="requested-pr-modal-header">
-        <div>
-          <h2 id="requestedPrModalTitle">Purchase Request Details</h2>
-          <h3>Maintenance purchase requisition</h3>
-          <p>Review the request, parts, procurement status, and remarks.</p>
-        </div>
-        <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn" aria-label="Close purchase request details">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="requested-pr-modal-body">
-        <x-ui.pr-summary pr-id="viewRequestedPrNo" jo-id="viewRequestedJoNo" bus-id="viewRequestedBusNo" />
-
-        <section class="requested-pr-detail-section">
-          <h3>Parts Requiring Purchase</h3>
-          <div class="requested-pr-breakdown-box">
-            <table class="requested-pr-breakdown-table">
-              <thead>
-                <tr><th>Part Name</th><th>Quantity</th><th>Unit</th></tr>
-              </thead>
-              <tbody id="viewRequestedPartsContainer">
-                <tr><td>—</td><td>—</td><td>—</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <details class="requested-pr-additional">
-          <summary>Additional Request Information <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-          <dl class="requested-pr-additional-grid">
-          <div>
-            <dt>Submitted At</dt>
-            <dd id="viewRequestedCreated">—</dd>
-          </div>
-          <div class="requested-pr-status-information">
-            <dt>Procurement Status</dt>
-            <dd><span id="viewRequestedStatus" class="requested-pr-modal-status">—</span></dd>
-          </div>
-
-          </dl>
-        <section class="requested-pr-detail-section requested-pr-remarks-section">
-          <h3>Remarks</h3>
-          <p id="viewRequestedRemarks">No remarks</p>
-        </section>
-        </details>
-      </div>
-
-      <div class="requested-pr-footer">
-        <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
-        <button type="button" id="closeRequestedPrModalBottom" class="requested-pr-close-bottom">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
+  <x-ui.pr-details-modal
+    modal-id="viewRequestedPrModal" title-id="requestedPrModalTitle" close-id="closeRequestedPrModal"
+    pr-id="viewRequestedPrNo" jo-id="viewRequestedJoNo" bus-id="viewRequestedBusNo"
+    parts-id="viewRequestedPartsContainer" requested-by-id="viewRequestedBy" created-id="viewRequestedCreated"
+    processing-id="viewRequestedStatus" parts-count-id="viewRequestedPartsCount"
+    stock-reference-id="viewRequestedStockReference" remarks-id="viewRequestedRemarks"
+    status-badge-id="viewRequestedStatusBadge"
+  >
+    <x-slot:footer>
+      <form id="requestedPrCreatePoForm" method="POST" hidden>@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
+      <button type="button" id="closeRequestedPrModalBottom" class="shared-pr-close-button">Close</button>
+    </x-slot:footer>
+  </x-ui.pr-details-modal>
 </x-layout.app>

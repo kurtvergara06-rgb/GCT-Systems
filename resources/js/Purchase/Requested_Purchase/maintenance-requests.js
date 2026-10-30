@@ -68,6 +68,9 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('.shared-pr-details-scrollable')?.scrollTo({ top: 0 });
+    modal.querySelectorAll('.shared-pr-extra-details[open]').forEach((details) => details.removeAttribute('open'));
   }
 
   function closeModal(modal) {
@@ -76,6 +79,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     modal.classList.remove('show');
     modal.classList.remove('active');
     modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   function setField(id, value, fallback = '—') {
@@ -241,15 +245,50 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
       name: parsed.name,
       quantity: parsed.quantity,
       unit: rawUnit ? rawUnit : parsed.unit,
+      onHand: part.physical_on_hand_display || part.available_display || part.on_hand_display ||
+        String(part.physical_on_hand ?? part.available ?? 0) + ' ' + (rawUnit || parsed.unit || ''),
     };
+  }
+
+  function renderSharedParts(container, parts) {
+    if (!container) return;
+    container.replaceChildren();
+
+    if (!Array.isArray(parts) || parts.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'shared-pr-empty';
+      empty.textContent = 'No parts found.';
+      container.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement('div');
+    table.className = 'shared-pr-parts-table';
+    const head = document.createElement('div');
+    head.className = 'shared-pr-parts-head';
+    ['Part Name', 'Quantity', 'On Hand'].forEach((label) => {
+      const cell = document.createElement('span');
+      cell.textContent = label;
+      head.appendChild(cell);
+    });
+    table.appendChild(head);
+
+    parts.forEach((part) => {
+      const row = document.createElement('div');
+      row.className = 'shared-pr-parts-row';
+      [part.name || '—', `${part.quantity || 1} ${part.unit || ''}`.trim(), part.onHand || '—'].forEach((value) => {
+        const cell = document.createElement('span');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      table.appendChild(row);
+    });
+    container.appendChild(table);
   }
 
   function renderRequestedParts(button) {
     const container = document.getElementById('viewRequestedPartsContainer');
-
-    if (!container) return;
-
-    container.replaceChildren();
+    const stockReference = document.getElementById('viewRequestedStockReference');
 
     let parts = [];
 
@@ -271,36 +310,48 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
 
     if (!Array.isArray(parts) || parts.length === 0) {
       parts = parseRequestedParts(button.dataset.item, button.dataset.quantity);
+      parts = parts.map((part) => ({ ...part, onHand: '—' }));
     }
 
-    if (!Array.isArray(parts) || parts.length === 0) {
-      const row = document.createElement('tr');
-      ['—', '—', '—'].forEach(function (value) {
-        const cell = document.createElement('td');
-        cell.textContent = value;
-        row.appendChild(cell);
-      });
-      container.appendChild(row);
-      return;
+    renderSharedParts(container, parts);
+    renderSharedParts(stockReference, parts);
+    setField('viewRequestedPartsCount', parts.length ? `${parts.length} ${parts.length === 1 ? 'part' : 'parts'}` : '0 parts');
+  }
+
+  function fillHeadAuthorization(modal, source) {
+    if (!modal || !source) return;
+    const name = modal.querySelector('[data-pr-head-name]');
+    const status = modal.querySelector('[data-pr-head-status]');
+    const date = modal.querySelector('[data-pr-head-date]');
+    const image = modal.querySelector('[data-pr-head-signature]');
+    const unavailable = modal.querySelector('[data-pr-head-no-signature]');
+    if (name) name.textContent = source.joApprover || 'Not available';
+    if (status) status.textContent = 'Linked JO: ' + (source.joApprovalStatus || 'Not verified');
+    if (date) date.textContent = source.joApprovedAt || '';
+    const signatureUrl = source.joApprovalSignature || '';
+    if (image) {
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+        if (unavailable) { unavailable.hidden = false; unavailable.textContent = 'JO signature unavailable'; }
+      };
+      image.onload = () => {
+        image.hidden = false;
+        if (unavailable) unavailable.hidden = true;
+      };
+      image.hidden = true;
+      if (signatureUrl) image.src = signatureUrl;
+      else image.removeAttribute('src');
     }
-
-    parts.forEach(function (part) {
-      const row = document.createElement('tr');
-
-      [part.name || '—', part.quantity || '1', part.unit || '—'].forEach(function (value) {
-        const cell = document.createElement('td');
-        cell.textContent = value;
-        row.appendChild(cell);
-      });
-
-      container.appendChild(row);
-    });
+    if (unavailable) {
+      unavailable.hidden = Boolean(signatureUrl);
+      unavailable.textContent = 'JO signature unavailable';
+    }
   }
 
   const viewRequestedPrModal = document.getElementById('viewRequestedPrModal');
   const closeRequestedPrModal = document.getElementById('closeRequestedPrModal');
   const closeRequestedPrModalBottom = document.getElementById('closeRequestedPrModalBottom');
-  const viewRequestedStatus = document.getElementById('viewRequestedStatus');
 
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.open-view-requested-pr-modal');
@@ -313,12 +364,11 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     setField('viewRequestedJoNo', button.dataset.jobOrderNo);
     setField('viewRequestedBusNo', button.dataset.busNo);
     setField('viewRequestedCreated', button.dataset.created);
+    setField('viewRequestedBy', button.dataset.requestedBy);
     setField('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
     setField('viewRequestedStatus', button.dataset.status);
-    if (viewRequestedStatus) {
-      viewRequestedStatus.className = 'requested-pr-modal-status status-' +
-        String(button.dataset.status || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    }
+    setField('viewRequestedStatusBadge', button.dataset.status);
+    fillHeadAuthorization(viewRequestedPrModal, button.dataset);
 
     const createPoForm = document.getElementById('requestedPrCreatePoForm');
     if (createPoForm) {
