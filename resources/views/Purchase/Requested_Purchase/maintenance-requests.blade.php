@@ -195,7 +195,7 @@
       <div class="requested-pr-modal-header">
         <div>
           <h2 id="requestedPrModalTitle">Purchase Request Details</h2>
-          <h3>Read-only request information</h3>
+          <h3>Maintenance purchase requisition</h3>
           <p>Review the request, parts, procurement status, and remarks.</p>
         </div>
         <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn" aria-label="Close purchase request details">
@@ -217,18 +217,10 @@
             <dt>Bus Number</dt>
             <dd id="viewRequestedBusNo">—</dd>
           </div>
-          <div>
-            <dt>Submitted At</dt>
-            <dd id="viewRequestedCreated">—</dd>
-          </div>
-          <div class="requested-pr-status-information">
-            <dt>Procurement Status</dt>
-            <dd><span id="viewRequestedStatus" class="requested-pr-modal-status">—</span></dd>
-          </div>
         </dl>
 
         <section class="requested-pr-detail-section">
-          <h3>Requested Parts</h3>
+          <h3>Parts Requiring Purchase</h3>
           <div class="requested-pr-breakdown-box">
             <table class="requested-pr-breakdown-table">
               <thead>
@@ -241,10 +233,24 @@
           </div>
         </section>
 
+        <details class="requested-pr-additional">
+          <summary>Additional Request Information <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+          <dl class="requested-pr-additional-grid">
+          <div>
+            <dt>Submitted At</dt>
+            <dd id="viewRequestedCreated">—</dd>
+          </div>
+          <div class="requested-pr-status-information">
+            <dt>Procurement Status</dt>
+            <dd><span id="viewRequestedStatus" class="requested-pr-modal-status">—</span></dd>
+          </div>
+
+          </dl>
         <section class="requested-pr-detail-section requested-pr-remarks-section">
           <h3>Remarks</h3>
           <p id="viewRequestedRemarks">No remarks</p>
         </section>
+        </details>
       </div>
 
       <div class="requested-pr-footer">
