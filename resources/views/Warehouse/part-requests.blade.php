@@ -210,15 +210,11 @@
         <button type="button" id="closeViewPrModal" class="warehouse-edit-close" aria-label="Close Purchase Request Details"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="warehouse-modal-scrollable">
-        <div class="warehouse-request-summary warehouse-pr-reference-strip" aria-label="Purchase Request summary">
+        <div class="warehouse-request-summary warehouse-pr-reference-strip warehouse-send-missing-meta" aria-label="Purchase Request summary">
           <div class="warehouse-summary-item"><span>PR ID</span><strong id="view_pr_no">—</strong></div>
           <div class="warehouse-summary-item"><span>Linked JO</span><strong id="view_job_order_no">—</strong></div>
-          <div class="warehouse-summary-item"><span>Requested By</span><strong id="view_requested_by">—</strong></div>
-          <div class="warehouse-summary-item"><span>Date Requested</span><strong id="view_created">—</strong></div>
-          <div class="warehouse-summary-item"><span>Department</span><strong>Maintenance</strong></div>
-          <div class="warehouse-summary-item"><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
+          <div class="warehouse-summary-item"><span>Bus</span><strong id="view_bus_no">—</strong></div>
         </div>
-        <div class="warehouse-pr-reference-secondary">Bus: <strong id="view_bus_no">—</strong><span aria-hidden="true"> | </span> Processing: <strong id="view_processing">—</strong></div>
         <section class="warehouse-modal-section warehouse-pr-reference-section warehouse-pr-approval-panel">
           <header class="warehouse-modal-section-header"><span class="warehouse-modal-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
             <div><h3>Maintenance Head Authorization</h3><p>Approval recorded on the linked Job Order (not a separate PR signature).</p></div>
@@ -231,13 +227,22 @@
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
             <span class="warehouse-modal-section-icon"><i class="fa-solid fa-cube"></i></span>
-            <div><h3>Purchase Request Parts</h3><p>Missing parts requiring procurement, with Warehouse stock reference.</p></div>
+            <div><h3>Parts Requiring Purchase</h3><p>Requested shortages and Warehouse stock reference.</p></div>
           </header>
           <div class="warehouse-modal-section-body">
             <div id="view_parts_breakdown" class="parts-breakdown-box"><div class="parts-breakdown-empty">No parts found.</div></div>
             <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Warehouse stock shown for reference only. PR quantities represent unavailable shortages to be procured.</p>
           </div>
         </section>
+        <details class="warehouse-pr-extra-details">
+          <summary><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Additional request information <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+          <div class="warehouse-pr-extra-grid">
+            <div><span>Requested By</span><strong id="view_requested_by">—</strong></div>
+            <div><span>Date Requested</span><strong id="view_created">—</strong></div>
+            <div><span>Department</span><strong>Maintenance</strong></div>
+            <div><span>Processing</span><strong id="view_processing">—</strong></div>
+            <div><span>Total Parts</span><strong id="view_pr_parts_count">—</strong></div>
+          </div>
         <section class="warehouse-modal-section warehouse-pr-reference-section">
           <header class="warehouse-modal-section-header">
             <span class="warehouse-modal-section-icon"><i class="fa-solid fa-warehouse"></i></span>
@@ -254,6 +259,8 @@
           </header>
           <div class="warehouse-modal-section-body"><div class="warehouse-readonly-note" id="view_remarks">No remarks provided.</div></div>
         </section>
+
+        </details>
       </div>
       <div class="warehouse-edit-footer"><button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button></div>
     </div>
