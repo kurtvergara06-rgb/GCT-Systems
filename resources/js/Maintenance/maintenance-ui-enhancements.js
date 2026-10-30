@@ -897,9 +897,35 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
     const normalize = value => String(value || '').trim().toLocaleLowerCase();
     const split = value => String(value || '').split(/[,;|]/).map(v => v.trim()).filter(Boolean);
     const render = () => {
-      const checked = Array.from(modal.querySelectorAll('input[name="specializations[]"]:checked'));
-      const required = [...new Map(checked.map(input => [normalize(input.value), input.value.trim()])).entries()]
-        .filter(([key]) => key).map(([, label]) => label);
+      const checked = Array.from(modal.querySelectorAll('input[name="specializations[]"]:checked:not(:disabled)'));
+      const jobPicker = modal.querySelector('select[id$="MaintenanceJob"]');
+      const selectedJobs = jobPicker?.getSelectedJobs?.() || [];
+      // Explicit initial skill suggestions for known presets; these are not competency certifications.
+      const suggestedSkills = {
+        'Brake Inspection': ['Brakes'],
+        'Brake Pad Replacement': ['Brakes'],
+        'Brake Adjustment': ['Brakes'],
+        'Brake Air System Inspection': ['Brakes'],
+        'Brake Lining Replacement': ['Brakes'],
+        'Engine Tune-Up': ['Engine'],
+        'Engine Oil Leak Inspection': ['Engine'],
+        'Aircon Servicing': ['Aircon'],
+        'Aircon Refrigerant Recharge': ['Aircon'],
+        'Suspension Inspection and Repair': ['Suspension'],
+        'Wiring and Electrical Troubleshooting': ['Electrical'],
+        'Headlight and Signal Light Repair': ['Electrical'],
+        'Tire Replacement': ['Tires'],
+        'Tire Pressure and Condition Check': ['Tires'],
+        'Cooling System Inspection': ['Cooling System'],
+        'Radiator and Coolant Servicing': ['Cooling System'],
+        'Transmission and Clutch Inspection': ['Transmission'],
+        'Body Panel and Bumper Repair': ['Body Repair']
+      };
+      const unmappedJobs = selectedJobs.filter(job => job !== 'Other' && !suggestedSkills[job]);
+      const proposed = selectedJobs.flatMap(job => suggestedSkills[job] || []);
+      const required = [...new Map([...checked.map(input => input.value.trim()), ...proposed]
+        .filter(Boolean).map(skill => [normalize(skill), skill])).values()];
+      const provisional = proposed.length > 0;
       const chosen = Array.from(select.selectedOptions).filter(option => option.value);
       const skills = new Set(chosen.flatMap(option => split(option.dataset.specializations)).map(normalize));
       const matched = required.filter(skill => skills.has(normalize(skill)));
@@ -931,10 +957,16 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
           tags.append(badge);
         });
         count.textContent = matched.length + ' / ' + required.length + ' specializations covered';
-        note.textContent = missing.length
-          ? 'Unmatched: ' + missing.join(', ') + '. You may continue; Maintenance Head should review this assignment.'
-          : 'All recorded required specializations are covered by the selected mechanics.';
+        const advisory = provisional ? 'Preset-job skills are suggested mappings, not verified competency requirements. ' : '';
+        const mappingNote = unmappedJobs.length ? ' Unmapped jobs: ' + unmappedJobs.join(', ') + '.' : '';
+        note.textContent = advisory + (missing.length
+          ? 'Unmatched: ' + missing.join(', ') + '. Maintenance Head should review this assignment.'
+          : 'Selected mechanics cover the mapped specializations.') + mappingNote;
       }
+    };
+    window.GCTRefreshJoMechanicCoverage = () => {
+      document.querySelectorAll('#jobModal, #editJobModal [data-jo-skill-coverage]').length;
+      render();
     };
     modal.addEventListener('change', event => {
       if (event.target === select || event.target.matches('input[name="specializations[]"]') ||
@@ -942,8 +974,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
     });
     // The maintenance-job and mechanic pickers are built dynamically.
     const observer = new MutationObserver(() => render());
-    const jobContainer = modal.querySelector('.jo-maintenance-job-slot');
-    if (jobContainer) observer.observe(jobContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['checked'] });
+    const jobContainer = modal.querySelector('.jo-maintenance-job-slot, .jo-maintenance-job-field');
+    if (jobContainer) observer.observe(jobContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['checked', 'disabled'] });
     observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['selected', 'data-specializations'] });
     render();
   });
