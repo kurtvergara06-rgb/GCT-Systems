@@ -510,7 +510,32 @@
                                                             <div class="jo-review-detail-grid">
                                                                 <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                                 <div><span><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
-                                                                <div><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span><strong>{{ $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->implode(', ') ?: ($jobOrder->assigned_mechanic ?: 'Not assigned') }}</strong></div>
+                                                                @php
+                                                                    $headReviewMechanics = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->unique()->values();
+                                                                    if ($headReviewMechanics->isEmpty()) {
+                                                                        $headReviewMechanics = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic))->map(fn ($name) => trim($name))->filter()->unique()->values();
+                                                                    }
+                                                                @endphp
+                                                                <div class="jo-review-mechanic-field">
+                                                                    <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics ({{ $headReviewMechanics->count() }})</span>
+                                                                    <div class="jo-review-mechanic-summary">
+                                                                        @if($headReviewMechanics->isNotEmpty())
+                                                                            <strong class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $headReviewMechanics->first() }}</strong>
+                                                                            @if($headReviewMechanics->count() > 1)
+                                                                                <details class="jo-review-mechanic-more">
+                                                                                    <summary>+{{ $headReviewMechanics->count() - 1 }} more</summary>
+                                                                                    <div class="jo-review-mechanic-expanded">
+                                                                                        @foreach($headReviewMechanics->skip(1) as $mechanicName)
+                                                                                            <span>{{ $mechanicName }}</span>
+                                                                                        @endforeach
+                                                                                    </div>
+                                                                                </details>
+                                                                            @endif
+                                                                        @else
+                                                                            <strong>Not assigned</strong>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
                                                                 <div><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><strong>{{ $partStatus }}</strong></div>
                                                             </div>
                                                             <div class="jo-review-detail-long"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
