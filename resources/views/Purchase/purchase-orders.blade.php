@@ -189,7 +189,7 @@
                   </td>
                   <td><span class="po-qty">{{ $firstItem['quantity'] ?? '—' }}</span></td>
                   <td><div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div></td>
-                  <td class="po-status-cell"><x-ui.status-badge :status="$purchaseOrder->status" type="purchase" /></td>
+                  <td class="po-status-cell"><span class="po-request-type po-status-box"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>{{ $purchaseOrder->status }}</span></td>
                   <td>
                     <div class="po-date">
                       <strong>{{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('M d, Y') : '—' }}</strong>
@@ -524,7 +524,7 @@
   </div>
   <style>
     .po-head-review-overlay{align-items:center;justify-content:center;padding:20px;z-index:1100}
-    .purchase-orders-page .po-status-cell [data-ui-component="status-badge"],.purchase-orders-page .po-status-cell .status-badge,.purchase-orders-page .po-status-cell [class*="status-badge"]{border-radius:5px!important;min-height:28px!important;padding:6px 11px!important;display:inline-flex!important;align-items:center!important;border:1px solid #bcd4f6!important;background:#eaf3ff!important;color:#15549e!important}
+    .purchase-orders-page .purchase-order-card .po-status-cell .po-status-box{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:6px 9px!important;min-height:27px!important;border:1px solid #c4d9f5!important;border-radius:5px!important;background:#edf5ff!important;color:#15549e!important;box-shadow:none!important;outline:none!important;white-space:nowrap!important}.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::before,.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::after{content:none!important;display:none!important}
     .purchase-orders-page .po-review-action,.purchase-orders-page .po-review-action:hover,.purchase-orders-page .po-review-action:focus-visible{transform:none!important;scale:1!important;box-shadow:none!important}
     .purchase-orders-page .po-review-action{transition:background-color .16s ease,color .16s ease,border-color .16s ease!important}
     .purchase-orders-page .po-review-action:hover{background:#cfe3ff!important;color:#084aa9!important;border-color:#92b9ec!important}
