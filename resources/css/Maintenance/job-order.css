@@ -6737,3 +6737,21 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) [data-coverage="partial"] [data-coverage-note],
 :is(#jobModal,#editJobModal) [data-coverage="no-match"] [data-coverage-note] {background:#fff6e4;color:#99640d;}
 @media(max-width:640px){:is(#jobModal,#editJobModal) .jo-skill-coverage-body{grid-template-columns:1fr;}:is(#jobModal,#editJobModal) .jo-skill-coverage-required{border-right:0;border-bottom:1px solid #e0e8f3;padding:0 0 12px;}:is(#jobModal,#editJobModal) .jo-skill-coverage-header{flex-wrap:wrap;}}
+
+
+/* Mechanic chooser match labels (advisory, derived from mapped maintenance work). */
+:is(#jobModal,#editJobModal) .jo-mechanic-combobox-option .jo-mechanic-match-badge {
+  display:inline-flex;align-items:center;width:max-content;margin-top:6px;
+  padding:4px 8px;border:1px solid #d4dfec;border-radius:7px;
+  background:#f2f5f9;color:#5c708b;font-size:10px;font-weight:800;
+}
+:is(#jobModal,#editJobModal) .jo-mechanic-match-badge[data-match="full"] {
+  background:#e7f8ed;border-color:#b7e8c6;color:#176c3c;
+}
+:is(#jobModal,#editJobModal) .jo-mechanic-match-badge[data-match="partial"] {
+  background:#fff3dd;border-color:#f0d394;color:#90600d;
+}
+:is(#jobModal,#editJobModal) .jo-mechanic-match-badge[data-match="none"] {
+  background:#fff0f1;border-color:#f1cccf;color:#aa3e47;
+}
+:is(#jobModal,#editJobModal) .jo-mechanic-combobox-option > span:first-child {min-width:0;display:flex;flex-direction:column;align-items:flex-start;}
