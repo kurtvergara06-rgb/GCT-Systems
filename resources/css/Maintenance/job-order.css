@@ -6876,3 +6876,17 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
  .jo-head-review-body .jo-review-detail-grid {grid-template-columns:1fr;}
  .jo-head-review-body .jo-review-footer {margin:0 -12px;padding:10px 12px;}
 }
+
+
+/* Head review: wider desktop dialog and compact expandable assignee summary. */
+.jo-head-review-dialog {width:min(1020px,calc(100vw - 32px))!important;max-height:calc(100dvh - 24px)!important;}
+.jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;}
+.jo-head-review-body .jo-review-mechanic-field {min-width:0;display:grid;gap:6px;}
+.jo-head-review-body .jo-review-mechanic-summary {display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0;}
+.jo-head-review-body .jo-review-mechanic-primary {display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:5px 9px;border:1px solid #cdddff;border-radius:7px;background:#eef5ff;color:#1b4f94;font-size:11px;overflow-wrap:anywhere;}
+.jo-head-review-body .jo-review-mechanic-more {position:relative;min-width:0;}
+.jo-head-review-body .jo-review-mechanic-more > summary {list-style:none;cursor:pointer;padding:5px 9px;border:1px solid #cbdcf3;border-radius:7px;background:#f6f9ff;color:#1e5498;font-size:11px;font-weight:800;}
+.jo-head-review-body .jo-review-mechanic-more > summary::-webkit-details-marker {display:none;}
+.jo-head-review-body .jo-review-mechanic-expanded {display:flex;flex-wrap:wrap;gap:6px;max-width:100%;max-height:155px;overflow-y:auto;margin-top:7px;padding:9px;border:1px solid #dce7f5;border-radius:8px;background:#fafcff;}
+.jo-head-review-body .jo-review-mechanic-expanded span {display:inline-flex;padding:5px 8px;border-radius:6px;background:#ecf3ff;color:#315d94;font-size:11px;font-weight:650;overflow-wrap:anywhere;}
+@media(max-width:640px){.jo-head-review-body .jo-review-detail-grid{grid-template-columns:1fr;}.jo-head-review-dialog{width:calc(100vw - 16px)!important;}}
