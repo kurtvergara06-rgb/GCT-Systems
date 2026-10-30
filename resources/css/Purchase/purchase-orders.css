@@ -1575,3 +1575,25 @@ main.purchase-orders-page .po-record-tab.is-active{
   background:white;color:#1555a4;border-color:#cce0fc;box-shadow:0 1px 4px #183c6215;
 }
 main.purchase-orders-page .po-record-tab:focus-visible{outline:2px solid #2068c7;outline-offset:2px}
+
+/* PO tabs: allow the tab group to size to both complete labels, never clip History. */
+main.purchase-orders-page .purchase-order-card .po-record-tabs{
+  display:inline-flex!important;grid-template-columns:none!important;
+  align-items:center!important;gap:4px!important;
+  width:max-content!important;min-width:max-content!important;max-width:none!important;
+  overflow:visible!important;margin:0!important;padding:4px!important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-tabs .po-record-tab{
+  flex:0 0 auto!important;width:108px!important;min-width:108px!important;
+  max-width:none!important;height:34px!important;min-height:34px!important;
+  padding:0 12px!important;box-sizing:border-box!important;
+  overflow:visible!important;white-space:nowrap!important;line-height:1.2!important;
+}
+/* The generic action-icon rule constrained the labeled Review to 30px. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9)
+.record-actions>.po-review-action{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 auto!important;width:auto!important;min-width:88px!important;max-width:none!important;
+  height:32px!important;min-height:32px!important;padding:0 12px!important;
+  gap:7px!important;white-space:nowrap!important;line-height:1!important;
+}
