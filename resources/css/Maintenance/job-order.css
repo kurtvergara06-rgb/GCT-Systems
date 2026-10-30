@@ -7335,3 +7335,6 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 /* Free stock exists but is not yet reserved for this reviewed JO. */
 .jo-head-review-body .jo-review-part-availability.is-pending{border:1px solid #b5c9e8;background:#eef5ff;color:#245b9c;font-weight:700}
+
+/* JO Details: distinguish partially available physical stock from zero stock. */
+.jo-view-part-availability.is-partial{display:inline-flex;align-items:center;justify-content:center;background:#fff4df!important;border:1px solid #f4c979!important;color:#9a6100!important;border-radius:6px;font-weight:750}
