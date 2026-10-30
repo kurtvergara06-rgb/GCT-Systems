@@ -1684,3 +1684,48 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > [data-ui-component="status-badge"] .status-badge__label {
   font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
 }
+
+
+/* Purchasing requisition table: clean actions, readable status and date columns. */
+main.purchase-maintenance-requests-page .requested-purchase-table {
+  width: 100%;
+  table-layout: auto;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table thead th,
+main.purchase-maintenance-requests-page .requested-purchase-table tbody td {
+  padding: 14px 18px !important;
+  vertical-align: middle !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table tbody tr {
+  height: 68px;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status {
+  min-width: 152px;
+  text-align: center !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-date {
+  min-width: 178px;
+  text-align: center !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:last-child,
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-actions-cell {
+  min-width: 112px;
+  text-align: center !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > * {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .record-actions {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  gap: 9px !important;
+}
