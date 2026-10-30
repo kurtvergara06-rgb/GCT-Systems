@@ -105,11 +105,11 @@
                         </td>
                         <td><span title="IR allocation readiness, not full JO stock coverage" class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td>
-                            @php
+                            <?php
                                 $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
                                 $fulfillmentPercent = $fulfillment['required'] > 0
                                     ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
-                            @endphp
+                            ?>
                             <div class="warehouse-ir-fulfillment" title="Cumulative physically issued parts for the linked Job Order">
                                 <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
                                 <span class="warehouse-ir-fulfillment-track" role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}" aria-label="JO parts issued">
