@@ -49,7 +49,7 @@
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
-                    <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>FULFILLMENT</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
                     @php
@@ -105,6 +105,20 @@
                         </td>
                         <td><span title="IR allocation readiness, not full JO stock coverage" class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td>
+                            @php
+                                $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
+                                $fulfillmentPercent = $fulfillment['required'] > 0
+                                    ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
+                            @endphp
+                            <div class="warehouse-ir-fulfillment" title="Cumulative physically issued parts for the linked Job Order">
+                                <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
+                                <span class="warehouse-ir-fulfillment-track" role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}" aria-label="JO parts issued">
+                                    <span style="width:{{ $fulfillmentPercent }}%"></span>
+                                </span>
+                                <small>{{ $fulfillment['remaining'] }} remaining</small>
+                            </div>
+                        </td>
+                        <td>
                             <span class="warehouse-ir-policy {{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'is-partial' : 'is-complete' }}">
                                 {{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}
                             </span>
@@ -145,7 +159,7 @@
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="8"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
+                        <tr><td colspan="9"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
