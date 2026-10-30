@@ -1777,3 +1777,25 @@ main.purchase-maintenance-requests-page .requested-purchase-table .record-action
  .requested-pr-view-overlay .requested-pr-information-strip {grid-template-columns:1fr;}
  .requested-pr-view-overlay .requested-pr-additional-grid {grid-template-columns:1fr;}
 }
+
+
+/* Seven-column Purchase Requisitions inbox */
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4){min-width:165px;text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5){min-width:112px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6){min-width:142px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7){min-width:114px;text-align:center!important;}
+main.purchase-maintenance-requests-page .requested-pr-purpose {text-align:left!important;}
+main.purchase-maintenance-requests-page .requested-pr-purpose strong,
+main.purchase-maintenance-requests-page .requested-pr-purpose small{display:block;line-height:1.5;}
+main.purchase-maintenance-requests-page .requested-pr-purpose small{color:#71849e;font-size:11px;}
+main.purchase-maintenance-requests-page .requested-pr-actions-cell .open-view-requested-pr-modal{
+ width:auto!important;min-width:85px!important;padding:0 12px!important;
+ display:inline-flex!important;align-items:center;justify-content:center;gap:6px;
+}
+.requested-pr-footer #requestedPrCreatePoForm:not([hidden]){display:inline-flex;margin-left:auto;}
+.requested-pr-footer #requestedPrCreatePoForm[hidden]{display:none!important;}
+.requested-pr-create-po-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #e2a900;background:#ffbd17;color:#172b49;border-radius:7px;padding:11px 16px;font-weight:800;cursor:pointer;}
