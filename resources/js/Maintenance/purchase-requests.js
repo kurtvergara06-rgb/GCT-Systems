@@ -2211,3 +2211,88 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-breakdown-popup'
     if (active && !active.list.contains(event.target)) position();
   }, true);
 });
+
+
+/* Pending PR review uses the same approved JO endpoint as PR submission. */
+window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-action', '.purchase-page', () => {
+  const root = document.querySelector('.purchase-page');
+  const modal = document.getElementById('prModal');
+  const select = document.getElementById('jobOrderSelect');
+  const form = document.getElementById('newPrForm');
+  if (!root || !modal || !select || !form) return;
+  const submit = document.getElementById('createPrBtn');
+  const tbody = document.getElementById('newPrPartsBody');
+  const irTbody = document.getElementById('prReviewAvailableParts');
+  const text = (id, value) => { const e = document.getElementById(id); if (e) e.textContent = value || '—'; };
+  const clear = (node) => { if (node) node.replaceChildren(); };
+  let sequence = 0;
+  const render = (node, parts, category) => {
+    if (!node) return;
+    node.replaceChildren();
+    for (const part of parts) {
+      const row = node.insertRow();
+      for (const value of [part.name || '—', (part.quantity || 0) + ' ' + (part.unit || ''), category]) {
+        const cell = row.insertCell();
+        cell.textContent = value;
+      }
+    }
+    if (!parts.length) {
+      const row = node.insertRow();
+      const cell = row.insertCell(); cell.colSpan = 3;
+      cell.textContent = category === 'For Purchase' ? 'No shortage requires purchasing.' : 'No available IR allocation.';
+    }
+  };
+  const load = async () => {
+    const seq = ++sequence;
+    submit.disabled = true;
+    form.querySelectorAll('[data-generated-pr-part]').forEach(el => el.remove());
+    const option = select.selectedOptions[0];
+    const url = option?.dataset.jobOrderUrl;
+    if (!url) return;
+    clear(tbody); clear(irTbody);
+    try {
+      const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const data = await response.json();
+      if (seq !== sequence) return;
+      if (!response.ok) throw new Error(data.message || 'Unable to load approved Job Order.');
+      text('prReviewLinkedJo', data.job_order_no);
+      text('prReviewBus', data.bus_no);
+      text('prReviewMechanics', data.assigned_mechanics);
+      text('prApproverName', data.approver_name);
+      const bus = document.getElementById('busNoInput'); if (bus) bus.value = data.bus_no || '';
+      const signature = document.getElementById('prApprovalSignature');
+      const placeholder = document.getElementById('prSignaturePlaceholder');
+      if (signature) { signature.hidden = !data.signature_url; if (data.signature_url) signature.src = data.signature_url; else signature.removeAttribute('src'); }
+      if (placeholder) placeholder.hidden = !!data.signature_url;
+      const shortages = Array.isArray(data.parts) ? data.parts : [];
+      render(tbody, shortages, 'For Purchase');
+      render(irTbody, Array.isArray(data.available_parts) ? data.available_parts : [], 'Available');
+      shortages.forEach((part, i) => {
+        for (const [field, value] of Object.entries({name:part.name, quantity:part.quantity,unit:part.unit})) {
+          const input = document.createElement('input');
+          input.type = 'hidden'; input.dataset.generatedPrPart = '1';
+          input.name = 'parts[' + i + '][' + field + ']';
+          input.value = value ?? ''; form.appendChild(input);
+        }
+      });
+      submit.disabled = shortages.length === 0;
+    } catch (error) {
+      if (seq !== sequence) return;
+      render(tbody, [], 'For Purchase');
+      text('prReviewLinkedJo', error.message);
+      submit.disabled = true;
+    }
+  };
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-pr-review-job]');
+    if (!button) return;
+    event.preventDefault();
+    const option = [...select.options].find(o => o.value === button.dataset.prReviewJob);
+    if (!option) return;
+    select.value = option.value;
+    modal.classList.add('show','active');
+    modal.style.display = 'flex';
+    void load();
+  });
+  select.addEventListener('change', load);
+});
