@@ -3493,3 +3493,38 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
     });
   }
 });
+
+
+// Dedicated read-only Job Order modal: independent of the edit-form initializer.
+window.GCTPartialNavigation.registerInitializer('maintenance-jo-readonly-view', '.jo-page', () => {
+  const page = document.querySelector('.jo-page');
+  const overlay = document.getElementById('joReadonlyOverlay');
+  const dialog = overlay?.querySelector('.jo-view-dialog');
+  const body = document.getElementById('joReadonlyBody');
+  if (!page || !overlay || !dialog || !body) return;
+  if (page.dataset.joReadonlyBound === '1') return;
+  page.dataset.joReadonlyBound = '1';
+  let previousFocus = null;
+  const close = () => {
+    overlay.hidden = true;
+    body.replaceChildren();
+    previousFocus?.focus?.();
+  };
+  page.addEventListener('click', event => {
+    const button = event.target.closest('button.jo-open-view');
+    if (!button) return;
+    event.preventDefault();
+    const row = button.closest('tr');
+    const template = row?.querySelector('template.jo-view-content');
+    if (!template) return;
+    previousFocus = button;
+    body.replaceChildren(template.content.cloneNode(true));
+    overlay.hidden = false;
+    body.scrollTop = 0;
+    dialog.focus();
+  });
+  overlay.querySelectorAll('.jo-view-close').forEach(button => button.addEventListener('click', close));
+  overlay.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+  });
+});
