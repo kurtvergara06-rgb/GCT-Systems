@@ -964,10 +964,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
           : 'Selected mechanics cover the mapped specializations.') + mappingNote;
       }
     };
-    window.GCTRefreshJoMechanicCoverage = () => {
-      document.querySelectorAll('#jobModal, #editJobModal [data-jo-skill-coverage]').length;
-      render();
-    };
     modal.addEventListener('change', event => {
       if (event.target === select || event.target.matches('input[name="specializations[]"]') ||
         event.target.matches('select[id$="MaintenanceJob"]')) render();
