@@ -199,10 +199,9 @@
                   <td>
                     <div class="actions record-actions">
                       @unless($isForReview)
-                      <x-ui.action-button
-                        type="view"
+                      <button type="button"
                         title="View PO"
-                        class="open-view-po-modal po-labeled-view"
+                        class="action-btn view open-view-po-modal po-labeled-view"
                         data-id="{{ $purchaseOrder->id }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
@@ -218,7 +217,7 @@
                         data-status="{{ $purchaseOrder->status }}"
                         data-items='@json($items)'
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
-                      />
+                      ><i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span></button>
 
                       @endunless
 
