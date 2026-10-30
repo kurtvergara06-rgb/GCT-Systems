@@ -1917,3 +1917,36 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
  .requested-pr-view-overlay .shared-pr-summary .warehouse-summary-item {border-right:0;border-bottom:1px solid #dfebf6;}
  .requested-pr-view-overlay .shared-pr-summary .warehouse-summary-item:last-child {border-bottom:0;}
 }
+
+
+/* Keep the Purchasing PR modal actions compact and together at the right. */
+.requested-pr-view-overlay .requested-pr-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm:not([hidden]) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+}
+.requested-pr-view-overlay .requested-pr-footer .requested-pr-create-po-btn,
+.requested-pr-view-overlay .requested-pr-footer .requested-pr-close-bottom {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 13px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.requested-pr-view-overlay .requested-pr-footer .requested-pr-create-po-btn {
+  gap: 6px;
+}
