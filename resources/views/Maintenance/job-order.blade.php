@@ -516,13 +516,19 @@
                                                     <div class="jo-review-panel">
                                                         <section class="jo-review-details" aria-label="Submitted Job Order details">
                                                             <div class="jo-review-details-heading">
-                                                                <h4><i class="fa-regular fa-clipboard" aria-hidden="true"></i> Job Order Details</h4>
+                                                                <div>
+                                                                    <h4><i class="fa-regular fa-clipboard" aria-hidden="true"></i> Job Order Details</h4>
+                                                                    <p>Verify details, confirm duration, and authorize the Job Order.</p>
+                                                                </div>
                                                                 <span>{{ $jobOrder->job_order_no }}</span>
                                                             </div>
-                                                            <p class="jo-review-instructions">Verify details, confirm duration, and authorize the Job Order.</p>
                                                             <div class="jo-review-detail-grid">
                                                                 <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                                 <div><span><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
+                                                                <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Estimated Duration</span><strong>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</strong></div>
+                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge">{{ $partStatus }}</span></div>
+                                                            </div>
+                                                            <div class="jo-review-detail-support-grid">
                                                                 @php
                                                                     $headReviewMechanics = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->unique()->values();
                                                                     if ($headReviewMechanics->isEmpty()) {
@@ -552,16 +558,35 @@
                                                                         @endif
                                                                     </div>
                                                                 </div>
-                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge">{{ $partStatus }}</span></div>
+                                                                <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
                                                             </div>
-                                                            <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
                                                         </section>
                                                             <div class="jo-review-requested-parts">
                                                                 @php
                                                                     $reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
                                                                     $reviewAllocations = collect($jobOrder->inventory_snapshot['parts'] ?? []);
+                                                                    $reviewRequiredTotal = collect($reviewParts)->sum(fn ($part) => max(0, (int) ($part['quantity'] ?? 0)));
+                                                                    $reviewReservedTotal = $reviewAllocations->sum(fn ($part) => max(0, (int) ($part['reserved'] ?? 0)));
+                                                                    $reviewAvailablePartCount = collect($reviewParts)->filter(function ($part, $index) use ($reviewAllocations) {
+                                                                        $allocation = $reviewAllocations->get($index);
+                                                                        return $allocation !== null
+                                                                            && (int) ($allocation['reserved'] ?? 0) >= (int) ($part['quantity'] ?? 0);
+                                                                    })->count();
+                                                                    $reviewAvailabilityPercent = count($reviewParts) > 0
+                                                                        ? min(100, (int) round(($reviewAvailablePartCount / count($reviewParts)) * 100))
+                                                                        : 100;
+                                                                    $reviewHasShortage = $reviewRequiredTotal > $reviewReservedTotal;
                                                                 @endphp
-                                                                <div class="jo-review-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><strong>Requested Parts ({{ count($reviewParts) }})</strong></div>
+                                                                <div class="jo-review-parts-heading">
+                                                                    <div class="jo-review-parts-title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><strong>Requested Parts ({{ count($reviewParts) }})</strong><small>Review the parts availability and expected fulfillment.</small></div></div>
+                                                                    @if(count($reviewParts))
+                                                                        <div class="jo-review-parts-progress" aria-label="{{ $reviewAvailablePartCount }} of {{ count($reviewParts) }} requested parts fully available">
+                                                                            <span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> <strong>{{ $reviewAvailablePartCount }} / {{ count($reviewParts) }}</strong> Available</span>
+                                                                            <span class="jo-review-parts-progress-track" aria-hidden="true"><span style="width: {{ $reviewAvailabilityPercent }}%"></span></span>
+                                                                            <strong>{{ $reviewAvailabilityPercent }}%</strong>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
                                                                 @if(count($reviewParts))
                                                                     <div class="jo-review-parts-list" data-parts='@json($reviewParts)'>
                                                                         <div class="jo-review-parts-table-header" aria-hidden="true">
@@ -588,7 +613,15 @@
                                                                 @else
                                                                     <p>No parts requested</p>
                                                                 @endif
-                                                                <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
+                                                                @if($reviewHasShortage)
+                                                                    <div class="jo-review-shortage-advisory" role="note">
+                                                                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                                                        <div><strong>Possible Completion Delay</strong><p>Some required parts are currently unavailable or only partially reserved. The estimated completion time may be affected.</p></div>
+                                                                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration <strong>{{ $jobOrder->formatted_estimated_duration ?: 'Not provided' }}</strong></span>
+                                                                    </div>
+                                                                @else
+                                                                    <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
+                                                                @endif
                                                             </div>
                                                         @if($jobOrder->audits->isNotEmpty())
                                                             <details class="jo-review-audit">
@@ -727,10 +760,11 @@
                                                             </form>
                                                         </div>
                                                         <div class="jo-review-footer">
+                                                            <button type="button" class="jo-review-footer-close"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</button>
                                                             <button type="button" class="jo-review-back" hidden>Back to Approval</button>
                                                             <button type="button" class="jo-review-revision-trigger"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Return for Revision</button>
                                                             <button type="button" class="jo-review-reject-trigger"><i class="fa-regular fa-circle-xmark" aria-hidden="true"></i> Reject</button>
-                                                            <button type="submit" form="jo-head-approve-{{ $jobOrder->id }}" class="primary-btn jo-review-footer-submit jo-review-approve-submit" disabled aria-disabled="true" title="Upload and crop a signature to enable approval"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve &amp; Sign</button>
+                                                            <button type="submit" form="jo-head-approve-{{ $jobOrder->id }}" class="primary-btn jo-review-footer-submit jo-review-approve-submit" disabled aria-disabled="true" title="Upload and crop a signature to enable approval"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve Job Order</button>
                                                             <button type="submit" form="jo-head-revision-{{ $jobOrder->id }}" class="secondary-btn jo-review-footer-submit jo-review-revision-submit" hidden>Confirm Revision</button>
                                                             <button type="submit" form="jo-head-reject-{{ $jobOrder->id }}" class="warning-btn jo-review-footer-submit jo-review-reject-submit" hidden>Confirm Rejection</button>
                                                         </div>

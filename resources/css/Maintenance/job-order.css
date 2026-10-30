@@ -7063,3 +7063,202 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-parts-delay-note>i{color:#c38a21;margin-top:2px}
 .jo-parts-delay-note strong{font-size:12px;display:block}
 .jo-parts-delay-note p{margin:5px 0 0;font-size:11px;line-height:1.5}
+
+
+/* Maintenance Head Review Job Order — approved wide review composition. */
+.jo-head-review-dialog {
+  width:min(1120px,calc(100vw - 32px))!important;
+  max-height:calc(100dvh - 28px)!important;
+  border-radius:15px!important;
+}
+.jo-head-review-heading {
+  min-height:82px;
+  padding:14px 20px;
+  background:#fff;
+}
+.jo-head-review-title-icon {
+  flex-basis:48px;
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  font-size:20px;
+}
+.jo-head-review-title-text strong {font-size:21px;}
+.jo-head-review-title-text small {font-size:12px;}
+.jo-head-review-body .jo-review-panel {
+  gap:12px!important;
+  padding:16px 20px 0!important;
+}
+.jo-head-review-body .jo-review-details {
+  padding:0!important;
+  overflow:visible;
+}
+.jo-head-review-body .jo-review-details-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  min-height:70px;
+  padding:13px 18px;
+  border-bottom:1px solid #dce7f5;
+  background:#f7faff;
+  border-radius:11px 11px 0 0;
+}
+.jo-head-review-body .jo-review-details-heading > div {display:grid;gap:4px;min-width:0;}
+.jo-head-review-body .jo-review-details-heading h4 {display:flex;align-items:center;gap:10px;font-size:15px;}
+.jo-head-review-body .jo-review-details-heading h4 i {font-size:17px;color:#1762bd;}
+.jo-head-review-body .jo-review-details-heading p {margin:0;color:#68809f;font-size:11px;}
+.jo-head-review-body .jo-review-details-heading > span {
+  flex:none;
+  min-height:30px;
+  padding:7px 14px;
+  border-radius:8px;
+  background:#e5efff;
+  color:#1054ad;
+  font-size:12px;
+  font-weight:800;
+}
+.jo-head-review-body .jo-review-detail-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  padding:18px 14px;
+}
+.jo-head-review-body .jo-review-detail-grid > div {
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:10px;
+  row-gap:4px;
+  min-height:52px;
+  padding:0 16px;
+  border-right:1px solid #dfe8f4;
+}
+.jo-head-review-body .jo-review-detail-grid > div:last-child {border-right:0;}
+.jo-head-review-body .jo-review-detail-grid > div > span:first-child {
+  display:contents;
+  color:#61799a;
+  font-size:11px;
+}
+.jo-head-review-body .jo-review-detail-grid > div > span:first-child i {
+  grid-column:1;
+  grid-row:1 / span 2;
+  align-self:start;
+  color:#1261bd;
+  font-size:19px;
+}
+.jo-head-review-body .jo-review-detail-grid > div > strong,
+.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge {
+  grid-column:2;
+  font-size:13px;
+}
+.jo-head-review-body .jo-review-detail-support-grid {
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(260px,1fr);
+  gap:14px;
+  padding:0 14px 14px;
+}
+.jo-head-review-body .jo-review-mechanic-field,
+.jo-head-review-body .jo-review-details .jo-review-complaint {
+  min-height:92px;
+  padding:14px 16px;
+  border:1px solid #dce7f5;
+  border-radius:9px;
+  background:#fbfdff;
+}
+.jo-head-review-body .jo-review-mechanic-field > span,
+.jo-head-review-body .jo-review-details .jo-review-complaint > span {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#536c8e;
+  font-size:11px;
+  font-weight:700;
+}
+.jo-head-review-body .jo-review-mechanic-field > span i,
+.jo-head-review-body .jo-review-details .jo-review-complaint > span i {color:#1762bd;font-size:15px;}
+.jo-head-review-body .jo-review-mechanic-summary {margin-top:9px;}
+.jo-head-review-body .jo-review-details .jo-review-complaint {
+  display:grid;
+  grid-template-columns:1fr;
+  align-content:start;
+  row-gap:8px;
+}
+.jo-head-review-body .jo-review-details .jo-review-complaint p {font-size:12px;}
+.jo-head-review-body .jo-review-parts-heading {
+  justify-content:space-between;
+  gap:18px;
+  min-height:62px;
+  padding:11px 16px;
+}
+.jo-head-review-body .jo-review-parts-title {display:flex;align-items:center;gap:11px;min-width:0;}
+.jo-head-review-body .jo-review-parts-title > i {font-size:17px;}
+.jo-head-review-body .jo-review-parts-title > div {display:grid;gap:3px;}
+.jo-head-review-body .jo-review-parts-title small {color:#7185a1;font-size:10px;}
+.jo-head-review-body .jo-review-parts-progress {
+  display:grid;
+  grid-template-columns:auto minmax(120px,210px) 38px;
+  align-items:center;
+  gap:10px;
+  flex:0 1 390px;
+  color:#5d7494;
+  font-size:10px;
+}
+.jo-head-review-body .jo-review-parts-progress > span:first-child {white-space:nowrap;}
+.jo-head-review-body .jo-review-parts-progress > span:first-child i {margin-right:5px;color:#174681;}
+.jo-head-review-body .jo-review-parts-progress-track {height:10px;border-radius:999px;background:#dfe9f6;overflow:hidden;}
+.jo-head-review-body .jo-review-parts-progress-track > span {display:block;height:100%;border-radius:inherit;background:#2f70cf;}
+.jo-head-review-body .jo-review-parts-progress > strong {color:#17365f;text-align:right;}
+.jo-head-review-body .jo-review-shortage-advisory {
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  margin:12px;
+  padding:12px 14px;
+  border:1px solid #f0cf86;
+  border-radius:9px;
+  background:#fff8e8;
+  color:#76520c;
+}
+.jo-head-review-body .jo-review-shortage-advisory > i {font-size:20px;color:#f2a900;}
+.jo-head-review-body .jo-review-shortage-advisory > div {display:grid;gap:3px;}
+.jo-head-review-body .jo-review-shortage-advisory > div strong {font-size:12px;}
+.jo-head-review-body .jo-review-shortage-advisory p {margin:0;color:#6f7d91;font-size:10px;line-height:1.45;}
+.jo-head-review-body .jo-review-shortage-advisory > span {display:flex;align-items:center;gap:9px;padding-left:16px;border-left:1px solid #ecd79f;color:#5d718e;font-size:10px;white-space:nowrap;}
+.jo-head-review-body .jo-review-shortage-advisory > span strong {color:#17365f;font-size:12px;}
+.jo-head-review-body .jo-review-footer {
+  margin:0 -20px!important;
+  padding:12px 20px!important;
+}
+.jo-head-review-body .jo-review-footer .jo-review-footer-close {
+  margin-right:auto;
+  color:#263f63;
+}
+.jo-head-review-body .jo-review-footer .jo-review-revision-trigger {color:#c02d3b;border-color:#f0b7bd;background:#fff8f8;}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled) {background:#1263d7!important;border-color:#1263d7!important;color:#fff!important;}
+
+@media(max-width:900px) {
+  .jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px;}
+  .jo-head-review-body .jo-review-detail-grid > div:nth-child(2) {border-right:0;}
+  .jo-head-review-body .jo-review-detail-support-grid {grid-template-columns:1fr;}
+  .jo-head-review-body .jo-review-parts-heading {align-items:flex-start;flex-direction:column;}
+  .jo-head-review-body .jo-review-parts-progress {width:100%;flex-basis:auto;}
+}
+@media(max-width:620px) {
+  .jo-head-review-dialog {width:calc(100vw - 16px)!important;}
+  .jo-head-review-heading {min-height:70px;padding:10px 12px;}
+  .jo-head-review-title-icon {width:40px;height:40px;flex-basis:40px;}
+  .jo-head-review-title-text strong {font-size:17px;}
+  .jo-head-review-body .jo-review-panel {padding:12px 12px 0!important;}
+  .jo-head-review-body .jo-review-details-heading {align-items:flex-start;padding:12px;}
+  .jo-head-review-body .jo-review-detail-grid {grid-template-columns:1fr;padding:12px;row-gap:0;}
+  .jo-head-review-body .jo-review-detail-grid > div {padding:11px 4px;border-right:0;border-bottom:1px solid #e2eaf5;}
+  .jo-head-review-body .jo-review-detail-grid > div:last-child {border-bottom:0;}
+  .jo-head-review-body .jo-review-detail-support-grid {padding:0 12px 12px;}
+  .jo-head-review-body .jo-review-parts-progress {grid-template-columns:auto 1fr 34px;}
+  .jo-head-review-body .jo-review-shortage-advisory {grid-template-columns:26px minmax(0,1fr);}
+  .jo-head-review-body .jo-review-shortage-advisory > span {grid-column:1 / -1;padding:10px 0 0;border-left:0;border-top:1px solid #ecd79f;}
+  .jo-head-review-body .jo-review-footer {margin:0 -12px!important;padding:10px 12px!important;flex-wrap:wrap;}
+  .jo-head-review-body .jo-review-footer .jo-review-footer-close {width:100%;margin-right:0;}
+}

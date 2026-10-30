@@ -222,6 +222,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       if (overlay.hidden) open(); else close();
     });
     closeButton.addEventListener('click', close);
+    panel.querySelector('.jo-review-footer-close')?.addEventListener('click', close);
     overlay.addEventListener('keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); close(); }
     });
@@ -2691,12 +2692,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-comb
    CONSOLIDATED: resources/js/Maintenance/job-order-edit-combobox.js
 ========================================================= */
 window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combobox', '.jo-page', () => {
+  const jobOrderPage = document.querySelector('.jo-page');
   const editModal = document.getElementById('editJobModal');
   const editForm = document.getElementById('editJobForm');
   const busSelect = document.getElementById('edit_bus_no');
   const mechanicSelect = document.getElementById('edit_assigned_mechanic');
 
-  if (!editModal || !editForm || !busSelect || !mechanicSelect) {
+  if (!jobOrderPage || !editModal || !editForm || !busSelect || !mechanicSelect) {
     return;
   }
 
