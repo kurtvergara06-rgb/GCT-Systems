@@ -562,7 +562,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           <footer class="po-head-review-footer">
             <button type="button" id="headReviewRevision" class="po-head-review-revision">Request Revision</button>
             <button type="button" id="headReviewReject" class="po-head-review-reject">Reject PO</button>
-            <button type="submit" id="headReviewApprove" class="po-head-review-approve">Approve Purchase Order</button>
+            <button type="submit" id="headReviewApprove" class="po-head-review-approve" disabled>Approve Purchase Order</button>
           </footer>
         </form>
       </div>
@@ -723,6 +723,10 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     #poHeadReviewModal .po-total-net>span{color:#1260bf;font-weight:800!important}
     #poHeadReviewModal .po-total-net>strong{color:#075ac2;font-size:14px!important}
     @media(max-width:680px){#poHeadReviewModal .po-totals-grid{grid-template-columns:38px repeat(3,minmax(0,1fr))!important}#poHeadReviewModal .po-total-net{grid-column:2/-1;border-top:1px solid #dfebf9}#poHeadReviewModal .po-total-entry:nth-child(5){border-top:1px solid #dfebf9}#poHeadReviewModal .po-total-entry{padding:9px!important}}
+    /* Purchase Head approval is yellow only with a validated signature. */
+    #poHeadReviewModal .po-head-review-approve{background:#ffbc00!important;border:1px solid #e6a600!important;color:#152b4d!important;font-weight:800!important;box-shadow:none!important;transform:none!important;transition:background-color .16s ease,border-color .16s ease!important}
+    #poHeadReviewModal .po-head-review-approve:not(:disabled):hover{background:#f2aa00!important;border-color:#d99800!important;transform:none!important}
+    #poHeadReviewModal .po-head-review-approve:disabled{background:#e5e7eb!important;border-color:#d1d5db!important;color:#727987!important;cursor:not-allowed!important;opacity:1!important;box-shadow:none!important}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
@@ -735,9 +739,9 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         const money=v=>'₱'+(Number(v)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
         let approveUrl='',decisionUrl='',previewUrl=null;
         const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const close=()=>{modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;byId('poHeadUploadZone').classList.remove('has-preview');byId('poHeadUploadTitle').textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
+        const close=()=>{byId('headReviewApprove').disabled=true;modal.classList.remove('show','active');modal.style.display='none';form.reset();byId('headReviewSignaturePreview').hidden=true;byId('poHeadUploadZone').classList.remove('has-preview');byId('poHeadUploadTitle').textContent='Upload signature';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}window.GCTModalBackdrop?.sync?.()};
         document.querySelectorAll('.open-po-review-modal').forEach(button=>button.addEventListener('click',()=>{
-          const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;
+          const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;byId('headReviewApprove').disabled=true;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
           for(const [id,val] of Object.entries({poJoNo:d.joNo,poJoBus:d.joBus,poJoType:d.joType,poJoStatus:d.joStatus,poJoApprover:d.joApprover,poJoDate:d.joDate})){byId(id).textContent=val||'—'}
           byId('poJoStatus').dataset.approved=d.joStatus==='Approved'?'true':'false';
@@ -753,8 +757,8 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           form.action=approveUrl;modal.style.display='flex';modal.classList.add('show','active');window.GCTModalBackdrop?.sync?.();window.GCTSystemAnimations?.animateModalOpen?.(modal);
         }));
         byId('poHeadReviewClose').addEventListener('click',close);
-        const signature=byId('headReviewSignature');signature.addEventListener('change',()=>{if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview'),title=byId('poHeadUploadTitle'),zone=byId('poHeadUploadZone');img.hidden=true;zone.classList.remove('has-preview');title.textContent='Upload signature';if(!file)return;if(!['image/png','image/jpeg'].includes(file.type)||file.size>2097152){signature.value='';signature.setCustomValidity('Choose a JPG or PNG signature no larger than 2 MB.');signature.reportValidity();return}signature.setCustomValidity('');previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false;zone.classList.add('has-preview');title.textContent=file.name});
-        form.addEventListener('submit',e=>{if(!signature.files?.length){e.preventDefault();signature.setCustomValidity('Upload a signature to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
+        const signature=byId('headReviewSignature');const approveButton=byId('headReviewApprove');const validSignature=()=>{const file=signature.files?.[0];return !!file&&['image/png','image/jpeg'].includes(file.type)&&file.size<=2097152};signature.addEventListener('change',()=>{approveButton.disabled=true;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}const file=signature.files?.[0],img=byId('headReviewSignaturePreview'),title=byId('poHeadUploadTitle'),zone=byId('poHeadUploadZone');img.hidden=true;zone.classList.remove('has-preview');title.textContent='Upload signature';if(!file)return;if(!['image/png','image/jpeg'].includes(file.type)||file.size>2097152){signature.value='';signature.setCustomValidity('Choose a JPG or PNG signature no larger than 2 MB.');signature.reportValidity();return}signature.setCustomValidity('');previewUrl=URL.createObjectURL(file);img.src=previewUrl;img.hidden=false;zone.classList.add('has-preview');title.textContent=file.name;approveButton.disabled=!validSignature()});
+        form.addEventListener('submit',e=>{if(!validSignature()){e.preventDefault();signature.setCustomValidity('Upload a valid JPG or PNG signature (maximum 2 MB) to approve.');signature.reportValidity();return}signature.setCustomValidity('')});
         signature.addEventListener('change',()=>signature.setCustomValidity(''));
         function decide(decision){const remarks=byId('headReviewRemarks');if(!remarks.value.trim()){remarks.setCustomValidity('Please explain your decision.');remarks.reportValidity();return}remarks.setCustomValidity('');form.action=decisionUrl;const input=document.createElement('input');input.type='hidden';input.name='decision';input.value=decision;form.append(input);form.submit()}
         byId('headReviewRevision').addEventListener('click',()=>decide('revision'));
