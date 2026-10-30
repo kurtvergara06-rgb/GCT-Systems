@@ -165,7 +165,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     name.classList.add('jo-inventory-name-field');
     name.tabIndex = -1;
     row.insertBefore(inventoryId, qty);
-    row.insertBefore(stock, row.querySelector('.remove-part-btn'));
+    const stockGroup = document.createElement('span');
+    stockGroup.className = 'jo-part-stock-group';
+    const stockNote = document.createElement('small');
+    stockNote.className = 'jo-part-stock-note';
+    stockGroup.append(stock, stockNote);
+    row.insertBefore(stockGroup, row.querySelector('.remove-part-btn'));
     unit.classList.add('jo-auto-unit-select');
     unit.setAttribute('aria-label','Unit from inventory');
     unit.tabIndex = -1;
@@ -179,8 +184,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
         unit.value = '';
       }
       const requested = Number(qty.value);
-      stock.textContent = !selected ? 'Select part' : selected.in_stock ? 'In Stock' : 'Out of Stock';
+      // The inventory endpoint exposes only in-stock presence, not the free quantity.
+      // Never claim the requested quantity is sufficient based on a boolean.
+      stock.textContent = !selected ? 'Select part' : selected.in_stock ? 'In Stock' : 'Unavailable';
       stock.dataset.state = !selected ? 'unknown' : selected.in_stock ? 'available' : 'unavailable';
+      stockNote.textContent = !selected ? 'Choose an inventory item'
+        : selected.in_stock ? 'Quantity checked at approval' : 'Purchase may be needed';
       stock.title = selected ? 'Warehouse availability is checked again when submitting and approving.' : '';
       if (selected && requested > 0) stock.title += ' Requested: ' + requested + ' ' + selected.unit + '.';
       row.dispatchEvent(new Event('change', { bubbles: false }));
@@ -227,7 +236,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       joInventoryWrappers.forEach(id => {
         document.getElementById(id)?.querySelectorAll('.part-needed-row').forEach(row => {
           const select = row.querySelector('.jo-inventory-picker');
-          if (select) { select.remove(); row.querySelector('.jo-inventory-id')?.remove(); row.querySelector('.jo-inventory-stock-status')?.remove(); }
+          if (select) { select.remove(); row.querySelector('.jo-inventory-id')?.remove(); row.querySelector('.jo-part-stock-group')?.remove(); }
           enhanceJoPartRow(row);
         });
       });
