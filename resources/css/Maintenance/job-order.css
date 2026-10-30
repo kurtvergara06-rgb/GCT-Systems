@@ -6981,7 +6981,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 /* Head Review details: align complaint with field labels and amber status text. */
 .jo-head-review-body .jo-review-details .jo-review-complaint {
-  display:grid;grid-template-columns:190px minmax(0,1fr);
+  display:grid;grid-template-columns:170px minmax(0,1fr);
   align-items:center;column-gap:12px;padding:11px 14px;
 }
 .jo-head-review-body .jo-review-details .jo-review-complaint > span {margin:0;}
