@@ -1799,3 +1799,10 @@
   .purchase-orders-page .purchase-order-card>.records-table-wrap,
   .purchase-orders-page .purchase-order-card>.table-footer{grid-column:1/-1}
 }
+
+/* Purchase Orders tabs: neutral dark text in both selected and unselected states. */
+.purchase-orders-page .po-record-tabs .po-record-tab,
+.purchase-orders-page .po-record-tabs .po-record-tab.is-active,
+.purchase-orders-page .po-record-tabs .po-record-tab:hover,
+.purchase-orders-page .po-record-tabs .po-record-tab:focus-visible{color:#15202e!important}
+.purchase-orders-page .po-record-tabs .po-record-tab i{color:inherit!important}
