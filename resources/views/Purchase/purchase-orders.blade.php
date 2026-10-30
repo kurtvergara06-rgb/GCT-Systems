@@ -528,7 +528,14 @@ data-po-no="{{ $purchaseOrder->po_no }}"
 <div class="po-jo-review-signature"><strong>Authorized JO Signature</strong><img id="poJoSignature" alt="Authorized Maintenance Job Order approval signature" hidden><p id="poJoSignatureEmpty">No approved JO signature available.</p></div>
 </div></section>
 <div class="po-head-review-section"><h3>Purchase Items</h3><div class="po-head-review-table-wrap records-table-wrap"><table class="records-table po-review-items-table"><thead><tr><th>Item Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="headReviewItems"></tbody></table></div></div>
-        <div class="po-head-review-summary"><span>Gross: <strong id="headReviewGross">—</strong></span><span>Delivery: <strong id="headReviewDelivery">—</strong></span><span>Discount: <strong id="headReviewDiscount">—</strong></span><span>VAT: <strong id="headReviewVat">—</strong></span><strong>NET TOTAL: <span id="headReviewNet">—</span></strong></div>
+        <div class="po-head-review-summary po-totals-grid" aria-label="Purchase Order amount summary">
+          <span class="po-totals-icon" aria-hidden="true"><i class="fa-solid fa-calculator"></i></span>
+          <div class="po-total-entry"><span>Gross Amount</span><strong id="headReviewGross">—</strong></div>
+          <div class="po-total-entry"><span>Delivery</span><strong id="headReviewDelivery">—</strong></div>
+          <div class="po-total-entry"><span>Discount</span><strong id="headReviewDiscount">—</strong></div>
+          <div class="po-total-entry"><span>VAT</span><strong id="headReviewVat">—</strong></div>
+          <div class="po-total-entry po-total-net"><span>NET TOTAL</span><strong id="headReviewNet">—</strong></div>
+        </div>
         <form id="poHeadReviewForm" method="POST" enctype="multipart/form-data">
           @csrf @method('PATCH')
           <div class="po-head-review-fields po-head-authorization-fields">
@@ -705,6 +712,17 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     #poHeadReviewModal .po-review-field-copy>span{font-size:10px!important;text-transform:uppercase;letter-spacing:.035em;color:#7084a0;font-weight:700}
     #poHeadReviewModal .po-review-field-copy>strong{font-size:12px!important;color:#0f315d;overflow-wrap:anywhere}
     #poHeadReviewModal #poJoStatus[data-approved="true"]{display:inline-flex;align-items:center;align-self:flex-start;border:1px solid #a8e1b9;border-radius:6px;padding:3px 9px;background:#e6f9ed;color:#17823c}
+    /* Purchase Order totals — single component-like summary row, matching Purchase Requisitions. */
+    #poHeadReviewModal .po-totals-grid{display:grid!important;grid-template-columns:44px repeat(5,minmax(0,1fr))!important;align-items:stretch!important;gap:0!important;padding:0!important;min-height:59px;margin:0 0 12px!important;overflow:hidden;background:#f5f8ff!important;border:1px solid #d6e4f7!important;border-radius:10px!important}
+    #poHeadReviewModal .po-totals-icon{display:flex!important;align-items:center;justify-content:center;border-right:1px solid #dfebf9;color:#1766c3;font-size:16px!important}
+    #poHeadReviewModal .po-total-entry{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;min-width:0;padding:10px 12px;border-right:1px solid #dfebf9}
+    #poHeadReviewModal .po-total-entry:last-child{border-right:0}
+    #poHeadReviewModal .po-total-entry>span{font-family:inherit!important;font-size:10px!important;font-weight:500!important;line-height:1.2;color:#6c83a0;white-space:nowrap}
+    #poHeadReviewModal .po-total-entry>strong{font-family:inherit!important;font-size:12px!important;line-height:1.3;font-weight:800!important;color:#17385f;white-space:nowrap}
+    #poHeadReviewModal .po-total-net{background:#e9f2ff!important}
+    #poHeadReviewModal .po-total-net>span{color:#1260bf;font-weight:800!important}
+    #poHeadReviewModal .po-total-net>strong{color:#075ac2;font-size:14px!important}
+    @media(max-width:680px){#poHeadReviewModal .po-totals-grid{grid-template-columns:38px repeat(3,minmax(0,1fr))!important}#poHeadReviewModal .po-total-net{grid-column:2/-1;border-top:1px solid #dfebf9}#poHeadReviewModal .po-total-entry:nth-child(5){border-top:1px solid #dfebf9}#poHeadReviewModal .po-total-entry{padding:9px!important}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
