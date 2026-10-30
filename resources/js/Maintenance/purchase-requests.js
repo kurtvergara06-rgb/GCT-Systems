@@ -2152,3 +2152,62 @@ window.GCTPartialNavigation.registerInitializer(
     
   }
 );
+
+
+/* Keep pending PR/IR breakdowns outside scroll-clipped table containers. */
+window.GCTPartialNavigation.registerInitializer('maintenance-pr-breakdown-popup', '.purchase-page', () => {
+  const page = document.querySelector('.purchase-page');
+  if (!page || page.dataset.breakdownPopupReady === '1') return;
+  page.dataset.breakdownPopupReady = '1';
+  let active = null;
+  const close = () => {
+    if (!active) return;
+    active.details.open = false;
+    active.list.classList.remove('pr-parts-floating-menu');
+    active.list.removeAttribute('style');
+    active.details.appendChild(active.list);
+    active = null;
+  };
+  const position = () => {
+    if (!active) return;
+    const box = active.summary.getBoundingClientRect();
+    const width = Math.min(360, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(box.left, window.innerWidth - width - 12));
+    const height = Math.min(active.list.scrollHeight, 300);
+    const roomBelow = window.innerHeight - box.bottom - 16;
+    const roomAbove = box.top - 16;
+    const up = roomBelow < Math.min(180, height) && roomAbove > roomBelow;
+    Object.assign(active.list.style, {
+      position: 'fixed', left: left + 'px', width: width + 'px', right: 'auto',
+      top: up ? 'auto' : (box.bottom + 5) + 'px',
+      bottom: up ? (window.innerHeight - box.top + 5) + 'px' : 'auto',
+      maxHeight: Math.max(90, Math.min(300, up ? roomAbove : roomBelow)) + 'px',
+      zIndex: '120000'
+    });
+  };
+  page.addEventListener('click', event => {
+    const summary = event.target.closest('.pr-ir-breakdown > summary');
+    if (!summary) return;
+    event.preventDefault();
+    const details = summary.parentElement;
+    if (active?.details === details) { close(); return; }
+    close();
+    const list = details.querySelector('.pr-pending-parts-list');
+    if (!list) return;
+    details.open = true;
+    list.classList.add('pr-parts-floating-menu');
+    document.body.appendChild(list);
+    active = {details,summary,list};
+    position();
+  });
+  document.addEventListener('click', event => {
+    if (active && !active.summary.contains(event.target) && !active.list.contains(event.target)) close();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && active) { event.preventDefault(); close(); }
+  });
+  window.addEventListener('resize', position);
+  window.addEventListener('scroll', event => {
+    if (active && !active.list.contains(event.target)) position();
+  }, true);
+});
