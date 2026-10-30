@@ -7287,3 +7287,12 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-mechanic-summary[data-fit-mechanics]>[data-mechanic-overflow][hidden]{display:none!important}
 .jo-head-review-body .jo-review-mechanic-summary[data-fit-mechanics]>[data-mechanic-overflow]{flex:0 0 auto}
 .jo-head-review-body .jo-review-mechanic-summary[data-fit-mechanics] .jo-review-mechanic-expanded{z-index:70}
+
+
+/* Head Review footer: consistent controls and yellow approval action. */
+.jo-head-review-body .jo-review-footer{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap}
+.jo-head-review-body .jo-review-footer>button:not([hidden]){box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;min-height:40px;max-height:40px;line-height:1.2;vertical-align:middle;padding:0 13px;margin-top:0;margin-bottom:0}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled){background:#ffbf00!important;border:1px solid #e5a900!important;color:#182d4a!important}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled):hover{background:#f1ae00!important;border-color:#d89a00!important;color:#182d4a!important}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:disabled{background:#f0e5c8!important;border-color:#dfd2b1!important;color:#77776c!important;cursor:not-allowed!important}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:focus-visible{outline:2px solid #a46600;outline-offset:2px}
