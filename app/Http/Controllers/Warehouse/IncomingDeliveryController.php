@@ -8,6 +8,7 @@ use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Services\Maintenance\PartsReservationService;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,10 @@ class IncomingDeliveryController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    public function __construct(private InventoryLedgerService $ledger) {}
+    public function __construct(
+        private InventoryLedgerService $ledger,
+        private PartsReservationService $reservations
+    ) {}
 
     public function index(Request $request)
     {
@@ -171,6 +175,10 @@ class IncomingDeliveryController extends Controller
             ])->save();
 
             $this->syncRelatedRequestsAndJobOrders($lockedOrder, $receivedStatus);
+            // Reassess the approved JO only after the receipt stock-in is posted.
+            // This reserves newly available quantities for its existing approved
+            // release policy; it does not create an IR, deduct stock, or issue SWIS.
+            $this->reserveReceivedPartsForLinkedJobOrders($lockedOrder);
         });
 
         $this->broadcastSystemDataUpdated(
@@ -244,6 +252,47 @@ class IncomingDeliveryController extends Controller
                     ->update(['part_status' => $status]);
             }
         });
+    }
+
+    /** Replenished quantities must not be taken by another JO while awaiting IR handover. */
+    private function reserveReceivedPartsForLinkedJobOrders(PurchaseOrder $purchaseOrder): void
+    {
+        $prNumbers = collect($purchaseOrder->items ?? [])
+            ->pluck('pr_no')
+            ->filter()
+            ->map(fn ($prNo) => $this->normalizePrNo((string) $prNo))
+            ->filter()->unique()->values();
+
+        $requests = MaintenanceRequest::query()
+            ->where(function ($query) use ($purchaseOrder, $prNumbers): void {
+                if ($purchaseOrder->purchase_request_id) {
+                    $query->whereKey($purchaseOrder->purchase_request_id);
+                    if ($prNumbers->isNotEmpty()) {
+                        $query->orWhereIn('pr_no', $prNumbers);
+                    }
+                } elseif ($prNumbers->isNotEmpty()) {
+                    $query->whereIn('pr_no', $prNumbers);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            })
+            ->whereNotNull('job_order_no')
+            ->where('job_order_no', '!=', 'RESTOCK')
+            ->get();
+
+        $jobNos = $requests->pluck('job_order_no')->filter()->unique();
+        if ($jobNos->isEmpty()) {
+            return;
+        }
+
+        // Stable row order and existing transaction protect against competing
+        // IR submissions; topUp itself locks inventory and avoids double reservations.
+        JobOrder::query()->whereIn('job_order_no', $jobNos)
+            ->where('review_status', 'Approved')
+            ->where('status', '!=', 'Completed')
+            ->orderBy('id')
+            ->lockForUpdate()->get()
+            ->each(fn (JobOrder $jobOrder) => $this->reservations->topUp($jobOrder));
     }
 
     private function findInventoryItemForUpdate(string $itemName): ?InventoryItem
