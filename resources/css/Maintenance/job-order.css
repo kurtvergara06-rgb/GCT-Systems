@@ -7262,3 +7262,20 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   .jo-head-review-body .jo-review-footer {margin:0 -12px!important;padding:10px 12px!important;flex-wrap:wrap;}
   .jo-head-review-body .jo-review-footer .jo-review-footer-close {width:100%;margin-right:0;}
 }
+
+
+/* Head review detail cards: compact alignment and truthful assignment count. */
+.jo-head-review-body .jo-review-detail-grid>div{min-width:0;align-content:center;row-gap:7px}
+.jo-head-review-body .jo-review-detail-grid>div>span:first-child{display:flex;grid-column:1/-1;grid-row:1;align-items:center;gap:7px;min-width:0;color:#607998;font-size:11px}
+.jo-head-review-body .jo-review-detail-grid>div>span:first-child i{grid-column:auto;grid-row:auto;align-self:center;flex:0 0 16px;font-size:15px}
+.jo-head-review-body .jo-review-detail-grid>div>strong,
+.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge{grid-column:1/-1;grid-row:2;margin-left:23px;min-width:0}
+.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge{width:max-content;max-width:calc(100% - 23px);min-height:26px;display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;line-height:1.2;white-space:normal}
+.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge.is-not-requested{background:#fff5df;border:1px solid #f1cb76;color:#946000;border-radius:7px;font-size:11px;font-weight:750}
+.jo-head-review-body .jo-review-mechanic-field>span{display:flex;flex-wrap:wrap}
+.jo-head-review-body .jo-review-mechanic-count{display:inline-flex;justify-content:center;align-items:center;min-width:23px;height:21px;padding:0 6px;border-radius:6px;background:#e5efff;color:#1558b0;font-size:11px;font-weight:800}
+.jo-head-review-body .jo-review-detail-support-grid{align-items:stretch}
+.jo-head-review-body .jo-review-mechanic-summary{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;max-width:100%}
+.jo-head-review-body .jo-review-mechanic-primary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(230px,65%)}
+.jo-head-review-body .jo-review-mechanic-more{flex-shrink:0}
+@media(max-width:760px){.jo-head-review-body .jo-review-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}.jo-head-review-body .jo-review-detail-grid>div:nth-child(2){border-right:0}.jo-head-review-body .jo-review-detail-support-grid{grid-template-columns:1fr}}
