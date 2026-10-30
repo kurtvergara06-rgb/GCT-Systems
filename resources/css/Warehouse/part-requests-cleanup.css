@@ -1373,3 +1373,81 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 }
 .warehouse-pr-floating-popup > div:last-child { border-bottom: 0; }
 .warehouse-pr-floating-popup strong { font-weight: 800; white-space: nowrap; }
+
+
+/* Consistent Warehouse PR review and send-missing modal presentation. */
+#viewPrModal .warehouse-pr-reference-view,
+#warehouseSendMissingModal .warehouse-send-missing-view {
+  width:min(940px,calc(100vw - 32px));max-width:940px;
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 22px 68px rgba(14,33,66,.24);
+}
+#viewPrModal .warehouse-edit-header,
+#warehouseSendMissingModal .warehouse-edit-header {
+  display:flex;align-items:center;gap:14px;padding:17px 22px;
+  border-bottom:1px solid #dfe8f5;background:#fff;
+}
+#viewPrModal .warehouse-modal-title-copy,
+#warehouseSendMissingModal .warehouse-modal-title-copy {flex:1;min-width:0;}
+#viewPrModal .warehouse-modal-title-copy h2,
+#warehouseSendMissingModal .warehouse-modal-title-copy h2 {
+  font-size:18px;line-height:1.25;font-weight:850;color:#112d52;margin:0 0 4px;
+}
+#viewPrModal .warehouse-modal-scrollable,
+#warehouseSendMissingModal .warehouse-modal-scrollable {
+  padding:17px 20px;display:flex;flex-direction:column;gap:13px;
+  background:#fbfcff;
+}
+#viewPrModal .warehouse-pr-reference-strip,
+#warehouseSendMissingModal .warehouse-pr-reference-strip {
+  margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid #d8e5f5;border-radius:11px;background:#fff;
+  padding:10px;gap:6px;
+}
+#viewPrModal .warehouse-summary-item,
+#warehouseSendMissingModal .warehouse-summary-item {
+  min-width:0;padding:10px 12px;background:#f5f8fd;border-radius:7px;
+  border:1px solid #edf2fa;display:flex;flex-direction:column;gap:5px;
+}
+#viewPrModal .warehouse-summary-item span,
+#warehouseSendMissingModal .warehouse-summary-item span {
+  color:#647c9a;font-size:10px;font-weight:750;letter-spacing:.04em;
+}
+#viewPrModal .warehouse-summary-item strong,
+#warehouseSendMissingModal .warehouse-summary-item strong {
+  color:#15345e;font-size:12px;font-weight:850;overflow-wrap:anywhere;
+}
+#viewPrModal .warehouse-pr-reference-section,
+#warehouseSendMissingModal .warehouse-pr-reference-section {
+  margin:0;background:#fff;border:1px solid #d8e5f5;border-radius:11px;overflow:hidden;
+}
+#viewPrModal .warehouse-modal-section-header,
+#warehouseSendMissingModal .warehouse-modal-section-header {
+  padding:12px 15px;background:#f0f5fd;display:flex;align-items:center;gap:11px;
+  border-bottom:1px solid #dae5f4;
+}
+#viewPrModal .warehouse-modal-section-body,
+#warehouseSendMissingModal .warehouse-modal-section-body {padding:13px 15px;}
+#viewPrModal .parts-breakdown-table,
+#warehouseSendMissingModal .warehouse-pr-view-table {
+  width:100%;font-size:12px;border-collapse:collapse;
+}
+#viewPrModal .parts-breakdown-head,
+#warehouseSendMissingModal .warehouse-pr-view-table thead {
+  background:#eaf1fb;color:#244468;font-size:10px;font-weight:850;
+}
+#viewPrModal .parts-breakdown-row {min-height:47px;align-items:center;}
+#warehouseSendMissingModal .warehouse-pr-view-table th,
+#warehouseSendMissingModal .warehouse-pr-view-table td {
+  text-align:left;padding:13px 14px;border-bottom:1px solid #e4ecf7;
+}
+#viewPrModal .warehouse-edit-footer,
+#warehouseSendMissingModal .warehouse-edit-footer {
+  padding:13px 20px;background:#fff;border-top:1px solid #dfe8f5;
+}
+@media(max-width:600px){
+  #viewPrModal .warehouse-pr-reference-strip,
+  #warehouseSendMissingModal .warehouse-pr-reference-strip {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #viewPrModal .warehouse-modal-scrollable,
+  #warehouseSendMissingModal .warehouse-modal-scrollable {padding:12px;}
+}
