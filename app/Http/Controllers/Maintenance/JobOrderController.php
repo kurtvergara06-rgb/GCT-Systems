@@ -124,6 +124,45 @@ class JobOrderController extends Controller
             ->get(['job_order_id', 'status'])
             ->unique('job_order_id')
             ->pluck('status', 'job_order_id');
+        // Physical parts status is independent of procurement milestones.
+        $pageJobs = $jobOrders->getCollection();
+        $allJoIrs = ItemRequest::whereIn('job_order_id', $pageJobs->pluck('id'))->get(['id', 'job_order_id', 'created_at']);
+        $refToJo = $allJoIrs->mapWithKeys(fn ($ir) => [
+            'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->job_order_id,
+        ]);
+        $batches = $refToJo->isEmpty() ? collect() : \App\Models\Warehouse\InventoryIssuance::query()
+            ->where(function ($query) use ($refToJo) {
+                foreach ($refToJo->keys() as $ref) {
+                    $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
+                }
+            })->with('items')->get();
+        $partKey = fn ($name, $unit) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name)))
+            .'|'.$this->partParser->normalizeUnit((string) $unit);
+        $issuedByJo = [];
+        foreach ($batches as $batch) {
+            $joId = $refToJo->get(preg_replace('/-B[0-9]+$/', '', (string) $batch->reference_no));
+            if (!$joId) continue;
+            foreach ($batch->items as $line) {
+                $key = $partKey($line->item_name, $line->unit);
+                $issuedByJo[$joId][$key] = ($issuedByJo[$joId][$key] ?? 0) + (int) $line->quantity;
+            }
+        }
+        $resByJo = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->whereIn('job_order_id', $pageJobs->pluck('id'))->get()->groupBy('job_order_id');
+        $prJoNumbers = PurchaseRequest::whereIn('job_order_no', $pageJobs->pluck('job_order_no'))
+            ->pluck('job_order_no')->flip();
+        $irJoIds = $allJoIrs->pluck('job_order_id')->flip();
+        $joPartsDisplayStatuses = $pageJobs->mapWithKeys(function ($jo) use ($partKey, $issuedByJo, $resByJo, $prJoNumbers, $irJoIds) {
+            $required = collect($this->partParser->parsePartText((string) $jo->part_needed))
+                ->groupBy(fn ($part) => $partKey($part['name'], $part['unit']))
+                ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
+            if ($required->isEmpty()) return [$jo->id => 'No Parts Required'];
+            $issued = $required->sum(fn ($qty, $key) => min((int) $qty, (int) ($issuedByJo[$jo->id][$key] ?? 0)));
+            if ($issued >= $required->sum()) return [$jo->id => 'Fully Issued'];
+            if (!$irJoIds->has($jo->id) && !$prJoNumbers->has($jo->job_order_no)) return [$jo->id => 'Not Requested'];
+            if ($resByJo->get($jo->id, collect())->sum('quantity') <= 0) return [$jo->id => 'Waiting for Parts'];
+            return [$jo->id => $issued > 0 ? 'Partially Issued' : 'Not Issued'];
+        });
         // Preserve the IR mapping as explicit view data. Mutating an Eloquent
         // model in a paginator does not reliably describe the persisted workflow.
 
@@ -264,6 +303,7 @@ class JobOrderController extends Controller
             compact(
                 'jobOrders',
                 'existingIrStatuses',
+                'joPartsDisplayStatuses',
                 'onHold',
                 'onGoing',
                 'completed',
