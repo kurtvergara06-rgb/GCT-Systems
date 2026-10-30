@@ -17,7 +17,7 @@
 
 .inventory-card {
   width: 100%;
-  padding: 16px;
+  padding: 18px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -30,7 +30,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .inventory-card .section-header h2 {
@@ -61,7 +61,7 @@
 }
 
 .inventory-list-controls {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
 }
 
 .inventory-header-actions .primary-btn,
@@ -114,13 +114,12 @@
   max-height: 430px;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
   border-radius: 10px;
 }
 
 .inventory-table {
   width: 100%;
-  min-width: 1280px;
+  min-width: 1080px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -134,7 +133,7 @@
   position: sticky;
   top: 0;
   z-index: 4;
-  padding: 13px 12px;
+  padding: 12px 9px;
   border-bottom: 1px solid var(--border);
   background: #f3f7fc;
   color: #475569;
@@ -147,7 +146,7 @@
 }
 
 .inventory-table td {
-  padding: 13px 12px;
+  padding: 12px 9px;
   border-bottom: 1px solid #e7edf5;
   color: var(--text);
   font-size: 13px;
@@ -179,61 +178,17 @@
   border-bottom: none;
 }
 
-/* Column widths */
-.inventory-table th:nth-child(1),
-.inventory-table td:nth-child(1) {
-  width: 9%;
-}
-
-.inventory-table th:nth-child(2),
-.inventory-table td:nth-child(2) {
-  width: 14%;
-}
-
-.inventory-table th:nth-child(3),
-.inventory-table td:nth-child(3) {
-  width: 11%;
-}
-
-.inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) {
-  width: 8%;
-}
-
-.inventory-table th:nth-child(5),
-.inventory-table td:nth-child(5) {
-  width: 7%;
-}
-
-.inventory-table th:nth-child(6),
-.inventory-table td:nth-child(6) {
-  width: 10%;
-}
-
-.inventory-table th:nth-child(7),
-.inventory-table td:nth-child(7) {
-  width: 10%;
-}
-
-.inventory-table th:nth-child(8),
-.inventory-table td:nth-child(8) {
-  width: 12%;
-}
-
-.inventory-table th:nth-child(9),
-.inventory-table td:nth-child(9) {
-  width: 10%;
-}
-
-.inventory-table th:nth-child(10),
-.inventory-table td:nth-child(10) {
-  width: 10%;
-}
-
-.inventory-table th:nth-child(11),
-.inventory-table td:nth-child(11) {
-  width: 9%;
-}
+/* Ten real inventory columns. Avoid an unused 11th-column width rule. */
+.inventory-table th:nth-child(1),.inventory-table td:nth-child(1) {width:9%}
+.inventory-table th:nth-child(2),.inventory-table td:nth-child(2) {width:14%}
+.inventory-table th:nth-child(3),.inventory-table td:nth-child(3) {width:11%}
+.inventory-table th:nth-child(4),.inventory-table td:nth-child(4) {width:7%}
+.inventory-table th:nth-child(5),.inventory-table td:nth-child(5) {width:6%}
+.inventory-table th:nth-child(6),.inventory-table td:nth-child(6) {width:10%}
+.inventory-table th:nth-child(7),.inventory-table td:nth-child(7) {width:10%}
+.inventory-table th:nth-child(8),.inventory-table td:nth-child(8) {width:12%}
+.inventory-table th:nth-child(9),.inventory-table td:nth-child(9) {width:9%}
+.inventory-table th:nth-child(10),.inventory-table td:nth-child(10) {width:12%}
 
 /* Alignment */
 .inventory-table th:nth-child(4),
@@ -244,8 +199,8 @@
 .inventory-table td:nth-child(6),
 .inventory-table th:nth-child(7),
 .inventory-table td:nth-child(7),
-.inventory-table th:nth-child(11),
-.inventory-table td:nth-child(11) {
+.inventory-table th:nth-child(10),
+.inventory-table td:nth-child(10) {
   text-align: center !important;
 }
 
