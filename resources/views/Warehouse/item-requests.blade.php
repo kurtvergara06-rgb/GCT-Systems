@@ -49,7 +49,7 @@
             </div>
             <div class="ir-table-wrap">
                 <table class="ir-table">
-                    <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>ON HAND</th><th>INVENTORY</th><th>FULFILLMENT</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>FULFILLMENT</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                     @forelse($requests as $ir)
                     @php
@@ -90,20 +90,6 @@
                             @else — @endif
                         </td>
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
-                        <td>
-                            <strong>{{ $firstStock['on_hand'] ?? 0 }} {{ $firstStock['unit'] ?? '' }}</strong>
-                            @if($stockIsMixed)
-                                <details class="ir-parts-details warehouse-ir-onhand-more">
-                                    <summary>+{{ $stockParts->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                    <div class="ir-parts-popover">
-                                        @foreach($stockParts as $stockPart)
-                                            <div><span>{{ $stockPart['name'] ?? '—' }}</span><strong>{{ $stockPart['on_hand'] ?? 0 }} {{ $stockPart['unit'] ?? '' }}</strong></div>
-                                        @endforeach
-                                    </div>
-                                </details>
-                            @endif
-                        </td>
-                        <td><span title="IR allocation readiness, not full JO stock coverage" class="warehouse-ir-stock-status {{ ($stock['status'] ?? '') === 'sufficient' ? 'is-available' : (($stock['status'] ?? '') === 'partial' ? 'is-partial' : 'is-unavailable') }}"><i class="fa-solid {{ ($stock['status'] ?? '') === 'sufficient' ? 'fa-circle-check' : (($stock['status'] ?? '') === 'partial' ? 'fa-triangle-exclamation' : 'fa-circle-xmark') }}" aria-hidden="true"></i>{{ ($stock['status'] ?? '') === 'sufficient' ? 'Available' : (($stock['status'] ?? '') === 'partial' ? 'Partial' : 'Unavailable') }}</span></td>
                         <td>
                             <?php
                                 $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
@@ -159,7 +145,7 @@
                         </td>
                     </tr>
                     @empty
-                        <tr><td colspan="9"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
+                        <tr><td colspan="7"><div class="ir-empty"><span><i class="fa-solid fa-box-open"></i></span><strong>{{ $view === 'history' ? 'No Item Request history' : 'No active Item Requests' }}</strong><p>{{ $view === 'history' ? 'Closed requests will appear here.' : 'Submitted requests from Maintenance will appear here.' }}</p></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>
