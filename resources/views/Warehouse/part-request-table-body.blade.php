@@ -158,8 +158,8 @@
                           data-parts='@json($partRequest->parts_breakdown ?? [])'
                         >
                           @csrf
-                          <button type="submit" class="send-purchase-btn warehouse-pr-review-action icon-only-btn" title="Review missing parts before forwarding to Purchasing" aria-label="Review Purchase Request">
-                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+                          <button type="submit" class="send-purchase-btn warehouse-pr-review-action" title="Review missing parts before forwarding to Purchasing" aria-label="Review Purchase Request">
+                            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span>Review</span>
                           </button>
                         </form>
                       @endif
