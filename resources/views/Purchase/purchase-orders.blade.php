@@ -624,80 +624,80 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     @media(max-width:650px){.po-head-review-overlay{padding:9px!important}.po-head-review-dialog{max-height:calc(100dvh - 18px)!important}.po-head-review-content{padding:12px 12px 0!important}.po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}.po-head-review-summary>strong{margin-left:0}.po-head-review-table-wrap table{min-width:560px}}
 
     /* Wide desktop Purchase Head review matching the approved mockup. */
-    .purchase-orders-page .po-head-review-dialog{width:min(1120px,calc(100vw - 48px))!important;max-width:1120px!important}
-    .purchase-orders-page .po-head-review-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important;padding:7px 9px!important;gap:0!important}
-    .purchase-orders-page .po-head-review-meta>div{border-bottom:0!important;border-right:1px solid #dfe8f4!important;padding:15px 14px!important}
-    .purchase-orders-page .po-head-review-meta>div:last-child{border-right:0!important}
-    .purchase-orders-page .po-jo-review-grid{grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr)!important;align-items:stretch;gap:14px}
-    .purchase-orders-page .po-jo-review-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:0!important}
-    .purchase-orders-page .po-jo-review-facts>div{background:#fff;border:0;border-bottom:1px solid #e2eaf5;border-radius:0;padding:12px!important}
-    .purchase-orders-page .po-jo-review-facts>div:nth-last-child(-n+2){border-bottom:0}
-    .purchase-orders-page .po-jo-review-signature img{height:125px}
-    .purchase-orders-page .po-head-review-content{padding:16px 20px 0!important}
-    .purchase-orders-page .po-head-review-table-wrap table{min-width:0!important;width:100%!important}
-    .purchase-orders-page .po-head-review-table-wrap th,.purchase-orders-page .po-head-review-table-wrap td{padding:11px 12px!important}
-    .purchase-orders-page .po-head-review-footer{margin:0 -20px!important;padding:14px 20px!important}
+    #poHeadReviewModal .po-head-review-dialog{width:min(1120px,calc(100vw - 48px))!important;max-width:1120px!important}
+    #poHeadReviewModal .po-head-review-meta{grid-template-columns:repeat(4,minmax(0,1fr))!important;padding:7px 9px!important;gap:0!important}
+    #poHeadReviewModal .po-head-review-meta>div{border-bottom:0!important;border-right:1px solid #dfe8f4!important;padding:15px 14px!important}
+    #poHeadReviewModal .po-head-review-meta>div:last-child{border-right:0!important}
+    #poHeadReviewModal .po-jo-review-grid{grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr)!important;align-items:stretch;gap:14px}
+    #poHeadReviewModal .po-jo-review-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:0!important}
+    #poHeadReviewModal .po-jo-review-facts>div{background:#fff;border:0;border-bottom:1px solid #e2eaf5;border-radius:0;padding:12px!important}
+    #poHeadReviewModal .po-jo-review-facts>div:nth-last-child(-n+2){border-bottom:0}
+    #poHeadReviewModal .po-jo-review-signature img{height:125px}
+    #poHeadReviewModal .po-head-review-content{padding:16px 20px 0!important}
+    #poHeadReviewModal .po-head-review-table-wrap table{min-width:0!important;width:100%!important}
+    #poHeadReviewModal .po-head-review-table-wrap th,#poHeadReviewModal .po-head-review-table-wrap td{padding:11px 12px!important}
+    #poHeadReviewModal .po-head-review-footer{margin:0 -20px!important;padding:14px 20px!important}
     @media(max-width:900px){
-      .purchase-orders-page .po-head-review-dialog{width:min(815px,calc(100vw - 24px))!important}
-      .purchase-orders-page .po-head-review-meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-      .purchase-orders-page .po-head-review-meta>div:nth-child(2){border-right:0!important}
-      .purchase-orders-page .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #dfe8f4!important}
-      .purchase-orders-page .po-jo-review-grid{grid-template-columns:1fr!important}
+      #poHeadReviewModal .po-head-review-dialog{width:min(815px,calc(100vw - 24px))!important}
+      #poHeadReviewModal .po-head-review-meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      #poHeadReviewModal .po-head-review-meta>div:nth-child(2){border-right:0!important}
+      #poHeadReviewModal .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #dfe8f4!important}
+      #poHeadReviewModal .po-jo-review-grid{grid-template-columns:1fr!important}
     }
     @media(max-width:560px){
-      .purchase-orders-page .po-head-review-dialog{width:calc(100vw - 18px)!important}
-      .purchase-orders-page .po-head-review-meta{grid-template-columns:1fr!important}
-      .purchase-orders-page .po-head-review-meta>div{border-right:0!important;border-bottom:1px solid #dfe8f4!important}
-      .purchase-orders-page .po-head-review-meta>div:last-child{border-bottom:0!important}
-      .purchase-orders-page .po-head-review-content{padding:12px 12px 0!important}
-      .purchase-orders-page .po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}
-      .purchase-orders-page .po-head-review-table-wrap table{min-width:560px!important}
+      #poHeadReviewModal .po-head-review-dialog{width:calc(100vw - 18px)!important}
+      #poHeadReviewModal .po-head-review-meta{grid-template-columns:1fr!important}
+      #poHeadReviewModal .po-head-review-meta>div{border-right:0!important;border-bottom:1px solid #dfe8f4!important}
+      #poHeadReviewModal .po-head-review-meta>div:last-child{border-bottom:0!important}
+      #poHeadReviewModal .po-head-review-content{padding:12px 12px 0!important}
+      #poHeadReviewModal .po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}
+      #poHeadReviewModal .po-head-review-table-wrap table{min-width:560px!important}
     }
     /* Final PO review polish: one level of dividers, clean cards, title icon. */
-    .purchase-orders-page .po-head-review-heading{display:flex;align-items:center;gap:12px;min-width:0}
-    .purchase-orders-page .po-head-review-heading-icon{display:grid;place-items:center;width:43px;height:43px;flex:0 0 43px;border:1px solid #d7e6fb;border-radius:10px;background:#eaf3ff;color:#1764c5;font-size:19px}
-    .purchase-orders-page .po-head-review-meta{border:1px solid #d9e5f5!important;border-radius:10px!important;padding:0 12px!important;box-shadow:0 1px 3px rgba(22,55,100,.03)}
-    .purchase-orders-page .po-head-review-meta>div{position:relative;border:0!important;padding:15px 14px!important}
-    .purchase-orders-page .po-head-review-meta>div:not(:last-child)::after{content:"";position:absolute;right:0;top:20%;height:60%;width:1px;background:#dfe9f6}
-    .purchase-orders-page .po-jo-review{border-color:#d9e5f5!important}
-    .purchase-orders-page .po-jo-review-facts>div{border:0!important;border-radius:0!important;position:relative;background:transparent!important}
-    .purchase-orders-page .po-jo-review-facts>div:nth-child(odd)::after{content:"";position:absolute;right:0;top:17%;height:66%;width:1px;background:#e2eaf5}
-    .purchase-orders-page .po-jo-review-facts>div:nth-child(-n+4){border-bottom:1px solid #e2eaf5!important}
-    .purchase-orders-page .po-jo-review-signature{border:1px solid #dbe6f6;border-radius:9px;background:#f3f7ff}
-    @media(max-width:900px){.purchase-orders-page .po-head-review-meta>div:nth-child(2)::after{display:none}.purchase-orders-page .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #e2eaf5!important}}
-    @media(max-width:560px){.purchase-orders-page .po-head-review-meta>div::after{display:none}.purchase-orders-page .po-head-review-meta>div:not(:last-child){border-bottom:1px solid #e2eaf5!important}.purchase-orders-page .po-head-review-heading-icon{width:37px;height:37px;flex-basis:37px;font-size:16px}}
+    #poHeadReviewModal .po-head-review-heading{display:flex;align-items:center;gap:12px;min-width:0}
+    #poHeadReviewModal .po-head-review-heading-icon{display:grid;place-items:center;width:43px;height:43px;flex:0 0 43px;border:1px solid #d7e6fb;border-radius:10px;background:#eaf3ff;color:#1764c5;font-size:19px}
+    #poHeadReviewModal .po-head-review-meta{border:1px solid #d9e5f5!important;border-radius:10px!important;padding:0 12px!important;box-shadow:0 1px 3px rgba(22,55,100,.03)}
+    #poHeadReviewModal .po-head-review-meta>div{position:relative;border:0!important;padding:15px 14px!important}
+    #poHeadReviewModal .po-head-review-meta>div:not(:last-child)::after{content:"";position:absolute;right:0;top:20%;height:60%;width:1px;background:#dfe9f6}
+    #poHeadReviewModal .po-jo-review{border-color:#d9e5f5!important}
+    #poHeadReviewModal .po-jo-review-facts>div{border:0!important;border-radius:0!important;position:relative;background:transparent!important}
+    #poHeadReviewModal .po-jo-review-facts>div:nth-child(odd)::after{content:"";position:absolute;right:0;top:17%;height:66%;width:1px;background:#e2eaf5}
+    #poHeadReviewModal .po-jo-review-facts>div:nth-child(-n+4){border-bottom:1px solid #e2eaf5!important}
+    #poHeadReviewModal .po-jo-review-signature{border:1px solid #dbe6f6;border-radius:9px;background:#f3f7ff}
+    @media(max-width:900px){#poHeadReviewModal .po-head-review-meta>div:nth-child(2)::after{display:none}#poHeadReviewModal .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #e2eaf5!important}}
+    @media(max-width:560px){#poHeadReviewModal .po-head-review-meta>div::after{display:none}#poHeadReviewModal .po-head-review-meta>div:not(:last-child){border-bottom:1px solid #e2eaf5!important}#poHeadReviewModal .po-head-review-heading-icon{width:37px;height:37px;flex-basis:37px;font-size:16px}}
     /* Reuse GCT records-table typography, scoped to Purchase Head review. */
-    .purchase-orders-page .po-head-review-dialog,
-    .purchase-orders-page .po-head-review-dialog button,
-    .purchase-orders-page .po-head-review-dialog input,
-    .purchase-orders-page .po-head-review-dialog textarea{font-family:inherit!important}
-    .purchase-orders-page .po-review-items-table{font-family:inherit!important;font-size:12px!important;border-collapse:collapse!important;letter-spacing:normal!important}
-    .purchase-orders-page .po-review-items-table thead th{font-family:inherit!important;font-size:11px!important;font-weight:800!important;letter-spacing:0!important;line-height:1.35!important;text-transform:uppercase!important;color:#18365c!important}
-    .purchase-orders-page .po-review-items-table tbody td{font-family:inherit!important;font-size:12px!important;font-weight:600!important;letter-spacing:0!important;line-height:1.45!important;color:#18365c!important}
-    .purchase-orders-page .po-review-items-table tbody td:first-child{font-weight:700!important}
-    .purchase-orders-page .po-review-items-table tbody tr:last-child td{border-bottom:0!important}
-    .purchase-orders-page .po-head-review-summary,.purchase-orders-page .po-head-review-summary span,.purchase-orders-page .po-head-review-summary strong{font-family:inherit!important;letter-spacing:normal!important}
-    .purchase-orders-page .po-head-review-summary span{font-size:11px!important;font-weight:500}
-    .purchase-orders-page .po-head-review-summary strong{font-size:12px!important;font-weight:800!important}
-    .purchase-orders-page .po-head-review-fields label{font-family:inherit!important;font-size:12px!important;font-weight:750!important;letter-spacing:normal!important}
-    .purchase-orders-page .po-head-review-fields textarea,.purchase-orders-page .po-head-review-fields input{font-family:inherit!important;font-size:12px!important;font-weight:500!important}
-    .purchase-orders-page .po-head-authorization-fields{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:16px!important;align-items:start}
-    .purchase-orders-page .po-head-signature-column{border-right:1px solid #dce6f2;padding-right:16px;min-width:0}
-    .purchase-orders-page .po-head-review-notes-column{display:flex;flex-direction:column;gap:7px;min-width:0}
-    .purchase-orders-page .po-head-signature-column>label,.purchase-orders-page .po-head-review-notes-column>label{display:block;margin-bottom:7px}
-    .purchase-orders-page .po-head-signature-column>small,.purchase-orders-page .po-head-review-notes-column>small{display:block;font-size:10px;color:#708198;margin-top:7px}
-    .purchase-orders-page .po-head-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:164px;padding:14px;border:1px dashed #bdd5f8;border-radius:10px;background:#f8faff;text-align:center}
-    .purchase-orders-page .po-head-upload-icon{font-size:23px;color:#587ba9}
-    .purchase-orders-page .po-head-upload-zone>strong{font-size:14px;color:#193d6d}
-    .purchase-orders-page .po-head-upload-zone>small{font-size:10px;color:#6a7e98}
-    .purchase-orders-page .po-head-native-file{position:absolute!important;width:1px!important;height:1px!important;opacity:0;overflow:hidden;pointer-events:none}
-    .purchase-orders-page .po-head-choose-file{cursor:pointer;display:inline-flex!important;gap:6px;align-items:center;padding:8px 12px;border:1px solid #c9dcf5;border-radius:7px;background:#fff;color:#1c4c87;font-size:11px;font-weight:700}
-    .purchase-orders-page .po-head-choose-file:hover{background:#eaf3ff}
-    .purchase-orders-page .po-head-upload-zone.has-preview .po-head-upload-icon{display:none}
-    .purchase-orders-page .po-head-upload-zone.has-preview img{display:block;max-width:100%;max-height:95px;object-fit:contain;background:#fff}
-    .purchase-orders-page .po-head-review-notes-column #poHeadSignatoryName{background:#f1f5fa!important;font-weight:650!important;color:#19385b}
-    .purchase-orders-page .po-head-review-notes-column textarea{min-height:105px!important}
-    @media(max-width:650px){.purchase-orders-page .po-head-authorization-fields{grid-template-columns:1fr!important}.purchase-orders-page .po-head-signature-column{border-right:0;border-bottom:1px solid #dce6f2;padding-right:0;padding-bottom:14px}}
+    #poHeadReviewModal .po-head-review-dialog,
+    #poHeadReviewModal .po-head-review-dialog button,
+    #poHeadReviewModal .po-head-review-dialog input,
+    #poHeadReviewModal .po-head-review-dialog textarea{font-family:inherit!important}
+    #poHeadReviewModal .po-review-items-table{font-family:inherit!important;font-size:12px!important;border-collapse:collapse!important;letter-spacing:normal!important}
+    #poHeadReviewModal .po-review-items-table thead th{font-family:inherit!important;font-size:11px!important;font-weight:800!important;letter-spacing:0!important;line-height:1.35!important;text-transform:uppercase!important;color:#18365c!important}
+    #poHeadReviewModal .po-review-items-table tbody td{font-family:inherit!important;font-size:12px!important;font-weight:600!important;letter-spacing:0!important;line-height:1.45!important;color:#18365c!important}
+    #poHeadReviewModal .po-review-items-table tbody td:first-child{font-weight:700!important}
+    #poHeadReviewModal .po-review-items-table tbody tr:last-child td{border-bottom:0!important}
+    #poHeadReviewModal .po-head-review-summary,#poHeadReviewModal .po-head-review-summary span,#poHeadReviewModal .po-head-review-summary strong{font-family:inherit!important;letter-spacing:normal!important}
+    #poHeadReviewModal .po-head-review-summary span{font-size:11px!important;font-weight:500}
+    #poHeadReviewModal .po-head-review-summary strong{font-size:12px!important;font-weight:800!important}
+    #poHeadReviewModal .po-head-review-fields label{font-family:inherit!important;font-size:12px!important;font-weight:750!important;letter-spacing:normal!important}
+    #poHeadReviewModal .po-head-review-fields textarea,#poHeadReviewModal .po-head-review-fields input{font-family:inherit!important;font-size:12px!important;font-weight:500!important}
+    #poHeadReviewModal .po-head-authorization-fields{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:16px!important;align-items:start}
+    #poHeadReviewModal .po-head-signature-column{border-right:1px solid #dce6f2;padding-right:16px;min-width:0}
+    #poHeadReviewModal .po-head-review-notes-column{display:flex;flex-direction:column;gap:7px;min-width:0}
+    #poHeadReviewModal .po-head-signature-column>label,#poHeadReviewModal .po-head-review-notes-column>label{display:block;margin-bottom:7px}
+    #poHeadReviewModal .po-head-signature-column>small,#poHeadReviewModal .po-head-review-notes-column>small{display:block;font-size:10px;color:#708198;margin-top:7px}
+    #poHeadReviewModal .po-head-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:164px;padding:14px;border:1px dashed #bdd5f8;border-radius:10px;background:#f8faff;text-align:center}
+    #poHeadReviewModal .po-head-upload-icon{font-size:23px;color:#587ba9}
+    #poHeadReviewModal .po-head-upload-zone>strong{font-size:14px;color:#193d6d}
+    #poHeadReviewModal .po-head-upload-zone>small{font-size:10px;color:#6a7e98}
+    #poHeadReviewModal .po-head-native-file{position:absolute!important;width:1px!important;height:1px!important;opacity:0;overflow:hidden;pointer-events:none}
+    #poHeadReviewModal .po-head-choose-file{cursor:pointer;display:inline-flex!important;gap:6px;align-items:center;padding:8px 12px;border:1px solid #c9dcf5;border-radius:7px;background:#fff;color:#1c4c87;font-size:11px;font-weight:700}
+    #poHeadReviewModal .po-head-choose-file:hover{background:#eaf3ff}
+    #poHeadReviewModal .po-head-upload-zone.has-preview .po-head-upload-icon{display:none}
+    #poHeadReviewModal .po-head-upload-zone.has-preview img{display:block;max-width:100%;max-height:95px;object-fit:contain;background:#fff}
+    #poHeadReviewModal .po-head-review-notes-column #poHeadSignatoryName{background:#f1f5fa!important;font-weight:650!important;color:#19385b}
+    #poHeadReviewModal .po-head-review-notes-column textarea{min-height:105px!important}
+    @media(max-width:650px){#poHeadReviewModal .po-head-authorization-fields{grid-template-columns:1fr!important}#poHeadReviewModal .po-head-signature-column{border-right:0;border-bottom:1px solid #dce6f2;padding-right:0;padding-bottom:14px}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
