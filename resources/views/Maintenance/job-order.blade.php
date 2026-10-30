@@ -98,9 +98,8 @@
                     <x-slot:filters>
                             <x-ui.table-toolbar-field label="Part Status" name="part_status" default="All Part Statuses">
                                 @foreach([
-                                    'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
-                                    'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
-                                    'Picked Up', 'Issued', 'No Parts Needed'
+                                    'All Part Statuses', 'No Parts Required', 'Not Requested', 'Not Issued',
+                                    'Partially Issued', 'Waiting for Parts', 'Fully Issued'
                                 ] as $partStatusOption)
                                     <option
                                         value="{{ $partStatusOption }}"
@@ -157,27 +156,14 @@
                                     $isOverdue = $jobOrder->is_overdue;
                                     $durationSuggestion = $durationSuggestions->get($jobOrder->id);
 
-                                    $partStatus = $jobOrder->part_status;
-                                    // Existing IRs may predate the JO status sync.
-                                    // Always show the linked operational request state
-                                    // when the stored JO still says "Not Requested".
-                                    $linkedIrStatus = $existingIrStatuses->get($jobOrder->id);
-                                    if ($hasNeededParts && $linkedIrStatus && in_array($partStatus, [null, '', 'Not Requested', 'Unknown'], true)) {
-                                        $partStatus = $linkedIrStatus;
-                                    }
-                                    if (!$hasNeededParts) {
-                                        $partStatus = '----';
-                                    } elseif (!$partStatus || $partStatus === 'Unknown' || $partStatus === 'No Parts Needed') {
-                                        $partStatus = 'Not Requested';
-                                    }
-
+                                    $partStatus = $joPartsDisplayStatuses->get($jobOrder->id, 'Not Requested');
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
                                     // A linked, still-outstanding procurement request is an objective
                                     // delay risk. Do not infer delay from "Not Requested" alone or
                                     // flag an already fulfilled/completed Job Order.
                                     $hasPartsDelayRisk = $isApprovedReview && !$isCompleted && $hasNeededParts
-                                        && !in_array($partStatus, ['Issued', 'No Parts Needed'], true)
+                                        && !in_array($partStatus, ['Fully Issued', 'No Parts Required'], true)
                                         && $linkedPrs->contains(fn ($pr) => in_array($pr->status, ['Submitted', 'Approved', 'For Purchase', 'Ordered', 'For Delivery'], true));
                                     $linkedPr = $linkedPrs->first();
                                     $hasLinkedPr = $linkedPrs->isNotEmpty();
@@ -216,19 +202,13 @@
 
                                     $isViewOnly = $isApprovedReview || $isCompleted || $isLockedByPurchaseRequest || $isPendingReview || $isRejectedReview;
 
-                                    $partStatusClass = match($partStatus) {
+                                    $partStatusClass = match ($partStatus) {
+                                        'No Parts Required' => 'no-parts-needed',
                                         'Not Requested' => 'not-requested',
-                                        'Submitted' => 'submitted',
-                                        'Approved' => 'approved',
-                                        'Rejected' => 'rejected',
-                                        'For Purchase' => 'for-purchase',
-                                        'Ordered' => 'ordered',
-                                        'For Pick-up' => 'for-pick-up',
-                                        'For Delivery' => 'for-delivery',
-                                        'Delivered' => 'delivered',
-                                        'Picked Up' => 'picked-up',
-                                        'Issued' => 'issued',
-                                        'No Parts Needed' => 'no-parts-needed',
+                                        'Not Issued' => 'rejected',
+                                        'Partially Issued' => 'for-purchase',
+                                        'Waiting for Parts' => 'for-purchase',
+                                        'Fully Issued' => 'issued',
                                         default => 'not-requested',
                                     };
                                 @endphp
