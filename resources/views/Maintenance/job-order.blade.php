@@ -527,7 +527,7 @@
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
                                                                                 <span class="jo-review-part-stock">—</span>
                                                                                 <span class="jo-review-part-shortage">—</span>
-                                                                                <span class="jo-review-part-availability is-checking">Checking…</span>
+                                                                                <span class="jo-review-part-availability is-pending" title="Stock quantities and shortages must be verified against current warehouse reservations before approval.">Verify Stock</span>
                                                                             </div>
                                                                         @endforeach
                                                                     </div>
