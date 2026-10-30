@@ -6801,3 +6801,26 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-inventory-picker {min-height:43px;border-radius:8px;}
 :is(#jobModal,#editJobModal) .jo-create-parts-repeater .remove-part-btn {width:36px;height:36px;}
 @media(max-width:760px){:is(#jobModal,#editJobModal) .jo-create-parts-table-head {display:none;}:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {grid-template-columns:24px minmax(0,1fr) minmax(75px,.45fr) 42px;}:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-stock-group {grid-column:2 / 4;}:is(#jobModal,#editJobModal) .jo-create-duration .jo-duration-control {max-width:100%;}}
+
+
+/* JO Requested Parts: searchable name-only inventory selector. */
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-inventory-picker[hidden] {display:none!important}
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-picker {position:relative;min-width:0;width:100%}
+:is(#jobModal,#editJobModal) .jo-part-picker-trigger {display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:43px;width:100%;padding:9px 12px;border:1px solid #cbdcf0;border-radius:8px;background:#fff;color:#17375c;font:inherit;font-size:12px;text-align:left;cursor:pointer}
+:is(#jobModal,#editJobModal) .jo-part-picker-trigger:after {content:'⌄';font-size:17px;color:#6883a5}
+:is(#jobModal,#editJobModal) .jo-part-picker-trigger:focus-visible {outline:2px solid #4b90e3;outline-offset:2px}
+:is(#jobModal,#editJobModal) .jo-part-picker-menu {position:absolute;z-index:120;top:calc(100% + 5px);left:0;right:0;max-height:252px;overflow:hidden;display:flex;flex-direction:column;gap:5px;padding:8px;border:1px solid #cbdcf0;border-radius:10px;background:#fff;box-shadow:0 12px 28px rgba(20,55,100,.17)}
+:is(#jobModal,#editJobModal) .jo-part-picker-menu[hidden] {display:none!important}
+:is(#jobModal,#editJobModal) .jo-part-picker-search {width:100%;min-height:37px;padding:8px 10px;border:1px solid #d4e2f2;border-radius:8px;background:#fff;color:#17375c;font:inherit;font-size:12px;box-sizing:border-box}
+:is(#jobModal,#editJobModal) .jo-part-picker-options {min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+:is(#jobModal,#editJobModal) .jo-part-picker-option {display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:10px;border:0;border-radius:7px;background:#fff;text-align:left;color:#17375c;font:inherit;cursor:pointer}
+:is(#jobModal,#editJobModal) .jo-part-picker-option:hover,:is(#jobModal,#editJobModal) .jo-part-picker-option:focus-visible {background:#edf5ff;outline:none}
+:is(#jobModal,#editJobModal) .jo-part-picker-option strong {font-size:12px;font-weight:750}
+:is(#jobModal,#editJobModal) .jo-part-picker-option small {font-size:10px;color:#6d83a0}
+:is(#jobModal,#editJobModal) .jo-part-picker-empty {margin:0;padding:10px;font-size:11px;color:#7086a1}
+:is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status {width:100%;box-sizing:border-box;min-height:30px;border-radius:7px;font-size:10px}
+:is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status[data-state="sufficient"] {background:#e8f8ee;border-color:#bce7cc;color:#176d3f}
+:is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status[data-state="partial"] {background:#fff2d9;border-color:#efd29b;color:#966009}
+:is(#jobModal,#editJobModal) .jo-part-stock-group .jo-inventory-stock-status[data-state="unavailable"] {background:#fff0f1;border-color:#f1c5cb;color:#a72b3b}
+:is(#jobModal,#editJobModal) .jo-part-stock-group .jo-part-stock-note {font-size:9px;line-height:1.3}
+:is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {overflow:visible}
