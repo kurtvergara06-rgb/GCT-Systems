@@ -116,7 +116,7 @@
                             </span>
                         </td>
                         <td>
-                            <x-ui.action-button type="view" title="View Item Request" aria-label="View Item Request" data-ir-view
+                            <button type="button" class="warehouse-ir-labeled-view" title="View Item Request" aria-label="View Item Request" data-ir-view
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
@@ -130,10 +130,8 @@
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
                                 data-ir-can-issue="{{ in_array($ir->status, ['Submitted', 'Partially Issued'], true) ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
-                                data-ir-remarks="{{ $ir->remarks ?? '' }}" />
-                            @if(in_array($ir->status, ['Issued', 'Partially Issued'], true))
-                                <x-ui.action-button type="view" title="Download Latest Signed Withdrawal Slip" aria-label="Download Signed Withdrawal Slip" :href="route('warehouse.item-requests.signed-slip', $ir)" />
-                            @endif
+                                data-ir-remarks="{{ $ir->remarks ?? '' }}"
+                                data-ir-signed-slip-url="{{ in_array($ir->status, ['Issued', 'Partially Issued'], true) ? route('warehouse.item-requests.signed-slip', $ir) : '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View</button>
                             @if(in_array($ir->status, ['Submitted', 'Partially Issued'], true) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
                                 <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy" :title="$issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip'" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
@@ -209,7 +207,7 @@
             </section>
         </div>
         <footer class="ir-modal-footer">
-
+            <a id="warehouseIrSignedSlipLink" href="#" class="ir-secondary-button" hidden><i class="fa-solid fa-file-signature" aria-hidden="true"></i> View Signed SWIS</a>
             <button type="button" class="ir-secondary-button" data-ir-close>Close</button>
         </footer>
     </div>
