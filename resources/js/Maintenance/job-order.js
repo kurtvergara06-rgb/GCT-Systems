@@ -2843,6 +2843,27 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
           skills.textContent = config.optionHint;
         }
         details.append(title, skills);
+        if (config.multiple) {
+          const form = select.closest('form');
+          const statusPanel = form?.querySelector('[data-jo-skill-coverage]');
+          const requirementLabels = Array.from(statusPanel?.querySelectorAll('.jo-coverage-skill') || [])
+            .map(item => item.textContent.trim().toLocaleLowerCase());
+          const known = requirementLabels.length > 0;
+          const mechanicSkills = (option.dataset.specializations || '').split(/[,;|]/)
+            .map(value => value.trim().toLocaleLowerCase()).filter(Boolean);
+          const matched = requirementLabels.filter(skill => mechanicSkills.includes(skill));
+          const score = known ? matched.length : -1;
+          button.dataset.matchScore = String(score);
+          const badge = document.createElement('span');
+          badge.className = 'jo-mechanic-match-badge';
+          badge.textContent = !known ? 'Not Evaluated'
+            : score === requirementLabels.length ? 'Best Match'
+            : score > 0 ? 'Partial Match' : 'No Match';
+          badge.dataset.match = !known ? 'unknown'
+            : score === requirementLabels.length ? 'full'
+            : score > 0 ? 'partial' : 'none';
+          details.appendChild(badge);
+        }
         const check = document.createElement('i');
         check.className = 'fa-solid fa-check';
         check.setAttribute('aria-hidden', 'true');
@@ -2852,6 +2873,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
         optionsContainer.appendChild(button);
       });
 
+      if (config.multiple) {
+        const ordered = Array.from(optionsContainer.querySelectorAll('.jo-mechanic-combobox-option'));
+        ordered.sort((a, b) => Number(b.dataset.matchScore || -1) - Number(a.dataset.matchScore || -1));
+        ordered.forEach(element => optionsContainer.append(element));
+      }
       updateLabel();
     };
 
@@ -2860,6 +2886,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
         return;
       }
 
+      // Refresh match labels against the latest maintenance-job selection.
+      if (config.multiple) renderOptions();
       menu.hidden = false;
       combobox.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
