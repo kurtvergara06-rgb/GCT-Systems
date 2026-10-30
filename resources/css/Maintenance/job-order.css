@@ -7033,3 +7033,24 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   align-items:center!important;justify-content:center!important;
   border-radius:6px!important;line-height:1!important;white-space:nowrap;
 }
+
+
+/* Unified GCT review design — presentation only, retaining JO forms and signature cropper. */
+.jo-head-review-dialog{width:min(920px,calc(100vw - 32px))!important;max-height:calc(100dvh - 28px)!important;border-radius:15px!important;overflow:hidden}
+.jo-head-review-body{min-height:0;overflow-y:auto;background:#f8fafd}
+.jo-head-review-body .jo-review-panel{display:flex!important;flex-direction:column;gap:12px!important;padding:14px 18px 0!important}
+.jo-head-review-body .jo-review-details,
+.jo-head-review-body .jo-review-requested-parts,
+.jo-head-review-body .jo-review-audit,
+.jo-head-review-body .jo-head-duration-review,
+.jo-head-review-body .jo-head-authorization{background:#fff!important;border:1px solid #dbe6f5!important;border-radius:11px!important;box-shadow:none!important}
+.jo-head-review-body .jo-review-mode[data-review-mode="approve"] .jo-review-approve-form{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+.jo-head-review-body .jo-signature-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;align-items:start}
+.jo-head-review-body .jo-signature-draw-wrap{min-width:0;padding-right:16px;border-right:1px solid #dfe8f5}
+.jo-head-review-body .jo-signature-identity{min-width:0}
+.jo-head-review-body .jo-signature-upload-zone{min-height:165px;border:1px dashed #bdd5f8!important;border-radius:10px!important;background:#f8faff!important}
+.jo-head-review-body .jo-review-footer{position:sticky!important;bottom:0;z-index:10;margin:0 -18px!important;padding:12px 18px!important;background:#fff!important;border-top:1px solid #dbe6f5!important}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:disabled{background:#e5e7eb!important;border-color:#d1d5db!important;color:#727987!important;cursor:not-allowed!important;opacity:1!important}
+.jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled){background:#fbbf24!important;border-color:#e6aa18!important;color:#172a43!important}
+@media(max-width:700px){.jo-head-review-body .jo-signature-grid{grid-template-columns:1fr!important}.jo-head-review-body .jo-signature-draw-wrap{padding-right:0;padding-bottom:14px;border-right:0;border-bottom:1px solid #dfe8f5}}
+@media(max-width:520px){.jo-head-review-dialog{width:calc(100vw - 16px)!important}.jo-head-review-body .jo-review-panel{padding:12px 12px 0!important}.jo-head-review-body .jo-review-footer{margin:0 -12px!important;padding:10px 12px!important}}
