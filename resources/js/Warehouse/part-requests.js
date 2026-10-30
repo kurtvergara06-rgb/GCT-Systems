@@ -100,7 +100,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     parts.forEach(function (part) {
       html += `
         <div class="parts-breakdown-row no-status">
-          <span class="part-name">${escapeHtml(part.name || '—')}</span>
+          <span class="part-name">${escapeHtml(String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim())}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
           <span>${escapeHtml(part.available_display || part.available || '0')}</span>
         </div>
