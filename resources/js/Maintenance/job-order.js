@@ -187,8 +187,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           status.textContent = !id ? 'Not Checked' :
             ({ enter_qty: 'Enter Qty', sufficient: 'Sufficient',
               partial: 'Partial', unavailable: 'Unavailable' }[state] || 'Not Checked');
-          note.textContent = id && state !== 'enter_qty' ?
-            'Provisional — verified at reservation' : '';
+          note.textContent = id && state !== 'enter_qty' ? 'Provisional' : '';
+          status.title = 'Availability is verified during Job Order reservation.';
         });
       })
       .catch(() => {
