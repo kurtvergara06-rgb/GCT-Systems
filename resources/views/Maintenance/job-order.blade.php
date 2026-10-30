@@ -544,13 +544,15 @@
                                                             <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
                                                             <div class="jo-review-detail-long jo-review-requested-parts">
                                                                 @php($reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
+                                                                <div class="jo-review-parts-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><strong>Requested Parts ({{ count($reviewParts) }})</strong></div>
                                                                 @if(count($reviewParts))
                                                                     <div class="jo-review-parts-list" data-parts='@json($reviewParts)'>
                                                                         <div class="jo-review-parts-table-header" aria-hidden="true">
-                                                                            <span>Part Description</span><span>Required</span><span>Stock</span><span>Shortage</span><span>Status</span>
+                                                                            <span>#</span><span>Part Description</span><span>Required</span><span>Stock</span><span>Shortage</span><span>Status</span>
                                                                         </div>
                                                                         @foreach($reviewParts as $reviewPart)
                                                                             <div class="jo-review-part-item">
+                                                                                <span class="jo-review-part-index">{{ $loop->iteration }}</span>
                                                                                 <strong class="jo-review-part-name">{{ $reviewPart['name'] }}</strong>
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
                                                                                 <span class="jo-review-part-stock">—</span>
