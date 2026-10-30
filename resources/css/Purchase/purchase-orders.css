@@ -1327,3 +1327,22 @@ main.purchase-orders-page .purchase-order-card .record-actions .po-review-action
 main.purchase-orders-page .purchase-order-card .record-actions .po-review-action:hover {
   border-color:#7da9e9 !important; background:#dcecff !important;
 }
+
+/* Purchase Orders records: clean Review action and rectangular Source status. */
+main.purchase-orders-page .purchase-order-card .record-actions {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline-offset: 2px;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type {
+  border-radius: 5px;
+  min-height: 28px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
