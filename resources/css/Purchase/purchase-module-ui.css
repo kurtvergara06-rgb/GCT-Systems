@@ -1788,3 +1788,14 @@
   .purchase-orders-page .po-record-controls{align-items:stretch;}
   .purchase-orders-page .po-record-actions {width:100%;margin-left:0;justify-content:space-between;}
 }
+
+/* PO record controls: tabs and Search/Filter/Sort share one compact row. */
+@media(min-width:721px){
+  .purchase-orders-page .purchase-order-card{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center}
+  .purchase-orders-page .purchase-order-card>.po-section-header{grid-column:1/-1}
+  .purchase-orders-page .purchase-order-card>.po-record-tabs{grid-column:1;grid-row:2;margin:0;align-self:center}
+  .purchase-orders-page .purchase-order-card>.po-record-controls{grid-column:2;grid-row:2;margin:0;min-width:0;justify-content:flex-end}
+  .purchase-orders-page .purchase-order-card>.po-record-controls .po-record-actions{margin:0}
+  .purchase-orders-page .purchase-order-card>.records-table-wrap,
+  .purchase-orders-page .purchase-order-card>.table-footer{grid-column:1/-1}
+}
