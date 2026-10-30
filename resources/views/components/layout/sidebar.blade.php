@@ -131,8 +131,8 @@
                 'label' => 'Parts & Requests',
                 'icon' => 'fa-box-open',
                 'children' => [
-                    ['label' => 'Item Requests (IR)', 'route' => 'warehouse.item-requests', 'icon' => 'fa-box'],
-                    ['label' => 'Purchase Requests (PR)', 'route' => 'part-requests', 'icon' => 'fa-file-invoice'],
+                    ['label' => 'Item Requests', 'route' => 'warehouse.item-requests', 'icon' => 'fa-box'],
+                    ['label' => 'Purchase Requests', 'route' => 'part-requests', 'icon' => 'fa-file-invoice'],
                 ],
             ],
             ['label' => 'Incoming Deliveries', 'route' => 'incoming-deliveries', 'icon' => 'fa-truck-ramp-box'],
