@@ -488,7 +488,7 @@
     </div>
   </div>
 
-  <div id="poHeadReviewModal" class="modal-overlay po-head-review-overlay" role="presentation">
+  <div id="poHeadReviewModal" class="modal-overlay po-head-review-overlay" role="presentation" style="display:none">
     <div class="po-head-review-dialog" role="dialog" aria-modal="true" aria-labelledby="poHeadReviewTitle">
       <header class="po-head-review-header">
         <div><small>PURCHASE HEAD APPROVAL</small><h2 id="poHeadReviewTitle">Review Purchase Order</h2><p>Verify supplier, ordered items and totals before your decision.</p></div>
@@ -524,6 +524,10 @@
   </div>
   <style>
     .po-head-review-overlay{align-items:center;justify-content:center;padding:20px;z-index:1100}
+    .purchase-orders-page .po-status-cell [data-ui-component="status-badge"],.purchase-orders-page .po-status-cell .status-badge,.purchase-orders-page .po-status-cell [class*="status-badge"]{border-radius:5px!important;min-height:28px!important;padding:6px 11px!important;display:inline-flex!important;align-items:center!important;border:1px solid #bcd4f6!important;background:#eaf3ff!important;color:#15549e!important}
+    .purchase-orders-page .po-review-action,.purchase-orders-page .po-review-action:hover,.purchase-orders-page .po-review-action:focus-visible{transform:none!important;scale:1!important;box-shadow:none!important}
+    .purchase-orders-page .po-review-action{transition:background-color .16s ease,color .16s ease,border-color .16s ease!important}
+    .purchase-orders-page .po-review-action:hover{background:#cfe3ff!important;color:#084aa9!important;border-color:#92b9ec!important}
     .po-head-review-dialog{width:min(850px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;border-radius:15px;box-shadow:0 25px 80px #0e27444d;font-family:inherit}
     .po-head-review-header{display:flex;justify-content:space-between;gap:14px;padding:22px 26px;color:#fff;background:linear-gradient(110deg,#163f79,#265dac)}
     .po-head-review-header small{font-size:10px;letter-spacing:.13em;font-weight:800;color:#c9e0ff}.po-head-review-header h2{margin:6px 0;font-size:21px}.po-head-review-header p{font-size:12px;margin:0;color:#dceaff}
@@ -542,10 +546,10 @@
   </style>
   <script>
     (function(){
-      if(!window.GCTPartialNavigation?.registerInitializer)return;
-      window.GCTPartialNavigation.registerInitializer('po-head-review','.purchase-orders-page',function(){
+      const initializePoHeadReview=function(){
         const modal=document.getElementById('poHeadReviewModal'),form=document.getElementById('poHeadReviewForm');
-        if(!modal||!form)return;
+        if(!modal||!form||modal.dataset.reviewInitialized==='true')return;
+        modal.dataset.reviewInitialized='true';
         const byId=id=>document.getElementById(id);
         const money=v=>'₱'+(Number(v)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
         let approveUrl='',decisionUrl='',previewUrl=null;
@@ -566,7 +570,10 @@
         byId('headReviewRevision').addEventListener('click',()=>decide('revision'));
         byId('headReviewReject').addEventListener('click',()=>decide('reject'));
         byId('headReviewRemarks').addEventListener('input',e=>e.target.setCustomValidity(''));
-      });
+      };
+      window.GCTPartialNavigation?.registerInitializer?.('po-head-review','.purchase-orders-page',initializePoHeadReview);
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializePoHeadReview,{once:true});
+      else initializePoHeadReview();
     })();
   </script>
 
