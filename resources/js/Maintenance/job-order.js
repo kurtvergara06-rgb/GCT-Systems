@@ -260,7 +260,30 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     unit.classList.add('jo-auto-unit-select');
     unit.setAttribute('aria-label', 'Unit from inventory');
     unit.tabIndex = -1;
-    const close = () => { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
+    const positionMenu = () => {
+      if (menu.hidden) return;
+      const rect = trigger.getBoundingClientRect();
+      const below = window.innerHeight - rect.bottom - 18;
+      const above = rect.top - 18;
+      const openUp = below < 190 && above > below;
+      const available = Math.max(100, openUp ? above : below);
+      Object.assign(menu.style, {
+        position: 'fixed',
+        left: rect.left + 'px',
+        width: rect.width + 'px',
+        right: 'auto',
+        top: openUp ? 'auto' : (rect.bottom + 5) + 'px',
+        bottom: openUp ? (window.innerHeight - rect.top + 5) + 'px' : 'auto',
+        maxHeight: Math.min(260, available) + 'px',
+        zIndex: '120500'
+      });
+    };
+    const close = () => {
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      window.removeEventListener('resize', positionMenu);
+      window.removeEventListener('scroll', positionMenu, true);
+    };
     const sync = () => {
       const item = joInventoryCatalog.find(entry => String(entry.id) === selector.value);
       inventoryId.value = item ? String(item.id) : '';
@@ -302,7 +325,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     trigger.addEventListener('click', () => {
       if (menu.hidden) {
         menu.hidden = false;
+        document.body.appendChild(menu);
         trigger.setAttribute('aria-expanded', 'true');
+        positionMenu();
+        window.addEventListener('resize', positionMenu);
+        window.addEventListener('scroll', positionMenu, true);
         search.value = '';
         renderOptions();
         search.focus();
@@ -311,8 +338,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
     search.addEventListener('input', renderOptions);
     search.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
     document.addEventListener('click', event => {
-      if (!picker.isConnected) return;
-      if (!picker.contains(event.target)) close();
+      if (!picker.isConnected) { menu.remove(); return; }
+      if (!picker.contains(event.target) && !menu.contains(event.target)) close();
     });
     qty.addEventListener('input', () => schedulePartCheck(form));
     selector.addEventListener('change', sync);
