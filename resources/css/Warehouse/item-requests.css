@@ -767,3 +767,12 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   font-family:inherit!important;font-size:11px!important;font-weight:800!important;
   line-height:1.2!important;white-space:nowrap;
 }
+
+
+/* Maintenance Head 'Wait Until Complete' prevents premature Warehouse issue. */
+.warehouse-ir-page .ir-table .action-btn.issue:disabled,
+.warehouse-ir-page .ir-table .action-btn.issue.gct-action-unavailable {
+  opacity:1!important;background:#edf1f6!important;border-color:#cfd9e5!important;
+  color:#8a99aa!important;cursor:not-allowed!important;box-shadow:none!important;
+}
+.warehouse-ir-page .ir-table .action-btn.issue:disabled i{color:#8a99aa!important;}
