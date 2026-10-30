@@ -188,6 +188,13 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         const node = document.getElementById(id);
         if (node) node.textContent = trigger.dataset[key] || (key === 'irRemarks' ? 'No remarks provided.' : '—');
       });
+      const signedSlipLink = document.getElementById('warehouseIrSignedSlipLink');
+      if (signedSlipLink) {
+        const slipUrl = trigger.dataset.irSignedSlipUrl;
+        signedSlipLink.hidden = !slipUrl;
+        if (slipUrl) signedSlipLink.href = slipUrl;
+        else signedSlipLink.removeAttribute('href');
+      }
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       void verify();
