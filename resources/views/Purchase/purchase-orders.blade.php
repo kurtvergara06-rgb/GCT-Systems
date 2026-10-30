@@ -504,7 +504,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
   <div id="poHeadReviewModal" class="modal-overlay po-head-review-overlay" role="presentation" style="display:none">
     <div class="po-head-review-dialog" role="dialog" aria-modal="true" aria-labelledby="poHeadReviewTitle">
       <header class="po-head-review-header">
-        <div><small>PURCHASE HEAD APPROVAL</small><h2 id="poHeadReviewTitle">Review Purchase Order</h2><p>Verify supplier, ordered items and totals before your decision.</p></div>
+        <div class="po-head-review-heading"><span class="po-head-review-heading-icon" aria-hidden="true"><i class="fa-solid fa-file-invoice"></i></span><div><small>PURCHASE HEAD APPROVAL</small><h2 id="poHeadReviewTitle">Review Purchase Order</h2><p>Verify supplier, ordered items and totals before your decision.</p></div></div>
         <button type="button" id="poHeadReviewClose" aria-label="Close review" class="po-head-review-x"><i class="fa-solid fa-xmark"></i></button>
       </header>
       <div class="po-head-review-content">
@@ -640,6 +640,19 @@ data-po-no="{{ $purchaseOrder->po_no }}"
       .purchase-orders-page .po-head-review-footer{margin:0 -12px!important;padding:10px 12px!important}
       .purchase-orders-page .po-head-review-table-wrap table{min-width:560px!important}
     }
+    /* Final PO review polish: one level of dividers, clean cards, title icon. */
+    .purchase-orders-page .po-head-review-heading{display:flex;align-items:center;gap:12px;min-width:0}
+    .purchase-orders-page .po-head-review-heading-icon{display:grid;place-items:center;width:43px;height:43px;flex:0 0 43px;border:1px solid #d7e6fb;border-radius:10px;background:#eaf3ff;color:#1764c5;font-size:19px}
+    .purchase-orders-page .po-head-review-meta{border:1px solid #d9e5f5!important;border-radius:10px!important;padding:0 12px!important;box-shadow:0 1px 3px rgba(22,55,100,.03)}
+    .purchase-orders-page .po-head-review-meta>div{position:relative;border:0!important;padding:15px 14px!important}
+    .purchase-orders-page .po-head-review-meta>div:not(:last-child)::after{content:"";position:absolute;right:0;top:20%;height:60%;width:1px;background:#dfe9f6}
+    .purchase-orders-page .po-jo-review{border-color:#d9e5f5!important}
+    .purchase-orders-page .po-jo-review-facts>div{border:0!important;border-radius:0!important;position:relative;background:transparent!important}
+    .purchase-orders-page .po-jo-review-facts>div:nth-child(odd)::after{content:"";position:absolute;right:0;top:17%;height:66%;width:1px;background:#e2eaf5}
+    .purchase-orders-page .po-jo-review-facts>div:nth-child(-n+4){border-bottom:1px solid #e2eaf5!important}
+    .purchase-orders-page .po-jo-review-signature{border:1px solid #dbe6f6;border-radius:9px;background:#f3f7ff}
+    @media(max-width:900px){.purchase-orders-page .po-head-review-meta>div:nth-child(2)::after{display:none}.purchase-orders-page .po-head-review-meta>div:nth-child(-n+2){border-bottom:1px solid #e2eaf5!important}}
+    @media(max-width:560px){.purchase-orders-page .po-head-review-meta>div::after{display:none}.purchase-orders-page .po-head-review-meta>div:not(:last-child){border-bottom:1px solid #e2eaf5!important}.purchase-orders-page .po-head-review-heading-icon{width:37px;height:37px;flex-basis:37px;font-size:16px}}
     @media(max-width:560px){.po-head-review-meta{grid-template-columns:1fr}.po-head-review-content{padding:15px}.po-head-review-header{padding:17px}.po-head-review-footer button{flex:1 1 100%}}
   </style>
   <script>
