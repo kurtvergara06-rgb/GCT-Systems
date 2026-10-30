@@ -186,10 +186,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
       const requested = Number(qty.value);
       // The inventory endpoint exposes only in-stock presence, not the free quantity.
       // Never claim the requested quantity is sufficient based on a boolean.
-      stock.textContent = !selected ? 'Select part' : selected.in_stock ? 'In Stock' : 'Unavailable';
+      stock.textContent = !selected ? 'Not Checked' : selected.in_stock ? 'In Stock' : 'Unavailable';
       stock.dataset.state = !selected ? 'unknown' : selected.in_stock ? 'available' : 'unavailable';
-      stockNote.textContent = !selected ? 'Choose an inventory item'
-        : selected.in_stock ? 'Quantity checked at approval' : 'Purchase may be needed';
+      stockNote.textContent = !selected ? 'Select a part to check stock'
+        : selected.in_stock ? 'Required qty verified at approval' : 'PR may be needed';
       stock.title = selected ? 'Warehouse availability is checked again when submitting and approving.' : '';
       if (selected && requested > 0) stock.title += ' Requested: ' + requested + ' ' + selected.unit + '.';
       row.dispatchEvent(new Event('change', { bubbles: false }));
