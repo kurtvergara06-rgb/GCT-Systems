@@ -523,10 +523,13 @@
                                                                             <strong class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $headReviewMechanics->first() }}</strong>
                                                                             @if($headReviewMechanics->count() > 1)
                                                                                 <details class="jo-review-mechanic-more">
-                                                                                    <summary>+{{ $headReviewMechanics->count() - 1 }} more</summary>
+                                                                                    <summary aria-label="Show {{ $headReviewMechanics->count() - 1 }} more assigned mechanics">
+                                                                                        <span>+{{ $headReviewMechanics->count() - 1 }} more</span>
+                                                                                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                                                                    </summary>
                                                                                     <div class="jo-review-mechanic-expanded">
                                                                                         @foreach($headReviewMechanics->skip(1) as $mechanicName)
-                                                                                            <span>{{ $mechanicName }}</span>
+                                                                                            <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
                                                                                         @endforeach
                                                                                     </div>
                                                                                 </details>

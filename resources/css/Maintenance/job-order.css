@@ -6881,12 +6881,17 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 /* Head review: wider desktop dialog and compact expandable assignee summary. */
 .jo-head-review-dialog {width:min(1020px,calc(100vw - 32px))!important;max-height:calc(100dvh - 24px)!important;}
 .jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;}
+.jo-head-review-body .jo-review-details {overflow:visible;}
 .jo-head-review-body .jo-review-mechanic-field {min-width:0;display:grid;gap:6px;}
-.jo-head-review-body .jo-review-mechanic-summary {display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0;}
-.jo-head-review-body .jo-review-mechanic-primary {display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:5px 9px;border:1px solid #cdddff;border-radius:7px;background:#eef5ff;color:#1b4f94;font-size:11px;overflow-wrap:anywhere;}
+.jo-head-review-body .jo-review-mechanic-summary {display:flex;flex-wrap:nowrap;align-items:center;gap:7px;min-width:0;}
+.jo-head-review-body .jo-review-mechanic-primary {display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:min(240px,100%);padding:5px 9px;border:1px solid #cdddff;border-radius:7px;background:#eef5ff;color:#1b4f94;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .jo-head-review-body .jo-review-mechanic-more {position:relative;min-width:0;}
-.jo-head-review-body .jo-review-mechanic-more > summary {list-style:none;cursor:pointer;padding:5px 9px;border:1px solid #cbdcf3;border-radius:7px;background:#f6f9ff;color:#1e5498;font-size:11px;font-weight:800;}
+.jo-head-review-body .jo-review-mechanic-more > summary {display:inline-flex;align-items:center;gap:7px;list-style:none;cursor:pointer;padding:5px 9px;border:1px solid #cbdcf3;border-radius:7px;background:#fff;color:#1e5498;font-size:11px;font-weight:800;white-space:nowrap;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;}
 .jo-head-review-body .jo-review-mechanic-more > summary::-webkit-details-marker {display:none;}
-.jo-head-review-body .jo-review-mechanic-expanded {display:flex;flex-wrap:wrap;gap:6px;max-width:100%;max-height:155px;overflow-y:auto;margin-top:7px;padding:9px;border:1px solid #dce7f5;border-radius:8px;background:#fafcff;}
-.jo-head-review-body .jo-review-mechanic-expanded span {display:inline-flex;padding:5px 8px;border-radius:6px;background:#ecf3ff;color:#315d94;font-size:11px;font-weight:650;overflow-wrap:anywhere;}
-@media(max-width:640px){.jo-head-review-body .jo-review-detail-grid{grid-template-columns:1fr;}.jo-head-review-dialog{width:calc(100vw - 16px)!important;}}
+.jo-head-review-body .jo-review-mechanic-more > summary:hover,.jo-head-review-body .jo-review-mechanic-more[open] > summary {border-color:#9dbcea;background:#f6f9ff;box-shadow:0 3px 10px rgba(30,84,152,.1);}
+.jo-head-review-body .jo-review-mechanic-more > summary i {font-size:9px;transition:transform .18s ease;}
+.jo-head-review-body .jo-review-mechanic-more[open] > summary i {transform:rotate(180deg);}
+.jo-head-review-body .jo-review-mechanic-expanded {position:absolute;z-index:20;top:calc(100% + 7px);right:0;display:grid;gap:6px;width:max-content;min-width:190px;max-width:min(300px,70vw);max-height:155px;overflow-y:auto;padding:9px;border:1px solid #dce7f5;border-radius:8px;background:#fff;box-shadow:0 12px 28px rgba(20,55,100,.16);}
+.jo-head-review-body .jo-review-mechanic-expanded span {display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:6px;background:#ecf3ff;color:#315d94;font-size:11px;font-weight:650;overflow-wrap:anywhere;}
+.jo-head-review-body .jo-review-mechanic-expanded span i {flex:0 0 auto;font-size:10px;}
+@media(max-width:640px){.jo-head-review-body .jo-review-detail-grid{grid-template-columns:1fr;}.jo-head-review-dialog{width:calc(100vw - 16px)!important;}.jo-head-review-body .jo-review-mechanic-primary{max-width:min(190px,60vw);}.jo-head-review-body .jo-review-mechanic-expanded{right:auto;left:0;max-width:min(280px,80vw);}}
