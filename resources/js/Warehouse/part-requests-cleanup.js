@@ -64,11 +64,24 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     if (date) date.textContent = source.joApprovedAt || '';
     const signatureUrl = source.joApprovalSignature || '';
     if (img) {
-      img.hidden = !signatureUrl;
-      if (signatureUrl) img.src = signatureUrl;
-      else img.removeAttribute('src');
+      img.onerror = () => {
+        img.hidden = true;
+        img.removeAttribute('src');
+        if (unavailable) { unavailable.hidden = false; unavailable.textContent = 'JO signature unavailable'; }
+      };
+      img.onload = () => {
+        img.hidden = false;
+        if (unavailable) unavailable.hidden = true;
+      };
+      if (signatureUrl) {
+        img.hidden = true;
+        img.src = signatureUrl;
+      } else {
+        img.hidden = true;
+        img.removeAttribute('src');
+      }
     }
-    if (unavailable) unavailable.hidden = Boolean(signatureUrl);
+    if (unavailable) { unavailable.hidden = Boolean(signatureUrl); unavailable.textContent = 'JO signature unavailable'; }
   }
 
   document.addEventListener('click', function (event) {
