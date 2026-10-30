@@ -1346,3 +1346,77 @@ main.purchase-orders-page .purchase-order-card .po-request-type {
   padding: 6px 10px;
   box-sizing: border-box;
 }
+
+
+/* Purchase Orders records use the Purchase Requisitions visual rhythm.
+   Preserve PO-specific columns and status semantics. */
+main.purchase-orders-page .purchase-order-card.records-card{
+  padding:16px !important;
+}
+main.purchase-orders-page .purchase-order-card .purchase-record-header{
+  margin-bottom:0 !important;
+  align-items:flex-start !important;
+}
+main.purchase-orders-page .purchase-order-card .purchase-record-header .section-heading{
+  display:block !important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-controls{
+  margin:8px 0 12px !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-actions{
+  margin-left:auto !important;
+  width:auto !important;
+  justify-content:flex-end !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table thead th{
+  padding:11px 12px !important;
+  background:#edf3fb !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td{
+  padding:13px 12px !important;
+  vertical-align:middle !important;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview{
+  display:flex !important;
+  align-items:flex-start !important;
+  flex-direction:column !important;
+  gap:5px !important;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger{
+  margin:0 !important;
+  border:1px solid #cbdffc !important;
+  border-radius:5px !important;
+  background:#edf5ff !important;
+  color:#17529d !important;
+  transform:none !important;
+}
+main.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box{
+  border-radius:5px !important;
+  min-height:28px !important;
+  padding:6px 10px !important;
+  background:#edf5ff !important;
+  border:1px solid #bdd6fb !important;
+  color:#15549e !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action{
+  min-width:88px !important;
+  height:31px !important;
+  padding:0 12px !important;
+  border:1px solid #bdd6fb !important;
+  border-radius:5px !important;
+  background:#edf5ff !important;
+  color:#15549e !important;
+  transform:none !important;
+  transition:background-color .16s ease,color .16s ease,border-color .16s ease !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action:hover{
+  background:#d8e9ff !important;
+  border-color:#91b8ee !important;
+  transform:none !important;
+}
+@media(max-width:720px){
+  main.purchase-orders-page .purchase-order-card .po-record-actions{width:100% !important}
+  main.purchase-orders-page .purchase-order-card .po-record-controls{justify-content:stretch !important}
+}
