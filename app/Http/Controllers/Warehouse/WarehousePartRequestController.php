@@ -42,11 +42,11 @@ class WarehousePartRequestController extends Controller
         'Ordered',
         'For Pick-up',
         'For Delivery',
-        'Delivered',
-        'Picked Up',
     ];
 
     private array $historyStatuses = [
+        'Delivered',
+        'Picked Up',
         'Issued',
         'Rejected',
         'Cancelled',
@@ -464,6 +464,9 @@ class WarehousePartRequestController extends Controller
             $workflowStatus = 'Partially Issued';
         } elseif ($purchaseRequest->status === 'Issued') {
             $workflowStatus = 'Issued';
+        } elseif (in_array($purchaseRequest->status, ['Delivered', 'Picked Up'], true)) {
+            // Procurement receipt is complete; IR/SWIS issuance is tracked separately.
+            $workflowStatus = 'Delivered';
         } elseif ($missingPrAlreadyCreated && $warehouseDisplayStatus === 'For Purchase') {
             $workflowStatus = 'Waiting for Purchase';
         } elseif ($missingPrAlreadyCreated && in_array($warehouseDisplayStatus, ['Ordered', 'For Pick-up', 'For Delivery'], true)) {
