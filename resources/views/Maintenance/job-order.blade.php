@@ -542,7 +542,8 @@
                                                                 <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge">{{ $partStatus }}</span></div>
                                                             </div>
                                                             <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
-                                                            <div class="jo-review-detail-long jo-review-requested-parts">
+                                                        </section>
+                                                            <div class="jo-review-requested-parts">
                                                                 @php
                                                                     $reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
                                                                     $reviewAllocations = collect($jobOrder->inventory_snapshot['parts'] ?? []);
@@ -575,8 +576,8 @@
                                                                     <p>No parts requested</p>
                                                                 @endif
                                                             </div>
-                                                            <div class="jo-review-detail-long"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
-                                                        </section>
+                                                            <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
+                                              </section>
                                                         @if($jobOrder->audits->isNotEmpty())
                                                             <details class="jo-review-audit">
                                                                 <summary>Audit History ({{ $jobOrder->audits->count() }})</summary>
