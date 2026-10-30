@@ -1466,3 +1466,21 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.action-btn:hover{
   transform:none!important;
 }
+
+
+/* Final Actions column alignment: header and icons share the same centered cell. */
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9){
+  width:12%!important;min-width:122px!important;text-align:center!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9){
+  padding:12px 8px!important;vertical-align:middle!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;width:100%!important;margin:0!important;white-space:nowrap!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions>.action-btn{
+  flex:0 0 30px!important;width:30px!important;height:30px!important;
+  min-width:30px!important;min-height:30px!important;
+  border-radius:6px!important;line-height:1!important;
+}
