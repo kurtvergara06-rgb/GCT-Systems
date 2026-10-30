@@ -1484,3 +1484,17 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
   min-width:30px!important;min-height:30px!important;
   border-radius:6px!important;line-height:1!important;
 }
+
+
+/* Match Purchase Requisitions blue outlined View control on Ordered POs. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.po-labeled-view{
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 88px!important;width:88px!important;min-width:88px!important;max-width:88px!important;
+  height:31px!important;min-height:31px!important;gap:7px!important;padding:0 12px!important;
+  border:1px solid #bdd6fb!important;border-radius:6px!important;background:#edf5ff!important;
+  color:#15549e!important;font-family:inherit!important;font-size:11px!important;font-weight:700!important;
+  white-space:nowrap!important;transform:none!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.po-labeled-view:hover{
+  background:#dcecff!important;border-color:#98c0f7!important;transform:none!important;
+}
