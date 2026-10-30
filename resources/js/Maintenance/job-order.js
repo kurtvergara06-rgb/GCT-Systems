@@ -2842,7 +2842,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
           const name = originalText.split(' · ')[0].trim();
           const avatar = document.createElement('span');
           avatar.className = 'jo-mechanic-option-avatar';
-          avatar.textContent = name.split(/\\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+          avatar.textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
           const nameBlock = document.createElement('span');
           nameBlock.className = 'jo-mechanic-option-identity';
           const title = document.createElement('strong');
