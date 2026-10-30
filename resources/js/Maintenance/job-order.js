@@ -1,6 +1,70 @@
 window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
   const jobOrderPage = document.querySelector('.jo-page');
 
+  // Review uses a centered modal, never the native <details> dropdown.
+  jobOrderPage?.querySelectorAll('details.jo-review-actions').forEach((details) => {
+    const trigger = details.querySelector('.jo-head-review-trigger');
+    const panel = details.querySelector('.jo-review-panel');
+    if (!trigger || !panel || details.dataset.reviewModalReady === '1') return;
+    details.dataset.reviewModalReady = '1';
+    const placeholder = document.createComment('Head review panel return position');
+    panel.before(placeholder);
+    const overlay = document.createElement('div');
+    overlay.className = 'jo-head-review-overlay';
+    overlay.hidden = true;
+    overlay.setAttribute('role', 'presentation');
+    const dialog = document.createElement('div');
+    dialog.className = 'jo-head-review-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', 'Review Job Order');
+    const heading = document.createElement('div');
+    heading.className = 'jo-head-review-heading';
+    const title = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.textContent = 'Review Job Order';
+    const small = document.createElement('small');
+    small.textContent = 'Verify the details and sign before approval.';
+    title.append(strong, small);
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'jo-head-review-close';
+    closeButton.setAttribute('aria-label', 'Close review');
+    closeButton.textContent = '×';
+    heading.append(title, closeButton);
+    const body = document.createElement('div');
+    body.className = 'jo-head-review-body';
+    dialog.append(heading, body);
+    overlay.append(dialog);
+    const close = () => {
+      if (overlay.hidden) return;
+      overlay.hidden = true;
+      details.open = false;
+      placeholder.after(panel);
+      document.body.classList.remove('jo-head-review-open');
+      trigger.focus();
+    };
+    const open = () => {
+      details.open = false;
+      body.append(panel);
+      document.body.append(overlay);
+      overlay.hidden = false;
+      document.body.classList.add('jo-head-review-open');
+      body.scrollTop = 0;
+      closeButton.focus();
+    };
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (overlay.hidden) open(); else close();
+    });
+    closeButton.addEventListener('click', close);
+    overlay.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); close(); }
+    });
+    // Explicit close only; clicking the modal backdrop never closes review.
+  });
+
   /* =========================================================
      MODAL HELPERS
   ========================================================= */
