@@ -153,14 +153,14 @@ class JobOrderWorkflowService
         ]);
     }
 
-    public function inventoryAvailability(array $parts): array
+    public function inventoryAvailability(array $parts, ?Collection $inventoryItems = null, ?Collection $inventoryReservations = null): array
     {
         // Match the same one-to-one name AND unit used at physical issuance.
         // Multiple matching stock records are ambiguous, not combined.
         $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
         $unitKey = static fn ($unit): string => (new PartParser())->normalizeUnit((string) $unit);
-        $items = InventoryItem::query()->get();
-        $reserved = \App\Models\Maintenance\JobOrderPartReservation::query()
+        $items = $inventoryItems ?? InventoryItem::query()->get();
+        $reserved = $inventoryReservations ?? \App\Models\Maintenance\JobOrderPartReservation::query()
             ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
             ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
         $requested = collect($parts)->map(static function (array $part) use ($normal, $unitKey): array {
