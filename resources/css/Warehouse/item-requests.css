@@ -776,3 +776,11 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   color:#8a99aa!important;cursor:not-allowed!important;box-shadow:none!important;
 }
 .warehouse-ir-page .ir-table .action-btn.issue:disabled i{color:#8a99aa!important;}
+
+
+/* JO-level issued quantities, sourced from signed warehouse issuance batches. */
+.warehouse-ir-fulfillment{display:flex;flex-direction:column;gap:5px;min-width:110px;max-width:170px}
+.warehouse-ir-fulfillment strong{font-size:11px;font-weight:800;color:#244367;white-space:nowrap}
+.warehouse-ir-fulfillment small{font-size:10px;color:#74849a}
+.warehouse-ir-fulfillment-track{display:block;width:100%;height:6px;overflow:hidden;border-radius:99px;background:#e6edf6}
+.warehouse-ir-fulfillment-track>span{display:block;height:100%;border-radius:99px;background:#d59a22;transition:width .2s ease}
