@@ -1547,3 +1547,12 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 .po-detail-signature-image{height:135px;margin:8px 0;background:#fff}
 .po-detail-signature-card>strong{margin-top:4px;font-size:13px}
 .po-detail-signature-card>small{margin:0;font-size:11px}
+
+
+/* PO detail facts use real FA elements, avoiding literal glyph hex text. */
+.po-detail-facts>div:before{content:none!important;display:none!important}
+.po-detail-facts>div{display:flex;align-items:center;gap:10px;padding:12px!important}
+.po-detail-fact-icon{flex:0 0 30px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;background:#eaf2ff;color:#1767ca}
+.po-detail-fact-icon i{font-size:13px}
+.po-detail-fact-copy{display:flex;flex-direction:column;min-width:0;gap:3px}
+.po-detail-fact-copy small{margin:0}
