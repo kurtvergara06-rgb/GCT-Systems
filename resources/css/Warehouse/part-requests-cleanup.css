@@ -1342,3 +1342,34 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   font-family:inherit!important;font-size:11px!important;font-weight:800!important;
   line-height:1.2!important;white-space:nowrap;
 }
+
+
+/* Purchase Request table legibility and stable column spacing. */
+.warehouse-part-main .warehouse-part-table-clean th,
+.warehouse-part-main .warehouse-part-table-clean td {
+  padding: 13px 15px;
+  vertical-align: middle;
+}
+.warehouse-part-main .warehouse-part-table-clean tbody tr { min-height: 56px; }
+.warehouse-part-main .warehouse-part-table-clean .pr-meta-tag.jo-tag {
+  font-weight: 900;
+  color: #15365f;
+  font-size: 11px;
+}
+.warehouse-part-main .warehouse-pr-onhand-compact {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; min-width: 0; flex-wrap: wrap;
+}
+.warehouse-pr-floating-popup {
+  box-sizing: border-box; padding: 9px 12px;
+  border: 1px solid #ceddf1; border-radius: 9px;
+  background: #fff; color: #19395e;
+  box-shadow: 0 12px 28px rgba(18, 44, 82, .16);
+  font-size: 11px;
+}
+.warehouse-pr-floating-popup > div {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; padding: 8px 3px; border-bottom: 1px solid #e8eff8;
+}
+.warehouse-pr-floating-popup > div:last-child { border-bottom: 0; }
+.warehouse-pr-floating-popup strong { font-weight: 800; white-space: nowrap; }
