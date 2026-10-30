@@ -9,6 +9,7 @@
 
 @php
     $authUser = auth()->user();
+    $sidebarProfilePhotoUrl = $authUser?->profilePhotoUrl();
 
     $displayName = trim($authUser?->name ?? $userName ?? 'Guest User');
     $departmentRaw = trim($authUser?->department ?? $department ?? 'Department');
@@ -456,7 +457,13 @@
             aria-expanded="false"
             title="{{ $displayName }}"
         >
-            <div class="avatar"><span>{{ $initials }}</span></div>
+            <div class="avatar">
+                @if ($sidebarProfilePhotoUrl)
+                    <img src="{{ $sidebarProfilePhotoUrl }}" alt="{{ $displayName }} profile photo" class="sidebar-user-photo">
+                @else
+                    <span>{{ $initials }}</span>
+                @endif
+            </div>
             <div class="user-box-text">
                 <h4>{{ $displayName }}</h4>
                 <p>{{ $displayRole }}</p>
@@ -466,7 +473,13 @@
 
         <div class="sidebar-profile-menu" id="sidebarProfileMenu">
             <div class="profile-menu-header">
-                <div class="profile-menu-avatar">{{ $initials }}</div>
+                <div class="profile-menu-avatar">
+                    @if ($sidebarProfilePhotoUrl)
+                        <img src="{{ $sidebarProfilePhotoUrl }}" alt="{{ $displayName }} profile photo" class="sidebar-user-photo">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
                 <div>
                     <h4>{{ $displayName }}</h4>
                     <p>{{ $displayRole }}</p>
