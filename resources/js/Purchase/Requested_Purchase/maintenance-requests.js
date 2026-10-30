@@ -320,6 +320,14 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
         String(button.dataset.status || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
 
+    const createPoForm = document.getElementById('requestedPrCreatePoForm');
+    if (createPoForm) {
+      const createUrl = button.dataset.createPoUrl || '';
+      createPoForm.hidden = !createUrl;
+      if (createUrl) createPoForm.action = createUrl;
+      else createPoForm.removeAttribute('action');
+    }
+
     renderRequestedParts(button);
 
     openModal(viewRequestedPrModal);
