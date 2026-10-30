@@ -6841,3 +6841,17 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 /* The part menu is portaled to body to escape clipped modal scroll areas. */
 body > .jo-part-picker-menu {box-sizing:border-box;min-width:200px;overflow:hidden;font-family:inherit;box-shadow:0 14px 30px rgba(20,55,100,.2)}
 body > .jo-part-picker-menu[hidden] {display:none!important}
+
+
+/* Job Orders ledger: JO Status and Part Status use the approved box badges.
+   Higher specificity than older per-state pill rules; no global status changes. */
+.jo-page .job-orders-table td.status-col .gct-status-badge,
+.jo-page .job-orders-table td.status-col .status-badge,
+.jo-page .job-orders-table td.status-col .badge,
+.jo-page .job-orders-table td.status-col .jo-for-review-badge,
+.jo-page .job-orders-table td.status-col .jo-no-pr-badge,
+.jo-page .job-orders-table td.part-status-cell .part-status-badge,
+.jo-page .job-orders-table td.part-status-cell .jo-parts-not-requested-badge,
+.jo-page .job-orders-table td.part-status-cell .jo-no-parts-required-badge {
+  border-radius: 6px !important;
+}
