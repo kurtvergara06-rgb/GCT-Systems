@@ -1498,3 +1498,35 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.po-labeled-view:hover{
   background:#dcecff!important;border-color:#98c0f7!important;transform:none!important;
 }
+
+
+/* Purchase Order read-only details — shared GCT card language. */
+.po-detail-overlay{position:fixed!important;inset:0!important;z-index:1100;align-items:center;justify-content:center;background:rgba(15,33,60,.5);padding:16px}
+.po-detail-dialog{display:flex;flex-direction:column;width:min(1080px,calc(100vw - 32px));max-height:calc(100dvh - 32px);min-height:0;overflow:hidden;border-radius:16px;background:white;box-shadow:0 22px 70px #102b4c38;color:#142e54}
+.po-detail-header,.po-detail-footer{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:white;border-bottom:1px solid #dce7f4}
+.po-detail-header h2{font-size:20px;font-weight:800;margin:0;color:#102d53}
+.po-detail-header p{font-size:12px;color:#70819c;margin:4px 0 0}
+.po-detail-header button,.po-detail-footer button{padding:8px 12px;border:1px solid #d3e1f4;background:#fff;border-radius:7px;color:#193b6b;cursor:pointer}
+.po-detail-footer{border-top:1px solid #dce7f4;border-bottom:0;justify-content:flex-end}
+.po-detail-body{overflow-y:auto;min-height:0;padding:16px 20px;background:#f9fbff;display:flex;flex-direction:column;gap:13px}
+.po-detail-card{border:1px solid #d9e6f6;border-radius:10px;padding:14px;background:#fff}
+.po-detail-card h3{font-size:14px;font-weight:800;color:#173a6a;margin:0 0 12px}
+.po-detail-card h3 i{color:#1764c4;margin-right:8px}
+.po-detail-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.po-detail-facts>div{padding:10px;background:#f7faff;border-radius:7px;border:1px solid #e3ecf9;min-width:0}
+.po-detail-facts small,.po-detail-signature-card small{display:block;color:#7287a2;font-size:11px;margin-bottom:5px}
+.po-detail-facts strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.po-detail-table-scroll{overflow-x:auto}
+.po-detail-table-scroll table{width:100%;border-collapse:collapse;font-family:inherit;font-size:12px}
+.po-detail-table-scroll th{background:#eaf1fa;text-align:left;padding:11px;font-size:10px;color:#2f4d76}
+.po-detail-table-scroll td{padding:11px;border-bottom:1px solid #e4ebf5}
+.po-detail-total{display:flex;gap:15px;justify-content:flex-end;padding:13px 4px 3px;color:#155cc4;font-size:14px;font-weight:800}
+.po-detail-signatures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.po-detail-signature-card{display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid #d6e5f6;border-radius:9px;background:#f1f7ff;padding:14px;min-width:0}
+.po-detail-signature-card:nth-child(2){background:#f3fbf6;border-color:#d7eddf}
+.po-detail-signature-card h4{align-self:flex-start;font-size:12px;font-weight:800;margin:0 0 6px}
+.po-detail-signature-card>strong{font-size:12px}
+.po-detail-signature-image{display:flex;align-items:center;justify-content:center;width:100%;height:135px;background:white;border-radius:7px}
+.po-detail-signature-image img{max-width:100%;max-height:130px;object-fit:contain}
+.po-detail-signature-image p{font-size:11px;color:#71849b}
+@media(max-width:700px){.po-detail-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.po-detail-signatures{grid-template-columns:1fr}.po-detail-body{padding:12px}}
