@@ -123,7 +123,7 @@
                 <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
                 <span>Insufficient Historical Data</span>
             </small>
-            <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Suggestions use at least 3 completed, approved Job Orders for the same specific maintenance work. Enter your own estimate for Head verification.</p>
+            <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <span><strong>Staff estimate.</strong> Historical suggestions appear when at least 3 approved, completed Job Orders exist for the same maintenance work. Subject to Maintenance Head verification.</span></p>
         </div>
     </div>
 </section>
