@@ -1806,3 +1806,8 @@
 .purchase-orders-page .po-record-tabs .po-record-tab:hover,
 .purchase-orders-page .po-record-tabs .po-record-tab:focus-visible{color:#15202e!important}
 .purchase-orders-page .po-record-tabs .po-record-tab i{color:inherit!important}
+
+/* Equal-width, unclipped Purchase Orders tab controls. */
+.purchase-orders-page .po-record-tabs{display:inline-grid!important;grid-template-columns:repeat(2,minmax(104px,1fr));align-items:stretch;gap:4px;min-width:0;width:max-content;overflow:visible}
+.purchase-orders-page .po-record-tabs .po-record-tab{box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;gap:7px;width:100%;min-width:0;height:34px;min-height:34px;padding:0 12px!important;line-height:1.2;overflow:visible;white-space:nowrap;text-overflow:clip}
+.purchase-orders-page .po-record-tabs .po-record-tab i{flex:0 0 auto}
