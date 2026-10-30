@@ -756,3 +756,14 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   #warehouseIrSlipModal .warehouse-ir-slip-meta-line {display:flex;gap:14px;margin:4px 0 9px;font-size:9px;color:#111;}
   #warehouseIrSlipModal .warehouse-ir-slip-meta-line strong {color:#111;}
 }
+
+
+/* Warehouse IR: consistent, slightly larger rectangular inventory and status badges. */
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status,
+.warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status {
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:6px!important;min-height:32px!important;
+  padding:6px 12px!important;border-radius:7px!important;
+  font-family:inherit!important;font-size:11px!important;font-weight:800!important;
+  line-height:1.2!important;white-space:nowrap;
+}
