@@ -43,6 +43,9 @@
           }
         }
 
+        // Internal stock identifiers belong to PR data, not the supplier-facing description.
+        $itemName = trim(preg_replace('/\s*\[item:\s*\d+\]\s*/i', ' ', $itemName));
+
         $prefillItems[] = [
           'pr_no' => $selectedPurchaseRequest->pr_no,
           'bus_no' => $selectedPurchaseRequest->bus_no,
@@ -57,7 +60,7 @@
         $prefillItems[] = [
           'pr_no' => $selectedPurchaseRequest->pr_no,
           'bus_no' => $selectedPurchaseRequest->bus_no,
-          'item_description' => $selectedPurchaseRequest->item ?? '',
+          'item_description' => trim(preg_replace('/\s*\[item:\s*\d+\]\s*/i', ' ', (string) ($selectedPurchaseRequest->item ?? ''))),
           'quantity' => $selectedPurchaseRequest->quantity ?? 1,
           'unit' => 'PC',
           'cost' => '',
