@@ -1563,3 +1563,14 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(5){width:17%}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(6),
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(6){width:13%}
+
+/* Warehouse PR status badges match the compact Incoming Deliveries status pill. */
+.warehouse-part-main .warehouse-part-table-clean tbody td.status-col .warehouse-ir-process-status,
+.warehouse-part-main .warehouse-part-table-clean tbody td.status-col .warehouse-ir-stock-status{
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:5px!important;min-width:0!important;
+  min-height:27px!important;height:27px!important;padding:0 10px!important;
+  border-radius:7px!important;font-size:11px!important;font-weight:800!important;
+  line-height:1!important;white-space:nowrap!important;
+}
+.warehouse-part-main .warehouse-part-table-clean tbody td.status-col .warehouse-ir-process-status i{font-size:11px!important;line-height:1!important}
