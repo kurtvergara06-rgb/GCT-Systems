@@ -1574,3 +1574,58 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   line-height:1!important;white-space:nowrap!important;
 }
 .warehouse-part-main .warehouse-part-table-clean tbody td.status-col .warehouse-ir-process-status i{font-size:11px!important;line-height:1!important}
+
+
+/* Warehouse PR primary action: protect against generic section-header button resets. */
+.warehouse-part-main .warehouse-part-card .warehouse-record-header .warehouse-pr-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header button.warehouse-create-pr-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  width: auto;
+  min-width: 112px;
+  min-height: 34px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid #e1a900;
+  border-radius: 9px;
+  background: #ffbf19;
+  color: #102a56;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(17, 43, 79, .08);
+  cursor: pointer;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header button.warehouse-create-pr-btn:hover {
+  background: #f2b000;
+  border-color: #ce9600;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header button.warehouse-create-pr-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.warehouse-part-main .warehouse-part-card .warehouse-record-header button.warehouse-create-pr-btn i {
+  display: inline-block;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1;
+}
+@media (max-width: 600px) {
+  .warehouse-part-main .warehouse-part-card .warehouse-record-header .warehouse-pr-header-actions {
+    margin-left: 0;
+  }
+}
