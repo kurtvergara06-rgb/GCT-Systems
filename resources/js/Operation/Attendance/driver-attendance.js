@@ -68,17 +68,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
     modal?.classList.remove('show', 'active');
   }
 
-  const importModal = document.getElementById('importDriverAttendanceModal');
-  document
-    .getElementById('openImportDriverAttendanceModal')
-    ?.addEventListener('click', () => openModal(importModal));
-  [
-    document.getElementById('closeImportDriverAttendanceModal'),
-    document.getElementById('cancelImportDriverAttendanceModal'),
-  ]
-    .filter(Boolean)
-    .forEach((button) => button.addEventListener('click', () => closeModal(importModal)));
-
   const attendanceModal = document.getElementById('driverAttendanceModal');
   const attendanceForm = document.getElementById('driverAttendanceForm');
   const attendanceFormMethod = document.getElementById('driverAttendanceFormMethod');
@@ -273,6 +262,5 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
     closeModal(attendanceModal);
     closeModal(viewAttendanceModal);
     closeModal(deleteModal);
-    closeModal(importModal);
   });
 });
