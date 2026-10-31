@@ -30,6 +30,10 @@
             <h2>Stock Movement History</h2>
             <p>Complete inventory transaction and adjustment history.</p>
           </div>
+          <div class="stock-movement-record-count" aria-label="{{ number_format($stockMovements->total()) }} matching movement records">
+            <strong>{{ number_format($stockMovements->total()) }}</strong>
+            <span>{{ $stockMovements->total() === 1 ? 'Record' : 'Records' }}</span>
+          </div>
         </div>
 
         <x-ui.table-toolbar action="{{ route('stock-movements') }}" data-server-filter="true" search-label="Search Stock Movements" search-placeholder="Search item, reference no., or movement..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates')" filter-title="Filter Stock Movements" :sort-options="['created_at' => 'Date and Time', 'item_name' => 'Item Name', 'movement_type' => 'Movement Type', 'quantity' => 'Quantity', 'reference_no' => 'Reference Number']" default-sort="created_at" default-direction="desc">
@@ -39,7 +43,7 @@
           </x-slot:filters>
         </x-ui.table-toolbar>
 
-        <div class="table-wrap">
+        <div class="table-wrap stock-movement-scroll-table" role="region" aria-label="Scrollable stock movement records" tabindex="0">
           <table class="stock-movement-table">
             <thead>
               <tr>
