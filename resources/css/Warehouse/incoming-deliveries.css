@@ -706,3 +706,24 @@
 .incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .incoming-part-more-list > div {
   font-size: 11px !important;
 }
+
+/* Warehouse delivery data: plain bold item names and two-line timestamps. */
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td:not(:last-child){
+  font-weight:750;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .incoming-first-part{
+  display:inline;
+  background:none!important;border:0!important;box-shadow:none!important;
+  border-radius:0!important;padding:0!important;margin:0!important;
+  color:#172c4a;font-weight:800!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack{
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  line-height:1.25;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack strong{
+  font-size:12px!important;font-weight:800!important;color:#17365a;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack small{
+  font-size:10px!important;font-weight:500!important;color:#617690;
+}
