@@ -9,7 +9,6 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
-use App\Services\Warehouse\InventoryImportService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,8 +23,6 @@ use Throwable;
 
 class StructuredImportReviewController extends Controller
 {
-    public function __construct(private InventoryImportService $inventoryImport) {}
-
     private const PROFILES = [
         'Operation' => 'GPS Trip Records',
         'Maintenance' => 'Fuel Reports',
@@ -394,11 +391,9 @@ class StructuredImportReviewController extends Controller
                     'manual_distance_reason' => 'Approved through Admin Import / Export.',
                 ])
             ),
-            ['Warehouse', 'Inventory Records'] => $this->inventoryImport->reconcile(
-                $payload,
-                'Admin structured import',
-                Auth::id()
-            ),
+            ['Warehouse', 'Inventory Records'] => ! empty($payload['item_code'])
+                ? InventoryItem::updateOrCreate(['item_code' => $payload['item_code']], $payload)
+                : InventoryItem::create($payload),
             ['Purchase', 'Purchase Orders'] => $this->publishPurchaseOrder($payload),
             default => throw new RuntimeException('No publisher is registered for this profile.'),
         };
