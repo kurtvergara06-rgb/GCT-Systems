@@ -536,11 +536,15 @@ class GctDateTimePicker {
         let top = rect.bottom + 8;
 
         if (this.activeInput?.dataset.pickerPlacement === 'below') {
+            // The calendar is portalled to <body>, outside its parent modal.
+            // Keep it above modal/backdrop stacking layers so days receive clicks.
+            this.popover.style.zIndex = '2147483647';
             // PMS modal: keep the calendar under its date field, using internal
             // scrolling when there is insufficient viewport height.
             this.popover.style.maxHeight = `${Math.max(120, window.innerHeight - top - margin)}px`;
             this.popover.style.overflowY = 'auto';
         } else {
+            this.popover.style.zIndex = '';
             this.popover.style.maxHeight = '';
             this.popover.style.overflowY = '';
             if (top + this.popover.offsetHeight > window.innerHeight - margin) {
