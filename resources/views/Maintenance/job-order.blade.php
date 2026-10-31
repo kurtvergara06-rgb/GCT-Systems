@@ -156,13 +156,9 @@
                                     $isOverdue = $jobOrder->is_overdue;
                                     $durationSuggestion = $durationSuggestions->get($jobOrder->id);
 
-                                    $partStatus = match ($jobOrder->part_status) {
-                                        'Issued' => 'Fully Issued',
-                                        'Partial', 'Partially Issued' => 'Partially Issued',
-                                        'Delivered', 'Picked Up', 'Ordered', 'For Delivery', 'For Pick-up', 'For Purchase' => 'Waiting for Parts',
-                                        'No Parts Required', 'No Parts Needed' => 'No Parts Required',
-                                        default => $jobOrder->part_status ?: 'Not Requested',
-                                    };
+                                    // Use the controller's physical-issuance calculation for table,
+                                    // detail, and warning labels; never infer handover from PO status.
+                                    $partStatus = $joPartsDisplayStatuses->get($jobOrder->id, 'Not Requested');
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
                                     // A linked, still-outstanding procurement request is an objective
@@ -211,9 +207,9 @@
                                     $partStatusClass = match ($partStatus) {
                                         'No Parts Required' => 'no-parts-needed',
                                         'Not Requested' => 'not-requested',
-                                        'Not Issued' => 'rejected',
-                                        'Partially Issued' => 'for-purchase',
-                                        'Waiting for Parts' => 'for-purchase',
+                                        'Not Issued' => 'not-issued',
+                                        'Partially Issued' => 'partially-issued',
+                                        'Waiting for Parts' => 'waiting-for-parts',
                                         'Fully Issued' => 'issued',
                                         default => 'not-requested',
                                     };
