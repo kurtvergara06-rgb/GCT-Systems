@@ -535,8 +535,17 @@ class GctDateTimePicker {
         let left = Math.min(Math.max(rect.left, margin), maxLeft);
         let top = rect.bottom + 8;
 
-        if (top + this.popover.offsetHeight > window.innerHeight - margin) {
-            top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+        if (this.activeInput?.dataset.pickerPlacement === 'below') {
+            // PMS modal: keep the calendar under its date field, using internal
+            // scrolling when there is insufficient viewport height.
+            this.popover.style.maxHeight = `${Math.max(120, window.innerHeight - top - margin)}px`;
+            this.popover.style.overflowY = 'auto';
+        } else {
+            this.popover.style.maxHeight = '';
+            this.popover.style.overflowY = '';
+            if (top + this.popover.offsetHeight > window.innerHeight - margin) {
+                top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+            }
         }
 
         this.popover.style.left = `${left}px`;
