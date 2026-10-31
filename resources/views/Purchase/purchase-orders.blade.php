@@ -199,9 +199,9 @@
                   <td>
                     @php $progress = $purchaseOrder->receipt_progress; @endphp
                     <div class="po-receipt-progress" aria-label="{{ $progress['received'] }} of {{ $progress['ordered'] }} units received; {{ $progress['remaining'] }} remaining">
-                      <div class="po-receipt-top"><span>Ordered</span><strong>{{ $progress['ordered'] }}</strong></div>
-                      <div class="po-receipt-track"><span class="{{ $progress['remaining'] === 0 ? 'is-complete' : '' }}" style="width:{{ $progress['ordered'] > 0 ? min(100, round($progress['received'] * 100 / $progress['ordered'])) : 0 }}%"></span></div>
-                      <div class="po-receipt-bottom"><span class="po-receipt-done">{{ $progress['received'] }} received</span><span class="po-receipt-left">{{ $progress['remaining'] }} remaining</span></div>
+                      <div class="po-receipt-compact"><strong>{{ $progress['received'] }}/{{ $progress['ordered'] }}</strong><div class="po-receipt-track"><span class="{{ $progress['remaining'] === 0 ? 'is-complete' : '' }}" style="width:{{ $progress['ordered'] > 0 ? min(100, round($progress['received'] * 100 / $progress['ordered'])) : 0 }}%"></span></div></div>
+
+                      <div class="po-receipt-bottom"><span class="po-receipt-left">{{ $progress['remaining'] }} remaining</span></div>
                     </div>
                   </td>
                   <td><div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div></td>
