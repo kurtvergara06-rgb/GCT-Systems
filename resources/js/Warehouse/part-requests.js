@@ -236,7 +236,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       };
     });
     const selectedIds = items.map(item => item.inventory_item_id);
-    if (!items.length || items.some(item => !item.inventory_item_id || !/^[1-9]\\d*$/.test(item.quantity))
+    if (!items.length || items.some(item => !item.inventory_item_id || !/^[1-9]\d*$/.test(item.quantity))
         || new Set(selectedIds).size !== selectedIds.length) {
       if (signatureMessage) signatureMessage.textContent = 'Choose distinct inventory items and positive whole-number quantities.';
       return;
