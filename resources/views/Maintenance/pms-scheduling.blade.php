@@ -219,44 +219,65 @@
     </div>
 
 
+    {{-- Bus-level PMS modals: presentation only; old task records are preserved. --}}
     @foreach($rows as $row)
         @php $config = $monitoringByBus->get(strtoupper(trim((string)$row->bus_no))); @endphp
-        <div class="pms-modal-overlay pms-tasks-popup" id="pmsDetails-{{ $loop->index }}">
-            <div class="pms-modal pms-wide-modal">
-                <div class="pms-modal-header"><h2>PMS Details — {{ $row->bus_no }}</h2><button type="button" class="pms-close-btn close-pms-tasks-modal" data-modal-target="pmsDetails-{{ $loop->index }}" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div>
-                <div class="pms-monitoring-details">
-                    <p><strong>Last completed PMS:</strong> {{ $config?->last_completed_pms_date?->format('M d, Y') ?? 'Not configured' }}</p>
-                    <p><strong>Last service odometer:</strong> {{ $config ? number_format((float)$config->last_completed_pms_odometer_km, 2).' km' : '—' }}</p>
-                    <p><strong>Next PMS mileage:</strong> {{ $config ? number_format($config->nextDueOdometerKm(), 2).' km' : '—' }}</p>
-                    <p><strong>Next PMS deadline:</strong> {{ $config?->nextDueDate()->format('M d, Y') ?? '—' }}</p>
-                    <p><strong>Verified current odometer:</strong> Unavailable — GPS reports are not confirmed odometer readings.</p>
-                    <p><strong>Status:</strong> {{ $config?->status() ?? 'Not Configured' }}</p>
+        <div class="pms-modal-overlay pms-tasks-popup pms-monitor-dialog" id="pmsDetails-{{ $loop->index }}">
+            <div class="pms-modal pms-monitor-panel" role="dialog" aria-modal="true" aria-labelledby="pmsDetailsHeading-{{ $loop->index }}">
+                <div class="pms-modal-header pms-monitor-header">
+                    <div class="pms-monitor-heading"><span class="pms-monitor-header-icon"><i class="fa-solid fa-bus-simple" aria-hidden="true"></i></span><div><h2 id="pmsDetailsHeading-{{ $loop->index }}">PMS Details — {{ $row->bus_no }}</h2><p>Preventive maintenance schedule and verified service baseline</p></div></div>
+                    <button type="button" class="pms-close-btn close-pms-tasks-modal" data-modal-target="pmsDetails-{{ $loop->index }}" aria-label="Close PMS details"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 </div>
-                <div class="pms-view-footer"><button type="button" class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal" data-modal-target="pmsDetails-{{ $loop->index }}">Close</button></div>
+                <div class="pms-monitor-body">
+                    <div class="pms-monitor-summary">
+                        <div><span>Monitoring status</span><strong>{{ $config?->status() ?? 'Not Configured' }}</strong></div>
+                        <div><span>Maintenance interval</span><strong>10,000 km / 3 months</strong></div>
+                    </div>
+                    @if(!$config)
+                        <div class="pms-monitor-empty"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>No PMS baseline configured</strong><p>Record the verified date and odometer of the last completed PMS to activate calendar monitoring.</p></div></div>
+                    @endif
+                    <h3 class="pms-monitor-section-title"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Service history &amp; next schedule</h3>
+                    <div class="pms-monitor-info-grid">
+                        <div><span>Last completed PMS</span><strong>{{ $config?->last_completed_pms_date?->format('M d, Y') ?? 'Not recorded' }}</strong></div>
+                        <div><span>Odometer at last service</span><strong>{{ $config ? number_format((float)$config->last_completed_pms_odometer_km, 2).' km' : 'Not recorded' }}</strong></div>
+                        <div><span>Next PMS mileage</span><strong>{{ $config ? number_format($config->nextDueOdometerKm(), 2).' km' : '—' }}</strong></div>
+                        <div><span>Next PMS due date</span><strong>{{ $config?->nextDueDate()->format('M d, Y') ?? '—' }}</strong></div>
+                    </div>
+                    <div class="pms-monitor-source-note"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><div><strong>Current odometer: Unverified</strong><p>GPS report distance and DDR trip mileage are not verified odometer readings. Mileage-based PMS status will remain unverified until reconciled.</p></div></div>
+                </div>
+                <div class="pms-view-footer pms-monitor-footer"><button type="button" class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal" data-modal-target="pmsDetails-{{ $loop->index }}">Close</button></div>
             </div>
         </div>
     @endforeach
     @if($canConfigurePms)
-    <div class="pms-modal-overlay pms-tasks-popup" id="pmsConfigModal">
-        <div class="pms-modal pms-wide-modal">
-            <div class="pms-modal-header"><h2>Configure Bus PMS</h2><button type="button" class="pms-close-btn close-pms-tasks-modal" data-modal-target="pmsConfigModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div>
-            <form class="pms-monitoring-form" method="POST" action="{{ route('pms-monitoring.store') }}">
-                @csrf
-                <p>10,000 km or 3 months from verified service, whichever comes first.</p>
-                <label for="monitor-bus">Vehicle</label>
-                <select id="monitor-bus" name="bus_id" required><option value="">Select bus</option>
-                @foreach($configurableBuses as $bus)
-                    @if(!$monitoringByBus->has(strtoupper(trim((string)$bus->bus_no))))
-                        <option value="{{ $bus->id }}">{{ $bus->bus_no }}</option>
-                    @endif
-                @endforeach
-                </select>
-                <label for="monitor-date">Last completed PMS date</label><input id="monitor-date" name="last_completed_pms_date" type="date" max="{{ now()->toDateString() }}" required>
-                <label for="monitor-odo">Verified odometer at last PMS (km)</label><input id="monitor-odo" name="last_completed_pms_odometer_km" type="number" min="0" step="0.01" required>
-                <div class="pms-view-footer"><button type="button" class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal" data-modal-target="pmsConfigModal">Cancel</button><button class="ui-form-btn" type="submit">Save Baseline</button></div>
-            </form>
+        <div class="pms-modal-overlay pms-tasks-popup pms-monitor-dialog" id="pmsConfigModal">
+            <div class="pms-modal pms-monitor-panel" role="dialog" aria-modal="true" aria-labelledby="pmsConfigHeading">
+                <div class="pms-modal-header pms-monitor-header">
+                    <div class="pms-monitor-heading"><span class="pms-monitor-header-icon"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i></span><div><h2 id="pmsConfigHeading">Configure Bus PMS</h2><p>Set the last verified preventive maintenance baseline</p></div></div>
+                    <button type="button" class="pms-close-btn close-pms-tasks-modal" data-modal-target="pmsConfigModal" aria-label="Close PMS configuration"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <form class="pms-monitoring-form" method="POST" action="{{ route('pms-monitoring.store') }}">
+                    @csrf
+                    <div class="pms-monitor-body">
+                        <div class="pms-monitor-rule"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Automatic PMS interval</strong><p>10,000 km or 3 months after the last completed PMS, whichever comes first.</p></div></div>
+                        <div class="pms-monitor-field"><label for="monitor-bus">Vehicle <span aria-hidden="true">*</span></label><select id="monitor-bus" name="bus_id" required><option value="">Select a bus</option>
+                            @foreach($configurableBuses as $bus)
+                                @if(!$monitoringByBus->has(strtoupper(trim((string)$bus->bus_no))))
+                                    <option value="{{ $bus->id }}" @selected(old('bus_id') == $bus->id)>{{ $bus->bus_no }}</option>
+                                @endif
+                            @endforeach
+                        </select></div>
+                        <h3 class="pms-monitor-section-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Last completed PMS</h3>
+                        <div class="pms-monitor-field-grid">
+                            <div class="pms-monitor-field"><label for="monitor-date">Service completion date <span aria-hidden="true">*</span></label><input id="monitor-date" name="last_completed_pms_date" type="date" value="{{ old('last_completed_pms_date') }}" max="{{ now()->toDateString() }}" required></div>
+                            <div class="pms-monitor-field"><label for="monitor-odo">Verified odometer (km) <span aria-hidden="true">*</span></label><input id="monitor-odo" name="last_completed_pms_odometer_km" type="number" value="{{ old('last_completed_pms_odometer_km') }}" min="0" step="0.01" placeholder="e.g. 45000.00" required></div>
+                        </div>
+                        <p class="pms-monitor-help">Use the actual service record. Do not enter GPS trip distance as an odometer reading.</p>
+                    </div>
+                    <div class="pms-view-footer pms-monitor-footer"><button type="button" class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal" data-modal-target="pmsConfigModal">Cancel</button><button class="ui-form-btn pms-monitor-save" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Baseline</button></div>
+                </form>
+            </div>
         </div>
-    </div>
     @endif
     {{-- =========================================================
         ADD PMS
