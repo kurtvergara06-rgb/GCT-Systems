@@ -50,10 +50,10 @@ function initializeInventoryBar(statusData = null) {
     destroyChart(canvas);
 
     const labels = statusData
-        ? ['Sufficient', 'Low Stock', 'Out of Stock', 'For Reorder']
+        ? ['Sufficient', 'Low Stock', 'Out of Stock']
         : readJson(canvas, 'labels');
     const values = statusData
-        ? [statusData.available, statusData.low, statusData.out, statusData.reorder]
+        ? [statusData.available, statusData.low, statusData.out]
         : readJson(canvas, 'values');
 
     new Chart(canvas, {
@@ -63,7 +63,7 @@ function initializeInventoryBar(statusData = null) {
             datasets: [{
                 label: 'Items',
                 data: values,
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
                 borderRadius: 8,
                 borderSkipped: false,
                 maxBarThickness: 52,
