@@ -122,7 +122,7 @@ class ItemRequestController extends Controller
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
-            ->whereNotIn('id', ItemRequest::query()->whereNotIn('status', ['Cancelled', 'Rejected'])->select('job_order_id'))
+            ->whereNotIn('id', ItemRequest::query()->whereNotNull('job_order_id')->whereNotIn('status', ['Cancelled', 'Rejected'])->select('job_order_id'))
             ->where(fn ($query) => $query->whereNull('part_status')
                 ->orWhereNotIn('part_status', ['Issued', 'No Parts Required']))
             ->with(['approver', 'audits' => fn ($q) => $q->whereIn('action', ['created', 'resubmitted'])->orderByDesc('id')])
