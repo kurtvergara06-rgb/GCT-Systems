@@ -155,6 +155,23 @@
                         data-confirm-type="approve"
                       >
                         @csrf
+                        <div class="incoming-receipt-quantities">
+                          @foreach(($delivery->items ?? []) as $lineIndex => $line)
+                            @php
+                              $orderedQty = max(0, (int) ($line['quantity'] ?? 0));
+                              $receivedQty = max(0, (int) (($delivery->received_quantities ?? [])[$lineIndex] ?? 0));
+                              $remainingQty = max(0, $orderedQty - $receivedQty);
+                            @endphp
+                            @if($remainingQty > 0)
+                              <label title="{{ $line['item_description'] ?? 'Item' }}">
+                                <span>{{ $line['item_description'] ?? 'Item' }} (remaining: {{ $remainingQty }})</span>
+                                <input type="number" name="received_quantities[{{ $lineIndex }}]" min="0" max="{{ $remainingQty }}" step="1" value="{{ $remainingQty }}" required aria-label="Received quantity for {{ $line['item_description'] ?? 'item' }}">
+                              </label>
+                            @else
+                              <input type="hidden" name="received_quantities[{{ $lineIndex }}]" value="0">
+                            @endif
+                          @endforeach
+                        </div>
                         <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
                           <i class="fa-solid fa-box-open"></i>
                           Receive
