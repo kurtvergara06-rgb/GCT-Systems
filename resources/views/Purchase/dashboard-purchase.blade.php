@@ -579,9 +579,10 @@
                   </div>
 
 
-                  <p>
-                    {{ $order->supplier ?? 'No Supplier' }}
-                  </p>
+                  <div class="purchase-dashboard-order-subline">
+                    <p>{{ $order->supplier ?? 'No Supplier' }}</p>
+                    <span class="purchase-dashboard-badge {{ $order->is_partially_received ? 'for-delivery' : (in_array($order->status, ['Delivered', 'Picked Up']) ? 'delivered' : 'ordered') }}">{{ $order->receipt_display_status }}</span>
+                  </div>
 
 
                   @if(!empty($order->po_date))
