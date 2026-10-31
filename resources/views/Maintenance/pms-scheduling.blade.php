@@ -260,13 +260,21 @@
                     @csrf
                     <div class="pms-monitor-body">
                         <div class="pms-monitor-rule"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Automatic PMS interval</strong><p>10,000 km or 3 months after the last completed PMS, whichever comes first.</p></div></div>
-                        <div class="pms-monitor-field"><label for="monitor-bus">Vehicle <span aria-hidden="true">*</span></label><select id="monitor-bus" name="bus_id" required><option value="">Select a bus</option>
-                            @foreach($configurableBuses as $bus)
-                                @if(!$monitoringByBus->has(strtoupper(trim((string)$bus->bus_no))))
-                                    <option value="{{ $bus->id }}" @selected(old('bus_id') == $bus->id)>{{ $bus->bus_no }}</option>
-                                @endif
-                            @endforeach
-                        </select></div>
+                        <div class="pms-monitor-field pms-bus-picker"><label for="monitor-bus-search">Vehicle <span aria-hidden="true">*</span></label>
+                            <input type="hidden" id="monitor-bus" name="bus_id" value="{{ old('bus_id') }}">
+                            <div class="pms-bus-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                <input type="search" id="monitor-bus-search" placeholder="Search and select a bus..." autocomplete="off" aria-controls="pms-bus-options" aria-expanded="false" aria-autocomplete="list" role="combobox" required>
+                            </div>
+                            <div id="pms-bus-options" class="pms-bus-options" role="listbox" hidden>
+                                @foreach($configurableBuses as $bus)
+                                    @if(!$monitoringByBus->has(strtoupper(trim((string)$bus->bus_no))))
+                                        <button type="button" role="option" class="pms-bus-option" data-bus-id="{{ $bus->id }}" data-bus-label="{{ $bus->bus_no }}">{{ $bus->bus_no }}</button>
+                                    @endif
+                                @endforeach
+                                <p class="pms-bus-no-results" hidden>No matching buses</p>
+                            </div>
+                        </div>
                         <h3 class="pms-monitor-section-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Last completed PMS</h3>
                         <div class="pms-monitor-field-grid">
                             <div class="pms-monitor-field"><label for="monitor-date">Service completion date <span aria-hidden="true">*</span></label><input id="monitor-date" name="last_completed_pms_date" type="date" value="{{ old('last_completed_pms_date') }}" max="{{ now()->toDateString() }}" required></div>
