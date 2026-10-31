@@ -253,6 +253,12 @@ $joApproverForReview = $joForReview?->approved_by ? \App\Models\Admin\User::find
 @endphp
                         <button type="button" class="action-btn po-review-action open-po-review-modal"
                           
+data-is-warehouse-restock="{{ $prForReview && $prForReview->source_type === 'Auto Restock' ? '1' : '0' }}"
+data-warehouse-approved-by="{{ $prForReview?->requester?->name ?? 'Warehouse Head' }}"
+data-warehouse-approved-at="{{ $prForReview?->warehouse_approved_at ? \\Illuminate\\Support\\Carbon::parse($prForReview->warehouse_approved_at)->format('M d, Y h:i A') : '' }}"
+data-warehouse-purpose="{{ $prForReview?->purpose ?? '' }}"
+data-warehouse-approval-notes="{{ $prForReview?->restock_approval_notes ?? '' }}"
+data-warehouse-signature="{{ $prForReview && $prForReview->source_type === 'Auto Restock' && $prForReview->restock_signature_path ? route('inventory-restock.approval-signature', $prForReview->id) : '' }}"
 data-jo-no="{{ $joForReview?->job_order_no ?? '' }}"
 data-jo-bus="{{ $joForReview?->bus_no ?? '' }}"
 data-jo-status="{{ $joForReview?->review_status ?? '' }}"
@@ -557,7 +563,20 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span><span class="po-review-field-copy"><span>Purchase Requisition</span><strong id="headReviewPr">—</strong></span></div>
           <div><span class="po-review-field-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="po-review-field-copy"><span>Supplier</span><strong id="headReviewSupplier">—</strong></span></div>
         </div>
-        <section class="po-head-review-section po-jo-review">
+        <section class="po-head-review-section po-warehouse-review" id="poWarehouseReview" hidden>
+<h3><i class="fa-solid fa-file-signature"></i> Warehouse Purchase Requisition Authorization</h3>
+<div class="po-jo-review-grid">
+<div class="po-jo-review-facts">
+<div><span class="po-review-field-copy"><span>Warehouse PR</span><strong id="poWarehousePr">—</strong></span></div>
+<div><span class="po-review-field-copy"><span>Source</span><strong>Inventory Restock</strong></span></div>
+<div><span class="po-review-field-copy"><span>Approved By</span><strong id="poWarehouseApprover">—</strong></span></div>
+<div><span class="po-review-field-copy"><span>Approved At</span><strong id="poWarehouseDate">—</strong></span></div>
+<div><span class="po-review-field-copy"><span>Purpose</span><strong id="poWarehousePurpose">—</strong></span></div>
+<div><span class="po-review-field-copy"><span>Authorization Notes</span><strong id="poWarehouseNotes">—</strong></span></div>
+</div>
+<div class="po-jo-review-signature"><strong>Authorized Warehouse Head Signature</strong><img id="poWarehouseSignature" alt="Signed Warehouse purchase requisition" hidden><p id="poWarehouseSignatureEmpty">No Warehouse signature available.</p></div>
+</div></section>
+<section class="po-head-review-section po-jo-review" id="poMaintenanceJoReview">
 <h3><i class="fa-solid fa-link"></i> Linked Job Order Authorization</h3>
 <div class="po-jo-review-grid">
 <div class="po-jo-review-facts">
@@ -822,6 +841,19 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           const d=button.dataset;approveUrl=d.approveUrl;decisionUrl=d.decisionUrl;byId('headReviewApprove').disabled=true;
           for(const [id,value] of Object.entries({headReviewNo:d.poNo,headReviewDate:d.poDate,headReviewPr:d.prNo||'—',headReviewSupplier:d.supplier,headReviewGross:money(d.gross),headReviewDelivery:money(d.delivery),headReviewDiscount:money(d.discount),headReviewVat:money(d.vat),headReviewNet:money(d.net)})){byId(id).textContent=value||'—'}
           for(const [id,val] of Object.entries({poJoNo:d.joNo,poJoBus:d.joBus,poJoType:d.joType,poJoStatus:d.joStatus,poJoApprover:d.joApprover,poJoDate:d.joDate})){byId(id).textContent=val||'—'}
+          const isRestock=d.isWarehouseRestock==='1';
+          byId('poWarehouseReview').hidden=!isRestock;
+          byId('poMaintenanceJoReview').hidden=isRestock;
+          if(isRestock){
+            for(const [id,value] of Object.entries({poWarehousePr:d.prNo,poWarehouseApprover:d.warehouseApprovedBy,poWarehouseDate:d.warehouseApprovedAt,poWarehousePurpose:d.warehousePurpose,poWarehouseNotes:d.warehouseApprovalNotes})){byId(id).textContent=value||'—'}
+            const img=byId('poWarehouseSignature'),empty=byId('poWarehouseSignatureEmpty');
+            img.hidden=true;img.removeAttribute('src');empty.hidden=false;
+            if(d.warehouseSignature){
+              img.onload=()=>{img.hidden=false;empty.hidden=true};
+              img.onerror=()=>{img.hidden=true;empty.hidden=false};
+              img.src=d.warehouseSignature;
+            }
+          }
           byId('poJoStatus').dataset.approved=d.joStatus==='Approved'?'true':'false';
           const joImg=byId('poJoSignature'),joEmpty=byId('poJoSignatureEmpty');
           joImg.hidden=true;joImg.removeAttribute('src');joEmpty.hidden=false;
@@ -878,3 +910,9 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     confirm-id="confirmDeletePo"
   />
 </x-layout.app>
+
+<style>
+#poWarehouseReview[hidden],#poMaintenanceJoReview[hidden]{display:none!important}
+#poWarehouseReview .po-jo-review-facts>div{min-width:0}
+#poWarehouseReview .po-jo-review-facts strong{overflow-wrap:anywhere}
+</style>
