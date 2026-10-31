@@ -46,23 +46,23 @@
                 <x-ui.summary-card
                     label="Upcoming PMS"
                     value="{{ $upcomingCount }}"
-                    small="Scheduled maintenance tasks"
+                    small="Verified future monitoring thresholds"
                     icon="fa-calendar-check"
                     color="green"
                 />
 
                 <x-ui.summary-card
-                    label="Due Soon"
+                    label="Mileage Unverified"
                     value="{{ $dueSoonCount }}"
-                    small="Within 500 KM of PMS"
+                    small="Requires verified current odometer"
                     icon="fa-clock"
                     color="yellow"
                 />
 
                 <x-ui.summary-card
-                    label="Overdue"
+                    label="PMS Due"
                     value="{{ $overdueCount }}"
-                    small="Needs immediate action"
+                    small="Calendar threshold reached"
                     icon="fa-triangle-exclamation"
                     color="red"
                 />
@@ -108,8 +108,8 @@
                 {{-- =================================================
                     TOOLBAR
                 ================================================== --}}
-                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'current_km' => 'Current KM', 'next_pms_km' => 'Next PMS KM', 'next_pms_date' => 'Next PMS Date', 'overall_status' => 'PMS Status']" default-sort="bus_no">
-                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(['Upcoming','Due Soon','Overdue'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'bus_no' => 'Vehicle ID', 'overall_status' => 'PMS Status']" default-sort="bus_no">
+                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(['Not Configured','Mileage Unverified','PMS Due','Inactive','Upcoming'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
                 </x-ui.table-toolbar>
 
 
@@ -125,7 +125,7 @@
                             <tr>
                                 <th>Vehicle ID</th>
                                 <th>Last PMS Date</th>
-                                <th>Current KM</th>
+                                <th>Current Odometer</th>
                                 <th>Next PMS KM</th>
                                 <th>Next PMS Date</th>
                                 <th class="status-col">PMS Status</th>
@@ -153,10 +153,7 @@
 
 
                                     <td>
-                                        {{ $row->current_km !== null
-                                            ? number_format($row->current_km, 2) . ' km'
-                                            : '—'
-                                        }}
+                                        <span title="A verified current odometer is not yet available; GPS report distance is not interchangeable with odometer mileage">—</span>
                                     </td>
 
 
