@@ -255,7 +255,7 @@ $joApproverForReview = $joForReview?->approved_by ? \App\Models\Admin\User::find
                           
 data-is-warehouse-restock="{{ $prForReview && $prForReview->source_type === 'Auto Restock' ? '1' : '0' }}"
 data-warehouse-approved-by="{{ $prForReview?->requester?->name ?? 'Warehouse Head' }}"
-data-warehouse-approved-at="{{ $prForReview?->warehouse_approved_at ? \\Illuminate\\Support\\Carbon::parse($prForReview->warehouse_approved_at)->format('M d, Y h:i A') : '' }}"
+data-warehouse-approved-at="{{ $prForReview?->warehouse_approved_at ? \Illuminate\Support\Carbon::parse($prForReview->warehouse_approved_at)->format('M d, Y h:i A') : '' }}"
 data-warehouse-purpose="{{ $prForReview?->purpose ?? '' }}"
 data-warehouse-approval-notes="{{ $prForReview?->restock_approval_notes ?? '' }}"
 data-warehouse-signature="{{ $prForReview && $prForReview->source_type === 'Auto Restock' && $prForReview->restock_signature_path ? route('inventory-restock.approval-signature', $prForReview->id) : '' }}"
@@ -909,10 +909,10 @@ data-po-no="{{ $purchaseOrder->po_no }}"
     cancel-id="cancelDeletePo"
     confirm-id="confirmDeletePo"
   />
-</x-layout.app>
-
 <style>
 #poWarehouseReview[hidden],#poMaintenanceJoReview[hidden]{display:none!important}
 #poWarehouseReview .po-jo-review-facts>div{min-width:0}
 #poWarehouseReview .po-jo-review-facts strong{overflow-wrap:anywhere}
 </style>
+</x-layout.app>
+
