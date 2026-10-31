@@ -37,6 +37,78 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     openModal(restockPrModal);
   });
 
+  // Signature input is a local preview only; it is not submitted or stored.
+  const signatureCanvas = restockPrModal?.querySelector('#restockPrSignatureCanvas');
+  const signaturePreview = restockPrModal?.querySelector('#restockPrSignaturePreview');
+  const signatureUpload = restockPrModal?.querySelector('#restockPrSignatureUpload');
+  const signatureMessage = restockPrModal?.querySelector('#restockPrSignatureMessage');
+  const signatureClear = restockPrModal?.querySelector('#restockPrClearSignature');
+  const signatureContext = signatureCanvas?.getContext('2d');
+  let signatureDrawing = false;
+  let signatureObjectUrl = null;
+  if (signatureContext) {
+    signatureContext.strokeStyle = '#123c76';
+    signatureContext.lineWidth = 3;
+    signatureContext.lineJoin = 'round';
+    signatureContext.lineCap = 'round';
+  }
+  function signaturePosition(event) {
+    const rect = signatureCanvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * signatureCanvas.width / rect.width,
+      y: (event.clientY - rect.top) * signatureCanvas.height / rect.height,
+    };
+  }
+  signatureCanvas?.addEventListener('pointerdown', function (event) {
+    if (!signatureContext || !signaturePreview.hidden) return;
+    signatureDrawing = true;
+    signatureCanvas.setPointerCapture(event.pointerId);
+    const point = signaturePosition(event);
+    signatureContext.beginPath();
+    signatureContext.moveTo(point.x, point.y);
+    signatureContext.lineTo(point.x + 0.1, point.y + 0.1);
+    signatureContext.stroke();
+    event.preventDefault();
+  });
+  signatureCanvas?.addEventListener('pointermove', function (event) {
+    if (!signatureDrawing || !signatureContext) return;
+    const point = signaturePosition(event);
+    signatureContext.lineTo(point.x, point.y);
+    signatureContext.stroke();
+    event.preventDefault();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
+    signatureCanvas?.addEventListener(name, function () { signatureDrawing = false; });
+  });
+  signatureClear?.addEventListener('click', function () {
+    signatureDrawing = false;
+    signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
+    signatureObjectUrl = null;
+    if (signaturePreview) {
+      signaturePreview.removeAttribute('src');
+      signaturePreview.hidden = true;
+    }
+    if (signatureUpload) signatureUpload.value = '';
+    if (signatureMessage) signatureMessage.textContent = 'Signature cleared. Draw above or upload an image.';
+  });
+  signatureUpload?.addEventListener('change', function () {
+    const file = signatureUpload.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      signatureUpload.value = '';
+      if (signatureMessage) signatureMessage.textContent = 'Choose a PNG, JPG or WEBP image no larger than 5 MB.';
+      return;
+    }
+    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
+    signatureObjectUrl = URL.createObjectURL(file);
+    if (signaturePreview) {
+      signaturePreview.src = signatureObjectUrl;
+      signaturePreview.hidden = false;
+    }
+    if (signatureMessage) signatureMessage.textContent = file.name + ' selected (preview only; not saved).';
+  });
+
   const restockPrItems = document.getElementById('restockPrItems');
   const restockPrTemplate = restockPrModal?.querySelector('.warehouse-restock-pr-template .warehouse-restock-pr-item');
   const addRestockItem = document.getElementById('restockPrAddItem');
