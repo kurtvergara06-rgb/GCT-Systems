@@ -191,7 +191,7 @@
   padding:12px 9px;
 }
 /* Nine-column layout: reorder point and safety stock remain distinct. */
-.warehouse-inventory-page .inventory-table th:nth-child(1){width:21%}
+.warehouse-inventory-page .inventory-table th:nth-child(1){width:20%}
 .warehouse-inventory-page .inventory-table th:nth-child(2){width:10%}
 .warehouse-inventory-page .inventory-table th:nth-child(3){width:8%}
 .warehouse-inventory-page .inventory-table th:nth-child(4){width:8%}
