@@ -3400,3 +3400,33 @@
 .warehouse-dashboard-page .warehouse-negative { color:#b44049!important; }
 .warehouse-dashboard-page .warehouse-panel { box-shadow:0 3px 14px rgba(19,48,80,.045)!important; }
 .warehouse-dashboard-page .warehouse-issued-total small { color:#7388a0!important; }
+
+
+/* Recent Stock Movements: solid blue rectangular View action. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  min-width:79px!important;
+  height:32px!important;
+  padding:0 12px!important;
+  border:1px solid #1555c2!important;
+  border-radius:7px!important;
+  background:#1762d5!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:750!important;
+  text-decoration:none!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action i {
+  color:inherit!important;
+  font-size:11px!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action:hover,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action:focus-visible {
+  background:#114da9!important;
+  border-color:#114da9!important;
+  color:#fff!important;
+}
