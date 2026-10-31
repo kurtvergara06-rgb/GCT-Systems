@@ -1072,3 +1072,34 @@
   }
 
 }
+
+/* Purchase Dashboard: compact item details, aligned PO status and restrained actions. */
+.purchase-dashboard-page .purchase-request-items-preview {
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;line-height:1.5;
+  max-width:100%;font-size:11px;color:#183653;
+}
+.purchase-dashboard-page .purchase-request-items-preview > span { max-width:100%;overflow-wrap:anywhere; }
+.purchase-dashboard-page .purchase-request-items-preview small { font-size:10px;color:#6b7e96;white-space:nowrap; }
+.purchase-dashboard-page .purchase-request-items-preview .purchase-request-more {
+  border:1px solid #d8e4f1;background:#f0f5fb;color:#325c89;
+  border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;
+}
+.purchase-dashboard-page .purchase-dashboard-order-subline {
+  display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0;margin-top:5px;
+}
+.purchase-dashboard-page .purchase-dashboard-order-subline p {
+  margin:0;color:#62758e;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.purchase-dashboard-page .purchase-dashboard-order-subline .purchase-dashboard-badge {
+  flex:none;border-radius:5px;padding:4px 7px;font-size:10px;line-height:1.1;white-space:nowrap;
+}
+.purchase-dashboard-page .recent-order-heading strong { color:#143e76;font-variant-numeric:tabular-nums; }
+.purchase-dashboard-page .purchase-quick-icon,
+.purchase-dashboard-page .purchase-quick-icon.blue,
+.purchase-dashboard-page .purchase-quick-icon.green,
+.purchase-dashboard-page .purchase-quick-icon.yellow {
+  background:#edf3fa;color:#2c5d96;border:1px solid #dae6f3;
+}
+.purchase-dashboard-page .purchase-quick-item { gap:12px;min-height:66px; }
+.purchase-dashboard-page .recent-order-item,
+.purchase-dashboard-page .recent-purchase-item { gap:12px; }
