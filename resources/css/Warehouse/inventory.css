@@ -719,3 +719,36 @@
   white-space:normal;
   overflow-wrap:anywhere;
 }
+
+/* Inventory row rhythm: align the details stack with centered stock/status/actions. */
+.warehouse-inventory-page .inventory-table thead th{
+  padding:13px 12px;
+  vertical-align:middle;
+}
+.warehouse-inventory-page .inventory-table tbody td{
+  padding:17px 12px;
+  vertical-align:middle;
+  border-bottom:1px solid #e6edf7;
+}
+.warehouse-inventory-page .inventory-table tbody td:first-child{
+  padding-left:14px;
+}
+.warehouse-inventory-page .inventory-table tbody td:last-child{
+  padding-right:14px;
+}
+.warehouse-inventory-page .inventory-table .inventory-item-identification{
+  gap:7px;
+  line-height:1.4;
+}
+.warehouse-inventory-page .inventory-table .inventory-item-meta{
+  line-height:1.5;
+}
+.warehouse-inventory-page .inventory-table .actions{
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+@media(max-width:1100px){
+  .warehouse-inventory-page .inventory-table tbody td{padding:14px 8px}
+  .warehouse-inventory-page .inventory-table .actions{gap:6px}
+}
