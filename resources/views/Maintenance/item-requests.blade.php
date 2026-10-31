@@ -134,7 +134,7 @@
             @else
             <div class="ir-table-wrap">
                 <table class="ir-table ir-records-table ir-split-table ir-lifecycle-table">
-                    <thead><tr><th>IR / JOB ORDER</th><th>SUBMITTED AT</th><th>REQUESTED PARTS</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
+                    <thead><tr><th>IR / JOB ORDER</th><th>SUBMITTED AT</th><th>REQUESTED PARTS</th><th>FULFILLMENT</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                     <tbody>
                         @forelse($requests as $ir)
                         @php
@@ -188,6 +188,23 @@
                                     </div>
                                 </details>
                                 @endif
+                            </td>
+                            <td>
+                                @php
+                                    $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
+                                    $fulfillmentPercent = $fulfillment['required'] > 0
+                                        ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
+                                @endphp
+                                <div class="maintenance-ir-fulfillment" title="Cumulative Warehouse-issued parts for the linked Job Order">
+                                    <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
+                                    <span class="maintenance-ir-fulfillment-track {{ $fulfillmentPercent === 100 ? 'is-complete' : '' }}"
+                                          role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}"
+                                          aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}"
+                                          aria-label="JO parts issued">
+                                        <span style="width:{{ $fulfillmentPercent }}%"></span>
+                                    </span>
+                                    <small>{{ $fulfillment['remaining'] }} remaining</small>
+                                </div>
                             </td>
                             <td><span class="ir-status">{{ $ir->status }}</span></td>
                             <td>
