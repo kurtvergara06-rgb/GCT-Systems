@@ -284,6 +284,14 @@ class WarehousePartRequestController extends Controller
             ->where('status', 'Issued')
             ->count();
 
+        // Restocking PRs are a separate Warehouse-origin queue, not Maintenance JO requests.
+        $restockRequests = PurchaseRequest::query()
+            ->where('source_type', 'Auto Restock')
+            ->where('job_order_no', 'RESTOCK')
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
         $restockInventoryItems = InventoryItem::query()->orderBy('item_name')->get(['id', 'item_code', 'item_name', 'quantity_available', 'reorder_level', 'safety_stock', 'unit_of_measurement', 'supplier']);
 
         return view('Warehouse.part-requests', compact(
@@ -300,7 +308,8 @@ class WarehousePartRequestController extends Controller
             'statusOptions',
             'activeCount',
             'historyCount',
-            'restockInventoryItems'
+            'restockInventoryItems',
+            'restockRequests'
         ));
     }
 
