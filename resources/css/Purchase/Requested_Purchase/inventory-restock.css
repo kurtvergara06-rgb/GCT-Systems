@@ -1002,3 +1002,56 @@ main.inventory-restock-page .restock-card .records-toolbar {
 main.inventory-restock-page .restock-card .records-table-wrap {
   margin-top: 0 !important;
 }
+
+
+/* Restock table balance and single Review action. */
+main.inventory-restock-page .restock-card .records-table-wrap {
+  margin-top: 2px !important;
+}
+main.inventory-restock-page .restock-table th,
+main.inventory-restock-page .restock-table td {
+  padding-top: 13px !important;
+  padding-bottom: 13px !important;
+}
+main.inventory-restock-page .restock-item-more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid #d0dff5;
+  background: #eff5ff;
+  border-radius: 5px;
+  font-size: 10px;
+}
+main.inventory-restock-page .restock-table .restock-review-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  height: 31px;
+  padding: 0 13px;
+  border: 1px solid #bfd6ff;
+  border-radius: 6px;
+  background: #eff5ff;
+  color: #0b40b5;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+main.inventory-restock-page .restock-table .restock-review-btn:hover { background: #dceaff; }
+.restock-view-overlay .restock-review-create-po:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  height: 36px;
+  border: 1px solid #eab94c;
+  border-radius: 8px;
+  background: #ffca15;
+  color: #0b2545;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.restock-view-overlay .restock-review-create-po[hidden] { display: none !important; }
