@@ -228,11 +228,15 @@
   @if($canEditWarehouse)
   {{-- ADD MODAL --}}
   <div class="modal-overlay inventory-form-modal-overlay" id="addModal">
-    <div class="modal-box wide-modal">
+    <div class="modal-box wide-modal inventory-add-dialog" role="dialog" aria-modal="true" aria-labelledby="inventoryAddTitle">
 
-      <div class="modal-header">
-        <h2>Add Inventory Item</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
+      <div class="modal-header inventory-add-header">
+        <span class="inventory-add-header-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span>
+        <div class="inventory-add-header-copy">
+          <h2 id="inventoryAddTitle">Add Inventory Item</h2>
+          <p>Create a new warehouse inventory record with stock and threshold details.</p>
+        </div>
+        <button type="button" class="close-btn closeModal" aria-label="Close Add Inventory Item">&times;</button>
       </div>
 
       <form
@@ -246,60 +250,61 @@
       >
         @csrf
 
-        <section class="inventory-section-basic">
-          <h3>01 — Item Information</h3>
+        <section class="inventory-section-basic inventory-add-section">
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Item Information</h3><p>Basic details about the inventory item.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Item Code</label>
-              <input type="text" name="item_code" required placeholder="Example: PART-001">
+              <label>Item Code <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-barcode" aria-hidden="true"></i><input type="text" name="item_code" required placeholder="Example: PART-001"></div>
             </div>
             <div class="form-group">
-              <label>Parts Name</label>
-              <input type="text" name="item_name" required placeholder="Example: Air Filter">
+              <label>Parts Name <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-cube" aria-hidden="true"></i><input type="text" name="item_name" required placeholder="Example: Air Filter"></div>
             </div>
             <div class="form-group">
-              <label>Category</label>
-              <input type="text" name="category" list="inventory-category-options" required placeholder="Select or enter category">
+              <label>Category <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-tag" aria-hidden="true"></i><input type="text" name="category" list="inventory-category-options" required placeholder="Select or enter category"></div>
             </div>
           </div>
         </section>
 
-        <section class="inventory-section-details">
-          <h3>02 — Stock Information</h3>
+        <section class="inventory-section-details inventory-add-section">
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><h3>02 — Stock Information</h3><p>Set stock quantity and inventory thresholds.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Initial Quantity</label>
-              <input type="number" name="on_hand" min="0" required>
+              <label>Initial Quantity <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-hashtag" aria-hidden="true"></i><input type="number" name="on_hand" min="0" required></div>
             </div>
             <div class="form-group">
-              <label>Unit of Measurement</label>
-              <input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="Select or enter unit">
+              <label>Unit of Measurement <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-ruler" aria-hidden="true"></i><input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="Select or enter unit"></div>
             </div>
             <div class="form-group">
-              <label>Reorder Point</label>
-              <input type="number" name="reorder_level" min="0" required>
+              <label>Reorder Point <span class="inventory-required">*</span></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><input type="number" name="reorder_level" min="0" required></div>
             </div>
             <div class="form-group">
               <label>Safety Stock</label>
-              <input type="number" name="safety_stock" min="0" placeholder="Optional">
+              <div class="inventory-add-input"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><input type="number" name="safety_stock" min="0" placeholder="Enter safety stock (optional)"></div>
             </div>
           </div>
         </section>
 
-        <section class="inventory-section-additional">
-          <h3>03 — Supply &amp; Storage</h3>
+        <section class="inventory-section-additional inventory-add-section">
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-truck" aria-hidden="true"></i></span><div><h3>03 — Supply &amp; Storage</h3><p>Supplier and storage location information.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
               <label>Supplier</label>
-              <input type="text" name="supplier" list="inventory-supplier-options" placeholder="Select or enter supplier">
+              <div class="inventory-add-input"><i class="fa-solid fa-users" aria-hidden="true"></i><input type="text" name="supplier" list="inventory-supplier-options" placeholder="Select or enter supplier"></div>
             </div>
             <div class="form-group">
               <label>Storage Location</label>
-              <input type="text" name="storage_location" placeholder="Example: A-02">
+              <div class="inventory-add-input"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><input type="text" name="storage_location" placeholder="Example: A-02"></div>
             </div>
           </div>
         </section>
 
+        <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reorder Point and Safety Stock are separate thresholds; set values according to GCT's inventory policy.</p>
         <div class="modal-actions full-width">
           <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Save Item</button>
