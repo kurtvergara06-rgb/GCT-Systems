@@ -398,7 +398,7 @@
                                                                 </div>
                                                             </div>
                                                             @if($hasPartsDelayRisk)
-                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are not yet fully issued. Check Warehouse availability and linked requests; any shortage may delay completion. Maintenance Head should review whether the estimated duration needs adjustment. This notice does not change the estimate.</p></div></div>
+                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Delay — Parts Shortage</strong><p>Some required parts are still pending. Maintenance Head may adjust the estimated duration if needed.</p></div></div>
                                         @endif
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
