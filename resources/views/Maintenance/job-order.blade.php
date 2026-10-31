@@ -162,9 +162,9 @@
                                     // A linked, still-outstanding procurement request is an objective
                                     // delay risk. Do not infer delay from "Not Requested" alone or
                                     // flag an already fulfilled/completed Job Order.
+                                    // Show the shortage warning until Warehouse confirms all required parts.
                                     $hasPartsDelayRisk = $isApprovedReview && !$isCompleted && $hasNeededParts
-                                        && !in_array($partStatus, ['Fully Issued', 'No Parts Required'], true)
-                                        && $linkedPrs->contains(fn ($pr) => in_array($pr->status, ['Submitted', 'Approved', 'For Purchase', 'Ordered', 'For Delivery'], true));
+                                        && !in_array($partStatus, ['Fully Issued', 'No Parts Required'], true);
                                     $linkedPr = $linkedPrs->first();
                                     $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
@@ -228,7 +228,7 @@
                                             </span>
                                         @endif
                                         @if($hasPartsDelayRisk)
-                                            <span class="jo-parts-delay-indicator" title="An approved Job Order has outstanding procurement parts. Completion may be delayed; the estimated duration is unchanged.">
+                                            <span class="jo-parts-delay-indicator" title="Required parts have not been fully issued. Completion may be delayed; the estimated duration is unchanged.">
                                                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
                                             </span>
                                         @endif
@@ -392,7 +392,7 @@
                                                                 </div>
                                                             </div>
                                                             @if($hasPartsDelayRisk)
-                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are still in the procurement process. Work may continue on parts already issued, but the original estimated duration could be affected. Maintenance Head should review any required ETC adjustment; this notice does not change the estimate.</p></div></div>
+                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are not yet fully issued. Check Warehouse availability and linked requests; any shortage may delay completion. Maintenance Head should review whether the estimated duration needs adjustment. This notice does not change the estimate.</p></div></div>
                                         @endif
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
