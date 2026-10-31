@@ -22,11 +22,25 @@ class ItemRequestController extends Controller
         $view = in_array($request->query('view'), ['pending', 'history'], true) ? $request->query('view') : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
         $requestsQuery = ItemRequest::with(['jobOrder.approver', 'requester']);
-        if ($view === 'history') {
-            $requestsQuery->whereIn('status', $historyStatuses);
-        } else {
-            $requestsQuery->whereNotIn('status', $historyStatuses);
-        }
+        // Match Warehouse: a signed/Issued IR remains read-only but visible
+        // in Active while its linked Job Order still has outstanding parts.
+        $scopeHistory = static function ($query) use ($historyStatuses) {
+            $query->where(function ($q) use ($historyStatuses) {
+                $q->whereIn('status', array_diff($historyStatuses, ['Issued']))
+                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')
+                        ->whereDoesntHave('jobOrder', fn ($jo) => $jo
+                            ->whereNull('part_status')->orWhere('part_status', '!=', 'Issued')));
+            });
+        };
+        $scopeActive = static function ($query) use ($historyStatuses) {
+            $query->where(function ($q) use ($historyStatuses) {
+                $q->whereNotIn('status', $historyStatuses)
+                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')
+                        ->whereHas('jobOrder', fn ($jo) => $jo
+                            ->whereNull('part_status')->orWhere('part_status', '!=', 'Issued')));
+            });
+        };
+        ($view === 'history' ? $scopeHistory : $scopeActive)($requestsQuery);
         if ($request->filled('search')) {
             $search = trim((string) $request->query('search'));
             $irSearchId = preg_match('/^IR-?0*(\\d+)$/i', $search, $matches) ? (int) $matches[1] : null;
@@ -64,8 +78,8 @@ class ItemRequestController extends Controller
                 ])))->values()->all());
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
-        $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count();
-        $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count();
+        $activeCount = tap(ItemRequest::query(), $scopeActive)->count();
+        $historyCount = tap(ItemRequest::query(), $scopeHistory)->count();
         $candidateJobs = JobOrder::query()
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
