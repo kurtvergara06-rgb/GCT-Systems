@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
+use App\Models\Purchase\PurchaseOrder;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -71,6 +72,17 @@ class InventoryRestockController extends Controller
             ->with('requester')
             ->paginate(8)
             ->withQueryString();
+
+        // Receipt progress comes from the linked PO, never from a manually edited PR status.
+        $linkedOrders = PurchaseOrder::query()
+            ->whereIn('purchase_request_id', $restockRequests->getCollection()->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['id', 'purchase_request_id', 'status', 'items', 'received_quantities', 'inventory_posted_at'])
+            ->unique('purchase_request_id')->keyBy('purchase_request_id');
+        $restockRequests->getCollection()->each(function ($pr) use ($linkedOrders): void {
+            $po = $linkedOrders->get($pr->id);
+            $pr->purchasing_display_status = $po?->receipt_display_status ?? $pr->status;
+        });
 
         $totalRequests = MaintenanceRequest::query()
             ->where('source_type', 'Auto Restock')
