@@ -224,80 +224,58 @@
     </main>
   </div>
 
-  <div id="restockViewModal" class="modal-overlay restock-view-overlay">
-    <div class="restock-view-modal">
-      <div class="restock-modal-header">
+  <div id="restockViewModal" class="modal-overlay restock-view-overlay" role="presentation">
+    <div class="restock-view-modal" role="dialog" aria-modal="true" aria-labelledby="restockReviewTitle">
+      <header class="restock-modal-header">
         <div>
-          <span class="restock-review-eyebrow">SIGNED WAREHOUSE REQUEST</span>
-          <h2>Review Inventory Restock Request</h2>
-          <p>Review the Warehouse Head authorization, requested parts, and quantities before creating a Purchase Order.</p>
+          <span class="restock-review-eyebrow">WAREHOUSE HEAD AUTHORIZATION</span>
+          <h2 id="restockReviewTitle">Review Inventory Restock Request</h2>
+          <p>Verify the signed Warehouse request and item quantities before creating a Purchase Order.</p>
         </div>
-        <button type="button" id="closeRestockViewModal" class="restock-close-btn">
-          <i class="fa-solid fa-xmark"></i>
+        <button type="button" id="closeRestockViewModal" class="restock-close-btn" aria-label="Close review">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
-      </div>
-
-      <div class="restock-form-grid">
-        <div class="restock-field">
-          <label>Restock No.</label>
-          <input id="viewRestockNo" type="text" value="—" readonly>
+      </header>
+      <div class="restock-review-content">
+        <div class="restock-review-meta">
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-file-lines"></i></span><span><small>Restock Number</small><strong id="viewRestockNo">—</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-boxes-stacked"></i></span><span><small>Source</small><strong id="viewRestockSource">Auto Restock</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-calendar-days"></i></span><span><small>Date Created</small><strong id="viewRestockCreated">—</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-cart-shopping"></i></span><span><small>Status</small><strong id="viewRestockStatus">—</strong></span></div>
         </div>
-        <div class="restock-field">
-          <label>Source</label>
-          <input id="viewRestockSource" type="text" value="Auto Restock" readonly>
-        </div>
-        <div class="restock-field">
-          <label>Status</label>
-          <input id="viewRestockStatus" type="text" value="—" readonly>
-        </div>
-        <div class="restock-field">
-          <label>Date Created</label>
-          <input id="viewRestockCreated" type="text" value="—" readonly>
-        </div>
-
-        <section class="restock-authorization restock-full" aria-label="Warehouse Head authorization">
-          <div class="restock-authorization-heading"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Warehouse Head Authorization</div>
+        <section class="restock-review-section restock-authorization" aria-label="Warehouse Head authorization">
+          <h3><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Warehouse Head Authorization</h3>
           <div class="restock-authorization-content">
             <div class="restock-authorization-details">
-              <div><small>Approved by</small><strong id="viewRestockApprovedBy">—</strong></div>
-              <div><small>Approved at</small><strong id="viewRestockApprovedAt">—</strong></div>
+              <div><small>Approved By</small><strong id="viewRestockApprovedBy">—</strong></div>
+              <div><small>Approved At</small><strong id="viewRestockApprovedAt">—</strong></div>
               <div><small>Purpose</small><strong id="viewRestockPurpose">—</strong></div>
-              <div><small>Authorization notes</small><strong id="viewRestockApprovalNotes">—</strong></div>
+              <div><small>Authorization Notes</small><strong id="viewRestockApprovalNotes">—</strong></div>
             </div>
             <div class="restock-authorization-signature">
-              <small>WAREHOUSE HEAD SIGNATURE</small>
+              <small>AUTHORIZED WAREHOUSE SIGNATURE</small>
               <img id="viewRestockSignature" alt="Warehouse Head approval signature" hidden>
               <p id="viewRestockSignatureUnavailable">Signature unavailable for this record</p>
               <strong id="viewRestockSignatureName">—</strong>
             </div>
           </div>
         </section>
-        <div class="restock-field restock-full">
-          <label>Requested Item / Part</label>
+        <section class="restock-review-section">
+          <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Requested Items</h3>
           <div class="restock-breakdown-box">
-            <div class="restock-breakdown-head">
-              <span>Part Name</span>
-              <span>Quantity</span>
-              <span>Unit</span>
-            </div>
-            <div class="restock-breakdown-list" id="viewRestockItems">
-              <span id="viewRestockItem">—</span>
-              <span id="viewRestockQuantity">—</span>
-              <span id="viewRestockUnit">—</span>
-            </div>
+            <div class="restock-breakdown-head"><span>Part Name</span><span>Quantity</span><span>Unit</span></div>
+            <div class="restock-breakdown-list" id="viewRestockItems"></div>
           </div>
-        </div>
-
-        <div class="restock-field restock-full">
-          <label>Remarks</label>
-          <textarea id="viewRestockRemarks" rows="3" readonly>No remarks</textarea>
-        </div>
+        </section>
+        <section class="restock-review-section">
+          <h3><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Request Remarks</h3>
+          <p class="restock-review-remarks" id="viewRestockRemarks">No remarks</p>
+        </section>
       </div>
-
-      <div class="restock-modal-footer">
+      <footer class="restock-modal-footer">
         <button type="button" id="closeRestockViewModalBottom" class="restock-close-bottom">Close</button>
         <a id="restockReviewCreatePo" class="restock-review-create-po" href="#" hidden><i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Create PO</a>
-      </div>
+      </footer>
     </div>
   </div>
 </x-layout.app>
