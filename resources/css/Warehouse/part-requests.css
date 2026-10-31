@@ -766,3 +766,7 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
   width: 0;
   height: 0;
 }
+
+/* Restocking selector: names only, emphasized in the closed field. */
+.warehouse-part-main .warehouse-restock-pr-dialog select.restock-pr-item-select { font-weight: 750; color: #102a56; }
+.warehouse-part-main .warehouse-restock-pr-dialog #restockPrSignatoryName[readonly] { font-weight: 750; background: #f4f7fc; color: #102a56; }
