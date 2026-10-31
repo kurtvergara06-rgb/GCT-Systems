@@ -913,3 +913,36 @@
   font-size:10px!important;
   border-radius:5px!important;
 }
+
+
+/* Single-tone status badges: eliminate the two-color icon/label treatment
+   inherited from generic Purchase badge components. */
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .schedule-status-wrapper > .badge {
+  background:#f1f5f9!important;
+  border:1px solid #dce5ef!important;
+  color:#475569!important;
+  box-shadow:none!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge .status-badge__icon,
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge .status-badge__label {
+  background:transparent!important;
+  color:inherit!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:0!important;
+  margin:0!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="success"],
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="positive"] {
+  background:#e8f7ed!important;border-color:#c8e9d2!important;color:#237449!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="warning"] {
+  background:#fff5e6!important;border-color:#f2dfb9!important;color:#976515!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="danger"],
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="negative"] {
+  background:#fff0f0!important;border-color:#f0d0d1!important;color:#b13d44!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .badge[data-status="info"] {
+  background:#edf4fd!important;border-color:#d4e2f5!important;color:#285d98!important;
+}
