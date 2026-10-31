@@ -205,6 +205,10 @@
                 </div>
                 <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Each Warehouse handover is recorded separately with a signed SWIS. Only physically handed-over quantities count as issued.</p>
             </section>
+            <section class="warehouse-ir-view-section" aria-label="Signed Warehouse handovers">
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-file-signature" aria-hidden="true"></i><div><h3>Signed SWIS History</h3><p>Each physical handover is a separate, immutable issuance batch</p></div></div>
+                <div id="warehouse-ir-handover-history" class="warehouse-ir-handover-history"><p>No handovers recorded yet.</p></div>
+            </section>
             <section class="warehouse-ir-view-section warehouse-ir-details-remarks" aria-label="Item Request remarks">
                 <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
                 <p id="warehouse-ir-remarks" class="ir-detail-text"></p>
