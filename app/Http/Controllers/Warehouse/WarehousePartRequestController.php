@@ -284,6 +284,8 @@ class WarehousePartRequestController extends Controller
             ->where('status', 'Issued')
             ->count();
 
+        $restockInventoryItems = InventoryItem::query()->orderBy('item_name')->get(['id', 'item_code', 'item_name', 'quantity_available', 'reorder_level', 'safety_stock', 'unit_of_measurement', 'supplier']);
+
         return view('Warehouse.part-requests', compact(
             'purchaseRequests',
             'approved',
@@ -297,7 +299,8 @@ class WarehousePartRequestController extends Controller
             'jobOrderIssuances',
             'statusOptions',
             'activeCount',
-            'historyCount'
+            'historyCount',
+            'restockInventoryItems'
         ));
     }
 
