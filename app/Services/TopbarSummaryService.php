@@ -134,11 +134,9 @@ class TopbarSummaryService
             ],
             'purchase' => [
                 ['purchase_requests', 'status', ['For Purchase'], 'Requests ready for purchase', 'maintenance-requests', 'fa-cart-shopping'],
-                ['scheduled_purchases', 'status', ['Active'], 'Active scheduled purchases', 'scheduled-purchase', 'fa-calendar-check'],
             ],
             'purchasing' => [
                 ['purchase_requests', 'status', ['For Purchase'], 'Requests ready for purchase', 'maintenance-requests', 'fa-cart-shopping'],
-                ['scheduled_purchases', 'status', ['Active'], 'Active scheduled purchases', 'scheduled-purchase', 'fa-calendar-check'],
             ],
             'operation' => [
                 ['trip_schedules', 'assignment_status', ['Unassigned'], 'Trips awaiting assignment', 'trip-schedule', 'fa-bus-simple'],
