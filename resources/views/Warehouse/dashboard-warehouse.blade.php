@@ -402,7 +402,7 @@
                     <td>
                       <div class="warehouse-user-cell"><span class="warehouse-user-avatar">{{ $creatorInitials ?: 'SY' }}</span><span><strong>{{ $creatorName }}</strong><small>{{ $creatorRole }}</small></span></div>
                     </td>
-                    <td><a href="{{ route('stock-movements', ['search' => $movement->reference_no ?: $movement->item_code]) }}" class="warehouse-view-action"><i class="fa-regular fa-eye"></i> View</a></td>
+                    <td><a href="{{ route('stock-movements', ['search' => $movement->reference_no ?: $movement->item_code]) }}" class="warehouse-view-action"><i class="fa-solid fa-eye" aria-hidden="true"></i> View</a></td>
                   </tr>
                 @empty
                   <tr><td colspan="8"><div class="warehouse-table-empty">No stock movements recorded.</div></td></tr>
