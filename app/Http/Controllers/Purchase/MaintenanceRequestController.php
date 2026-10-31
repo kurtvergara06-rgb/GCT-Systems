@@ -85,7 +85,7 @@ class MaintenanceRequestController extends Controller
             $po = $linkedOrders->get($pr->id);
             $pr->linked_po_no = $po?->po_no;
             $pr->purchasing_display_status = $po
-                ? ($po->status === 'For Review' ? 'PO For Review' : ($po->status === 'Revision Required' ? 'PO Revision Required' : $po->receipt_display_status))
+                ? ($po->status === 'For Review' ? 'PO For Review' : ($po->status === 'Revision Required' ? 'PO Revision Required' : ($po->status === 'Rejected' ? 'PO Rejected' : $po->receipt_display_status)))
                 : $pr->status;
             $pr->can_create_po = $pr->status === 'For Purchase' && ! $po;
         });
@@ -266,33 +266,12 @@ class MaintenanceRequestController extends Controller
 
     private function historyBaseQuery()
     {
-        return MaintenanceRequest::query()
+        // Purchasing Maintenance history must never include Warehouse Auto Restock PRs.
+        return $this->maintenanceBaseQuery()
+            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued'])
             ->where(function ($query) {
-                $query
-                    ->where(function ($maintenance) {
-                        $maintenance
-                            ->where(function ($source) {
-                                $source->whereNull('source_type')
-                                    ->orWhere('source_type', 'Maintenance Request')
-                                    ->orWhere('source_type', 'Job Order');
-                            })
-                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued'])
-                            ->where(function ($q) {
-                                $q->whereNull('job_order_no')
-                                    ->orWhere('job_order_no', '!=', 'RESTOCK');
-                            })
-                            // Internal purchase-side copies (e.g. PR-...-P) mirror
-                            // the original PR and must not appear as a second history row.
-                            ->where(function ($q) {
-                                $q->whereNull('pr_no')
-                                    ->orWhere('pr_no', 'not like', '%-P%');
-                            });
-                    })
-                    ->orWhere(function ($restock) {
-                        $restock
-                            ->where('source_type', 'Auto Restock')
-                            ->whereIn('status', ['Delivered', 'Picked Up', 'Issued']);
-                    });
+                $query->whereNull('pr_no')
+                    ->orWhere('pr_no', 'not like', '%-P%');
             });
     }
 
