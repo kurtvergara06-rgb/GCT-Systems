@@ -45,6 +45,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   const signatureClear = restockPrModal?.querySelector('#restockPrClearSignature');
   const signatureContext = signatureCanvas?.getContext('2d');
   let signatureDrawing = false;
+  let signatureHasInk = false;
   let signatureObjectUrl = null;
   if (signatureContext) {
     signatureContext.strokeStyle = '#123c76';
@@ -62,6 +63,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   signatureCanvas?.addEventListener('pointerdown', function (event) {
     if (!signatureContext || !signaturePreview.hidden) return;
     signatureDrawing = true;
+    signatureHasInk = true;
     signatureCanvas.setPointerCapture(event.pointerId);
     const point = signaturePosition(event);
     signatureContext.beginPath();
@@ -82,6 +84,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   });
   signatureClear?.addEventListener('click', function () {
     signatureDrawing = false;
+    signatureHasInk = false;
     signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
     signatureObjectUrl = null;
@@ -221,9 +224,76 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       : 'Select an item to view its stock, reorder point and safety stock.';
   });
   if (restockPrItems && !restockPrItems.children.length) addRestockItemRow();
-  restockPrForm?.addEventListener('submit', function (event) {
-    // Disabled until restocking requests have a durable approval/PO workflow.
+  restockPrForm?.addEventListener('submit', async function (event) {
     event.preventDefault();
+    const submit = restockPrForm.querySelector('[type="submit"]');
+    if (submit.disabled) return;
+    const rows = [...restockPrItems.querySelectorAll('.warehouse-restock-pr-item')];
+    const items = rows.map(function (row) {
+      return {
+        inventory_item_id: row.querySelector('.restock-pr-item-select')?.value,
+        quantity: row.querySelector('.restock-pr-item-qty')?.value,
+      };
+    });
+    const selectedIds = items.map(item => item.inventory_item_id);
+    if (!items.length || items.some(item => !item.inventory_item_id || !/^[1-9]\\d*$/.test(item.quantity))
+        || new Set(selectedIds).size !== selectedIds.length) {
+      if (signatureMessage) signatureMessage.textContent = 'Choose distinct inventory items and positive whole-number quantities.';
+      return;
+    }
+    if (signaturePreview.hidden && !signatureHasInk) {
+      if (signatureMessage) signatureMessage.textContent = 'Please draw or upload a signature before submitting.';
+      return;
+    }
+    const canvasBlob = await new Promise(resolve => {
+      if (signaturePreview.hidden) {
+        signatureCanvas.toBlob(resolve, 'image/png');
+      } else {
+        const image = new Image();
+        image.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = signatureCanvas.width;
+          canvas.height = signatureCanvas.height;
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(resolve, 'image/png');
+        };
+        image.onerror = () => resolve(null);
+        image.src = signaturePreview.src;
+      }
+    });
+    if (!canvasBlob) {
+      if (signatureMessage) signatureMessage.textContent = 'Could not process the signature. Try again.';
+      return;
+    }
+    const form = new FormData();
+    form.append('_token', restockPrForm.querySelector('[name="_token"]').value);
+    form.append('purpose', restockPrModal.querySelector('#restockPrPurpose').value);
+    form.append('remarks', restockPrModal.querySelector('#restockPrRemarks').value);
+    form.append('approval_notes', restockPrModal.querySelector('#restockPrApprovalNotes').value);
+    form.append('signature', canvasBlob, 'restock-signature.png');
+    items.forEach((item, index) => {
+      form.append('items[' + index + '][inventory_item_id]', item.inventory_item_id);
+      form.append('items[' + index + '][quantity]', item.quantity);
+    });
+    submit.disabled = true;
+    try {
+      const response = await fetch(restockPrForm.action, {
+        method: 'POST',
+        body: form,
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        const validation = result.errors ? Object.values(result.errors).flat().join(' ') : result.message;
+        throw new Error(validation || 'Purchase Request could not be saved.');
+      }
+      window.location.assign('/part-requests?view=pr');
+    } catch (error) {
+      if (signatureMessage) signatureMessage.textContent = error.message || 'Submission failed. Please try again.';
+    } finally {
+      submit.disabled = false;
+    }
   });
 
   function closeAllModals() {
