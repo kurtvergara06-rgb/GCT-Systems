@@ -688,3 +688,28 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-part-main .warehouse-restock-pr-submit{border:0;border-radius:8px;padding:10px 17px;background:#ffba00;color:#102849;font-weight:800}
 .warehouse-part-main .warehouse-restock-pr-submit:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:580px){.warehouse-part-main .warehouse-restock-pr-grid{grid-template-columns:1fr}.warehouse-part-main .warehouse-restock-pr-item{grid-template-columns:minmax(0,1fr) 90px 32px}.warehouse-part-main .warehouse-restock-pr-dialog{padding:14px}}
+
+/* Restocking PR authorization: same numbered card treatment as JO review. */
+.warehouse-part-main .warehouse-restock-pr-dialog{width:min(740px,calc(100vw - 28px));max-width:740px}
+.warehouse-part-main .warehouse-restock-pr-section{padding:0;overflow:hidden}
+.warehouse-part-main .warehouse-restock-pr-section-title{margin:0 0 12px;padding:11px 14px;background:#f2f6fc;border-bottom:1px solid #dce7f7}
+.warehouse-part-main .warehouse-restock-pr-section>.warehouse-restock-pr-grid,
+.warehouse-part-main .warehouse-restock-pr-section>.form-group,
+.warehouse-part-main .warehouse-restock-pr-section>.warehouse-restock-pr-items{margin:0 13px 13px}
+.warehouse-part-main .warehouse-restock-pr-section>.warehouse-restock-add-item{margin:0 13px 13px}
+.warehouse-part-main .warehouse-restock-pr-authorization{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:0 13px 14px}
+.warehouse-part-main .warehouse-restock-signature-column,.warehouse-part-main .warehouse-restock-signatory-column{min-width:0}
+.warehouse-part-main .warehouse-restock-signature-column>label:first-child{display:block;margin-bottom:7px;color:#152c4c;font-size:11px;font-weight:750}
+.warehouse-part-main .warehouse-restock-signature-pad{position:relative;overflow:hidden;border:1px dashed #b5cef0;border-radius:9px;height:114px;background:#fff;touch-action:none}
+.warehouse-part-main .warehouse-restock-signature-pad canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.warehouse-part-main .warehouse-restock-signature-pad img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:white}
+.warehouse-part-main .warehouse-restock-signature-pad img[hidden]{display:none}
+.warehouse-part-main .warehouse-restock-signature-clear{position:absolute;right:8px;top:7px;z-index:1;background:#fff;border:1px solid #d4e2f5;border-radius:7px;padding:5px 9px;font-size:10px;font-weight:700;color:#1854ad;cursor:pointer}
+.warehouse-part-main .warehouse-restock-signature-or{text-align:center;margin:7px 0;color:#64748b;font-size:10px;font-weight:800}
+.warehouse-part-main .warehouse-restock-signature-upload{display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:center;padding:8px;border:1px solid #c6dbfa;border-radius:8px;background:#eff6ff;color:#1755b2;font-size:11px;font-weight:750;cursor:pointer}
+.warehouse-part-main .warehouse-restock-signature-upload small{font-size:9px;font-weight:500;color:#64748b}
+.warehouse-part-main .warehouse-restock-file-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden;clip-path:inset(50%);opacity:0}
+.warehouse-part-main .warehouse-restock-signature-help{margin:7px 0 0;color:#627995;font-size:10px;line-height:1.4}
+.warehouse-part-main .warehouse-restock-signatory-column{display:flex;flex-direction:column;gap:12px}
+.warehouse-part-main .warehouse-restock-signatory-column .form-group small{color:#627995;font-size:10px}
+@media(max-width:620px){.warehouse-part-main .warehouse-restock-pr-authorization{grid-template-columns:1fr}}
