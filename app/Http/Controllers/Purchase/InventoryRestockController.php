@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class InventoryRestockController extends Controller
 {
@@ -15,6 +16,29 @@ class InventoryRestockController extends Controller
         'For Pick-up',
         'For Delivery',
     ];
+
+    public function approvalSignature(MaintenanceRequest $maintenanceRequest)
+    {
+        abort_unless($maintenanceRequest->source_type === 'Auto Restock'
+            && $maintenanceRequest->job_order_no === 'RESTOCK', 404);
+
+        $path = (string) ($maintenanceRequest->restock_signature_path ?? '');
+        if (! str_starts_with($path, 'warehouse-restock-approvals/')
+            || ! preg_match('/^warehouse-restock-approvals\\/[a-zA-Z0-9_-]+\\.(?:png|jpe?g|webp)$/', $path)) {
+            abort(404);
+        }
+        $disk = Storage::disk('local');
+        abort_unless($disk->exists($path), 404);
+        $mime = $disk->mimeType($path);
+        abort_unless(in_array($mime, ['image/png', 'image/jpeg', 'image/webp'], true), 404);
+
+        return response($disk->get($path), 200, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
 
     private array $historyStatuses = ['Delivered', 'Picked Up', 'Issued'];
 
@@ -44,6 +68,7 @@ class InventoryRestockController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $restockRequests = $query
+            ->with('requester')
             ->paginate(8)
             ->withQueryString();
 
