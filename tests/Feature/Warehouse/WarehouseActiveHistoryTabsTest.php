@@ -121,7 +121,7 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             ->assertSee('Delivery History')
             ->assertSee('PO-HISTORY-TAB')
             ->assertDontSee('PO-ACTIVE-TAB')
-            ->assertDontSee('receive-delivery-btn', false)
+            ->assertDontSee('open-incoming-receipt', false)
             ->assertSee('Read only');
     }
 
