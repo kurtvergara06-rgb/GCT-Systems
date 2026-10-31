@@ -210,121 +210,83 @@ function bindInventoryCategoryFilter() {
 function initializeMovementTrend() {
     const canvas = document.getElementById('warehouseMovementTrend');
     if (!canvas) return;
-
     destroyChart(canvas);
 
     const labels = readJson(canvas, 'labels');
-    const received = readJson(canvas, 'received');
-    const issued = readJson(canvas, 'issued');
-    const adjusted = readJson(canvas, 'adjusted');
-
-    const group = document.getElementById('warehouseTrendGrouping')?.value || 'weekly';
-    const groupValues = (values, size) => Array.from(
-        { length: Math.ceil(values.length / size) },
-        (_, index) => values.slice(index * size, (index + 1) * size)
-            .reduce((total, value) => total + (Number(value) || 0), 0)
-    );
-    const size = group === 'daily' ? 1 : group === 'monthly' ? Math.max(1, labels.length) : 7;
-    const chartLabels = group === 'daily' ? labels : group === 'monthly'
-        ? [labels.length ? 'This Month' : 'No data']
-        : Array.from({ length: Math.ceil(labels.length / 7) },
-            (_, index) => 'Week ' + (index + 1));
-    const trend = {
-        received: groupValues(received, size),
-        issued: groupValues(issued, size),
-        adjusted: groupValues(adjusted, size),
+    const series = {
+        received: readJson(canvas, 'received'),
+        issued: readJson(canvas, 'issued'),
+        adjusted: readJson(canvas, 'adjusted'),
     };
+    const grouping = document.getElementById('warehouseTrendGrouping')?.value || 'weekly';
+    // Group only the already-loaded, real ledger values. Preserve chronological
+    // order and show the actual date span instead of ambiguous Week 1..5 labels.
+    const groupSize = grouping === 'daily' ? 1 : grouping === 'monthly' ? Math.max(1, labels.length) : 7;
+    const groups = Array.from({ length: Math.ceil(labels.length / groupSize) }, (_, index) => {
+        const from = index * groupSize;
+        const to = Math.min(labels.length, from + groupSize);
+        const first = String(labels[from] || '');
+        const last = String(labels[to - 1] || '');
+        return {
+            label: grouping === 'daily' ? first : grouping === 'monthly'
+                ? (first && last ? first + ' – ' + last : 'This month')
+                : (first === last ? first : first + ' – ' + last),
+            received: series.received.slice(from, to).reduce((sum, v) => sum + (Number(v) || 0), 0),
+            issued: series.issued.slice(from, to).reduce((sum, v) => sum + (Number(v) || 0), 0),
+            adjusted: series.adjusted.slice(from, to).reduce((sum, v) => sum + (Number(v) || 0), 0),
+        };
+    });
+    const rows = groups.length ? groups : [{ label: 'No activity', received: 0, issued: 0, adjusted: 0 }];
+    const hasActivity = rows.some(row => row.received !== 0 || row.issued !== 0 || row.adjusted !== 0);
 
     new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: chartLabels,
+            labels: rows.map(row => row.label),
             datasets: [
-                {
-                    label: 'Received',
-                    data: trend.received,
-                    borderColor: '#10b981',
-                    backgroundColor: '#21a779',
-                    borderRadius: 5,
-                    maxBarThickness: 25,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#10b981',
-                    borderWidth: 2.5,
-                    tension: 0.35,
-                },
-                {
-                    label: 'Issued',
-                    data: trend.issued,
-                    borderColor: '#2563eb',
-                    backgroundColor: '#386fb5',
-                    borderRadius: 5,
-                    maxBarThickness: 25,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#2563eb',
-                    borderWidth: 2.5,
-                    tension: 0.35,
-                },
-                {
-                    label: 'Adjusted',
-                    data: trend.adjusted,
-                    borderColor: '#f59e0b',
-                    backgroundColor: '#e8a53e',
-                    maxBarThickness: 25,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#f59e0b',
-                    borderWidth: 2,
-                    borderDash: [4, 4],
-                    tension: 0.35,
-                },
-            ],
+                { label: 'Received', data: rows.map(row => row.received), backgroundColor: '#289b79', hoverBackgroundColor: '#167c60' },
+                { label: 'Issued', data: rows.map(row => row.issued), backgroundColor: '#467bbd', hoverBackgroundColor: '#2e62a7' },
+                { label: 'Adjusted', data: rows.map(row => row.adjusted), backgroundColor: '#d6a151', hoverBackgroundColor: '#b98029' },
+            ].map(dataset => ({
+                ...dataset, borderWidth: 0, borderRadius: 5, borderSkipped: false,
+                maxBarThickness: 20, categoryPercentage: 0.65, barPercentage: 0.84,
+            })),
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index',
-            },
-            animation: {
-                duration: 450,
-            },
+            animation: { duration: 350 },
+            interaction: { mode: 'index', intersect: false },
+            layout: { padding: { top: 3, bottom: 2, left: 2, right: 8 } },
             plugins: {
                 legend: {
-                    position: 'top',
-                    align: 'end',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 8,
-                        boxHeight: 8,
-                        padding: 14,
-                        color: axisText,
-                        font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
+                    position: 'top', align: 'end',
+                    labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7,
+                        boxHeight: 7, padding: 13, color: '#53667e',
+                        font: { size: 10, weight: '600', family: 'Poppins, Inter, sans-serif' } },
+                },
+                tooltip: {
+                    ...tooltipOptions,
+                    callbacks: {
+                        title: items => items[0]?.label || '',
+                        label: item => ' ' + item.dataset.label + ': ' + Number(item.parsed.y || 0).toLocaleString() + ' units',
                     },
                 },
-                tooltip: tooltipOptions,
             },
             scales: {
                 x: {
-                    grid: { display: false },
-                    border: { display: false },
-                    ticks: {
-                        color: axisText,
-                        maxTicksLimit: 9,
-                        maxRotation: 0,
-                        font: { size: 11.5, family: 'Poppins, Inter, sans-serif' },
-                    },
+                    grid: { display: false }, border: { display: false },
+                    ticks: { color: '#697b91', autoSkip: grouping === 'daily',
+                        maxTicksLimit: grouping === 'daily' ? 6 : 7, maxRotation: 0,
+                        font: { size: grouping === 'weekly' ? 9 : 10, family: 'Poppins, Inter, sans-serif' } },
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: axisGrid, drawTicks: false },
+                    suggestedMax: hasActivity ? undefined : 5,
+                    grid: { color: '#edf2f7', drawTicks: false },
                     border: { display: false },
-                    ticks: {
-                        color: axisText,
-                        precision: 0,
-                        padding: 8,
-                        font: { size: 11.5, family: 'Poppins, Inter, sans-serif' },
-                    },
+                    ticks: { color: '#76859b', precision: 0, maxTicksLimit: 5,
+                        padding: 8, font: { size: 10, family: 'Poppins, Inter, sans-serif' } },
                 },
             },
         },
