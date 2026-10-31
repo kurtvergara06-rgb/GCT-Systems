@@ -208,87 +208,30 @@ class InventoryController extends Controller
         $this->authorizeWarehouseEdit();
 
         $validated = $request->validate([
-            'item_code' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('inventory_items', 'item_code')
-                    ->ignore($inventoryItem->id),
-            ],
-            'parts_name' => ['nullable', 'string', 'max:255'],
             'item_name' => ['required', 'string', 'max:255'],
-            'category' => ['nullable', 'string', 'max:255'],
-            'on_hand' => ['required', 'integer', 'min:0'],
-            'quantity_available' => ['nullable', 'integer', 'min:0'],
-            'unit' => ['nullable', 'string', 'max:255'],
-            'unit_of_measurement' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:255'],
             'reorder_level' => ['required', 'integer', 'min:0'],
             'safety_stock' => ['nullable', 'integer', 'min:0', 'lte:reorder_level'],
             'supplier' => ['nullable', 'string', 'max:255'],
-            'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
-            'adjustment_reason' => ['nullable', 'string', 'max:500'],
-        ], [
-            'item_code.unique' => 'The item code already belongs to another inventory item.',
         ]);
 
-        $targetStock = (int) $validated['on_hand'];
-        $adjustmentReason = trim((string) ($validated['adjustment_reason'] ?? ''));
-
-        unset($validated['on_hand'], $validated['quantity_available'], $validated['adjustment_reason']);
-
-        DB::transaction(function () use ($validated, $targetStock, $adjustmentReason, $inventoryItem) {
+        DB::transaction(function () use ($validated, $inventoryItem): void {
             $lockedItem = InventoryItem::query()
                 ->whereKey($inventoryItem->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $validated['parts_name'] =
-                $validated['parts_name']
-                ?? $validated['item_name'];
 
-            $validated['unit'] =
-                $validated['unit']
-                ?? $validated['unit_of_measurement'];
-
-            $validated['location'] =
-                $validated['location']
-                ?? $validated['storage_location']
-                ?? null;
-
+            // Item edits never adjust physical inventory or overwrite immutable
+            // identifiers. All quantity changes must go through the ledger.
+            $validated['parts_name'] = $validated['item_name'];
+            $validated['location'] = $validated['storage_location'] ?? null;
             $validated['status'] = $this->inventoryStatus(
-                $targetStock,
+                (int) ($lockedItem->quantity_available ?? $lockedItem->on_hand ?? 0),
                 (int) $validated['reorder_level']
             );
-
             $lockedItem->update($validated);
-
-            $freshItem = $lockedItem->fresh();
-
-            $previousStock = (int) (
-                $freshItem->quantity_available
-                ?? $freshItem->on_hand
-                ?? 0
-            );
-
-            if ($targetStock !== $previousStock) {
-                if ($adjustmentReason === '') {
-                    throw ValidationException::withMessages([
-                        'adjustment_reason' => 'A reason is required when changing inventory quantity.',
-                    ]);
-                }
-
-                $this->ledger->adjustTo(
-                    $freshItem,
-                    $targetStock,
-                    $freshItem->item_code ?? $freshItem->item_name,
-                    'Manual inventory adjustment: '.$adjustmentReason,
-                    auth()->id()
-                );
-            }
-
-            $this->createAutoRestockRequestIfNeeded(
-                $freshItem
-            );
+            $this->createAutoRestockRequestIfNeeded($lockedItem->fresh());
         });
 
         $this->broadcastSystemDataUpdated(
