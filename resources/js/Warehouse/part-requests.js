@@ -109,6 +109,15 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     if (signatureMessage) signatureMessage.textContent = file.name + ' selected (preview only; not saved).';
   });
 
+  // The generic close handler does not treat X or Cancel as close actions.
+  // Bind only this dialog's explicit controls; never close on backdrop clicks.
+  restockPrModal?.querySelectorAll('button.closeModal').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      closeModal(restockPrModal);
+    });
+  });
+
   const restockPrItems = document.getElementById('restockPrItems');
   const restockPrTemplate = restockPrModal?.querySelector('.warehouse-restock-pr-template .warehouse-restock-pr-item');
   const addRestockItem = document.getElementById('restockPrAddItem');
