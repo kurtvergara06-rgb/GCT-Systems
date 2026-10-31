@@ -646,8 +646,8 @@
 }
 .incoming-delivery-table .delivery-status{
   box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
-  gap:5px;min-width:0;min-height:25px;height:25px;padding:0 9px;
-  border-radius:6px;font-size:10px;line-height:1;white-space:nowrap;
+  gap:6px;min-width:0;min-height:34px;height:auto;padding:7px 11px;
+  border-radius:8px;font-size:11px;line-height:1.25;font-weight:800;white-space:nowrap;
 }
 .incoming-delivery-table .inline-action-form{display:inline-flex;align-items:center;justify-content:center;margin:0}
 
@@ -668,7 +668,7 @@
 .incoming-delivery-card .incoming-delivery-table thead th{font-size:11px!important}
 .incoming-delivery-card .incoming-delivery-table tbody td{font-size:12px!important}
 .incoming-delivery-card .incoming-delivery-table tbody td strong{font-size:12px}
-.incoming-delivery-card .incoming-delivery-table .delivery-status{font-size:11px!important}
+.incoming-delivery-card .incoming-delivery-table .delivery-status{font-size:11px!important;font-weight:800!important;min-height:34px!important;height:auto!important;padding:7px 11px!important;border-radius:8px!important;line-height:1.25!important}
 .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn{font-size:12px!important}
 .incoming-part-cell{white-space:normal;text-align:left!important}
 .incoming-first-part{font-weight:700;color:#172c4a}
