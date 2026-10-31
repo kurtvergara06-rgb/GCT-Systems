@@ -331,93 +331,48 @@
     @endforeach
   </datalist>
 
-  {{-- EDIT MODAL --}}
+  {{-- EDIT MODAL: master information only; quantities stay ledger-controlled. --}}
   <div class="modal-overlay inventory-form-modal-overlay" id="editModal">
-    <div class="modal-box wide-modal">
-
-      <div class="modal-header">
-        <h2>Edit Inventory Item</h2>
-        <button type="button" class="close-btn closeModal">&times;</button>
+    <div class="modal-box inventory-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="inventoryEditTitle">
+      <div class="inventory-edit-header">
+        <span class="inventory-edit-header-icon"><i class="fa-solid fa-cube" aria-hidden="true"></i></span>
+        <div><h2 id="inventoryEditTitle">Edit Inventory Item</h2><p>Update the item's information and stock settings.</p></div>
+        <button type="button" class="inventory-edit-x closeModal" aria-label="Close edit item"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
-      <form
-        id="editForm"
-        method="POST"
-        data-confirm-form
+      <form id="editForm" method="POST" data-confirm-form
         data-confirm-title="Update Inventory Item?"
-        data-confirm-message="Are you sure you want to update this inventory item?"
-        data-confirm-button="Yes, Update Item"
-        data-confirm-type="update"
-      >
+        data-confirm-message="Save these item details and stock threshold settings? Physical stock quantities will not change."
+        data-confirm-button="Yes, Save Changes" data-confirm-type="update">
         @csrf
         @method('PUT')
-
-        <section class="inventory-section-basic">
-          <h3>01 — Item Information</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Item Code</label>
-              <input type="text" name="item_code" id="edit_item_code" required>
+        <div class="inventory-edit-body">
+          <section class="inventory-edit-section">
+            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-clipboard-list"></i></span><div><h3>Item Information</h3><p>Basic details of the inventory item.</p></div></div>
+            <div class="inventory-edit-grid">
+              <div class="form-group"><label for="edit_item_code">Item Code</label><div class="inventory-edit-locked"><input id="edit_item_code" type="text" readonly aria-readonly="true"><i class="fa-solid fa-lock" aria-hidden="true"></i></div></div>
+              <div class="form-group"><label for="edit_item_name">Item Name <em>*</em></label><input name="item_name" id="edit_item_name" type="text" maxlength="255" required></div>
+              <div class="form-group"><label for="edit_category">Category <em>*</em></label><input name="category" id="edit_category" type="text" list="inventory-category-options" required></div>
+              <div class="form-group"><label for="edit_unit">Unit of Measurement</label><div class="inventory-edit-locked"><input id="edit_unit" type="text" readonly aria-readonly="true"><i class="fa-solid fa-lock" aria-hidden="true"></i></div></div>
             </div>
-            <div class="form-group">
-              <label>Parts Name</label>
-              <input type="text" name="item_name" id="edit_item_name" required>
+          </section>
+          <section class="inventory-edit-section">
+            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-chart-simple"></i></span><div><h3>Stock Thresholds</h3><p>Set the minimum quantities to maintain stock availability.</p></div></div>
+            <div class="inventory-edit-grid inventory-edit-threshold-grid">
+              <div class="form-group"><label for="edit_reorder">Reorder Level <em>*</em></label><input name="reorder_level" id="edit_reorder" type="number" min="0" step="1" required><small>Triggers a low-stock alert.</small></div>
+              <div class="form-group"><label for="edit_safety_stock">Safety Stock</label><input name="safety_stock" id="edit_safety_stock" type="number" min="0" step="1" placeholder="Optional"><small>Must not exceed reorder level.</small></div>
+              <div class="inventory-edit-onhand"><span>Current On Hand <i class="fa-solid fa-lock" aria-hidden="true"></i></span><strong><span id="edit_quantity">—</span> <small id="edit_onhand_unit">pcs</small></strong><p>Updated through inventory movements.</p></div>
             </div>
-            <div class="form-group">
-              <label>Category</label>
-              <input type="text" name="category" id="edit_category" list="inventory-category-options" required>
+          </section>
+          <section class="inventory-edit-section">
+            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-tag"></i></span><div><h3>Additional Information</h3><p>Supplier and storage details.</p></div></div>
+            <div class="inventory-edit-grid">
+              <div class="form-group"><label for="edit_supplier">Supplier</label><input name="supplier" id="edit_supplier" type="text" list="inventory-supplier-options"></div>
+              <div class="form-group"><label for="edit_location">Storage Location</label><input name="storage_location" id="edit_location" type="text"></div>
             </div>
-          </div>
-        </section>
-
-        <section class="inventory-section-details">
-          <h3>02 — Stock Information</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>On Hand (adjustment requires reason)</label>
-              <input type="number" name="on_hand" id="edit_quantity" min="0" required>
-            </div>
-            <div class="form-group">
-              <label>Unit of Measurement</label>
-              <input type="text" name="unit_of_measurement" id="edit_unit" list="inventory-unit-options" required>
-            </div>
-            <div class="form-group">
-              <label>Reorder Point</label>
-              <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
-            </div>
-            <div class="form-group">
-              <label>Safety Stock</label>
-              <input type="number" name="safety_stock" id="edit_safety_stock" min="0" placeholder="Optional">
-            </div>
-            <div class="form-group full-width">
-              <label for="edit_adjustment_reason">Stock adjustment reason <span id="editAdjustmentRequiredMark" hidden>*</span></label>
-              <textarea name="adjustment_reason" id="edit_adjustment_reason" maxlength="500" placeholder="Explain why the on-hand quantity is changing"></textarea>
-              <small id="editAdjustmentHelp">No reason is required when stock quantity remains unchanged.</small>
-            </div>
-          </div>
-        </section>
-
-        <section class="inventory-section-additional">
-          <h3>03 — Supply &amp; Storage</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Supplier</label>
-              <input type="text" name="supplier" id="edit_supplier" list="inventory-supplier-options">
-            </div>
-            <div class="form-group">
-              <label>Storage Location</label>
-              <input type="text" name="storage_location" id="edit_location">
-            </div>
-          </div>
-        </section>
-
-        <div class="modal-actions full-width">
-          <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
-          <button type="submit" class="primary-btn">Update Item</button>
+          </section>
         </div>
-
+        <div class="inventory-edit-footer"><button type="button" class="secondary-btn closeModal">Cancel</button><button type="submit" class="primary-btn"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Changes</button></div>
       </form>
-
     </div>
   </div>
   @endif
