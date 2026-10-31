@@ -8,6 +8,7 @@ use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\BusPmsMonitoring;
 use App\Services\Maintenance\PmsStatusService;
+use App\Services\Maintenance\DdrPmsMileageService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -117,6 +118,7 @@ class PmsSchedulingController extends Controller
 
         $monitoringByBus = BusPmsMonitoring::query()->with('bus')->get()
             ->keyBy(fn (BusPmsMonitoring $monitoring) => strtoupper(trim((string) $monitoring->bus?->bus_no)));
+        $ddrMileageByBus = app(DdrPmsMileageService::class)->estimates($monitoringByBus->values());
         $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
         $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'approve') ?? false;
         $groups = $groups->map(function ($group) use ($monitoringByBus) {
@@ -234,6 +236,7 @@ class PmsSchedulingController extends Controller
             'dueSoonCount',
             'overdueCount',
             'monitoringByBus',
+            'ddrMileageByBus',
             'configurableBuses',
             'canConfigurePms'
         ));
