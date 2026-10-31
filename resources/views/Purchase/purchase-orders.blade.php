@@ -120,10 +120,6 @@
 
         </div>
 
-        <nav class="po-record-tabs" aria-label="Purchase Order record views">
-          <a href="{{ route('purchase-orders', ['view' => 'active']) }}" data-no-partial-navigation class="po-record-tab {{ ($activeTab ?? 'active') === 'active' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'active') aria-current="page" @endif><i class="fa-solid fa-list-check" aria-hidden="true"></i> Active</a>
-          <a href="{{ route('purchase-orders', ['view' => 'history']) }}" data-no-partial-navigation class="po-record-tab {{ ($activeTab ?? 'active') === 'history' ? 'is-active' : '' }}" @if(($activeTab ?? 'active') === 'history') aria-current="page" @endif><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
-        </nav>
         <div class="po-record-controls purchase-list-controls">
           <div class="po-record-actions purchase-list-tools">
             <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true"
@@ -132,11 +128,11 @@
               filter-title="Filter Purchase Orders"
               :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'total_amount' => 'Total Amount', 'status' => 'Status']"
               default-sort="po_date" default-direction="desc">
-              <x-slot:hidden><input type="hidden" name="view" value="{{ $activeTab ?? 'active' }}"></x-slot:hidden>
+              
               <x-slot:filters>
                 <x-ui.table-toolbar-field label="Status" name="status" default="">
-                  <option value="">All {{ ($activeTab ?? 'active') === 'history' ? 'Completed' : 'Active' }} Statuses</option>
-                  @foreach(($activeTab ?? 'active') === 'history' ? ['Delivered', 'Picked Up', 'Rejected'] : ['For Review', 'Revision Required', 'Ordered', 'For Delivery'] as $status)
+                  <option value="">All Active Statuses</option>
+                  @foreach(['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                   @endforeach
                 </x-ui.table-toolbar-field>
