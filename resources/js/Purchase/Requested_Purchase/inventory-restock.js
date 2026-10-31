@@ -36,6 +36,44 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     }
   }
 
+  // Position expanded item details above table clipping without changing row height.
+  const positionRestockPopover = (details) => {
+    const summary = details?.querySelector('summary');
+    const popover = details?.querySelector('.restock-item-popover');
+    if (!summary || !popover || !details.open) return;
+    const rect = summary.getBoundingClientRect();
+    const width = Math.min(340, Math.max(210, popover.offsetWidth || 210));
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    const below = rect.bottom + 6;
+    const height = popover.offsetHeight;
+    const top = below + height > window.innerHeight - 8 && rect.top > height + 8
+      ? rect.top - height - 6
+      : Math.min(below, Math.max(8, window.innerHeight - height - 8));
+    popover.style.left = left + 'px';
+    popover.style.top = Math.max(8, top) + 'px';
+  };
+
+  const closeExpandedItems = () => {
+    document.querySelectorAll('.inventory-restock-page .restock-item-more[open]').forEach((details) => {
+      details.open = false;
+    });
+  };
+
+  document.querySelectorAll('.inventory-restock-page .restock-item-more').forEach((details) => {
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      document.querySelectorAll('.inventory-restock-page .restock-item-more[open]').forEach((other) => {
+        if (other !== details) other.open = false;
+      });
+      positionRestockPopover(details);
+    });
+  });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.inventory-restock-page .restock-item-more')) closeExpandedItems();
+  });
+  window.addEventListener('resize', closeExpandedItems);
+  window.addEventListener('scroll', closeExpandedItems, true);
+
   const restockViewModal = document.getElementById('restockViewModal');
   const closeRestockViewModal = document.getElementById('closeRestockViewModal');
   const closeRestockViewModalBottom = document.getElementById('closeRestockViewModalBottom');
