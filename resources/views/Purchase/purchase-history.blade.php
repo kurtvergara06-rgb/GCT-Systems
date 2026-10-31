@@ -128,7 +128,7 @@
                   <td class="requested-pr-status"><x-ui.status-badge :status="$history->status ?? '—'" type="purchase" /></td>
                   <td class="requested-pr-actions-cell">
                     <div class="record-actions">
-                      <button type="button" class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
+                      <button type="button" class="open-view-requested-pr-modal purchase-history-view-btn"
                         title="View Purchase History" aria-label="View {{ $history->display_pr_no }}"
                         data-pr-no="{{ $history->display_pr_no }}"
                         data-job-order-no="{{ ! $isRestock && $history->job_order_no !== 'RESTOCK' ? $history->job_order_no : '—' }}"
