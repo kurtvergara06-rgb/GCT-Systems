@@ -563,8 +563,20 @@ class GctDateTimePicker {
             }
         }
 
-        this.popover.style.left = `${left}px`;
-        this.popover.style.top = `${top}px`;
+        if (this.activeInput?.dataset.pickerPlacement === 'below'
+            && this.popover.parentElement?.matches('.pms-monitor-dialog')) {
+            // Absolute coordinates relative to the full-screen modal overlay.
+            // Fixed viewport coordinates inside a backdrop-filter containing block
+            // are offset, causing the calendar to appear at the page edge.
+            const overlayRect = this.popover.parentElement.getBoundingClientRect();
+            this.popover.style.position = 'absolute';
+            this.popover.style.left = `${left - overlayRect.left}px`;
+            this.popover.style.top = `${top - overlayRect.top}px`;
+        } else {
+            this.popover.style.position = 'fixed';
+            this.popover.style.left = `${left}px`;
+            this.popover.style.top = `${top}px`;
+        }
     }
 
     bindGlobalEvents() {
