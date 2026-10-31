@@ -33,7 +33,7 @@ class MaintenanceRequestController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->query('view') === 'history' || $request->query('record_view') === 'history') {
+        if ($request->query('view') === 'history') {
             return $this->history($request);
         }
 
