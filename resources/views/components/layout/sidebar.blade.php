@@ -113,7 +113,6 @@
                 ],
             ],
             ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
-            ['label' => 'Scheduled Purchases', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
             [
                 'label' => 'Purchase History',
                 'url' => route('maintenance-requests', [], false) . '?view=history',
