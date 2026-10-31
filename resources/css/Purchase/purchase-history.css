@@ -266,3 +266,39 @@
   font-size:12px!important;
   line-height:1!important;
 }
+
+
+/* Match PR History reference: icon and status label grouped together. */
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge.purchase-badge,
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge {
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  width:auto!important;
+  min-width:122px!important;
+  max-width:max-content!important;
+  height:32px!important;
+  min-height:32px!important;
+  margin:0 auto!important;
+  padding:5px 12px!important;
+  border-radius:5px!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__icon,
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__label {
+  display:inline-block!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  margin:0!important;
+  padding:0!important;
+  color:inherit!important;
+  font-size:12px!important;
+  line-height:1!important;
+  text-align:center!important;
+}
