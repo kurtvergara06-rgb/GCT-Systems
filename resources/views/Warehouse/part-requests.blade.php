@@ -392,4 +392,24 @@
       </div>
     </form>
   </div>
+  <div id="warehouseRestockViewModal" class="modal-overlay warehouse-restock-view-overlay" role="presentation" style="display:none">
+    <div class="modal-box warehouse-restock-view-dialog" role="dialog" aria-modal="true" aria-labelledby="warehouseRestockViewTitle">
+      <header class="warehouse-restock-view-header">
+        <div><small>WAREHOUSE RESTOCKING</small><h2 id="warehouseRestockViewTitle">View Purchase Request</h2>
+          <p>Read-only details. Purchasing manages ordering; Warehouse records physical receiving.</p></div>
+        <button type="button" id="warehouseRestockViewX" class="warehouse-restock-view-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+      <div class="warehouse-restock-view-content">
+        <div class="warehouse-restock-view-facts">
+          <div><small>PR Number</small><strong id="warehouseRestockViewNo">—</strong></div>
+          <div><small>Status</small><strong id="warehouseRestockViewStatus">—</strong></div>
+          <div><small>Purpose</small><strong id="warehouseRestockViewPurpose">—</strong></div>
+        </div>
+        <h3>Requested Inventory Items</h3>
+        <div class="warehouse-restock-view-table-wrap"><table><thead><tr><th>Item</th><th>Quantity</th><th>Unit</th></tr></thead><tbody id="warehouseRestockViewLines"></tbody></table></div>
+        <h3>Remarks</h3><p id="warehouseRestockViewRemarks">—</p>
+      </div>
+      <footer><button type="button" id="warehouseRestockViewClose" class="warehouse-restock-view-close">Close</button></footer>
+    </div>
+  </div>
 </x-layout.app>
