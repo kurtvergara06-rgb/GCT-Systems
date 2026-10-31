@@ -277,7 +277,7 @@
                         </div>
                         <h3 class="pms-monitor-section-title"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Last completed PMS</h3>
                         <div class="pms-monitor-field-grid">
-                            <div class="pms-monitor-field"><label for="monitor-date">Service completion date <span aria-hidden="true">*</span></label><input id="monitor-date" name="last_completed_pms_date" type="date" data-native-picker="true" value="{{ old('last_completed_pms_date') }}" max="{{ now()->toDateString() }}" required></div>
+                            <div class="pms-monitor-field"><label for="monitor-date">Service completion date <span aria-hidden="true">*</span></label><input id="monitor-date" name="last_completed_pms_date" type="date" data-picker-placement="below" value="{{ old('last_completed_pms_date') }}" max="{{ now()->toDateString() }}" required></div>
                             <div class="pms-monitor-field"><label for="monitor-odo">Verified odometer (km) <span aria-hidden="true">*</span></label><input id="monitor-odo" name="last_completed_pms_odometer_km" type="number" value="{{ old('last_completed_pms_odometer_km') }}" min="0" step="0.01" placeholder="e.g. 45000.00" required></div>
                         </div>
                         <p class="pms-monitor-help">Use the actual service record. Do not enter GPS trip distance as an odometer reading.</p>
