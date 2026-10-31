@@ -94,6 +94,11 @@ class PmsSchedulingController extends Controller
                     'current_km' => $firstTask->current_km,
                     'km_traveled' => $firstTask->km_traveled,
                     'tasks' => $tasks->values(),
+                    // Display the nearest milestone only; these are still task-based
+                    // schedules, not a verified bus-level PMS service baseline.
+                    'next_pms_km' => $tasks->min('next_pms_km'),
+                    'next_pms_date' => $tasks->pluck('recommended_date')->filter()->sort()->first(),
+                    'has_processed_gps' => $firstTask->current_km !== null,
                     'due_pms_count' => $tasks
                         ->filter(
                             fn ($task) => in_array(
