@@ -150,7 +150,7 @@
                         class="inline-action-form"
                         data-confirm-form
                         data-confirm-title="Receive Delivery?"
-                        data-confirm-message="Confirm that {{ $delivery->po_no }} has been physically received by Warehouse. Inventory will be updated automatically."
+                        data-confirm-message="Confirm only the actual quantities entered for {{ $delivery->po_no }} were physically received. Only those quantities will be posted to inventory."
                         data-confirm-button="Yes, Receive Delivery"
                         data-confirm-type="approve"
                       >
@@ -165,7 +165,7 @@
                             @if($remainingQty > 0)
                               <label title="{{ $line['item_description'] ?? 'Item' }}">
                                 <span>{{ $line['item_description'] ?? 'Item' }} (remaining: {{ $remainingQty }})</span>
-                                <input type="number" name="received_quantities[{{ $lineIndex }}]" min="0" max="{{ $remainingQty }}" step="1" value="{{ $remainingQty }}" required aria-label="Received quantity for {{ $line['item_description'] ?? 'item' }}">
+                                <input type="number" name="received_quantities[{{ $lineIndex }}]" min="0" max="{{ $remainingQty }}" step="1" placeholder="Enter qty" required aria-label="Received quantity for {{ $line['item_description'] ?? 'item' }}">
                               </label>
                             @else
                               <input type="hidden" name="received_quantities[{{ $lineIndex }}]" value="0">
