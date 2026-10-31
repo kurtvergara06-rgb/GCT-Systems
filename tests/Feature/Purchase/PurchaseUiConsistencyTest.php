@@ -215,7 +215,7 @@ class PurchaseUiConsistencyTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            '@if(($activeTab ?? 'active') === 'active' && $isEditable && ! $isForReview)',
+            "@if((\$activeTab ?? 'active') === 'active' && \$isEditable && ! \$isForReview)",
             $view
         );
         $this->assertStringContainsString(
