@@ -199,7 +199,7 @@ class PurchaseUiConsistencyTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            'class="open-view-po-modal"',
+            'class="action-btn view open-view-po-modal',
             $view
         );
         $this->assertStringContainsString(
@@ -211,11 +211,11 @@ class PurchaseUiConsistencyTest extends TestCase
             $view
         );
         $this->assertStringContainsString(
-            "\$isEditable = \$normalizedPoStatus === 'ordered';",
+            "\$isEditable = \$normalizedPoStatus === 'revision required';",
             $view
         );
         $this->assertStringContainsString(
-            '@if($isEditable && ! $isForReview)',
+            '@if(($activeTab ?? 'active') === 'active' && $isEditable && ! $isForReview)',
             $view
         );
         $this->assertStringContainsString(
