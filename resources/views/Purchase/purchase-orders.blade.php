@@ -169,7 +169,7 @@
                 @endphp
 
                 <tr>
-                  <td><div class="po-number-cell"><strong>{{ $purchaseOrder->po_no }}</strong></div></td>
+                  <td><div class="po-number-cell"><strong>{{ $purchaseOrder->po_no }}</strong>@if($purchaseOrder->is_partially_received)<small style="display:block;color:#a35e0d;font-size:10px;margin-top:4px">{{ $purchaseOrder->receipt_progress['received'] }} received · {{ $purchaseOrder->receipt_progress['remaining'] }} remaining</small>@endif</div></td>
                   <td><span class="po-reference">{{ $hasRequest ? $displayRequestNo : '—' }}</span></td>
                   <td>
                     <div class="po-item-preview">
@@ -198,7 +198,7 @@
                   </td>
                   <td><span class="po-qty">{{ $firstItem['quantity'] ?? '—' }}</span></td>
                   <td><div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div></td>
-                  <td class="po-status-cell"><span class="po-request-type po-status-box"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>{{ $purchaseOrder->status }}</span></td>
+                  <td class="po-status-cell"><span class="po-request-type po-status-box"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>{{ $purchaseOrder->receipt_display_status }}</span></td>
                   <td>
                     <div class="po-date">
                       <strong>{{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('M d, Y') : '—' }}</strong>
@@ -240,7 +240,7 @@
                         data-delivery-fee="{{ $purchaseOrder->delivery_fee }}"
                         data-discount="{{ $purchaseOrder->discount }}"
                         data-vat="{{ $purchaseOrder->vat }}"
-                        data-status="{{ $purchaseOrder->status }}"
+                        data-status="{{ $purchaseOrder->receipt_display_status }}"
                         data-items='@json($items)'
                         data-update-url="/purchase-orders/{{ $purchaseOrder->id }}"
                       ><i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span></button>
