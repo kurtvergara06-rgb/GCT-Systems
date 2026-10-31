@@ -156,8 +156,7 @@
   color: #946010;
 }
 
-.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill[data-status-tone="danger"],
-.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill[data-status-tone="negative"] {
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill:is([data-status-tone="danger"], [data-status-tone="negative"]) {
   background: #fff0f0;
   border-color: #f1c8cc;
   color: #b52e40;
