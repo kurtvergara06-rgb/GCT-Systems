@@ -109,7 +109,7 @@
             data-batch-attendance-open
           >
             <i class="fa-solid fa-clipboard-check"></i>
-            Manage Daily Attendance
+            Record Daily Attendance
           </button>
           @endif
 
