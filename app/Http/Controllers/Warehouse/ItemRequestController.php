@@ -191,6 +191,44 @@ class ItemRequestController extends Controller
                     }
                 }
 
+                // Legacy data may have several IRs for one JO. Limit the next
+                // physical stock-out against the JO-wide signed ledger, not
+                // only the batches attached to this parent IR.
+                $otherIrReferences = ItemRequest::query()
+                    ->where('job_order_id', $jo->id)
+                    ->whereKeyNot($ir->id)
+                    ->get(['id', 'created_at'])
+                    ->map(fn ($other) => 'IR-'.($other->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $other->id, 4, '0', STR_PAD_LEFT));
+                $otherIssued = [];
+                if ($otherIrReferences->isNotEmpty()) {
+                    $otherBatches = InventoryIssuance::query()
+                        ->where(function ($query) use ($otherIrReferences) {
+                            foreach ($otherIrReferences as $reference) {
+                                $query->orWhere('reference_no', $reference)
+                                    ->orWhere('reference_no', 'like', $reference.'-B%');
+                            }
+                        })->with('items')->get();
+                    foreach ($otherBatches as $batch) {
+                        foreach ($batch->items as $entry) {
+                            $otherKey = $key($entry->item_name, $entry->unit, $entry->inventory_item_id);
+                            $otherIssued[$otherKey] = ($otherIssued[$otherKey] ?? 0) + (int) $entry->quantity;
+                        }
+                    }
+                }
+                $joPartLimits = collect($parser->parsePartText((string) $jo->part_needed))
+                    ->groupBy(fn ($part) => $key($part['name'], $part['unit'], $part['inventory_item_id'] ?? null))
+                    ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
+                foreach ($nowTotals as $partKey => $amount) {
+                    if ($amount > 0 && (
+                        ! $joPartLimits->has($partKey) ||
+                        $amount + ($already[$partKey] ?? 0) + ($otherIssued[$partKey] ?? 0) > $joPartLimits->get($partKey)
+                    )) {
+                        throw ValidationException::withMessages([
+                            'issued_quantities' => 'This handover exceeds the remaining signed JO requirement. Refresh the IR and recheck other handovers.',
+                        ]);
+                    }
+                }
+
                 $joRequired = collect($parser->parsePartText((string) $jo->part_needed))->sum('quantity');
                 $irQuantity = $parts->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
                 if ($joRequired > $irQuantity && $jo->parts_issue_strategy !== 'issue_available_only') {
