@@ -1712,3 +1712,81 @@
 .purchase-dashboard-page .quick-actions-card .purchase-quick-item {gap:11px;}
 .purchase-dashboard-page .supplier-row {gap:12px;}
 .purchase-dashboard-page .supplier-row strong {overflow-wrap:anywhere;}
+
+
+/* Dashboard bottom cards: compact, aligned purchasing summaries. */
+.purchase-dashboard-page .recent-order-card .recent-order-list {
+  display:flex;flex-direction:column;gap:0;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-item {
+  display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;
+  gap:10px!important;align-items:start!important;padding:12px 0!important;
+  min-height:0!important;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-icon {
+  width:36px!important;height:36px!important;min-width:36px!important;
+  background:#eaf1fa!important;color:#315e91!important;border-radius:9px!important;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-details {min-width:0;display:flex;flex-direction:column;gap:4px;}
+.purchase-dashboard-page .recent-order-card .recent-order-heading {
+  display:flex!important;flex-direction:row!important;justify-content:space-between!important;
+  align-items:baseline!important;gap:10px!important;min-width:0;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-heading h3 {
+  margin:0!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px!important;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-heading strong {
+  margin:0!important;font-size:11px!important;font-weight:750!important;color:#264a71!important;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-details > p {
+  margin:0!important;font-size:11px!important;color:#60738b!important;line-height:1.3;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-footer {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:8px!important;margin-top:3px!important;min-width:0;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-footer > span:first-child {
+  display:inline-flex!important;align-items:center!important;gap:5px!important;
+  color:#73839a!important;font-size:10px!important;white-space:nowrap;
+}
+.purchase-dashboard-page .recent-order-card .po-status-tag {
+  min-width:0!important;min-height:23px!important;height:23px!important;
+  padding:3px 7px!important;border-radius:5px!important;font-size:10px!important;
+  font-weight:700!important;white-space:nowrap!important;flex:none;
+}
+.purchase-dashboard-page .recent-order-card .po-status-tag.status-ordered {
+  background:#edf3fa!important;color:#325e8e!important;border:1px solid #d6e3f1!important;
+}
+.purchase-dashboard-page .recent-order-card .po-status-tag.status-delivered,
+.purchase-dashboard-page .recent-order-card .po-status-tag.status-picked-up {
+  background:#eaf7ef!important;color:#26764a!important;border:1px solid #cdebd8!important;
+}
+.purchase-dashboard-page .recent-order-card .po-status-tag.status-partially-received {
+  background:#fff5e8!important;color:#96611b!important;border:1px solid #f0ddbc!important;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-actions {
+  display:flex;flex-direction:column;gap:0;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item {
+  display:grid!important;grid-template-columns:36px minmax(0,1fr) 12px!important;
+  gap:11px!important;align-items:center!important;min-height:62px!important;
+  padding:9px 3px!important;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-icon {
+  width:36px!important;height:36px!important;min-width:36px!important;
+  border-radius:9px!important;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item > div {min-width:0;}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item h3 {
+  margin:0!important;font-size:11px!important;line-height:1.4!important;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item p {
+  margin:3px 0 0!important;font-size:10px!important;line-height:1.4!important;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item:hover {
+  background:#f7faff!important;padding-left:7px!important;
+}
+@media(max-width:768px) {
+  .purchase-dashboard-page .recent-order-card .recent-order-heading {flex-direction:row!important;}
+}
