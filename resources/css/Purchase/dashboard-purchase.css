@@ -1669,3 +1669,46 @@
   }
 
 }
+
+/* Lower dashboard: restrained, consistent procurement record presentation. */
+.purchase-dashboard-page .recent-request-card .recent-purchase-item,
+.purchase-dashboard-page .recent-order-card .recent-order-item {
+  align-items:flex-start; gap:10px;
+}
+.purchase-dashboard-page .recent-request-card .recent-purchase-content,
+.purchase-dashboard-page .recent-order-card .recent-order-details {min-width:0;flex:1;}
+.purchase-dashboard-page .purchase-dashboard-part-preview {
+  display:flex;align-items:center;flex-wrap:wrap;gap:5px 9px;
+  color:#213b59;font-size:11px;line-height:1.55;overflow:hidden;
+}
+.purchase-dashboard-page .purchase-dashboard-part-name {
+  display:inline-flex;align-items:baseline;gap:4px;max-width:100%;
+  font-size:11px;font-weight:650;
+}
+.purchase-dashboard-page .purchase-dashboard-part-name small {
+  color:#718198;font-size:10px;font-weight:600;white-space:nowrap;
+}
+.purchase-dashboard-page .purchase-dashboard-extra-count {
+  flex:none;padding:3px 6px;border:1px solid #d7e3f4;border-radius:5px;
+  background:#eff4fa;color:#345f90;font-size:10px;font-weight:750;
+}
+.purchase-dashboard-page .recent-request-card .recent-purchase-meta {margin-top:7px;}
+.purchase-dashboard-page .recent-order-card .recent-order-heading {align-items:center;gap:10px;}
+.purchase-dashboard-page .recent-order-card .recent-order-heading strong {
+  flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.purchase-dashboard-page .recent-order-card .recent-order-footer {gap:8px;align-items:center;}
+.purchase-dashboard-page .recent-order-card .po-status-tag {
+  display:inline-flex;align-items:center;justify-content:center;
+  max-width:100%;width:max-content;min-width:0;padding:4px 8px;
+  border-radius:5px;font-size:10px;line-height:1.2;white-space:nowrap;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-icon,
+.purchase-dashboard-page .quick-actions-card .purchase-quick-icon.blue,
+.purchase-dashboard-page .quick-actions-card .purchase-quick-icon.yellow,
+.purchase-dashboard-page .quick-actions-card .purchase-quick-icon.green {
+  background:#edf3fb!important;color:#315d94!important;border:1px solid #dae6f4;
+}
+.purchase-dashboard-page .quick-actions-card .purchase-quick-item {gap:11px;}
+.purchase-dashboard-page .supplier-row {gap:12px;}
+.purchase-dashboard-page .supplier-row strong {overflow-wrap:anywhere;}
