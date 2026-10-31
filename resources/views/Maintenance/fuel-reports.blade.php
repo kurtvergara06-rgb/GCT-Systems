@@ -33,6 +33,7 @@
             <h2>Fuel Records</h2>
             <p>Fuel issuance entries and their recorded trip distance.</p>
           </div>
+          <button type="button" id="openFuelModal" class="fuel-new-report-btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Fuel Report</button>
         </div>
 
         <div class="fuel-record-controls recent-fuel-controls">
