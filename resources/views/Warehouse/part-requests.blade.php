@@ -96,6 +96,27 @@
                   <div class="warehouse-restock-pr-section-title"><strong>03 — Additional Information</strong><small>Optional purchase instructions</small></div>
                   <div class="form-group"><label for="restockPrRemarks">Remarks</label><textarea id="restockPrRemarks" maxlength="500" rows="3" placeholder="Supplier preference, urgency, or other details"></textarea></div>
                 </section>
+                <section class="warehouse-restock-pr-section">
+                  <div class="warehouse-restock-pr-section-title"><strong>04 — Head Authorization</strong><small>Draw or upload your signature to prepare authorization.</small></div>
+                  <div class="warehouse-restock-pr-authorization">
+                    <div class="warehouse-restock-signature-column">
+                      <label for="restockPrSignatureCanvas"><i class="fa-solid fa-pen" aria-hidden="true"></i> Electronic Signature <span class="warehouse-restock-required">*</span></label>
+                      <div class="warehouse-restock-signature-pad">
+                        <canvas id="restockPrSignatureCanvas" width="640" height="190" tabindex="0" aria-label="Draw your signature here"></canvas>
+                        <img id="restockPrSignaturePreview" alt="Uploaded signature preview" hidden>
+                        <button type="button" id="restockPrClearSignature" class="warehouse-restock-signature-clear">Clear</button>
+                      </div>
+                      <div class="warehouse-restock-signature-or">OR</div>
+                      <label class="warehouse-restock-signature-upload" for="restockPrSignatureUpload"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload Signature <small>PNG, JPG or WEBP · maximum 5 MB</small></label>
+                      <input id="restockPrSignatureUpload" type="file" accept="image/png,image/jpeg,image/webp" class="warehouse-restock-file-input">
+                      <p id="restockPrSignatureMessage" class="warehouse-restock-signature-help" role="status">Draw above or choose an image. No signature is saved until submission is implemented.</p>
+                    </div>
+                    <div class="warehouse-restock-signatory-column">
+                      <div class="form-group"><label for="restockPrSignatoryName"><i class="fa-regular fa-user" aria-hidden="true"></i> Signatory Name <span class="warehouse-restock-required">*</span></label><input id="restockPrSignatoryName" maxlength="150" autocomplete="name" placeholder="Enter full name"><small>Use the authenticated Warehouse Head's name.</small></div>
+                      <div class="form-group"><label for="restockPrApprovalNotes"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> Approval Notes (optional)</label><textarea id="restockPrApprovalNotes" rows="3" maxlength="500" placeholder="Add any notes or remarks for this authorization"></textarea></div>
+                    </div>
+                  </div>
+                </section>
                 <div class="warehouse-restock-pr-info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p>The form is ready for data entry. Submission will be enabled once Warehouse restocking PR approvals and Purchasing PO linkage are implemented; no purchase request is saved yet.</p></div>
                 <div class="modal-actions">
                   <button type="button" class="secondary-btn closeModal">Cancel</button>
