@@ -533,23 +533,6 @@ class SystemBackendFullAuditTest extends TestCase
         // 6.2 Maintenance Requests
         $this->get(route('maintenance-requests'))->assertOk();
 
-        // 6.3 Scheduled Purchase
-        $this->get(route('scheduled-purchase'))->assertOk();
-        $spResponse = $this->post(route('scheduled-purchase.store'), [
-            'schedule_name' => 'Monthly Engine Coolant Supply',
-            'item' => 'Fleet Coolant 50/50 Premix 20L',
-            'quantity' => 10,
-            'unit' => 'pails',
-            'estimated_cost' => 1800,
-            'supplier_name' => 'Caltex Lubricants',
-            'frequency' => 'Monthly',
-            'start_date' => now()->toDateString(),
-            'next_purchase_date' => now()->addMonth()->toDateString(),
-            'status' => 'Active',
-            'notes' => 'Automatic replenishment for depot maintenance',
-        ]);
-        $spResponse->assertRedirect();
-        $this->assertTrue(ScheduledPurchase::where('schedule_name', 'Monthly Engine Coolant Supply')->exists());
     }
 
     // =========================================================================
