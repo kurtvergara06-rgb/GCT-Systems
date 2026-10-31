@@ -196,7 +196,7 @@ class ItemRequestController extends Controller
                 // only the batches attached to this parent IR.
                 $otherIrReferences = ItemRequest::query()
                     ->where('job_order_id', $jo->id)
-                    ->whereKeyNot($ir->id)
+                    ->where('id', '!=', $ir->id)
                     ->get(['id', 'created_at'])
                     ->map(fn ($other) => 'IR-'.($other->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $other->id, 4, '0', STR_PAD_LEFT));
                 $otherIssued = [];
