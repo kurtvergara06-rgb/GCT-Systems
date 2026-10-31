@@ -348,7 +348,13 @@
                                         @elseif($partStatus === 'Not Requested')
                                             <span class="jo-parts-not-requested-badge" title="Parts are required but have not yet been requested"><i class="fa-regular fa-clock" aria-hidden="true"></i> Not Requested</span>
                                         @else
-                                            <x-ui.status-badge :status="$partStatus" class="part-status-badge {{ $partStatusClass }}" />
+                                            <x-ui.status-badge :status="$partStatus" :icon="match ($partStatus) {
+                                                'Partially Issued' => 'fa-box-open',
+                                                'Waiting for Parts' => 'fa-clock',
+                                                'Fully Issued' => 'fa-circle-check',
+                                                'Not Issued' => 'fa-box',
+                                                default => null,
+                                            }" class="part-status-badge {{ $partStatusClass }}" />
                                         @endif
                                     </td>
 
