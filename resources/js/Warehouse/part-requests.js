@@ -416,6 +416,41 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     container.innerHTML = html;
   }
 
+  // Warehouse restocking requests use their own read-only detail view, not Maintenance JO/IR controls.
+  const warehouseRestockView = document.getElementById('warehouseRestockViewModal');
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-restock-warehouse-view');
+    if (!button || !warehouseRestockView) return;
+    event.preventDefault();
+    const read = (id, value) => {
+      const field = warehouseRestockView.querySelector('#' + id);
+      if (field) field.textContent = value || '—';
+    };
+    read('warehouseRestockViewNo', button.dataset.prNo);
+    read('warehouseRestockViewStatus', button.dataset.status);
+    read('warehouseRestockViewPurpose', button.dataset.purpose);
+    read('warehouseRestockViewRemarks', button.dataset.remarks);
+    let parts = [];
+    try { parts = JSON.parse(button.dataset.parts || '[]'); } catch (_) {}
+    const tbody = warehouseRestockView.querySelector('#warehouseRestockViewLines');
+    if (tbody) {
+      tbody.replaceChildren();
+      parts.forEach((part) => {
+        const tr = document.createElement('tr');
+        [part.name, part.quantity, part.unit].forEach((value) => {
+          const td = document.createElement('td');
+          td.textContent = String(value ?? '—');
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+    openModal(warehouseRestockView);
+  });
+  warehouseRestockView?.querySelectorAll('.warehouse-restock-view-close').forEach((button) => {
+    button.addEventListener('click', () => closeModal(warehouseRestockView));
+  });
+
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
   const closeViewPrModalBottom = document.getElementById('closeViewPrModalBottom');
