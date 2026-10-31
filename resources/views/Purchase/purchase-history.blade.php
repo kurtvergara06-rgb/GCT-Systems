@@ -5,6 +5,7 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
     'resources/css/Purchase/purchase-module-ui.css',
+    'resources/css/Purchase/purchase-history.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
@@ -69,7 +70,7 @@
           </x-ui.table-toolbar>
         </div>
 
-        <div class="table-wrap records-table-wrap">
+        <div class="table-wrap records-table-wrap purchase-history-table-wrap">
           <table class="requested-purchase-table records-table purchase-history-reference-table">
             <thead>
               <tr>
