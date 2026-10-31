@@ -182,27 +182,28 @@
             </div>
             <section class="warehouse-ir-view-section" aria-labelledby="warehouseIrViewStockTitle">
                 <div class="warehouse-ir-verify-heading">
-                    <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><h3 id="warehouseIrViewStockTitle">Item Request Parts</h3><p>Parts &amp; Stock Verification — live physical inventory and approved allocations</p></div></div>
+                    <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><h3 id="warehouseIrViewStockTitle">Item Request Parts</h3><p>Current JO requirements, previous handovers, and allocatable stock</p></div></div>
                     <button type="button" class="ir-secondary-button" id="warehouseIrRefreshStock"><i class="fa-solid fa-rotate"></i> Recheck Stock</button>
                 </div>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table">
-                        <thead><tr><th>PART NAME</th><th>JO REQUIRED</th><th>IR QUANTITY</th><th>ON HAND</th><th>ISSUABLE</th><th>IR SHORTAGE</th><th>STATUS</th></tr></thead>
+                        <thead><tr><th>PART NAME</th><th>JO REQUIRED</th><th>REMAINING TO ISSUE</th><th>ON HAND</th><th>ISSUABLE</th><th>STOCK SHORTAGE</th><th>STATUS</th></tr></thead>
                         <tbody id="warehouse-ir-stock-rows"><tr><td colspan="7" class="warehouse-ir-stock-empty">Checking current inventory...</td></tr></tbody>
                     </table>
                 </div>
                 <p id="warehouse-ir-stock-time" class="warehouse-ir-stock-time"></p>
                 <p id="warehouse-ir-stock-message" class="warehouse-ir-stock-message" role="status"></p>
+                <p id="warehouse-ir-fulfillment-message" class="warehouse-ir-stock-message" role="status"></p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-view-jo-section" aria-labelledby="warehouseIrJoCoverageTitle">
-                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Parts Summary</h3><p>Compare what the Job Order needs with what this Item Request includes</p></div></div>
+                <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><div><h3 id="warehouseIrJoCoverageTitle">Job Order Parts Summary</h3><p>Track JO requirements against signed Warehouse handovers</p></div></div>
                 <div class="warehouse-ir-stock-table-wrap">
                     <table class="warehouse-ir-stock-table warehouse-ir-jo-table">
-                        <thead><tr><th>PART</th><th>JO NEEDS</th><th>IR REQUESTED</th><th>REMAINING</th></tr></thead>
+                        <thead><tr><th>PART</th><th>JO NEEDS</th><th>ALREADY ISSUED</th><th>REMAINING</th></tr></thead>
                         <tbody id="warehouse-ir-jo-coverage-rows"><tr><td colspan="4" class="warehouse-ir-stock-empty">Checking linked Job Order...</td></tr></tbody>
                     </table>
                 </div>
-                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Remaining quantities are not included in this Item Request. Another IR or Purchase Request may already cover them.</p>
+                <p class="warehouse-ir-view-caution"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Each Warehouse handover is recorded separately with a signed SWIS. Only physically handed-over quantities count as issued.</p>
             </section>
             <section class="warehouse-ir-view-section warehouse-ir-details-remarks" aria-label="Item Request remarks">
                 <div class="warehouse-ir-view-section-heading"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><div><h3>Remarks</h3></div></div>
