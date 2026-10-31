@@ -803,3 +803,17 @@ body > .warehouse-ir-stock-popover .warehouse-ir-stock-row .warehouse-ir-shortag
   font-size:10px;font-weight:800;line-height:1.2;white-space:nowrap;
 }
 .warehouse-ir-page .ir-table .warehouse-ir-pr-shortage i{margin-right:4px;font-size:10px}
+
+/* Multiple physical handovers are preserved under one parent IR. */
+.warehouse-ir-page .warehouse-ir-handover-history{
+  display:flex;flex-direction:column;gap:8px;padding:10px 12px;
+}
+.warehouse-ir-page .warehouse-ir-handover-entry{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;padding:10px 12px;
+  border:1px solid #e0e8f3;border-radius:8px;
+  color:#234364;font-size:11px;font-weight:650;
+}
+.warehouse-ir-page .warehouse-ir-handover-entry .ir-secondary-button{
+  min-height:30px;padding:6px 11px;font-size:11px;
+}
