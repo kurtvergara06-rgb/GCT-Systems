@@ -154,12 +154,12 @@
                                 <small>{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? '—' }}</small>
                             </div></td>
                             <td>
-                                <div class="ir-split-parts">
-                                    <span class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $irParts->count() }} {{ \Illuminate\Support\Str::plural('part', $irParts->count()) }}</span>
+                                <div class="ir-split-parts ir-lifecycle-parts-row" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px;width:max-content;max-width:none">
+                                    <span style="flex:0 0 auto;white-space:nowrap" class="ir-split-chip is-ir"><i class="fa-solid fa-box" aria-hidden="true"></i> IR: {{ $irParts->count() }} {{ \Illuminate\Support\Str::plural('part', $irParts->count()) }}</span>
                                     @if($prParts->isNotEmpty())
-                                        <span class="ir-split-chip is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $prParts->count() }} {{ \Illuminate\Support\Str::plural('part', $prParts->count()) }}</span>
+                                        <span style="flex:0 0 auto;white-space:nowrap" class="ir-split-chip is-pr"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> PR: {{ $prParts->count() }} {{ \Illuminate\Support\Str::plural('part', $prParts->count()) }}</span>
                                     @else
-                                        <span class="ir-split-chip is-no-pr">No linked PR</span>
+                                        <span style="flex:0 0 auto;white-space:nowrap" class="ir-split-chip is-no-pr">No linked PR</span>
                                     @endif
                                 </div>
                                 @if($irParts->isNotEmpty() || $prParts->isNotEmpty())
