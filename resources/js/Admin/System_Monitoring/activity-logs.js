@@ -95,6 +95,9 @@ window.GCTPartialNavigation.registerInitializer('admin-activity-logs', '.activit
             return;
         }
 
+        if (event.target === modal) {
+            closeModal();
+        }
     });
 
     closeButton?.addEventListener('click', closeModal);
