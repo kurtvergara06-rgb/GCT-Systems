@@ -449,6 +449,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
       put('poDetailStatus',button.dataset.status);
       put('poDetailSupplier',button.dataset.supplierName);put('poDetailJo',button.dataset.detailJo);
       put('poDetailPurpose',button.dataset.purpose);put('poDetailTotal',cash(button.dataset.detailTotal));
+      const isRestock = button.dataset.detailIsRestock === '1';
+      const sourceTitle = document.getElementById('poDetailSourceSignatureTitle');
+      if (sourceTitle) sourceTitle.textContent = isRestock ? 'Warehouse Head — PR Approval' : 'Maintenance Head — JO Approval';
+      const sourceImage = document.getElementById('poDetailJoSignature');
+      if (sourceImage) sourceImage.alt = isRestock ? 'Warehouse Head purchase request approval' : 'Maintenance Head job order approval';
+      const sourceMissing = document.getElementById('poDetailJoMissing');
+      if (sourceMissing) sourceMissing.textContent = isRestock ? 'No approved Warehouse PR signature available' : 'No approved JO signature available';
       put('poDetailJoApprover',button.dataset.detailJoApprover);put('poDetailJoDate',button.dataset.detailJoDate);
       put('poDetailPoApprover',button.dataset.detailPoApprover);put('poDetailPoDate',button.dataset.detailPoDate);
       for(const kind of ['Jo','Po']){
