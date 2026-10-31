@@ -238,10 +238,25 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         quantity: row.querySelector('.restock-pr-item-qty')?.value,
       };
     });
-    const selectedIds = items.map(item => item.inventory_item_id);
-    if (!items.length || items.some(item => !item.inventory_item_id || !/^[1-9]\d*$/.test(item.quantity))
-        || new Set(selectedIds).size !== selectedIds.length) {
-      if (signatureMessage) signatureMessage.textContent = 'Choose distinct inventory items and positive whole-number quantities.';
+    // Ignore completely empty optional rows; validate each selected line separately.
+    const activeRows = rows.map((row, index) => ({ row, index, item: items[index] }))
+      .filter(({ item }) => item.inventory_item_id || String(item.quantity || '').trim());
+    const validItems = activeRows.map(({ item }) => item);
+    const invalid = activeRows.find(({ item }) =>
+      !item.inventory_item_id || !/^[1-9]\\d*$/.test(String(item.quantity || '').trim()));
+    const firstDuplicate = validItems.find((item, index) =>
+      validItems.findIndex(candidate => candidate.inventory_item_id === item.inventory_item_id) !== index);
+    if (!validItems.length || invalid || firstDuplicate) {
+      let message = 'Add at least one inventory item and quantity.';
+      if (invalid) message = 'Complete inventory row ' + (invalid.index + 1) + ': select an item and enter a positive whole-number quantity.';
+      if (firstDuplicate) {
+        const match = activeRows.find(({ item }) => item.inventory_item_id === firstDuplicate.inventory_item_id);
+        const name = match?.row.querySelector('.restock-pr-item-select')?.selectedOptions?.[0]?.textContent?.trim() || 'This item';
+        message = name + ' is selected more than once. Combine its quantities into one row.';
+      }
+      if (signatureMessage) signatureMessage.textContent = message;
+      (invalid?.row || activeRows.find(({ item }) => item.inventory_item_id === firstDuplicate?.inventory_item_id)?.row)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
     if (signaturePreview.hidden && !signatureHasInk) {
@@ -274,7 +289,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     form.append('remarks', restockPrModal.querySelector('#restockPrRemarks').value);
     form.append('approval_notes', restockPrModal.querySelector('#restockPrApprovalNotes').value);
     form.append('signature', canvasBlob, 'restock-signature.png');
-    items.forEach((item, index) => {
+    validItems.forEach((item, index) => {
       form.append('items[' + index + '][inventory_item_id]', item.inventory_item_id);
       form.append('items[' + index + '][quantity]', item.quantity);
     });
