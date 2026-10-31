@@ -560,7 +560,7 @@ button,
   color: var(--gct-status-text);
   font-family: var(--gct-font-family);
   font-size: var(--gct-status-font-size);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--gct-line-height-tight);
   letter-spacing: 0;
   text-transform: none;
