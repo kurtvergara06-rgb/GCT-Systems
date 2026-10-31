@@ -1,0 +1,58 @@
+/*
+ * Warehouse status typography contract.
+ *
+ * The Warehouse Purchase Requests table is the visual reference: compact
+ * rectangular badges with a strong, readable Poppins label. Semantic colors
+ * remain owned by the existing status classes and App\Support\StatusBadge.
+ */
+.app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
+  [data-ui-component="status-badge"],
+  .warehouse-ir-stock-status,
+  .warehouse-ir-process-status,
+  .warehouse-status-pill,
+  .warehouse-jo-availability,
+  .delivery-status,
+  .movement-badge,
+  .warehouse-status
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 27px;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-family: var(--gct-font-family, 'Poppins', sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
+  [data-ui-component="status-badge"],
+  .warehouse-ir-stock-status,
+  .warehouse-ir-process-status,
+  .warehouse-status-pill,
+  .warehouse-jo-availability,
+  .delivery-status,
+  .movement-badge,
+  .warehouse-status
+) :is(i, .status-badge__icon) {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  [data-ui-component="status-badge"] .status-badge__label {
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}

@@ -243,6 +243,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Warehouse/dashboard-warehouse.css',
+                'resources/css/Warehouse/warehouse-status.css',
                 'resources/css/Warehouse/inventory.css',
                 'resources/css/Warehouse/part-requests.css',
                 'resources/css/Warehouse/part-requests-cleanup.css',

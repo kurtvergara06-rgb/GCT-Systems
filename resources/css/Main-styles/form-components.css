@@ -862,7 +862,7 @@
     align-items: center;
     justify-content: flex-end;
 
-    gap: 10px;
+    gap: var(--gct-space-3, 12px);
 
     border-top:
         1px solid var(--ui-soft-border);
@@ -874,7 +874,7 @@
 ========================================================= */
 
 .ui-form-btn {
-    min-height: 42px;
+    min-height: var(--gct-button-height, 40px);
 
     padding:
         0 18px;
@@ -885,9 +885,10 @@
 
     gap: 7px;
 
-    border-radius: 9px;
+    border-radius: var(--gct-radius-control, 8px);
 
-    font-size: 12px;
+    font-family: var(--gct-font-family, 'Poppins', Arial, sans-serif);
+    font-size: var(--gct-font-size-body, 12px);
     font-weight: 700;
 
     line-height: 1;

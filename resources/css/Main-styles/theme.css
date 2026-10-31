@@ -1,6 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
+  /* Shared UI foundation: preserve the application-wide Poppins contract. */
+  --gct-font-family: 'Poppins', Arial, sans-serif;
+  --gct-font-size-xs: 10px;
+  --gct-font-size-sm: 11px;
+  --gct-font-size-body: 12px;
+  --gct-font-size-control: 13px;
+  --gct-font-size-section: 16px;
+  --gct-line-height-tight: 1.2;
+  --gct-line-height-body: 1.5;
+
+  --gct-space-1: 4px;
+  --gct-space-2: 8px;
+  --gct-space-3: 12px;
+  --gct-space-4: 16px;
+  --gct-space-5: 20px;
+  --gct-space-6: 24px;
+
+  --gct-radius-sm: 6px;
+  --gct-radius-control: 8px;
+  --gct-control-height: 40px;
+  --gct-button-height: 40px;
+  --gct-table-action-size: 32px;
+  --gct-table-header-font-size: 10px;
+  --gct-table-body-font-size: 12px;
+  --gct-table-row-height: 46px;
+
+  --gct-status-min-height: 23px;
+  --gct-status-padding-block: 4px;
+  --gct-status-padding-inline: 9px;
+  --gct-status-radius: 6px;
+  --gct-status-gap: 5px;
+  --gct-status-font-size: 10px;
+  --gct-status-icon-size: 10px;
+
   --brand-blue: #0B40B5;
   --brand-navy: #061F3D;
   --sidebar-navy: #073763;
@@ -31,7 +63,7 @@ input,
 select,
 textarea,
 button {
-  font-family: Inter, Arial, sans-serif;
+  font-family: var(--gct-font-family);
 }
 
 html {

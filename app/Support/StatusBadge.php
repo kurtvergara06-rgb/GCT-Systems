@@ -96,7 +96,6 @@ final class StatusBadge
             'investigate' => ['tone' => 'progress', 'icon' => 'fa-magnifying-glass-chart'],
 
             // Waiting, review, and procurement states.
-            'for-review' => ['tone' => 'warning', 'icon' => 'fa-clipboard-check'],
             'pending' => ['tone' => 'pending', 'icon' => 'fa-clock'],
             'submitted' => ['tone' => 'pending', 'icon' => 'fa-file-circle-check'],
             'reported' => ['tone' => 'progress', 'icon' => 'fa-flag'],
@@ -104,7 +103,6 @@ final class StatusBadge
             'upcoming' => ['tone' => 'scheduled', 'icon' => 'fa-calendar-day'],
             'ordered' => ['tone' => 'scheduled', 'icon' => 'fa-receipt'],
             'in-review' => ['tone' => 'pending', 'icon' => 'fa-magnifying-glass'],
-            'for-review' => ['tone' => 'pending', 'icon' => 'fa-magnifying-glass'],
             'review' => ['tone' => 'warning', 'icon' => 'fa-magnifying-glass'],
             'priority-review' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
             'for-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],

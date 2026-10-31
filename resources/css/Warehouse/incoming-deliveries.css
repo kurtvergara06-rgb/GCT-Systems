@@ -661,7 +661,6 @@
   padding:0 12px!important;font-size:11px!important;font-weight:750!important;
 }
 .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn:hover{background:#dcecff!important;border-color:#98c0f7!important}
-.incoming-delivery-card .incoming-delivery-table .delivery-status{border-radius:6px!important;height:25px;min-height:25px;padding:0 9px;font-size:10px;font-weight:750}
 .incoming-delivery-card .incoming-delivery-table .delivery-status.for-delivery{background:#fff4df;color:#94601c;border-color:#f1d7a3}
 
 /* Readable Warehouse deliveries and expandable unboxed part names. */
@@ -690,19 +689,6 @@
 .incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .incoming-first-part {
   font-size: 12px !important;
   line-height: 1.45 !important;
-}
-.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status,
-.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status *,
-.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .status-badge {
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  line-height: 1.2 !important;
-}
-.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td .delivery-status {
-  min-height: 27px !important;
-  height: auto !important;
-  padding: 6px 10px !important;
-  border-radius: 7px !important;
 }
 .incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn {
   font-size: 11px !important;
