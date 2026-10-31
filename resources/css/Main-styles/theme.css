@@ -202,7 +202,7 @@ button {
 .panel-card {
   background: var(--surface);
   border: 1px solid var(--border-soft);
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow: var(--shadow-soft);
 }
 
@@ -223,20 +223,20 @@ button {
 
 .table-card th,
 .table-wrap th {
-  background: #F8FAFC;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  background: #f3f6fb;
+  color: #344b6b;
+  font-size: var(--gct-table-header-font-size, 10px);
+  font-weight: 800;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 12px 13px;
+  border-bottom: 1px solid #dbe5f2;
 }
 
 .table-card td,
 .table-wrap td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 13px;
+  border-bottom: 1px solid #e5ebf3;
   color: var(--text-main);
   vertical-align: middle;
 }
@@ -683,3 +683,15 @@ button.action-btn.delete[aria-disabled="true"] {
 }
 button.action-btn.delete:disabled i,
 button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
+
+/* Shared record-tab count badge, available to all five modules. */
+.gct-record-tab-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:19px;height:19px;padding:0 5px;
+  border-radius:999px;background:#e5edf8;color:#234b80;
+  font:800 10px/1 var(--gct-font-family, 'Poppins', sans-serif);
+}
+:is(.ir-active-tab,.warehouse-record-tab,.gct-record-tab)[aria-current="page"] .gct-record-tab-count,
+:is(.ir-active-tab,.warehouse-record-tab,.gct-record-tab).is-active .gct-record-tab-count{
+  background:#dbeafe;color:#15549e;
+}
