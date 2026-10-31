@@ -51,6 +51,27 @@
 
         </div>
 
+        @if($canEditWarehouse && !$isJo && !$isHistory)
+          <div class="modal-overlay warehouse-restock-pr-overlay" id="warehouseRestockPrModal" aria-hidden="true">
+            <div class="modal-box warehouse-restock-pr-dialog" role="dialog" aria-modal="true" aria-labelledby="warehouseRestockPrTitle">
+              <div class="modal-header">
+                <div>
+                  <h2 id="warehouseRestockPrTitle">Create Inventory Restocking PR</h2>
+                  <p>Prepare a new purchase request for warehouse replenishment.</p>
+                </div>
+                <button type="button" class="close-btn closeModal" aria-label="Close">&times;</button>
+              </div>
+              <div class="warehouse-restock-pr-info">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <p>Restocking PR submission is not enabled yet. The approval, Purchasing PO, and delivery-linking workflow must be connected before requests can be saved safely.</p>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="secondary-btn closeModal">Close</button>
+              </div>
+            </div>
+          </div>
+        @endif
+
         @if($isHistory)
           <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
         @endif
