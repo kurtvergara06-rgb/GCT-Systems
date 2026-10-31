@@ -310,9 +310,9 @@
   table-layout: fixed;
 }
 .maintenance-ir-page .ir-records-table th:nth-child(1) { width: 14%; }
-.maintenance-ir-page .ir-records-table th:nth-child(2) { width: 15%; }
-.maintenance-ir-page .ir-records-table th:nth-child(3) { width: 19%; }
-.maintenance-ir-page .ir-records-table th:nth-child(4) { width: 16%; }
+.maintenance-ir-page .ir-records-table th:nth-child(2) { width: 13%; }
+.maintenance-ir-page .ir-records-table th:nth-child(3) { width: 23%; }
+.maintenance-ir-page .ir-records-table th:nth-child(4) { width: 14%; }
 .maintenance-ir-page .ir-records-table th:nth-child(5) { width: 11%; }
 .maintenance-ir-page .ir-records-table th:nth-child(6) { width: 15%; }
 .maintenance-ir-page .ir-records-table th:nth-child(7) { width: 10%; }
@@ -1443,4 +1443,37 @@
     flex-wrap:wrap;
     width:auto;
   }
+}
+
+/* 7-column lifecycle table: reserve enough width for both requested-part badges. */
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table{
+  table-layout:fixed;
+  width:100%;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table th:nth-child(3),
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3){
+  width:23%;
+  min-width:230px;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-parts{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  width:max-content!important;
+  max-width:none!important;
+  gap:7px!important;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-chip{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-breakdown{
+  display:block!important;
+  clear:both;
+  margin-top:8px!important;
+}
+@media(max-width:900px){
+  .maintenance-ir-page .ir-records-table.ir-lifecycle-table{min-width:1100px;}
 }
