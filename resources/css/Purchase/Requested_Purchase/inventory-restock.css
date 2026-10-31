@@ -1091,3 +1091,52 @@ main.inventory-restock-page .restock-record-tab.is-active {
   box-shadow: 0 1px 4px rgba(15, 35, 65, .07);
 }
 main.inventory-restock-page .restock-record-tab:hover { color: #0b40b5; }
+
+
+/* Single aligned controls row: tabs left, search/filter/sort right. */
+main.inventory-restock-page .restock-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 14px;
+  align-items: center;
+}
+main.inventory-restock-page .restock-card > .section-header,
+main.inventory-restock-page .restock-card > .records-table-wrap,
+main.inventory-restock-page .restock-card > .table-footer {
+  grid-column: 1 / -1;
+}
+main.inventory-restock-page .restock-card > .restock-record-tabs {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0 !important;
+  align-self: center;
+}
+main.inventory-restock-page .restock-card > .restock-toolbar,
+main.inventory-restock-page .restock-card > .records-toolbar {
+  grid-column: 2;
+  grid-row: 2;
+  width: auto;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center;
+  justify-self: end;
+  border: 0 !important;
+  background: transparent !important;
+}
+main.inventory-restock-page .restock-card > .records-table-wrap {
+  grid-row: 3;
+  margin-top: 12px !important;
+}
+@media (max-width: 760px) {
+  main.inventory-restock-page .restock-card { grid-template-columns: 1fr; }
+  main.inventory-restock-page .restock-card > .restock-record-tabs,
+  main.inventory-restock-page .restock-card > .restock-toolbar,
+  main.inventory-restock-page .restock-card > .records-toolbar {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+  }
+  main.inventory-restock-page .restock-card > .restock-toolbar,
+  main.inventory-restock-page .restock-card > .records-toolbar { margin-top: 8px !important; }
+  main.inventory-restock-page .restock-card > .records-table-wrap { grid-row: auto; }
+}
