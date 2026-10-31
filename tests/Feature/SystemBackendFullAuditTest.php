@@ -751,7 +751,7 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 7.9 Warehouse receives delivery and posts inventory
         $this->actingAs($warehouseHead)
-            ->post(route('incoming-deliveries.receive', $po))
+            ->post(route('incoming-deliveries.receive', $po), ['received_quantities' => [1]])
             ->assertRedirect('/warehouse/incoming-deliveries');
 
         $inventoryItem = InventoryItem::where('item_name', 'Clutch Master Cylinder 24V')->firstOrFail();
