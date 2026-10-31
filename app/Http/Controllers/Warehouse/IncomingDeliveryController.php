@@ -139,8 +139,8 @@ class IncomingDeliveryController extends Controller
             if (! is_array($requestedQuantities)) {
                 throw ValidationException::withMessages(['delivery' => 'Invalid received quantities.']);
             }
-            if ($lockedOrder->maintenanceRequest?->source_type === 'Auto Restock' && $requestedQuantities === []) {
-                throw ValidationException::withMessages(['delivery' => 'Enter actual received quantities for this restocking PO.']);
+            if ($requestedQuantities === []) {
+                throw ValidationException::withMessages(['delivery' => 'Enter actual received quantities for every PO item before confirming receipt.']);
             }
             foreach ($items as $index => $item) {
                 $already = (int) ($cumulative[$index] ?? 0);
@@ -148,7 +148,10 @@ class IncomingDeliveryController extends Controller
                 if ($remaining < 0) {
                     throw ValidationException::withMessages(['delivery' => 'Recorded receipts exceed the PO quantity.']);
                 }
-                $raw = $requestedQuantities[$index] ?? $remaining;
+                if (! array_key_exists($index, $requestedQuantities)) {
+                    throw ValidationException::withMessages(['delivery' => 'Provide an actual received quantity (use 0 if none) for every PO line.']);
+                }
+                $raw = $requestedQuantities[$index];
                 if (! is_scalar($raw) || ! preg_match('/^\\d+$/', (string) $raw)) {
                     throw ValidationException::withMessages(['delivery' => 'Received quantities must be nonnegative whole numbers.']);
                 }
