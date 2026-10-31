@@ -28,7 +28,14 @@
                 </div>
             @endif
 
-            
+            @if (session('error'))
+                <div class="inc-alert inc-alert-error" role="alert">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <div>
+                        <strong>{{ session('error') }}</strong>
+                    </div>
+                </div>
+            @endif
 
             <div class="inc-report-layout">
                 <!-- Reporting Form -->
