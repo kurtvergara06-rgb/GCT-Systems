@@ -84,8 +84,7 @@
                         </h2>
 
                         <p>
-                            One bus row can contain multiple PMS tasks.
-                            Click the list icon to view the tasks.
+                            Monitor each bus using its available PMS mileage thresholds and GPS records.
                         </p>
 
                     </div>
@@ -128,7 +127,6 @@
                                 <th>Next PMS KM</th>
                                 <th>Next PMS Date</th>
                                 <th class="status-col">PMS Status</th>
-                                <th>Action</th>
                             </tr>
 
                         </thead>
@@ -137,19 +135,6 @@
                         <tbody>
 
                             @forelse($rows as $row)
-
-                                @php
-                                    $modalId =
-                                        'pmsTasksModal-' .
-                                        $loop->iteration .
-                                        '-' .
-                                        preg_replace(
-                                            '/[^A-Za-z0-9]/',
-                                            '-',
-                                            $row->bus_no
-                                        );
-                                @endphp
-
 
                                 <tr>
 
@@ -193,18 +178,7 @@
                                     </td>
 
 
-                                    <td>
 
-                                        <button
-                                            type="button"
-                                            class="pms-view-tasks-btn open-pms-tasks-modal"
-                                            data-modal-target="{{ $modalId }}"
-                                            title="View PMS Details"
-                                        >
-                                            <i class="fa-solid fa-list-check"></i>
-                                        </button>
-
-                                    </td>
 
                                 </tr>
 
@@ -212,8 +186,8 @@
                             @empty
 
                                 <x-ui.empty-row
-                                    colspan="7"
-                                    message="No PMS schedule records found. Add a bus PMS task first."
+                                    colspan="6"
+                                    message="No PMS schedule records found."
                                 />
 
                             @endforelse
@@ -232,296 +206,6 @@
         </main>
 
     </div>
-
-
-    {{-- =========================================================
-        VIEW PMS TASKS
-        VIEW ONLY - NO UPDATE / CANCEL
-    ========================================================== --}}
-    @foreach($rows as $row)
-
-        @php
-            $modalId =
-                'pmsTasksModal-' .
-                $loop->iteration .
-                '-' .
-                preg_replace(
-                    '/[^A-Za-z0-9]/',
-                    '-',
-                    $row->bus_no
-                );
-        @endphp
-
-
-        <div
-            class="pms-modal-overlay pms-tasks-popup"
-            id="{{ $modalId }}"
-        >
-
-            <div class="pms-modal pms-wide-modal pms-task-list-modal">
-
-                <div class="pms-modal-header pms-task-list-header">
-
-                    <div class="pms-task-list-heading">
-                        <span class="pms-modal-title-icon">
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </span>
-
-                        <div>
-                            <h2>
-                                PMS Tasks - {{ $row->bus_no }}
-                            </h2>
-
-                            <p>
-                                Current KM:
-                                <strong>
-                                    {{ $row->current_km !== null
-                                        ? number_format($row->current_km, 2) . ' km'
-                                        : 'No processed GPS KM'
-                                    }}
-                                </strong>
-
-                                <span aria-hidden="true">•</span>
-
-                                Overall Status:
-                                <strong>{{ $row->overall_status }}</strong>
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="pms-close-btn close-pms-tasks-modal"
-                        data-modal-target="{{ $modalId }}"
-                    >
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-
-                </div>
-
-
-                <div class="pms-task-list-body">
-                    <div class="table-wrap pms-popup-table-wrap">
-
-                    <table class="pms-table">
-
-                        <thead>
-
-                            <tr>
-                                <th>PMS Type</th>
-                                <th>Last PMS KM</th>
-                                <th>Interval</th>
-                                <th>Next PMS KM</th>
-                                <th>Recommended Date</th>
-                                <th class="status-col">Status</th>
-                                <th>Action</th>
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            @forelse($row->tasks as $task)
-
-                                <tr>
-
-                                    <td>
-                                        {{ $task->maintenance_type }}
-                                    </td>
-
-
-                                    <td>
-                                        {{ number_format($task->last_pms_km, 2) }} km
-                                    </td>
-
-
-                                    <td>
-                                        {{ number_format($task->pms_interval_km, 2) }} km
-                                    </td>
-
-
-                                    <td>
-                                        {{ number_format($task->next_pms_km, 2) }} km
-                                    </td>
-
-
-                                    <td>
-                                        {{ $task->status === 'Overdue'
-                                            ? 'Immediate'
-                                            : (
-                                                $task->recommended_date
-                                                    ? \Carbon\Carbon::parse(
-                                                        $task->recommended_date
-                                                    )->format('M d, Y')
-                                                    : '—'
-                                            )
-                                        }}
-                                    </td>
-
-
-                                    <td class="status-col">
-
-                                        <x-ui.status-badge :status="$task->status" />
-
-                                    </td>
-
-
-                                    <td>
-
-                                        <div class="actions">
-
-                                            {{-- CREATE JO --}}
-                                            @if(in_array(
-                                                $task->status,
-                                                ['Due Soon', 'Overdue']
-                                            ))
-
-                                                <a
-                                                    href="{{ route(
-                                                        'pms-schedules.create-job-order',
-                                                        $task->schedule
-                                                    ) }}"
-                                                    class="create-pms-jo-btn"
-                                                    title="Create PMS Job Order"
-
-                                                    data-confirm-action
-                                                    data-no-partial-navigation
-                                                    data-confirm-title="Create PMS Job Order?"
-                                                    data-confirm-message="Are you sure you want to create a Job Order from this PMS task?"
-                                                    data-confirm-button="Yes, Create Job Order"
-                                                    data-confirm-type="create"
-                                                >
-                                                    <i class="fa-solid fa-plus"></i>
-                                                </a>
-
-                                            @else
-
-                                                <span
-                                                    class="pms-action-placeholder"
-                                                    title="Job Order available when Due Soon or Overdue"
-                                                >
-                                                    —
-                                                </span>
-
-                                            @endif
-
-
-                                            {{-- EDIT --}}
-                                            <button
-                                                type="button"
-                                                class="action-btn edit pms-edit-task-btn open-edit-pms"
-                                                title="Edit PMS Task"
-
-                                                data-update-url="{{ route('pms-schedules.update', $task->schedule, false) }}"
-
-                                                data-bus-no="{{ $task->schedule->bus_no }}"
-
-                                                data-maintenance-type="{{ $task->schedule->maintenance_type }}"
-
-                                                data-last-pms-km="{{ $task->schedule->last_pms_km }}"
-
-                                                data-pms-interval-km="{{ $task->schedule->pms_interval_km }}"
-
-                                                data-current-km="{{ $row->current_km }}"
-
-                                                data-gps-date="{{ $row->gps_report_date
-                                                    ? \Carbon\Carbon::parse(
-                                                        $row->gps_report_date
-                                                    )->format('M d, Y')
-                                                    : ''
-                                                }}"
-
-                                                data-gps-date-iso="{{ $row->gps_report_date
-                                                    ? \Carbon\Carbon::parse(
-                                                        $row->gps_report_date
-                                                    )->format('Y-m-d')
-                                                    : ''
-                                                }}"
-
-                                                data-recommended-date="{{ $task->schedule->recommended_date
-                                                    ? \Carbon\Carbon::parse(
-                                                        $task->schedule->recommended_date
-                                                    )->format('Y-m-d')
-                                                    : ''
-                                                }}"
-                                            >
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </button>
-
-
-                                            {{-- DELETE --}}
-                                            <form
-                                                action="{{ route(
-                                                    'pms-schedules.destroy',
-                                                    $task->schedule
-                                                ) }}"
-                                                method="POST"
-
-                                                data-confirm-form
-                                                data-confirm-title="Delete PMS Task?"
-                                                data-confirm-message="Are you sure you want to delete this PMS task? This action cannot be undone."
-                                                data-confirm-button="Yes, Delete"
-                                                data-confirm-type="delete"
-                                            >
-
-                                                @csrf
-                                                @method('DELETE')
-
-
-                                                <button
-                                                    type="submit"
-                                                    class="action-btn delete"
-                                                    title="Delete PMS Task"
-                                                >
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-
-                                            </form>
-
-                                        </div>
-
-                                    </td>
-
-                                </tr>
-
-
-                            @empty
-
-                                <x-ui.empty-row
-                                    colspan="7"
-                                    message="No PMS tasks found for this bus."
-                                />
-
-                            @endforelse
-
-                        </tbody>
-
-                    </table>
-
-                    </div>
-                </div>
-
-
-                {{-- VIEW MODE HAS ONLY CLOSE --}}
-                <div class="pms-view-footer">
-
-                    <button
-                        type="button"
-                        class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal"
-                        data-modal-target="{{ $modalId }}"
-                    >
-                        Close
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    @endforeach
 
 
     {{-- =========================================================
