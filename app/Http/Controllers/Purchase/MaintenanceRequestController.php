@@ -79,13 +79,13 @@ class MaintenanceRequestController extends Controller
         // Keep the original PR status unchanged for downstream warehouse workflows.
         $linkedOrders = PurchaseOrder::query()
             ->whereIn('purchase_request_id', $purchaseRequests->getCollection()->pluck('id'))
-            ->orderByDesc('id')->get(['id', 'po_no', 'purchase_request_id', 'status'])
+            ->orderByDesc('id')->get(['id', 'po_no', 'purchase_request_id', 'status', 'items', 'received_quantities', 'inventory_posted_at'])
             ->unique('purchase_request_id')->keyBy('purchase_request_id');
         $purchaseRequests->getCollection()->each(function ($pr) use ($linkedOrders) {
             $po = $linkedOrders->get($pr->id);
             $pr->linked_po_no = $po?->po_no;
             $pr->purchasing_display_status = $po
-                ? ($po->status === 'For Review' ? 'PO For Review' : ($po->status === 'Revision Required' ? 'PO Revision Required' : $po->status))
+                ? ($po->status === 'For Review' ? 'PO For Review' : ($po->status === 'Revision Required' ? 'PO Revision Required' : $po->receipt_display_status))
                 : $pr->status;
             $pr->can_create_po = $pr->status === 'For Purchase' && ! $po;
         });
