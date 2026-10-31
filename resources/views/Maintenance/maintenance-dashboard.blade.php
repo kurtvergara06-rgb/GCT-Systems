@@ -170,13 +170,8 @@
                     </span>
 
                     @if(!empty($jobOrder->part_needed))
-                      @php
-                        $readableParts = collect(app(\App\Services\PartParser::class)->parsePartText((string) $jobOrder->part_needed))
-                          ->map(fn ($part) => trim($part['name'].' ('.$part['quantity'].' '.($part['unit'] ?? '').')'))
-                          ->implode(', ');
-                      @endphp
                       <span class="part-badge {{ in_array($jobOrder->part_status, ['Requested', 'Waiting Approval', 'Waiting Purchase', 'Waiting Delivery']) ? 'part-waiting' : 'part-ready' }}">
-                        <i class="fa-solid fa-gears"></i> Part: {{ $readableParts }}
+                        <i class="fa-solid fa-gears"></i> Part: {{ $jobOrder->part_needed }}
                         @if(!empty($jobOrder->part_status))
                           ({{ $jobOrder->part_status }})
                         @endif
@@ -458,11 +453,6 @@
             <div class="dashboard-scroll-body dashboard-scroll-parts">
               <div class="blocked-repairs-list">
               @forelse($blockedJobOrders as $blockedJo)
-                @php
-                  $blockedReadableParts = collect(app(\App\Services\PartParser::class)->parsePartText((string) $blockedJo->part_needed))
-                    ->map(fn ($part) => trim($part['name'].' ('.$part['quantity'].' '.($part['unit'] ?? '').')'))
-                    ->implode(', ');
-                @endphp
                 <div class="blocked-item">
                   <div class="blocked-main">
                     <div class="blocked-header">
@@ -470,7 +460,7 @@
                       <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $blockedJo->bus_no }}</span>
                     </div>
                     <p class="blocked-part-name">
-                      <i class="fa-solid fa-box-open"></i> Needed: <strong>{{ $blockedReadableParts }}</strong>
+                      <i class="fa-solid fa-box-open"></i> Needed: <strong>{{ $blockedJo->part_needed }}</strong>
                     </p>
                   </div>
                   <div class="blocked-status-side">
