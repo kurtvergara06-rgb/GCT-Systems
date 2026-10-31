@@ -40,10 +40,6 @@
 
         </div>
 
-        @if($isHistory)
-          <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
-        @endif
-
         <div class="incoming-delivery-controls">
           <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view" role="tablist">
             <a
