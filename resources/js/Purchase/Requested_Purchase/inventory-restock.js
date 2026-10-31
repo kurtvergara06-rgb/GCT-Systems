@@ -55,6 +55,28 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     setField('viewRestockQuantity', button.dataset.quantity);
     setField('viewRestockUnit', button.dataset.unit);
     setField('viewRestockRemarks', button.dataset.remarks, 'No remarks');
+    const breakdown = document.getElementById('viewRestockItems');
+    if (breakdown) {
+      let lines = [];
+      try {
+        const parsed = JSON.parse(button.dataset.items || '[]');
+        if (Array.isArray(parsed)) lines = parsed;
+      } catch (_) { /* Fall back to legacy single-item data. */ }
+      if (!lines.length) {
+        lines = [{ name: button.dataset.item, quantity: button.dataset.quantity, unit: button.dataset.unit }];
+      }
+      breakdown.replaceChildren();
+      lines.forEach((line) => {
+        const row = document.createElement('div');
+        row.className = 'restock-breakdown-row';
+        [line.name, line.quantity, line.unit].forEach((value) => {
+          const cell = document.createElement('span');
+          cell.textContent = value === undefined || value === null ? '—' : String(value);
+          row.appendChild(cell);
+        });
+        breakdown.appendChild(row);
+      });
+    }
 
     openModal(restockViewModal);
   });
