@@ -114,7 +114,11 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString("@method('PUT')", $view);
         $this->assertStringContainsString('data-confirm-form', $view);
         $this->assertStringNotContainsString('data-ajax-submit', $view);
-        $this->assertStringContainsString('id="edit_adjustment_reason"', $view);
+        // Editing master data must not expose a manual stock adjustment field.
+        // Stock changes are recorded separately through the inventory ledger.
+        $this->assertStringNotContainsString('id="edit_adjustment_reason"', $view);
+        $this->assertStringContainsString('id="edit_quantity"', $view);
+        $this->assertStringContainsString('readonly aria-readonly="true"', $view);
         $this->assertStringContainsString('class="close-btn closeModal"', $view);
     }
 
