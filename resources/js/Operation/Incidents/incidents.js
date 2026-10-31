@@ -354,9 +354,7 @@ function initIncidentBusLookup() {
                 input.setCustomValidity('Select a Bus ID from the suggestions.');
             }
             results.replaceChildren();
-            // Show today's eligible buses even before the user starts typing.
-            // Selecting one still requires a matching Ready/Dispatched trip.
-
+            if (!typed) { results.hidden = true; return; }
             const matches = buses.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase().includes(typed))).slice(0, 30);
             const exact = matches.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
@@ -364,9 +362,7 @@ function initIncidentBusLookup() {
             if (exact.length === 1) { selectBus(exact[0]); return; }
             if (!matches.length) {
                 const notice = document.createElement('p');
-                notice.textContent = typed
-                    ? 'No bus assigned to a Ready trip matches this search.'
-                    : 'No eligible Ready-trip buses are assigned today.';
+                notice.textContent = 'No bus assigned to a Ready trip matches this search.';
                 results.appendChild(notice);
             } else {
                 matches.forEach(bus => {
@@ -391,7 +387,7 @@ function initIncidentBusLookup() {
             if (!lookup.contains(event.target)) results.hidden = true;
         });
         input.addEventListener('focus', () => {
-            if (!confirmedBus) search();
+            if (input.value && !confirmedBus) search();
         });
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];
