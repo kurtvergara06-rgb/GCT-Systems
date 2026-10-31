@@ -64,6 +64,6 @@ test('warehouse pages load one scoped status typography contract', function () {
         ->toContain('font-size: 11px;')
         ->toContain('font-weight: 800;')
         ->toContain('height: 34px;')
-        ->toContain('border-radius: 7px;')
+        ->toContain('border-radius: 8px;')
         ->not->toContain('!important');
 });
