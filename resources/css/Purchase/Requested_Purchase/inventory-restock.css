@@ -1055,3 +1055,39 @@ main.inventory-restock-page .restock-table .restock-review-btn:hover { backgroun
   text-decoration: none;
 }
 .restock-view-overlay .restock-review-create-po[hidden] { display: none !important; }
+
+
+/* Inventory Restock Active / History navigation, matching Purchase requisition tabs. */
+main.inventory-restock-page .restock-record-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid #d9e4f3;
+  border-radius: 8px;
+  background: #f2f6fc;
+}
+main.inventory-restock-page .restock-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #526681;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+main.inventory-restock-page .restock-record-tab.is-active {
+  border-color: #cbdcf2;
+  background: #fff;
+  color: #0b40b5;
+  box-shadow: 0 1px 4px rgba(15, 35, 65, .07);
+}
+main.inventory-restock-page .restock-record-tab:hover { color: #0b40b5; }
