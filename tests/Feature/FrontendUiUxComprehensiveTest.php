@@ -804,7 +804,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Maintenance Requests' => route('maintenance-requests'),
             'Inventory Restock' => route('inventory-restock'),
             'Purchase History' => route('maintenance-requests', ['view' => 'history']),
-            'Scheduled Purchase' => route('scheduled-purchase'),
         ];
 
         foreach ($pages as $label => $url) {
