@@ -13,6 +13,12 @@
 >
   @php
     $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+    $warehouseUser = auth()->user();
+    $warehouseDepartment = strtolower(trim((string) $warehouseUser?->department));
+    $warehouseRole = strtolower(trim((string) $warehouseUser?->role));
+    $canApproveWarehouse = ($warehouseDepartment === 'warehouse' && in_array($warehouseRole, ['head', 'warehouse head'], true))
+        || ($warehouseDepartment === 'admin' && $warehouseRole === 'head')
+        || $warehouseRole === 'system admin';
     $currentView = $currentView ?? 'pr';
     $isJo = $currentView === 'jo';
     $isHistory = $currentView === 'history';
@@ -256,7 +262,7 @@
             </tbody>
             @endif
             @if(!$isJo)
-              @include('Warehouse.part-request-table-body', ['purchaseRequests' => $purchaseRequests, 'isHistory' => $isHistory, 'canEditWarehouse' => $canEditWarehouse])
+              @include('Warehouse.part-request-table-body', ['purchaseRequests' => $purchaseRequests, 'isHistory' => $isHistory, 'canEditWarehouse' => $canEditWarehouse, 'canApproveWarehouse' => $canApproveWarehouse])
             @endif
           </table>
         </div>

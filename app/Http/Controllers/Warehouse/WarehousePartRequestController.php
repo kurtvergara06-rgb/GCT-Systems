@@ -355,7 +355,7 @@ class WarehousePartRequestController extends Controller
 
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
-        $this->authorizeWarehouseCapability('edit');
+        $this->authorizeWarehouseHead();
 
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()->back()->with('error', 'Inventory restock requests cannot be forwarded from Warehouse Purchase Requests.');
@@ -853,5 +853,20 @@ class WarehousePartRequestController extends Controller
             'kg', 'kilogram', 'kilograms' => 'kg',
             default => $unit,
         };
+    }
+
+    private function authorizeWarehouseHead(): void
+    {
+        $user = auth()->user();
+        $department = strtolower(trim((string) $user?->department));
+        $role = strtolower(trim((string) $user?->role));
+        $isSystemAdmin = ($department === 'admin' && $role === 'head')
+            || $role === 'system admin';
+
+        abort_unless(
+            $isSystemAdmin || ($department === 'warehouse' && in_array($role, ['head', 'warehouse head'], true)),
+            403,
+            'Only the Warehouse Head may authorize Purchase Requests for Purchasing.'
+        );
     }
 }

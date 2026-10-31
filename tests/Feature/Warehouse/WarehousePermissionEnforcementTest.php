@@ -94,7 +94,7 @@ class WarehousePermissionEnforcementTest extends TestCase
         $this->assertSame(2, (int) $item->fresh()->quantity_available);
     }
 
-    public function test_edit_permission_controls_send_to_purchase_workflow_for_staff(): void
+    public function test_warehouse_approval_permission_controls_send_to_purchase_workflow(): void
     {
         $staff = $this->staff();
         InventoryItem::create([
@@ -123,8 +123,18 @@ class WarehousePermissionEnforcementTest extends TestCase
         $this->permissions(true, true);
         $this->actingAs($staff)
             ->post(route('part-requests.send-to-purchase', $request))
-            ->assertRedirect()
-            ->assertSessionHas('success');
+            ->assertForbidden();
+
+        $this->assertSame('Approved', $request->fresh()->status);
+
+        $head = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $this->actingAs($head)
+            ->post(route('part-requests.send-to-purchase', $request))
+            ->assertRedirect()->assertSessionHas('success');
 
         $this->assertSame('For Purchase', $request->fresh()->status);
         $this->assertSame(1, PurchaseRequest::where('job_order_no', $request->job_order_no)->count());
@@ -134,6 +144,11 @@ class WarehousePermissionEnforcementTest extends TestCase
     {
         $staff = $this->staff();
         $this->permissions(true, true);
+        $head = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
 
         $jobOrder = JobOrder::create([
             'job_order_no' => 'JO-SUBMITTED-WH-001',
@@ -160,9 +175,14 @@ class WarehousePermissionEnforcementTest extends TestCase
         $this->actingAs($staff)
             ->get(route('part-requests', ['view' => 'pr']))
             ->assertOk()
-            ->assertSee('Send Missing Parts to Purchase');
+            ->assertDontSee('data-pr-send-form', false);
 
-        $this->actingAs($staff)
+        $this->actingAs($head)
+            ->get(route('part-requests', ['view' => 'pr']))
+            ->assertOk()
+            ->assertSee('data-pr-send-form', false);
+
+        $this->actingAs($head)
             ->post(route('part-requests.send-to-purchase', $request))
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -195,7 +215,7 @@ class WarehousePermissionEnforcementTest extends TestCase
             'source_type' => 'Maintenance Request',
         ]);
 
-        $this->actingAs($staff)
+        $this->actingAs($head)
             ->post(route('part-requests.send-to-purchase', $mismatchedRequest))
             ->assertRedirect()
             ->assertSessionHas('error');

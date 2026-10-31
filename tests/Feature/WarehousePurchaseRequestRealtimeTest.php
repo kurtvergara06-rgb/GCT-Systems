@@ -18,7 +18,7 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
     {
         Event::fake([SystemDataUpdated::class]);
 
-        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff']);
+        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head']);
 
         JobOrder::create([
             'job_order_no' => 'JO-2026-0001',
@@ -41,7 +41,7 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
         ]);
 
         $response = $this
-            ->actingAs($staff)
+            ->actingAs($head)
             ->post(route('part-requests.send-to-purchase', $purchaseRequest));
 
         $response->assertRedirect();

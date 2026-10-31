@@ -36,7 +36,7 @@
                   $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
                   $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
                   $missingPrAlreadyCreated = $partRequest->missing_pr_already_created ?? false;
-                  $canSendToPurchase = ($partRequest->needs_purchase ?? false) && $canEditWarehouse
+                  $canSendToPurchase = ($partRequest->needs_purchase ?? false) && ($canApproveWarehouse ?? false)
                     && !$missingPrAlreadyCreated
                     && in_array($partRequest->status, ['Approved', 'Submitted'], true);
                   $canIssue = ($partRequest->can_issue ?? false) && $canEditWarehouse
