@@ -171,7 +171,7 @@
                   <td class="center-text"><span class="restock-quantity">{{ $quantityDisplay }}</span></td>
                   <td class="center-text restock-status-cell">
                     <x-ui.status-badge
-                      :status="$restockRequest->status ?? '—'"
+                      :status="$restockRequest->purchasing_display_status ?? $restockRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
@@ -193,7 +193,7 @@
                         data-item="{{ $itemName }}"
                         data-quantity="{{ $quantity }}"
                         data-unit="{{ $unit }}"
-                        data-status="{{ $restockRequest->status ?? '—' }}"
+                        data-status="{{ $restockRequest->purchasing_display_status ?? $restockRequest->status ?? '—' }}"
                         data-created="{{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $restockRequest->remarks ?? 'No remarks' }}"
                         data-items="{{ $displayItems->toJson() }}"
