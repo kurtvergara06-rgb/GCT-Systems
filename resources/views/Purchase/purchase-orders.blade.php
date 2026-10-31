@@ -228,6 +228,8 @@
                         data-detail-po-date="{{ $purchaseOrder->approved_at?->format('M d, Y h:i A') ?? '' }}"
                         data-detail-po-signature="{{ $purchaseOrder->approval_signature_path && $purchaseOrder->approved_at ? route('purchase-orders.approval-signature', $purchaseOrder) : '' }}"
                         data-detail-total="{{ $purchaseOrder->net_amount }}"
+                        data-detail-received="{{ $purchaseOrder->receipt_progress['received'] }}"
+                        data-detail-remaining="{{ $purchaseOrder->receipt_progress['remaining'] }}"
                         data-id="{{ $purchaseOrder->id }}"
                         data-po-no="{{ $purchaseOrder->po_no }}"
                         data-po-date="{{ $purchaseOrder->po_date }}"
@@ -515,7 +517,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           <div><span class="po-detail-fact-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="po-detail-fact-copy"><small>Supplier</small><strong id="poDetailSupplier">—</strong></span></div><div><span class="po-detail-fact-icon" aria-hidden="true"><i class="fa-solid fa-screwdriver-wrench"></i></span><span class="po-detail-fact-copy"><small>Linked JO</small><strong id="poDetailJo">—</strong></span></div>
           <div><span class="po-detail-fact-icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span><span class="po-detail-fact-copy"><small>Purpose</small><strong id="poDetailPurpose">—</strong></span></div>
         </div></section>
-        <section class="po-detail-card"><h3><i class="fa-solid fa-box"></i> Purchase Items</h3><div class="po-detail-table-scroll"><table><thead><tr><th>#</th><th>Item Description</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="poDetailItems"></tbody></table></div><div class="po-detail-total"><span>NET TOTAL</span><strong id="poDetailTotal">—</strong></div></section>
+        <section class="po-detail-card"><h3><i class="fa-solid fa-box"></i> Purchase Items</h3><p id="poDetailReceiptProgress" style="display:none;margin:0 0 12px;font-size:12px;color:#9a580a;font-weight:700"></p><div class="po-detail-table-scroll"><table><thead><tr><th>#</th><th>Item Description</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="poDetailItems"></tbody></table></div><div class="po-detail-total"><span>NET TOTAL</span><strong id="poDetailTotal">—</strong></div></section>
         <section class="po-detail-card"><h3><i class="fa-solid fa-file-signature"></i> Authorization Signatures</h3><div class="po-detail-signatures">
           <div class="po-detail-signature-card"><h4 id="poDetailSourceSignatureTitle">Maintenance Head — JO Approval</h4><div class="po-detail-signature-image"><img id="poDetailJoSignature" alt="Maintenance Head JO approval" hidden><p id="poDetailJoMissing">No approved JO signature available</p></div><strong id="poDetailJoApprover">—</strong><small id="poDetailJoDate">—</small></div>
           <div class="po-detail-signature-card"><h4>Purchase Head — PO Approval</h4><div class="po-detail-signature-image"><img id="poDetailPoSignature" alt="Purchase Head PO approval" hidden><p id="poDetailPoMissing">No approved PO signature available</p></div><strong id="poDetailPoApprover">—</strong><small id="poDetailPoDate">—</small></div>
