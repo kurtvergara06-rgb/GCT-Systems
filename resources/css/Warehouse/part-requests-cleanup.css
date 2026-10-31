@@ -1308,7 +1308,6 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 #warehouseSendMissingModal .warehouse-pr-reference-strip .warehouse-summary-item:last-child {border-right:0;}
 #warehouseSendMissingModal .warehouse-pr-view-table {min-width:540px;}
 #warehouseSendMissingModal .warehouse-edit-footer {display:flex;align-items:center;justify-content:flex-end;gap:10px;}
-@media(max-width:850px){#warehouseSendMissingModal .warehouse-send-missing-meta{grid-template-columns:repeat(3,minmax(0,1fr));}}
 @media(max-width:540px){
  #warehouseSendMissingModal .warehouse-send-missing-meta{grid-template-columns:1fr;}
  #warehouseSendMissingModal .warehouse-send-missing-meta .warehouse-summary-item{border-right:0;border-bottom:1px solid #e5edf7;}
