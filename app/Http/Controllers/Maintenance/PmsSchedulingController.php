@@ -177,11 +177,7 @@ class PmsSchedulingController extends Controller
         ) {
             $groups = $groups
                 ->filter(function ($group) use ($request) {
-                    return $group->overall_status === $request->status
-                        || $group->tasks->contains(
-                            fn ($task) => $task->status
-                                === $request->status
-                        );
+                    return $group->overall_status === $request->status;
                 })
                 ->values();
         }
