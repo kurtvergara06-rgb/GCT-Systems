@@ -333,13 +333,10 @@
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">DEMAND & PLANNING</span>
-              <h2>Requisition Sources & Schedules</h2>
-              <p>Breakdown of incoming requisitions and active recurring orders</p>
+              <h2>Requisition Sources</h2>
+              <p>Breakdown of Maintenance and Warehouse purchase requests</p>
             </div>
-            <a href="{{ route('scheduled-purchase') }}" class="dashboard-view-link">
-              <span>Schedules</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            <a href="{{ route('maintenance-requests') }}" class="dashboard-view-link"><span>Requests</span><i class="fa-solid fa-arrow-right"></i></a>
           </div>
 
           {{-- Source Breakdown Pills --}}
@@ -367,42 +364,6 @@
             </div>
           </div>
 
-          {{-- Scheduled Purchases Banner --}}
-          <div class="scheduled-highlight-box">
-            <div class="scheduled-highlight-header">
-              <div class="scheduled-highlight-icon">
-                <i class="fa-solid fa-calendar-check"></i>
-              </div>
-              <div class="scheduled-highlight-info">
-                <div class="scheduled-title-row">
-                  <strong>Recurring Scheduled Purchases</strong>
-                  <span class="scheduled-status-pill {{ $scheduledDueSoon > 0 ? 'is-warning' : 'is-active' }}">
-                    <i class="fa-solid fa-{{ $scheduledDueSoon > 0 ? 'clock' : 'circle-check' }}"></i>
-                    {{ $scheduledPurchases }} Active
-                  </span>
-                </div>
-                <p>Est. Recurring Value: <strong>₱{{ number_format($totalEstScheduledSpend, 2) }}</strong></p>
-              </div>
-            </div>
-
-            <div class="scheduled-highlight-footer">
-              @if($scheduledDueSoon > 0)
-                <span class="due-soon-note text-amber">
-                  <i class="fa-solid fa-triangle-exclamation"></i>
-                  {{ $scheduledDueSoon }} schedule{{ $scheduledDueSoon === 1 ? '' : 's' }} due within 7 days
-                </span>
-              @else
-                <span class="due-soon-note text-green">
-                  <i class="fa-solid fa-check"></i>
-                  All recurring procurement schedules on track
-                </span>
-              @endif
-              <a href="{{ route('scheduled-purchase') }}" class="scheduled-action-btn">
-                <span>Manage</span>
-                <i class="fa-solid fa-chevron-right"></i>
-              </a>
-            </div>
-          </div>
         </div>
 
       </section>
@@ -608,16 +569,7 @@
               <i class="fa-solid fa-chevron-right"></i>
             </a>
 
-            <a href="{{ route('scheduled-purchase') }}" class="purchase-quick-item">
-              <span class="purchase-quick-icon purple">
-                <i class="fa-solid fa-calendar-check"></i>
-              </span>
-              <div>
-                <h3>Scheduled Purchase</h3>
-                <p>Review upcoming recurring orders</p>
-              </div>
-              <i class="fa-solid fa-chevron-right"></i>
-            </a>
+
           </div>
         </div>
 
