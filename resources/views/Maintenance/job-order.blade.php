@@ -156,7 +156,7 @@
                                     $isOverdue = $jobOrder->is_overdue;
                                     $durationSuggestion = $durationSuggestions->get($jobOrder->id);
 
-                                    $partStatus = $joPartsDisplayStatuses->get($jobOrder->id, 'Not Requested');
+                                    $partStatus = ($joPartsDisplayStatuses ?? collect())->get($jobOrder->id, 'Not Requested');
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
                                     // A linked, still-outstanding procurement request is an objective
