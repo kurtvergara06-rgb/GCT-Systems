@@ -55,19 +55,53 @@
           <div class="modal-overlay warehouse-restock-pr-overlay" id="warehouseRestockPrModal" aria-hidden="true">
             <div class="modal-box warehouse-restock-pr-dialog" role="dialog" aria-modal="true" aria-labelledby="warehouseRestockPrTitle">
               <div class="modal-header">
-                <div>
-                  <h2 id="warehouseRestockPrTitle">Create Inventory Restocking PR</h2>
-                  <p>Prepare a new purchase request for warehouse replenishment.</p>
+                <div class="warehouse-restock-pr-heading">
+                  <span class="warehouse-restock-pr-heading-icon"><i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i></span>
+                  <div>
+                    <h2 id="warehouseRestockPrTitle">Create Purchase Request</h2>
+                    <p>Inventory Restocking · Warehouse Department</p>
+                  </div>
                 </div>
                 <button type="button" class="close-btn closeModal" aria-label="Close">&times;</button>
               </div>
-              <div class="warehouse-restock-pr-info">
-                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                <p>Restocking PR submission is not enabled yet. The approval, Purchasing PO, and delivery-linking workflow must be connected before requests can be saved safely.</p>
-              </div>
-              <div class="modal-actions">
-                <button type="button" class="secondary-btn closeModal">Close</button>
-              </div>
+              <form id="warehouseRestockPrForm" autocomplete="off">
+                <section class="warehouse-restock-pr-section">
+                  <div class="warehouse-restock-pr-section-title"><strong>01 — Request Details</strong><small>Warehouse stock replenishment</small></div>
+                  <div class="warehouse-restock-pr-grid">
+                    <div class="form-group"><label for="restockPrDate">Request Date</label><input id="restockPrDate" type="date" value="{{ now()->toDateString() }}" readonly></div>
+                    <div class="form-group"><label for="restockPrPurpose">Purpose <span class="warehouse-restock-required">*</span></label><input id="restockPrPurpose" required maxlength="250" placeholder="e.g. Replenish critical warehouse stock"></div>
+                  </div>
+                </section>
+                <section class="warehouse-restock-pr-section">
+                  <div class="warehouse-restock-pr-section-title"><strong>02 — Requested Inventory</strong><small>Select existing warehouse parts and quantities</small></div>
+                  <div class="warehouse-restock-pr-items" id="restockPrItems"></div>
+                  <button type="button" class="warehouse-restock-add-item" id="restockPrAddItem"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add Another Item</button>
+                  <div class="warehouse-restock-pr-template" hidden>
+                    <div class="warehouse-restock-pr-item">
+                      <div class="form-group"><label>Inventory Item <span class="warehouse-restock-required">*</span></label>
+                        <select class="restock-pr-item-select" required>
+                          <option value="">Select an inventory item</option>
+                          @foreach($restockInventoryItems as $stockItem)
+                          <option value="{{ $stockItem->id }}" data-code="{{ $stockItem->item_code }}" data-stock="{{ (int) $stockItem->quantity_available }}" data-rop="{{ (int) $stockItem->reorder_level }}" data-safety="{{ $stockItem->safety_stock }}" data-unit="{{ $stockItem->unit_of_measurement }}" data-supplier="{{ $stockItem->supplier }}">{{ $stockItem->item_name }} ({{ $stockItem->item_code }})</option>
+                          @endforeach
+                        </select>
+                      </div>
+                      <div class="form-group"><label>PR Quantity <span class="warehouse-restock-required">*</span></label><input type="number" class="restock-pr-item-qty" required min="1" step="1" placeholder="Qty"></div>
+                      <button type="button" class="warehouse-restock-remove-item" aria-label="Remove item"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                      <p class="warehouse-restock-stock-info">Select an item to view its stock, reorder point and safety stock.</p>
+                    </div>
+                  </div>
+                </section>
+                <section class="warehouse-restock-pr-section">
+                  <div class="warehouse-restock-pr-section-title"><strong>03 — Additional Information</strong><small>Optional purchase instructions</small></div>
+                  <div class="form-group"><label for="restockPrRemarks">Remarks</label><textarea id="restockPrRemarks" maxlength="500" rows="3" placeholder="Supplier preference, urgency, or other details"></textarea></div>
+                </section>
+                <div class="warehouse-restock-pr-info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p>The form is ready for data entry. Submission will be enabled once Warehouse restocking PR approvals and Purchasing PO linkage are implemented; no purchase request is saved yet.</p></div>
+                <div class="modal-actions">
+                  <button type="button" class="secondary-btn closeModal">Cancel</button>
+                  <button type="submit" class="warehouse-restock-pr-submit" disabled title="Restocking PR processing is not yet connected">Submit PR</button>
+                </div>
+              </form>
             </div>
           </div>
         @endif
