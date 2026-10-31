@@ -160,10 +160,7 @@
   max-height: 245px;
 }
 
-.dashboard-scroll-pms {
-  max-height: 240px;
-}
-
+.dashboard-scroll-pms,
 .dashboard-scroll-parts {
   max-height: 240px;
 }
