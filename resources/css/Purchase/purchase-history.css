@@ -198,3 +198,55 @@
   font-size:10px!important;
   line-height:1.25!important;
 }
+
+
+/* History actions: remove the shared full-width gray action tray. */
+.purchase-history-page .purchase-history-reference-table td.requested-pr-actions-cell {
+  text-align:center!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-actions-cell > .record-actions {
+  display:inline-flex!important;
+  width:max-content!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  gap:0!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-actions-cell .purchase-history-view-btn {
+  flex:none!important;
+  width:78px!important;
+  min-width:78px!important;
+  max-width:78px!important;
+  height:29px!important;
+  min-height:29px!important;
+}
+/* History status: natural-size badge, centered without a broad green bar. */
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status {
+  text-align:center!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge {
+  display:inline-flex!important;
+  width:fit-content!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:26px!important;
+  min-height:26px!important;
+  margin:0 auto!important;
+  padding:4px 9px!important;
+  gap:5px!important;
+  border-radius:5px!important;
+  flex:0 0 auto!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__label,
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__icon {
+  color:inherit!important;
+  width:auto!important;
+  flex:none!important;
+}
