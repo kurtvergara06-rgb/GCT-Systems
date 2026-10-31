@@ -127,19 +127,18 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
       if (coverage) {
         coverage.replaceChildren();
-        const irQuantities = new Map(irParts.map(part => [key(part), Number(part.requested_total ?? part.quantity ?? 0)]));
+        const issuedByPart = new Map(irParts.map(part => [key(part), Number(part.already_issued || 0)]));
         if (joParts.length) {
           joParts.forEach(part => {
             const total = Number(part.quantity || 0);
-            const included = Math.min(total, irQuantities.get(key(part)) || 0);
-            const outside = Math.max(0, total - included);
+            const issued = Math.min(total, issuedByPart.get(key(part)) || 0);
+            const remaining = Math.max(0, total - issued);
             const unit = part.unit || '';
             const row = document.createElement('tr');
             appendCell(row, part.name || '—');
             appendCell(row, total + ' ' + unit);
-            appendCell(row, included + ' ' + unit);
-            appendCell(row, outside + ' ' + unit, outside ? 'warehouse-ir-jo-outside' : '');
-            
+            appendCell(row, issued + ' ' + unit);
+            appendCell(row, remaining + ' ' + unit, remaining ? 'warehouse-ir-jo-outside' : '');
             coverage.appendChild(row);
           });
         } else {
@@ -152,6 +151,17 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         const tr = document.createElement('tr');
         appendCell(tr, 'No requested parts are recorded.', 'warehouse-ir-stock-empty').colSpan = 7;
         tbody.appendChild(tr);
+      }
+      const progressMessage = document.getElementById('warehouse-ir-fulfillment-message');
+      if (progressMessage) {
+        const remaining = irParts.reduce((sum, part) => sum + Number(part.quantity || 0), 0);
+        const already = irParts.reduce((sum, part) => sum + Number(part.already_issued || 0), 0);
+        const available = irParts.reduce((sum, part) => sum + Math.min(Number(part.quantity || 0), Number(part.available || 0)), 0);
+        progressMessage.textContent = remaining === 0
+          ? 'All JO quantities have been issued and recorded.'
+          : already > 0
+            ? already + ' units previously issued in signed handovers. ' + available + ' of ' + remaining + ' remaining units are currently allocatable for the next Warehouse handover.'
+            : available + ' of ' + remaining + ' requested units are currently allocatable for Warehouse handover.';
       }
       timestamp.textContent = 'Checked ' + new Date(data.checked_at).toLocaleString();
       message.textContent = data.status === 'sufficient'
