@@ -185,11 +185,13 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         const remaining = irParts.reduce((sum, part) => sum + Number(part.quantity || 0), 0);
         const already = irParts.reduce((sum, part) => sum + Number(part.already_issued || 0), 0);
         const available = irParts.reduce((sum, part) => sum + Math.min(Number(part.quantity || 0), Number(part.available || 0)), 0);
-        progressMessage.textContent = remaining === 0
-          ? 'All JO quantities have been issued and recorded.'
-          : already > 0
-            ? already + ' units previously issued in signed handovers. ' + available + ' of ' + remaining + ' remaining units are currently allocatable for the next Warehouse handover.'
-            : available + ' of ' + remaining + ' requested units are currently allocatable for Warehouse handover.';
+        const nextStage = remaining === 0 ? 'Fully Issued'
+          : available >= remaining ? 'Ready for Next Handover'
+          : available > 0 ? 'Partially Ready — More Parts Needed'
+          : 'Waiting for Replenishment';
+        progressMessage.textContent = nextStage + ' · ' + already + ' units previously issued in signed handovers. ' +
+          available + ' of ' + remaining + ' remaining units are currently allocated for Warehouse release. ' +
+          'Stock receipt does not deduct inventory for an IR until a new signed SWIS is confirmed.';
       }
       timestamp.textContent = 'Checked ' + new Date(data.checked_at).toLocaleString();
       message.textContent = data.status === 'sufficient'
