@@ -5,10 +5,8 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
-    'resources/css/Operation/Attendance/batch-attendance.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Operation/Attendance/driver-attendance.js',
-    'resources/js/Operation/Attendance/batch-attendance.js'
+    'resources/js/Operation/Attendance/driver-attendance.js'
   ]"
 >
   @php
@@ -49,18 +47,7 @@
             <h2>Driver Attendance List</h2>
             <p>Attendance is automatically verified by a valid DDR.</p>
           </div>
-          @if($canEditOperation)
-            <div class="attendance-header-actions">
-              <button type="button" id="openImportDriverAttendanceModal" class="secondary-btn import-btn">
-                <i class="fa-solid fa-file-import"></i> Import Data
-              </button>
-              <button type="button" class="primary-btn batch-attendance-open" data-batch-attendance-open>
-                <i class="fa-solid fa-clipboard-check"></i> Record Daily Attendance
-              </button>
-            </div>
-          @else
-            <span class="gct-pill gct-pill--unassigned">Automatically verified from DDR</span>
-          @endif
+          <span class="gct-pill gct-pill--unassigned">Automatically verified from DDR</span>
 
         </div>
 
@@ -203,29 +190,6 @@
       </section>
 
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
-
-  @if($canEditOperation)
-  <div id="importDriverAttendanceModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="importDriverAttendanceTitle">
-      <div class="modal-header">
-        <h2 id="importDriverAttendanceTitle">Import Driver Attendance Data</h2>
-        <button type="button" id="closeImportDriverAttendanceModal" class="close-btn" aria-label="Close">&times;</button>
-      </div>
-      <form id="importDriverAttendanceForm" action="{{ route('driver-attendance.import', [], false) }}" method="POST" enctype="multipart/form-data" class="job-form" data-confirm-form data-confirm-title="Import Driver Attendance?" data-confirm-message="Are you sure you want to import these driver attendance records?" data-confirm-button="Yes, Import Data" data-confirm-type="warning">
-        @csrf
-        <div class="form-group full-width">
-          <label for="driverAttendanceCsv">CSV File</label>
-          <input id="driverAttendanceCsv" type="file" name="csv_file" accept=".csv,text/csv" required>
-          <small>Required columns: driver_name, shift, attendance_date, time_in, time_out, status</small>
-        </div>
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelImportDriverAttendanceModal" class="cancel-btn">Cancel</button>
-          <button type="submit" class="save-btn"><i class="fa-solid fa-file-import"></i> Import Data</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  @endif
 
 
   <x-ui.form-modal
