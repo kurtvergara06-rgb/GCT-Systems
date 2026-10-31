@@ -179,7 +179,7 @@
   border-bottom: none;
 }
 
-/* Eight-column inventory layout. Keep complete actions visible without desktop scrolling. */
+/* Inventory table layout: show all nine columns without desktop scrolling. */
 .warehouse-inventory-page .inventory-table{
   width:100%;
   min-width:0;
@@ -191,15 +191,15 @@
   padding:12px 9px;
 }
 /* Nine-column layout: reorder point and safety stock remain distinct. */
-.warehouse-inventory-page .inventory-table th:nth-child(1){width:20%}
+.warehouse-inventory-page .inventory-table th:nth-child(1){width:21%}
 .warehouse-inventory-page .inventory-table th:nth-child(2){width:10%}
 .warehouse-inventory-page .inventory-table th:nth-child(3){width:8%}
 .warehouse-inventory-page .inventory-table th:nth-child(4){width:8%}
 .warehouse-inventory-page .inventory-table th:nth-child(5){width:8%}
-.warehouse-inventory-page .inventory-table th:nth-child(6){width:12%}
+.warehouse-inventory-page .inventory-table th:nth-child(6){width:11%}
 .warehouse-inventory-page .inventory-table th:nth-child(7){width:10%}
-.warehouse-inventory-page .inventory-table th:nth-child(8){width:13%}
-.warehouse-inventory-page .inventory-table th:nth-child(9){width:11%}
+.warehouse-inventory-page .inventory-table th:nth-child(8){width:12%}
+.warehouse-inventory-page .inventory-table th:nth-child(9){width:13%}
 .warehouse-inventory-page .inventory-table th:nth-child(n+3),
 .warehouse-inventory-page .inventory-table td:nth-child(n+3){text-align:center}
 .warehouse-inventory-page .inventory-table .inventory-safety-stock-cell span{
@@ -769,4 +769,54 @@
 @media(max-width:1100px){
   .warehouse-inventory-page .inventory-table tbody td{padding:14px 8px}
   .warehouse-inventory-page .inventory-table .actions{gap:6px}
+}
+
+/* Keep the nine-column inventory table within the card at desktop widths.
+   Legacy global table min-width/nowrap declarations previously pushed Actions out. */
+@media (min-width: 1101px) {
+  .warehouse-inventory-page .inventory-card .table-wrap {
+    overflow-x: hidden;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table th,
+  .warehouse-inventory-page .inventory-card .inventory-table td {
+    min-width: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table thead th {
+    font-size: 9px;
+    letter-spacing: .025em;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table tbody td:first-child {
+    padding-left: 12px;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table tbody td:last-child {
+    padding-right: 10px;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table .actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table .actions .action-btn {
+    flex: 0 0 30px;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+  }
+  .warehouse-inventory-page .inventory-card .inventory-table td:nth-child(8) .warehouse-inventory-status-stack {
+    min-width: 0;
+  }
 }
