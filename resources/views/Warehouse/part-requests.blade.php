@@ -109,6 +109,15 @@
                       <div class="warehouse-restock-signature-or">OR</div>
                       <label class="warehouse-restock-signature-upload" for="restockPrSignatureUpload"><i class="fa-solid fa-upload" aria-hidden="true"></i> Upload Signature <small>PNG, JPG or WEBP · maximum 5 MB</small></label>
                       <input id="restockPrSignatureUpload" type="file" accept="image/png,image/jpeg,image/webp" class="warehouse-restock-file-input">
+                      <div id="restockPrCropDialog" class="warehouse-restock-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="restockPrCropTitle" hidden>
+                        <div class="warehouse-restock-crop-panel">
+                          <div class="warehouse-restock-crop-heading"><div><h3 id="restockPrCropTitle">Crop Signature</h3><p>Drag the image to position your signature, then adjust zoom.</p></div><button type="button" id="restockPrCropClose" aria-label="Cancel cropping"><i class="fa-solid fa-xmark"></i></button></div>
+                          <canvas id="restockPrCropCanvas" width="720" height="260" aria-label="Signature crop preview"></canvas>
+                          <label for="restockPrCropZoom">Zoom</label>
+                          <input id="restockPrCropZoom" type="range" min="1" max="3" step="0.05" value="1">
+                          <div class="warehouse-restock-crop-actions"><button type="button" id="restockPrCropCancel">Cancel</button><button type="button" id="restockPrCropConfirm">Confirm Crop</button></div>
+                        </div>
+                      </div>
                       <p id="restockPrSignatureMessage" class="warehouse-restock-signature-help" role="status">Draw above or choose an image. No signature is saved until submission is implemented.</p>
                     </div>
                     <div class="warehouse-restock-signatory-column">
