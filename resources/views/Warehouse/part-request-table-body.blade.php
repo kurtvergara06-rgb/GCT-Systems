@@ -32,8 +32,8 @@
                         data-purpose="{{ $partRequest->purpose ?? 'Inventory replenishment' }}"
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
                         data-parts="{{ $restockLines->toJson() }}"
-                        title="View Restocking PR Details" aria-label="View Restocking PR Details">
-                        <i class="fa-solid fa-eye" aria-hidden="true"></i> <span>View</span>
+                        title="Review Restocking PR Details" aria-label="Review Restocking PR Details">
+                        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span>Review</span>
                       </button>
                     </div></td>
                   </tr>
