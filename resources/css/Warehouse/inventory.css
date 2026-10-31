@@ -969,3 +969,39 @@
 #movementHistoryModal .inventory-movement-modal__footer { padding:10px 22px!important; }
 #movementHistoryModal .inventory-movement-modal__footer button { min-height:35px!important; }
 @media(max-width:760px){#movementHistoryContent{padding:12px!important}#movementHistoryContent .item-movement-stats > *{padding:9px!important}#movementHistoryContent .stock-movement-table{min-width:840px!important}}
+
+
+/* Edit Inventory Item — approved three-section layout. */
+#editModal .inventory-edit-dialog{width:min(920px,96vw)!important;max-width:920px!important;max-height:92vh!important;padding:0!important;border-radius:15px!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;background:#fff!important}
+#editModal .inventory-edit-header{padding:18px 22px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #e4ebf5}
+#editModal .inventory-edit-header-icon,#editModal .inventory-edit-section-heading>span{display:grid;place-items:center;flex:none;width:43px;height:43px;border-radius:10px;background:#e8f1ff;color:#175bce;font-size:17px}
+#editModal .inventory-edit-header h2{font-size:20px;line-height:1.3;font-weight:800;color:#132e55;margin:0}
+#editModal .inventory-edit-header p{font-size:12px;color:#617893;margin:4px 0 0}
+#editModal .inventory-edit-x{margin-left:auto;border:1px solid #d8e3f1;background:#f7faff;border-radius:8px;width:35px;height:35px;color:#1c3d68;cursor:pointer}
+#editModal #editForm{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#editModal .inventory-edit-body{padding:17px 20px;overflow:auto;min-height:0;display:flex;flex-direction:column;gap:13px}
+#editModal .inventory-edit-section{padding:15px 17px;border:1px solid #dae5f3;border-radius:12px;background:#fff}
+#editModal .inventory-edit-section-heading{display:flex;gap:11px;align-items:center;margin-bottom:15px}
+#editModal .inventory-edit-section-heading>span{width:36px;height:36px;font-size:14px}
+#editModal .inventory-edit-section-heading h3{font-size:14px;font-weight:800;color:#17345b;margin:0 0 3px}
+#editModal .inventory-edit-section-heading p{font-size:11px;color:#73849e;margin:0}
+#editModal .inventory-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 19px}
+#editModal .inventory-edit-threshold-grid{grid-template-columns:1fr 1fr 1fr}
+#editModal .form-group{display:flex;flex-direction:column;gap:5px;min-width:0;margin:0}
+#editModal .form-group label{font-size:12px;font-weight:750;color:#1d395f}
+#editModal .form-group label em{font-style:normal;color:#dc2626}
+#editModal .form-group input{box-sizing:border-box;width:100%;height:39px;border:1px solid #cfdced;border-radius:7px;background:#fff;padding:0 11px;font-size:12px;color:#183254}
+#editModal .form-group input:focus{outline:2px solid #a8c8ff;outline-offset:1px}
+#editModal .inventory-edit-locked{position:relative}
+#editModal .inventory-edit-locked input{padding-right:34px;background:#eef2f7;color:#2f4768;cursor:default}
+#editModal .inventory-edit-locked i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#657b98;font-size:12px;pointer-events:none}
+#editModal .form-group small{font-size:10px;color:#6a819c}
+#editModal .inventory-edit-onhand{background:#eef5ff;border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+#editModal .inventory-edit-onhand>span{display:flex;justify-content:space-between;align-items:center;color:#496184;font-size:11px}
+#editModal .inventory-edit-onhand strong{font-size:23px;color:#17345e}
+#editModal .inventory-edit-onhand strong small{font-size:11px}
+#editModal .inventory-edit-onhand p{font-size:10px;line-height:1.4;color:#6b809c;margin:0}
+#editModal .inventory-edit-footer{border-top:1px solid #e5edf7;padding:13px 20px;display:flex;justify-content:flex-end;gap:10px;background:#fff}
+#editModal .inventory-edit-footer button{min-height:37px;padding:0 17px;border-radius:7px;font-size:12px;font-weight:750;cursor:pointer}
+#editModal .inventory-edit-footer .primary-btn{background:#125ce0;color:#fff}
+@media(max-width:700px){#editModal .inventory-edit-header{padding:13px}#editModal .inventory-edit-body{padding:12px}#editModal .inventory-edit-grid,#editModal .inventory-edit-threshold-grid{grid-template-columns:1fr}#editModal .inventory-edit-section{padding:12px}}
