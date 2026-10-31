@@ -144,10 +144,17 @@
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
-                    <x-ui.status-badge
-                      :status="$status"
-                      type="inventory"
-                    />
+                    <div class="warehouse-inventory-status-stack">
+                      <x-ui.status-badge
+                        :status="$status"
+                        type="inventory"
+                      />
+                      @if($onHandQuantity > 0 && $reservedQuantity >= $onHandQuantity)
+                        <span class="warehouse-inventory-reserved-badge" title="All physical stock is reserved for Job Orders; no unallocated quantity is available.">
+                          <i class="fa-solid fa-lock" aria-hidden="true"></i> Fully Reserved
+                        </span>
+                      @endif
+                    </div>
                   </td>
                   <td>{{ $item->supplier ?? '—' }}</td>
                   <td>{{ $item->storage_location ?? '—' }}</td>
