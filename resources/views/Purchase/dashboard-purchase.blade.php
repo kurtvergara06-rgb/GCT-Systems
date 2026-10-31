@@ -20,8 +20,6 @@
     $forPickup = $forPickup ?? 0;
     $forDelivery = $forDelivery ?? 0;
 
-    $scheduledPurchases = $scheduledPurchases ?? 0;
-
     $recentPurchaseRequests = $recentPurchaseRequests ?? collect();
     $recentPurchaseOrders = $recentPurchaseOrders ?? collect();
 
@@ -41,9 +39,6 @@
     $topSuppliers = $topSuppliers ?? collect();
     $joRequestsCount = $joRequestsCount ?? 0;
     $restockRequestsCount = $restockRequestsCount ?? 0;
-    $activeSchedulesCount = $activeSchedulesCount ?? 0;
-    $scheduledDueSoon = $scheduledDueSoon ?? 0;
-    $totalEstScheduledSpend = $totalEstScheduledSpend ?? 0;
   @endphp
 
   <div class="app purchase-dashboard-page">
