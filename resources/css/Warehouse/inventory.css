@@ -654,3 +654,31 @@
   background:#f1f5fa;color:#455e7e;
   font-size:10px;font-weight:750;line-height:1.25;white-space:nowrap;
 }
+
+/* Inventory table refinements: stable actions, readable categories, comfortable rows. */
+.warehouse-inventory-page .inventory-table tbody td{
+  padding-top:15px;
+  padding-bottom:15px;
+}
+.warehouse-inventory-page .inventory-table .inventory-category-cell{
+  font-weight:750;
+  color:#173458;
+}
+.warehouse-inventory-page .inventory-table .actions{
+  gap:8px;
+  flex-wrap:nowrap;
+}
+.warehouse-inventory-page .inventory-table .actions .action-btn{
+  transform:none !important;
+  scale:1 !important;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease !important;
+}
+.warehouse-inventory-page .inventory-table .actions .action-btn:hover,
+.warehouse-inventory-page .inventory-table .actions .action-btn:focus-visible{
+  transform:none !important;
+  scale:1 !important;
+  background:#155ac6 !important;
+  border-color:#155ac6 !important;
+  color:#fff !important;
+  box-shadow:none !important;
+}
