@@ -3357,3 +3357,46 @@
 @media (max-width: 600px) {
   .warehouse-dashboard-page .warehouse-reference-kpis { grid-template-columns: 1fr; }
 }
+
+
+/* Quiet, consistent Warehouse dashboard presentation using existing table,
+   badge, metric, and panel components. Color conveys movement/alert meaning only. */
+.warehouse-dashboard-page .warehouse-feature-icon,
+.warehouse-dashboard-page .warehouse-queue-title-icon,
+.warehouse-dashboard-page .warehouse-reference-title-icon {
+  color:#285886!important;background:#eef3f9!important;border:1px solid #dee7f1!important;
+}
+.warehouse-dashboard-page .warehouse-panel-eyebrow { color:#64758d!important;letter-spacing:.045em!important; }
+.warehouse-dashboard-page .warehouse-item-icon,
+.warehouse-dashboard-page .warehouse-item-icon[class*="tone-"] {
+  color:#426689!important;background:#f0f4f9!important;border:1px solid #dde7f2!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-user-avatar,
+.warehouse-dashboard-page .warehouse-user-avatar[class*="tone-"] {
+  color:#355474!important;background:#e8eef6!important;border:1px solid #dce5ef!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-issued-rank,
+.warehouse-dashboard-page .warehouse-issued-row:nth-child(n) .warehouse-issued-rank {
+  color:#24496e!important;background:#eaf0f7!important;box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-issued-meter { background:#e9eef5!important; }
+.warehouse-dashboard-page .warehouse-issued-meter > span { background:#6d8dab!important; }
+.warehouse-dashboard-page .warehouse-audit-reference {
+  color:#264765!important;background:#f4f7fb!important;border-color:#dee7f1!important;
+}
+.warehouse-dashboard-page .warehouse-view-action {
+  color:#24517f!important;background:#fff!important;border-color:#d4e1f0!important;
+}
+.warehouse-dashboard-page .warehouse-view-action:hover { background:#edf3fa!important;color:#123d6d!important; }
+.warehouse-dashboard-page .warehouse-date-cell > i { color:#8295ac!important; }
+.warehouse-dashboard-page .warehouse-audit-table tbody tr:nth-child(even) { background:#f8fafc!important; }
+.warehouse-dashboard-page .warehouse-status.green { background:#eaf7ef!important;color:#24764a!important;border-color:#ccebd8!important; }
+.warehouse-dashboard-page .warehouse-status.red { background:#fff0f0!important;color:#b33a42!important;border-color:#f4d3d6!important; }
+.warehouse-dashboard-page .warehouse-status.blue { background:#edf3fa!important;color:#285786!important;border-color:#d9e6f5!important; }
+.warehouse-dashboard-page .warehouse-status.yellow { background:#fff7e9!important;color:#90640c!important;border-color:#f4e4be!important; }
+.warehouse-dashboard-page .warehouse-positive { color:#28804f!important; }
+.warehouse-dashboard-page .warehouse-negative { color:#b44049!important; }
+.warehouse-dashboard-page .warehouse-panel { box-shadow:0 3px 14px rgba(19,48,80,.045)!important; }
+.warehouse-dashboard-page .warehouse-issued-total small { color:#7388a0!important; }
