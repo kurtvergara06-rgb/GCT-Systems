@@ -250,3 +250,19 @@
   width:auto!important;
   flex:none!important;
 }
+
+
+/* Purchase History PR statuses: readable 12px icon and label. */
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge {
+  font-size:12px!important;
+  font-weight:700!important;
+  min-height:30px!important;
+  height:30px!important;
+  padding:5px 11px!important;
+  gap:7px!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__label,
+.purchase-history-page .purchase-history-reference-table td.requested-pr-status > .badge .status-badge__icon {
+  font-size:12px!important;
+  line-height:1!important;
+}
