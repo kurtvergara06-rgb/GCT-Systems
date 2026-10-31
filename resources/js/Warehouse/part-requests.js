@@ -37,6 +37,48 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     openModal(restockPrModal);
   });
 
+  const restockPrItems = document.getElementById('restockPrItems');
+  const restockPrTemplate = restockPrModal?.querySelector('.warehouse-restock-pr-template .warehouse-restock-pr-item');
+  const addRestockItem = document.getElementById('restockPrAddItem');
+  const restockPrForm = document.getElementById('warehouseRestockPrForm');
+
+  function addRestockItemRow() {
+    if (!restockPrItems || !restockPrTemplate) return;
+    const row = restockPrTemplate.cloneNode(true);
+    restockPrItems.appendChild(row);
+    updateRestockRemovalButtons();
+  }
+  function updateRestockRemovalButtons() {
+    restockPrItems?.querySelectorAll('.warehouse-restock-remove-item').forEach(function (button) {
+      button.disabled = restockPrItems.children.length <= 1;
+    });
+  }
+  addRestockItem?.addEventListener('click', addRestockItemRow);
+  restockPrItems?.addEventListener('click', function (event) {
+    if (!event.target.closest('.warehouse-restock-remove-item')) return;
+    event.target.closest('.warehouse-restock-pr-item')?.remove();
+    updateRestockRemovalButtons();
+  });
+  restockPrItems?.addEventListener('change', function (event) {
+    const select = event.target.closest('.restock-pr-item-select');
+    if (!select) return;
+    const row = select.closest('.warehouse-restock-pr-item');
+    const option = select.selectedOptions[0];
+    const info = row?.querySelector('.warehouse-restock-stock-info');
+    if (!info) return;
+    info.textContent = option?.value
+      ? 'On hand: ' + (option.dataset.stock || '0') + ' ' + (option.dataset.unit || '') +
+        ' · Reorder point: ' + (option.dataset.rop || '0') +
+        ' · Safety stock: ' + (option.dataset.safety || 'Not set') +
+        (option.dataset.supplier ? ' · Supplier: ' + option.dataset.supplier : '')
+      : 'Select an item to view its stock, reorder point and safety stock.';
+  });
+  if (restockPrItems && !restockPrItems.children.length) addRestockItemRow();
+  restockPrForm?.addEventListener('submit', function (event) {
+    // Disabled until restocking requests have a durable approval/PO workflow.
+    event.preventDefault();
+  });
+
   function closeAllModals() {
     document
       .querySelectorAll(
