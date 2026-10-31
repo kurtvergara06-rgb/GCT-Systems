@@ -80,14 +80,14 @@
                   <div class="warehouse-restock-pr-template" hidden>
                     <div class="warehouse-restock-pr-item">
                       <div class="form-group"><label>Inventory Item <span class="warehouse-restock-required">*</span></label>
-                        <select class="restock-pr-item-select" required>
+                        <select class="restock-pr-item-select">
                           <option value="">Select an inventory item</option>
                           @foreach($restockInventoryItems as $stockItem)
                           <option value="{{ $stockItem->id }}" data-code="{{ $stockItem->item_code }}" data-stock="{{ (int) $stockItem->quantity_available }}" data-rop="{{ (int) $stockItem->reorder_level }}" data-safety="{{ $stockItem->safety_stock }}" data-unit="{{ $stockItem->unit_of_measurement }}" data-supplier="{{ $stockItem->supplier }}">{{ $stockItem->item_name }}</option>
                           @endforeach
                         </select>
                       </div>
-                      <div class="form-group"><label>PR Quantity <span class="warehouse-restock-required">*</span></label><input type="number" class="restock-pr-item-qty" required min="1" step="1" placeholder="Qty"></div>
+                      <div class="form-group"><label>PR Quantity <span class="warehouse-restock-required">*</span></label><input type="number" class="restock-pr-item-qty" min="1" step="1" placeholder="Qty"></div>
                       <button type="button" class="warehouse-restock-remove-item" aria-label="Remove item"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
                       <p class="warehouse-restock-stock-info">Select an item to view its stock, reorder point and safety stock.</p>
                     </div>
