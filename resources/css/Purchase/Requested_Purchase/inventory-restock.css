@@ -858,3 +858,45 @@
   box-sizing: border-box;
   white-space: nowrap;
 }
+
+
+/* Restore readable badge sizing; box-style status only. */
+.inventory-restock-page .restock-table td:nth-child(2) .source-badge {
+  width: auto !important;
+  min-width: 102px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 6px 11px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  border-radius: 6px !important;
+}
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  width: fit-content !important;
+  min-width: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 5px 10px !important;
+  font-size: 10px !important;
+  border-radius: 6px !important;
+}
+/* Expand extra items inside their row rather than clipping an absolute overlay. */
+.inventory-restock-page .restock-item-more[open] {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.inventory-restock-page .restock-item-more[open] .restock-item-popover {
+  position: static !important;
+  z-index: auto;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 6px;
+  box-shadow: none;
+}
+.inventory-restock-page .restock-table tbody tr:has(.restock-item-more[open]) {
+  height: auto;
+}
