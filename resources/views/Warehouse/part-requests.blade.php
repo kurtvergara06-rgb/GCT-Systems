@@ -64,7 +64,8 @@
                 </div>
                 <button type="button" class="close-btn closeModal" aria-label="Close">&times;</button>
               </div>
-              <form id="warehouseRestockPrForm" autocomplete="off">
+              <form id="warehouseRestockPrForm" method="POST" action="{{ route('part-requests.restock.store') }}" autocomplete="off">
+                @csrf
                 <section class="warehouse-restock-pr-section">
                   <div class="warehouse-restock-pr-section-title"><strong>01 — Request Details</strong><small>Warehouse stock replenishment</small></div>
                   <div class="warehouse-restock-pr-grid">
@@ -126,10 +127,10 @@
                     </div>
                   </div>
                 </section>
-                <div class="warehouse-restock-pr-info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p>The form is ready for data entry. Submission will be enabled once Warehouse restocking PR approvals and Purchasing PO linkage are implemented; no purchase request is saved yet.</p></div>
+                <div class="warehouse-restock-pr-info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><p>Warehouse Head authorization is required. Confirm your signed request to forward it to Purchasing. Inventory only changes after confirmed delivery.</p></div>
                 <div class="modal-actions">
                   <button type="button" class="secondary-btn closeModal">Cancel</button>
-                  <button type="submit" class="warehouse-restock-pr-submit" disabled title="Restocking PR processing is not yet connected">Submit PR</button>
+                  <button type="submit" class="warehouse-restock-pr-submit">Submit PR</button>
                 </div>
               </form>
             </div>
