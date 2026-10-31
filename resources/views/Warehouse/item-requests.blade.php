@@ -88,6 +88,13 @@
                                     </details>
                                 @endif
                             @else — @endif
+                            @php($linkedPrCount = (int) $linkedPrPartsByJo->get($ir->jobOrder?->job_order_no, 0))
+                            @if($linkedPrCount > 0)
+                                <div class="warehouse-ir-pr-shortage" title="Shortage parts covered by a linked Purchase Requisition">
+                                    <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+                                    PR: {{ $linkedPrCount }} {{ \\Illuminate\\Support\\Str::plural('part', $linkedPrCount) }}
+                                </div>
+                            @endif
                         </td>
                         <td><strong>{{ $stockParts->count() === 1 ? (($firstStock['quantity'] ?? 0).' '.($firstStock['unit'] ?? '')) : ($stockParts->count().' items') }}</strong></td>
                         <td>
