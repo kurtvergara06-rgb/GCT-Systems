@@ -30,8 +30,9 @@ class FrontendAssetOptimizationTest extends TestCase
         $mechanic = file_get_contents(resource_path('views/Operation/Attendance/mechanic-attendance.blade.php'));
 
         // Both attendance pages expose permission-gated manual/import workflows.
-        $this->assertStringContainsString('resources/css/Operation/Attendance/batch-attendance.css', $driver);
-        $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $driver);
+        // Driver attendance is DDR-verified, not a batch entry page.
+        $this->assertStringNotContainsString('resources/js/Operation/Attendance/batch-attendance.js', $driver);
+        $this->assertStringContainsString('resources/js/Operation/Attendance/driver-attendance.js', $driver);
         $this->assertStringContainsString('resources/css/Operation/Attendance/batch-attendance.css', $mechanic);
         $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $mechanic);
     }
