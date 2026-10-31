@@ -485,21 +485,18 @@
             @forelse($topIssuedItems as $item)
               <div class="warehouse-issued-row">
                 <span class="warehouse-issued-rank">{{ $loop->iteration }}</span>
-                <div class="warehouse-issued-copy">
-                  <strong>{{ $item['item_name'] }}</strong>
-                  <small>{{ $item['item_code'] }}</small>
+                <div class="warehouse-issued-detail">
+                  <div class="warehouse-issued-info">
+                    <span class="warehouse-issued-copy"><strong>{{ $item['item_name'] }}</strong><small>{{ $item['item_code'] }}</small></span>
+                    <strong class="warehouse-issued-total">{{ number_format($item['total_issued']) }} <small>pcs</small></strong>
+                  </div>
+                  <div class="warehouse-issued-meter" role="progressbar" aria-label="{{ $item['item_name'] }} issuance relative to most issued item" aria-valuenow="{{ $item['total_issued'] }}" aria-valuemin="0" aria-valuemax="{{ $maxIssued }}">
+                    <span style="width: {{ min(100, round(($item['total_issued'] / $maxIssued) * 100)) }}%"></span>
+                  </div>
                 </div>
-                <div class="warehouse-issued-meter">
-                  <span style="width: {{ max(8, round(($item['total_issued'] / $maxIssued) * 100)) }}%"></span>
-                </div>
-                <strong class="warehouse-issued-total">{{ number_format($item['total_issued']) }}<small>pcs</small></strong>
               </div>
             @empty
-              <div class="warehouse-empty compact-empty">
-                <i class="fa-solid fa-chart-simple"></i>
-                <strong>No issued items recorded</strong>
-                <span>Issued parts will be ranked here automatically.</span>
-              </div>
+              <div class="warehouse-empty compact-empty"><i class="fa-solid fa-chart-simple"></i><strong>No issued items recorded</strong><span>Issued parts will be ranked here automatically.</span></div>
             @endforelse
           </div>
         </article>
@@ -514,7 +511,14 @@
                 <p>Inventory movement trend over time.</p>
               </div>
             </div>
-            <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? 'This Month' }}</span>
+            <label class="warehouse-trend-period">
+              <span class="sr-only">Stock movement grouping</span>
+              <select id="warehouseTrendGrouping" aria-label="Group stock movements by">
+                <option value="weekly" selected>Weekly</option>
+                <option value="daily">Daily</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </label>
           </header>
           <div class="warehouse-chart-wrap trend-chart-wrap">
             <canvas
