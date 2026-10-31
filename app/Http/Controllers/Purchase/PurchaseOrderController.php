@@ -177,6 +177,26 @@ class PurchaseOrderController extends Controller
                     ]);
                 }
 
+                // A restocking PO must exactly reflect its signed Warehouse requisition.
+                // Purchasing may set costs and supplier details, not alter approved quantities.
+                if ($maintenanceRequest->source_type === 'Auto Restock' && $maintenanceRequest->restock_items) {
+                    $approvedLines = collect(json_decode((string) $maintenanceRequest->restock_items, true) ?: []);
+                    $matches = count($items) === $approvedLines->count();
+                    foreach ($approvedLines as $line) {
+                        $matches = $matches && collect($items)->contains(function ($poLine) use ($line, $maintenanceRequest) {
+                            return trim((string) $poLine['pr_no']) === $maintenanceRequest->pr_no
+                                && trim((string) $poLine['item_description']) === trim((string) $line['name'])
+                                && (int) $poLine['quantity'] === (int) $line['quantity']
+                                && (float) $poLine['quantity'] === (float) (int) $line['quantity'];
+                        });
+                    }
+                    if (! $matches) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Restocking PO items and quantities must match the signed Warehouse PR.',
+                        ]);
+                    }
+                }
+
                 if (PurchaseOrder::query()->where('purchase_request_id', $maintenanceRequest->id)->exists()) {
                     throw ValidationException::withMessages([
                         'purchase_request_id' => 'A purchase order already exists for this purchase request.',
