@@ -89,7 +89,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       searchInput.placeholder = 'Search maintenance jobs...';
       searchInput.setAttribute('aria-label', 'Search maintenance jobs');
       search.append(searchInput);
-      browser.append(search, optionsContainer);
+      const otherFooter = document.createElement('div');
+      otherFooter.className = 'jo-maintenance-job-other-footer';
+      browser.append(search, optionsContainer, otherFooter);
       const summary = document.createElement('aside');
       summary.className = 'jo-maintenance-job-menu-summary';
       const summaryHead = document.createElement('div');
@@ -108,10 +110,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       menu.replaceChildren(workspace);
       const filter = () => {
         const query = searchInput.value.trim().toLocaleLowerCase();
-        optionsContainer.querySelectorAll('.jo-maintenance-job-option').forEach(button => {
+        menu.querySelectorAll('.jo-maintenance-job-option').forEach(button => {
           button.hidden = !button.dataset.value.toLocaleLowerCase().includes(query);
         });
-        optionsContainer.querySelectorAll('.jo-maintenance-job-category').forEach(heading => {
+        menu.querySelectorAll('.jo-maintenance-job-category').forEach(heading => {
           const group = heading.closest('.jo-maintenance-job-group');
           group.hidden = !Array.from(group.querySelectorAll('.jo-maintenance-job-option')).some(button => !button.hidden);
         });
@@ -217,7 +219,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         selectedChips.appendChild(chip);
       });
 
-      optionsContainer
+      menu
         .querySelectorAll('.jo-maintenance-job-option')
         .forEach((optionButton) => {
           optionButton.classList.toggle(
@@ -235,6 +237,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     const render = () => {
       optionsContainer.innerHTML = '';
+      menu.querySelector('.jo-maintenance-job-other-footer')?.replaceChildren();
 
       const categoryFor = (name) => {
         if (/brake/i.test(name)) return 'BRAKE SYSTEM';
@@ -290,7 +293,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           });
           group.append(optionButton);
         });
-        optionsContainer.append(group);
+        if (isCreatePicker && options.some(option => option.value === 'Other')) {
+          menu.querySelector('.jo-maintenance-job-other-footer')?.append(group);
+        } else {
+          optionsContainer.append(group);
+        }
       });
       menu.dispatchEvent(new Event('jo-jobs-rendered'));
 
