@@ -163,7 +163,7 @@
                         data-receipt-url="{{ route('incoming-deliveries.receive', $delivery) }}"
                         data-po="{{ $delivery->po_no }}"
                         data-supplier="{{ $delivery->supplier_name }}"
-                        data-lines="{{ e($receiptLines->toJson()) }}"
+                        data-lines="{{ $receiptLines->toJson() }}"
                         aria-label="Review and receive items for {{ $delivery->po_no }}">
                         <i class="fa-solid fa-box-open" aria-hidden="true"></i> Receive
                       </button>
