@@ -14,7 +14,7 @@
                     $restockLines = collect(json_decode((string) $partRequest->restock_items, true) ?: []);
                   @endphp
                   <tr>
-                    <td><div class="pr-ref-cell"><strong class="pr-main-num">{{ $partRequest->pr_no }}</strong><div class="pr-sub-tags"><span class="pr-meta-tag">Warehouse Restock</span></div></div></td>
+                    <td><div class="pr-ref-cell"><strong class="pr-main-num">{{ $partRequest->pr_no }}</strong></div></td>
                     <td class="item-col"><div class="warehouse-pr-item-summary"><strong class="warehouse-pr-item-name">{{ $restockLines->first()['name'] ?? $partRequest->item }}</strong>
                       @if($restockLines->count() > 1)
                         <details class="warehouse-pr-parts-more"><summary>+{{ $restockLines->count()-1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="warehouse-pr-parts-popup">
@@ -25,7 +25,17 @@
                     <td class="qty-col"><span class="qty-needed-badge">{{ $restockLines->count() > 1 ? $restockLines->count().' items' : $partRequest->quantity }}</span></td>
                     <td class="status-col"><span class="warehouse-ir-stock-status is-partial"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> Restocking</span></td>
                     <td class="status-col"><span class="warehouse-ir-process-status is-warning"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> {{ $partRequest->status }}</span></td>
-                    <td class="actions-col"><span class="pr-meta-tag" title="Managed by Purchasing; stock updates only after warehouse receiving">Purchasing</span></td>
+                    <td class="actions-col">
+                      <button type="button" class="action-btn view view-btn open-restock-warehouse-view"
+                        data-pr-no="{{ $partRequest->pr_no }}"
+                        data-status="{{ $partRequest->status }}"
+                        data-purpose="{{ $partRequest->purpose ?? 'Inventory replenishment' }}"
+                        data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
+                        data-parts="{{ $restockLines->toJson() }}"
+                        title="View Restocking PR Details" aria-label="View Restocking PR Details">
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i> <span>View</span>
+                      </button>
+                    </td>
                   </tr>
                 @else
                 @php
