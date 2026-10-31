@@ -741,15 +741,15 @@
   padding:11px 10px!important;
   font-size:11px!important;
 }
-.scheduled-purchase-page .schedule-table th:nth-child(1) {width:17%}
-.scheduled-purchase-page .schedule-table th:nth-child(2) {width:17%}
-.scheduled-purchase-page .schedule-table th:nth-child(3) {width:13%}
+.scheduled-purchase-page .schedule-table th:nth-child(1) {width:16%}
+.scheduled-purchase-page .schedule-table th:nth-child(2) {width:16%}
+.scheduled-purchase-page .schedule-table th:nth-child(3) {width:12%}
 .scheduled-purchase-page .schedule-table th:nth-child(4) {width:8%}
 .scheduled-purchase-page .schedule-table th:nth-child(5) {width:9%}
 .scheduled-purchase-page .schedule-table th:nth-child(6) {width:12%}
 .scheduled-purchase-page .schedule-table th:nth-child(7) {width:10%}
 .scheduled-purchase-page .schedule-table th:nth-child(8) {width:8%}
-.scheduled-purchase-page .schedule-table th:nth-child(9) {width:10%}
+.scheduled-purchase-page .schedule-table th:nth-child(9) {width:9%}
 .scheduled-purchase-page .schedule-table .two-line-cell {
   min-width:0;max-width:100%;
 }
