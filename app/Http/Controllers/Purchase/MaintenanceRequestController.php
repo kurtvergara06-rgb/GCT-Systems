@@ -40,15 +40,21 @@ class MaintenanceRequestController extends Controller
         // Keep actionable requests separate from orders already moving through
         // procurement.  The tab is display-only; create PO remains limited to
         // For Purchase and completed receipts continue to move to History.
-        $recordView = in_array($request->query('record_view'), ['pending', 'in_progress'], true)
+        $recordView = in_array($request->query('record_view'), ['pending', 'in_progress', 'history'], true)
             ? $request->query('record_view')
             : 'pending';
-        $visibleStatuses = $recordView === 'pending'
-            ? ['For Purchase']
-            : ['Ordered', 'For Pick-up', 'For Delivery'];
+        $visibleStatuses = match ($recordView) {
+            'history' => ['Delivered', 'Picked Up', 'Issued'],
+            'in_progress' => ['Ordered', 'For Pick-up', 'For Delivery'],
+            default => ['For Purchase'],
+        };
 
         $baseQuery = $this->maintenanceBaseQuery();
         $query = (clone $baseQuery)->whereIn('status', $visibleStatuses);
+        if ($recordView === 'history') {
+            // Exclude internal purchase-side PR copies; show the canonical Maintenance PR once.
+            $query->where(fn ($q) => $q->whereNull('pr_no')->orWhere('pr_no', 'not like', '%-P%'));
+        }
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
