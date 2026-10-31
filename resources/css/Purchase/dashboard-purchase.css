@@ -1693,11 +1693,9 @@
   background:#eff4fa;color:#345f90;font-size:10px;font-weight:750;
 }
 .purchase-dashboard-page .recent-request-card .recent-purchase-meta {margin-top:7px;}
-.purchase-dashboard-page .recent-order-card .recent-order-heading {align-items:center;gap:10px;}
 .purchase-dashboard-page .recent-order-card .recent-order-heading strong {
   flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;
 }
-.purchase-dashboard-page .recent-order-card .recent-order-footer {gap:8px;align-items:center;}
 .purchase-dashboard-page .recent-order-card .po-status-tag {
   display:inline-flex;align-items:center;justify-content:center;
   max-width:100%;width:max-content;min-width:0;padding:4px 8px;
@@ -1709,7 +1707,6 @@
 .purchase-dashboard-page .quick-actions-card .purchase-quick-icon.green {
   background:#edf3fb!important;color:#315d94!important;border:1px solid #dae6f4;
 }
-.purchase-dashboard-page .quick-actions-card .purchase-quick-item {gap:11px;}
 .purchase-dashboard-page .supplier-row {gap:12px;}
 .purchase-dashboard-page .supplier-row strong {overflow-wrap:anywhere;}
 
