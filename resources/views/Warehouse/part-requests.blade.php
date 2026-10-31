@@ -40,9 +40,13 @@
             <h2>{{ $isJo ? 'Job Order Requests' : 'Purchase Request Records' }}</h2>
             <p>Review maintenance purchase shortages and track their procurement status.</p>
           </div>
-        <div class="warehouse-request-count">
-          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $isJo ? $jobOrderRequests->total() : $purchaseRequests->total() }} {{ $isJo ? \Illuminate\Support\Str::plural('Job Order', $jobOrderRequests->total()) : \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+        @if($canEditWarehouse && !$isJo && !$isHistory)
+        <div class="warehouse-pr-header-actions">
+          <button type="button" class="warehouse-create-pr-btn" data-open-restock-pr aria-haspopup="dialog">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Create PR
+          </button>
         </div>
+        @endif
 
 
         </div>
