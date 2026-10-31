@@ -23,7 +23,7 @@
                       @endif
                     </div></td>
                     <td class="qty-col"><span class="qty-needed-badge">{{ $restockLines->count() > 1 ? $restockLines->count().' items' : $partRequest->quantity }}</span></td>
-                    <td class="status-col"><span class="warehouse-ir-stock-status is-partial"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> Restocking</span></td>
+                    <td class="status-col"><span class="warehouse-ir-stock-status is-partial"><i class="fa-solid fa-warehouse" aria-hidden="true"></i> Warehouse Restock</span></td>
                     <td class="status-col"><span class="warehouse-ir-process-status is-warning"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> {{ $partRequest->status }}</span></td>
                     <td class="actions-col"><div class="actions warehouse-actions">
                       <button type="button" class="action-btn view view-btn open-restock-warehouse-view"
