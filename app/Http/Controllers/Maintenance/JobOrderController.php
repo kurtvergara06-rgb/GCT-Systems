@@ -56,7 +56,13 @@ class JobOrderController extends Controller
 
     public function index(Request $request)
     {
+        $recordView = $request->input('record_view') === 'history' ? 'history' : 'active';
         $query = JobOrder::query();
+        if ($recordView === 'history') {
+            $query->where('status', 'Completed');
+        } else {
+            $query->where('status', '!=', 'Completed');
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -93,6 +99,14 @@ class JobOrderController extends Controller
             ->latest()
             ->paginate(1000)
             ->withQueryString();
+
+        $durationSuggestions = $jobOrders->getCollection()->mapWithKeys(fn (JobOrder $jo) => [
+            $jo->id => $this->durations->suggestion((string) $jo->maintenance_type, (string) ($jo->work_to_perform ?? '')),
+        ]);
+        $linkedPrsByJobOrderNo = PurchaseRequest::query()
+            ->whereIn('job_order_no', $jobOrders->getCollection()->pluck('job_order_no')->filter())
+            ->get()
+            ->groupBy('job_order_no');
 
         // Older IRs were created without advancing the Job Order part_status.
         // Use the linked IR for the display instead of falsely showing
@@ -286,6 +300,9 @@ class JobOrderController extends Controller
             'Maintenance.job-order',
             compact(
                 'jobOrders',
+                'recordView',
+                'durationSuggestions',
+                'linkedPrsByJobOrderNo',
                 'existingIrStatuses',
                 'joPartsDisplayStatuses',
                 'onHold',
