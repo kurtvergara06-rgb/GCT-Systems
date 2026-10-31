@@ -808,3 +808,16 @@
 .incoming-receipt-footer button { cursor: pointer; min-height: 34px; border-radius: 7px; font-size: 12px; font-weight: 700; }
 .incoming-receipt-cancel { background: #fff; border: 1px solid #cbd9eb; color: #264264; padding: 0 14px; }
 @media (max-width: 650px) { .incoming-receipt-meta { grid-template-columns: 1fr; } .incoming-receipt-content { padding: 12px; } }
+
+
+/* Receipt mode selector: full outstanding delivery or explicitly-entered partial receipt. */
+.incoming-receipt-mode { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px; }
+.incoming-receipt-mode-button { display:flex;align-items:center;gap:11px;text-align:left;border:1px solid #cad9ec;background:#f8fbff;color:#1a3a63;border-radius:8px;padding:11px 13px;cursor:pointer;min-width:0; }
+.incoming-receipt-mode-button i { font-size:17px;color:#245eb2;flex:none; }
+.incoming-receipt-mode-button span { display:flex;flex-direction:column;gap:3px;min-width:0; }
+.incoming-receipt-mode-button strong { font-size:12px; }
+.incoming-receipt-mode-button small { font-size:10px;color:#627b99;line-height:1.35; }
+.incoming-receipt-mode-button[aria-pressed="true"] { border-color:#175bc2;background:#e9f2ff;box-shadow:0 0 0 1px #175bc2 inset; }
+.incoming-receipt-items input[readonly] { background:#f2f5f9;color:#4f6785;cursor:default; }
+.incoming-receipt-footer button:disabled { opacity:.55;cursor:not-allowed; }
+@media(max-width:650px){.incoming-receipt-mode{grid-template-columns:1fr}}
