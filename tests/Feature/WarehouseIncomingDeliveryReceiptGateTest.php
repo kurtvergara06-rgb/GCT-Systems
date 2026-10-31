@@ -102,7 +102,9 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
 
         // Warehouse physically receives the PO. This is the stock-in event.
         $this->actingAs($warehouseHead)
-            ->post(route('incoming-deliveries.receive', $purchaseOrder))
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), [
+                'received_quantities' => [2],
+            ])
             ->assertRedirect('/warehouse/incoming-deliveries');
 
         $inventoryItem = InventoryItem::query()
