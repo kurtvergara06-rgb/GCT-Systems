@@ -72,6 +72,11 @@
 
         <div class="table-wrap records-table-wrap purchase-history-table-wrap">
           <table class="requested-purchase-table records-table purchase-history-reference-table">
+            <colgroup>
+              <col style="width:12%"><col style="width:15%"><col style="width:11%">
+              <col style="width:19%"><col style="width:10%"><col style="width:10%">
+              <col style="width:13%"><col style="width:10%">
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col">PR ID</th>
@@ -125,7 +130,13 @@
                     @endif
                   </td>
                   <td class="requested-pr-quantity">{{ count($parts) ?: 1 }} {{ (count($parts) ?: 1) === 1 ? 'Part' : 'Parts' }}</td>
-                  <td class="requested-pr-status"><x-ui.status-badge :status="$history->status ?? '—'" type="purchase" /></td>
+                  <td class="requested-pr-status purchase-history-status-cell">
+                    @php $historyStatus = \App\Support\StatusBadge::resolve($history->status ?? '—', 'purchase'); @endphp
+                    <span class="purchase-history-status-pill" data-status-tone="{{ $historyStatus['tone'] }}">
+                      <i class="fa-solid {{ $historyStatus['icon'] }}" aria-hidden="true"></i>
+                      <span>{{ $historyStatus['label'] }}</span>
+                    </span>
+                  </td>
                   <td class="requested-pr-actions-cell">
                     <div class="record-actions">
                       <button type="button" class="open-view-requested-pr-modal purchase-history-view-btn"
