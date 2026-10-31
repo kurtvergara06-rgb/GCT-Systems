@@ -65,5 +65,6 @@ test('warehouse pages load one scoped status typography contract', function () {
         ->toContain('font-weight: 800;')
         ->toContain('height: 34px;')
         ->toContain('border-radius: 8px;')
-        ->not->toContain('!important');
+        // Scoped overrides intentionally beat legacy page-level declarations.
+        ->toContain('height: 34px !important;');
 });
