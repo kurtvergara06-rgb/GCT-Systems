@@ -509,7 +509,7 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->inventory_posted_at !== null || in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true)) {
+        if ($purchaseOrder->inventory_posted_at !== null || collect($purchaseOrder->received_quantities ?? [])->sum() > 0 || in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true)) {
             return redirect()->back()->with(
                 'error',
                 'A received purchase order cannot be deleted because its inventory movement must remain auditable.'
@@ -524,7 +524,7 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedOrder->inventory_posted_at !== null || in_array($lockedOrder->status, ['Delivered', 'Picked Up'], true)) {
+            if ($lockedOrder->inventory_posted_at !== null || collect($lockedOrder->received_quantities ?? [])->sum() > 0 || in_array($lockedOrder->status, ['Delivered', 'Picked Up'], true)) {
                 throw ValidationException::withMessages([
                     'purchase_order' => 'A received purchase order cannot be deleted.',
                 ]);
