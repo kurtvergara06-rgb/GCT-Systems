@@ -66,6 +66,9 @@
           search-placeholder="Search restock no., item, or status..."
           :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')"
           filter-title="Filter Restock Requests"
+          :sort-options="['created_at' => 'Created Date', 'pr_no' => 'Restock Number', 'status' => 'Status']"
+          default-sort="created_at"
+          default-direction="desc"
         >
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All States">
