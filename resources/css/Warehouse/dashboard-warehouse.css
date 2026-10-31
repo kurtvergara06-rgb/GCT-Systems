@@ -3556,15 +3556,37 @@
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:4px;
-  width:max-content;
+  gap:5px;
+  width:100%;
   min-width:0;
   max-width:100%;
-  padding:5px 4px;
-  font-size:9px;
-  white-space:nowrap;
+  min-height:30px;
+  padding:5px 3px;
+  border-radius:6px;
+  font-size:10px;
+  line-height:1.15;
+  white-space:normal;
   overflow:visible;
   text-overflow:clip;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status.yellow {
+  background:#ffedb5!important;
+  color:#815000!important;
+  border:1px solid #e9be4c!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status.red {
+  background:#ffe1e1!important;
+  color:#a52837!important;
+  border:1px solid #f1aab2!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status .status-badge__icon {
+  flex:0 0 auto;
+  font-size:10px;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status .status-badge__label {
+  min-width:0;
+  white-space:normal;
+  text-align:center;
 }
 .warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th {
   background:#fff;
