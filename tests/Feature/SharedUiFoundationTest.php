@@ -8,7 +8,7 @@ test('shared ui foundation exposes the canonical typography and sizing tokens', 
 
     expect($theme)
         ->toContain("--gct-font-family: 'Poppins', Arial, sans-serif;")
-        ->toContain('--gct-status-min-height: 23px;')
+        ->toContain('--gct-status-min-height: 34px;')
         ->toContain('--gct-table-action-size: 32px;')
         ->toContain('--gct-button-height: 40px;');
 });
@@ -63,7 +63,7 @@ test('warehouse pages load one scoped status typography contract', function () {
         ->toContain('#appSidebar[data-gct-shell="warehouse"]')
         ->toContain('font-size: 11px;')
         ->toContain('font-weight: 800;')
-        ->toContain('height: 27px;')
+        ->toContain('height: 34px;')
         ->toContain('border-radius: 7px;')
         ->not->toContain('!important');
 });
