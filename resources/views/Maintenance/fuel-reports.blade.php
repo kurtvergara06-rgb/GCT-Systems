@@ -25,6 +25,16 @@
       />
 
 
+      {{-- Fuel issuance KPIs use the same shared cards as Job Orders.
+           These metrics reflect the selected reporting period and do not
+           imply that issued diesel has already been consumed. --}}
+      <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">
+        <x-ui.summary-card label="Fuel Records" value="{{ $fuelReports->count() }}" small="Recorded fuel entries" icon="fa-file-lines" color="blue" />
+        <x-ui.summary-card label="Diesel Issued" value="{{ number_format($totalFuelUsed, 2) }} L" small="Recorded issuance volume" icon="fa-gas-pump" color="yellow" />
+        <x-ui.summary-card label="Recorded Distance" value="{{ number_format($totalDistance, 2) }} km" small="Recorded GPS or manual distance" icon="fa-road" color="green" />
+        <x-ui.summary-card label="Vehicles Recorded" value="{{ $fuelReports->pluck('bus_no')->filter()->unique()->count() }}" small="Distinct buses with fuel records" icon="fa-bus" color="red" />
+      </section>
+
       {{-- RECENT FUEL ENTRIES --}}
       <section data-ajax-region="fuel-records" class="table-card fuel-card recent-fuel-card">
 
