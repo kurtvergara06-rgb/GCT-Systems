@@ -195,13 +195,13 @@
                                     $fulfillmentPercent = $fulfillment['required'] > 0
                                         ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
                                 @endphp
-                                <div class="maintenance-ir-fulfillment" title="Cumulative Warehouse-issued parts for the linked Job Order">
+                                <div class="maintenance-ir-fulfillment" style="display:flex;flex-direction:column;align-items:stretch;gap:5px;width:170px;max-width:100%;min-width:130px" title="Cumulative Warehouse-issued parts for the linked Job Order">
                                     <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
-                                    <span class="maintenance-ir-fulfillment-track {{ $fulfillmentPercent === 100 ? 'is-complete' : '' }}"
+                                    <span class="maintenance-ir-fulfillment-track {{ $fulfillmentPercent === 100 ? 'is-complete' : '' }}" style="display:block;width:100%;height:5px;min-height:5px;background:#e2eaf4;border-radius:999px;overflow:hidden;flex:none"
                                           role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}"
                                           aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}"
                                           aria-label="JO parts issued">
-                                        <span style="width:{{ $fulfillmentPercent }}%"></span>
+                                        <span style="display:block;width:{{ $fulfillmentPercent }}%;height:100%;background:{{ $fulfillmentPercent === 100 ? '#16a36b' : '#d5a12a' }};border-radius:999px"></span>
                                     </span>
                                     <small>{{ $fulfillment['remaining'] }} remaining</small>
                                 </div>
