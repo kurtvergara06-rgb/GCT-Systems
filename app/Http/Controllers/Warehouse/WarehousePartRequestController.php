@@ -215,9 +215,23 @@ class WarehousePartRequestController extends Controller
             ? $this->historyStatuses
             : $this->statuses;
 
-        $query = $this->warehouseMaintenanceRequestQuery()
-            ->with('requester')
-            ->whereIn('status', $statusOptions);
+        // One visible PR queue; keep the two sources identified and handled independently.
+        $query = PurchaseRequest::query()->with('requester')
+            ->where(function ($group) {
+                $group->where(function ($maintenance) {
+                    $maintenance->where(function ($q) {
+                        $q->whereNull('source_type')->orWhere('source_type', 'Maintenance Request');
+                    })->where(function ($q) {
+                        $q->whereNull('job_order_no')->orWhere('job_order_no', '!=', 'RESTOCK');
+                    })->where(function ($q) {
+                        $q->whereNull('bus_no')->orWhere('bus_no', '!=', 'RESTOCK');
+                    })->where(function ($q) {
+                        $q->whereNull('remarks')->orWhere('remarks', 'not like', 'Missing parts from %');
+                    });
+                })->orWhere(function ($restock) {
+                    $restock->where('source_type', 'Auto Restock')->where('job_order_no', 'RESTOCK');
+                });
+            })->whereIn('status', $statusOptions);
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -241,12 +255,12 @@ class WarehousePartRequestController extends Controller
             ->withQueryString();
 
         $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
-            return $this->prepareRequestForWarehouse($purchaseRequest);
+            return $purchaseRequest->source_type === 'Auto Restock'
+                ? $purchaseRequest
+                : $this->prepareRequestForWarehouse($purchaseRequest);
         });
 
-        $activeCount = $this->warehouseMaintenanceRequestQuery()
-            ->whereIn('status', $this->statuses)
-            ->count();
+        $activeCount = (clone $query)->whereIn('status', $this->statuses)->count();
 
         $historyCount = $this->warehouseMaintenanceRequestQuery()
             ->whereIn('status', $this->historyStatuses)
