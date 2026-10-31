@@ -19,7 +19,18 @@
     $openPoModal = $openPoModal ?? false;
     $prefillItems = [];
 
-    if ($selectedPurchaseRequest) {
+    if ($selectedPurchaseRequest && $selectedPurchaseRequest->source_type === 'Auto Restock' && $selectedPurchaseRequest->restock_items) {
+      foreach ((json_decode((string) $selectedPurchaseRequest->restock_items, true) ?: []) as $line) {
+        $prefillItems[] = [
+          'pr_no' => $selectedPurchaseRequest->pr_no,
+          'bus_no' => 'RESTOCK',
+          'item_description' => $line['name'] ?? '',
+          'quantity' => (int) ($line['quantity'] ?? 0),
+          'unit' => $line['unit'] ?? 'PC',
+          'cost' => '',
+        ];
+      }
+    } elseif ($selectedPurchaseRequest) {
       $rawItems = explode(',', $selectedPurchaseRequest->item ?? '');
 
       foreach ($rawItems as $rawItem) {
