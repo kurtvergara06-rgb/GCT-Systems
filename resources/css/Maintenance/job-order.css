@@ -7019,7 +7019,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 }
 
 
-/* Match both Job Order status columns to the 28px completion control. */
+/* Match both Job Order status columns to the 34px View action, with 12px labels. */
 .jo-page .job-orders-table td.status-col .gct-status-badge,
 .jo-page .job-orders-table td.status-col .status-badge,
 .jo-page .job-orders-table td.status-col .badge,
@@ -7029,9 +7029,9 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-page .job-orders-table td.status-col .jo-parts-not-requested-badge,
 .jo-page .job-orders-table td.status-col .jo-no-parts-required-badge {
   box-sizing:border-box!important;display:inline-flex!important;
-  min-height:28px!important;padding:0 11px!important;
-  align-items:center!important;justify-content:center!important;
-  border-radius:6px!important;line-height:1!important;white-space:nowrap;
+  min-height:34px!important;min-width:92px!important;padding:0 12px!important;
+  align-items:center!important;justify-content:center!important;gap:6px!important;
+  border-radius:6px!important;font-size:12px!important;line-height:1.2!important;white-space:nowrap;
 }
 
 
