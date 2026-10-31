@@ -494,52 +494,18 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     setInputValue('edit_item_code', editButton.dataset.code);
     setInputValue('edit_item_name', editButton.dataset.name);
     setInputValue('edit_category', editButton.dataset.category);
-    setInputValue('edit_quantity', editButton.dataset.quantity);
+    const onHandLabel = document.getElementById('edit_quantity');
+    if (onHandLabel) onHandLabel.textContent = editButton.dataset.quantity ?? '—';
     setInputValue('edit_unit', editButton.dataset.unit);
+    const onHandUnit = document.getElementById('edit_onhand_unit');
+    if (onHandUnit) onHandUnit.textContent = editButton.dataset.unit || 'pcs';
     setInputValue('edit_reorder', editButton.dataset.reorder);
     setInputValue('edit_safety_stock', editButton.dataset.safetyStock);
     setInputValue('edit_supplier', editButton.dataset.supplier);
     setInputValue('edit_location', editButton.dataset.location);
-    setInputValue('edit_adjustment_reason', '');
-
-    editForm.dataset.originalQuantity = String(editButton.dataset.quantity ?? '');
-    updateAdjustmentReasonRequirement();
 
     openModal(editModal);
   });
-
-  function updateAdjustmentReasonRequirement() {
-    if (!editForm) {
-      return;
-    }
-
-    const quantityInput = document.getElementById('edit_quantity');
-    const reasonInput = document.getElementById('edit_adjustment_reason');
-    const requiredMark = document.getElementById('editAdjustmentRequiredMark');
-    const helpText = document.getElementById('editAdjustmentHelp');
-
-    if (!quantityInput || !reasonInput) {
-      return;
-    }
-
-    const originalQuantity = String(editForm.dataset.originalQuantity ?? '');
-    const currentQuantity = String(quantityInput.value ?? '');
-    const quantityChanged = originalQuantity !== '' && currentQuantity !== originalQuantity;
-
-    reasonInput.required = quantityChanged;
-
-    if (requiredMark) {
-      requiredMark.hidden = !quantityChanged;
-    }
-
-    if (helpText) {
-      helpText.textContent = quantityChanged
-        ? 'Required because Quantity Available has been changed.'
-        : 'No reason is required when stock quantity remains unchanged.';
-    }
-  }
-
-  document.getElementById('edit_quantity')?.addEventListener('input', updateAdjustmentReasonRequirement);
 
   /*
   |--------------------------------------------------------------------------
