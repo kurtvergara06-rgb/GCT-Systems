@@ -2237,12 +2237,14 @@ body::-webkit-scrollbar {
 }
 
 
-/* Shared table empty-state presentation (Operation-style, reusable). */
+/* Five-module empty table treatment: the Warehouse Purchase Requests reference. */
 tr.gct-empty-table-row > td.gct-empty-cell,
 tr.gct-search-empty-row > td,
 tr.empty-row > td.empty-row {
   text-align: center;
   padding: 48px 20px;
+  height: 210px;
+  vertical-align: middle;
   background: transparent;
   border-bottom: 0;
 }
@@ -2266,7 +2268,7 @@ tr.empty-row > td.empty-row {
 .gct-empty-content .gct-empty-title {
   color: #0b2344;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 .gct-empty-content .gct-empty-description {
