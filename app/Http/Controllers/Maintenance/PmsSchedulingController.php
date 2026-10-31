@@ -171,7 +171,7 @@ class PmsSchedulingController extends Controller
                 ->values();
         }
 
-        $sort = in_array($request->query('sort'), ['bus_no', 'gps_report_date', 'current_km', 'overall_status'], true)
+        $sort = in_array($request->query('sort'), ['bus_no', 'current_km', 'next_pms_km', 'next_pms_date', 'overall_status'], true)
             ? $request->query('sort')
             : 'bus_no';
         $descending = $request->query('sort_direction') === 'desc';
