@@ -624,3 +624,14 @@
   border-top: 1px solid var(--border);
   background: #ffffff;
 }
+
+/* Physical stock classification and allocation are independent facts. */
+.warehouse-inventory-page .warehouse-inventory-status-stack{
+  display:flex;flex-direction:column;align-items:flex-start;gap:5px;
+}
+.warehouse-inventory-page .warehouse-inventory-reserved-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 8px;border:1px solid #cfd9e9;border-radius:7px;
+  background:#f1f5fa;color:#455e7e;
+  font-size:10px;font-weight:750;line-height:1.25;white-space:nowrap;
+}
