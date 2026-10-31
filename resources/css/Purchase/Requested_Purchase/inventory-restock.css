@@ -824,3 +824,37 @@
 .inventory-restock-page .restock-table td:nth-child(6) { white-space: normal; }
 .inventory-restock-page .restock-card .table-wrap { overflow-x: auto; overflow-y: visible; }
 @media (max-width: 900px) { .inventory-restock-page .restock-table { min-width: 850px; } }
+
+
+/* Inventory Restock: matched compact rectangular Source / Status badges */
+.inventory-restock-page .restock-table td:nth-child(2) .source-badge {
+  display: inline-flex !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 9px !important;
+  border: 1px solid #f3d38c !important;
+  border-radius: 6px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box;
+}
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  display: inline-flex !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 9px !important;
+  border-radius: 6px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
