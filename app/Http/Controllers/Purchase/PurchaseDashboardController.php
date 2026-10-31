@@ -42,7 +42,7 @@ class PurchaseDashboardController extends Controller
         $ordered = PurchaseOrder::where('status', 'Ordered')->count();
         $forPickup = PurchaseOrder::where('status', 'For Pick-up')->count();
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
-        $scheduledPurchases = ScheduledPurchase::where('status', 'Active')->count();
+
 
         $recentPurchaseRequests = $maintenanceRequestBase
             ->whereIn('status', ['For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'])
