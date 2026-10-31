@@ -55,12 +55,21 @@
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
             <h2>Purchase Requisition Records</h2>
-            <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
+            <p>Maintenance purchase requests stay visible here as active records or completed history.</p>
           </div>
         </div>
 
         <div class="requested-pr-list-controls">
-        <nav class="requested-pr-record-tabs" aria-label="Purchase requisition status">
+        <nav class="requested-pr-record-tabs" aria-label="Purchase requisition records">
+          <a href="{{ route('maintenance-requests', ['record_view' => 'pending']) }}" class="requested-pr-record-tab {{ $recordView !== 'history' ? 'is-active' : '' }}" aria-current="{{ $recordView !== 'history' ? 'page' : 'false' }}">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Active</span>
+          </a>
+          <a href="{{ route('maintenance-requests', ['record_view' => 'history']) }}" class="requested-pr-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}" aria-current="{{ $recordView === 'history' ? 'page' : 'false' }}">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>History</span>
+          </a>
+        </nav>
+        @if($recordView !== 'history')
+        <nav class="requested-pr-record-tabs" aria-label="Active purchase requisition progress">
           <a href="{{ route('maintenance-requests', ['record_view' => 'pending']) }}" class="requested-pr-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" aria-current="{{ $recordView === 'pending' ? 'page' : 'false' }}" data-allow-partial-navigation="true">
             <i class="fa-solid fa-clock" aria-hidden="true"></i><span>Pending Requests</span>
           </a>
@@ -68,6 +77,7 @@
             <i class="fa-solid fa-list-check" aria-hidden="true"></i><span>In Progress</span>
           </a>
         </nav>
+        @endif
         <x-ui.table-toolbar
           action="{{ route('maintenance-requests', [], false) }}"
           class="records-toolbar"
