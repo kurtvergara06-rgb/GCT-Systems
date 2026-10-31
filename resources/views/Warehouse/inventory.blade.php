@@ -107,7 +107,8 @@
                 <th>On Hand</th>
                 <th>Reserved</th>
                 <th>Available</th>
-                <th>Reorder Level</th>
+                <th>Reorder Point</th>
+                <th>Safety Stock</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -141,6 +142,7 @@
                   <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
+                  <td class="inventory-safety-stock-cell"><span title="Safety Stock calculation has not yet been configured">Not set</span></td>
                   <td>
                     <div class="warehouse-inventory-status-stack">
                       <x-ui.status-badge
@@ -208,7 +210,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
+                  colspan="9"
                   message="No inventory items found."
                 />
               @endforelse
