@@ -226,6 +226,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Purchase/dashboard-purchase.css',
+                'resources/js/Purchase/dashboard-purchase.js',
                 'resources/css/Purchase/purchase-orders.css',
                 'resources/css/Purchase/purchase-module-ui.css',
 
