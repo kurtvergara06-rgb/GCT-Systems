@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\PmsSchedule;
+use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\BusPmsMonitoring;
 use App\Services\Maintenance\PmsStatusService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
@@ -215,13 +217,21 @@ class PmsSchedulingController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
+        $monitoringByBus = BusPmsMonitoring::query()->with('bus')->get()
+            ->keyBy(fn (BusPmsMonitoring $monitoring) => strtoupper(trim((string) $monitoring->bus?->bus_no)));
+        $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
+        $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'approve') ?? false;
+
         return view('Maintenance.pms-scheduling', compact(
             'rows',
             'processedBuses',
             'gpsRecordsToday',
             'upcomingCount',
             'dueSoonCount',
-            'overdueCount'
+            'overdueCount',
+            'monitoringByBus',
+            'configurableBuses',
+            'canConfigurePms'
         ));
     }
 
