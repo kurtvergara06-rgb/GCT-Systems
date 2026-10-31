@@ -375,7 +375,7 @@
                 @forelse($recentStockMovements as $movement)
                   @php
                     $movementType = strtolower((string) ($movement->movement_type ?? ''));
-                    $movementClass = str_contains($movementType, 'in') ? 'green' : (str_contains($movementType, 'out') ? 'red' : 'blue');
+                    $movementClass = str_contains($movementType, 'in') ? 'gray' : (str_contains($movementType, 'out') ? 'red' : 'blue');
                     $qty = (int) ($movement->quantity_change ?? 0);
                     $creatorName = $movement->creator?->name ?? 'System';
                     $creatorRole = $movement->creator?->role ?? 'Automated update';
@@ -389,7 +389,7 @@
                     <td class="warehouse-row-number">{{ $loop->iteration }}</td>
                     <td>
                       <div class="warehouse-item-cell">
-                        <span class="warehouse-item-icon"><i class="fa-solid fa-box"></i></span>
+                        <span class="warehouse-item-icon warehouse-movement-item-icon {{ $qty < 0 ? 'is-stock-out' : ($movementClass === 'gray' ? 'is-stock-in' : 'is-adjustment') }}"><i class="fa-solid {{ $qty < 0 ? 'fa-box-open' : ($movementClass === 'gray' ? 'fa-box' : 'fa-boxes-stacked') }}" aria-hidden="true"></i></span>
                         <span><strong class="warehouse-table-primary">{{ $movement->item_name ?? 'Inventory Item' }}</strong><small>{{ $movement->item_code ?? 'No item code' }}</small></span>
                       </div>
                     </td>
