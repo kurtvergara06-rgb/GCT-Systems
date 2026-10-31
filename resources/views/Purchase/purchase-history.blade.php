@@ -70,18 +70,17 @@
         </div>
 
         <div class="table-wrap records-table-wrap">
-          <table class="requested-purchase-table records-table">
+          <table class="requested-purchase-table records-table purchase-history-reference-table">
             <thead>
               <tr>
-                <th>Request ID</th>
-                <th>Source</th>
-                <th>JO No.</th>
-                <th>Bus ID</th>
-                <th>Item</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Completed</th>
-                <th>Actions</th>
+                <th scope="col">PR ID</th>
+                <th scope="col">Source</th>
+                <th scope="col">Bus ID</th>
+                <th scope="col">Requested Parts</th>
+                <th scope="col">QTY</th>
+                <th scope="col">Total Items</th>
+                <th scope="col">PR Status</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -90,45 +89,63 @@
                   $parts = $history->parts_breakdown ?? [];
                   $itemName = $history->first_item_display ?? $history->item ?? '—';
                   $quantity = $history->first_quantity_display ?? $history->quantity ?? '—';
+                  $isRestock = $history->source_type === 'Auto Restock';
                 @endphp
                 <tr>
-                  <td><strong>{{ $history->display_pr_no }}</strong></td>
-                  <td>{{ $history->history_source_label ?? 'Maintenance Request' }}</td>
-                  <td><strong>{{ $history->job_order_no && $history->job_order_no !== 'RESTOCK' ? $history->job_order_no : '—' }}</strong></td>
-                  <td>{{ $history->bus_no && $history->bus_no !== 'RESTOCK' ? $history->bus_no : '—' }}</td>
-                  <td>{{ $itemName }}</td>
-                  <td>{{ $quantity }}</td>
+                  <td><div class="requested-pr-reference"><strong>{{ $history->display_pr_no }}</strong></div></td>
+                  <td><span class="purchase-history-source">{{ $isRestock ? 'Inventory Restock' : 'Maintenance Request' }}</span></td>
+                  <td class="requested-pr-bus"><strong>{{ ! $isRestock && $history->bus_no && $history->bus_no !== 'RESTOCK' ? $history->bus_no : '—' }}</strong></td>
                   <td>
-                    <x-ui.status-badge :status="$history->status ?? '—'" type="purchase" />
+                    <div class="requested-pr-part">
+                      <strong>{{ preg_replace('/\\s*\\[item:\\d+\\]/i', '', $itemName) }}</strong>
+                      @if(count($parts) > 1)
+                        <details class="requested-pr-more">
+                          <summary>+{{ count($parts) - 1 }} more parts</summary>
+                          <div class="requested-pr-more-panel">
+                            @foreach(array_slice($parts, 1) as $part)
+                              <div>{{ preg_replace('/\\s*\\[item:\\d+\\]/i', '', $part['name'] ?? $part['item'] ?? 'Part') }}</div>
+                            @endforeach
+                          </div>
+                        </details>
+                      @endif
+                    </div>
                   </td>
-                  <td>{{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}</td>
-                  <td>
-                    <div class="actions record-actions">
-                      <button
-                        type="button"
-                        class="action-btn view open-view-requested-pr-modal"
-                        title="View"
+                  <td class="requested-pr-part-qty">
+                    <strong>{{ $quantity }}</strong>
+                    @if(count($parts) > 1)
+                      <details class="requested-pr-more requested-pr-more-qty">
+                        <summary>+{{ count($parts) - 1 }} more</summary>
+                        <div class="requested-pr-more-panel">
+                          @foreach(array_slice($parts, 1) as $part)
+                            <div>{{ $part['quantity_display'] ?? ($part['quantity'] ?? '—') }}</div>
+                          @endforeach
+                        </div>
+                      </details>
+                    @endif
+                  </td>
+                  <td class="requested-pr-quantity">{{ count($parts) ?: 1 }} {{ (count($parts) ?: 1) === 1 ? 'Part' : 'Parts' }}</td>
+                  <td class="requested-pr-status"><x-ui.status-badge :status="$history->status ?? '—'" type="purchase" /></td>
+                  <td class="requested-pr-actions-cell">
+                    <div class="record-actions">
+                      <button type="button" class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
+                        title="View Purchase History" aria-label="View {{ $history->display_pr_no }}"
                         data-pr-no="{{ $history->display_pr_no }}"
-                        data-job-order-no="{{ $history->job_order_no && $history->job_order_no !== 'RESTOCK' ? $history->job_order_no : '—' }}"
-                        data-bus-no="{{ $history->bus_no && $history->bus_no !== 'RESTOCK' ? $history->bus_no : '—' }}"
+                        data-job-order-no="{{ ! $isRestock && $history->job_order_no !== 'RESTOCK' ? $history->job_order_no : '—' }}"
+                        data-bus-no="{{ ! $isRestock && $history->bus_no !== 'RESTOCK' ? $history->bus_no : '—' }}"
                         data-created="{{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $history->remarks ?? 'No remarks' }}"
                         data-item="{{ $history->item }}"
                         data-quantity="{{ $quantity }}"
-                        data-parts='@json($parts)'
-                      >
-                        <i class="fa-solid fa-eye"></i>
+                        data-parts='@json($parts)'>
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                       </button>
                     </div>
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row
-                  colspan="9"
-                  icon="fa-clock-rotate-left"
+                <x-ui.empty-row colspan="8" icon="fa-clock-rotate-left"
                   message="No Purchase History Found"
-                  description="Completed, received, and closed purchase orders will appear here."
-                />
+                  description="Completed purchase requests will appear here." />
               @endforelse
             </tbody>
           </table>
