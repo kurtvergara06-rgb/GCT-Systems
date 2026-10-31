@@ -433,7 +433,7 @@ class InventoryLedgerTest extends TestCase
         $this->assertStringContainsString('Initial physical count', $movement->remarks);
     }
 
-    public function test_manual_quantity_adjustment_requires_reason_and_preserves_audit_history(): void
+    public function test_inventory_master_edit_cannot_change_quantity_or_forge_stock_movement(): void
     {
         $user = $this->warehouseUser();
         $item = $this->forgeItem('ADJ-REASON', 10, 'pcs');
@@ -446,31 +446,18 @@ class InventoryLedgerTest extends TestCase
             'reorder_level' => $item->reorder_level,
             'supplier' => $item->supplier,
             'storage_location' => $item->storage_location,
+            'adjustment_reason' => 'Physical count correction',
         ];
 
+        // The master editor intentionally ignores submitted stock quantities.
+        // Physical stock must change through the dedicated, auditable ledger flow.
         $this->actingAs($user)
             ->put(route('inventory.update', $item), $payload)
-            ->assertSessionHasErrors('adjustment_reason');
+            ->assertRedirect('/inventory');
 
         $this->assertSame(10, (int) $item->fresh()->on_hand);
         $this->assertSame(0, StockMovement::where('inventory_item_id', $item->id)->count());
-
-        $this->actingAs($user)
-            ->put(route('inventory.update', $item), $payload + [
-                'adjustment_reason' => 'Physical count correction',
-            ])
-            ->assertRedirect('/inventory');
-
-        $movement = StockMovement::where('inventory_item_id', $item->id)->firstOrFail();
-        $this->assertSame(7, (int) $item->fresh()->on_hand);
-        $this->assertStringContainsString('Physical count correction', $movement->remarks);
-
-        $this->actingAs($user)
-            ->delete(route('inventory.destroy', $item))
-            ->assertSessionHas('error');
-
         $this->assertDatabaseHas('inventory_items', ['id' => $item->id]);
-        $this->assertDatabaseHas('stock_movements', ['id' => $movement->id]);
     }
 
     public function test_seeder_no_longer_defines_fabricated_stock_movement_generation(): void
