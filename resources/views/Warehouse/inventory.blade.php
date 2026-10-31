@@ -183,27 +183,7 @@
                           <i class="fa-solid fa-pen-to-square"></i>
                         </button>
 
-                        <form
-                          action="/inventory/{{ $item->id }}"
-                          method="POST"
-                          data-confirm-form
-                          data-confirm-title="Delete Inventory Item?"
-                          data-confirm-message="Are you sure you want to delete {{ $item->item_name }}? This action cannot be undone."
-                          data-confirm-button="Yes, Delete"
-                          data-confirm-type="delete"
-                        >
-                          @csrf
-                          @method('DELETE')
 
-                          <button
-                            type="submit"
-                            class="action-btn delete"
-                            title="Delete Item"
-                            data-no-loading
-                          >
-                            <i class="fa-solid fa-trash"></i>
-                          </button>
-                        </form>
                       @endif
 
                     </div>
