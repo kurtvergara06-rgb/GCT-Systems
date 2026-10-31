@@ -104,17 +104,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-green">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cubes-stacked"></i></span>
-          <span class="warehouse-kpi-content">
-            <small>Available Stock</small>
-            <span class="warehouse-kpi-metric-row">
-              <strong>{{ number_format($availableStock) }}</strong>
-              <span class="warehouse-kpi-trend positive">{{ $availablePercent }}%</span>
-            </span>
-            <span class="warehouse-kpi-footer"><span>Items with sufficient stock</span><b>View</b></span>
-          </span>
-        </a>
+
 
         <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-yellow">
           <span class="warehouse-kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></span>
@@ -128,19 +118,9 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-red">
-          <span class="warehouse-kpi-icon red"><i class="fa-solid fa-box-open"></i></span>
-          <span class="warehouse-kpi-content">
-            <small>Out of Stock</small>
-            <span class="warehouse-kpi-metric-row">
-              <strong>{{ number_format($outOfStock) }}</strong>
-              <span class="warehouse-kpi-trend danger">{{ $outOfStockPercent }}%</span>
-            </span>
-            <span class="warehouse-kpi-footer"><span>Items with no available stock</span><b>View</b></span>
-          </span>
-        </a>
 
-        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card warehouse-kpi-purple">
+
+        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card warehouse-kpi-blue">
           <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-file-lines"></i></span>
           <span class="warehouse-kpi-content">
             <small>Pending Part Requests</small>
@@ -152,8 +132,8 @@
           </span>
         </a>
 
-        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card warehouse-kpi-green">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-truck"></i></span>
+        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card warehouse-kpi-blue">
+          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-truck"></i></span>
           <span class="warehouse-kpi-content">
             <small>Incoming Deliveries</small>
             <span class="warehouse-kpi-metric-row">
