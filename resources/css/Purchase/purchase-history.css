@@ -151,3 +151,50 @@
   outline:2px solid #8eb7ef!important;
   outline-offset:2px!important;
 }
+
+
+/* Purchase History: give part names their own line so disclosure controls
+   cannot squeeze names into "Veh..." in narrow table columns. */
+.purchase-history-page .purchase-history-reference-table .requested-pr-part {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:5px!important;
+  flex-wrap:nowrap!important;
+  width:100%!important;
+}
+.purchase-history-page .purchase-history-reference-table .requested-pr-part > strong {
+  display:block!important;
+  flex:none!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:11px!important;
+}
+.purchase-history-page .purchase-history-reference-table .requested-pr-part > details.requested-pr-more {
+  display:block!important;
+  width:max-content!important;
+  max-width:100%!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-part-qty {
+  vertical-align:middle!important;
+  font-size:11px!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-part-qty > strong {
+  display:block!important;
+  white-space:nowrap!important;
+}
+.purchase-history-page .purchase-history-reference-table td.requested-pr-part-qty > details.requested-pr-more {
+  margin-top:5px!important;
+}
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more:not([open]) > *:not(summary) {
+  display:none!important;
+}
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more > summary {
+  font-size:10px!important;
+  line-height:1.25!important;
+}
