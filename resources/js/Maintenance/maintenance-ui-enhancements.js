@@ -244,7 +244,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         return 'OTHER MAINTENANCE';
       };
       const groups = new Map();
-      Array.from(select.options).filter(option => option.value).forEach(option => {
+      Array.from(select.options)
+        .filter(option => option.value && option.value !== 'Other')
+        .concat(Array.from(select.options).filter(option => option.value === 'Other'))
+        .forEach(option => {
         const category = categoryFor(option.value);
         if (!groups.has(category)) groups.set(category, []);
         groups.get(category).push(option);
@@ -506,7 +509,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           <select id="${idPrefix}MaintenanceJob" required>
             <option value="">Select Maintenance Job</option>
             ${options}
-            <option value="Other">Other / Custom Work</option>
+            <option value="Other">Other</option>
           </select>
         </div>
       `;
