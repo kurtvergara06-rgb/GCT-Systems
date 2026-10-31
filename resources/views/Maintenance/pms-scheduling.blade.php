@@ -153,7 +153,12 @@
 
 
                                     <td>
-                                        <span title="A verified current odometer is not yet available; GPS report distance is not interchangeable with odometer mileage">—</span>
+                                        @php $ddrEstimate = $config ? $ddrMileageByBus->get($config->bus_id) : null; @endphp
+                                        @if($ddrEstimate)
+                                            <span title="DDR-estimated odometer from recorded trip distances after the last PMS; not verified against physical odometer">{{ number_format($ddrEstimate['estimated_odometer_km'], 2) }} km <small>(DDR est.)</small></span>
+                                        @else
+                                            <span title="No complete DDR mileage available after last PMS, or mileage not yet verified">—</span>
+                                        @endif
                                     </td>
 
 
@@ -243,7 +248,8 @@
                         <div><span>Next PMS mileage</span><strong>{{ $config ? number_format($config->nextDueOdometerKm(), 2).' km' : '—' }}</strong></div>
                         <div><span>Next PMS due date</span><strong>{{ $config?->nextDueDate()->format('M d, Y') ?? '—' }}</strong></div>
                     </div>
-                    <div class="pms-monitor-source-note"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><div><strong>Current odometer: Unverified</strong><p>GPS report distance and DDR trip mileage are not verified odometer readings. Mileage-based PMS status will remain unverified until reconciled.</p></div></div>
+                    @php $ddrEstimate = $config ? $ddrMileageByBus->get($config->bus_id) : null; @endphp
+                    <div class="pms-monitor-source-note"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i><div><strong>Current odometer: Not verified</strong><p>@if($ddrEstimate) DDR-based estimate: {{ number_format($ddrEstimate['estimated_odometer_km'], 2) }} km from {{ $ddrEstimate['trip_count'] }} recorded trips ({{ number_format($ddrEstimate['distance_km'], 2) }} km since last completed PMS). @else Complete DDR trip mileage is not available after the service baseline. @endif GPS integration remains unchanged. DDR mileage is an estimate and is not a verified vehicle odometer.</p></div></div>
                 </div>
                 <div class="pms-view-footer pms-monitor-footer"><button type="button" class="ui-form-btn ui-form-btn-cancel close-pms-tasks-modal" data-modal-target="pmsDetails-{{ $loop->index }}">Close</button></div>
             </div>
