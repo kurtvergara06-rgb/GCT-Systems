@@ -502,11 +502,11 @@
 .maintenance-ir-page .ir-split-table td:nth-child(6) { min-width: 145px; }
 
 /* Consistent Pending / In Progress / History layout, without simulated stock data. */
-.maintenance-ir-page .ir-lifecycle-table tbody td { padding: 12px 13px !important; vertical-align: middle; }
+.maintenance-ir-page .ir-lifecycle-table tbody td { padding: 18px 17px !important; vertical-align: middle; }
 .maintenance-ir-page .ir-lifecycle-table .ir-split-jo { align-items: flex-start; gap: 6px; }
 .maintenance-ir-page .ir-lifecycle-jo { color: #607590; font-size: 11px; font-weight: 650; }
 .maintenance-ir-page .ir-lifecycle-table .ir-split-breakdown { margin-top: 7px; }
-.maintenance-ir-page .ir-lifecycle-table .ir-split-parts { gap: 6px; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-parts { gap: 9px; }
 .maintenance-ir-page .ir-lifecycle-table .ir-release-badge { max-width: 100%; }
 .maintenance-ir-page .ir-lifecycle-table .ir-status {
   display: inline-flex; align-items: center; padding: 7px 10px;
@@ -1462,7 +1462,7 @@
   align-items:center!important;
   width:max-content!important;
   max-width:none!important;
-  gap:7px!important;
+  gap:9px!important;
 }
 .maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-chip{
   display:inline-flex!important;
@@ -1472,7 +1472,7 @@
 .maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-breakdown{
   display:block!important;
   clear:both;
-  margin-top:8px!important;
+  margin-top:11px!important;
 }
 @media(max-width:900px){
   .maintenance-ir-page .ir-records-table.ir-lifecycle-table{min-width:1100px;}
