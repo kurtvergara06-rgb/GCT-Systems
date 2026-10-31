@@ -102,17 +102,13 @@
           <table class="inventory-table">
             <thead>
               <tr>
-                <th>Item Code</th>
-                <th>Parts Name</th>
+                <th>Item / Part</th>
                 <th>Category</th>
                 <th>On Hand</th>
                 <th>Reserved</th>
                 <th>Available</th>
-                <th>Unit</th>
                 <th>Reorder Level</th>
                 <th>Status</th>
-                <th>Supplier</th>
-                <th>Location</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -133,15 +129,17 @@
                 @endphp
 
                 <tr class="{{ $rowClass }}">
-                  <td>
-                    <x-ui.id-badge :value="$item->item_code" />
+                  <td class="inventory-item-cell">
+                    <div class="inventory-item-identification">
+                      <strong>{{ $item->item_name }}</strong>
+                      <x-ui.id-badge :value="$item->item_code" />
+                      <small title="Supplier and storage details">Supplier: {{ $item->supplier ?: '—' }} · Location: {{ $item->storage_location ?: '—' }}</small>
+                    </div>
                   </td>
-                  <td class="inventory-item-cell">{{ $item->item_name }}</td>
                   <td>{{ $item->category }}</td>
-                  <td class="inventory-stock-cell"><strong>{{ $onHandQuantity }}</strong></td>
-                  <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }}</strong></td>
-                  <td class="inventory-available-cell"><strong>{{ $availableQuantity }}</strong></td>
-                  <td>{{ $item->unit_of_measurement }}</td>
+                  <td class="inventory-stock-cell"><strong>{{ $onHandQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
+                  <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
+                  <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
                     <div class="warehouse-inventory-status-stack">
@@ -156,8 +154,6 @@
                       @endif
                     </div>
                   </td>
-                  <td>{{ $item->supplier ?? '—' }}</td>
-                  <td>{{ $item->storage_location ?? '—' }}</td>
                   <td>
                     <div class="actions">
 
@@ -229,7 +225,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="12"
+                  colspan="8"
                   message="No inventory items found."
                 />
               @endforelse
