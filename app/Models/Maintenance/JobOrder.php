@@ -111,11 +111,15 @@ class JobOrder extends Model
 
     public function getEstimatedDueAtAttribute(): ?Carbon
     {
-        if (! $this->start_date || ! $this->estimated_duration_value || ! $this->estimated_duration_unit) {
+        // Parts-dependent repairs are not timed until Warehouse confirms issuance.
+        if ((trim((string) $this->part_needed) !== '' && $this->part_status !== 'Issued')
+            || ! $this->actual_started_at
+            || ! $this->estimated_duration_value
+            || ! $this->estimated_duration_unit) {
             return null;
         }
 
-        $dueAt = $this->start_date->copy();
+        $dueAt = $this->actual_started_at->copy();
         $value = (float) $this->estimated_duration_value;
 
         return match ($this->estimated_duration_unit) {
@@ -233,11 +237,26 @@ class JobOrder extends Model
         return $this->review_status === 'Revision Required';
     }
 
+    public function isWaitingForRequiredParts(): bool
+    {
+        return $this->status !== 'Completed'
+            && trim((string) $this->part_needed) !== ''
+            && $this->part_status !== 'Issued';
+    }
+
     public function getDisplayStatusAttribute(): string
     {
-        return in_array($this->review_status, ['For Review', 'Revision Required', 'Rejected'], true)
-            ? $this->review_status
-            : ($this->status === 'On Going' ? 'In Progress' : $this->status);
+        if (in_array($this->review_status, ['For Review', 'Revision Required', 'Rejected'], true)) {
+            return $this->review_status;
+        }
+
+        // Legacy records may still have status=On Going from assignment time.
+        // Never represent unissued parts as active repair work.
+        if ($this->isWaitingForRequiredParts() && $this->review_status === 'Approved') {
+            return 'On Hold';
+        }
+
+        return $this->status === 'On Going' ? 'In Progress' : $this->status;
     }
 
     public function scopeOpen($query)

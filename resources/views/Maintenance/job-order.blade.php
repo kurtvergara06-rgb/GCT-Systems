@@ -83,7 +83,7 @@
                     class="toolbar job-toolbar"
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
                       search-label="Search Job Orders"
-                      :filter-count="(int) ($recordView !== 'history' && request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) ($recordView !== 'history' && request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
+                      :filter-count="(int) (request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) (request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
                       filter-title="Filter Job Orders"
                       :sort-options="['created_at' => 'Created Date', 'job_order_no' => 'Job Order Number', 'bus_no' => 'Bus Number', 'start_date' => 'Start Date', 'status' => 'JO Status', 'part_status' => 'Part Status']"
                       default-sort="created_at"
@@ -96,12 +96,10 @@
                         @endif
                     </x-slot:hidden>
                     <x-slot:filters>
-                        @if($recordView !== 'history')
                             <x-ui.table-toolbar-field label="Part Status" name="part_status" default="All Part Statuses">
                                 @foreach([
-                                    'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
-                                    'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
-                                    'Picked Up', 'Issued', 'No Parts Needed'
+                                    'All Part Statuses', 'No Parts Required', 'Not Requested', 'Not Issued',
+                                    'Partially Issued', 'Waiting for Parts', 'Fully Issued'
                                 ] as $partStatusOption)
                                     <option
                                         value="{{ $partStatusOption }}"
@@ -117,7 +115,6 @@
                                 <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
                                 <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
                             </x-ui.table-toolbar-field>
-                        @endif
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
@@ -126,7 +123,7 @@
                     <table class="job-orders-table">
                         <thead>
                             <tr>
-                                <th>Bus ID</th>
+                                <th>JO ID</th>
                                 <th>Maintenance Type</th>
                                 <th>Assigned Mechanic</th>
                                 <th>Start Date & Time</th>
@@ -136,11 +133,19 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
+                        @php
+                            // One shared live stock snapshot for all Head Review rows.
+                            // Free means physically available less allocations to every JO.
+                            $reviewStockItems = \App\Models\Warehouse\InventoryItem::query()->get();
+                            $reviewCommittedStock = \App\Models\Maintenance\JobOrderPartReservation::query()
+                                ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) AS reserved'))
+                                ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+                        @endphp
                         <tbody>
                             @forelse($jobOrders as $jobOrder)
                                 @php
                                     $isCompleted = $jobOrder->status === 'Completed';
-                                    $isOnHold = $jobOrder->status === 'On Hold';
+                                    $isOnHold = $jobOrder->display_status === 'On Hold';
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
                                     $hasNeededParts = !empty($jobOrder->part_needed);
                                     $joStatus = $jobOrder->display_status;
@@ -151,15 +156,21 @@
                                     $isOverdue = $jobOrder->is_overdue;
                                     $durationSuggestion = $durationSuggestions->get($jobOrder->id);
 
-                                    $partStatus = $jobOrder->part_status;
-                                    if (!$hasNeededParts) {
-                                        $partStatus = '----';
-                                    } elseif (!$partStatus || $partStatus === 'Unknown' || $partStatus === 'No Parts Needed') {
-                                        $partStatus = 'Not Requested';
-                                    }
-
+                                    $partStatus = match ($jobOrder->part_status) {
+                                        'Issued' => 'Fully Issued',
+                                        'Partial', 'Partially Issued' => 'Partially Issued',
+                                        'Delivered', 'Picked Up', 'Ordered', 'For Delivery', 'For Pick-up', 'For Purchase' => 'Waiting for Parts',
+                                        'No Parts Required', 'No Parts Needed' => 'No Parts Required',
+                                        default => $jobOrder->part_status ?: 'Not Requested',
+                                    };
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
+                                    // A linked, still-outstanding procurement request is an objective
+                                    // delay risk. Do not infer delay from "Not Requested" alone or
+                                    // flag an already fulfilled/completed Job Order.
+                                    // Show the shortage warning until Warehouse confirms all required parts.
+                                    $hasPartsDelayRisk = $isApprovedReview && !$isCompleted && $hasNeededParts
+                                        && !in_array($partStatus, ['Fully Issued', 'No Parts Required'], true);
                                     $linkedPr = $linkedPrs->first();
                                     $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
@@ -175,7 +186,7 @@
                                         && !$hasLinkedPr
                                         && in_array($jobOrder->part_status, [null, 'Not Requested'], true);
 
-                                    $isOngoing = $jobOrder->status === 'On Going';
+                                    $isOngoing = $jobOrder->display_status === 'In Progress';
 
                                     $canComplete = $isApprovedReview
                                         && !$isCompleted
@@ -197,19 +208,13 @@
 
                                     $isViewOnly = $isApprovedReview || $isCompleted || $isLockedByPurchaseRequest || $isPendingReview || $isRejectedReview;
 
-                                    $partStatusClass = match($partStatus) {
+                                    $partStatusClass = match ($partStatus) {
+                                        'No Parts Required' => 'no-parts-needed',
                                         'Not Requested' => 'not-requested',
-                                        'Submitted' => 'submitted',
-                                        'Approved' => 'approved',
-                                        'Rejected' => 'rejected',
-                                        'For Purchase' => 'for-purchase',
-                                        'Ordered' => 'ordered',
-                                        'For Pick-up' => 'for-pick-up',
-                                        'For Delivery' => 'for-delivery',
-                                        'Delivered' => 'delivered',
-                                        'Picked Up' => 'picked-up',
-                                        'Issued' => 'issued',
-                                        'No Parts Needed' => 'no-parts-needed',
+                                        'Not Issued' => 'rejected',
+                                        'Partially Issued' => 'for-purchase',
+                                        'Waiting for Parts' => 'for-purchase',
+                                        'Fully Issued' => 'issued',
                                         default => 'not-requested',
                                     };
                                 @endphp
@@ -217,7 +222,7 @@
                                 <tr class="{{ $isOverdue ? 'jo-overdue-row' : '' }}">
                                     <td class="jo-bus-cell">
                                         <span class="bus-badge-pill">
-                                            <i class="fa-solid fa-bus"></i> {{ $jobOrder->bus_no }}
+                                            <i class="fa-solid fa-file-lines" aria-hidden="true"></i> {{ $jobOrder->job_order_no }}
                                         </span>
                                     </td>
 
@@ -226,6 +231,11 @@
                                         @if($jobOrder->estimated_duration_value && $jobOrder->estimated_duration_unit)
                                             <span class="jo-estimate-inline">
                                                 Est. {{ $jobOrder->formatted_estimated_duration }}
+                                            </span>
+                                        @endif
+                                        @if($hasPartsDelayRisk)
+                                            <span class="jo-parts-delay-indicator" title="Required parts have not been fully issued. Completion may be delayed; the estimated duration is unchanged.">
+                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
                                             </span>
                                         @endif
                                         @if($isOverdue)
@@ -245,28 +255,47 @@
                                                 ->unique()
                                                 ->values();
                                             if ($assignedMechanicNames->isEmpty() && filled($jobOrder->assigned_mechanic)) {
-                                                $assignedMechanicNames = collect([$jobOrder->assigned_mechanic]);
+                                                $assignedMechanicNames = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic) ?: [])
+                                                    ->map(fn ($name) => trim((string) $name))->filter()->unique()->values();
                                             }
                                         @endphp
                                         @if($assignedMechanicNames->isNotEmpty())
                                             <div class="jo-mechanic-profiles">
-                                                @foreach($assignedMechanicNames as $mechanicName)
-                                                    <div class="jo-mechanic-profile">
-                                                        <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-                                                        <span class="jo-mechanic-profile-text">
-                                                            <span class="jo-mechanic-profile-name">{{ $mechanicName }}</span>
-                                                            <span class="jo-mechanic-profile-caption">Mechanic profile</span>
-                                                        </span>
-                                                    </div>
-                                                @endforeach
+                                                <div class="jo-mechanic-profile">
+                                                    <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                    <span class="jo-mechanic-profile-text">
+                                                        <span class="jo-mechanic-profile-name">{{ $assignedMechanicNames->first() }}</span>
+                                                        <span class="jo-mechanic-profile-caption">Mechanic profile</span>
+                                                    </span>
+                                                    @if($assignedMechanicNames->count() > 1)
+                                                        <details class="jo-mechanic-more" data-jo-mechanic-more>
+                                                            <summary aria-label="Show {{ $assignedMechanicNames->count() - 1 }} additional assigned mechanics">
+                                                                +{{ $assignedMechanicNames->count() - 1 }} more
+                                                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                                            </summary>
+                                                            <div class="jo-mechanic-more-panel">
+                                                                <div class="jo-mechanic-more-title">Other assigned mechanics</div>
+                                                                @foreach($assignedMechanicNames->skip(1) as $mechanicName)
+                                                                    <div class="jo-mechanic-profile">
+                                                                        <span class="jo-mechanic-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                                        <span class="jo-mechanic-profile-text">
+                                                                            <span class="jo-mechanic-profile-name">{{ $mechanicName }}</span>
+                                                                            <span class="jo-mechanic-profile-caption">Mechanic profile</span>
+                                                                        </span>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </details>
+                                                    @endif
+                                                </div>
                                             </div>
                                         @else
                                             <span class="jo-mechanic-unassigned">Not assigned</span>
                                         @endif
                                     </td>
 
-                                    <td class="{{ $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
-                                        @if($jobOrder->start_date)
+                                    <td class="{{ !$isOnHold && $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
+                                        @if(!$isOnHold && $jobOrder->start_date)
                                             <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->start_date)) }}</span>
                                             <span class="time-value">{{ date('h:i A', strtotime($jobOrder->start_date)) }}</span>
                                         @else
@@ -326,42 +355,102 @@
                                     <td class="jo-actions-cell">
                                         <div class="actions">
                                             @if($isViewOnly && !($canReviewJobOrders && $isPendingReview))
-                                                <button type="button" class="action-btn view jo-open-view" data-id="{{ $jobOrder->id }}" aria-label="View Job Order {{ $jobOrder->job_order_no }}" title="View Job Order">
-                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                                <button type="button" class="action-btn view jo-open-view jo-labeled-view" data-id="{{ $jobOrder->id }}" aria-label="View Job Order {{ $jobOrder->job_order_no }}" title="View Job Order">
+                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                                                 </button>
                                                 <template class="jo-view-content">
                                                     <div class="jo-view-summary">
-                                                        <div><span>Job Order</span><strong>{{ $jobOrder->job_order_no }}</strong></div>
-                                                        <div><span>Current Status</span><strong><x-ui.status-badge :status="$jobOrder->display_status" /></strong></div>
+                                                        <div class="jo-view-summary-number"><span>Job Order No.</span><strong>{{ $jobOrder->job_order_no }}</strong><small>Created {{ $jobOrder->created_at?->format('M d, Y · h:i A') ?? '—' }}</small></div>
+                                                        <div><span>Review Status</span><strong><x-ui.status-badge :status="$jobOrder->review_status ?: 'Pending'" /></strong></div>
+                                                        <div><span>Operational Status</span><strong><x-ui.status-badge :status="$jobOrder->status" /></strong></div>
+                                                        <div><span>Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
+                                                        <div><span>Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
                                                     </div>
+                                                    <div class="jo-view-dual-column">
                                                     <section class="jo-view-section">
                                                         <h3><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Basic Information</h3>
                                                         <div class="jo-view-grid">
                                                             <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                             <div><span><i class="fa-solid fa-gears" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
-                                                            <div><span>Complaint / Problem</span><strong>{{ $jobOrder->problem_issue ?: 'Not recorded' }}</strong></div>
-                                                            <div><span>Maintenance Work</span><strong>{{ $jobOrder->work_to_perform ?: 'Not recorded' }}</strong></div>
+                                                            <div><span>Maintenance Work</span>@php $workTypes = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->work_to_perform))->map(fn ($v) => trim($v))->filter()->values(); @endphp <div class="jo-view-work-list">@if($workTypes->isEmpty())<strong>Not recorded</strong>@else<strong>{{ $workTypes->first() }}</strong>@if($workTypes->count() > 1)<details class="jo-view-work-more"><summary>+{{ $workTypes->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="jo-view-work-expanded">@foreach($workTypes->skip(1) as $work)<span>{{ $work }}</span>@endforeach</div></details>@endif @endif</div></div>
+                                                            <div class="jo-view-complaint"><span>Complaint / Problem</span><strong>{{ $jobOrder->problem_issue ?: 'Not recorded' }}</strong></div>
                                                         </div>
                                                     </section>
                                                     <section class="jo-view-section">
                                                         <h3><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Repair &amp; Assignment</h3>
                                                         <div class="jo-view-grid">
-                                                            <div><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span><strong>{{ $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->implode(', ') ?: ($jobOrder->assigned_mechanic ?: 'Not assigned') }}</strong></div>
-                                                            <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
-                                                            <div><span>Start Date &amp; Time</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
-                                                            <div><span>Completion Date &amp; Time</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
+                                                            <div class="jo-view-mechanics"><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span>
+                                                                <div class="jo-view-mechanic-chips">
+                                                                    @php
+                                                                        $viewMechanicNames = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter();
+                                                                        if ($viewMechanicNames->isEmpty()) {
+                                                                            $viewMechanicNames = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic))->filter();
+                                                                        }
+                                                                    @endphp
+                                                                    @forelse($viewMechanicNames->unique()->values()->take(4) as $mechanicName)
+                                                                        <span class="jo-view-mechanic-chip">{{ $mechanicName }}</span>
+                                                                    @empty
+                                                                        <strong>Not assigned</strong>
+                                                                    @endforelse
+                                                                    @if($viewMechanicNames->unique()->count() > 4)
+                                                                        <details class="jo-view-work-more jo-view-mechanics-more"><summary>+{{ $viewMechanicNames->unique()->count() - 4 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="jo-view-work-expanded">@foreach($viewMechanicNames->unique()->values()->skip(4) as $mechanicName)<span>{{ $mechanicName }}</span>@endforeach</div></details>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            @if($hasPartsDelayRisk)
+                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are not yet fully issued. Check Warehouse availability and linked requests; any shortage may delay completion. Maintenance Head should review whether the estimated duration needs adjustment. This notice does not change the estimate.</p></div></div>
+                                        @endif
+                                        <div class="jo-view-time-fields">
+                                                                <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
+                                                                <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
+                                                                <div><span>Completed</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
+                                                            </div>
                                                         </div>
                                                     </section>
-                                                    <section class="jo-view-section">
-                                                        <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse</h3>
-                                                        <div class="jo-view-grid">
-                                                            <div><span>Parts Status</span><strong><span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></strong></div>
-                                                            <div><span>Requested Parts</span><strong>{{ $jobOrder->part_needed ?: 'None required' }}</strong></div>
+                                                    </div>
+                                                    <section class="jo-view-section jo-view-warehouse-section">
+                                                        <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse <span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></h3>
+                                                        <div class="jo-view-grid jo-view-warehouse-grid">
+                                                            <div class="jo-view-parts-cell jo-view-parts-fullwidth">
+                                                                <span>Requested Parts</span>
+                                                                @php
+                                                                    $viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
+                                                                @endphp
+                                                                @if(collect($viewRequestedParts ?? [])->isNotEmpty())
+                                                                    <div class="jo-view-stock-table">
+                                                                        <div class="jo-view-stock-head"><span>#</span><span>Part name</span><span>Item code</span><span>Requested qty</span><span>Stock information</span><span>Status</span></div>
+                                                                        @foreach(collect($viewRequestedParts ?? []) as $part)
+                                                                            @php
+                                                                                $partKey = mb_strtolower(trim((string) $part['name']));
+                                                                                $stockItem = $viewPartsStock->get($part['inventory_item_id'] ?? null);
+                                                                                $stockUnit = mb_strtolower(trim((string) ($stockItem?->unit_of_measurement ?: $stockItem?->unit)));
+                                                                                $requestedUnit = mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                                                                                $partUnitsMatch = $requestedUnit === '' || $stockUnit === '' || $requestedUnit === $stockUnit
+                                                                                    || (in_array($requestedUnit, ['pc', 'pcs', 'piece', 'pieces']) && in_array($stockUnit, ['pc', 'pcs', 'piece', 'pieces']));
+                                                                                $partStock = $stockItem && $partUnitsMatch ? max(0, (int) $stockItem->quantity_available) : 0;
+                                                                                $partDemand = (int) $part['quantity'];
+                                                                                $partAvailability = $partStock >= $partDemand ? 'Sufficient' : ($partStock > 0 ? 'Partial' : 'Unavailable');
+                                                                            @endphp
+                                                                            <div class="jo-view-stock-row">
+                                                                                <span>{{ $loop->iteration }}</span>
+                                                                                <strong class="jo-view-part-name">{{ $part['name'] }}</strong>
+                                                                                <span>{{ $stockItem?->item_code ?: '—' }}</span>
+                                                                                <span class="jo-view-part-quantity">{{ $part['quantity'] }} {{ $part['unit'] }}</span>
+                                                                                <span class="jo-view-stock-qty">{{ $partStock }} on hand</span>
+                                                                                <span class="jo-view-part-availability {{ $partAvailability === 'Sufficient' ? 'is-available' : ($partAvailability === 'Partial' ? 'is-partial' : 'is-unavailable') }}">{{ $partAvailability }}</span>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @else
+                                                                    <strong>None required</strong>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     </section>
-                                                    <section class="jo-view-section">
+                                                    <div class="jo-view-dual-column jo-view-bottom-columns">
+                                                    <section class="jo-view-section jo-view-head-approval-section">
                                                         <h3><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3>
-                                                        <div class="jo-view-grid">
+                                                        <div class="jo-view-grid jo-view-approval-grid">
                                                             <div><span>Approved By</span><strong><i class="fa-solid fa-circle-check jo-view-approved-icon" aria-hidden="true"></i> {{ $jobOrder->approver?->name ?? 'Not approved' }}</strong></div>
                                                             <div><span>Approved At</span><strong>{{ $jobOrder->approved_at?->format('M d, Y · h:i A') ?? 'Pending' }}</strong></div>
                                                         </div>
@@ -374,20 +463,28 @@
                                                             <p class="jo-view-help">No saved signature image is available for this record.</p>
                                                         @endif
                                                     </section>
-                                                    <details class="jo-view-audit">
-                                                        <summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></summary>
+                                                    <section class="jo-view-audit jo-view-audit-compact">
+                                                        <h3 class="jo-view-audit-heading"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Audit History <span class="jo-view-audit-count">{{ $jobOrder->audits->count() }}</span></h3>
                                                         <ol>
-                                                            @forelse($jobOrder->audits as $audit)
-                                                                <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->user?->name ?? 'System' }} <small>{{ $audit->created_at?->format('M d, Y · h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
+                                                            @forelse($jobOrder->audits->sortBy(fn ($entry) => sprintf('%020d-%010d', $entry->created_at?->getTimestamp() ?? 0, $entry->id)) as $audit)
+                                                                <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->action === 'created' ? ($jobOrder->creator?->name ?? $audit->user?->name ?? 'Unknown creator') : ($audit->user?->name ?? 'Unknown actor') }} <small>{{ $audit->created_at?->format('M d, Y · h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
                                                             @empty
                                                                 <li>No audit records yet.</li>
                                                             @endforelse
                                                         </ol>
-                                                    </details>
+                                                    </section>
+                                                    </div>
                                                 </template>
                                             @elseif(!($canReviewJobOrders && $isPendingReview))
+                                            @php
+                                                $jobOrderSpecializations = collect(data_get(
+                                                    $jobOrder->audits->whereIn('action', ['created', 'resubmitted'])->sortByDesc('id')->first(),
+                                                    'metadata.required_specializations',
+                                                    []
+                                                ))->filter(fn ($specialization) => is_string($specialization) && trim($specialization) !== '')->values();
+                                            @endphp
                                             <x-ui.action-buttom-modal
-                                                class="{{ $isViewOnly ? 'view open-edit-modal' : 'edit open-edit-modal' }}"
+                                                class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal jo-labeled-view' }}"
                                                 title="{{ $isViewOnly ? 'View Job Order' : 'Edit Job Order' }}"
                                                 icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                                                 data-id="{{ $jobOrder->id }}"
@@ -395,17 +492,19 @@
                                                 data-job-order-no="{{ $jobOrder->job_order_no }}"
                                                 data-bus-no="{{ $jobOrder->bus_no }}"
                                                 data-problem-issue="{{ $jobOrder->problem_issue }}"
+                                                data-work-to-perform="{{ $jobOrder->work_to_perform }}"
                                                 data-maintenance-type="{{ $jobOrder->maintenance_type }}"
                                                 data-estimated-duration-value="{{ $jobOrder->estimated_duration_value }}"
                                                 data-estimated-duration-unit="{{ $jobOrder->estimated_duration_unit }}"
                                                 data-assigned-mechanic="{{ $jobOrder->assigned_mechanic }}"
                                                 data-mechanic-ids="{{ $jobOrder->mechanicAssignments->pluck('mechanic_id')->filter()->implode(',') }}"
+                                                data-specializations='@json($jobOrderSpecializations)'
                                                 data-part-needed="{{ $jobOrder->part_needed }}"
                                                 data-status="{{ $jobOrder->status }}"
                                                 data-review-status="{{ $jobOrder->review_status }}"
                                                 data-review-notes="{{ $jobOrder->review_notes }}"
                                                 data-view-only="{{ $isViewOnly ? '1' : '0' }}"
-                                            />
+                                            ><span>{{ $isViewOnly ? 'View' : 'Edit' }}</span></x-ui.action-buttom-modal>
                                             @endif
 
                                             @if($canReviewJobOrders && $isPendingReview)
@@ -414,43 +513,125 @@
                                                     <div class="jo-review-panel">
                                                         <section class="jo-review-details" aria-label="Submitted Job Order details">
                                                             <div class="jo-review-details-heading">
-                                                                <h4><i class="fa-regular fa-clipboard" aria-hidden="true"></i> Job Order Details</h4>
+                                                                <div>
+                                                                    <h4><i class="fa-regular fa-clipboard" aria-hidden="true"></i> Job Order Details</h4>
+                                                                    <p>Verify details, confirm duration, and authorize the Job Order.</p>
+                                                                </div>
                                                                 <span>{{ $jobOrder->job_order_no }}</span>
                                                             </div>
                                                             <div class="jo-review-detail-grid">
                                                                 <div><span><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Bus ID / Plate</span><strong>{{ $jobOrder->bus_no }}</strong></div>
                                                                 <div><span><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Type</span><strong>{{ $jobOrder->maintenance_type }}</strong></div>
-                                                                <div><span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics</span><strong>{{ $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->implode(', ') ?: ($jobOrder->assigned_mechanic ?: 'Not assigned') }}</strong></div>
-                                                                <div><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><strong>{{ $partStatus }}</strong></div>
+                                                                <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Estimated Duration</span><strong>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</strong></div>
+                                                                <div class="jo-review-parts-state"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts Status</span><span class="jo-review-parts-status-badge {{ $partStatus === 'Not Requested' ? 'is-not-requested' : '' }}">{{ $partStatus }}</span></div>
                                                             </div>
-                                                            <div class="jo-review-detail-long"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
-                                                            <div class="jo-review-detail-long jo-review-requested-parts">
-                                                                @php($reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed))
+                                                            <div class="jo-review-detail-support-grid">
+                                                                @php
+                                                                    $headReviewMechanics = $jobOrder->mechanicAssignments->pluck('mechanic_name')->filter()->unique()->values();
+                                                                    if ($headReviewMechanics->isEmpty()) {
+                                                                        $headReviewMechanics = collect(preg_split('/\\s*,\\s*/', (string) $jobOrder->assigned_mechanic))->map(fn ($name) => trim($name))->filter()->unique()->values();
+                                                                    }
+                                                                @endphp
+                                                                <div class="jo-review-mechanic-field">
+                                                                    <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics <strong class="jo-review-mechanic-count" aria-label="{{ $headReviewMechanics->count() }} assigned mechanics">{{ $headReviewMechanics->count() }}</strong></span>
+                                                                    <div class="jo-review-mechanic-summary">
+                                                                        @forelse($headReviewMechanics->take(1) as $mechanicName)
+                                                                            <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                        @empty
+                                                                            <strong>Not assigned</strong>
+                                                                        @endforelse
+                                                                        @if($headReviewMechanics->count() > 1)
+                                                                            <details class="jo-review-mechanic-more">
+                                                                                <summary aria-label="Show {{ $headReviewMechanics->count() - 1 }} additional assigned mechanics">+{{ $headReviewMechanics->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                                                                <div class="jo-review-mechanic-expanded">
+                                                                                    @foreach($headReviewMechanics->skip(1) as $mechanicName)
+                                                                                        <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                                    @endforeach
+                                                                                </div>
+                                                                            </details>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <div class="jo-review-detail-long jo-review-complaint"><span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Complaint / Problem</span><p>{{ $jobOrder->problem_issue }}</p></div>
+                                                            </div>
+                                                        </section>
+                                                            <div class="jo-review-requested-parts">
+                                                                @php
+                                                                    $reviewParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
+                                                                    $reviewAllocations = collect($jobOrder->inventory_snapshot['parts'] ?? []);
+                                                                    $reviewLiveStock = collect(app(\App\Services\Maintenance\JobOrderWorkflowService::class)
+                                                                        ->inventoryAvailability($reviewParts, $reviewStockItems, $reviewCommittedStock)['parts'] ?? []);
+
+                                                                    $reviewRequiredTotal = collect($reviewParts)->sum(fn ($part) => max(0, (int) ($part['quantity'] ?? 0)));
+                                                                    $reviewReservedTotal = $reviewAllocations->sum(fn ($part) => max(0, (int) ($part['reserved'] ?? 0)));
+                                                                    $reviewAvailablePartCount = collect($reviewParts)->filter(function ($part, $index) use ($reviewAllocations) {
+                                                                        $allocation = $reviewAllocations->get($index);
+                                                                        return $allocation !== null
+                                                                            && (int) ($allocation['reserved'] ?? 0) >= (int) ($part['quantity'] ?? 0);
+                                                                    })->count();
+                                                                    $reviewAvailabilityPercent = count($reviewParts) > 0
+                                                                        ? min(100, (int) round(($reviewAvailablePartCount / count($reviewParts)) * 100))
+                                                                        : 100;
+                                                                    $reviewHasShortage = $reviewRequiredTotal > $reviewReservedTotal;
+                                                                @endphp
+                                                                <div class="jo-review-parts-heading">
+                                                                    <div class="jo-review-parts-title"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><div><strong>Requested Parts ({{ count($reviewParts) }})</strong><small>Review the parts availability and expected fulfillment.</small></div></div>
+                                                                    @if(count($reviewParts))
+                                                                        <div class="jo-review-parts-progress" aria-label="{{ $reviewAvailablePartCount }} of {{ count($reviewParts) }} requested parts fully available">
+                                                                            <span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> <strong>{{ $reviewAvailablePartCount }} / {{ count($reviewParts) }}</strong> Available</span>
+                                                                            <span class="jo-review-parts-progress-track" aria-hidden="true"><span style="width: {{ $reviewAvailabilityPercent }}%"></span></span>
+                                                                            <strong>{{ $reviewAvailabilityPercent }}%</strong>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
                                                                 @if(count($reviewParts))
                                                                     <div class="jo-review-parts-list" data-parts='@json($reviewParts)'>
                                                                         <div class="jo-review-parts-table-header" aria-hidden="true">
-                                                                            <span>Part Description</span><span>Qty</span><span>Availability</span>
+                                                                            <span>#</span><span>Part Description</span><span>Required</span><span>Reserved</span><span>Shortage</span><span>Status</span>
                                                                         </div>
                                                                         @foreach($reviewParts as $reviewPart)
+                                                                            @php
+                                                                                $allocation = $reviewAllocations->get($loop->index);
+                                                                                $requiredQty = (int) ($reviewPart['quantity'] ?? 0);
+                                                                                $reservedQty = $allocation !== null ? min($requiredQty, max(0, (int) ($allocation['reserved'] ?? 0))) : null;
+                                                                                $shortageQty = $reservedQty === null ? null : max(0, $requiredQty - $reservedQty);
+                                                                                $livePart = $reviewLiveStock->get($loop->index, []);
+                                                                                $freeToAllocate = max(0, (int) ($livePart['available'] ?? 0));
+                                                                                $ambiguousStock = (bool) ($livePart['ambiguous'] ?? false);
+                                                                                $reviewAvailability = $reservedQty === null || $ambiguousStock ? 'Not Verified'
+                                                                                    : ($shortageQty === 0 ? 'Sufficient'
+                                                                                    : ($reservedQty > 0 ? 'Partial'
+                                                                                    : ($freeToAllocate > 0 ? 'Not Allocated' : 'Unavailable')));
+                                                                            @endphp
                                                                             <div class="jo-review-part-item">
+                                                                                <span class="jo-review-part-index">{{ $loop->iteration }}</span>
                                                                                 <strong class="jo-review-part-name">{{ $reviewPart['name'] }}</strong>
                                                                                 <span class="jo-review-part-qty">{{ $reviewPart['quantity'] }} {{ $reviewPart['unit'] }}</span>
-                                                                                <span class="jo-review-part-availability is-checking">Checking…</span>
+                                                                                <span class="jo-review-part-stock">{{ $reservedQty === null ? '—' : $reservedQty.' '.$reviewPart['unit'] }}</span>
+                                                                                <span class="jo-review-part-shortage">{{ $shortageQty === null ? '—' : $shortageQty.' '.$reviewPart['unit'] }}</span>
+                                                                                <span class="jo-review-part-availability {{ $reviewAvailability === 'Sufficient' ? 'is-available' : ($reviewAvailability === 'Partial' ? 'is-partial' : ($reviewAvailability === 'Unavailable' ? 'is-unavailable' : 'is-pending')) }}" title="{{ $reviewAvailability === 'Not Allocated' ? 'Free Warehouse stock exists but has not been allocated to this JO.' : 'Status is based on the JO allocation and uncommitted Warehouse stock; other JOs reservations are excluded.' }}">{{ $reviewAvailability }}</span>
                                                                             </div>
                                                                         @endforeach
                                                                     </div>
                                                                 @else
                                                                     <p>No parts requested</p>
                                                                 @endif
+                                                                @if($reviewHasShortage)
+                                                                    <div class="jo-review-shortage-advisory" role="note">
+                                                                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                                                        <div><strong>Possible Completion Delay</strong><p>Some required parts are currently unavailable or only partially reserved. The estimated completion time may be affected.</p></div>
+                                                                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration <strong>{{ $jobOrder->formatted_estimated_duration ?: 'Not provided' }}</strong></span>
+                                                                    </div>
+                                                                @else
+                                                                    <div class="jo-review-submitted-duration"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
+                                                                @endif
                                                             </div>
-                                                            <div class="jo-review-detail-long"><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Submitted Duration</span><p>{{ $jobOrder->formatted_estimated_duration ?: 'Head estimate required' }}</p></div>
-                                                        </section>
                                                         @if($jobOrder->audits->isNotEmpty())
                                                             <details class="jo-review-audit">
                                                                 <summary>Audit History ({{ $jobOrder->audits->count() }})</summary>
                                                                 <ol>
-                                                                    @foreach($jobOrder->audits as $audit)
-                                                                        <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->user?->name ?? 'System' }}<small>{{ $audit->created_at?->format('M d, Y h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
+                                                                    @foreach($jobOrder->audits->sortBy(fn ($entry) => sprintf('%020d-%010d', $entry->created_at?->getTimestamp() ?? 0, $entry->id)) as $audit)
+                                                                        <li><strong>{{ str($audit->action)->replace('_', ' ')->title() }}</strong> — {{ $audit->action === 'created' ? ($jobOrder->creator?->name ?? $audit->user?->name ?? 'Unknown creator') : ($audit->user?->name ?? 'Unknown actor') }}<small>{{ $audit->created_at?->format('M d, Y h:i A') }}{{ $audit->notes ? ' · '.$audit->notes : '' }}</small></li>
                                                                     @endforeach
                                                                 </ol>
                                                             </details>
@@ -499,9 +680,26 @@
                                                                         <textarea name="duration_adjustment_reason" maxlength="2000" placeholder="Explain the verified estimate" disabled></textarea>
                                                                     </div>
                                                                 </div>
+                                                                @if(trim((string) $jobOrder->part_needed) !== '' && $jobOrder->inventory_availability === 'partial')
+                                                                    <div class="jo-head-duration-review jo-head-parts-decision">
+                                                                        <div class="jo-review-step-heading">
+                                                                            <span class="jo-review-step-number">02</span>
+                                                                            <div><strong>Parts Release Decision</strong><p>Choose whether Warehouse may issue available parts while shortages are being purchased.</p></div>
+                                                                        </div>
+                                                                        <div class="jo-duration-decision-field">
+                                                                            <label for="jo-parts-decision-{{ $jobOrder->id }}">Maintenance Head decision <span class="ui-required">*</span></label>
+                                                                            <select id="jo-parts-decision-{{ $jobOrder->id }}" name="parts_issue_strategy" required aria-describedby="jo-parts-decision-help-{{ $jobOrder->id }}">
+                                                                                <option value="" disabled @selected(!old('parts_issue_strategy'))>Select parts release decision...</option>
+                                                                                <option value="complete_before_issuance" @selected(old('parts_issue_strategy') === 'complete_before_issuance')>Wait until all JO parts are available</option>
+                                                                                <option value="issue_available_only" @selected(old('parts_issue_strategy') === 'issue_available_only')>Allow partial release of available parts</option>
+                                                                            </select>
+                                                                            <small id="jo-parts-decision-help-{{ $jobOrder->id }}">Approval reserves currently free stock for this JO. Warehouse deducts physical inventory only upon signed issuance.</small>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
                                                                 <div class="jo-head-authorization">
                                                                     <div class="jo-review-step-heading">
-                                                                        <span class="jo-review-step-number">02</span>
+                                                                        <span class="jo-review-step-number">{{ trim((string) $jobOrder->part_needed) !== '' ? '03' : '02' }}</span>
                                                                         <div><strong>Head Authorization</strong><p>Upload your signature to authorize this Job Order.</p></div>
                                                                     </div>
                                                                     <div class="jo-signature-grid">
@@ -565,10 +763,11 @@
                                                             </form>
                                                         </div>
                                                         <div class="jo-review-footer">
+                                                            <button type="button" class="jo-review-footer-close"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</button>
                                                             <button type="button" class="jo-review-back" hidden>Back to Approval</button>
                                                             <button type="button" class="jo-review-revision-trigger"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Return for Revision</button>
                                                             <button type="button" class="jo-review-reject-trigger"><i class="fa-regular fa-circle-xmark" aria-hidden="true"></i> Reject</button>
-                                                            <button type="submit" form="jo-head-approve-{{ $jobOrder->id }}" class="primary-btn jo-review-footer-submit jo-review-approve-submit" disabled aria-disabled="true" title="Upload and crop a signature to enable approval"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve &amp; Sign</button>
+                                                            <button type="submit" form="jo-head-approve-{{ $jobOrder->id }}" class="primary-btn jo-review-footer-submit jo-review-approve-submit" disabled aria-disabled="true" title="Upload and crop a signature to enable approval"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve Job Order</button>
                                                             <button type="submit" form="jo-head-revision-{{ $jobOrder->id }}" class="secondary-btn jo-review-footer-submit jo-review-revision-submit" hidden>Confirm Revision</button>
                                                             <button type="submit" form="jo-head-reject-{{ $jobOrder->id }}" class="warning-btn jo-review-footer-submit jo-review-reject-submit" hidden>Confirm Rejection</button>
                                                         </div>
@@ -576,61 +775,6 @@
                                                 </details>
                                             @endif
 
-                                            @if($canCreatePr)
-                                                <form
-                                                    action="{{ route('job-orders.create-pr', $jobOrder->id) }}"
-                                                    method="POST"
-                                                    class="create-pr-form"
-                                                    data-confirm-form
-                                                    data-confirm-title="Create Purchase Request?"
-                                                    data-confirm-message="Are you sure you want to create a Purchase Request from job order {{ $jobOrder->job_order_no }}?"
-                                                    data-confirm-button="Yes, Create PR"
-                                                    data-confirm-type="create"
-                                                >
-                                                    @csrf
-                                                    <button type="submit" class="action-btn create-pr-btn" title="Create Purchase Request">
-                                                        <i class="fa-solid fa-file-circle-plus"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-
-                                            @if($isRejectedPr)
-                                                <a
-                                                    href="{{ route('purchase-requests', ['search' => $jobOrder->job_order_no]) }}"
-                                                    class="action-btn create-pr-btn"
-                                                    title="Revise Rejected Purchase Request"
-                                                >
-                                                    <i class="fa-solid fa-rotate"></i>
-                                                </a>
-                                            @endif
-
-                                            @if($recordView !== 'history' && !$isCompleted && !$isPendingReview && !$isRejectedReview && (!$isApprovedReview || $hasLinkedPr))
-                                                <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    @if($hasLinkedPr && !$allLinkedPrsRejected)
-                                                        <button
-                                                            type="button"
-                                                            class="action-btn delete disabled-action-btn"
-                                                            title="Cannot delete: this Job Order has an active linked Purchase Request."
-                                                            disabled
-                                                        >
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    @else
-                                                        <button
-                                                            type="button"
-                                                            class="action-btn delete open-delete-modal"
-                                                            title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
-                                                            data-id="{{ $jobOrder->id }}"
-                                                            data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                            data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
-                                                        >
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    @endif
-                                                </form>
-                                            @endif
 
 
                                         </div>
@@ -651,6 +795,7 @@
                 <x-ui.table-footer
                     :items="$jobOrders"
                     data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                 />
             </section>
         </main>
@@ -697,185 +842,14 @@
         >
         <input type="hidden" name="maintenance_type" value="Repair" data-maintenance-type-hidden="newJo">
 
-        <section class="jo-create-section jo-create-basic jo-create-job-details" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-file-lines"></i>
-                </span>
+        <nav class="jo-new-stepper" aria-label="Job Order form sections">
+            <span class="jo-new-step is-current"><span class="jo-new-step-index">1</span><span><strong>Job Details</strong><small>Bus and maintenance work</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">2</span><span><strong>Mechanic Assignment</strong><small>Qualified technicians</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">3</span><span><strong>Estimated Duration</strong><small>Repair time estimate</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">4</span><span><strong>Requested Parts</strong><small>Parts and stock</small></span></span>
+        </nav>
 
-                <div>
-                    <h3><span class="jo-create-section-number">01 &mdash;</span> Job Details</h3>
-                </div>
-            </div>
-
-            <div class="ui-form-grid jo-create-basic-grid jo-create-job-details-grid">
-                <x-ui.form-select
-                    label="Bus ID / Plate"
-                    name="bus_no"
-                    id="jobBusNo"
-                    icon="fa-bus"
-                    placeholder="Select bus"
-                    :options="$availableBuses
-                        ->mapWithKeys(function ($bus) {
-                            return [
-                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
-                            ];
-                        })
-                        ->toArray()"
-                    required
-                />
-
-                <div class="jo-maintenance-job-slot" data-maintenance-job-slot="newJo"></div>
-
-                <div id="jobLinkedDriverPreview" class="jo-linked-driver-preview ui-form-full" hidden>
-                    <i class="fa-solid fa-id-card" aria-hidden="true"></i>
-                    <span>Linked driver: <strong id="jobLinkedDriver" aria-live="polite"></strong></span>
-                </div>
-
-                <div class="ui-form-group ui-form-full jo-create-problem-field">
-                    <label for="jobProblemIssue">
-                        Complaint / Problem
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <textarea
-                        name="problem_issue"
-                        id="jobProblemIssue"
-                        placeholder="Describe the reported issue or complaint..."
-                        required
-                    >{{ old(
-                        'problem_issue',
-                        $pmsCreate
-                            ? request(
-                                'problem_issue',
-                                'PMS maintenance is due based on processed GPS mileage.'
-                            )
-                            : ''
-                    ) }}</textarea>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="jo-create-section jo-create-details jo-create-mechanics" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-gears"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-create-section-number">02 &mdash;</span> Mechanic Assignment</h3>
-                    <p class="jo-create-step-description">Assign on-duty mechanics qualified for this repair.</p>
-                </div>
-            </div>
-
-            <div class="jo-create-details-grid">
-                <div class="ui-form-group jo-mechanic-multi-field">
-                    <label for="jobAssignedMechanics">
-                        Assigned Mechanics <span class="ui-required">*</span>
-                    </label>
-                    <div class="ui-input-wrap">
-                        <select name="mechanic_ids[]" id="jobAssignedMechanics" multiple size="4" required>
-                            @foreach($availableMechanics as $mechanic)
-                                <option
-                                    value="{{ $mechanic->id }}"
-                                    data-specializations="{{ $mechanic->specialization }}"
-                                    data-availability="Available"
-                                    {{ in_array($mechanic->id, old('mechanic_ids', [])) ? 'selected' : '' }}
-                                >
-                                    {{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <p class="jo-create-field-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Only qualified, on-duty mechanics who are not assigned to a conflicting active Job Order appear. If none are available, check today's attendance and the selected maintenance job.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="jo-create-section jo-create-duration" data-jo-collapsible>
-            <div class="jo-create-section-header">
-                <span class="jo-create-section-icon"><i class="fa-regular fa-clock"></i></span>
-                <div><h3><span class="jo-create-section-number">03 &mdash;</span> Estimated Duration</h3><p class="jo-create-step-description">Set the expected repair time for Head review.</p></div>
-            </div>
-
-            <div class="jo-create-duration-grid">
-                <div id="newJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                    <label>Duration <span class="ui-required">*</span></label>
-                    <div class="jo-duration-control">
-                        <div class="ui-input-wrap">
-                            <input type="number" name="estimated_duration_value" min="0.25" step="0.25" value="" placeholder="Enter estimated duration">
-                        </div>
-                        <select name="estimated_duration_unit" id="jobEstimatedDurationUnit" class="jo-duration-unit-select">
-                            @foreach(['Hours', 'Minutes', 'Days'] as $durationUnit)
-                                <option value="{{ $durationUnit }}" {{ old('estimated_duration_unit', 'Hours') === $durationUnit ? 'selected' : '' }}>{{ $durationUnit }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <small id="jobDurationSuggestion" class="jo-duration-suggestion" data-status="unavailable">
-                        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-                        <span>Insufficient Historical Data</span>
-                    </small>
-                    <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Suggestions use at least 3 completed, approved Job Orders for the same specific maintenance work. Enter your own estimate for Head verification.</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="newRequestedPartsSection" class="jo-create-section jo-create-parts jo-parts-section" data-jo-collapsible data-collapsed="true">
-            <div class="jo-create-section-header jo-create-parts-header">
-                <span class="jo-create-section-icon">
-                    <i class="fa-solid fa-box-open"></i>
-                </span>
-
-                <div>
-                    <h3><span class="jo-create-section-number">04 &mdash;</span> Requested Parts <small class="jo-section-optional">Optional</small></h3>
-                </div>
-
-                <button type="button" id="addPartBtn" class="jo-create-add-part-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Part
-                </button>
-            </div>
-
-            <div class="jo-create-parts-table">
-                <div class="jo-create-parts-table-head" aria-hidden="true">
-                    <span>#</span>
-                    <span>Item / Part</span>
-                    <span>Qty</span>
-                    <span>Unit</span>
-                    <span>Stock</span>
-                    <span>Actions</span>
-                </div>
-
-                <div id="partsNeededWrapper" class="jo-parts-repeater jo-create-parts-repeater">
-                    <div class="jo-part-row part-needed-row">
-                        <input type="text" name="parts[0][name]" placeholder="Part name">
-                        <input type="number" name="parts[0][quantity]" min="1" placeholder="Qty">
-                        <select name="parts[0][unit]">
-                            <option value="">Unit</option>
-                            <option value="pcs">pcs</option>
-                            <option value="set">set</option>
-                            <option value="liter">liter</option>
-                            <option value="gallon">gallon</option>
-                            <option value="bottle">bottle</option>
-                            <option value="box">box</option>
-                            <option value="meter">meter</option>
-                            <option value="kg">kg</option>
-                            <option value="pack">pack</option>
-                            <option value="pair">pair</option>
-                            <option value="roll">roll</option>
-                            <option value="tube">tube</option>
-                        </select>
-
-                        <button type="button" class="remove-part-btn" title="Remove Part">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <input type="hidden" name="parts_issue_strategy" value="complete_before_issuance">
-
-        </section>
+        @include('Maintenance.partials.job-order-form-sections', ['mode' => 'create'])
 
         <script type="application/json" id="jobBusDriverMap">@json(
             $availableBuses->mapWithKeys(fn ($bus) => [
@@ -886,212 +860,41 @@
 
     <x-ui.form-modal
         id="editJobModal"
-        title="Job Order Details"
-        description="Review and update the selected job order."
-        icon="fa-clipboard-check"
+        title="Edit Job Order"
+        description="Update the maintenance work, assigned mechanics, duration, and requested parts"
+        icon="fa-screwdriver-wrench"
         size="large"
         form-id="editJobForm"
         action="#"
         method="PUT"
+        submit-text="Update Job Order"
+        submit-id="updateJobOrderBtn"
+        submit-icon="fa-floppy-disk"
         close-id="closeEditJobModal"
+        cancel-id="cancelEditJobModal"
         :confirm="true"
         confirm-title="Update Job Order?"
         confirm-message="Are you sure you want to update this Job Order?"
         confirm-button="Yes, Update Job Order"
         confirm-type="update"
-        :show-actions="false"
-        class="jo-edit-modal-overlay"
+        class="jo-create-modal-overlay jo-edit-modal-overlay"
     >
-        <section class="jo-edit-section jo-edit-basic">
-            <div class="jo-edit-section-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-file-lines"></i>
-                </span>
+        <input type="hidden" name="job_order_no" id="edit_job_order_no">
+        <input type="hidden" name="maintenance_type" id="edit_maintenance_type" value="Repair">
+        <nav class="jo-new-stepper" aria-label="Job Order form sections">
+            <span class="jo-new-step is-current"><span class="jo-new-step-index">1</span><span><strong>Job Details</strong><small>Bus and maintenance work</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">2</span><span><strong>Mechanic Assignment</strong><small>Qualified technicians</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">3</span><span><strong>Estimated Duration</strong><small>Repair time estimate</small></span></span>
+            <span class="jo-new-step"><span class="jo-new-step-index">4</span><span><strong>Requested Parts</strong><small>Parts and stock</small></span></span>
+        </nav>
 
-                <div>
-                    <h3>Basic Information</h3>
-                    <p>Review the Job Order reference, affected bus, and reported issue.</p>
-                </div>
-            </div>
+        @include('Maintenance.partials.job-order-form-sections', ['mode' => 'edit'])
 
-            <div class="ui-form-grid jo-edit-basic-grid">
-                <x-ui.form-field
-                    label="JO No."
-                    name="job_order_no"
-                    id="edit_job_order_no"
-                    icon="fa-hashtag"
-                    readonly
-                    required
-                />
-
-                <x-ui.form-select
-                    label="Bus ID / Plate"
-                    name="bus_no"
-                    id="edit_bus_no"
-                    icon="fa-bus"
-                    placeholder="Select Bus"
-                    :options="$buses
-                        ->mapWithKeys(function ($bus) {
-                            return [
-                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
-                            ];
-                        })
-                        ->toArray()"
-                    required
-                />
-
-                <div class="ui-form-group ui-form-full jo-edit-problem-field">
-                    <label for="edit_problem_issue">
-                        Problem / Issue
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <textarea
-                        name="problem_issue"
-                        id="edit_problem_issue"
-                        placeholder="Describe the problem or issue..."
-                        required
-                    ></textarea>
-                </div>
-            </div>
-        </section>
-
-        <section class="jo-edit-section jo-edit-details">
-            <div class="jo-edit-section-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-gears"></i>
-                </span>
-
-                <div>
-                    <h3>Job Details</h3>
-                    <p>Review the maintenance work, duration, status, and assigned mechanic.</p>
-                </div>
-            </div>
-
-            <div class="jo-edit-details-grid">
-                <x-ui.form-select
-                    label="Maintenance Type"
-                    name="maintenance_type"
-                    id="edit_maintenance_type"
-                    icon="fa-screwdriver-wrench"
-                    :options="['PMS' => 'PMS', 'Repair' => 'Repair']"
-                    required
-                />
-
-                <div id="editJoEstimatedDuration" class="ui-form-group jo-estimated-duration-field">
-                    <label>
-                        Estimated Work Duration
-                        <span class="ui-required">*</span>
-                    </label>
-
-                    <div class="jo-duration-control">
-                        <div class="ui-input-wrap has-icon">
-                            <span class="ui-input-icon">
-                                <i class="fa-solid fa-clock"></i>
-                            </span>
-
-                            <input
-                                type="number"
-                                name="estimated_duration_value"
-                                min="0.25"
-                                step="0.25"
-                                placeholder="e.g. 4"
-                                required
-                            >
-                        </div>
-
-                        <select
-                            name="estimated_duration_unit"
-                            id="editJobEstimatedDurationUnit"
-                            class="jo-duration-unit-select"
-                            required
-                        >
-                            <option value="Hours">Hours</option>
-                            <option value="Minutes">Minutes</option>
-                            <option value="Days">Days</option>
-                        </select>
-                    </div>
-                </div>
-
-                <x-ui.form-select
-                    label="Status"
-                    name="status"
-                    id="edit_status"
-                    icon="fa-circle-check"
-                    :options="['On Hold' => 'On Hold', 'On Going' => 'In Progress']"
-                />
-
-                <div class="ui-form-group">
-                    <label for="edit_assigned_mechanic">Assigned Mechanics <small>(optional)</small></label>
-                    <select name="mechanic_ids[]" id="edit_assigned_mechanic" multiple size="4">
-                        @foreach($allMechanics as $mechanic)
-                            <option value="{{ $mechanic->id }}">{{ $mechanic->mechanic_name }}{{ $mechanic->specialization ? ' · '.$mechanic->specialization : '' }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        </section>
-
-        <section
-            id="editRequestedPartsSection"
-            class="jo-edit-section jo-edit-parts jo-parts-section"
-        >
-            <div class="jo-edit-section-header jo-edit-parts-header">
-                <span class="jo-edit-section-icon">
-                    <i class="fa-solid fa-box-open"></i>
-                </span>
-
-                <div>
-                    <h3>Requested Parts</h3>
-                    <p>Review or update the parts required for this job order.</p>
-                </div>
-
-                <button type="button" id="editAddPartBtn" class="jo-edit-add-part-btn">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Part
-                </button>
-            </div>
-
-            <div id="editPartsLockedNotice" class="jo-parts-locked-notice" style="display: none;">
-                <span class="jo-parts-lock-icon">
-                    <i class="fa-solid fa-lock"></i>
-                </span>
-
-                <div>
-                    <strong>Assign a mechanic first</strong>
-                    <span>Requested parts can only be entered after a mechanic is assigned to inspect the bus.</span>
-                </div>
-            </div>
-
-            <div class="jo-edit-parts-table">
-                <div class="jo-edit-parts-table-head" aria-hidden="true">
-                    <span>#</span>
-                    <span>Item / Part</span>
-                    <span>Qty</span>
-                    <span>Unit</span>
-                    <span>Actions</span>
-                </div>
-
-                <div id="editPartsNeededWrapper" class="jo-parts-repeater jo-edit-parts-repeater"></div>
-            </div>
-        </section>
-
-        <div class="ui-form-actions jo-edit-footer" id="editJobMainActions">
-            <button type="button" id="cancelEditJobModal" class="ui-form-btn ui-form-btn-cancel">
-                Cancel
-            </button>
-
-            <button type="submit" id="updateJobOrderBtn" class="ui-form-btn ui-form-btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                <span>Update Job Order</span>
-            </button>
-        </div>
-
-        <div class="ui-form-actions jo-edit-footer" id="viewOnlyJobActions" style="display: none;">
-            <button type="button" id="closeViewOnlyJob" class="ui-form-btn ui-form-btn-cancel">
-                Close
-            </button>
-        </div>
+        <script type="application/json" id="editJobBusDriverMap">@json(
+            $buses->mapWithKeys(fn ($bus) => [
+                $bus->bus_no => optional($bus->authorizedDrivers->first())->driver_name,
+            ])
+        )</script>
     </x-ui.form-modal>
 
     <div id="finishJobModal" class="delete-modal-overlay">

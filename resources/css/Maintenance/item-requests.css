@@ -1,0 +1,1479 @@
+.maintenance-ir-page{--ir-navy:#10294c;--ir-muted:#6b7a90;--ir-border:#dce5f1;--ir-blue:#1249a7;--ir-shadow:0 4px 18px rgba(15,37,68,.055);min-width:0}.maintenance-ir-page .topbar{margin-bottom:20px}.ir-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:20px}.ir-summary-card{display:flex;align-items:center;gap:14px;background:white;border:1px solid var(--ir-border);border-radius:16px;padding:19px 20px;box-shadow:var(--ir-shadow);min-height:110px}.ir-summary-icon{display:grid;place-items:center;height:46px;width:46px;flex:none;background:#fff4ca;color:#a36e00;border-radius:13px;font-size:19px}.ir-summary-icon-blue{background:#e8f1ff;color:#1756b2}.ir-summary-icon-green{background:#e7f9f0;color:#16814b}.ir-summary-card>div{display:grid;gap:3px}.ir-summary-card span:not(.ir-summary-icon){font-size:12px;color:var(--ir-muted);font-weight:700}.ir-summary-card strong{font-size:25px;line-height:1.2;color:var(--ir-navy)}.ir-summary-card small{font-size:11px;color:var(--ir-muted)}.ir-record-card{background:white;border:1px solid var(--ir-border);box-shadow:var(--ir-shadow);border-radius:16px;padding:20px;min-width:0}.ir-record-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:21px}.ir-eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:#7390b5;margin-bottom:5px}.ir-record-header h2{margin:0;font-size:18px;color:var(--ir-navy);font-weight:800}.ir-record-header p{color:var(--ir-muted);font-size:12px;margin:5px 0 0}.ir-primary-button,.ir-secondary-button{font-family:inherit;font-weight:750;font-size:12px;border-radius:9px;min-height:39px;padding:10px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .15s ease,transform .15s ease}.ir-primary-button{background:#1047a1;color:#fff;border:1px solid #1047a1;box-shadow:0 3px 10px rgba(16,71,161,.16)}.ir-primary-button:hover:not(:disabled){background:#0a367f;transform:translateY(-1px)}.ir-primary-button:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}.ir-secondary-button{background:white;border:1px solid #cbd7e6;color:#395271}.ir-secondary-button:hover{background:#f5f8fc}.ir-toolbar{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5eaf2;margin-bottom:1px;padding:0 0 12px;gap:10px}.ir-active-tab{display:inline-flex;align-items:center;gap:8px;background:#edf4ff;color:#1047a1;border:1px solid #d4e3fb;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:800}.ir-record-count{border:1px solid #e4eaf3;border-radius:8px;padding:7px 12px;font-size:11px;color:#5d7189;font-weight:700}.ir-table-wrap{width:100%;min-width:0}.ir-table{width:100%;border-collapse:collapse;table-layout:fixed}.ir-table th{background:#f3f7fc;color:#647792;text-align:left;font-size:10px;letter-spacing:.04em;font-weight:800;padding:14px 12px;border-bottom:1px solid #dfe7f1}.ir-table th:nth-child(1){width:15%}.ir-table th:nth-child(2){width:17%}.ir-table th:nth-child(3){width:13%}.ir-table th:nth-child(4){width:29%}.ir-table th:nth-child(5){width:13%}.ir-table th:nth-child(6){width:13%}.ir-table td{border-bottom:1px solid #edf1f7;padding:14px 12px;color:#273c5b;font-size:12px;vertical-align:middle;overflow-wrap:anywhere}.ir-table tbody tr:hover{background:#f9fbff}.ir-number{color:#0a418f}.ir-bus-tag{display:inline-flex;align-items:center;gap:6px;background:#eef3fa;border-radius:7px;padding:5px 8px;white-space:nowrap;font-weight:700;font-size:11px}.ir-part-name{font-weight:750}.ir-parts-details{display:inline-block;position:relative;margin-left:7px}.ir-parts-details summary{list-style:none;cursor:pointer;color:#1350a5;font-size:11px;font-weight:750}.ir-parts-details summary::-webkit-details-marker{display:none}.ir-parts-popover{position:absolute;z-index:15;top:22px;left:0;width:min(320px,70vw);max-height:220px;overflow:auto;background:#fff;border:1px solid #dae4f1;border-radius:10px;box-shadow:0 14px 30px rgba(16,42,76,.15);padding:9px}.ir-parts-popover>div{display:flex;justify-content:space-between;gap:12px;padding:8px;font-size:11px;border-bottom:1px solid #eff2f7}.ir-parts-popover>div:last-child{border:0}.ir-status{display:inline-block;border-radius:100px;background:#e9f2ff;color:#1452a3;border:1px solid #c8dfff;padding:5px 10px;font-size:10px;font-weight:800}.ir-date{color:var(--ir-muted)!important;font-size:11px!important}.ir-empty{padding:56px 12px;display:flex;align-items:center;flex-direction:column;text-align:center;gap:9px}.ir-empty>span{display:grid;place-items:center;height:52px;width:52px;background:#f2f6fb;border-radius:15px;font-size:21px;color:#8da3c0}.ir-empty strong{font-size:14px;color:var(--ir-navy)}.ir-empty p{margin:0;font-size:12px;color:var(--ir-muted);max-width:420px}.ir-footer{padding-top:12px}.ir-alert{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px}.ir-alert-success{border:1px solid #9bd9ba;background:#f0fdf5;color:#17613d}.ir-alert-error{border:1px solid #f4b6b6;background:#fff5f5;color:#9d2d2d}.ir-modal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(8,22,43,.56);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.ir-modal-overlay.is-open{display:flex}.ir-modal{background:#fff;width:min(660px,100%);max-height:calc(100vh - 36px);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(5,22,53,.25);animation:ir-modal-in .22s ease-out both}@keyframes ir-modal-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}.ir-modal-header{display:flex;align-items:center;justify-content:space-between;background:#f6f9ff;border-bottom:1px solid #e0e9f4;padding:19px 22px}.ir-modal-heading{display:flex;align-items:center;gap:12px}.ir-modal-symbol{background:#e9f1ff;color:#1655a9;border-radius:11px;padding:12px}.ir-modal-heading h2{font-size:17px;margin:0;color:var(--ir-navy,#10294c)}.ir-modal-heading p{font-size:11px;color:#7b8ca3;margin:4px 0 0}.ir-icon-button{background:white;border:1px solid #d4dfed;height:33px;width:33px;border-radius:8px;cursor:pointer;color:#426188}.ir-modal form{display:flex;flex-direction:column;min-height:0}.ir-modal-body{overflow-y:auto;padding:22px;display:grid;gap:18px}.ir-note{display:flex;gap:10px;align-items:start;border:1px solid #d7e6fa;background:#f2f7ff;padding:13px;border-radius:10px;font-size:12px;color:#35557a;line-height:1.6}.ir-note i{color:#1760b4;margin-top:3px}.ir-field{display:grid;gap:8px}.ir-field label{font-size:12px;font-weight:800;color:#293f5e}.ir-field label span{color:#d63d3d}.ir-field label small{font-weight:500;color:#8b97a9}.ir-field select,.ir-field textarea{width:100%;background:#fff;color:#253b5c;border:1px solid #cdd9e8;border-radius:9px;padding:12px;font:inherit;font-size:12px;outline:none}.ir-field select:focus,.ir-field textarea:focus{border-color:#3979cb;box-shadow:0 0 0 3px rgba(57,121,203,.12)}.ir-modal-footer{padding:15px 22px;border-top:1px solid #e3eaf2;background:#fbfcfe;display:flex;align-items:center;justify-content:flex-end;gap:10px}@media(max-width:1000px){.ir-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.ir-summary{grid-template-columns:1fr}.ir-record-header{align-items:stretch;flex-direction:column}.ir-table{table-layout:auto;min-width:640px}.ir-table-wrap{overflow-x:auto}.ir-modal-footer{flex-wrap:wrap}.ir-modal-footer button{flex:1}}
+
+/* Match Maintenance Job Orders and Purchase Requisitions layout */
+.maintenance-ir-page .ir-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.maintenance-ir-page .ir-summary-card{min-height:96px;padding:17px 18px}
+.maintenance-ir-page .ir-summary-icon{width:43px;height:43px}
+.maintenance-ir-page .ir-summary-icon-red{background:#fee6e6;color:#cf3939}
+.maintenance-ir-page .ir-record-card{padding:14px;border-radius:15px}
+.maintenance-ir-page .ir-record-header{margin-bottom:12px}
+.maintenance-ir-page .ir-record-header h2{font-size:17px}
+.maintenance-ir-page .ir-record-header p{font-size:11px}
+.maintenance-ir-page .ir-record-header .ir-primary-button{background:#ffbd00;color:#071e42;border-color:#f4b300;box-shadow:0 4px 12px rgba(255,189,0,.18)}
+.maintenance-ir-page .ir-record-header .ir-primary-button:hover:not(:disabled){background:#efab00}
+.maintenance-ir-page .ir-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:0;padding:0;margin:0 0 14px}
+.maintenance-ir-page .ir-tabs{display:flex;align-items:center;gap:3px;background:#f5f8fc;padding:4px;border:1px solid #dce6f2;border-radius:11px;flex-shrink:0}
+.maintenance-ir-page .ir-active-tab{background:transparent;border:0;color:#4b5e7a;border-radius:8px;padding:8px 13px;text-decoration:none;font-size:12px}
+.maintenance-ir-page .ir-active-tab.is-active{background:#fff;color:#082f70;box-shadow:0 2px 7px rgba(15,37,68,.09)}
+.maintenance-ir-page .ir-filter-form{display:flex;align-items:flex-start;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.maintenance-ir-page .ir-filter-control{position:relative;display:flex;align-items:center;gap:5px;border:1px solid #d8e3f0;border-radius:9px;background:#fff;min-height:36px;padding:0 10px}
+.maintenance-ir-page .ir-filter-control label{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:11px;font-weight:700;color:#2a4670}
+.maintenance-ir-page .ir-filter-control input,.maintenance-ir-page .ir-filter-control select{border:0;outline:0;min-width:0;width:110px;font-family:inherit;color:#30445f;background:#fff;font-size:11px}
+.maintenance-ir-page .ir-filter-control input{width:155px}
+.maintenance-ir-page .ir-filter-control select{width:98px;cursor:pointer}
+.maintenance-ir-page .ir-filter-control:focus-within{border-color:#4d85d1;box-shadow:0 0 0 2px #dceafa}
+.maintenance-ir-page .ir-apply-button{border:1px solid #ccdbec;border-radius:9px;background:#f6f9fd;color:#153c78;min-height:36px;padding:0 12px;cursor:pointer;font-size:11px;font-weight:800}
+.maintenance-ir-page .ir-apply-button:hover{background:#e9f1ff}
+.maintenance-ir-page .ir-table{table-layout:auto}
+.maintenance-ir-page .ir-table th,.maintenance-ir-page .ir-table td{padding:12px 10px}
+.maintenance-ir-page .ir-table th{white-space:nowrap}
+.maintenance-ir-page .ir-table th:nth-child(n){width:auto}
+.maintenance-ir-page .ir-table tbody tr:nth-child(2n){background:#f9fbfd}
+.maintenance-ir-page .ir-table td:last-child,.maintenance-ir-page .ir-table th:last-child{text-align:center}
+.maintenance-ir-page .ir-view-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#eaf2ff;border:1px solid #cfe0fd;color:#1251a9;font-size:11px;font-weight:750;border-radius:7px;padding:7px 13px;cursor:pointer}
+.maintenance-ir-page .ir-view-button:hover{background:#dce9ff}
+.ir-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ir-details-grid>div{display:grid;gap:6px;background:#f4f7fc;padding:13px;border-radius:9px}
+.ir-details-grid span{font-size:11px;color:#6b7f96}
+.ir-details-grid strong{font-size:13px;color:#132e53}
+.ir-detail-text{white-space:pre-line;overflow-wrap:anywhere;background:#f7f9fd;border:1px solid #e3ebf4;border-radius:8px;padding:13px;font-size:12px;color:#2d4363;margin:0}
+@media(max-width:1250px){.maintenance-ir-page .ir-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.maintenance-ir-page .ir-toolbar{flex-wrap:wrap}.maintenance-ir-page .ir-table-wrap{overflow-x:auto}}
+@media(max-width:760px){.maintenance-ir-page .ir-summary{grid-template-columns:1fr}.maintenance-ir-page .ir-filter-form{justify-content:flex-start}.maintenance-ir-page .ir-filter-control input{width:110px}.ir-details-grid{grid-template-columns:1fr}}
+
+/* Shared toolbar from JO / Purchase Requests */
+.maintenance-ir-page .ir-toolbar .gct-table-toolbar-row{display:flex;align-items:center;justify-content:flex-end;min-width:0;flex:1}
+.maintenance-ir-page .ir-toolbar .gct-table-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin:0}
+.maintenance-ir-page .ir-toolbar .gct-table-tool-trigger{min-height:36px}
+@media(max-width:760px){.maintenance-ir-page .ir-toolbar .gct-table-toolbar-row{justify-content:flex-start}}
+
+
+/* Structured Item Request document modal */
+#itemRequestModal .ir-modal{width:min(920px,calc(100vw - 36px));max-height:calc(100vh - 36px)}
+#itemRequestModal .ir-modal-body{gap:18px;padding:20px 24px}
+#itemRequestModal .ir-form-section{display:grid;gap:13px}
+#itemRequestModal .ir-form-section+.ir-form-section{padding-top:16px;border-top:1px solid #e6edf5}
+#itemRequestModal .ir-form-section h3{display:flex;align-items:center;gap:9px;margin:0;font-size:12px;font-weight:800;color:#153b72}
+#itemRequestModal .ir-form-section h3 span{font-size:10px;letter-spacing:.03em;background:#e9f2ff;border:1px solid #d0e1f9;border-radius:6px;color:#235fa8;padding:5px 7px}
+#itemRequestModal .ir-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#itemRequestModal .ir-preview-grid>div{background:#f4f7fc;border:1px solid #e3ebf4;border-radius:9px;padding:12px 14px;display:grid;gap:6px;min-width:0}
+#itemRequestModal .ir-preview-grid span{font-size:11px;color:#70839e}
+#itemRequestModal .ir-preview-grid strong{font-size:13px;color:#152e52;overflow-wrap:anywhere}
+#itemRequestModal .ir-form-hint{font-size:11px;color:#74849a;line-height:1.5;margin:0}
+#itemRequestModal .ir-preview-table-wrap{border:1px solid #e0e8f4;border-radius:10px;overflow:hidden}
+#itemRequestModal .ir-preview-table{width:100%;border-collapse:collapse;table-layout:fixed}
+#itemRequestModal .ir-preview-table th{padding:12px;text-align:left;background:#f1f5fb;color:#516783;font-size:10px;letter-spacing:.04em}
+#itemRequestModal .ir-preview-table td{padding:11px 12px;border-top:1px solid #ecf1f7;font-size:12px;color:#1c3658;overflow-wrap:anywhere}
+#itemRequestModal .ir-preview-table th:first-child{width:45%}
+#itemRequestModal .ir-preview-table th:nth-child(2){width:22%}
+#itemRequestModal .ir-preview-placeholder{text-align:center;color:#8190a5!important;padding:25px!important}
+#itemRequestModal .ir-stock-badge{display:inline-block;font-size:10px;font-weight:800;padding:5px 10px;border-radius:20px;border:1px solid transparent}
+#itemRequestModal .ir-stock-available{background:#dcfce7;color:#166534;border-color:#86efac}
+#itemRequestModal .ir-stock-partial{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+#itemRequestModal .ir-stock-unavailable{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+#itemRequestModal .ir-modal-footer{position:sticky;bottom:0;z-index:1}
+@media(max-width:640px){#itemRequestModal .ir-modal-body{padding:16px}#itemRequestModal .ir-preview-grid{grid-template-columns:1fr}#itemRequestModal .ir-preview-table th,#itemRequestModal .ir-preview-table td{padding:9px 7px;font-size:10px}}
+
+
+/* Document-style Item Request form, aligned with the Maintenance design system. */
+#itemRequestModal .ir-modal{width:min(860px,calc(100vw - 28px));border:1px solid #d6e2f1;border-radius:17px;box-shadow:0 28px 72px rgba(8,24,49,.27)}
+#itemRequestModal .ir-modal-header{background:linear-gradient(120deg,#f0f5fe 0%,#fff 92%);padding:18px 25px;border-bottom:1px solid #dbe6f4}
+#itemRequestModal .ir-modal-heading{gap:13px}
+#itemRequestModal .ir-modal-symbol{display:grid;place-items:center;min-width:46px;height:46px;background:#e2ecff;border:1px solid #cbddfa;border-radius:12px;color:#1556b0;font-size:18px}
+#itemRequestModal .ir-modal-eyebrow{display:block;color:#6c83a2;font-weight:800;letter-spacing:.09em;font-size:9px;margin-bottom:3px}
+#itemRequestModal .ir-modal-heading h2{font-size:19px;letter-spacing:-.02em;line-height:1.25;font-weight:850}
+#itemRequestModal .ir-modal-heading p{font-size:11px;margin-top:5px;color:#6d7f97}
+#itemRequestModal .ir-modal-body{background:#f5f8fd;padding:17px 22px 21px;gap:13px}
+#itemRequestModal .ir-form-section{background:#fff;border:1px solid #dde7f5;border-radius:12px;padding:15px 17px;gap:12px;box-shadow:0 2px 7px rgba(26,58,97,.035)}
+#itemRequestModal .ir-form-section+.ir-form-section{padding-top:15px;border-top:1px solid #dde7f5}
+#itemRequestModal .ir-form-section h3{font-size:12px;font-weight:850;color:#143762;gap:9px;letter-spacing:-.01em}
+#itemRequestModal .ir-form-section h3 span{background:#e8f1ff;border:1px solid #cfdff6;font-size:10px;border-radius:7px;padding:5px 8px;color:#1651a0}
+#itemRequestModal .ir-form-section h3 small{margin-left:auto;font-size:10px;font-weight:600;color:#8495ac;letter-spacing:0}
+#itemRequestModal .ir-field{gap:7px}
+#itemRequestModal .ir-field label{font-weight:800;font-size:11px}
+#itemRequestModal .ir-field select{min-height:42px;font-size:12px;font-weight:700;background:#fff;border-color:#ccd9ea}
+#itemRequestModal .ir-field textarea{min-height:66px;resize:vertical;font-size:12px;line-height:1.5}
+#itemRequestModal .ir-preview-grid{gap:10px}
+#itemRequestModal .ir-preview-grid>div{position:relative;min-height:69px;padding:13px 13px 12px 51px;background:#f5f8fd;border:1px solid #e0e9f5;border-radius:9px;gap:4px}
+#itemRequestModal .ir-preview-card-icon{position:absolute;top:15px;left:13px;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#e5efff;color:#215ba5;font-size:12px}
+#itemRequestModal .ir-preview-grid>div>span:not(.ir-preview-card-icon){font-size:10px;color:#70839b;font-weight:700}
+#itemRequestModal .ir-preview-grid strong{font-size:12px;font-weight:850;color:#152f52}
+#itemRequestModal .ir-form-hint{background:#f3f7fd;border:1px solid #e4ecf8;padding:9px 11px;border-radius:8px;color:#617690;font-size:10px}
+#itemRequestModal .ir-preview-table-wrap{border:1px solid #dce5f3;border-radius:9px}
+#itemRequestModal .ir-preview-table th{padding:10px 13px;background:#edf3fb;color:#536c8a;font-size:10px;font-weight:850}
+#itemRequestModal .ir-preview-table td{padding:12px 13px;font-size:12px}
+#itemRequestModal .ir-preview-table tbody tr:nth-child(even){background:#f9fbfe}
+#itemRequestModal .ir-preview-table td:first-child{font-weight:800;color:#102f56}
+#itemRequestModal .ir-note{background:#eaf3ff;border:1px solid #cddffa;color:#36567e;font-size:10px;border-radius:9px;padding:11px 14px;line-height:1.6}
+#itemRequestModal .ir-note i{color:#1a5da8}
+#itemRequestModal .ir-note strong{font-weight:850}
+#itemRequestModal .ir-modal-footer{padding:13px 23px;background:#fff;box-shadow:0 -3px 15px rgba(16,51,96,.035);gap:9px}
+#itemRequestModal .ir-modal-footer .ir-primary-button{background:#124caa;border-color:#124caa;min-height:40px;font-weight:800}
+#itemRequestModal .ir-modal-footer .ir-secondary-button{min-height:40px;font-weight:750}
+@media(max-width:640px){#itemRequestModal .ir-modal-header{padding:14px 16px}#itemRequestModal .ir-modal-body{padding:12px;gap:10px}#itemRequestModal .ir-form-section{padding:12px}#itemRequestModal .ir-form-section h3{flex-wrap:wrap}#itemRequestModal .ir-form-section h3 small{margin-left:0}#itemRequestModal .ir-preview-grid>div{min-height:62px}}
+
+
+/* Requested Items: prevent inherited global table min-width from clipping the last column. */
+#itemRequestModal .ir-form-section,
+#itemRequestModal .ir-preview-table-wrap {min-width:0;max-width:100%;box-sizing:border-box}
+#itemRequestModal .ir-preview-table-wrap {overflow:hidden;width:100%}
+#itemRequestModal table.ir-preview-table {
+  display:table;width:100%!important;min-width:0!important;max-width:100%;
+  table-layout:fixed;border-collapse:collapse;box-sizing:border-box
+}
+#itemRequestModal .ir-preview-table th,
+#itemRequestModal .ir-preview-table td {
+  min-width:0!important;box-sizing:border-box;white-space:normal;
+  overflow-wrap:break-word;vertical-align:middle
+}
+#itemRequestModal .ir-preview-table th:nth-child(1){width:48%}
+#itemRequestModal .ir-preview-table th:nth-child(2){width:23%}
+#itemRequestModal .ir-preview-table th:nth-child(3){width:29%}
+#itemRequestModal .ir-preview-table th:nth-child(3),
+#itemRequestModal .ir-preview-table td:nth-child(3){text-align:center}
+#itemRequestModal .ir-preview-table .ir-preview-placeholder{
+  display:table-cell!important;text-align:center!important;vertical-align:middle;
+  padding:24px 12px!important;background:#fbfdff!important;border:0!important;
+  box-shadow:none!important;border-radius:0!important;white-space:normal!important;
+  font-size:11px;font-weight:600;color:#7588a2!important
+}
+@media(max-width:640px){
+ #itemRequestModal .ir-preview-table th,#itemRequestModal .ir-preview-table td{padding:10px 7px!important;font-size:10px}
+ #itemRequestModal .ir-preview-table th:nth-child(1){width:43%}
+ #itemRequestModal .ir-preview-table th:nth-child(2){width:26%}
+ #itemRequestModal .ir-preview-table th:nth-child(3){width:31%}
+}
+
+
+/* Match the black compact IR identifier badge used by Warehouse. */
+.maintenance-ir-page .ir-table .maintenance-ir-id-badge{
+ display:inline-flex;align-items:center;min-height:21px;padding:3px 8px;
+ border:1px solid #d4dfed;border-radius:5px;background:#f4f7fc;
+ color:#16243a;font-size:11px;font-weight:800;line-height:1.2;
+ letter-spacing:0;white-space:nowrap;box-sizing:border-box;
+}
+
+/* Keep additional requested parts in a compact, visibly bordered dropdown. */
+.maintenance-ir-page .ir-parts-details summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 4px 9px;
+  background: #eaf2ff;
+  border: 1px solid #cfe0fa;
+  border-radius: 7px;
+  color: #1350a5;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-parts-details summary:hover,
+.maintenance-ir-page .ir-parts-details[open] summary {
+  background: #dceafe;
+  border-color: #adcafa;
+}
+.maintenance-ir-page .ir-parts-details summary:focus-visible {
+  outline: 2px solid #175ac0;
+  outline-offset: 2px;
+}
+
+/* Pending Item Requests: restrained guidance and a purposeful empty state. */
+.maintenance-ir-page .ir-pending-guidance {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 14px 0;
+  padding: 12px 15px;
+  border: 1px solid #d9e7fa;
+  border-radius: 10px;
+  background: #f4f8ff;
+  color: #304d73;
+}
+.maintenance-ir-page .ir-pending-guidance > i { color: #2364b7; font-size: 15px; margin-top: 2px; }
+.maintenance-ir-page .ir-pending-guidance p { display: grid; gap: 3px; margin: 0; line-height: 1.5; font-size: 12px; }
+.maintenance-ir-page .ir-pending-guidance strong { color: #163b70; font-weight: 800; }
+.maintenance-ir-page .ir-pending-empty-cell { padding: 36px 18px !important; text-align: center; }
+.maintenance-ir-page .ir-pending-empty { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.maintenance-ir-page .ir-pending-empty-icon { display: grid; place-items: center; width: 45px; height: 45px; border-radius: 12px; background: #edf4fc; color: #6685ac; font-size: 19px; margin-bottom: 2px; }
+.maintenance-ir-page .ir-pending-empty strong { font-size: 13px; font-weight: 800; color: #173356; }
+.maintenance-ir-page .ir-pending-empty p { margin: 0; font-size: 12px; color: #6b7a90; line-height: 1.5; max-width: 420px; }
+
+/* Maintenance IR records: readable timestamp and cleaner read-only details. */
+.maintenance-ir-page .ir-date { white-space: nowrap; }
+.maintenance-ir-page .ir-date span,
+.maintenance-ir-page .ir-date small { display: block; }
+.maintenance-ir-page .ir-date small { margin-top: 3px; font-size: 10px; color: #71839b; }
+#viewItemRequestModal .ir-modal { width: min(620px, 100%); }
+#viewItemRequestModal .ir-modal-body { gap: 16px; }
+#viewItemRequestModal .ir-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+#viewItemRequestModal .ir-details-grid > div { min-width: 0; }
+#viewItemRequestModal .ir-detail-text {
+  white-space: pre-line;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+#viewItemRequestModal .ir-modal-footer { position: sticky; bottom: 0; z-index: 1; }
+@media (max-width: 480px) {
+  #viewItemRequestModal .ir-details-grid { grid-template-columns: 1fr; }
+}
+
+/* Read-only Item Request details follow the Job Order details section layout. */
+#viewItemRequestModal .ir-modal { width: min(740px, 100%); max-height: calc(100dvh - 40px); }
+#viewItemRequestModal .ir-modal-header { flex: 0 0 auto; }
+#viewItemRequestModal .ir-modal-body { display: flex; flex-direction: column; gap: 11px; padding: 12px 19px 18px; min-height: 0; overflow-y: auto; }
+#viewItemRequestModal .ir-view-section { border: 1px solid #dbe5f3; border-radius: 10px; overflow: hidden; background: #fff; flex: 0 0 auto; }
+#viewItemRequestModal .ir-view-section h3 { display: flex; gap: 9px; align-items: center; background: #f0f5fc; border-bottom: 1px solid #dbe5f3; color: #123c74; padding: 12px 16px; margin: 0; font-size: 12px; font-weight: 800; }
+#viewItemRequestModal .ir-view-section h3 i { color: #1454a2; }
+#viewItemRequestModal .ir-details-grid { padding: 14px 16px; }
+#viewItemRequestModal .ir-details-grid > div { background: #f4f7fc; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 5px; }
+#viewItemRequestModal .ir-details-grid span { color: #637a96; font-size: 11px; }
+#viewItemRequestModal .ir-details-grid strong { color: #102e55; font-size: 12px; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-section-content { padding: 14px 16px; display: grid; gap: 13px; }
+#viewItemRequestModal .ir-view-section-content .ir-field { gap: 6px; }
+#viewItemRequestModal .ir-view-status { align-self: flex-start; display: inline-block; border: 1px solid #c8dfff; border-radius: 100px; padding: 5px 10px; background: #e9f2ff; color: #1452a3; font-size: 11px; }
+#viewItemRequestModal .ir-detail-text { margin: 0; border: 1px solid #e0e8f4; border-radius: 8px; background: #f5f8fd; padding: 12px; color: #273c5b; min-height: 32px; }
+#viewItemRequestModal .ir-modal-footer { flex: 0 0 auto; background: #f9fbff; }
+@media (max-width: 540px) { #viewItemRequestModal .ir-modal-body { padding: 10px; } #viewItemRequestModal .ir-details-grid { grid-template-columns: 1fr; } }
+
+/* Item Request view: approved summary / parts / warehouse / remarks design. */
+#viewItemRequestModal .ir-view-modal { width: min(760px, 100%); max-height: calc(100dvh - 40px); border-radius: 17px; }
+#viewItemRequestModal .ir-view-modal-header { background: #f8fbff; padding: 18px 20px; }
+#viewItemRequestModal .ir-view-modal-body { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; background: #f7faff; overflow-y: auto; min-height: 0; }
+#viewItemRequestModal .ir-view-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+#viewItemRequestModal .ir-view-info-card { min-width: 0; min-height: 78px; display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 13px 15px; border: 1px solid #dae5f3; background: #fff; border-radius: 11px; }
+#viewItemRequestModal .ir-view-info-card span { color: #657e9a; font-size: 11px; font-weight: 650; }
+#viewItemRequestModal .ir-view-info-card span i { margin-right: 5px; }
+#viewItemRequestModal .ir-view-info-card strong { color: #123258; font-size: 14px; font-weight: 850; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-panel { flex: 0 0 auto; background: #fff; border: 1px solid #dae5f3; border-radius: 12px; overflow: hidden; }
+#viewItemRequestModal .ir-view-panel-header { padding: 13px 15px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f1f6fd; border-bottom: 1px solid #e2eaf5; }
+#viewItemRequestModal .ir-view-panel h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 850; color: #183d6a; }
+#viewItemRequestModal .ir-view-panel h3 i { color: #235ca9; }
+#viewItemRequestModal .ir-view-panel p { margin: 5px 0 0; font-size: 11px; line-height: 1.5; color: #72859f; }
+#viewItemRequestModal .ir-view-count { padding: 5px 9px; white-space: nowrap; background: #e8eff9; border-radius: 20px; color: #355b87; font-size: 10px; font-weight: 800; }
+#viewItemRequestModal .ir-view-parts-list { display: grid; gap: 8px; padding: 13px 15px; }
+#viewItemRequestModal .ir-view-part-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #e0e8f4; border-radius: 9px; background: #f8fbff; }
+#viewItemRequestModal .ir-view-part-main { min-width: 0; display: flex; align-items: center; gap: 10px; }
+#viewItemRequestModal .ir-view-part-index { flex: 0 0 auto; display: grid; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: #e6f0ff; color: #17549d; font-size: 10px; font-weight: 800; }
+#viewItemRequestModal .ir-view-part-main strong { font-size: 12px; color: #15375e; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-part-qty { flex: 0 0 auto; padding: 6px 11px; border: 1px solid #d4e2f2; border-radius: 20px; background: #fff; font-size: 11px; font-weight: 800; color: #23496e; white-space: nowrap; }
+#viewItemRequestModal .ir-view-parts-empty { padding: 13px; text-align: center; }
+#viewItemRequestModal .ir-view-status-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 15px; }
+#viewItemRequestModal .ir-view-status { flex: 0 0 auto; align-self: center; }
+#viewItemRequestModal .ir-view-remarks { padding: 13px 15px; }
+#viewItemRequestModal .ir-view-remarks .ir-detail-text { min-height: 0; background: #f8fbff; }
+#viewItemRequestModal .ir-view-modal-footer { position: sticky; bottom: 0; flex: 0 0 auto; background: #fff; padding: 13px 20px; }
+@media(max-width: 600px) {
+  #viewItemRequestModal .ir-view-modal-body { padding: 12px; }
+  #viewItemRequestModal .ir-view-summary-grid { grid-template-columns: 1fr; }
+  #viewItemRequestModal .ir-view-status-row { align-items: flex-start; flex-wrap: wrap; }
+}
+
+/* Pending IR recommendations use the same table badges and actions as the records tabs. */
+.maintenance-ir-page .ir-pending-record .maintenance-ir-id-badge {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-pending-record .ir-status {
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-status-needs-head {
+  color: #895f14;
+  border-color: #f3d895;
+  background: #fff4db;
+}
+.maintenance-ir-page .ir-pending-record .ir-view-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.maintenance-ir-page .ir-pending-record .ir-parts-popover {
+  text-align: left;
+}
+
+/* The JO source is fixed by the Pending Requests review action, not user-selectable. */
+.ir-linked-jo-display {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid #d5e2f1;
+  border-radius: 9px;
+  background: #f4f7fc;
+  color: #17375f;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+/* Identical seven-column layout for In Progress and History IR records. */
+.maintenance-ir-page .ir-records-table {
+  width: 100%;
+  table-layout: fixed;
+}
+.maintenance-ir-page .ir-records-table th:nth-child(1) { width: 14%; }
+.maintenance-ir-page .ir-records-table th:nth-child(2) { width: 13%; }
+.maintenance-ir-page .ir-records-table th:nth-child(3) { width: 23%; }
+.maintenance-ir-page .ir-records-table th:nth-child(4) { width: 14%; }
+.maintenance-ir-page .ir-records-table th:nth-child(5) { width: 11%; }
+.maintenance-ir-page .ir-records-table th:nth-child(6) { width: 15%; }
+.maintenance-ir-page .ir-records-table th:nth-child(7) { width: 10%; }
+.maintenance-ir-page .ir-records-table td { vertical-align: middle; }
+.maintenance-ir-page .ir-records-table .ir-date span,
+.maintenance-ir-page .ir-records-table .ir-date small { display: block; }
+.maintenance-ir-page .ir-records-table .ir-date small { margin-top: 3px; }
+@media (max-width: 850px) {
+  .maintenance-ir-page .ir-records-table { min-width: 780px; }
+}
+
+/* Pending recommendations share the seven-column records layout without implying an IR exists. */
+.maintenance-ir-page .ir-not-generated {
+  display: inline-block;
+  max-width: 100%;
+  color: #75859d;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.maintenance-ir-page .ir-pending-record .ir-date small {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Shared JO authorization presentation for both Maintenance request flows. */
+.ir-jo-authorization { display:grid; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid #e2eaf5; }
+.ir-jo-authorization-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.ir-jo-authorization-heading strong { font-size:12px; color:#17375f; }
+.ir-jo-approved-badge { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:750; color:#157246; background:#e6f7ee; border-radius:20px; padding:5px 9px; }
+.ir-jo-authorization-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ir-jo-authorizer,.ir-jo-signature { display:flex; flex-direction:column; justify-content:center; gap:5px; min-height:80px; padding:11px; border:1px solid #dfe8f5; border-radius:9px; background:#f5f8fc; box-sizing:border-box; min-width:0; }
+.ir-jo-authorizer span,.ir-jo-authorizer small { font-size:10px; color:#657b98; }
+.ir-jo-authorizer strong { font-size:12px; color:#17375f; overflow-wrap:anywhere; }
+.ir-jo-signature { align-items:center; background:#fff; text-align:center; height:150px; min-height:150px; padding:8px; overflow:hidden; }
+.ir-jo-signature img { display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; }
+.ir-jo-signature span { font-size:11px; color:#64748b; }
+@media(max-width:540px){.ir-jo-authorization-grid{grid-template-columns:1fr}}
+/* Match the bold date / muted time hierarchy used by Warehouse records. */
+.maintenance-ir-page .ir-records-table .ir-date .maintenance-ir-date-primary { display:block; color:#102b4f; font-size:12px; font-weight:800; line-height:1.35; }
+.maintenance-ir-page .ir-records-table .ir-date small { display:block; margin-top:3px; color:#71839b; font-size:10px; font-weight:400; }
+
+/* Keep blocked IR review distinct from actionable shortage procurement. */
+.maintenance-ir-page .ir-pending-actions { display: flex; align-items: center; justify-content: flex-start; gap: 8px; flex-wrap: wrap; }
+.maintenance-ir-page .ir-pr-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 11px; min-height: 33px;
+  border: 1px solid #b9d2f5; border-radius: 8px;
+  background: #edf5ff; color: #1857a5;
+  font-size: 11px; font-weight: 750; line-height: 1.3;
+  text-decoration: none; white-space: nowrap;
+}
+.maintenance-ir-page .ir-pr-link:hover,
+.maintenance-ir-page .ir-pr-link:focus-visible { background: #dfeeff; border-color: #8bb8ed; }
+
+/* Pending JO split: availability and release authorization are separate facts. */
+.maintenance-ir-page .ir-split-table th { font-size: 10px; white-space: nowrap; }
+.maintenance-ir-page .ir-split-table td { vertical-align: middle; padding-top: 15px; padding-bottom: 15px; }
+.maintenance-ir-page .ir-split-jo { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.maintenance-ir-page .ir-split-parts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.maintenance-ir-page .ir-split-chip,
+.maintenance-ir-page .ir-split-status {
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid transparent;
+  border-radius: 7px; padding: 6px 9px; font-size: 11px; line-height: 1.25;
+  font-weight: 750; white-space: nowrap;
+}
+.maintenance-ir-page .ir-split-chip.is-ir,
+.maintenance-ir-page .ir-split-status.is-available {
+  color: #167144; background: #e8f8ef; border-color: #bee8d0;
+}
+.maintenance-ir-page .ir-split-chip.is-pr,
+.maintenance-ir-page .ir-split-status.is-empty {
+  color: #b13b40; background: #fff0f1; border-color: #f7c7cb;
+}
+.maintenance-ir-page .ir-split-chip.is-no-pr {
+  color: #587087; background: #f1f5f9; border-color: #dce5ee;
+}
+.maintenance-ir-page .ir-split-status.is-partial {
+  color: #945805; background: #fff2d9; border-color: #f2d59a;
+}
+.maintenance-ir-page .ir-split-part-preview {
+  display: block; margin-top: 7px; font-size: 11px;
+  color: #61738c; overflow-wrap: anywhere;
+}
+.maintenance-ir-page .ir-split-policy {
+  display: inline-block; max-width: 170px; color: #435a79;
+  font-size: 11px; font-weight: 700; line-height: 1.4;
+}
+.maintenance-ir-page .ir-split-review {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  white-space: nowrap; min-height: 34px;
+}
+
+/* Compact IR/PR breakdown: shares visual language with mechanic +more popover. */
+.maintenance-ir-page .ir-split-breakdown { position: relative; display: inline-block; max-width: 100%; margin-top: 7px; }
+.maintenance-ir-page .ir-split-breakdown > summary {
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  color: #3c5678; cursor: pointer; list-style: none; font-size: 11px;
+}
+.maintenance-ir-page .ir-split-breakdown > summary::-webkit-details-marker { display: none; }
+.maintenance-ir-page .ir-split-breakdown .ir-split-more {
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid #c6dbf7;
+  border-radius: 6px; padding: 4px 7px; color: #1758ad; background: #eaf3ff;
+  font-weight: 750; font-size: 10px;
+}
+.maintenance-ir-page .ir-split-breakdown[open] .ir-split-more i { transform: rotate(180deg); }
+.maintenance-ir-page .ir-split-popover {
+  position: absolute; z-index: 120; top: calc(100% + 7px); left: 0;
+  width: min(335px, calc(100vw - 48px)); box-sizing: border-box;
+  border: 1px solid #d1e0f3; border-radius: 11px; padding: 0;
+  background: #fff; box-shadow: 0 15px 35px rgba(20,47,81,.17);
+}
+.maintenance-ir-page .ir-split-popover-heading {
+  padding: 12px 14px; color: #1b3659; background: #f2f7fe;
+  border-bottom: 1px solid #e0e9f6; font-weight: 800; font-size: 12px;
+}
+.maintenance-ir-page .ir-split-popover-section { padding: 11px 14px; }
+.maintenance-ir-page .ir-split-popover-section + .ir-split-popover-section { border-top: 1px solid #e6edf5; }
+.maintenance-ir-page .ir-split-popover-label {
+  display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+  font-size: 11px; font-weight: 800;
+}
+.maintenance-ir-page .ir-split-popover-label.is-ir { color: #117646; }
+.maintenance-ir-page .ir-split-popover-label.is-pr { color: #b43c42; }
+.maintenance-ir-page .ir-split-popover-line {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; padding: 6px 0; font-size: 11px; color: #364d6c;
+}
+.maintenance-ir-page .ir-split-popover-line strong { color: #1a365c; white-space: nowrap; font-size: 11px; }
+.maintenance-ir-page .ir-split-popover-empty { font-size: 11px; color: #7b8799; margin: 0; }
+.maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) { position: relative; z-index: 110; }
+.maintenance-ir-page .ir-split-table .ir-pending-record:has(.ir-split-breakdown[open]) td { overflow: visible; }
+
+/* Pending requests: submitted timestamp and explicit handover policy. */
+.maintenance-ir-page .ir-submitted-time,
+.maintenance-ir-page .ir-release-policy {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+}
+.maintenance-ir-page .ir-submitted-time strong { color: #193c66; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.maintenance-ir-page .ir-submitted-time small { color: #61758e; font-size: 11px; line-height: 1.4; }
+.maintenance-ir-page .ir-submitted-time small:last-child { color: #7d899a; font-size: 10px; }
+.maintenance-ir-page .ir-release-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px;
+  border-radius: 8px; border: 1px solid #ebce8a; background: #fff2d8;
+  color: #965705; font-size: 11px; line-height: 1.25; font-weight: 800; white-space: nowrap;
+}
+.maintenance-ir-page .ir-release-badge.is-partial { background: #e8f3ff; border-color: #c2ddf8; color: #205d9b; }
+.maintenance-ir-page .ir-release-policy small { max-width: 230px; color: #61758d; font-size: 11px; line-height: 1.4; }
+.maintenance-ir-page .ir-split-table th:nth-child(2),
+.maintenance-ir-page .ir-split-table td:nth-child(2) { min-width: 125px; }
+.maintenance-ir-page .ir-split-table th:nth-child(5),
+.maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 195px; }
+
+/* Compact pending IR table: preserve clear labels without excessive row height. */
+.maintenance-ir-page .ir-split-table { table-layout: auto; width: 100%; }
+.maintenance-ir-page .ir-split-table thead th { padding: 11px 13px; vertical-align: middle; }
+.maintenance-ir-page .ir-split-table tbody td {
+  padding: 12px 13px !important;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.maintenance-ir-page .ir-split-table .ir-split-jo { gap: 0; }
+.maintenance-ir-page .ir-split-table .ir-split-breakdown { margin-top: 6px; }
+.maintenance-ir-page .ir-split-table .ir-split-breakdown > summary { margin-top: 0; }
+.maintenance-ir-page .ir-split-table .ir-split-parts { gap: 5px; }
+.maintenance-ir-page .ir-split-table .ir-submitted-time { gap: 2px; }
+.maintenance-ir-page .ir-split-table .ir-release-policy { gap: 0; }
+.maintenance-ir-page .ir-split-table .ir-release-badge { padding: 7px 9px; }
+.maintenance-ir-page .ir-split-table .ir-split-review { min-height: 34px; padding: 7px 11px; }
+.maintenance-ir-page .ir-split-table th:last-child,
+.maintenance-ir-page .ir-split-table td:last-child { text-align: center; }
+@media (max-width: 900px) {
+  .maintenance-ir-page .ir-split-table { min-width: 825px; }
+}
+
+/* Keep request workflow distinct from stock availability and Head release policy. */
+.maintenance-ir-page .ir-request-status.is-review {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border: 1px solid #cbdcf5;
+  border-radius: 8px; background: #edf4ff; color: #215aa2;
+  font-size: 11px; line-height: 1.25; font-weight: 800;
+  white-space: nowrap;
+}
+.maintenance-ir-page .ir-split-table th:nth-child(5),
+.maintenance-ir-page .ir-split-table td:nth-child(5) { min-width: 95px; }
+.maintenance-ir-page .ir-split-table th:nth-child(6),
+.maintenance-ir-page .ir-split-table td:nth-child(6) { min-width: 145px; }
+
+/* Consistent Pending / In Progress / History layout, without simulated stock data. */
+.maintenance-ir-page .ir-lifecycle-table tbody td { padding: 18px 17px !important; vertical-align: middle; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-jo { align-items: flex-start; gap: 6px; }
+.maintenance-ir-page .ir-lifecycle-jo { color: #607590; font-size: 11px; font-weight: 650; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-breakdown { margin-top: 7px; }
+.maintenance-ir-page .ir-lifecycle-table .ir-split-parts { gap: 9px; }
+.maintenance-ir-page .ir-lifecycle-table .ir-release-badge { max-width: 100%; }
+.maintenance-ir-page .ir-lifecycle-table .ir-status {
+  display: inline-flex; align-items: center; padding: 7px 10px;
+  border-radius: 8px; font-size: 11px; line-height: 1.25;
+  font-weight: 800; white-space: nowrap;
+}
+.maintenance-ir-page .ir-lifecycle-table th:last-child,
+.maintenance-ir-page .ir-lifecycle-table td:last-child { text-align: center; }
+.maintenance-ir-page .ir-lifecycle-table .ir-view-button { min-height: 34px; white-space: nowrap; }
+.maintenance-ir-page .ir-lifecycle-table th:nth-child(2),
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(2) { min-width: 126px; }
+.maintenance-ir-page .ir-lifecycle-table th:nth-child(5),
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(5) { min-width: 158px; }
+@media(max-width: 900px) { .maintenance-ir-page .ir-lifecycle-table { min-width: 760px; } }
+
+/* IR View — same enterprise document hierarchy as View Job Order. */
+#viewItemRequestModal .ir-view-modal { width: min(1060px, calc(100vw - 36px)); max-width: 1060px; max-height: calc(100dvh - 36px); }
+#viewItemRequestModal .ir-view-modal-header { padding: 18px 22px; background: #f8fbff; flex-shrink: 0; }
+#viewItemRequestModal .ir-view-modal-body { display: flex; flex-direction: column; gap: 14px; padding: 16px 18px 20px; background: #fff; overflow-y: auto; }
+#viewItemRequestModal .ir-view-document-summary {
+  display: grid; grid-template-columns: minmax(180px,1.5fr) repeat(4,minmax(0,1fr));
+  gap: 0; align-items: center; padding: 15px 11px; border: 1px solid #ccdef6;
+  border-radius: 12px; background: linear-gradient(115deg,#f2f7ff,#fff);
+}
+#viewItemRequestModal .ir-view-document-summary > div {
+  min-width: 0; display: flex; flex-direction: column; gap: 7px;
+  padding: 5px 13px; border-right: 1px solid #e1e8f2;
+}
+#viewItemRequestModal .ir-view-document-summary > div:last-child { border-right: 0; }
+#viewItemRequestModal .ir-view-document-summary span { font-size: 10px; letter-spacing: .04em; font-weight: 750; color: #637795; }
+#viewItemRequestModal .ir-view-document-summary strong { font-size: 12px; font-weight: 800; color: #17365d; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-document-number strong { font-size: 19px; color: #103465; }
+#viewItemRequestModal .ir-view-document-summary small { font-size: 10px; color: #73839b; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-status { width: max-content; max-width: 100%; white-space: normal; font-size: 11px; }
+#viewItemRequestModal .ir-view-document-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch; }
+#viewItemRequestModal .ir-view-document-columns > .ir-view-panel { min-width: 0; margin: 0; }
+#viewItemRequestModal .ir-view-panel { border: 1px solid #d9e5f4; border-radius: 11px; background: #fff; overflow: hidden; }
+#viewItemRequestModal .ir-view-panel-header { padding: 13px 15px; background: #f1f6fd; }
+#viewItemRequestModal .ir-view-panel h3 { font-size: 13px; }
+#viewItemRequestModal .ir-view-document-panel-body { padding: 16px; min-height: 78px; }
+#viewItemRequestModal .ir-view-document-panel-body > strong { color: #24476f; font-size: 12px; }
+#viewItemRequestModal .ir-view-document-panel-body p { margin: 6px 0 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-document-parts { width: 100%; }
+#viewItemRequestModal .ir-view-document-table { margin: 14px; border: 1px solid #dce6f3; border-radius: 9px; overflow: hidden; }
+#viewItemRequestModal .ir-view-document-table-head,
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  display: grid !important; grid-template-columns: minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  gap: 14px; align-items: center; box-sizing: border-box; width: 100%;
+  padding: 12px 14px; margin: 0; min-width: 0;
+}
+#viewItemRequestModal .ir-view-document-table-head {
+  grid-template-columns: 35px minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  background: #eef4fc; color: #415a78; font-size: 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-parts-list { display: block; padding: 0; margin: 0; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  grid-template-columns: minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
+  border: 0; border-top: 1px solid #e2eaf4; border-radius: 0; background: #fff;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row:nth-child(even) { background: #fafcff; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main { display: flex; align-items: center; min-width: 0; gap: 13px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-index { flex: 0 0 35px; text-align: left; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main strong { min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-qty { text-align: left; font-size: 12px; font-weight: 750; white-space: nowrap; }
+#viewItemRequestModal .ir-view-part-handover { color: #667b96; font-size: 11px; }
+#viewItemRequestModal .ir-view-modal-footer { position: relative; background: #fff; flex-shrink: 0; padding: 12px 20px; }
+@media (max-width: 850px) {
+  #viewItemRequestModal .ir-view-document-summary { grid-template-columns: repeat(3,minmax(0,1fr)); row-gap: 10px; }
+  #viewItemRequestModal .ir-view-document-summary > div { border-right: 0; }
+  #viewItemRequestModal .ir-view-document-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 570px) {
+  #viewItemRequestModal .ir-view-document-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #viewItemRequestModal .ir-view-document-table { overflow-x: auto; }
+  #viewItemRequestModal .ir-view-document-table-head,
+  #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 620px; }
+}
+
+/* Review IR: JO-inspired read-only document review with submission controls. */
+#itemRequestModal .ir-review-document-modal {
+  width: min(1050px, calc(100vw - 36px));
+  max-width: 1050px;
+  max-height: calc(100dvh - 36px);
+  border-radius: 16px;
+}
+#itemRequestModal .ir-review-document-modal > .ir-modal-header {
+  padding: 17px 21px;
+  background: #f8fbff;
+  border-bottom: 1px solid #dce6f3;
+}
+#itemRequestModal .ir-review-document-modal form { flex: 1 1 auto; min-height: 0; }
+#itemRequestModal .ir-review-document-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 20px;
+  background: #fff;
+}
+#itemRequestModal .ir-review-document-body .ir-form-section {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #d9e5f4;
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-body .ir-form-section > h3 {
+  margin: 0 0 14px;
+  padding: 12px 15px;
+  background: #f0f5fc;
+  border-bottom: 1px solid #dce6f4;
+  color: #173b6e;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo {
+  padding-bottom: 16px;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-field,
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-preview-grid,
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-jo-authorization {
+  margin-left: 15px;
+  margin-right: 15px;
+}
+#itemRequestModal .ir-review-document-body .ir-review-document-jo > .ir-field {
+  margin-bottom: 12px;
+}
+#itemRequestModal .ir-review-document-body .ir-jo-authorization {
+  padding: 12px;
+  margin-top: 14px;
+  border: 1px solid #dce6f3;
+  border-radius: 10px;
+}
+#itemRequestModal .ir-review-document-body .ir-jo-authorization-grid {
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+}
+#itemRequestModal .ir-review-document-split {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+#itemRequestModal .ir-review-document-split .ir-form-section {
+  padding: 0 0 14px;
+}
+#itemRequestModal .ir-review-document-split .ir-form-section h3 {
+  font-size: 12px;
+  line-height: 1.4;
+}
+#itemRequestModal .ir-review-document-split .ir-form-hint {
+  min-height: 42px;
+  margin: 0 14px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table-wrap {
+  margin: 0 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table {
+  width: 100%;
+  table-layout: auto;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table th,
+#itemRequestModal .ir-review-document-split .ir-preview-table td {
+  padding: 12px 10px;
+  font-size: 11px;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+#itemRequestModal .ir-review-document-split .ir-preview-table th {
+  background: #eaf1fa;
+  color: #445e80;
+  font-size: 10px;
+}
+#itemRequestModal .ir-review-document-remarks { padding-bottom: 15px; }
+#itemRequestModal .ir-review-document-remarks .ir-field {
+  margin: 0 15px;
+}
+#itemRequestModal .ir-review-document-body .ir-note { margin: 0; }
+#itemRequestModal .ir-review-document-modal .ir-modal-footer {
+  flex: 0 0 auto;
+  padding: 13px 20px;
+  background: #fff;
+}
+@media (max-width: 740px) {
+  #itemRequestModal .ir-review-document-split { grid-template-columns: 1fr; }
+  #itemRequestModal .ir-review-document-body { padding: 12px; }
+  #itemRequestModal .ir-review-document-split .ir-form-hint { min-height: 0; }
+}
+
+/* View JO parity for the Pending -> Review IR document (no step cards). */
+#itemRequestModal .ir-review-document-modal { width: min(1000px,calc(100vw - 36px)); max-width: 1000px; }
+#itemRequestModal .ir-review-document-body { gap: 13px; padding: 14px 17px 18px; }
+#itemRequestModal .ir-review-jo-banner {
+ display: grid; grid-template-columns: minmax(190px,1.55fr) repeat(3,minmax(0,1fr));
+ align-items: center; padding: 15px 10px; border: 1px solid #cddff7;
+ border-radius: 12px; background: linear-gradient(110deg,#f2f7ff,#fff);
+}
+#itemRequestModal .ir-review-jo-banner > div {
+ display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+ min-width: 0; padding: 3px 14px; border-right: 1px solid #dfe7f3;
+}
+#itemRequestModal .ir-review-jo-banner > div:last-child { border: 0; }
+#itemRequestModal .ir-review-jo-banner span { color: #667b96; font-size: 10px; letter-spacing: .05em; font-weight: 750; }
+#itemRequestModal .ir-review-jo-banner strong { color: #14355f; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+#itemRequestModal .ir-review-jo-banner .ir-review-banner-main strong { font-size: 16px; font-weight: 850; }
+#itemRequestModal .ir-review-jo-banner small { color: #7085a0; font-size: 10px; }
+#itemRequestModal .ir-review-jo-banner .ir-jo-approved-badge { padding: 5px 9px; }
+#itemRequestModal .ir-review-document-top { display: grid; grid-template-columns: 1.15fr .85fr; align-items: stretch; gap: 13px; }
+#itemRequestModal .ir-review-section { min-width: 0; border: 1px solid #d8e5f5; border-radius: 10px; overflow: hidden; background: #fff; }
+#itemRequestModal .ir-review-section > header {
+ display: flex; justify-content: space-between; align-items: center; gap: 12px;
+ padding: 12px 14px; border-bottom: 1px solid #dce6f4; background: #f0f5fc;
+}
+#itemRequestModal .ir-review-section > header h3 { display: flex; align-items: center; gap: 9px; margin: 0; color: #163b6a; font-size: 13px; font-weight: 800; }
+#itemRequestModal .ir-review-section > header h3 i { color: #215ca8; }
+#itemRequestModal .ir-review-section-note { font-size: 10px; color: #7388a3; line-height: 1.3; }
+#itemRequestModal .ir-review-section-content { padding: 14px; }
+#itemRequestModal .ir-review-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#itemRequestModal .ir-review-overview-grid div { display: flex; flex-direction: column; gap: 6px; }
+#itemRequestModal .ir-review-overview-grid span,
+#itemRequestModal .ir-review-approver span,
+#itemRequestModal .ir-review-signature span { font-size: 11px; color: #607792; }
+#itemRequestModal .ir-review-overview-grid strong,
+#itemRequestModal .ir-review-approver strong { font-size: 12px; font-weight: 800; color: #183b67; }
+#itemRequestModal .ir-review-muted { margin: 13px 0 0; color: #637893; font-size: 11px; line-height: 1.55; }
+#itemRequestModal .ir-review-approval-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 12px; }
+#itemRequestModal .ir-review-approver,
+#itemRequestModal .ir-review-signature { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 11px; border-radius: 9px; background: #f4f8fd; }
+#itemRequestModal .ir-review-approver small { color: #667c97; font-size: 10px; }
+#itemRequestModal .ir-review-signature { align-items: center; text-align: center; background: #fff; border: 1px solid #e2eaf4; }
+#itemRequestModal .ir-review-signature img { max-width: 100%; max-height: 84px; object-fit: contain; }
+#itemRequestModal .ir-review-signature small { font-size: 10px; color: #72839b; }
+#itemRequestModal .ir-review-parts-content { padding: 12px 14px 15px; }
+#itemRequestModal .ir-review-portion-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin: 4px 0 8px; }
+#itemRequestModal .ir-review-portion-head strong { display: inline-flex; gap: 8px; align-items: center; color: #147348; font-size: 12px; }
+#itemRequestModal .ir-review-portion-head.is-pr strong { color: #a74349; }
+#itemRequestModal .ir-review-portion-head > span { font-size: 11px; color: #6a7e95; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table-wrap { margin: 0 0 16px; border: 1px solid #dde7f3; border-radius: 9px; overflow: hidden; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table th,
+#itemRequestModal .ir-review-parts-content .ir-preview-table td { padding: 10px 13px; font-size: 12px; vertical-align: middle; text-align: left; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table th { background: #edf3fb; font-size: 10px; color: #425b7b; font-weight: 800; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table th:first-child { width: 52%; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table th:nth-child(2) { width: 25%; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table th:nth-child(3) { width: 23%; }
+#itemRequestModal .ir-review-parts-content .ir-preview-table td { border-top: 1px solid #e2ebf6; }
+#itemRequestModal .ir-review-remarks-section label { display: block; margin-bottom: 8px; color: #405d7e; font-weight: 700; font-size: 11px; }
+#itemRequestModal .ir-review-remarks-section textarea { display: block; width: 100%; box-sizing: border-box; min-height: 60px; padding: 11px 12px; border: 1px solid #d0deef; border-radius: 8px; background: white; font-size: 12px; }
+#itemRequestModal .ir-review-document-body .ir-note { font-size: 11px; line-height: 1.45; }
+@media (max-width: 780px) {
+ #itemRequestModal .ir-review-jo-banner { grid-template-columns: 1fr 1fr; row-gap: 14px; }
+ #itemRequestModal .ir-review-jo-banner > div { border-right: 0; }
+ #itemRequestModal .ir-review-document-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 470px) {
+ #itemRequestModal .ir-review-approval-grid { grid-template-columns: 1fr; }
+ #itemRequestModal .ir-review-overview-grid { grid-template-columns: 1fr; }
+ #itemRequestModal .ir-review-section > header { flex-wrap: wrap; }
+}
+
+/* Approved mockup refinement: balanced side-by-side IR and PR allocation tables. */
+#itemRequestModal .ir-review-document-modal { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
+#itemRequestModal .ir-review-jo-banner {
+  grid-template-columns: minmax(190px,1.5fr) repeat(3,minmax(0,1fr));
+}
+#itemRequestModal .ir-review-parts-two-column {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 12px; padding: 12px 13px 13px;
+}
+#itemRequestModal .ir-review-parts-pane {
+  min-width: 0; border: 1px solid #dce7f4; border-radius: 10px;
+  background: #fff; padding: 12px; overflow: hidden;
+}
+#itemRequestModal .ir-review-parts-pane.is-pr { border-color: #e5e6ed; }
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head {
+  min-height: 25px; margin: 0 0 10px; align-items: baseline;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head strong {
+  font-size: 12px; font-weight: 800; line-height: 1.4;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-review-portion-head > span {
+  font-size: 10px; white-space: nowrap;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table-wrap {
+  margin: 0; border-radius: 8px;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table {
+  table-layout: fixed; width: 100%;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th,
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table td {
+  padding: 11px 9px; font-size: 11px; text-align: left;
+  vertical-align: middle; overflow-wrap: anywhere;
+}
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th { font-size: 9px; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:first-child { width: 47%; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(2) { width: 25%; }
+#itemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(3) { width: 28%; }
+#itemRequestModal .ir-review-parts-pane.is-pr .ir-stock-unavailable {
+  border: 1px solid #f5b8be; background: #fff0f2; color: #b33d48;
+  border-radius: 7px; padding: 5px 8px; font-size: 10px; font-weight: 800;
+  white-space: nowrap; display: inline-flex;
+}
+#itemRequestModal .ir-review-remarks-section .ir-review-section-content { padding: 12px 14px; }
+#itemRequestModal .ir-review-remarks-section textarea { min-height: 54px; resize: vertical; }
+@media (max-width: 780px) {
+  #itemRequestModal .ir-review-parts-two-column { grid-template-columns: 1fr; }
+}
+
+/* Fix compressed Review IR sections: scroll the body, never shrink/crop parts. */
+#itemRequestModal .ir-review-document-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 36px);
+}
+#itemRequestModal .ir-review-document-modal > form {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#itemRequestModal .ir-review-document-modal .ir-review-document-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+#itemRequestModal .ir-review-document-body > .ir-review-jo-banner,
+#itemRequestModal .ir-review-document-body > .ir-review-document-top,
+#itemRequestModal .ir-review-document-body > .ir-review-section,
+#itemRequestModal .ir-review-document-body > .ir-note {
+  flex: 0 0 auto;
+}
+#itemRequestModal .ir-review-parts-section,
+#itemRequestModal .ir-review-parts-content,
+#itemRequestModal .ir-review-parts-two-column,
+#itemRequestModal .ir-review-parts-pane {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+}
+#itemRequestModal .ir-review-parts-section { overflow: visible; }
+#itemRequestModal .ir-review-document-modal .ir-modal-footer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+#itemRequestModal .ir-review-jo-banner .ir-jo-approved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  border: 1px solid #a7dfbb;
+  border-radius: 100px;
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  font-size: 11px;
+  font-weight: 800;
+}
+#itemRequestModal .ir-review-jo-banner .ir-jo-approved-badge i { color: #15803d; }
+
+/* In Progress / History View IR — match the approved Review IR document. */
+#viewItemRequestModal .ir-view-modal {
+  width: min(1000px, calc(100vw - 36px)); max-width: 1000px;
+  max-height: calc(100dvh - 36px); display: flex; flex-direction: column;
+}
+#viewItemRequestModal .ir-view-modal-header {
+  background: #f8fbff; padding: 17px 21px; flex: 0 0 auto;
+}
+#viewItemRequestModal .ir-view-modal-body {
+  display: flex; flex: 1 1 auto; flex-direction: column;
+  gap: 13px; padding: 14px 17px 18px; min-height: 0;
+  overflow-y: auto; overflow-x: hidden; background: #fff;
+}
+#viewItemRequestModal .ir-view-modal-body > * { flex: 0 0 auto; }
+#viewItemRequestModal .ir-view-document-summary {
+  display: grid; grid-template-columns: minmax(175px,1.5fr) repeat(4,minmax(0,1fr));
+  align-items: center; padding: 15px 10px; border: 1px solid #cddff7;
+  border-radius: 12px; background: linear-gradient(110deg,#f2f7ff,#fff);
+}
+#viewItemRequestModal .ir-view-document-summary > div {
+  min-width: 0; padding: 4px 12px; gap: 7px; border-right: 1px solid #dfe7f3;
+}
+#viewItemRequestModal .ir-view-document-summary > div:last-child { border-right: 0; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-status {
+  display: inline-flex; align-self: flex-start; border: 1px solid #bcd5f9;
+  background: #eaf3ff; color: #16519d; border-radius: 100px;
+  padding: 5px 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-columns {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch;
+}
+#viewItemRequestModal .ir-view-document-columns > .ir-view-panel { min-width: 0; }
+#viewItemRequestModal .ir-view-panel {
+  min-width: 0; border: 1px solid #d8e5f5; border-radius: 10px;
+  overflow: hidden; background: #fff;
+}
+#viewItemRequestModal .ir-view-panel-header {
+  padding: 12px 14px; background: #f0f5fc; border-bottom: 1px solid #dce6f4;
+}
+#viewItemRequestModal .ir-view-panel-header h3 {
+  margin: 0; color: #163b6a; font-size: 13px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-panel-body { padding: 14px; min-height: 72px; }
+#viewItemRequestModal .ir-view-document-parts .ir-view-panel-header { align-items: center; }
+#viewItemRequestModal .ir-view-document-table {
+  margin: 12px 14px 14px; width: calc(100% - 28px);
+  border: 1px solid #dce6f3; border-radius: 9px; overflow: hidden;
+}
+#viewItemRequestModal .ir-view-document-table-head,
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0,1fr) minmax(120px,.3fr) !important;
+  align-items: center; gap: 12px;
+  box-sizing: border-box; width: 100%; min-width: 0;
+  margin: 0; padding: 11px 14px;
+}
+#viewItemRequestModal .ir-view-document-table-head {
+  background: #edf3fb; color: #425b7b; font-size: 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-parts-list {
+  display: block; padding: 0; margin: 0;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  border: 0; border-top: 1px solid #e2ebf6; border-radius: 0;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main {
+  display: contents;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-index {
+  display: inline-flex; justify-content: center; padding: 5px;
+  background: #eef4ff; border-radius: 6px; font-size: 11px;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main strong { font-size: 12px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-qty {
+  display: inline-block; border: 0; background: none; padding: 0;
+  font-weight: 750; text-align: left;
+}
+#viewItemRequestModal .ir-view-modal-footer {
+  position: relative; flex: 0 0 auto; padding: 12px 20px; background: #fff;
+}
+@media (max-width: 760px) {
+  #viewItemRequestModal .ir-view-document-summary {
+    grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 12px;
+  }
+  #viewItemRequestModal .ir-view-document-summary > div { border-right: 0; }
+  #viewItemRequestModal .ir-view-document-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  #viewItemRequestModal .ir-view-document-table { overflow-x: auto; }
+  #viewItemRequestModal .ir-view-document-table-head,
+  #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 520px; }
+}
+
+/* View IR structural parity with the approved Review IR modal. */
+#viewItemRequestModal .ir-view-modal { width: min(1100px,calc(100vw - 36px)); max-width: 1100px; }
+#viewItemRequestModal .ir-view-review-layout { gap: 13px; padding: 15px 17px 18px; }
+#viewItemRequestModal .ir-view-review-overview { display: grid; grid-template-columns: 1.15fr .85fr; gap: 13px; align-items: stretch; }
+#viewItemRequestModal .ir-view-review-overview > .ir-view-panel { min-width: 0; }
+#viewItemRequestModal .ir-view-review-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 15px; padding: 16px; }
+#viewItemRequestModal .ir-view-review-info > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#viewItemRequestModal .ir-view-review-info span { color: #627c9b; font-size: 11px; }
+#viewItemRequestModal .ir-view-review-info strong { color: #163b6a; font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-view-review-info p { grid-column: 1/-1; color: #6b7f98; font-size: 11px; line-height: 1.55; margin: 0; }
+#viewItemRequestModal .ir-view-review-parts { border: 1px solid #e0e8f4; background: white; border-radius: 10px; padding: 13px; margin: 13px; }
+#viewItemRequestModal .ir-view-review-parts-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 11px; }
+#viewItemRequestModal .ir-view-review-parts-heading strong { color: #147348; font-size: 12px; font-weight: 800; }
+#viewItemRequestModal .ir-view-review-parts-heading small { color: #7185a1; font-size: 11px; }
+#viewItemRequestModal .ir-view-review-parts .ir-view-document-table { margin: 0; width: 100%; }
+#viewItemRequestModal .ir-view-review-layout .ir-view-panel-header { min-height: 41px; }
+#viewItemRequestModal .ir-view-review-layout .ir-view-panel-header > small { color: #7286a1; font-size: 10px; }
+#viewItemRequestModal .ir-view-review-remarks { margin: 13px; padding: 12px 14px; border: 1px solid #dde7f3; border-radius: 8px; background: #f7faff; }
+#viewItemRequestModal .ir-view-review-remarks p { margin: 0; color: #617793; font-size: 12px; }
+#viewItemRequestModal .ir-view-review-notice { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border: 1px solid #cdddff; border-radius: 8px; background: #edf5ff; color: #41628a; font-size: 11px; line-height: 1.5; }
+#viewItemRequestModal .ir-view-review-notice i { color: #2162b4; }
+@media(max-width:760px) {
+ #viewItemRequestModal .ir-view-review-overview { grid-template-columns: 1fr; }
+}
+@media(max-width:470px) {
+ #viewItemRequestModal .ir-view-review-info { grid-template-columns: 1fr; }
+ #viewItemRequestModal .ir-view-review-parts-heading { flex-wrap: wrap; }
+}
+
+/* In Progress View: exact two-panel table hierarchy from Review IR. */
+#viewItemRequestModal .ir-view-request-parts-grid { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 13px 14px; }
+#viewItemRequestModal .ir-view-request-pane { min-width:0;border:1px solid #dce7f4;border-radius:10px;background:#fff;padding:12px; }
+#viewItemRequestModal .ir-view-request-pane.is-pr { border-color:#e5e6ed; }
+#viewItemRequestModal .ir-view-request-pane .ir-view-review-parts-heading { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 0 11px; }
+#viewItemRequestModal .ir-view-request-pane .ir-view-review-parts-heading strong { font-size:12px;line-height:1.45;color:#147348; }
+#viewItemRequestModal .ir-view-request-pane.is-pr .ir-view-review-parts-heading strong { color:#b33d48; }
+#viewItemRequestModal .ir-view-request-pane .ir-view-review-parts-heading small { white-space:nowrap;font-size:10px;color:#7185a1; }
+#viewItemRequestModal .ir-view-request-table-wrap { border:1px solid #dce6f3;border-radius:8px;overflow:hidden; }
+#viewItemRequestModal .ir-view-request-table { width:100%;table-layout:fixed;border-collapse:collapse; }
+#viewItemRequestModal .ir-view-request-table th { background:#edf3fb;color:#425b7b;font-size:10px;font-weight:800;text-align:left;padding:11px 9px; }
+#viewItemRequestModal .ir-view-request-table td { color:#223c61;font-size:11px;padding:11px 9px;border-top:1px solid #e2ebf6;overflow-wrap:anywhere; }
+#viewItemRequestModal .ir-view-request-table tbody tr:nth-child(even) { background:#f8fbff; }
+#viewItemRequestModal .ir-view-request-table th:first-child { width:44%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(2) { width:25%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(3) { width:31%; }
+#viewItemRequestModal .ir-view-request-badge { display:inline-flex;align-items:center;border-radius:8px;border:1px solid #a9e6bc;background:#e4faec;color:#166534;font-size:10px;font-weight:800;padding:5px 8px; }
+#viewItemRequestModal .ir-view-request-badge.is-pr { border-color:#f3b7be;background:#fff0f1;color:#b23845; }
+#viewItemRequestModal .ir-view-request-empty { color:#72839b!important;text-align:center;padding:16px 8px!important; }
+@media(max-width:790px) { #viewItemRequestModal .ir-view-request-parts-grid { grid-template-columns:1fr; } }
+
+/* Prevent global table minimum widths from clipping the two IR/PR detail cards. */
+#viewItemRequestModal .ir-view-request-parts-grid { min-width:0; width:100%; box-sizing:border-box; }
+#viewItemRequestModal .ir-view-request-pane { min-width:0; width:100%; box-sizing:border-box; }
+#viewItemRequestModal .ir-view-request-table-wrap { min-width:0; width:100%; max-width:100%; box-sizing:border-box; overflow:visible; }
+#viewItemRequestModal .ir-view-request-table {
+  display:table; width:100%; min-width:0 !important; max-width:100%;
+  table-layout:fixed; box-sizing:border-box; border-collapse:collapse;
+}
+#viewItemRequestModal .ir-view-request-table th,
+#viewItemRequestModal .ir-view-request-table td {
+  min-width:0 !important; max-width:none; box-sizing:border-box;
+  padding:10px 7px; text-align:left; white-space:normal !important;
+  overflow-wrap:break-word; word-break:normal; vertical-align:middle;
+}
+#viewItemRequestModal .ir-view-request-table th:first-child { width:40%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(2) { width:26%; }
+#viewItemRequestModal .ir-view-request-table th:nth-child(3) { width:34%; }
+#viewItemRequestModal .ir-view-request-table th { font-size:9px; line-height:1.35; }
+#viewItemRequestModal .ir-view-request-table td { font-size:11px; line-height:1.4; }
+#viewItemRequestModal .ir-view-request-badge { max-width:100%; box-sizing:border-box; white-space:normal; }
+#viewItemRequestModal .ir-view-request-pane .ir-view-review-parts-heading strong { min-width:0; }
+@media(max-width:940px) {
+ #viewItemRequestModal .ir-view-request-parts-grid { grid-template-columns:1fr; }
+}
+
+/* View IR: badge colors follow the real linked Purchase Request status. */
+#viewItemRequestModal .ir-view-request-badge.is-success {
+  border-color:#a9e6bc;background:#e4faec;color:#166534;
+}
+#viewItemRequestModal .ir-view-request-badge.is-danger {
+  border-color:#f2b2ba;background:#fff0f2;color:#ad283a;
+}
+#viewItemRequestModal .ir-view-request-badge.is-neutral {
+  border-color:#d3deec;background:#f1f5fb;color:#385676;
+}
+
+/* Saved JO authorization in submitted IR detail view. */
+#viewItemRequestModal .ir-view-head-approval-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:13px;}
+#viewItemRequestModal .ir-view-head-approver,#viewItemRequestModal .ir-view-head-signature {display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0;padding:13px 16px;border:1px solid #e0e8f3;border-radius:9px;background:#f4f8fd;min-height:98px;}
+#viewItemRequestModal .ir-view-head-approver span,#viewItemRequestModal .ir-view-head-signature span {font-size:11px;color:#657c99;}
+#viewItemRequestModal .ir-view-head-approver strong {font-size:13px;color:#163c69;font-weight:800;}
+#viewItemRequestModal .ir-view-head-approver small,#viewItemRequestModal .ir-view-head-signature small {font-size:10px;color:#7387a1;}
+#viewItemRequestModal .ir-view-head-signature {align-items:center;background:#fff;text-align:center;}
+#viewItemRequestModal .ir-view-head-signature img {display:block;max-width:100%;max-height:115px;object-fit:contain;}
+#viewItemRequestModal .ir-view-head-signature img[hidden] {display:none;}
+#viewItemRequestModal .ir-view-head-approval .ir-jo-approved-badge {border:1px solid #a9e6bc;background:#e4faec;color:#166534;}
+@media(max-width:560px){#viewItemRequestModal .ir-view-head-approval-grid{grid-template-columns:1fr;}}
+
+/* The submitted View IR intentionally reuses the Pending Review IR structure. */
+/* View JO parity for the Pending -> Review IR document (no step cards). */
+#viewItemRequestModal .ir-review-document-modal { width: min(1000px,calc(100vw - 36px)); max-width: 1000px; }
+#viewItemRequestModal .ir-review-document-body { gap: 13px; padding: 14px 17px 18px; }
+#viewItemRequestModal .ir-review-jo-banner {
+ display: grid; grid-template-columns: minmax(190px,1.55fr) repeat(3,minmax(0,1fr));
+ align-items: center; padding: 15px 10px; border: 1px solid #cddff7;
+ border-radius: 12px; background: linear-gradient(110deg,#f2f7ff,#fff);
+}
+#viewItemRequestModal .ir-review-jo-banner > div {
+ display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+ min-width: 0; padding: 3px 14px; border-right: 1px solid #dfe7f3;
+}
+#viewItemRequestModal .ir-review-jo-banner > div:last-child { border: 0; }
+#viewItemRequestModal .ir-review-jo-banner span { color: #667b96; font-size: 10px; letter-spacing: .05em; font-weight: 750; }
+#viewItemRequestModal .ir-review-jo-banner strong { color: #14355f; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+#viewItemRequestModal .ir-review-jo-banner .ir-review-banner-main strong { font-size: 16px; font-weight: 850; }
+#viewItemRequestModal .ir-review-jo-banner small { color: #7085a0; font-size: 10px; }
+#viewItemRequestModal .ir-review-jo-banner .ir-jo-approved-badge { padding: 5px 9px; }
+#viewItemRequestModal .ir-review-document-top { display: grid; grid-template-columns: 1.15fr .85fr; align-items: stretch; gap: 13px; }
+#viewItemRequestModal .ir-review-section { min-width: 0; border: 1px solid #d8e5f5; border-radius: 10px; overflow: hidden; background: #fff; }
+#viewItemRequestModal .ir-review-section > header {
+ display: flex; justify-content: space-between; align-items: center; gap: 12px;
+ padding: 12px 14px; border-bottom: 1px solid #dce6f4; background: #f0f5fc;
+}
+#viewItemRequestModal .ir-review-section > header h3 { display: flex; align-items: center; gap: 9px; margin: 0; color: #163b6a; font-size: 13px; font-weight: 800; }
+#viewItemRequestModal .ir-review-section > header h3 i { color: #215ca8; }
+#viewItemRequestModal .ir-review-section-note { font-size: 10px; color: #7388a3; line-height: 1.3; }
+#viewItemRequestModal .ir-review-section-content { padding: 14px; }
+#viewItemRequestModal .ir-review-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#viewItemRequestModal .ir-review-overview-grid div { display: flex; flex-direction: column; gap: 6px; }
+#viewItemRequestModal .ir-review-overview-grid span,
+#viewItemRequestModal .ir-review-approver span,
+#viewItemRequestModal .ir-review-signature span { font-size: 11px; color: #607792; }
+#viewItemRequestModal .ir-review-overview-grid strong,
+#viewItemRequestModal .ir-review-approver strong { font-size: 12px; font-weight: 800; color: #183b67; }
+#viewItemRequestModal .ir-review-muted { margin: 13px 0 0; color: #637893; font-size: 11px; line-height: 1.55; }
+#viewItemRequestModal .ir-review-approval-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 12px; }
+#viewItemRequestModal .ir-review-approver,
+#viewItemRequestModal .ir-review-signature { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 11px; border-radius: 9px; background: #f4f8fd; }
+#viewItemRequestModal .ir-review-approver small { color: #667c97; font-size: 10px; }
+#viewItemRequestModal .ir-review-signature { align-items: center; text-align: center; background: #fff; border: 1px solid #e2eaf4; }
+#viewItemRequestModal .ir-review-signature img { max-width: 100%; max-height: 84px; object-fit: contain; }
+#viewItemRequestModal .ir-review-signature small { font-size: 10px; color: #72839b; }
+#viewItemRequestModal .ir-review-parts-content { padding: 12px 14px 15px; }
+#viewItemRequestModal .ir-review-portion-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin: 4px 0 8px; }
+#viewItemRequestModal .ir-review-portion-head strong { display: inline-flex; gap: 8px; align-items: center; color: #147348; font-size: 12px; }
+#viewItemRequestModal .ir-review-portion-head.is-pr strong { color: #a74349; }
+#viewItemRequestModal .ir-review-portion-head > span { font-size: 11px; color: #6a7e95; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table-wrap { margin: 0 0 16px; border: 1px solid #dde7f3; border-radius: 9px; overflow: hidden; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table th,
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table td { padding: 10px 13px; font-size: 12px; vertical-align: middle; text-align: left; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table th { background: #edf3fb; font-size: 10px; color: #425b7b; font-weight: 800; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table th:first-child { width: 52%; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table th:nth-child(2) { width: 25%; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table th:nth-child(3) { width: 23%; }
+#viewItemRequestModal .ir-review-parts-content .ir-preview-table td { border-top: 1px solid #e2ebf6; }
+#viewItemRequestModal .ir-review-remarks-section label { display: block; margin-bottom: 8px; color: #405d7e; font-weight: 700; font-size: 11px; }
+#viewItemRequestModal .ir-review-remarks-section textarea { display: block; width: 100%; box-sizing: border-box; min-height: 60px; padding: 11px 12px; border: 1px solid #d0deef; border-radius: 8px; background: white; font-size: 12px; }
+#viewItemRequestModal .ir-review-document-body .ir-note { font-size: 11px; line-height: 1.45; }
+@media (max-width: 780px) {
+ #viewItemRequestModal .ir-review-jo-banner { grid-template-columns: 1fr 1fr; row-gap: 14px; }
+ #viewItemRequestModal .ir-review-jo-banner > div { border-right: 0; }
+ #viewItemRequestModal .ir-review-document-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 470px) {
+ #viewItemRequestModal .ir-review-approval-grid { grid-template-columns: 1fr; }
+ #viewItemRequestModal .ir-review-overview-grid { grid-template-columns: 1fr; }
+ #viewItemRequestModal .ir-review-section > header { flex-wrap: wrap; }
+}
+
+/* Approved mockup refinement: balanced side-by-side IR and PR allocation tables. */
+#viewItemRequestModal .ir-review-document-modal { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
+#viewItemRequestModal .ir-review-jo-banner {
+  grid-template-columns: minmax(190px,1.5fr) repeat(3,minmax(0,1fr));
+}
+#viewItemRequestModal .ir-review-parts-two-column {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 12px; padding: 12px 13px 13px;
+}
+#viewItemRequestModal .ir-review-parts-pane {
+  min-width: 0; border: 1px solid #dce7f4; border-radius: 10px;
+  background: #fff; padding: 12px; overflow: hidden;
+}
+#viewItemRequestModal .ir-review-parts-pane.is-pr { border-color: #e5e6ed; }
+#viewItemRequestModal .ir-review-parts-two-column .ir-review-portion-head {
+  min-height: 25px; margin: 0 0 10px; align-items: baseline;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-review-portion-head strong {
+  font-size: 12px; font-weight: 800; line-height: 1.4;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-review-portion-head > span {
+  font-size: 10px; white-space: nowrap;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table-wrap {
+  margin: 0; border-radius: 8px;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table {
+  table-layout: fixed; width: 100%;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table th,
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table td {
+  padding: 11px 9px; font-size: 11px; text-align: left;
+  vertical-align: middle; overflow-wrap: anywhere;
+}
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table th { font-size: 9px; }
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table th:first-child { width: 47%; }
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(2) { width: 25%; }
+#viewItemRequestModal .ir-review-parts-two-column .ir-preview-table th:nth-child(3) { width: 28%; }
+#viewItemRequestModal .ir-review-parts-pane.is-pr .ir-stock-unavailable {
+  border: 1px solid #f5b8be; background: #fff0f2; color: #b33d48;
+  border-radius: 7px; padding: 5px 8px; font-size: 10px; font-weight: 800;
+  white-space: nowrap; display: inline-flex;
+}
+#viewItemRequestModal .ir-review-remarks-section .ir-review-section-content { padding: 12px 14px; }
+#viewItemRequestModal .ir-review-remarks-section textarea { min-height: 54px; resize: vertical; }
+@media (max-width: 780px) {
+  #viewItemRequestModal .ir-review-parts-two-column { grid-template-columns: 1fr; }
+}
+
+/* Fix compressed Review IR sections: scroll the body, never shrink/crop parts. */
+#viewItemRequestModal .ir-review-document-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 36px);
+}
+#viewItemRequestModal .ir-review-document-modal > form {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#viewItemRequestModal .ir-review-document-modal .ir-review-document-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+#viewItemRequestModal .ir-review-document-body > .ir-review-jo-banner,
+#viewItemRequestModal .ir-review-document-body > .ir-review-document-top,
+#viewItemRequestModal .ir-review-document-body > .ir-review-section,
+#viewItemRequestModal .ir-review-document-body > .ir-note {
+  flex: 0 0 auto;
+}
+#viewItemRequestModal .ir-review-parts-section,
+#viewItemRequestModal .ir-review-parts-content,
+#viewItemRequestModal .ir-review-parts-two-column,
+#viewItemRequestModal .ir-review-parts-pane {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+}
+#viewItemRequestModal .ir-review-parts-section { overflow: visible; }
+#viewItemRequestModal .ir-review-document-modal .ir-modal-footer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-jo-approved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  border: 1px solid #a7dfbb;
+  border-radius: 100px;
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  font-size: 11px;
+  font-weight: 800;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-jo-approved-badge i { color: #15803d; }
+
+/* In Progress / History View IR — match the approved Review IR document. */
+#viewItemRequestModal .ir-view-modal {
+  width: min(1000px, calc(100vw - 36px)); max-width: 1000px;
+  max-height: calc(100dvh - 36px); display: flex; flex-direction: column;
+}
+#viewItemRequestModal .ir-view-modal-header {
+  background: #f8fbff; padding: 17px 21px; flex: 0 0 auto;
+}
+#viewItemRequestModal .ir-view-modal-body {
+  display: flex; flex: 1 1 auto; flex-direction: column;
+  gap: 13px; padding: 14px 17px 18px; min-height: 0;
+  overflow-y: auto; overflow-x: hidden; background: #fff;
+}
+#viewItemRequestModal .ir-view-modal-body > * { flex: 0 0 auto; }
+#viewItemRequestModal .ir-view-document-summary {
+  display: grid; grid-template-columns: minmax(175px,1.5fr) repeat(4,minmax(0,1fr));
+  align-items: center; padding: 15px 10px; border: 1px solid #cddff7;
+  border-radius: 12px; background: linear-gradient(110deg,#f2f7ff,#fff);
+}
+#viewItemRequestModal .ir-view-document-summary > div {
+  min-width: 0; padding: 4px 12px; gap: 7px; border-right: 1px solid #dfe7f3;
+}
+#viewItemRequestModal .ir-view-document-summary > div:last-child { border-right: 0; }
+#viewItemRequestModal .ir-view-document-summary .ir-view-status {
+  display: inline-flex; align-self: flex-start; border: 1px solid #bcd5f9;
+  background: #eaf3ff; color: #16519d; border-radius: 100px;
+  padding: 5px 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-columns {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch;
+}
+#viewItemRequestModal .ir-view-document-columns > .ir-view-panel { min-width: 0; }
+#viewItemRequestModal .ir-view-panel {
+  min-width: 0; border: 1px solid #d8e5f5; border-radius: 10px;
+  overflow: hidden; background: #fff;
+}
+#viewItemRequestModal .ir-view-panel-header {
+  padding: 12px 14px; background: #f0f5fc; border-bottom: 1px solid #dce6f4;
+}
+#viewItemRequestModal .ir-view-panel-header h3 {
+  margin: 0; color: #163b6a; font-size: 13px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-panel-body { padding: 14px; min-height: 72px; }
+#viewItemRequestModal .ir-view-document-parts .ir-view-panel-header { align-items: center; }
+#viewItemRequestModal .ir-view-document-table {
+  margin: 12px 14px 14px; width: calc(100% - 28px);
+  border: 1px solid #dce6f3; border-radius: 9px; overflow: hidden;
+}
+#viewItemRequestModal .ir-view-document-table-head,
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0,1fr) minmax(120px,.3fr) !important;
+  align-items: center; gap: 12px;
+  box-sizing: border-box; width: 100%; min-width: 0;
+  margin: 0; padding: 11px 14px;
+}
+#viewItemRequestModal .ir-view-document-table-head {
+  background: #edf3fb; color: #425b7b; font-size: 10px; font-weight: 800;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-parts-list {
+  display: block; padding: 0; margin: 0;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-row {
+  border: 0; border-top: 1px solid #e2ebf6; border-radius: 0;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main {
+  display: contents;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-index {
+  display: inline-flex; justify-content: center; padding: 5px;
+  background: #eef4ff; border-radius: 6px; font-size: 11px;
+}
+#viewItemRequestModal .ir-view-document-table .ir-view-part-main strong { font-size: 12px; }
+#viewItemRequestModal .ir-view-document-table .ir-view-part-qty {
+  display: inline-block; border: 0; background: none; padding: 0;
+  font-weight: 750; text-align: left;
+}
+#viewItemRequestModal .ir-view-modal-footer {
+  position: relative; flex: 0 0 auto; padding: 12px 20px; background: #fff;
+}
+@media (max-width: 760px) {
+  #viewItemRequestModal .ir-view-document-summary {
+    grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 12px;
+  }
+  #viewItemRequestModal .ir-view-document-summary > div { border-right: 0; }
+  #viewItemRequestModal .ir-view-document-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  #viewItemRequestModal .ir-view-document-table { overflow-x: auto; }
+  #viewItemRequestModal .ir-view-document-table-head,
+  #viewItemRequestModal .ir-view-document-table .ir-view-part-row { min-width: 520px; }
+}
+
+
+#viewItemRequestModal .ir-review-document-modal { width:min(1160px,calc(100vw - 36px)); max-width:1160px; }
+#viewItemRequestModal .ir-review-document-body { display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;gap:13px;padding:14px 17px 18px;background:#fff; }
+#viewItemRequestModal .ir-review-document-body > * { flex:0 0 auto; }
+#viewItemRequestModal .ir-review-document-top { grid-template-columns:1.15fr .85fr; }
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status { width:max-content;max-width:100%;display:inline-flex;align-items:center;border:1px solid #bfd7f9;background:#eaf3ff;color:#15519e;border-radius:99px;padding:5px 10px;font-size:11px; }
+#viewItemRequestModal .ir-review-signature img {display:block;max-width:100%;max-height:84px;object-fit:contain;}
+#viewItemRequestModal .ir-review-signature img[hidden] {display:none;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table-wrap {overflow:hidden;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table {width:100%;min-width:0!important;max-width:100%;table-layout:fixed;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table th,
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table td {min-width:0!important;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table th:first-child {width:42%;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table th:nth-child(2) {width:25%;}
+#viewItemRequestModal .ir-review-parts-content.ir-review-parts-two-column .ir-preview-table th:nth-child(3) {width:33%;}
+#viewItemRequestModal .ir-review-remarks-section .ir-detail-text {margin:8px 0 0;border:1px solid #dce7f5;border-radius:8px;background:#f5f8fd;padding:12px;font-size:12px;color:#556e8b;}
+#viewItemRequestModal .ir-view-remarks-label {font-size:11px;color:#244668;font-weight:750;}
+#viewItemRequestModal .ir-view-request-badge {display:inline-flex;padding:5px 8px;border-radius:7px;font-size:10px;font-weight:800;max-width:100%;white-space:normal;}
+#viewItemRequestModal .ir-view-request-badge.is-ir,#viewItemRequestModal .ir-view-request-badge.is-success {background:#e4faec;border:1px solid #a9e6bc;color:#166534;}
+#viewItemRequestModal .ir-view-request-badge.is-pr,#viewItemRequestModal .ir-view-request-badge.is-danger {background:#fff0f2;border:1px solid #f3b7be;color:#ad283a;}
+#viewItemRequestModal .ir-view-request-badge.is-neutral {background:#f1f5fb;border:1px solid #d3deec;color:#385676;}
+#viewItemRequestModal .ir-view-modal-footer {position:relative;flex:0 0 auto;background:#fff;}
+@media(max-width:790px) {#viewItemRequestModal .ir-review-parts-two-column {grid-template-columns:1fr;}}
+@media(max-width:740px) {#viewItemRequestModal .ir-review-document-top {grid-template-columns:1fr;}}
+
+/* Shared In Progress and History status badge — reflect actual IR lifecycle. */
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-complete {
+ background:#e4faec!important;color:#166534!important;border-color:#a9e6bc!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-closed {
+ background:#fff0f2!important;color:#ad283a!important;border-color:#f3b7be!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-partial {
+ background:#fff3d8!important;color:#965c09!important;border-color:#f3d38d!important;
+}
+#viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-active {
+ background:#eaf3ff!important;color:#15519e!important;border-color:#bfd7f9!important;
+}
+
+/* Fulfillment matches Warehouse: vertically stacked label, bar and remaining count. */
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto 5px auto!important;
+  row-gap:5px!important;
+  width:170px!important;
+  max-width:100%!important;
+  min-width:130px!important;
+  align-items:center!important;
+  justify-items:stretch!important;
+  white-space:normal!important;
+}
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment strong {
+  display:block!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+  color:#15355e!important;
+  white-space:nowrap!important;
+}
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment-track {
+  display:block!important;
+  width:100%!important;
+  height:5px!important;
+  min-height:5px!important;
+  border-radius:999px!important;
+  background:#e2eaf4!important;
+  overflow:hidden!important;
+}
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment-track > span {
+  display:block!important;
+  height:100%!important;
+  border-radius:inherit!important;
+  background:#d5a12a!important;
+}
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment-track.is-complete > span {
+  background:#16a36b!important;
+}
+.maintenance-ir-page .ir-lifecycle-table td .maintenance-ir-fulfillment small {
+  display:block!important;
+  font-size:10px!important;
+  font-weight:650!important;
+  line-height:1.2!important;
+  color:#647b98!important;
+  white-space:nowrap!important;
+}
+
+/* Keep IR and PR requested-part badges side by side, breakdown underneath. */
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(3) { vertical-align:middle; }
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(3) .ir-split-parts {
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:7px;
+  width:max-content;
+  max-width:100%;
+}
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(3) .ir-split-chip { flex-shrink:0; }
+.maintenance-ir-page .ir-lifecycle-table td:nth-child(3) .ir-split-breakdown {
+  display:block;
+  width:max-content;
+  margin-top:8px;
+}
+@media (max-width: 900px) {
+  .maintenance-ir-page .ir-lifecycle-table td:nth-child(3) .ir-split-parts {
+    flex-wrap:wrap;
+    width:auto;
+  }
+}
+
+/* 7-column lifecycle table: reserve enough width for both requested-part badges. */
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table{
+  table-layout:fixed;
+  width:100%;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table th:nth-child(3),
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3){
+  width:23%;
+  min-width:230px;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-parts{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  width:max-content!important;
+  max-width:none!important;
+  gap:9px!important;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-chip{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}
+.maintenance-ir-page .ir-records-table.ir-lifecycle-table td:nth-child(3) .ir-split-breakdown{
+  display:block!important;
+  clear:both;
+  margin-top:11px!important;
+}
+@media(max-width:900px){
+  .maintenance-ir-page .ir-records-table.ir-lifecycle-table{min-width:1100px;}
+}

@@ -4,13 +4,15 @@ use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
-use App\Http\Controllers\Purchase\ScheduledPurchaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(function () {
     Route::middleware('system.permission:purchase,view')->group(function () {
         Route::get('/purchase/dashboard', [PurchaseDashboardController::class, 'index'])
             ->name('dashboard-purchase');
+
+        Route::get('/purchase/job-orders/{jobOrder}/approval-signature', [\App\Http\Controllers\Maintenance\JobOrderController::class, 'approvalSignature'])
+            ->name('purchase.job-orders.approval-signature');
 
         Route::controller(MaintenanceRequestController::class)
             ->prefix('maintenance-requests')
@@ -25,7 +27,11 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
             ->prefix('inventory-restock')
             ->group(function () {
                 Route::get('/', 'index')->name('inventory-restock');
+                Route::get('/{maintenanceRequest}/approval-signature', 'approvalSignature')
+                    ->name('inventory-restock.approval-signature');
             });
+
+        Route::get('/purchase-orders/{purchaseOrder}/approval-signature', [PurchaseOrderController::class, 'approvalSignature'])->name('purchase-orders.approval-signature');
 
         Route::controller(PurchaseOrderController::class)
             ->prefix('purchase-orders')
@@ -36,25 +42,12 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
                 Route::delete('/{purchaseOrder}', 'destroy')->middleware('system.permission:purchase,edit')->name('purchase-orders.destroy');
             });
 
-        Route::controller(ScheduledPurchaseController::class)
-            ->prefix('scheduled-purchase')
-            ->group(function () {
-                Route::get('/', 'index')->name('scheduled-purchase');
-                Route::post('/', 'store')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.store');
-                Route::put('/{scheduledPurchase}', 'update')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.update');
-                Route::patch('/{scheduledPurchase}/toggle-status', 'toggleStatus')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.toggle-status');
-                Route::patch('/{scheduledPurchase}/complete', 'complete')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.complete');
-                Route::post('/{scheduledPurchase}/create-po', 'createPo')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.create-po');
-                Route::delete('/{scheduledPurchase}', 'destroy')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.destroy');
-            });
     });
 });
+
+Route::patch('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])
+    ->middleware(['role:purchase:head,admin:head', 'system.permission:purchase,edit'])
+    ->name('purchase-orders.approve');
 
 Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])
     ->middleware([
@@ -62,3 +55,7 @@ Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController
         'system.permission:purchase,edit',
     ])
     ->name('purchase-orders.update-status');
+
+Route::patch('/purchase-orders/{purchaseOrder}/review-decision', [PurchaseOrderController::class, 'reviewDecision'])
+    ->middleware(['role:purchase:head,admin:head', 'system.permission:purchase,edit'])
+    ->name('purchase-orders.review-decision');

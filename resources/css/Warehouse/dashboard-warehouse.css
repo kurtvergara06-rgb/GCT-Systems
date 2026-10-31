@@ -47,7 +47,7 @@
 
 .warehouse-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 20px;
 }
@@ -758,11 +758,6 @@
 [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(3),
 [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(3) {
   width: 14%;
-}
-
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(4),
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(4) {
-  width: 28%;
 }
 
 /* 4. Top Low Stock Items (Replenishment Watch - FIXED ALL 4 COLUMNS VISIBLE) */
@@ -3309,4 +3304,293 @@
   [data-ajax-region="dashboard-movement-trend"] .trend-chart-wrap {
     min-height: 260px;
   }
+}
+
+
+/* Four focused Warehouse KPIs: quiet, compact, consistent with the rest of the module. */
+.warehouse-dashboard-page .warehouse-reference-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 18px;
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-card {
+  min-height: 102px;
+  padding: 16px;
+  align-items: center;
+  gap: 12px;
+  border-color: #dae4f0;
+  box-shadow: 0 3px 12px rgba(13,41,75,.045);
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-card::after {
+  display: none !important;
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-icon {
+  width: 41px;
+  height: 41px;
+  flex-basis: 41px;
+  border-radius: 10px;
+  color: #285b9c;
+  background: #eef3fb;
+  border: 1px solid #dee8f5;
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-yellow .warehouse-kpi-icon {
+  color: #a96d10;
+  background: #fff6e6;
+  border-color: #f9e7c5;
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-trend {
+  background: #f3f6fa !important;
+  color: #62758e !important;
+  border-color: #e7edf5 !important;
+}
+.warehouse-dashboard-page .warehouse-reference-kpis .warehouse-kpi-footer > b {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .warehouse-dashboard-page .warehouse-reference-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .warehouse-dashboard-page .warehouse-reference-kpis { grid-template-columns: 1fr; }
+}
+
+
+/* Quiet, consistent Warehouse dashboard presentation using existing table,
+   badge, metric, and panel components. Color conveys movement/alert meaning only. */
+.warehouse-dashboard-page .warehouse-feature-icon,
+.warehouse-dashboard-page .warehouse-queue-title-icon,
+.warehouse-dashboard-page .warehouse-reference-title-icon {
+  color:#285886!important;background:#eef3f9!important;border:1px solid #dee7f1!important;
+}
+.warehouse-dashboard-page .warehouse-panel-eyebrow { color:#64758d!important;letter-spacing:.045em!important; }
+.warehouse-dashboard-page .warehouse-item-icon,
+.warehouse-dashboard-page .warehouse-item-icon[class*="tone-"] {
+  color:#426689!important;background:#f0f4f9!important;border:1px solid #dde7f2!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-user-avatar,
+.warehouse-dashboard-page .warehouse-user-avatar[class*="tone-"] {
+  color:#355474!important;background:#e8eef6!important;border:1px solid #dce5ef!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-issued-rank,
+.warehouse-dashboard-page .warehouse-issued-row:nth-child(n) .warehouse-issued-rank {
+  color:#24496e!important;background:#eaf0f7!important;box-shadow:none!important;
+}
+.warehouse-dashboard-page .warehouse-issued-meter { background:#e9eef5!important; }
+.warehouse-dashboard-page .warehouse-issued-meter > span { background:#6d8dab!important; }
+.warehouse-dashboard-page .warehouse-audit-reference {
+  color:#264765!important;background:#f4f7fb!important;border-color:#dee7f1!important;
+}
+.warehouse-dashboard-page .warehouse-view-action {
+  color:#24517f!important;background:#fff!important;border-color:#d4e1f0!important;
+}
+.warehouse-dashboard-page .warehouse-view-action:hover { background:#edf3fa!important;color:#123d6d!important; }
+.warehouse-dashboard-page .warehouse-date-cell > i { color:#8295ac!important; }
+.warehouse-dashboard-page .warehouse-audit-table tbody tr:nth-child(even) { background:#f8fafc!important; }
+.warehouse-dashboard-page .warehouse-status.green { background:#eaf7ef!important;color:#24764a!important;border-color:#ccebd8!important; }
+.warehouse-dashboard-page .warehouse-status.red { background:#fff0f0!important;color:#b33a42!important;border-color:#f4d3d6!important; }
+.warehouse-dashboard-page .warehouse-status.blue { background:#edf3fa!important;color:#285786!important;border-color:#d9e6f5!important; }
+.warehouse-dashboard-page .warehouse-status.yellow { background:#fff7e9!important;color:#90640c!important;border-color:#f4e4be!important; }
+.warehouse-dashboard-page .warehouse-positive { color:#28804f!important; }
+.warehouse-dashboard-page .warehouse-negative { color:#b44049!important; }
+.warehouse-dashboard-page .warehouse-panel { box-shadow:0 3px 14px rgba(19,48,80,.045)!important; }
+.warehouse-dashboard-page .warehouse-issued-total small { color:#7388a0!important; }
+
+
+/* Recent Stock Movements: solid blue rectangular View action. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  min-width:79px!important;
+  height:32px!important;
+  padding:0 12px!important;
+  border:1px solid #1555c2!important;
+  border-radius:7px!important;
+  background:#1762d5!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:750!important;
+  text-decoration:none!important;
+  box-shadow:none!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action i {
+  color:inherit!important;
+  font-size:11px!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action:hover,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-view-action:focus-visible {
+  background:#114da9!important;
+  border-color:#114da9!important;
+  color:#fff!important;
+}
+
+
+/* Dashboard movement badges: green stock-in, red stock-out, blue adjustments. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-status.gray {
+  color:#187445!important;background:#e5f7eb!important;border:1px solid #afe1c1!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-status.red {
+  color:#b42335!important;background:#ffeaec!important;border:1px solid #f0b8c0!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-stock-in {
+  color:#64748b!important;background:#edf1f5!important;border-color:#d9e1ea!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-stock-out {
+  color:#bd3342!important;background:#fff0f1!important;border-color:#f4cdd3!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-adjustment {
+  color:#285886!important;background:#eef3f9!important;border-color:#d9e5f2!important;
+}
+
+/* Final icon override: movement type controls the box icon color, not generic item styling. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in i {
+  color:#15803d!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in {
+  background:#eaf8ee!important;border-color:#bce7cc!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out i {
+  color:#dc2626!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out {
+  background:#fef0f0!important;border-color:#f5c5c5!important;
+}
+
+
+/* Lower dashboard: readable compact ranking and stock-risk columns. */
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-item-icon {
+  display:none!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-item-cell {
+  gap:0!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th {
+  font-size:10px!important;
+  letter-spacing:0!important;
+  white-space:nowrap;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(1),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(1) { width:8%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(2),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(2) { width:41%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(3),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(3) { width:16%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(4),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(4) { width:16%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(5),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(5) { width:19%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-ranking {
+  justify-content:flex-start!important;
+  gap:0!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-row {
+  display:grid!important;
+  grid-template-columns:29px minmax(0,1fr)!important;
+  gap:12px!important;
+  min-height:65px!important;
+  align-items:center!important;
+  padding:9px 2px!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-rank {
+  width:27px!important;height:27px!important;display:grid!important;place-items:center!important;
+  font-size:11px!important;
+}
+.warehouse-dashboard-page .warehouse-issued-detail { display:flex;flex-direction:column;min-width:0;gap:8px; }
+.warehouse-dashboard-page .warehouse-issued-info { display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-copy { flex:1;min-width:0; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-copy strong { font-size:12px; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-total {
+  display:inline-flex;align-items:baseline;gap:4px;
+  flex:none;color:#17345b;font-size:13px!important;white-space:nowrap;
+}
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-total small {
+  display:inline!important;margin:0!important;font-size:10px!important;font-weight:600!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-detail .warehouse-issued-meter {
+  display:block!important;width:100%!important;height:6px!important;border-radius:99px!important;
+  background:#e7edf4!important;overflow:hidden;
+}
+.warehouse-dashboard-page .warehouse-issued-detail .warehouse-issued-meter > span {
+  display:block!important;height:100%;border-radius:99px;background:#4e7db5!important;
+}
+.warehouse-dashboard-page .warehouse-trend-period select {
+  height:34px;min-width:110px;padding:0 26px 0 10px;border:1px solid #dbe5f1;
+  border-radius:8px;background:#f8fbff;color:#334d6f;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;
+}
+
+
+/* Trend card: calmer chart proportions and a tighter, purposeful header. */
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-header {
+  align-items:center;
+  gap:10px;
+  margin-bottom:9px;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-heading {
+  min-width:0;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-header h2 {
+  font-size:15px;
+  line-height:1.3;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-trend-period select {
+  height:35px;
+  min-width:102px;
+  border-radius:8px;
+  background:#f7f9fc;
+  border-color:#dbe4f0;
+  color:#334b68;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .trend-chart-wrap {
+  padding-top:5px;
+  min-height:255px;
+}
+
+/* Warehouse Dashboard: preserve full low-stock labels and clean table actions. */
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:last-child {
+  overflow:visible;
+  text-overflow:clip;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status {
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  min-height:30px;
+  padding:5px 3px;
+  border-radius:6px;
+  font-size:10px;
+  line-height:1.15;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status.yellow {
+  background:#ffedb5!important;
+  color:#815000!important;
+  border:1px solid #e9be4c!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status.red {
+  background:#ffe1e1!important;
+  color:#a52837!important;
+  border:1px solid #f1aab2!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status .status-badge__icon {
+  flex:0 0 auto;
+  font-size:10px;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-status .status-badge__label {
+  min-width:0;
+  white-space:normal;
+  text-align:center;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th {
+  background:#fff;
 }

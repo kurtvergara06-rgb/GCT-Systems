@@ -8,6 +8,7 @@ use App\Models\Maintenance\JobOrderMechanic;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Warehouse\InventoryItem;
+use App\Services\PartParser;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -18,28 +19,51 @@ class JobOrderWorkflowService
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $busyIds = JobOrderMechanic::query()
             ->whereHas('jobOrder', function ($query) use ($jobOrder): void {
-                $query->where('status', 'On Going')
-                    ->where('review_status', 'Approved')
+                $query->whereIn('status', ['On Hold', 'On Going'])
+                    ->where(function ($review) {
+                        $review->whereIn('review_status', ['For Review', 'Revision Required', 'Approved'])
+                            // Legacy active work may not have a review status.
+                            ->orWhere(function ($legacy) {
+                                $legacy->whereNull('review_status')->where('status', 'On Going');
+                            });
+                    })
                     ->when($jobOrder, fn ($nested) => $nested->whereKeyNot($jobOrder->id));
             })
             ->whereNotNull('mechanic_id')
             ->pluck('mechanic_id');
-        $busyLegacyNames = JobOrder::query()
-            ->where('status', 'On Going')
-            ->where('review_status', 'Approved')
+        $legacyNames = JobOrder::query()
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->where(function ($review) {
+                $review->whereIn('review_status', ['For Review', 'Revision Required', 'Approved'])
+                    ->orWhere(function ($legacy) {
+                        $legacy->whereNull('review_status')->where('status', 'On Going');
+                    });
+            })
             ->when($jobOrder, fn ($query) => $query->whereKeyNot($jobOrder->id))
             ->whereDoesntHave('mechanicAssignments')
             ->pluck('assigned_mechanic')
             ->flatMap(fn ($names) => preg_split('/\s*,\s*/', (string) $names) ?: [])
             ->filter();
+        // Legacy name-only assignments cannot identify namesakes reliably.
+        // Exclude a name only if it belongs to one distinct master mechanic.
+        $busyLegacyNames = $legacyNames->filter(fn ($name) =>
+            Mechanic::query()->where('mechanic_name', $name)->count() === 1
+        );
+
+        // Use the same attendance-by-mechanic-ID basis as the Mechanic
+        // Availability board, so both screens agree on today's duty status.
+        $onDutyMechanicCodes = MechanicAttendance::query()
+            ->whereDate('attendance_date', $today)
+            ->whereIn('status', ['Present', 'Late', 'On Duty'])
+            ->pluck('mechanic_id')
+            ->filter(fn ($id) => trim((string) $id) !== '')
+            ->unique();
 
         return Mechanic::query()
             ->where('employment_status', 'Active')
+            ->whereIn('mechanic_id', $onDutyMechanicCodes)
             ->whereNotIn('id', $busyIds)
             ->whereNotIn('mechanic_name', $busyLegacyNames)
-            ->whereHas('attendances', fn ($query) => $query
-                ->whereDate('attendance_date', $today)
-                ->whereIn('status', ['Present', 'Late', 'On Duty']))
             ->orderBy('mechanic_name')
             ->get()
             ->map(function (Mechanic $mechanic) use ($workText): Mechanic {
@@ -129,50 +153,56 @@ class JobOrderWorkflowService
         ]);
     }
 
-    public function inventoryAvailability(array $parts): array
+    public function inventoryAvailability(array $parts, ?Collection $inventoryItems = null, ?Collection $inventoryReservations = null): array
     {
-        // Evaluate duplicates against total requested demand, not each row alone.
-        $items = InventoryItem::query()->get()->keyBy(
-            fn (InventoryItem $item) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $item->parts_name))
-        );
-        $normalizedParts = collect($parts)->map(static function (array $part): array {
+        // Match the same one-to-one name AND unit used at physical issuance.
+        // Multiple matching stock records are ambiguous, not combined.
+        $normal = static fn ($v): string => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $v)));
+        $unitKey = static fn ($unit): string => (new PartParser())->normalizeUnit((string) $unit);
+        $items = $inventoryItems ?? InventoryItem::query()->get();
+        $reserved = $inventoryReservations ?? \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+        $requested = collect($parts)->map(static function (array $part) use ($normal, $unitKey): array {
             $name = trim((string) ($part['name'] ?? ''));
-            return [
-                'name' => $name,
-                'key' => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', $name)),
-                'quantity' => max(1, (int) ($part['quantity'] ?? 1)),
-                'unit' => trim((string) ($part['unit'] ?? '')),
-            ];
+            $unit = trim((string) ($part['unit'] ?? ''));
+            $id = (int) ($part['inventory_item_id'] ?? 0);
+            $code = trim((string) ($part['inventory_item_code'] ?? ''));
+            return ['name'=>$name,'unit'=>$unit,'inventory_item_id'=>$id ?: null,'inventory_item_code'=>$code ?: null,
+                'key'=>$id ? 'id:'.$id : ($code !== '' ? 'code:'.mb_strtolower($code) : $normal($name).'|'.$unitKey($unit)),
+                'quantity'=>max(1,(int)($part['quantity'] ?? 1))];
         });
-        $totals = $normalizedParts->groupBy('key')
-            ->map(fn ($group) => $group->sum('quantity'));
-
-        $breakdown = $normalizedParts->map(function (array $part) use ($items, $totals): array {
-            $item = $items->get($part['key']);
-            $onHand = $item ? max(0, (int) $item->on_hand) : 0;
-            $groupQuantity = (int) $totals->get($part['key'], $part['quantity']);
-            return [
-                'name' => $part['name'],
-                'quantity' => $part['quantity'],
-                'unit' => $part['unit'],
-                'inventory_item_id' => $item?->id,
-                'category' => $item?->category,
-                'available' => $onHand,
-                'shortage' => max(0, $groupQuantity - $onHand),
-                'in_stock' => $onHand > 0,
-                'fulfillable' => $onHand >= $groupQuantity,
-            ];
+        $totals = $requested->groupBy('key')->map(fn ($rows) => $rows->sum('quantity'));
+        $breakdown = $requested->map(function (array $part) use ($items, $reserved, $normal, $unitKey, $totals): array {
+            $matching = ! empty($part['inventory_item_id'])
+                ? $items->where('id', (int) $part['inventory_item_id'])->values()
+                : (! empty($part['inventory_item_code'])
+                    ? $items->filter(fn (InventoryItem $item) => mb_strtolower(trim((string) $item->item_code)) === mb_strtolower($part['inventory_item_code']))->values()
+                    : $items->filter(fn (InventoryItem $item) =>
+                    $normal($item->parts_name ?? $item->item_name ?? '') === $normal($part['name'])
+                    && $unitKey($item->unit ?? $item->unit_of_measurement ?? '') === $unitKey($part['unit'])
+                )->values());
+            $item = $matching->count() === 1 ? $matching->first() : null;
+            $stock = $item ? max(0,(int)($item->quantity_available ?? $item->on_hand ?? 0) - (int) $reserved->get($item->id, 0)) : 0;
+            $required = (int)$totals->get($part['key'], $part['quantity']);
+            return ['name'=>$part['name'],'quantity'=>$part['quantity'],'unit'=>$part['unit'],
+                'inventory_item_id'=>$item?->id,'inventory_item_code'=>$part['inventory_item_code'] ?? null,'category'=>$item?->category,
+                'available'=>$stock,'shortage'=>max(0,$required-$stock),
+                'in_stock'=>$stock>0,'fulfillable'=>$stock >= $required,
+                'ambiguous'=>$matching->count()>1];
         })->values();
-
-        $availableGroups = $totals->sum(function ($total, $key) use ($items): int {
-            $onHand = max(0, (int) ($items->get($key)?->on_hand ?? 0));
-            return min((int) $total, $onHand);
-        });
-        $totalNeeded = $totals->sum();
-        $status = $totalNeeded === 0 || $availableGroups >= $totalNeeded
-            ? 'sufficient'
-            : ($availableGroups > 0 ? 'partial' : 'none');
-
-        return ['status' => $status, 'parts' => $breakdown->all()];
+        $total = $totals->sum();
+        // Aggregate against the requested key, not the resolved stock ID:
+        // name-only requests resolve to an item ID after grouping.
+        $available = $breakdown->values()->unique(fn ($part, $index) => $requested[$index]['key'])
+            ->sum(fn ($part) => min((int) $totals->get(
+                ! empty($part['inventory_item_id']) && $totals->has('id:'.$part['inventory_item_id'])
+                    ? 'id:'.$part['inventory_item_id']
+                    : (! empty($part['inventory_item_code']) && $totals->has('code:'.mb_strtolower($part['inventory_item_code']))
+                        ? 'code:'.mb_strtolower($part['inventory_item_code'])
+                        : $normal($part['name']).'|'.$unitKey($part['unit'])), 0
+            ), (int) $part['available']));
+        return ['status'=>$total===0 || $available >= $total ? 'sufficient' : ($available>0?'partial':'none'),
+            'parts'=>$breakdown->all()];
     }
 }

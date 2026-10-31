@@ -3,17 +3,18 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
+    'resources/css/Main-styles/pr-details-modal.css',
     'resources/css/Purchase/purchase-module-ui.css',
+    'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main purchase-maintenance-requests-page purchase-module-page records-page">
+    <main class="main purchase-module-page records-page purchase-maintenance-requests-page">
       <x-layout.topbar
-        title="Requested Purchases"
+        title="Purchase Requisitions"
         subtitle="Purchase Department request inbox from Warehouse"
         notification-count="6"
       />
@@ -53,28 +54,59 @@
         <div class="section-header">
           <div>
             <span class="purchase-section-eyebrow">REQUEST INBOX</span>
-            <h2>Requested Purchase Records</h2>
-            <p>Only active maintenance purchase requests are shown here. Completed records are available in Purchase History.</p>
+            <h2>Purchase Requisition Records</h2>
+            <p>Maintenance purchase requests stay visible here as active records or completed history.</p>
           </div>
-          <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
-        <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Maintenance Requests" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Maintenance Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
-          <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+        <div class="requested-pr-list-controls">
+        <nav class="requested-pr-record-tabs" aria-label="Purchase requisition records">
+          <a href="{{ route('maintenance-requests', ['record_view' => 'active']) }}" class="requested-pr-record-tab {{ $recordView !== 'history' ? 'is-active' : '' }}" aria-current="{{ $recordView !== 'history' ? 'page' : 'false' }}">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Active</span>
+          </a>
+          <a href="{{ route('maintenance-requests', ['record_view' => 'history']) }}" class="requested-pr-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}" aria-current="{{ $recordView === 'history' ? 'page' : 'false' }}">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>History</span>
+          </a>
+        </nav>
+        <x-ui.table-toolbar
+          action="{{ route('maintenance-requests', [], false) }}"
+          class="records-toolbar"
+          data-server-filter="true"
+          search-label="Search Purchase Requests"
+          search-placeholder="Search PR no., JO no., bus, part, or status..."
+          :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')"
+          filter-title="Filter Purchase Requests"
+          :sort-options="['created_at' => 'Submitted At', 'pr_no' => 'PR Number', 'status' => 'Status']"
+          default-sort="created_at"
+          default-direction="desc"
+        >
+
+          <x-slot:hidden>
+            <input type="hidden" name="record_view" value="{{ $recordView }}">
+          </x-slot:hidden>
+
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All States">
+              <option value="All States">All States</option>
+              @foreach(($statuses ?? []) as $status)
+                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+              @endforeach
+            </x-ui.table-toolbar-field>
+          </x-slot:filters>
         </x-ui.table-toolbar>
+        </div>
 
         <div class="table-wrap records-table-wrap">
           <table class="requested-purchase-table records-table">
             <thead>
               <tr>
-                <th>PR ID</th>
-                <th>JO No.</th>
-                <th>Bus ID</th>
-                <th>Item</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th scope="col">PR ID</th>
+                <th scope="col">Bus ID</th>
+                <th scope="col">Requested Parts</th>
+                <th scope="col">QTY</th>
+                <th scope="col">Total Items</th>
+                <th scope="col">PR Status</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
 
@@ -87,63 +119,79 @@
                 @endphp
 
                 <tr>
-                  <td><strong>{{ $purchaseRequest->display_pr_no }}</strong></td>
-                  <td><strong>{{ $purchaseRequest->job_order_no ?? '—' }}</strong></td>
-                  <td>{{ $purchaseRequest->bus_no ?? '—' }}</td>
-                  <td>{{ $firstItem }}</td>
-                  <td>{{ $firstQuantity }}</td>
+                  <td><div class="requested-pr-reference"><strong>{{ $purchaseRequest->display_pr_no }}</strong></div></td>
+                  <td class="requested-pr-bus"><strong>{{ $purchaseRequest->bus_no ?: '—' }}</strong></td>
                   <td>
-                    <x-ui.status-badge
-                      :status="$purchaseRequest->status ?? '—'"
-                      type="purchase"
-                    />
+                    <div class="requested-pr-part">
+                      <strong>{{ $firstItem }}</strong>
+                      @if(count($parts) > 1)
+                        <details class="requested-pr-more">
+                          <summary>+{{ count($parts) - 1 }} more parts</summary>
+                          <div class="requested-pr-more-panel">
+                            @foreach(array_slice($parts, 1) as $part)
+                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }}</div>
+                            @endforeach
+                          </div>
+                        </details>
+                      @endif
+                    </div>
                   </td>
-                  <td>
-                    {{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}
+                  <td class="requested-pr-part-qty">
+                    <strong>{{ $firstQuantity }}</strong>
+                    @if(count($parts) > 1)
+                      <details class="requested-pr-more requested-pr-more-qty">
+                        <summary>+{{ count($parts) - 1 }} more</summary>
+                        <div class="requested-pr-more-panel">
+                          @foreach(array_slice($parts, 1) as $part)
+                            <div>{{ $part['quantity_display'] ?? ($part['quantity'] ?? '—') }}</div>
+                          @endforeach
+                        </div>
+                      </details>
+                    @endif
                   </td>
-                  <td>
-                    <div class="actions record-actions">
+                  <td class="requested-pr-quantity">{{ count($parts) }} {{ count($parts) === 1 ? 'Part' : 'Parts' }}</td>
+                  <td class="requested-pr-status">
+                    @if($purchaseRequest->purchasing_display_status === 'Ordered')
+                      <span class="requested-pr-ordered-badge"><i class="fa-solid fa-box" aria-hidden="true"></i> Ordered</span>
+                    @else
+                      <x-ui.status-badge
+                        :status="$purchaseRequest->purchasing_display_status ?? $purchaseRequest->status ?? '—'"
+                        type="purchase"
+                      />
+                    @endif
+                  </td>
+                  <td class="requested-pr-actions-cell">
+                    <div class="record-actions">
                       <button
                         type="button"
-                        class="action-btn view open-view-requested-pr-modal"
-                        title="View"
+                        class="action-btn view open-view-requested-pr-modal requested-pr-review-button"
+                        title="{{ $purchaseRequest->can_create_po ? 'Review Purchase Requisition' : 'View Purchase Requisition' }}"
+                        data-create-po-url="{{ $purchaseRequest->can_create_po ? route('maintenance-requests.create-po', $purchaseRequest->id, false) : '' }}"
                         data-pr-no="{{ $purchaseRequest->display_pr_no }}"
                         data-job-order-no="{{ $purchaseRequest->job_order_no }}"
                         data-bus-no="{{ $purchaseRequest->bus_no }}"
                         data-created="{{ $purchaseRequest->created_at ? $purchaseRequest->created_at->format('m/d/y | h:i A') : '—' }}"
+                        data-requested-by="{{ $purchaseRequest->requester?->name ?? '—' }}"
                         data-remarks="{{ $purchaseRequest->remarks ?? 'No remarks' }}"
+                        data-status="{{ $purchaseRequest->purchasing_display_status ?? $purchaseRequest->status ?? '—' }}"
+                        data-jo-approver="{{ $purchaseRequest->jo_approver ?? 'Not available' }}"
+                        data-jo-approval-status="{{ $purchaseRequest->jo_approval_status ?? 'Not verified' }}"
+                        data-jo-approval-signature="{{ $purchaseRequest->jo_approval_signature ?? '' }}"
+                        data-jo-approved-at="{{ $purchaseRequest->jo_approved_at ?? '' }}"
                         data-item="{{ $purchaseRequest->item }}"
                         data-quantity="{{ $firstQuantity }}"
                         data-parts='@json($parts)'
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid {{ $purchaseRequest->can_create_po ? 'fa-clipboard-check' : 'fa-eye' }}"></i><span>{{ $purchaseRequest->can_create_po ? 'Review' : 'View' }}</span>
                       </button>
 
-                      @if($purchaseRequest->status === 'For Purchase')
-                        <form
-                          action="{{ route('maintenance-requests.create-po', $purchaseRequest->id, false) }}"
-                          method="POST"
-                          class="inline-action-form"
-                        >
-                          @csrf
-                          <button
-                            type="submit"
-                            class="action-btn create-po"
-                            title="Create Purchase Order"
-                          >
-                            <i class="fa-solid fa-cart-plus"></i>
-                          </button>
-                        </form>
-                      @endif
                     </div>
                   </td>
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
-                  icon="fa-wrench"
-                  message="No Maintenance Requests Found"
-                  description="Maintenance requisitions endorsed for purchasing will appear here."
+                  colspan="7"
+                  message="No requested purchases found."
                 />
               @endforelse
             </tbody>
@@ -155,66 +203,17 @@
     </main>
   </div>
 
-  <div id="viewRequestedPrModal" class="modal-overlay requested-pr-view-overlay">
-    <div class="requested-pr-style-modal">
-      <div class="requested-pr-modal-header">
-        <div>
-          <h2>Requested Purchase Details</h2>
-          <h3>PR Information</h3>
-          <p>This is a read-only view of the selected purchase request.</p>
-        </div>
-        <button type="button" id="closeRequestedPrModal" class="requested-pr-close-btn">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="requested-pr-form-grid">
-        <div class="requested-pr-field">
-          <label>PR No.</label>
-          <input id="viewRequestedPrNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>JO No.</label>
-          <input id="viewRequestedJoNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>Bus ID</label>
-          <input id="viewRequestedBusNo" type="text" value="—" readonly>
-        </div>
-        <div class="requested-pr-field">
-          <label>Created Date</label>
-          <input id="viewRequestedCreated" type="text" value="—" readonly>
-        </div>
-
-        <div class="requested-pr-field requested-pr-full">
-          <label>Requested Item / Part</label>
-          <div class="requested-pr-breakdown-box">
-            <div class="requested-pr-breakdown-head">
-              <span>Part Name</span>
-              <span>Quantity</span>
-              <span>Unit</span>
-            </div>
-            <div id="viewRequestedPartsContainer">
-              <div class="requested-pr-breakdown-row">
-                <span>—</span>
-                <span>—</span>
-                <span>—</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="requested-pr-field requested-pr-full">
-          <label>Remarks</label>
-          <textarea id="viewRequestedRemarks" rows="3" readonly>No remarks</textarea>
-        </div>
-      </div>
-
-      <div class="requested-pr-footer">
-        <button type="button" id="closeRequestedPrModalBottom" class="requested-pr-close-bottom">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
+  <x-ui.pr-details-modal
+    modal-id="viewRequestedPrModal" title-id="requestedPrModalTitle" close-id="closeRequestedPrModal"
+    pr-id="viewRequestedPrNo" jo-id="viewRequestedJoNo" bus-id="viewRequestedBusNo"
+    parts-id="viewRequestedPartsContainer" requested-by-id="viewRequestedBy" created-id="viewRequestedCreated"
+    processing-id="viewRequestedStatus" parts-count-id="viewRequestedPartsCount"
+    stock-reference-id="viewRequestedStockReference" remarks-id="viewRequestedRemarks"
+    status-badge-id="viewRequestedStatusBadge"
+  >
+    <x-slot:footer>
+      <button type="button" id="closeRequestedPrModalBottom" class="shared-pr-close-button">Close</button>
+      <form id="requestedPrCreatePoForm" method="POST" hidden data-confirm-form data-confirm-title="Create Purchase Order?" data-confirm-message="Create a Purchase Order from this approved Purchase Requisition? You will review the PO details before ordering from the supplier." data-confirm-button="Yes, Create PO" data-confirm-type="create">@csrf<button type="submit" class="requested-pr-create-po-btn"><i class="fa-solid fa-cart-plus"></i> Create PO</button></form>
+    </x-slot:footer>
+  </x-ui.pr-details-modal>
 </x-layout.app>

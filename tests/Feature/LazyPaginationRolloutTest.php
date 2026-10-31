@@ -153,7 +153,7 @@ class LazyPaginationRolloutTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            "->paginate(\$recordView === 'history' ? 20 : 1000)",
+            "->paginate(25)",
             $source
         );
     }
@@ -169,11 +169,15 @@ class LazyPaginationRolloutTest extends TestCase
             $source
         );
         $this->assertStringContainsString(
-            "event.target.closest(\n          '.open-edit-modal'",
+            "event.target.closest('.open-edit-modal')",
             $source
         );
         $this->assertStringContainsString(
-            "event.target.closest(\n          '.open-delete-modal'",
+            "event.target.closest('.open-delete-modal')",
+            $source
+        );
+        $this->assertStringContainsString(
+            "jobOrderPage.addEventListener('click'",
             $source
         );
     }

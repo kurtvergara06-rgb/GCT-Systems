@@ -106,6 +106,9 @@ class PurchaseRequestController extends Controller
 
     public function index(Request $request)
     {
+        $recordView = in_array($request->query('record_view'), ['pending', 'active', 'history'], true)
+            ? $request->query('record_view') : 'pending';
+
         $query =
             $this
                 ->maintenancePurchaseRequestQuery();
@@ -170,11 +173,37 @@ class PurchaseRequestController extends Controller
             );
         }
 
+        // Pending is a JO shortage proposal, not a persisted PurchaseRequest.
+        // Keep fulfilled procurement in History and in-flight records in Active.
+        if ($recordView === 'history') {
+            $query->whereIn('status', ['Issued', 'Delivered', 'Picked Up', 'Cancelled']);
+        } elseif ($recordView === 'active') {
+            $query->whereNotIn('status', ['Issued', 'Delivered', 'Picked Up', 'Cancelled']);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
         $purchaseRequests =
             $query
                 ->latest()
                 ->paginate(8)
                 ->withQueryString();
+
+        // Source JO approval is the authorization for the requisition.
+        $prJobApprovals = JobOrder::query()
+            ->with('approver')
+            ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter())
+            ->get()
+            ->keyBy('job_order_no');
+
+        // The IR status is read from the persisted Item Request, never inferred
+        // from the JO-minus-PR quantity shown for reference.
+        $irStatusesByJo = \App\Models\Maintenance\ItemRequest::query()
+            ->whereIn('job_order_id', $prJobApprovals->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
 
         $submitted =
             $this
@@ -260,7 +289,43 @@ class PurchaseRequestController extends Controller
                 ->orderByDesc(
                     'created_at'
                 )
-                ->get();
+                ->get()
+                ->filter(function (JobOrder $jobOrder): bool {
+                    if ($jobOrder->review_status !== 'Approved') {
+                        return false;
+                    }
+
+                    if ($this->maintenancePurchaseRequestQuery()
+                        ->where('job_order_no', $jobOrder->job_order_no)
+                        ->exists()) {
+                        return false;
+                    }
+
+                    try {
+                        // Reuse the exact shortage calculation used by submission.
+                        return $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder) !== [];
+                    } catch (ValidationException $exception) {
+                        // Invalid JO part units still need correction, not a purchase request.
+                        return false;
+                    }
+                })
+                ->values();
+
+        // Build the Pending tab from approved JOs with outstanding shortages.
+        // This is read-only data; it does not reserve or issue inventory.
+        $pendingPrJobs = $jobOrders->map(function (JobOrder $jobOrder) {
+            return [
+                'job' => $jobOrder,
+                'parts' => $this->purchaseRequestParts->missingParts(
+                    (string) $jobOrder->part_needed,
+                    $jobOrder
+                ),
+            ];
+        })->values();
+
+        $workToPerformByJobOrder = JobOrder::query()
+            ->whereIn('job_order_no', $purchaseRequests->getCollection()->pluck('job_order_no')->filter())
+            ->pluck('work_to_perform', 'job_order_no');
 
         $selectedJobOrder =
             null;
@@ -288,6 +353,11 @@ class PurchaseRequestController extends Controller
             'Maintenance.purchase-requests',
             compact(
                 'purchaseRequests',
+                'recordView',
+                'pendingPrJobs',
+                'workToPerformByJobOrder',
+                'prJobApprovals',
+                'irStatusesByJo',
                 'submitted',
                 'approved',
                 'rejected',
@@ -331,15 +401,30 @@ class PurchaseRequestController extends Controller
             ->first();
         $signaturePath = data_get($approvalAudit?->metadata, 'handwritten_signature_path');
 
+        $missingParts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder);
+        $shortagesByKey = collect($missingParts)->groupBy(fn ($p) => mb_strtolower(trim((string) ($p['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($p['unit'] ?? ''))))
+            ->map(fn ($items) => $items->sum(fn ($p) => (int) ($p['quantity'] ?? 0)));
+        $availableParts = collect($this->partParser->parsePartText((string) $jobOrder->part_needed))
+            ->map(function ($part) use ($shortagesByKey) {
+                $key = mb_strtolower(trim((string) ($part['name'] ?? ''))).'|'.mb_strtolower(trim((string) ($part['unit'] ?? '')));
+                return array_merge($part, ['quantity' => max(0, (int) ($part['quantity'] ?? 0) - (int) $shortagesByKey->get($key, 0))]);
+            })->filter(fn ($part) => $part['quantity'] > 0)->values()->all();
+
         return response()->json([
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
+            'assigned_mechanics' => $jobOrder->assigned_mechanic ?: 'Not assigned',
             'work_to_perform' => $jobOrder->work_to_perform,
             'approver_name' => $jobOrder->approver?->name,
             'signature_url' => is_string($signaturePath) && $signaturePath !== ''
                 ? route('job-orders.approval-signature', $jobOrder, false)
                 : null,
-            'parts' => $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed),
+            'parts' => $missingParts,
+            'available_parts' => $availableParts,
+            'ir_status' => \App\Models\Maintenance\ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->orderByDesc('id')
+                ->value('status'),
         ]);
     }
 
@@ -576,7 +661,7 @@ class PurchaseRequestController extends Controller
                 ]);
             }
 
-            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
+            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed, $lockedJobOrder);
             if ($parts === []) {
                 throw ValidationException::withMessages([
                     'job_order_no' => 'All requested parts are available. A Purchase Requisition is not needed.',
@@ -592,7 +677,9 @@ class PurchaseRequestController extends Controller
                 'bus_no' => $lockedJobOrder->bus_no,
                 'item' => $formattedParts,
                 'quantity' => $totalQuantity,
+                // JO approval is authorization; PR is merely submitted for procurement.
                 'status' => 'Submitted',
+                'approved_at' => null,
                 'source_type' => 'Maintenance Request',
                 'remarks' => $validated['remarks'] ?? null,
                 'purpose' => $validated['purpose'] ?? null,
@@ -600,9 +687,13 @@ class PurchaseRequestController extends Controller
                 'requested_by' => Auth::id(),
             ]);
 
-            $lockedJobOrder->update([
-                'part_status' => 'Submitted',
-            ]);
+            // Procurement approval is not proof of physical issuance.
+            // Preserve IR/partial/issued progress rather than overwriting it.
+            if (in_array($lockedJobOrder->part_status, [null, 'Not Requested', 'Submitted'], true)) {
+                $lockedJobOrder->update([
+                    'part_status' => 'For Purchase',
+                ]);
+            }
 
             return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
         });
@@ -620,7 +711,7 @@ class PurchaseRequestController extends Controller
             'JobOrder',
             'status_updated',
             $jobOrder->id,
-            'Job order part status was updated to Submitted.'
+            'Job order part status was updated to For Purchase.'
         );
 
         if ($request->ajax() || $request->expectsJson()) {
@@ -632,7 +723,7 @@ class PurchaseRequestController extends Controller
         }
 
         return redirect()
-            ->to(route('purchase-requests', [], false))
+            ->to(route('purchase-requests', ['record_view' => 'active'], false))
             ->with(
                 'success',
                 'Purchase request created successfully.'
@@ -910,6 +1001,8 @@ class PurchaseRequestController extends Controller
 
                 if (
                     ! $hasOtherRequest
+                    && ! \App\Models\Maintenance\ItemRequest::query()->where('job_order_id', $oldJobOrder->id)->exists()
+                    && ! in_array($oldJobOrder->part_status, ['Issued', 'Partial'], true)
                 ) {
                     $oldJobOrder->update([
                         'part_status' =>
@@ -924,15 +1017,8 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        /* Sync new/current JO requested parts. */
-
-        $jobOrder->update([
-            'part_needed' =>
-                $formattedParts,
-
-            'part_status' =>
-                'Submitted',
-        ]);
+        // The approved JO is the immutable source of required parts.
+        // Editing an existing PR must not rewrite the JO demand or erase IR progress.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -1084,6 +1170,23 @@ class PurchaseRequestController extends Controller
                     $parts
                 );
 
+        // The signed JO is the sole approval authority. Never let a rejected
+        // legacy PR silently change the parts covered by that authorization.
+        if ($jobOrder->review_status !== 'Approved' || $jobOrder->status === 'Completed') {
+            throw ValidationException::withMessages([
+                'job_order_no' => 'The linked Job Order must be approved and open before this PR can be resubmitted.',
+            ]);
+        }
+
+        $authorizedParts = $this->partParser->normalizePartsInput(
+            $this->partParser->parsePartText((string) $jobOrder->part_needed)
+        );
+        if ($parts !== $authorizedParts) {
+            throw ValidationException::withMessages([
+                'parts' => 'These parts differ from the approved Job Order. A new authorized Job Order is required before requesting changed parts.',
+            ]);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | SAME PR NUMBER
@@ -1121,18 +1224,7 @@ class PurchaseRequestController extends Controller
                 null,
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Synchronize revised parts back to Job Order.
-        */
-
-        $jobOrder->update([
-            'part_needed' =>
-                $formattedParts,
-
-            'part_status' =>
-                'Submitted',
-        ]);
+        // PR resubmission does not modify approved JO parts or fulfillment.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -1140,7 +1232,7 @@ class PurchaseRequestController extends Controller
             'PurchaseRequest',
             'status_updated',
             $purchaseRequest->id,
-            'A rejected Purchase Request was revised and resubmitted.'
+            'A rejected Purchase Request was restored under the existing Job Order approval.'
         );
 
         $this->broadcastSystemDataUpdated(
@@ -1148,13 +1240,13 @@ class PurchaseRequestController extends Controller
             'JobOrder',
             'status_updated',
             $jobOrder->id,
-            'The related Job Order part status was returned to Submitted.'
+            'The related Job Order part status was restored to Approved using the signed Job Order.'
         );
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Purchase Request revised and resubmitted successfully.',
+                'message' => 'Purchase Request revised and restored under the existing Job Order approval.',
                 'purchase_request' => $purchaseRequest,
             ]);
         }
@@ -1175,6 +1267,8 @@ class PurchaseRequestController extends Controller
         Request $request,
         PurchaseRequest $purchaseRequest
     ) {
+        abort(409, 'Purchase Requisition approval is inherited from the signed Job Order; separate PR review is disabled.');
+
         if (
             $this->isRestockRequest(
                 $purchaseRequest
@@ -1280,6 +1374,8 @@ class PurchaseRequestController extends Controller
         Request $request,
         PurchaseRequest $purchaseRequest
     ) {
+        abort(409, 'Purchase Requisition approval is inherited from the signed Job Order; separate PR review is disabled.');
+
         if (
             $this->isRestockRequest(
                 $purchaseRequest
@@ -1532,6 +1628,8 @@ class PurchaseRequestController extends Controller
 
             if (
                 ! $hasOtherRequest
+                && ! \App\Models\Maintenance\ItemRequest::query()->where('job_order_id', $jobOrder->id)->exists()
+                && ! in_array($jobOrder->part_status, ['Issued', 'Partial'], true)
             ) {
                 $jobOrder->update([
                     'part_status' =>
@@ -1624,10 +1722,9 @@ class PurchaseRequestController extends Controller
             return;
         }
 
-        $jobOrder->update([
-            'part_status' =>
-                $partStatus,
-        ]);
+        if (! in_array($jobOrder->part_status, ['Issued', 'Partial'], true)) {
+            $jobOrder->update(['part_status' => $partStatus]);
+        }
     }
 
     /* =========================================================

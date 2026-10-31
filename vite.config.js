@@ -26,6 +26,7 @@ export default defineConfig({
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/record-action-buttons.css',
                 'resources/css/Main-styles/gct-scrollbar.css',
+                'resources/css/Main-styles/pr-details-modal.css',
                 'resources/css/Account/account.css',
 
                 'resources/js/Main-js/partial-navigation.js',
@@ -135,13 +136,16 @@ export default defineConfig({
                 'resources/css/Maintenance/referrals.css',
                 'resources/css/Maintenance/fuel-reports.css',
                 'resources/css/Maintenance/job-order.css',
+                'resources/css/Maintenance/item-requests.css',
                 'resources/css/Maintenance/mechanic-list.css',
                 'resources/css/Maintenance/mechanic-availability-enhancement.css',
                 'resources/css/Maintenance/pms-scheduling.css',
                 'resources/css/Maintenance/purchase-requests.css',
+                'resources/css/Maintenance/request-modal-shared.css',
 
                 'resources/js/Maintenance/fuel-reports.js',
                 'resources/js/Maintenance/job-order.js',
+                'resources/js/Maintenance/item-requests.js',
                 'resources/js/Maintenance/pms-scheduling.js',
                 'resources/js/Maintenance/purchase-requests.js',
 
@@ -222,15 +226,15 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Purchase/dashboard-purchase.css',
+                'resources/js/Purchase/dashboard-purchase.js',
+                'resources/css/Purchase/purchase-history.css',
                 'resources/css/Purchase/purchase-orders.css',
-                'resources/css/Purchase/scheduled-purchase.css',
                 'resources/css/Purchase/purchase-module-ui.css',
 
                 'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
                 'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
 
                 'resources/js/Purchase/purchase-orders.js',
-                'resources/js/Purchase/scheduled-purchase.js',
                 'resources/js/Purchase/Requested_Purchase/maintenance-requests.js',
                 'resources/js/Purchase/Requested_Purchase/inventory-restock.js',
 
@@ -239,14 +243,18 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Warehouse/dashboard-warehouse.css',
+                'resources/css/Warehouse/warehouse-status.css',
                 'resources/css/Warehouse/inventory.css',
                 'resources/css/Warehouse/part-requests.css',
                 'resources/css/Warehouse/part-requests-cleanup.css',
                 'resources/css/Warehouse/stock-movements.css',
                 'resources/css/Warehouse/incoming-deliveries.css',
+                'resources/css/Warehouse/item-requests.css',
 
                 'resources/js/Warehouse/dashboard-warehouse.js',
                 'resources/js/Warehouse/inventory.js',
+                'resources/js/Warehouse/incoming-deliveries.js',
+                'resources/js/Warehouse/item-requests.js',
                 'resources/js/Warehouse/part-requests.js',
                 'resources/js/Warehouse/part-requests-cleanup.js',
             ],

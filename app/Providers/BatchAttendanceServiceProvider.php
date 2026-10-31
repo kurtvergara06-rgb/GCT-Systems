@@ -55,6 +55,8 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                     ->middleware('system.permission:operation,edit')
                     ->name('operation.personnel.drivers.deactivate');
 
+                // Keep the complete Operation personnel workflow available while
+                // Maintenance retains its own permission-scoped mechanic routes.
                 Route::get('/mechanics', [PersonnelController::class, 'mechanics'])
                     ->middleware('system.permission:operation,view')
                     ->name('operation.personnel.mechanics');

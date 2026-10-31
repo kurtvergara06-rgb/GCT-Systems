@@ -9,6 +9,10 @@ use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Models\Warehouse\InventoryItem;
+use App\Services\Maintenance\JobOrderWorkflowService;
+use App\Services\Maintenance\ItemRequestPartsService;
+use App\Services\Maintenance\PurchaseRequestPartsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -16,6 +20,33 @@ use Tests\TestCase;
 class MaintenanceWorkflowHardeningTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_equivalent_pc_and_pcs_units_split_available_ir_stock_from_pr_shortage(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'SPK-PLUG',
+            'parts_name' => 'Spark Plug',
+            'item_name' => 'Spark Plug',
+            'unit' => 'pc',
+            'on_hand' => 160,
+            'quantity_available' => 160,
+            'category' => 'Engine Parts',
+        ]);
+
+        $availability = app(JobOrderWorkflowService::class)->inventoryAvailability([
+            ['name' => 'Spark Plug', 'quantity' => 500, 'unit' => 'pcs'],
+        ]);
+
+        $this->assertSame('partial', $availability['status']);
+        $this->assertSame(160, $availability['parts'][0]['available']);
+        $this->assertSame(340, $availability['parts'][0]['shortage']);
+
+        $ir = app(ItemRequestPartsService::class)->availableParts('Spark Plug - Qty: 500 pcs');
+        $pr = app(PurchaseRequestPartsService::class)->missingParts('Spark Plug - Qty: 500 pcs');
+
+        $this->assertSame(160, $ir[0]['quantity']);
+        $this->assertSame(340, $pr[0]['quantity']);
+    }
 
     public function test_maintenance_cannot_bypass_warehouse_delivery_and_inventory_issuance(): void
     {
@@ -136,8 +167,10 @@ class MaintenanceWorkflowHardeningTest extends TestCase
             'electronic_signature' => $head->name,
             'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
             'duration_decision' => 'accept',
-        ])->assertRedirect();
+            'parts_issue_strategy' => 'complete_before_issuance',
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
+        $this->assertSame('Approved', $jobOrder->fresh()->review_status);
         $this->assertSame('Under Maintenance', $bus->fresh()->status);
         $this->assertSame('Active', $bus->fresh()->pre_maintenance_status);
 

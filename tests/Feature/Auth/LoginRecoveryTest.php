@@ -29,9 +29,11 @@ class LoginRecoveryTest extends TestCase
             ->assertSessionHas('status');
     }
 
-    public function test_reset_token_changes_password_without_activating_account(): void
+    public function test_reset_token_changes_password_for_active_account_without_changing_status(): void
     {
-        $user = User::factory()->create(['status' => 'Pending']);
+        // Pending and inactive accounts are deliberately ineligible for reset.
+        // Their rejection is covered by PasswordRecoveryEligibilityTest.
+        $user = User::factory()->create(['status' => 'Active']);
         $token = Password::createToken($user);
         $this->get(route('password.reset', ['token' => $token, 'email' => $user->email]))->assertOk()
             ->assertSee('Reset Password')
@@ -43,7 +45,7 @@ class LoginRecoveryTest extends TestCase
             'password_confirmation' => 'NewSecurePassword123!',
         ])->assertRedirect(route('login'));
         $this->assertTrue(Hash::check('NewSecurePassword123!', $user->fresh()->password));
-        $this->assertSame('Pending', $user->fresh()->status);
+        $this->assertSame('Active', $user->fresh()->status);
     }
 
     public function test_remember_me_sets_persistent_authentication_token(): void

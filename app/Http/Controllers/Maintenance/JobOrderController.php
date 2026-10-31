@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Mechanic;
@@ -55,7 +56,13 @@ class JobOrderController extends Controller
 
     public function index(Request $request)
     {
+        $recordView = $request->input('record_view') === 'history' ? 'history' : 'active';
         $query = JobOrder::query();
+        if ($recordView === 'history') {
+            $query->where('status', 'Completed');
+        } else {
+            $query->where('status', '!=', 'Completed');
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -72,27 +79,6 @@ class JobOrderController extends Controller
             });
         }
 
-        if (
-            $request->filled('part_status')
-            && $request->part_status !== 'All Part Statuses'
-        ) {
-            if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
-                $query->where(function ($q) {
-                    $q->whereNull('part_needed')
-                        ->orWhereRaw("TRIM(COALESCE(part_needed, '')) = ''")
-                        ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
-                });
-            } elseif ($request->part_status === 'Not Requested') {
-                $query->where('part_status', 'Not Requested')
-                    ->whereNotNull('part_needed')
-                    ->whereRaw("TRIM(part_needed) != ''");
-            } else {
-                $query->where(
-                    'part_status',
-                    $request->part_status
-                );
-            }
-        }
 
         if (
             $request->filled('maintenance_type')
@@ -113,6 +99,78 @@ class JobOrderController extends Controller
             ->latest()
             ->paginate(1000)
             ->withQueryString();
+
+        $durationSuggestions = $jobOrders->getCollection()->mapWithKeys(fn (JobOrder $jo) => [
+            $jo->id => $this->durations->suggestion((string) $jo->maintenance_type, (string) ($jo->work_to_perform ?? '')),
+        ]);
+        $linkedPrsByJobOrderNo = PurchaseRequest::query()
+            ->whereIn('job_order_no', $jobOrders->getCollection()->pluck('job_order_no')->filter())
+            ->get()
+            ->groupBy('job_order_no');
+
+        // Older IRs were created without advancing the Job Order part_status.
+        // Use the linked IR for the display instead of falsely showing
+        // "Not Requested". This does not mutate historical database records.
+        $existingIrStatuses = ItemRequest::query()
+            ->whereIn('job_order_id', $jobOrders->getCollection()->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+        // Physical parts status is independent of procurement milestones.
+        $pageJobs = $jobOrders->getCollection();
+        $allJoIrs = ItemRequest::whereIn('job_order_id', $pageJobs->pluck('id'))->get(['id', 'job_order_id', 'created_at']);
+        $refToJo = $allJoIrs->mapWithKeys(fn ($ir) => [
+            'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->job_order_id,
+        ]);
+        $batches = $refToJo->isEmpty() ? collect() : \App\Models\Warehouse\InventoryIssuance::query()
+            ->where(function ($query) use ($refToJo) {
+                foreach ($refToJo->keys() as $ref) {
+                    $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
+                }
+            })->with('items')->get();
+        $partKey = fn ($name, $unit) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name)))
+            .'|'.$this->partParser->normalizeUnit((string) $unit);
+        $issuedByJo = [];
+        foreach ($batches as $batch) {
+            $joId = $refToJo->get(preg_replace('/-B[0-9]+$/', '', (string) $batch->reference_no));
+            if (!$joId) continue;
+            foreach ($batch->items as $line) {
+                $key = $partKey($line->item_name, $line->unit);
+                $issuedByJo[$joId][$key] = ($issuedByJo[$joId][$key] ?? 0) + (int) $line->quantity;
+            }
+        }
+        $resByJo = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->whereIn('job_order_id', $pageJobs->pluck('id'))->get()->groupBy('job_order_id');
+        $prJoNumbers = PurchaseRequest::whereIn('job_order_no', $pageJobs->pluck('job_order_no'))
+            ->pluck('job_order_no')->flip();
+        $irJoIds = $allJoIrs->pluck('job_order_id')->flip();
+        $joPartsDisplayStatuses = $pageJobs->mapWithKeys(function ($jo) use ($partKey, $issuedByJo, $resByJo, $prJoNumbers, $irJoIds, $existingIrStatuses) {
+            $required = collect($this->partParser->parsePartText((string) $jo->part_needed))
+                ->groupBy(fn ($part) => $partKey($part['name'], $part['unit']))
+                ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
+            if ($required->isEmpty()) return [$jo->id => 'No Parts Required'];
+            $issued = $required->sum(fn ($qty, $key) => min((int) $qty, (int) ($issuedByJo[$jo->id][$key] ?? 0)));
+            // The Warehouse confirms physical issuance and updates both the
+            // JO and parent IR. Honor those authoritative statuses when older
+            // issuance references cannot be matched to a parsed part name/unit.
+            if ($issued >= $required->sum() || $jo->part_status === 'Issued') return [$jo->id => 'Fully Issued'];
+            if ($issued > 0 || $existingIrStatuses->get($jo->id) === 'Partially Issued') {
+                return [$jo->id => 'Partially Issued'];
+            }
+            if (!$irJoIds->has($jo->id) && !$prJoNumbers->has($jo->job_order_no)) {
+                return [$jo->id => 'Not Requested'];
+            }
+            if ($resByJo->get($jo->id, collect())->sum('quantity') <= 0) return [$jo->id => 'Waiting for Parts'];
+            return [$jo->id => 'Not Issued'];
+        });
+        if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
+            $matching = $joPartsDisplayStatuses->filter(fn ($status) => $status === $request->part_status);
+            $jobOrders->setCollection($jobOrders->getCollection()
+                ->filter(fn ($jo) => $matching->has($jo->id))->values());
+        }
+        // Preserve the IR mapping as explicit view data. Mutating an Eloquent
+        // model in a paginator does not reliably describe the persisted workflow.
 
         $onHold = JobOrder::where(
             'status',
@@ -181,13 +239,12 @@ class JobOrderController extends Controller
                 )
                 ->get();
 
-        $allMechanics =
-            MechanicAttendance::query()
-                ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                ->orderBy(
-                    'mechanic_name'
-                )
-                ->get();
+        // Edit JO selections store mechanics.id, not mechanic_attendances.id.
+        // Include existing assignments even if today's attendance has changed;
+        // the update workflow still validates actual availability.
+        $allMechanics = Mechanic::query()
+            ->orderBy('mechanic_name')
+            ->get();
 
         /* =====================================================
            BUSES
@@ -222,10 +279,8 @@ class JobOrderController extends Controller
             $buses
                 ->reject(
                     fn ($bus) =>
-                        $activeBusNumbers
-                            ->contains(
-                                $bus->bus_no
-                            )
+                        $activeBusNumbers->contains($bus->bus_no)
+                        || $bus->hasOngoingDispatch()
                 )
                 ->values();
 
@@ -253,6 +308,11 @@ class JobOrderController extends Controller
             'Maintenance.job-order',
             compact(
                 'jobOrders',
+                'recordView',
+                'durationSuggestions',
+                'linkedPrsByJobOrderNo',
+                'existingIrStatuses',
+                'joPartsDisplayStatuses',
                 'onHold',
                 'onGoing',
                 'completed',
@@ -267,17 +327,37 @@ class JobOrderController extends Controller
         );
     }
 
-    public function inventoryOptions()
+    public function inventoryOptions(Request $request)
     {
-        return response()->json(\App\Models\Warehouse\InventoryItem::query()
-            ->orderBy('parts_name')
-            ->get()
-            ->map(fn ($item) => [
+        // Only return qualitative stock bands to Maintenance. Inventory totals
+        // and existing JO reservation quantities must never enter this payload.
+        $items = \App\Models\Warehouse\InventoryItem::query()
+            ->orderBy('parts_name')->get();
+        $requested = $request->validate([
+            'demand' => ['sometimes', 'array', 'max:100'],
+            'demand.*' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+        ])['demand'] ?? [];
+
+        $reservations = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+
+        return response()->json($items->map(function ($item) use ($requested, $reservations) {
+            $free = max(0, (int) ($item->quantity_available ?? $item->on_hand ?? 0)
+                - (int) ($reservations[$item->id] ?? 0));
+            $required = (int) ($requested[$item->id] ?? 0);
+            $availability = $required <= 0 ? 'enter_qty'
+                : ($free <= 0 ? 'unavailable'
+                    : ($free >= $required ? 'sufficient' : 'partial'));
+            return [
                 'id' => $item->id,
-                'name' => (string) $item->parts_name,
-                'unit' => trim((string) $item->unit),
-                'in_stock' => (int) $item->on_hand > 0,
-            ]));
+                'name' => (string) ($item->parts_name ?: $item->item_name),
+                'category' => (string) ($item->category ?? ''),
+                'unit' => trim((string) ($item->unit ?: $item->unit_of_measurement)),
+                'in_stock' => $free > 0,
+                'availability' => $availability,
+            ];
+        }));
     }
 
     public function specializationOptions()
@@ -288,11 +368,19 @@ class JobOrderController extends Controller
 
     public function availableMechanics(Request $request)
     {
-        $job = trim((string) $request->input('maintenance_job', ''));
-        $selectedSkills = $this->requiredSpecializations($job, (array) $request->input('specializations', []));
+        $jobs = $request->input('maintenance_jobs', [$request->input('maintenance_job', '')]);
+        $jobs = is_array($jobs) ? collect($jobs)->filter(
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )->values()->all() : [];
+        $selectedSkills = collect($jobs)->filter(fn ($job) => is_string($job))->flatMap(
+            fn ($job) => $this->requiredSpecializations(trim($job), (array) $request->input('specializations', []))
+        )->unique()->values()->all();
         $workText = implode(' ', $selectedSkills);
         $mechanics = $this->workflow->availableMechanics(null, $workText)
-            ->filter(fn (Mechanic $mechanic) => $selectedSkills === [] || $this->matchesSpecialization($mechanic, $selectedSkills))
+            ->filter(fn (Mechanic $mechanic) => $jobs === []
+                || collect($jobs)->contains(fn ($job) => is_string($job)
+                    && $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])) !== []
+                    && $this->matchesSpecialization($mechanic, $this->requiredSpecializations(trim($job), (array) $request->input('specializations', [])))))
             ->values()
             ->map(fn (Mechanic $mechanic) => [
                 'id' => $mechanic->id,
@@ -301,6 +389,9 @@ class JobOrderController extends Controller
                 'specializations' => $mechanic->specialization_labels,
                 'skill_matches' => $mechanic->skill_matches,
                 'skill_match_score' => $mechanic->skill_match_score,
+                'qualified_jobs' => collect($jobs)->filter(fn ($job) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations((string) $job, (array) $request->input('specializations', []))
+                ))->values()->all(),
                 'availability' => 'Available',
             ]);
 
@@ -324,6 +415,39 @@ class JobOrderController extends Controller
         ]);
     }
 
+    /**
+     * Detailed stock breakdown for authorized Maintenance Head JO review only.
+     * Do not expose numerical on-hand quantities through the staff endpoint.
+     */
+    public function headReviewInventoryAvailability(Request $request)
+    {
+        $this->assertMaintenanceHead();
+        $validated = $request->validate([
+            'parts' => 'nullable|array',
+            'parts.*.name' => 'required|string|max:255',
+            'parts.*.quantity' => 'required|integer|min:1',
+            'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
+        ]);
+        $result = $this->workflow->inventoryAvailability(
+            $this->partParser->normalizePartsInput($validated['parts'] ?? [])
+        );
+
+        return response()->json([
+            'parts' => array_map(static function (array $part): array {
+                $required = (int) $part['quantity'];
+                $available = (int) $part['available'];
+                return [
+                    'required' => $required,
+                    'available' => $available,
+                    'shortage' => max(0, $required - $available),
+                    'status' => $available >= $required ? 'Available'
+                        : ($available > 0 ? 'Partially Available' : 'Unavailable'),
+                ];
+            }, $result['parts']),
+        ]);
+    }
+
     public function inventoryAvailability(Request $request)
     {
         $validated = $request->validate([
@@ -331,6 +455,7 @@ class JobOrderController extends Controller
             'parts.*.name' => 'required|string|max:255',
             'parts.*.quantity' => 'required|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
         ]);
 
         $result = $this->workflow->inventoryAvailability(
@@ -355,6 +480,8 @@ class JobOrderController extends Controller
             'problem_issue' => 'required|string',
             'maintenance_type' => 'required|string|max:255',
             'maintenance_job' => 'nullable|string|max:255',
+            'maintenance_jobs' => 'nullable|array|max:10',
+            'maintenance_jobs.*' => 'string|max:255|distinct',
             'custom_maintenance_job' => 'nullable|string|max:255',
             'specializations' => 'nullable|array',
             'specializations.*' => 'string|max:255',
@@ -371,6 +498,25 @@ class JobOrderController extends Controller
             'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
             'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
         ]);
+
+        $selectedJobs = array_values(array_unique(array_filter(
+            $validated['maintenance_jobs'] ?? [$validated['maintenance_job'] ?? null],
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )));
+        if (count($selectedJobs) > 1 && in_array('Other', $selectedJobs, true)) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Custom work must be selected on its own, not with preset jobs.',
+            ]);
+        }
+        $validated['maintenance_job'] = $selectedJobs[0] ?? '';
+        $jobSkills = collect($selectedJobs)->flatMap(
+            fn ($job) => $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+        )->unique()->values()->all();
+        if ($selectedJobs !== [] && $jobSkills === []) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Select valid Maintenance Jobs with defined specializations.',
+            ]);
+        }
 
         if (($validated['maintenance_job'] ?? null) === 'Other') {
             $customName = trim((string) ($validated['custom_maintenance_job'] ?? ''));
@@ -416,10 +562,7 @@ class JobOrderController extends Controller
             ]);
         }
         $mechanics = $this->workflow->validatedMechanics($mechanicIds);
-        $requiredSkills = $this->requiredSpecializations(
-            (string) ($validated['maintenance_job'] ?? ''),
-            $validated['specializations'] ?? []
-        );
+        $requiredSkills = $jobSkills;
         if (($validated['maintenance_job'] ?? '') !== '' && $requiredSkills === []) {
             throw ValidationException::withMessages([
                 'maintenance_job' => 'Select a supported Maintenance Job with defined specialization requirements.',
@@ -427,11 +570,23 @@ class JobOrderController extends Controller
         }
         if ($requiredSkills !== []) {
             foreach ($mechanics as $mechanic) {
-                if (! $this->matchesSpecialization($mechanic, $requiredSkills)) {
+                if (! collect($selectedJobs)->contains(fn ($job) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                ))) {
                     throw ValidationException::withMessages([
-                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for this maintenance job.",
+                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for any selected maintenance job.",
                     ]);
                 }
+            }
+            $uncoveredJobs = collect($selectedJobs)->reject(fn ($job) => $mechanics->contains(
+                fn (Mechanic $mechanic) => $this->matchesSpecialization(
+                    $mechanic, $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                )
+            ))->values();
+            if ($uncoveredJobs->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'mechanic_ids' => 'Assign qualified mechanics for every selected maintenance job. Uncovered: '.$uncoveredJobs->implode(', '),
+                ]);
             }
         }
         $pmsSchedule = null;
@@ -465,13 +620,13 @@ class JobOrderController extends Controller
                 continue;
             }
             $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
-            if (! $item || ! trim((string) $item->unit)) {
+            if (! $item || ! trim((string) ($item->unit ?: $item->unit_of_measurement))) {
                 throw ValidationException::withMessages([
                     "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
                 ]);
             }
-            $partInput['name'] = (string) $item->parts_name;
-            $partInput['unit'] = (string) $item->unit;
+            $partInput['name'] = (string) ($item->parts_name ?: $item->item_name);
+            $partInput['unit'] = (string) ($item->unit ?: $item->unit_of_measurement);
         }
         unset($partInput);
         $parts = $this->partParser->normalizePartsInput($partInputs);
@@ -489,7 +644,8 @@ class JobOrderController extends Controller
             $partNeeded,
             $partStatus,
             $pmsSchedule,
-            $validated
+            $validated,
+            $selectedJobs
         ): JobOrder {
             $bus = Bus::query()
                 ->where('bus_no', $validated['bus_no'])
@@ -499,6 +655,14 @@ class JobOrderController extends Controller
             if ($bus->status !== 'Active') {
                 throw ValidationException::withMessages([
                     'bus_no' => 'Only active buses without an open Job Order can be selected.',
+                ]);
+            }
+
+            // An Active master status does not mean the vehicle has returned
+            // from an already dispatched trip. Guard writes as well as the UI.
+            if ($bus->hasOngoingDispatch()) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'This bus is currently dispatched. It cannot be assigned to a new Job Order until its trip is completed.',
                 ]);
             }
 
@@ -513,8 +677,9 @@ class JobOrderController extends Controller
                 'bus_no' => $validated['bus_no'],
                 'pms_schedule_id' => $pmsSchedule?->id,
                 'problem_issue' => $validated['problem_issue'],
-                'work_to_perform' => ($validated['maintenance_job'] ?? null) === 'Other'
-                    ? trim($validated['custom_maintenance_job']) : ($validated['maintenance_job'] ?? null),
+                'work_to_perform' => in_array('Other', $selectedJobs, true)
+                    ? trim($validated['custom_maintenance_job'])
+                    : implode(', ', $selectedJobs),
                 'maintenance_type' => $validated['maintenance_type'],
                 'assigned_mechanic' => $mechanics->pluck('mechanic_name')->implode(', ') ?: null,
                 'part_needed' => $partNeeded,
@@ -531,9 +696,16 @@ class JobOrderController extends Controller
                 'inventory_snapshot' => $inventory,
             ]);
 
+            // Claim stock atomically at submission; physical inventory is not deducted here.
+            $reservation = app(\App\Services\Maintenance\PartsReservationService::class)->reserveForApproval($createdJobOrder);
+            $createdJobOrder->update([
+                'inventory_availability' => $reservation['status'],
+                'inventory_snapshot' => array_merge($reservation, ['reservation_at_submission' => true]),
+            ]);
             $this->workflow->syncMechanics($createdJobOrder, $mechanics, auth()->id());
             $this->workflow->audit($createdJobOrder, 'created', null, 'For Review', 'Submitted for Maintenance Head review.', [
                 'maintenance_job' => $validated['maintenance_job'] ?? null,
+                'maintenance_jobs' => $selectedJobs,
                 'custom_maintenance_job' => $validated['custom_maintenance_job'] ?? null,
                 'required_specializations' => $validated['specializations'] ?? [],
             ]);
@@ -600,6 +772,12 @@ class JobOrderController extends Controller
             'problem_issue' => 'required|string',
             'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
+            'maintenance_job' => 'nullable|string|max:255',
+            'maintenance_jobs' => 'nullable|array|max:10',
+            'maintenance_jobs.*' => 'string|max:255|distinct',
+            'custom_maintenance_job' => 'nullable|string|max:255',
+            'specializations' => 'nullable|array',
+            'specializations.*' => 'string|max:255',
             'mechanic_ids' => 'nullable|array',
             'mechanic_ids.*' => 'integer|distinct|exists:mechanics,id',
             'assigned_mechanic' => 'nullable|string|max:255',
@@ -610,16 +788,97 @@ class JobOrderController extends Controller
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
             'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
         ]);
+
+        $selectedJobs = array_values(array_unique(array_filter(
+            $validated['maintenance_jobs'] ?? [$validated['maintenance_job'] ?? null],
+            fn ($job) => is_string($job) && trim($job) !== ''
+        )));
+        if (count($selectedJobs) > 1 && in_array('Other', $selectedJobs, true)) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Custom work must be selected on its own, not with preset jobs.',
+            ]);
+        }
+        $jobSkills = collect($selectedJobs)->flatMap(
+            fn ($job) => $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+        )->unique()->values()->all();
+        if ($selectedJobs !== [] && $jobSkills === []) {
+            throw ValidationException::withMessages([
+                'maintenance_jobs' => 'Select valid Maintenance Jobs with defined specializations.',
+            ]);
+        }
+        if (in_array('Other', $selectedJobs, true)) {
+            $customName = trim((string) ($validated['custom_maintenance_job'] ?? ''));
+            if (mb_strlen($customName) < 3) {
+                throw ValidationException::withMessages([
+                    'custom_maintenance_job' => 'Please describe the custom maintenance job.',
+                ]);
+            }
+            $catalog = DB::table('mechanic_specialization_options')->pluck('name')
+                ->map(fn ($name) => mb_strtolower(trim((string) $name)))->all();
+            $skills = array_unique($validated['specializations'] ?? []);
+            if ($skills === [] || collect($skills)->contains(
+                fn ($skill) => ! in_array(mb_strtolower(trim($skill)), $catalog, true)
+            )) {
+                throw ValidationException::withMessages([
+                    'specializations' => 'Select valid specializations from Mechanic Master List.',
+                ]);
+            }
+        }
 
         $mechanicIds = $validated['mechanic_ids'] ?? [];
         if ($mechanicIds === [] && ! empty($validated['assigned_mechanic'])) {
             $legacyMechanic = Mechanic::query()->where('mechanic_name', $validated['assigned_mechanic'])->first();
             $mechanicIds = $legacyMechanic ? [$legacyMechanic->id] : [];
         }
+        if ($mechanicIds === [] && $selectedJobs !== []) {
+            throw ValidationException::withMessages([
+                'mechanic_ids' => 'Please assign at least one mechanic before updating the Job Order.',
+            ]);
+        }
         $mechanics = $this->workflow->validatedMechanics($mechanicIds, $jobOrder);
-        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        if ($selectedJobs !== []) {
+            foreach ($mechanics as $mechanic) {
+                if (! collect($selectedJobs)->contains(fn ($job) => $this->matchesSpecialization(
+                    $mechanic,
+                    $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                ))) {
+                    throw ValidationException::withMessages([
+                        'mechanic_ids' => "Selected mechanic {$mechanic->mechanic_name} is not qualified for any selected maintenance job.",
+                    ]);
+                }
+            }
+            $uncoveredJobs = collect($selectedJobs)->reject(fn ($job) => $mechanics->contains(
+                fn (Mechanic $mechanic) => $this->matchesSpecialization(
+                    $mechanic,
+                    $this->requiredSpecializations($job, $validated['specializations'] ?? [])
+                )
+            ))->values();
+            if ($uncoveredJobs->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'mechanic_ids' => 'Assign qualified mechanics for every selected maintenance job. Uncovered: '.$uncoveredJobs->implode(', '),
+                ]);
+            }
+        }
+        // Resolve selected Warehouse items server-side, exactly as the Create JO form does.
+        $partInputs = $request->input('parts', []);
+        foreach ($partInputs as $index => &$partInput) {
+            if (! is_array($partInput) || empty($partInput['inventory_item_id'])) {
+                continue;
+            }
+            $item = \App\Models\Warehouse\InventoryItem::find($partInput['inventory_item_id']);
+            if (! $item || ! trim((string) ($item->unit ?: $item->unit_of_measurement))) {
+                throw ValidationException::withMessages([
+                    "parts.{$index}.inventory_item_id" => 'Select a Warehouse item with a configured unit.',
+                ]);
+            }
+            $partInput['name'] = (string) ($item->parts_name ?: $item->item_name);
+            $partInput['unit'] = (string) ($item->unit ?: $item->unit_of_measurement);
+        }
+        unset($partInput);
+        $parts = $this->partParser->normalizePartsInput($partInputs);
 
         $partNeeded = count($parts) > 0
             ? $this->partParser->formatParts($parts)
@@ -652,19 +911,26 @@ class JobOrderController extends Controller
             'inventory_snapshot' => $inventory,
         ];
 
+        if ($selectedJobs !== []) {
+            $updates['work_to_perform'] = in_array('Other', $selectedJobs, true)
+                ? trim((string) $validated['custom_maintenance_job'])
+                : implode(', ', $selectedJobs);
+        }
+
         if ($wasRevision) {
             $updates['review_status'] = 'For Review';
             $updates['review_notes'] = null;
             $updates['revision_number'] = $jobOrder->revision_number + 1;
         } else {
-            $updates['status'] = $mechanics->isNotEmpty() ? 'On Going' : 'On Hold';
-            if ($mechanics->isNotEmpty() && ! $jobOrder->actual_started_at) {
+            $partsReady = trim((string) $partNeeded) === '' || $partStatus === 'Issued';
+            $updates['status'] = $mechanics->isNotEmpty() && $partsReady ? 'On Going' : 'On Hold';
+            if ($mechanics->isNotEmpty() && $partsReady && ! $jobOrder->actual_started_at) {
                 $updates['actual_started_at'] = now();
                 $updates['start_date'] = now();
             }
         }
 
-        if (array_key_exists('work_to_perform', $validated)) {
+        if ($selectedJobs === [] && array_key_exists('work_to_perform', $validated)) {
             $updates['work_to_perform'] = $validated['work_to_perform'] !== null
                 ? trim($validated['work_to_perform'])
                 : null;
@@ -678,7 +944,7 @@ class JobOrderController extends Controller
             $updates['estimated_duration_unit'] = $validated['estimated_duration_unit'];
         }
 
-        DB::transaction(function () use ($jobOrder, $mechanics, $updates, $wasRevision): void {
+        DB::transaction(function () use ($jobOrder, $mechanics, $updates, $wasRevision, $selectedJobs, $validated): void {
             $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
             if ($locked->review_status === 'For Review' || $locked->review_status === 'Rejected' || $locked->status === 'Completed') {
                 abort(423, 'This Job Order changed and is no longer editable.');
@@ -698,11 +964,37 @@ class JobOrderController extends Controller
                 }
             }
             $locked->update($updates);
+            if ($wasRevision) {
+                // Always reconcile when Staff resubmits a revision, including legacy
+                // JOs without a reservation snapshot. A transaction rollback restores
+                // the previous allocation if reconciliation fails.
+                $reservationService = app(\App\Services\Maintenance\PartsReservationService::class);
+                $reservationService->release($locked);
+                $locked->update(['inventory_snapshot' => null]);
+                $newReservation = $reservationService->reserveForApproval($locked);
+                $locked->update([
+                    'inventory_availability' => $newReservation['status'],
+                    'inventory_snapshot' => array_merge($newReservation, ['reservation_at_submission' => true]),
+                ]);
+            }
             $this->workflow->syncMechanics($locked, $lockedMechanics, auth()->id());
             if ($wasRevision) {
-                $this->workflow->audit($locked, 'resubmitted', 'Revision Required', 'For Review', 'Revised Job Order resubmitted.');
+                $this->workflow->audit(
+                    $locked,
+                    'resubmitted',
+                    'Revision Required',
+                    'For Review',
+                    'Revised Job Order resubmitted.',
+                    [
+                        'maintenance_jobs' => $selectedJobs,
+                        'custom_maintenance_job' => $validated['custom_maintenance_job'] ?? null,
+                        'required_specializations' => $validated['specializations'] ?? [],
+                    ]
+                );
             } else {
-                $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                if ($locked->actual_started_at) {
+                    $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                }
                 $this->workflow->audit($locked, 'updated', 'Approved', 'Approved');
             }
         });
@@ -726,120 +1018,34 @@ class JobOrderController extends Controller
 
     public function createPurchaseRequest(Request $request, JobOrder $jobOrder)
     {
-        if ($jobOrder->review_status !== 'Approved') {
-            abort(423, 'Purchase Request actions are locked until the Job Order is approved.');
+        // Legacy shortcut must not bypass the new Pending PR review workflow.
+        // Derive the same JO-aware shortage, then require Maintenance to review
+        // and submit the actual PR through the canonical store action.
+        if ($jobOrder->review_status !== 'Approved' || $jobOrder->status === 'Completed') {
+            abort(423, 'Only approved and open Job Orders can request purchasing.');
         }
-
-        if (empty($jobOrder->assigned_mechanic)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Assign a mechanic before creating a Purchase Request.'], 422);
-            }
-            return redirect()->back()->with('error', 'Assign a mechanic before creating a Purchase Request.');
+        if (trim((string) $jobOrder->assigned_mechanic) === '' || trim((string) $jobOrder->part_needed) === '') {
+            throw ValidationException::withMessages(['job_order_no' => 'The Job Order must have assigned mechanics and requested parts.']);
         }
-
-        if (empty($jobOrder->part_needed)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order has no requested parts.'], 422);
-            }
-            return redirect()->back()->with('error', 'Cannot create PR because this Job Order has no requested parts.');
+        if ($this->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)->exists()) {
+            return redirect()->route('purchase-requests', ['record_view' => 'active', 'search' => $jobOrder->job_order_no])
+                ->with('error', 'A Purchase Request already exists for this Job Order.');
         }
-
-        if ($jobOrder->status === 'Completed') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Cannot create PR because this Job Order is already completed.'], 422);
-            }
-            return redirect()->back()->with('error', 'Cannot create PR because this Job Order is already completed.');
-        }
-
-        if ($jobOrder->part_status === 'Rejected') {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.'], 422);
-            }
-            return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
-                ->with('error', 'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.');
-        }
-
-        if (! in_array($jobOrder->part_status, [null, 'Not Requested'], true)) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'This Job Order already has a Purchase Request.'], 422);
-            }
-            return redirect()->back()->with('error', 'This Job Order already has a Purchase Request.');
-        }
-
-        $existingPr = $this->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
-            ->latest()
-            ->first();
-
-        if ($existingPr) {
-            $existingMsg = $existingPr->status === 'Rejected'
-                ? 'The existing Purchase Request is rejected. Revise and resubmit it.'
-                : 'This Job Order already has a Purchase Request.';
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $existingMsg], 422);
-            }
-            return redirect()->route('purchase-requests', ['search' => $jobOrder->job_order_no])
-                ->with('error', $existingMsg);
-        }
-
-        $parts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed);
+        $parts = $this->purchaseRequestParts->missingParts((string) $jobOrder->part_needed, $jobOrder);
         if ($parts === []) {
-            if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'All requested parts are available. A Purchase Request is not needed.'], 422);
-            }
-            return redirect()->back()->with('error', 'All requested parts are available. A Purchase Request is not needed.');
+            throw ValidationException::withMessages(['job_order_no' => 'There is no outstanding shortage for this Job Order.']);
         }
-
-        [$purchaseRequest, $jobOrder] = DB::transaction(function () use ($jobOrder): array {
-            $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
-
-            $existingRequest = $this->maintenancePurchaseRequestForJobOrder($lockedJobOrder->job_order_no)
-                ->latest()
-                ->first();
-
-            if ($existingRequest || ! in_array($lockedJobOrder->part_status, [null, 'Not Requested'], true)) {
-                throw ValidationException::withMessages([
-                    'job_order_no' => 'This Job Order already has a Purchase Request.',
-                ]);
-            }
-
-            $parts = $this->purchaseRequestParts->missingParts((string) $lockedJobOrder->part_needed);
-            if ($parts === []) {
-                throw ValidationException::withMessages([
-                    'job_order_no' => 'All requested parts are available. A Purchase Request is not needed.',
-                ]);
-            }
-
-            $createdPurchaseRequest = PurchaseRequest::create([
-                'pr_no' => $this->generatePrNo(),
-                'job_order_no' => $lockedJobOrder->job_order_no,
-                'bus_no' => $lockedJobOrder->bus_no,
-                'item' => $this->partParser->formatParts($parts),
-                'quantity' => $this->partParser->calculateTotalQuantity($parts),
-                'status' => 'Submitted',
-                'source_type' => 'Maintenance Request',
-                'remarks' => 'Created from Job Order ' . $lockedJobOrder->job_order_no,
-                'purpose' => $lockedJobOrder->work_to_perform,
-                'requested_by' => auth()->id(),
-                'date_requested' => now(),
-            ]);
-
-            $lockedJobOrder->update(['part_status' => 'Submitted']);
-
-            return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
-        });
-
-        $this->broadcastSystemDataUpdated('Maintenance', 'PurchaseRequest', 'created', $purchaseRequest->id, 'A purchase request was created from a job order.');
-        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Submitted.');
-
-        if ($request->ajax() || $request->expectsJson()) {
+        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Purchase request created successfully.',
-                'purchase_request' => $purchaseRequest,
+                'submitted' => false,
+                'job_order_no' => $jobOrder->job_order_no,
+                'suggested_parts' => $parts,
+                'message' => 'Review the suggested shortage before submitting a Purchase Request.',
             ]);
         }
-
-        return redirect()->to(route('job-orders', [], false))->with('success', 'Purchase request created successfully.');
+        return redirect()->route('purchase-requests', ['record_view' => 'pending', 'search' => $jobOrder->job_order_no])
+            ->with('success', 'Review the suggested shortage and submit the Purchase Request.');
     }
 
     public function approvalSignature(Request $request, JobOrder $jobOrder)
@@ -871,13 +1077,14 @@ class JobOrderController extends Controller
         ]);
     }
 
-    public function approve(Request $request, JobOrder $jobOrder)
+    public function approve(Request $request, JobOrder $jobOrder, \App\Services\Maintenance\PartsReservationService $reservations)
     {
         $this->assertMaintenanceHead();
         $validated = $request->validate([
             'electronic_signature' => 'required|string|max:255',
             'signature_image' => 'required|string|max:550000',
             'duration_decision' => 'required|in:accept,adjust',
+            'parts_issue_strategy' => ['nullable', Rule::in(['complete_before_issuance', 'issue_available_only'])],
             'verified_duration_value' => 'required_if:duration_decision,adjust|nullable|numeric|gt:0',
             'verified_duration_unit' => 'required_if:duration_decision,adjust|nullable|in:Minutes,Hours,Days',
             'duration_adjustment_reason' => 'required_if:duration_decision,adjust|nullable|string|max:2000',
@@ -904,8 +1111,10 @@ class JobOrderController extends Controller
             throw ValidationException::withMessages(['signature_image' => 'The drawn signature is invalid. Clear it and sign again.']);
         }
 
-        $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes): JobOrder {
-            $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
+        $signaturePath = null;
+        try {
+            $jobOrder = DB::transaction(function () use ($jobOrder, $user, $validated, $signatureBytes, $reservations, &$signaturePath): JobOrder {
+                $locked = JobOrder::query()->with('mechanicAssignments')->lockForUpdate()->findOrFail($jobOrder->id);
             if ($locked->review_status !== 'For Review') {
                 throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be approved.']);
             }
@@ -947,11 +1156,20 @@ class JobOrderController extends Controller
             if (! \Illuminate\Support\Facades\Storage::disk('local')->put($signaturePath, $signatureBytes)) {
                 throw ValidationException::withMessages(['signature_image' => 'Unable to save the signed approval. Please retry.']);
             }
+            $stockReservation = $reservations->reserveForApproval($locked);
+            $stockStatus = $stockReservation['status'];
+            // The UI may have hidden the choice using an earlier snapshot.
+            // If stock becomes partial while the modal is open, default to the
+            // safer hold policy rather than silently authorizing partial issue.
+            $releasePolicy = $stockStatus === 'partial'
+                ? ($validated['parts_issue_strategy'] ?? 'complete_before_issuance')
+                : 'complete_before_issuance';
             $approvedAt = now();
             $signatureHash = hash_hmac('sha256', implode('|', [
                 $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
             ]), (string) config('app.key'));
             $hasMechanics = $mechanics->isNotEmpty();
+            $canStart = $hasMechanics && (trim((string) $locked->part_needed) === '' || $locked->part_status === 'Issued');
             $locked->update([
                 'review_status' => 'Approved',
                 'estimated_duration_value' => $finalDurationValue,
@@ -960,19 +1178,23 @@ class JobOrderController extends Controller
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt,
                 'approval_signature_hash' => $signatureHash,
-                'status' => $hasMechanics ? 'On Going' : 'On Hold',
-                'start_date' => $hasMechanics ? $approvedAt : null,
-                'actual_started_at' => $hasMechanics ? $approvedAt : null,
+                'parts_issue_strategy' => $releasePolicy,
+                'inventory_availability' => $stockStatus,
+                'inventory_snapshot' => $stockReservation,
+                'status' => $canStart ? 'On Going' : 'On Hold',
+                'start_date' => $canStart ? $approvedAt : null,
+                'actual_started_at' => $canStart ? $approvedAt : null,
             ]);
 
             $bus->placeUnderMaintenance();
-            if ($hasMechanics) {
+            if ($canStart) {
                 $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
             }
             $this->workflow->audit($locked, 'approved', 'For Review', 'Approved', $validated['review_notes'] ?? null, [
                 'approved_by' => $user->id,
                 'approved_at' => $approvedAt->toISOString(),
                 'signature_hash' => $signatureHash,
+                'parts_issue_strategy' => $locked->parts_issue_strategy,
                 'handwritten_signature_path' => $signaturePath,
                 'handwritten_signature_sha256' => hash('sha256', $signatureBytes),
                 'duration_verification' => [
@@ -987,8 +1209,17 @@ class JobOrderController extends Controller
                 ],
             ]);
 
-            return $locked->fresh();
-        });
+                return $locked->fresh();
+            });
+        } catch (\Throwable $exception) {
+            // The filesystem is not transactional. Remove a signature written
+            // before a later reservation/database failure rolls back approval.
+            if (is_string($signaturePath) && $signaturePath !== '') {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($signaturePath);
+            }
+
+            throw $exception;
+        }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'approved', $jobOrder->id, 'A Job Order was approved and electronically signed.');
         $bus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
@@ -1008,13 +1239,19 @@ class JobOrderController extends Controller
             if ($locked->review_status !== 'For Review') {
                 throw ValidationException::withMessages(['review_status' => 'Only Job Orders currently For Review can be returned.']);
             }
+            // The JO is still active. Retain its reserved parts until Staff
+            // resubmits, the request is rejected, or the JO is safely deleted.
             $locked->update(['review_status' => 'Revision Required', 'review_notes' => $validated['review_notes']]);
-            $this->workflow->audit($locked, 'returned_for_revision', 'For Review', 'Revision Required', $validated['review_notes']);
+            $this->workflow->audit(
+                $locked, 'returned_for_revision', 'For Review', 'Revision Required',
+                $validated['review_notes'],
+                ['reservation_policy' => 'retained_until_resubmission_or_terminal_release']
+            );
         });
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'revision_required', $jobOrder->id, 'A Job Order was returned for revision.');
 
-        return redirect()->back()->with('success', 'Job Order returned for revision.');
+        return redirect()->back()->with('success', 'Job Order returned for revision. Existing stock reservations remain allocated until resubmission or final release.');
     }
 
     public function reject(Request $request, JobOrder $jobOrder)
@@ -1029,6 +1266,7 @@ class JobOrderController extends Controller
             // Rejected review records are terminal but are not genuine completed
             // repairs. Keeping the operational status terminal prevents them from
             // blocking bus scheduling; review_status distinguishes them in history.
+            app(\App\Services\Maintenance\PartsReservationService::class)->release($locked);
             $locked->update([
                 'status' => 'Completed',
                 'review_status' => 'Rejected',
@@ -1177,6 +1415,9 @@ class JobOrderController extends Controller
                 'actual_completed_at' => now(),
                 'status' => 'Completed',
             ]);
+            // Unused reservations must not hold stock after completion.
+            \App\Models\Maintenance\JobOrderPartReservation::query()
+                ->where('job_order_id', $lockedJobOrder->id)->delete();
 
             $this->workflow->setAttendanceStatus($lockedJobOrder->fresh('mechanicAssignments.mechanic'), 'Present');
             $this->workflow->audit($lockedJobOrder, 'completed', 'Approved', 'Completed');
@@ -1453,8 +1694,8 @@ class JobOrderController extends Controller
     private function requiredSpecializations(string $job, array $customSkills = []): array
     {
         $jobs = [
-            'Change Oil' => ['Lubrication', 'Preventive Maintenance'],
-            'Oil Filter Replacement' => ['Lubrication', 'Preventive Maintenance'],
+            'Change Oil' => ['Change Oil', 'Lubrication', 'Preventive Maintenance'],
+            'Oil Filter Replacement' => ['Oil Filter Replacement', 'Lubrication', 'Preventive Maintenance'],
             'Brake Inspection' => ['Brakes'],
             'Brake Pad Replacement' => ['Brakes'],
             'Air Filter Replacement' => ['Engine', 'Preventive Maintenance'],
@@ -1463,6 +1704,26 @@ class JobOrderController extends Controller
             'Tire Replacement' => ['Tires & Wheels'],
             'Engine Tune-Up' => ['Engine', 'Diagnostics'],
             'Full PMS' => ['Preventive Maintenance'],
+            'Brake Adjustment' => ['Brakes'],
+            'Brake Air System Inspection' => ['Brakes'],
+            'Brake Lining Replacement' => ['Brakes'],
+            'Engine Oil Leak Inspection' => ['Engine', 'Diagnostics'],
+            'Fuel Filter Replacement' => ['Fuel System', 'Preventive Maintenance'],
+            'Cooling System Inspection' => ['Engine', 'Diagnostics'],
+            'Radiator and Coolant Servicing' => ['Engine', 'Preventive Maintenance'],
+            'Transmission and Clutch Inspection' => ['Transmission'],
+            'Suspension Inspection and Repair' => ['Suspension'],
+            'Steering System Inspection' => ['Suspension'],
+            'Wheel Bearing Inspection' => ['Tires & Wheels'],
+            'Tire Pressure and Condition Check' => ['Tires & Wheels'],
+            'Headlight and Signal Light Repair' => ['Electrical'],
+            'Wiring and Electrical Troubleshooting' => ['Electrical', 'Diagnostics'],
+            'Aircon Refrigerant Recharge' => ['Aircon'],
+            'Body Panel and Bumper Repair' => ['Bodyworks'],
+            'Door and Window Mechanism Repair' => ['Bodyworks'],
+            'Chassis Bolt Retightening' => ['Preventive Maintenance'],
+            'Chassis Greasing' => ['Lubrication', 'Preventive Maintenance'],
+            'Exhaust System Inspection and Repair' => ['Engine'],
         ];
 
         return $job === 'Other'

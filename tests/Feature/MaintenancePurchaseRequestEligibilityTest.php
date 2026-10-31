@@ -168,7 +168,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         );
         $this->createInventoryItem('Oil Filter', 2);
         $this->createInventoryItem('Brake Pad', 4);
-        $this->createInventoryItem('Fan Belt', 3);
+        $stock = $this->createInventoryItem('Fan Belt', 3);
 
         $response = $this
             ->actingAs($user)
@@ -184,7 +184,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             ->assertJsonPath('parts.0.availability', 'Unavailable')
             ->assertJsonMissingPath('parts.0.available')
             ->assertJsonMissingPath('parts.0.shortage')
-            ->assertJsonMissingPath('parts.0.inventory_item_id');
+            ->assertJsonPath('parts.0.inventory_item_id', $stock->id);
     }
 
     public function test_store_recalculates_missing_quantities_and_preserves_full_job_order_parts(): void
@@ -216,7 +216,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertMatchesRegularExpression('/^Fan Belt \\[item:\\d+\\] - Qty: 2 pcs$/', $purchaseRequest->item);
         $this->assertSame(2, $purchaseRequest->quantity);
         $this->assertSame('Repair bus alternator', $purchaseRequest->purpose);
         $this->assertSame($user->id, $purchaseRequest->requested_by);
@@ -253,7 +253,7 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         ]);
     }
 
-    public function test_job_order_create_pr_action_also_requests_only_the_shortage(): void
+    public function test_canonical_pr_submission_requests_only_the_shortage(): void
     {
         $user = $this->maintenanceStaff();
         $jobOrder = $this->createJobOrder(
@@ -264,14 +264,17 @@ class MaintenancePurchaseRequestEligibilityTest extends TestCase
         $this->createInventoryItem('Fan Belt', 3);
 
         $this->actingAs($user)
-            ->post(route('job-orders.create-pr', $jobOrder))
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ])
             ->assertRedirect();
 
         $purchaseRequest = PurchaseRequest::query()
             ->where('job_order_no', $jobOrder->job_order_no)
             ->firstOrFail();
 
-        $this->assertSame('Fan Belt - Qty: 2 pcs', $purchaseRequest->item);
+        $this->assertMatchesRegularExpression('/^Fan Belt \\[item:\\d+\\] - Qty: 2 pcs$/', $purchaseRequest->item);
         $this->assertSame(2, $purchaseRequest->quantity);
         $this->assertSame(
             'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 5 pcs',

@@ -104,17 +104,7 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-green">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-cubes-stacked"></i></span>
-          <span class="warehouse-kpi-content">
-            <small>Available Stock</small>
-            <span class="warehouse-kpi-metric-row">
-              <strong>{{ number_format($availableStock) }}</strong>
-              <span class="warehouse-kpi-trend positive">{{ $availablePercent }}%</span>
-            </span>
-            <span class="warehouse-kpi-footer"><span>Items with sufficient stock</span><b>View</b></span>
-          </span>
-        </a>
+
 
         <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-yellow">
           <span class="warehouse-kpi-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></span>
@@ -128,19 +118,9 @@
           </span>
         </a>
 
-        <a href="{{ route('inventory') }}" class="warehouse-kpi-card warehouse-kpi-red">
-          <span class="warehouse-kpi-icon red"><i class="fa-solid fa-box-open"></i></span>
-          <span class="warehouse-kpi-content">
-            <small>Out of Stock</small>
-            <span class="warehouse-kpi-metric-row">
-              <strong>{{ number_format($outOfStock) }}</strong>
-              <span class="warehouse-kpi-trend danger">{{ $outOfStockPercent }}%</span>
-            </span>
-            <span class="warehouse-kpi-footer"><span>Items with no available stock</span><b>View</b></span>
-          </span>
-        </a>
 
-        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card warehouse-kpi-purple">
+
+        <a href="{{ route('part-requests') }}" class="warehouse-kpi-card warehouse-kpi-blue">
           <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-file-lines"></i></span>
           <span class="warehouse-kpi-content">
             <small>Pending Part Requests</small>
@@ -152,8 +132,8 @@
           </span>
         </a>
 
-        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card warehouse-kpi-green">
-          <span class="warehouse-kpi-icon green"><i class="fa-solid fa-truck"></i></span>
+        <a href="{{ route('incoming-deliveries') }}" class="warehouse-kpi-card warehouse-kpi-blue">
+          <span class="warehouse-kpi-icon blue"><i class="fa-solid fa-truck"></i></span>
           <span class="warehouse-kpi-content">
             <small>Incoming Deliveries</small>
             <span class="warehouse-kpi-metric-row">
@@ -395,7 +375,7 @@
                 @forelse($recentStockMovements as $movement)
                   @php
                     $movementType = strtolower((string) ($movement->movement_type ?? ''));
-                    $movementClass = str_contains($movementType, 'in') ? 'green' : (str_contains($movementType, 'out') ? 'red' : 'blue');
+                    $movementClass = str_contains($movementType, 'in') ? 'gray' : (str_contains($movementType, 'out') ? 'red' : 'blue');
                     $qty = (int) ($movement->quantity_change ?? 0);
                     $creatorName = $movement->creator?->name ?? 'System';
                     $creatorRole = $movement->creator?->role ?? 'Automated update';
@@ -409,7 +389,7 @@
                     <td class="warehouse-row-number">{{ $loop->iteration }}</td>
                     <td>
                       <div class="warehouse-item-cell">
-                        <span class="warehouse-item-icon tone-{{ (($loop->iteration - 1) % 5) + 1 }}"><i class="fa-solid fa-box"></i></span>
+                        <span class="warehouse-item-icon warehouse-movement-item-icon {{ $qty < 0 ? 'is-stock-out' : ($movementClass === 'gray' ? 'is-stock-in' : 'is-adjustment') }}"><i class="fa-solid {{ $qty < 0 ? 'fa-box-open' : ($movementClass === 'gray' ? 'fa-box' : 'fa-boxes-stacked') }}" aria-hidden="true"></i></span>
                         <span><strong class="warehouse-table-primary">{{ $movement->item_name ?? 'Inventory Item' }}</strong><small>{{ $movement->item_code ?? 'No item code' }}</small></span>
                       </div>
                     </td>
@@ -420,9 +400,9 @@
                       <div class="warehouse-date-cell"><i class="fa-regular fa-clock"></i><span><strong>{{ $movement->created_at?->format('M d, Y') ?? 'No date' }}</strong><small>{{ $movement->created_at?->format('h:i A') ?? '' }}</small></span></div>
                     </td>
                     <td>
-                      <div class="warehouse-user-cell"><span class="warehouse-user-avatar tone-{{ (($loop->iteration - 1) % 3) + 1 }}">{{ $creatorInitials ?: 'SY' }}</span><span><strong>{{ $creatorName }}</strong><small>{{ $creatorRole }}</small></span></div>
+                      <div class="warehouse-user-cell"><span class="warehouse-user-avatar">{{ $creatorInitials ?: 'SY' }}</span><span><strong>{{ $creatorName }}</strong><small>{{ $creatorRole }}</small></span></div>
                     </td>
-                    <td><a href="{{ route('stock-movements', ['search' => $movement->reference_no ?: $movement->item_code]) }}" class="warehouse-view-action"><i class="fa-regular fa-eye"></i> View</a></td>
+                    <td><a href="{{ route('stock-movements', ['search' => $movement->reference_no ?: $movement->item_code]) }}" class="warehouse-view-action"><i class="fa-solid fa-eye" aria-hidden="true"></i> View</a></td>
                   </tr>
                 @empty
                   <tr><td colspan="8"><div class="warehouse-table-empty">No stock movements recorded.</div></td></tr>
@@ -468,7 +448,7 @@
                     <td class="warehouse-row-number">{{ $loop->iteration }}</td>
                     <td>
                       <div class="warehouse-item-cell">
-                        <span class="warehouse-item-icon tone-{{ (($loop->iteration - 1) % 5) + 1 }}"><i class="fa-solid fa-box"></i></span>
+                        <span class="warehouse-item-icon"><i class="fa-solid fa-box"></i></span>
                         <span>
                       <strong class="warehouse-table-primary">{{ $item->item_name ?? $item->parts_name ?? 'Inventory Item' }}</strong>
                       <small>{{ $item->item_code ?? '—' }}</small>
@@ -505,21 +485,18 @@
             @forelse($topIssuedItems as $item)
               <div class="warehouse-issued-row">
                 <span class="warehouse-issued-rank">{{ $loop->iteration }}</span>
-                <div class="warehouse-issued-copy">
-                  <strong>{{ $item['item_name'] }}</strong>
-                  <small>{{ $item['item_code'] }}</small>
+                <div class="warehouse-issued-detail">
+                  <div class="warehouse-issued-info">
+                    <span class="warehouse-issued-copy"><strong>{{ $item['item_name'] }}</strong><small>{{ $item['item_code'] }}</small></span>
+                    <strong class="warehouse-issued-total">{{ number_format($item['total_issued']) }} <small>pcs</small></strong>
+                  </div>
+                  <div class="warehouse-issued-meter" role="progressbar" aria-label="{{ $item['item_name'] }} issuance relative to most issued item" aria-valuenow="{{ $item['total_issued'] }}" aria-valuemin="0" aria-valuemax="{{ $maxIssued }}">
+                    <span style="width: {{ min(100, round(($item['total_issued'] / $maxIssued) * 100)) }}%"></span>
+                  </div>
                 </div>
-                <div class="warehouse-issued-meter">
-                  <span style="width: {{ max(8, round(($item['total_issued'] / $maxIssued) * 100)) }}%"></span>
-                </div>
-                <strong class="warehouse-issued-total">{{ number_format($item['total_issued']) }}<small>pcs</small></strong>
               </div>
             @empty
-              <div class="warehouse-empty compact-empty">
-                <i class="fa-solid fa-chart-simple"></i>
-                <strong>No issued items recorded</strong>
-                <span>Issued parts will be ranked here automatically.</span>
-              </div>
+              <div class="warehouse-empty compact-empty"><i class="fa-solid fa-chart-simple"></i><strong>No issued items recorded</strong><span>Issued parts will be ranked here automatically.</span></div>
             @endforelse
           </div>
         </article>
@@ -534,7 +511,14 @@
                 <p>Inventory movement trend over time.</p>
               </div>
             </div>
-            <span class="warehouse-panel-period">{{ $trendPeriodLabel ?? 'This Month' }}</span>
+            <label class="warehouse-trend-period">
+              <span class="sr-only">Stock movement grouping</span>
+              <select id="warehouseTrendGrouping" aria-label="Group stock movements by">
+                <option value="weekly" selected>Weekly</option>
+                <option value="daily">Daily</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </label>
           </header>
           <div class="warehouse-chart-wrap trend-chart-wrap">
             <canvas

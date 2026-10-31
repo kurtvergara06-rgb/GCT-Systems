@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Maintenance\FuelReportController;
+use App\Http\Controllers\Maintenance\ItemRequestController;
 use App\Http\Controllers\Maintenance\JobOrderController;
 use App\Http\Controllers\Maintenance\JobOrderIndexController;
 use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
@@ -75,6 +76,7 @@ Route::middleware([
                 Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
                 Route::get('/duration-suggestion', 'durationSuggestion')->name('job-orders.duration-suggestion');
                 Route::post('/inventory-availability', 'inventoryAvailability')->name('job-orders.inventory-availability');
+                Route::post('/head-review-inventory-availability', 'headReviewInventoryAvailability')->name('job-orders.head-review-inventory-availability');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
                 Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
                 Route::post('/{jobOrder}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('job-orders.approve');
@@ -84,6 +86,9 @@ Route::middleware([
                 Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->middleware('system.permission:maintenance,edit')->name('job-orders.create-pr');
                 Route::delete('/{jobOrder}', 'destroy')->middleware('system.permission:maintenance,edit')->name('job-orders.destroy');
             });
+
+        Route::get('/item-requests', [ItemRequestController::class, 'index'])->name('item-requests');
+        Route::post('/item-requests', [ItemRequestController::class, 'store'])->middleware('system.permission:maintenance,edit')->name('item-requests.store');
 
         Route::get('/purchase-requests', PurchaseRequestIndexController::class)
             ->name('purchase-requests');

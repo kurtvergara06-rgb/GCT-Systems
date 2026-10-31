@@ -1128,39 +1128,16 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
             setActiveInput(input);
 
-            const editedLabel =
-                input.value.trim();
-
+            // A changed place label is no longer a verified map location.
+            // Require the operator to select a result or pin it again so the
+            // saved coordinates never silently refer to the previous place.
             if (
                 hasCoordinates(input)
-                && editedLabel === ''
+                && normalize(input.value) !==
+                    normalize(input.dataset.selectedName || '')
             ) {
                 clearPlace(input);
                 locationsChanged();
-            } else if (
-                hasCoordinates(input)
-                && editedLabel !== ''
-                && normalize(editedLabel) !==
-                    normalize(
-                        input.dataset.selectedName
-                        || ''
-                    )
-            ) {
-                input.dataset.selectedName =
-                    editedLabel;
-
-                syncHiddenFields(input);
-                updateConfirmation(
-                    input,
-                    true
-                );
-
-                if (
-                    input === routeOrigin
-                    || input === routeDestination
-                ) {
-                    updateAutoRouteName();
-                }
             }
 
             window.clearTimeout(timer);

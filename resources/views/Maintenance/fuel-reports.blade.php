@@ -23,28 +23,7 @@
         title="Fuel Reports"
         subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
       />
-      @if(session('error'))
-        <div class="fuel-alert error">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <span>{{ session('error') }}</span>
-        </div>
-      @endif
 
-      @if($errors->any())
-        <div class="fuel-alert error">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-
-          <div>
-            <strong>Please correct the following:</strong>
-
-            <ul>
-              @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-              @endforeach
-            </ul>
-          </div>
-        </div>
-      @endif
 
       {{-- SUMMARY --}}
       <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">

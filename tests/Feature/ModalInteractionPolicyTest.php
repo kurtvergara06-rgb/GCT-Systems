@@ -132,18 +132,22 @@ class ModalInteractionPolicyTest extends TestCase
             $source
         );
 
-        // The same standard JO structure remains in place for manual and PMS opens.
+        // The same shared JO partial remains in place for manual and PMS opens.
+        $formSections = file_get_contents(
+            resource_path('views/Maintenance/partials/job-order-form-sections.blade.php')
+        );
         $this->assertStringContainsString(
             'jo-create-basic',
-            $view
+            $formSections
         );
         $this->assertStringContainsString(
             'jo-create-details',
-            $view
+            $formSections
         );
         $this->assertStringContainsString(
             'jo-create-parts',
-            $view
+            $formSections
         );
+        $this->assertStringContainsString('data-jo-collapsible', $formSections);
     }
 }

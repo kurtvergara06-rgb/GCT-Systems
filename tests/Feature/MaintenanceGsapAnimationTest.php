@@ -50,12 +50,14 @@ class MaintenanceGsapAnimationTest extends TestCase
     public function test_job_order_modals_delegate_to_the_shared_modal_lifecycle(): void
     {
         $source = file_get_contents(resource_path('js/Maintenance/job-order.js'));
+        $animations = file_get_contents(resource_path('js/Main-js/system-animations.js'));
 
         $this->assertStringContainsString('function openModal', $source);
         $this->assertStringContainsString('function closeModal', $source);
         $this->assertStringContainsString('?.animateModalOpen?.(modal)', $source);
         $this->assertStringContainsString('?.animateModalClose?.(', $source);
-        $this->assertStringContainsString('function animatePartRowIn', $source);
+        $this->assertStringContainsString("'.part-needed-row'", $animations);
+        $this->assertStringContainsString('animateDynamicItem', $animations);
         $this->assertStringNotContainsString('surfaceY = isReduced ? 20 : 38', $source);
     }
 
