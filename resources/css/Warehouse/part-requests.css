@@ -818,3 +818,27 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-restock-submit-confirmation-box h3{margin:0 0 12px;color:#12315b;font-size:19px}
 .warehouse-restock-submit-confirmation-box p{margin:0 0 20px;color:#415774;font-size:13px;line-height:1.6}
 .warehouse-restock-submit-confirmation-box button{border:0;border-radius:8px;padding:11px 18px;background:#ffba00;color:#102849;font-size:12px;font-weight:800;cursor:pointer}
+
+
+/* Warehouse restock PR: compact read-only View details without Maintenance actions. */
+.warehouse-restock-view-overlay { position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.45);backdrop-filter:blur(5px); }
+.warehouse-restock-view-overlay.show,.warehouse-restock-view-overlay.active { display:flex!important; }
+.warehouse-restock-view-dialog { width:min(760px,95vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;padding:0!important; }
+.warehouse-restock-view-header { display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:19px 22px;border-bottom:1px solid #dde7f4; }
+.warehouse-restock-view-header small { font-size:10px;font-weight:800;letter-spacing:.07em;color:#1458bb; }
+.warehouse-restock-view-header h2 { font-size:19px;margin:4px 0;color:#142d52; }
+.warehouse-restock-view-header p { margin:0;color:#60728b;font-size:12px; }
+.warehouse-restock-view-close { border:1px solid #d0dff1;border-radius:7px;background:#f7faff;color:#173b69;padding:8px 12px;cursor:pointer; }
+.warehouse-restock-view-content { padding:18px 22px; }
+.warehouse-restock-view-facts { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px; }
+.warehouse-restock-view-facts>div { border:1px solid #dce6f4;background:#f8fbff;border-radius:7px;padding:11px; }
+.warehouse-restock-view-facts small { display:block;font-size:10px;color:#657e9b;text-transform:uppercase; }
+.warehouse-restock-view-facts strong { display:block;font-size:12px;margin-top:5px;color:#17365b;overflow-wrap:anywhere; }
+.warehouse-restock-view-content h3 { font-size:12px;color:#14355f;margin:14px 0 9px; }
+.warehouse-restock-view-table-wrap { overflow-x:auto;border:1px solid #dce6f4;border-radius:8px; }
+.warehouse-restock-view-table-wrap table { width:100%;border-collapse:collapse; }
+.warehouse-restock-view-table-wrap th { background:#eff5fc;font-size:10px;text-transform:uppercase; }
+.warehouse-restock-view-table-wrap td,.warehouse-restock-view-table-wrap th { padding:11px;border-bottom:1px solid #e1eaf5;text-align:left; }
+.warehouse-restock-view-table-wrap td { font-size:12px; }
+.warehouse-restock-view-dialog footer { padding:12px 22px;border-top:1px solid #dde7f4;text-align:left; }
+@media(max-width:650px){.warehouse-restock-view-facts{grid-template-columns:1fr}}
