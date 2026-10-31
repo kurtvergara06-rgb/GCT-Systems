@@ -205,17 +205,25 @@
             <div><small>Purchase Order</small><strong id="incomingReceiptPo">—</strong></div>
             <div><small>Supplier</small><strong id="incomingReceiptSupplier">—</strong></div>
           </div>
+          <div class="incoming-receipt-mode" role="group" aria-label="Receiving method">
+            <button type="button" id="incomingReceiveAll" class="incoming-receipt-mode-button" aria-pressed="false">
+              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span><strong>Receive All</strong><small>Fill all outstanding PO quantities</small></span>
+            </button>
+            <button type="button" id="incomingReceivePartial" class="incoming-receipt-mode-button" aria-pressed="false">
+              <i class="fa-solid fa-box-open" aria-hidden="true"></i><span><strong>Partial Receipt</strong><small>Enter only the items that arrived</small></span>
+            </button>
+          </div>
           <div class="incoming-receipt-table-wrap">
             <table class="incoming-receipt-items"><thead><tr><th>Item / Part</th><th>Ordered</th><th>Previously Received</th><th>Outstanding</th><th>Receive Now</th></tr></thead>
               <tbody id="incomingReceiptLines"></tbody>
             </table>
           </div>
-          <p class="incoming-receipt-help">Enter 0 for items not included in this delivery. At least one item must have a received quantity greater than 0.</p>
+          <p class="incoming-receipt-help">Choose Receive All or Partial Receipt above. For a partial delivery, enter 0 for items not received; at least one quantity must be greater than 0.</p>
           <div id="incomingReceiptError" class="incoming-receipt-error" role="alert" hidden></div>
         </div>
         <footer class="incoming-receipt-footer">
           <button type="button" id="incomingReceiptCancel" class="incoming-receipt-cancel">Cancel</button>
-          <button type="submit" id="incomingReceiptSubmit" class="primary-btn receive-delivery-btn"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Confirm Receipt</button>
+          <button type="submit" id="incomingReceiptSubmit" class="primary-btn receive-delivery-btn" disabled><i class="fa-solid fa-box-open" aria-hidden="true"></i> Confirm Receipt</button>
         </footer>
       </form>
     </div>
