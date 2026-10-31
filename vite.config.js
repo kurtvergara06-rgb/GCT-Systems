@@ -227,14 +227,12 @@ export default defineConfig({
 
                 'resources/css/Purchase/dashboard-purchase.css',
                 'resources/css/Purchase/purchase-orders.css',
-                'resources/css/Purchase/scheduled-purchase.css',
                 'resources/css/Purchase/purchase-module-ui.css',
 
                 'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
                 'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
 
                 'resources/js/Purchase/purchase-orders.js',
-                'resources/js/Purchase/scheduled-purchase.js',
                 'resources/js/Purchase/Requested_Purchase/maintenance-requests.js',
                 'resources/js/Purchase/Requested_Purchase/inventory-restock.js',
 
