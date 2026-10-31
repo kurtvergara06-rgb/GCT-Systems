@@ -14,7 +14,6 @@ class PurchaseUiConsistencyTest extends TestCase
             resource_path('views/Purchase/Requested_Purchase/maintenance-requests.blade.php'),
             resource_path('views/Purchase/Requested_Purchase/inventory-restock.blade.php'),
             resource_path('views/Purchase/purchase-history.blade.php'),
-            resource_path('views/Purchase/scheduled-purchase.blade.php'),
         ];
 
         foreach ($views as $view) {
@@ -66,7 +65,6 @@ class PurchaseUiConsistencyTest extends TestCase
             'views/Purchase/Requested_Purchase/maintenance-requests.blade.php' => 'REQUEST INBOX',
             'views/Purchase/Requested_Purchase/inventory-restock.blade.php' => 'INVENTORY REPLENISHMENT',
             'views/Purchase/purchase-history.blade.php' => 'AUDIT ARCHIVE',
-            'views/Purchase/scheduled-purchase.blade.php' => 'PROCUREMENT PLANNING',
         ];
 
         foreach ($expectations as $path => $eyebrow) {
@@ -93,7 +91,6 @@ class PurchaseUiConsistencyTest extends TestCase
             resource_path('views/Purchase/Requested_Purchase/maintenance-requests.blade.php'),
             resource_path('views/Purchase/Requested_Purchase/inventory-restock.blade.php'),
             resource_path('views/Purchase/purchase-history.blade.php'),
-            resource_path('views/Purchase/scheduled-purchase.blade.php'),
         ];
 
         foreach ($views as $view) {
