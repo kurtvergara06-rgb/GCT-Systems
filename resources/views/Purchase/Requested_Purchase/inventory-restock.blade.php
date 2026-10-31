@@ -115,24 +115,59 @@
                     $unit = trim($matches[3] ?? '—') ?: '—';
                   }
 
-                  $quantityDisplay = trim($quantity . ' ' . ($unit !== '—' ? $unit : ''));
+                  $structuredItems = collect(json_decode((string) ($restockRequest->restock_items ?? ''), true) ?: [])
+                    ->filter(fn ($line) => is_array($line) && trim((string) ($line['name'] ?? '')) !== '')
+                    ->values();
+                  $displayItems = $structuredItems->isNotEmpty()
+                    ? $structuredItems->map(fn ($line) => [
+                        'name' => trim((string) $line['name']),
+                        'quantity' => (int) ($line['quantity'] ?? 0),
+                        'unit' => trim((string) ($line['unit'] ?? '')),
+                      ])->values()
+                    : collect([['name' => $itemName, 'quantity' => (int) $quantity, 'unit' => $unit === '—' ? '' : $unit]]);
+                  $firstItem = $displayItems->first();
+                  $itemName = $firstItem['name'];
+                  $quantity = $firstItem['quantity'];
+                  $unit = $firstItem['unit'] ?: '—';
+                  $extraCount = max(0, $displayItems->count() - 1);
+                  $quantityDisplay = $extraCount ? $displayItems->count().' items' : trim($quantity.' '.($unit !== '—' ? $unit : ''));
+                  $createdAt = $restockRequest->created_at;
+
                 @endphp
 
                 <tr>
                   <td>
                     <strong class="restock-no">{{ $restockRequest->display_pr_no }}</strong>
                   </td>
-                  <td><span class="source-badge">Auto Restock</span></td>
-                  <td>{{ $itemName }}</td>
-                  <td class="center-text">{{ $quantityDisplay }}</td>
-                  <td class="center-text">
+                  <td><span class="source-badge"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Auto Restock</span></td>
+                  <td>
+                    <div class="restock-item-summary">
+                      <span class="restock-item-name">{{ $itemName }}</span>
+                      @if($extraCount)
+                        <details class="restock-item-more">
+                          <summary>+{{ $extraCount }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                          <div class="restock-item-popover">
+                            @foreach($displayItems->skip(1) as $line)
+                              <div><span>{{ $line['name'] }}</span><strong>{{ $line['quantity'] }} {{ $line['unit'] }}</strong></div>
+                            @endforeach
+                          </div>
+                        </details>
+                      @endif
+                    </div>
+                  </td>
+                  <td class="center-text"><span class="restock-quantity">{{ $quantityDisplay }}</span></td>
+                  <td class="center-text restock-status-cell">
                     <x-ui.status-badge
                       :status="$restockRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
                   <td>
-                    {{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}
+                    @if($createdAt)
+                      <div class="restock-created-date"><strong>{{ $createdAt->format('M d, Y') }}</strong><small>{{ $createdAt->format('l') }}</small></div>
+                    @else
+                      —
+                    @endif
                   </td>
                   <td class="center-text">
                     <div class="actions record-actions">
@@ -148,6 +183,7 @@
                         data-status="{{ $restockRequest->status ?? '—' }}"
                         data-created="{{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $restockRequest->remarks ?? 'No remarks' }}"
+                        data-items="{{ $displayItems->toJson() }}"
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
@@ -218,7 +254,7 @@
               <span>Quantity</span>
               <span>Unit</span>
             </div>
-            <div class="restock-breakdown-row">
+            <div class="restock-breakdown-row" id="viewRestockItems">
               <span id="viewRestockItem">—</span>
               <span id="viewRestockQuantity">—</span>
               <span id="viewRestockUnit">—</span>
