@@ -707,3 +707,13 @@
   font-size: 9px;
   opacity: .8;
 }
+
+
+/* Give the toolbar room to breathe above the stock movement records. */
+.stock-movement-page .stock-movement-card .table-toolbar,
+.stock-movement-page .stock-movement-card [data-table-toolbar] {
+  margin-bottom: 16px !important;
+}
+.stock-movement-page .stock-movement-card .table-wrap {
+  margin-top: 14px !important;
+}
