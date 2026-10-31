@@ -770,3 +770,39 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 /* Restocking selector: names only, emphasized in the closed field. */
 .warehouse-part-main .warehouse-restock-pr-dialog select.restock-pr-item-select { font-weight: 750; color: #102a56; }
 .warehouse-part-main .warehouse-restock-pr-dialog #restockPrSignatoryName[readonly] { font-weight: 750; background: #f4f7fc; color: #102a56; }
+
+
+/* Signature image crop dialog (local-only draft preview). */
+.warehouse-part-main .warehouse-restock-crop-dialog[hidden] { display: none !important; }
+.warehouse-part-main .warehouse-restock-crop-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(7, 25, 52, .65);
+  backdrop-filter: blur(4px);
+}
+.warehouse-part-main .warehouse-restock-crop-panel {
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  padding: 20px;
+  background: #fff;
+  color: #102a56;
+  border: 1px solid #dce7f7;
+  border-radius: 16px;
+  box-shadow: 0 20px 55px rgba(0, 20, 48, .25);
+}
+.warehouse-part-main .warehouse-restock-crop-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+.warehouse-part-main .warehouse-restock-crop-heading h3 { margin: 0; font-size: 17px; }
+.warehouse-part-main .warehouse-restock-crop-heading p { margin: 4px 0 0; font-size: 11px; color: #64748b; }
+.warehouse-part-main .warehouse-restock-crop-heading button { border: 0; border-radius: 8px; padding: 8px 12px; background: #f1f5f9; cursor: pointer; }
+.warehouse-part-main .warehouse-restock-crop-panel canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; border: 1px dashed #bed3f2; border-radius: 9px; background: white; }
+.warehouse-part-main .warehouse-restock-crop-panel label { display: block; margin-top: 15px; font-size: 12px; font-weight: 750; }
+.warehouse-part-main .warehouse-restock-crop-panel input[type=range] { width: 100%; margin: 8px 0; accent-color: #1d63c7; }
+.warehouse-part-main .warehouse-restock-crop-actions { display: flex; gap: 9px; justify-content: flex-end; margin-top: 12px; }
+.warehouse-part-main .warehouse-restock-crop-actions button { padding: 10px 15px; border: 1px solid #d6e1f1; border-radius: 8px; background: white; color: #134075; font-weight: 750; cursor: pointer; }
+.warehouse-part-main .warehouse-restock-crop-actions #restockPrCropConfirm { background: #ffbf19; border-color: #e7b01d; color: #102a56; }
