@@ -1383,46 +1383,6 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
     );
 
 
-  fuelModal
-    ?.addEventListener(
-      'click',
-      event => {
-
-        if (
-          event.target ===
-          fuelModal
-        ) {
-
-          closeModal(
-            fuelModal
-          );
-
-        }
-
-      }
-    );
-
-
-  fuelViewModal
-    ?.addEventListener(
-      'click',
-      event => {
-
-        if (
-          event.target ===
-          fuelViewModal
-        ) {
-
-          closeModal(
-            fuelViewModal
-          );
-
-        }
-
-      }
-    );
-
-
   busNoInput
     ?.addEventListener(
       'change',
