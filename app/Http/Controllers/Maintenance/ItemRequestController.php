@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Warehouse\InventoryIssuance;
 use App\Services\PartParser;
 use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\Maintenance\ItemRequestPartsService;
@@ -76,6 +77,43 @@ class ItemRequestController extends Controller
                     'pr_no' => $pr->pr_no,
                     'status' => $pr->status,
                 ])))->values()->all());
+        // Derive JO-wide fulfillment from signed Warehouse issuance batches,
+        // not from the IR status or the requested quantity.
+        $pageJobs = $requests->getCollection()->pluck('job_order_id')->filter()->unique()->values();
+        $relatedIrs = ItemRequest::query()->whereIn('job_order_id', $pageJobs)->get(['id', 'job_order_id', 'created_at']);
+        $references = $relatedIrs->mapWithKeys(fn ($ir) => [
+            'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->job_order_id,
+        ]);
+        $batches = $references->isEmpty() ? collect() : InventoryIssuance::query()
+            ->where(function ($query) use ($references) {
+                foreach ($references->keys() as $ref) {
+                    $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
+                }
+            })->with('items')->get();
+        $normalizePart = fn ($name, $unit) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+        $issuedByJo = [];
+        foreach ($batches as $batch) {
+            $ref = preg_replace('/-B\\d+$/', '', (string) $batch->reference_no);
+            $joId = $references->get($ref);
+            if (! $joId) continue;
+            foreach ($batch->items as $item) {
+                $key = $normalizePart($item->item_name, $item->unit);
+                $issuedByJo[$joId][$key] = ($issuedByJo[$joId][$key] ?? 0) + (int) $item->quantity;
+            }
+        }
+        $fulfillmentByJob = $requests->getCollection()->filter(fn ($ir) => $ir->jobOrder)
+            ->unique('job_order_id')->mapWithKeys(function ($ir) use ($parser, $normalizePart, $issuedByJo) {
+                $required = collect($parser->parsePartText((string) $ir->jobOrder->part_needed))
+                    ->groupBy(fn ($part) => $normalizePart($part['name'], $part['unit']))
+                    ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
+                $issued = $required->sum(fn ($quantity, $key) =>
+                    min((int) $quantity, (int) ($issuedByJo[$ir->job_order_id][$key] ?? 0)));
+                return [$ir->job_order_id => [
+                    'required' => $required->sum(),
+                    'issued' => $issued,
+                    'remaining' => max(0, $required->sum() - $issued),
+                ]];
+            });
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $activeCount = tap(ItemRequest::query(), $scopeActive)->count();
@@ -150,7 +188,7 @@ class ItemRequestController extends Controller
             $view = 'pending';
         }
 
-        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs', 'linkedPrPartsByJo'));
+        return view('Maintenance.item-requests', compact('requests', 'eligibleJobs', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'jobOrderPreviews', 'pendingJobs', 'linkedPrPartsByJo', 'fulfillmentByJob'));
     }
 
     public function store(Request $request, ItemRequestPartsService $irParts, PartParser $parser, PartsReservationService $reservations, PurchaseRequestPartsService $prParts)
