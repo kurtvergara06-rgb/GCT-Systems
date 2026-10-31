@@ -122,7 +122,7 @@ class ItemRequestController extends Controller
             ->where('review_status', 'Approved')
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
-            ->whereNotIn('id', ItemRequest::query()->whereIn('status', ['Submitted', 'Partially Issued'])->select('job_order_id'))
+            ->whereNotIn('id', ItemRequest::query()->whereNotIn('status', ['Cancelled', 'Rejected'])->select('job_order_id'))
             ->where(fn ($query) => $query->whereNull('part_status')
                 ->orWhereNotIn('part_status', ['Issued', 'No Parts Required']))
             ->with(['approver', 'audits' => fn ($q) => $q->whereIn('action', ['created', 'resubmitted'])->orderByDesc('id')])
@@ -204,8 +204,8 @@ class ItemRequestController extends Controller
                 throw ValidationException::withMessages(['job_order_id' => 'The Job Order must be approved and open before creating an Item Request or Purchase Request.']);
             }
             if (ItemRequest::query()->where('job_order_id', $jo->id)
-                ->whereIn('status', ['Submitted', 'Partially Issued'])->exists()) {
-                throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an active Item Request. Complete its handover before requesting additional parts.']);
+                ->whereNotIn('status', ['Cancelled', 'Rejected'])->exists()) {
+                throw ValidationException::withMessages(['job_order_id' => 'This Job Order already has an Item Request. Warehouse handles subsequent physical handovers on that same IR.']);
             }
             $reservations->topUp($jo);
             $parts = $irParts->availableParts((string) $jo->part_needed, $jo);
