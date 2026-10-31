@@ -3430,3 +3430,18 @@
   border-color:#114da9!important;
   color:#fff!important;
 }
+
+
+/* Dashboard movement meaning: neutral stock-in, red stock-out, blue adjustments. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-status.gray {
+  color:#52657c!important;background:#edf1f5!important;border:1px solid #d6dfe9!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-stock-in {
+  color:#64748b!important;background:#edf1f5!important;border-color:#d9e1ea!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-stock-out {
+  color:#bd3342!important;background:#fff0f1!important;border-color:#f4cdd3!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-adjustment {
+  color:#285886!important;background:#eef3f9!important;border-color:#d9e5f2!important;
+}
