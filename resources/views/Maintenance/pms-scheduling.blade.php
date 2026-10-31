@@ -123,11 +123,11 @@
 
                             <tr>
                                 <th>Vehicle ID</th>
-                                <th>GPS Report Date</th>
+                                <th>Last PMS Date</th>
                                 <th>Current KM</th>
-                                <th>KM Traveled</th>
-                                <th>Due PMS</th>
-                                <th class="status-col">Overall Status</th>
+                                <th>Next PMS KM</th>
+                                <th>Next PMS Date</th>
+                                <th class="status-col">PMS Status</th>
                                 <th>Action</th>
                             </tr>
 
@@ -160,12 +160,7 @@
                                     </td>
 
 
-                                    <td>
-                                        {{ $row->gps_report_date
-                                            ? \Carbon\Carbon::parse($row->gps_report_date)->format('M d, Y')
-                                            : 'No processed GPS report'
-                                        }}
-                                    </td>
+                                    <td><span title="Verified last PMS completion date is not yet recorded">—</span></td>
 
 
                                     <td>
@@ -176,24 +171,24 @@
                                     </td>
 
 
-                                    <td>
-                                        {{ $row->km_traveled !== null
-                                            ? number_format($row->km_traveled, 2) . ' km'
-                                            : '—'
-                                        }}
-                                    </td>
-
+                                    <td>{{ $row->next_pms_km !== null ? number_format($row->next_pms_km, 2) . ' km' : '—' }}</td>
 
                                     <td>
-                                        {{ $row->due_pms_count }}
-
-                                        task{{ $row->due_pms_count === 1 ? '' : 's' }}
+                                        @if($row->next_pms_date)
+                                            <span title="Estimated from GPS mileage; not a configured calendar-based PMS deadline">{{ \Carbon\Carbon::parse($row->next_pms_date)->format('M d, Y') }} <small>(Est.)</small></span>
+                                        @else
+                                            <span title="No estimated date available">—</span>
+                                        @endif
                                     </td>
 
 
                                     <td class="status-col">
 
-                                        <x-ui.status-badge :status="$row->overall_status" />
+                                        @if(!$row->has_processed_gps)
+                                            <span class="pms-data-needed-badge" title="No processed GPS mileage available; PMS due status cannot be verified"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Data Needed</span>
+                                        @else
+                                            <x-ui.status-badge :status="$row->overall_status" />
+                                        @endif
 
                                     </td>
 
@@ -204,7 +199,7 @@
                                             type="button"
                                             class="pms-view-tasks-btn open-pms-tasks-modal"
                                             data-modal-target="{{ $modalId }}"
-                                            title="View PMS Tasks"
+                                            title="View PMS Details"
                                         >
                                             <i class="fa-solid fa-list-check"></i>
                                         </button>
