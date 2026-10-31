@@ -285,14 +285,15 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         credentials: 'same-origin',
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({ message: response.status === 419 ? 'Session expired. Refresh the page and try again.' : 'Server returned an unexpected response (HTTP ' + response.status + ').' }));
       if (!response.ok) {
         const validation = result.errors ? Object.values(result.errors).flat().join(' ') : result.message;
         throw new Error(validation || 'Purchase Request could not be saved.');
       }
-      window.location.assign('/part-requests?view=pr');
+      window.location.assign('/part-requests?view=active');
     } catch (error) {
-      if (signatureMessage) signatureMessage.textContent = error.message || 'Submission failed. Please try again.';
+      if (signatureMessage) { signatureMessage.textContent = error.message || 'Submission failed. Please try again.'; signatureMessage.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+      console.error('Warehouse restocking PR submission failed:', error);
     } finally {
       submit.disabled = false;
     }
