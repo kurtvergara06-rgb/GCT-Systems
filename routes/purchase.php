@@ -4,7 +4,6 @@ use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
-use App\Http\Controllers\Purchase\ScheduledPurchaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(function () {
@@ -43,23 +42,6 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
                 Route::delete('/{purchaseOrder}', 'destroy')->middleware('system.permission:purchase,edit')->name('purchase-orders.destroy');
             });
 
-        Route::controller(ScheduledPurchaseController::class)
-            ->prefix('scheduled-purchase')
-            ->group(function () {
-                Route::get('/', 'index')->name('scheduled-purchase');
-                Route::post('/', 'store')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.store');
-                Route::put('/{scheduledPurchase}', 'update')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.update');
-                Route::patch('/{scheduledPurchase}/toggle-status', 'toggleStatus')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.toggle-status');
-                Route::patch('/{scheduledPurchase}/complete', 'complete')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.complete');
-                Route::post('/{scheduledPurchase}/create-po', 'createPo')
-                    ->middleware('system.permission:purchase,edit')
-                    ->name('scheduled-purchase.create-po');
-                Route::delete('/{scheduledPurchase}', 'destroy')->middleware('system.permission:purchase,edit')->name('scheduled-purchase.destroy');
-            });
     });
 });
 
