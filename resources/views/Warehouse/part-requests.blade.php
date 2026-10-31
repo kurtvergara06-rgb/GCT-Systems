@@ -94,7 +94,7 @@
                         </select>
                       </div>
                       <div class="form-group"><label>PR Quantity <span class="warehouse-restock-required">*</span></label><input type="number" class="restock-pr-item-qty" min="1" step="1" placeholder="Qty"></div>
-                      <button type="button" class="warehouse-restock-remove-item" aria-label="Remove item"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                      <button type="button" class="warehouse-restock-remove-item" aria-label="Remove item"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                       <p class="warehouse-restock-stock-info">Select an item to view its stock, reorder point and safety stock.</p>
                     </div>
                   </div>
