@@ -1128,13 +1128,39 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
             setActiveInput(input);
 
+            const editedLabel =
+                input.value.trim();
+
             if (
-                input.dataset.selectedName &&
-                normalize(input.value) !==
-                    normalize(input.dataset.selectedName)
+                hasCoordinates(input)
+                && editedLabel === ''
             ) {
                 clearPlace(input);
                 locationsChanged();
+            } else if (
+                hasCoordinates(input)
+                && editedLabel !== ''
+                && normalize(editedLabel) !==
+                    normalize(
+                        input.dataset.selectedName
+                        || ''
+                    )
+            ) {
+                input.dataset.selectedName =
+                    editedLabel;
+
+                syncHiddenFields(input);
+                updateConfirmation(
+                    input,
+                    true
+                );
+
+                if (
+                    input === routeOrigin
+                    || input === routeDestination
+                ) {
+                    updateAutoRouteName();
+                }
             }
 
             window.clearTimeout(timer);
