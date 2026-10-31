@@ -41,8 +41,8 @@
             <p>Review maintenance purchase shortages and track their procurement status.</p>
           </div>
         @if($canEditWarehouse && !$isJo && !$isHistory)
-        <div class="warehouse-pr-header-actions">
-          <button type="button" class="warehouse-create-pr-btn" data-open-restock-pr aria-haspopup="dialog">
+        <div class="inventory-header-actions warehouse-pr-header-actions">
+          <button type="button" class="primary-btn" data-open-restock-pr aria-haspopup="dialog">
             <i class="fa-solid fa-plus" aria-hidden="true"></i> Create PR
           </button>
         </div>
