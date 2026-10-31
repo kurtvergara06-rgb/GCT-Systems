@@ -131,9 +131,9 @@
                 <tr class="{{ $rowClass }}">
                   <td class="inventory-item-cell">
                     <div class="inventory-item-identification">
-                      <strong>{{ $item->item_name }}</strong>
-                      <x-ui.id-badge :value="$item->item_code" />
-                      <small title="Supplier and storage details">Supplier: {{ $item->supplier ?: '—' }} · Location: {{ $item->storage_location ?: '—' }}</small>
+                      <strong class="inventory-item-name">{{ $item->item_name }}</strong>
+                      <span class="inventory-item-code">{{ $item->item_code }}</span>
+                      <small class="inventory-item-meta" title="Supplier and storage details">Supplier: {{ $item->supplier ?: '—' }} <span aria-hidden="true">·</span> Location: {{ $item->storage_location ?: '—' }}</small>
                     </div>
                   </td>
                   <td class="inventory-category-cell">{{ $item->category }}</td>
