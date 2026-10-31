@@ -2089,3 +2089,50 @@
 .pms-page .pms-table td.status-col .pms-monitoring-badge.is-unverified {background:#fff7ed;color:#9a5700;border-color:#fed7aa;}
 .pms-page .pms-table td.status-col .pms-monitoring-badge.is-upcoming {background:#dcfce7;color:#15803d;border-color:#b7efca;}
 .pms-page .pms-table td.status-col .pms-monitoring-badge.is-inactive {background:#e2e8f0;color:#475569;border-color:#cbd5e1;}
+
+/* Bus PMS modal redesign — scoped to new monitoring panels only. */
+.pms-tasks-popup.pms-monitor-dialog .pms-monitor-panel {
+  width:min(720px,calc(100vw - 32px))!important;
+  max-height:calc(100dvh - 32px)!important;
+  display:flex;flex-direction:column;overflow:hidden;
+  border-radius:14px;background:#fff;
+}
+.pms-monitor-dialog .pms-monitor-header {
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 20px!important;border-bottom:1px solid #e0e9f5;
+  background:#f8fbff;
+}
+.pms-monitor-dialog .pms-monitor-heading {display:flex;align-items:center;gap:12px;min-width:0;}
+.pms-monitor-dialog .pms-monitor-header-icon {display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border:1px solid #c9dcfc;border-radius:10px;background:#eaf2ff;color:#1553a6;font-size:16px;}
+.pms-monitor-dialog .pms-monitor-heading h2 {margin:0;font-size:17px;line-height:1.3;font-weight:800;color:#112c51;}
+.pms-monitor-dialog .pms-monitor-heading p {margin:4px 0 0;font-size:11px;color:#61738b;line-height:1.45;}
+.pms-monitor-dialog .pms-monitor-header .pms-close-btn {flex-shrink:0;border:1px solid #dbe5f2;border-radius:8px;background:#fff;color:#254a77;}
+.pms-monitor-dialog .pms-monitor-body {padding:20px;overflow-y:auto;min-height:0;display:grid;gap:16px;}
+.pms-monitor-dialog .pms-monitoring-form {padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;gap:0;}
+.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding:20px;}
+.pms-monitor-dialog .pms-monitor-rule,.pms-monitor-dialog .pms-monitor-empty,.pms-monitor-dialog .pms-monitor-source-note {display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #cbdcf5;border-radius:9px;background:#f3f7ff;}
+.pms-monitor-dialog .pms-monitor-rule>i,.pms-monitor-dialog .pms-monitor-empty>i,.pms-monitor-dialog .pms-monitor-source-note>i {color:#2563b8;font-size:15px;margin-top:2px;}
+.pms-monitor-dialog .pms-monitor-rule strong,.pms-monitor-dialog .pms-monitor-empty strong,.pms-monitor-dialog .pms-monitor-source-note strong {display:block;font-size:12px;color:#143459;}
+.pms-monitor-dialog .pms-monitor-rule p,.pms-monitor-dialog .pms-monitor-empty p,.pms-monitor-dialog .pms-monitor-source-note p {margin:4px 0 0;font-size:11px;line-height:1.55;color:#536b87;}
+.pms-monitor-dialog .pms-monitor-source-note {background:#fff9ef;border-color:#f1d8a9;}
+.pms-monitor-dialog .pms-monitor-source-note>i {color:#a66909;}
+.pms-monitor-dialog .pms-monitor-section-title {display:flex;align-items:center;gap:8px;margin:0;font-size:12px;font-weight:800;color:#173e70;}
+.pms-monitor-dialog .pms-monitor-section-title i {color:#2563b8;}
+.pms-monitor-dialog .pms-monitor-field {display:grid;gap:7px;min-width:0;}
+.pms-monitor-dialog .pms-monitor-field label {font-size:11px;font-weight:750;color:#29456a;}
+.pms-monitor-dialog .pms-monitor-field label span {color:#c2410c;}
+.pms-monitor-dialog .pms-monitor-field-grid,.pms-monitor-dialog .pms-monitor-info-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.pms-monitor-dialog .pms-monitor-field input,.pms-monitor-dialog .pms-monitor-field select {width:100%;min-height:40px;box-sizing:border-box;border:1px solid #c9d8ea;border-radius:8px;background:#fff;font-size:12px;}
+.pms-monitor-dialog .pms-monitor-help {margin:-6px 0 0;font-size:11px;color:#667992;line-height:1.5;}
+.pms-monitor-dialog .pms-monitor-summary {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.pms-monitor-dialog .pms-monitor-summary>div,.pms-monitor-dialog .pms-monitor-info-grid>div {display:flex;flex-direction:column;gap:6px;min-width:0;padding:13px;border:1px solid #e0e9f5;border-radius:9px;background:#f8fbff;}
+.pms-monitor-dialog .pms-monitor-summary span,.pms-monitor-dialog .pms-monitor-info-grid span {font-size:10px;font-weight:700;color:#68809d;}
+.pms-monitor-dialog .pms-monitor-summary strong,.pms-monitor-dialog .pms-monitor-info-grid strong {font-size:13px;font-weight:800;color:#15365e;overflow-wrap:anywhere;}
+.pms-monitor-dialog .pms-monitor-footer {display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0!important;padding:12px 20px!important;border-top:1px solid #e0e9f5;background:#fff;flex-shrink:0;}
+.pms-monitor-dialog .pms-monitor-save {display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#1453a5!important;color:#fff!important;border:1px solid #1453a5!important;border-radius:7px!important;font-size:12px;font-weight:750;}
+@media(max-width:580px) {
+  .pms-monitor-dialog .pms-monitor-field-grid,.pms-monitor-dialog .pms-monitor-info-grid,.pms-monitor-dialog .pms-monitor-summary {grid-template-columns:minmax(0,1fr);}
+  .pms-monitor-dialog .pms-monitor-header {padding:13px!important;}
+  .pms-monitor-dialog .pms-monitor-body,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding:14px;}
+  .pms-monitor-dialog .pms-monitor-footer {padding:12px 14px!important;}
+}
