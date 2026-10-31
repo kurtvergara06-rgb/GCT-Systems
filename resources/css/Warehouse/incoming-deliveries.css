@@ -824,7 +824,7 @@
 
 
 /* Compact PO receipt progress shared by Warehouse and Purchasing tables. */
-.po-receipt-progress { width: 155px; max-width:100%; margin:0 auto; display:flex; flex-direction:column; gap:5px; font-variant-numeric:tabular-nums; }
+.po-receipt-progress { width:124px; max-width:100%; margin:0 auto; display:flex; flex-direction:column; gap:3px; font-variant-numeric:tabular-nums; }
 .po-receipt-top { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:10px; color:#61748e; }
 .po-receipt-top strong { font-size:12px; color:#17345b; font-weight:800; }
 .po-receipt-track { height:6px; width:100%; border-radius:999px; background:#e4ebf4; overflow:hidden; }
@@ -836,7 +836,6 @@
 
 
 /* Compact receiving progress: received/ordered + one slim bar + remaining. */
-.po-receipt-progress { width: 124px; max-width: 100%; gap: 3px; }
 .po-receipt-compact { display:flex; align-items:center; gap:7px; min-width:0; }
 .po-receipt-compact > strong { font-size:11px; font-weight:800; color:#17345b; white-space:nowrap; min-width:34px; text-align:left; }
 .po-receipt-compact .po-receipt-track { flex:1; min-width:25px; height:5px; }
