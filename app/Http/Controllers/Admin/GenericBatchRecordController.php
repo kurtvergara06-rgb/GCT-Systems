@@ -7,7 +7,6 @@ use App\Models\Admin\BatchUpload;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
-use App\Services\Warehouse\InventoryImportService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,8 +17,6 @@ use Throwable;
 
 class GenericBatchRecordController extends Controller
 {
-    public function __construct(private InventoryImportService $inventoryImport) {}
-
     public function update(
         Request $request,
         BatchUpload $batchUpload
@@ -337,11 +334,14 @@ class GenericBatchRecordController extends Controller
 
     private function publishInventoryRecord(array $payload): InventoryItem
     {
-        return $this->inventoryImport->reconcile(
-            $payload,
-            'Admin reviewed batch import',
-            auth()->id()
-        );
+        if (! empty($payload['item_code'])) {
+            return InventoryItem::updateOrCreate(
+                ['item_code' => $payload['item_code']],
+                $payload
+            );
+        }
+
+        return InventoryItem::create($payload);
     }
 
     private function publishPurchaseOrder(array $payload): PurchaseOrder
