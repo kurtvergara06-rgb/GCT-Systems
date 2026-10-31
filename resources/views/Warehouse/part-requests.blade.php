@@ -285,6 +285,40 @@
         @endif
 
       </section>
+      @if(!$isHistory && !$isJo)
+      <section class="table-card warehouse-restock-records" data-ajax-region="restock-records" style="margin-top:16px">
+        <div class="section-header warehouse-record-header">
+          <div>
+            <h2>Warehouse Restocking Requests</h2>
+            <p>Warehouse-origin requests submitted to Purchasing. Separate from Maintenance purchase requests.</p>
+          </div>
+        </div>
+        @if(session('restock_pr_created'))
+          <div class="warehouse-restock-success" role="status">
+            <strong>Purchase Request submitted successfully.</strong>
+            <span>{{ session('restock_pr_created') }} was forwarded to Purchasing.</span>
+          </div>
+        @endif
+        <div class="table-wrap">
+          <table class="warehouse-part-table">
+            <thead><tr><th>PR ID</th><th>Inventory Items</th><th>Quantity</th><th>Status</th><th>Date Created</th></tr></thead>
+            <tbody>
+              @forelse(($restockRequests ?? collect()) as $restock)
+                <tr>
+                  <td><strong>{{ $restock->pr_no }}</strong></td>
+                  <td>{{ collect(json_decode((string) $restock->restock_items, true) ?: [])->pluck('name')->filter()->implode(', ') ?: $restock->item }}</td>
+                  <td>{{ $restock->quantity }}</td>
+                  <td><strong>{{ $restock->status }}</strong></td>
+                  <td>{{ $restock->created_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                </tr>
+              @empty
+                <tr><td colspan="5" style="text-align:center;padding:24px">No Warehouse restocking requests have been submitted.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </section>
+      @endif
     </main>
   </div>
 
