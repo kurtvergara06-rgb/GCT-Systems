@@ -7357,3 +7357,26 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 :is(#jobModal, #editJobModal) .jo-maintenance-job-option[hidden] {
   display: none !important;
 }
+
+/* JO table: physical parts fulfillment stages have distinct semantic colors.
+   Scoped to this table so other modules' status badges remain unchanged. */
+.jo-page .job-orders-table .part-status-badge.not-issued {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.jo-page .job-orders-table .part-status-badge.waiting-for-parts {
+  background: #fff4df !important;
+  color: #8e5b0e !important;
+  border: 1px solid #edce96 !important;
+}
+.jo-page .job-orders-table .part-status-badge.partially-issued {
+  background: #e9edff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
+}
+.jo-page .job-orders-table .part-status-badge.issued {
+  background: #e8f8ef !important;
+  color: #177b4b !important;
+  border: 1px solid #b8e8cb !important;
+}
