@@ -69,8 +69,9 @@
                         $waitForAllParts = $ir->jobOrder?->parts_issue_strategy !== 'issue_available_only';
                         $totalJoRequired = $joRequirements->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
                         $totalIrRequested = collect($ir->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
+                        $resumingHandover = in_array($ir->status, ['Issued', 'Partially Issued'], true) && $fulfillmentByJob->get($ir->job_order_id, ['remaining' => 0])['remaining'] > 0;
                         $issueBlockedByPolicy = $waitForAllParts
-                            && ($totalIrRequested < $totalJoRequired || ($stock['status'] ?? '') !== 'sufficient');
+                            && ((!$resumingHandover && $totalIrRequested < $totalJoRequired) || ($stock['status'] ?? '') !== 'sufficient');
                     @endphp
                     <tr>
                         <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span>@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
@@ -113,7 +114,7 @@
                         <td>
                             <span class="warehouse-ir-process-status {{ $waitingForJoParts ? 'is-waiting' : ($ir->status === 'Issued' ? 'is-issued' : 'is-submitted') }}">
                                 <i class="fa-solid {{ $waitingForJoParts ? 'fa-clock' : ($ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane') }}"></i>
-                                {{ $waitingForJoParts ? 'Waiting for Parts' : $ir->status }}
+                                {{ $waitingForJoParts ? 'Partially Issued' : $ir->status }}
                             </span>
                         </td>
                         <td>
@@ -129,14 +130,12 @@
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-jo-parts="{{ json_encode($joRequirements->values()->all()) }}"
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
-                                data-ir-can-issue="{{ in_array($ir->status, ['Submitted', 'Partially Issued'], true) ? '1' : '0' }}"
+                                data-ir-can-issue="{{ (in_array($ir->status, ['Submitted', 'Partially Issued'], true) || $resumingHandover) ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"
                                 data-ir-signed-slip-url="{{ in_array($ir->status, ['Issued', 'Partially Issued'], true) ? route('warehouse.item-requests.signed-slip', $ir) : '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
-                            @if($waitingForJoParts)
-                                <button type="button" class="warehouse-ir-waiting-action" disabled title="Waiting for remaining JO parts. A follow-up IR is required after replenishment." aria-label="Issuance unavailable while waiting for parts"><i class="fa-solid fa-lock" aria-hidden="true"></i></button>
-                            @endif
-                            @if(in_array($ir->status, ['Submitted', 'Partially Issued'], true) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+
+                            @if((in_array($ir->status, ['Submitted', 'Partially Issued'], true) || $resumingHandover) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
                                 <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy" :title="$issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip'" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
