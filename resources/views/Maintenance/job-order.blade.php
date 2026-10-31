@@ -397,9 +397,6 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            @if($hasPartsDelayRisk)
-                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Delay — Parts Shortage</strong><p>Some required parts are still pending. Maintenance Head may adjust the estimated duration if needed.</p></div></div>
-                                        @endif
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
                                                                 <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
@@ -443,6 +440,15 @@
                                                                     </div>
                                                                 @else
                                                                     <strong>None required</strong>
+                                                                @endif
+                                                                @if($hasPartsDelayRisk)
+                                                                    <div class="jo-parts-delay-note" role="note">
+                                                                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                                        <div>
+                                                                            <strong>Possible Delay — Parts Shortage</strong>
+                                                                            <p>Some required parts are still pending. The estimated duration may need review if the shortage causes a delay.</p>
+                                                                        </div>
+                                                                    </div>
                                                                 @endif
                                                             </div>
                                                         </div>
