@@ -2071,3 +2071,21 @@
 .pms-monitoring-form label {font-size:12px;font-weight:700;color:#1e3556;}
 .pms-monitoring-form input,.pms-monitoring-form select {width:100%;min-height:38px;border:1px solid #cbd5e1;border-radius:7px;padding:8px 10px;background:#fff;color:#0f172a;}
 .pms-monitoring-form p {font-size:12px;color:#475569;margin:0 0 4px;}
+
+/* PMS overview: uniform rectangular status badges including unconfigured buses. */
+.pms-page .pms-table td.status-col .pms-monitoring-badge {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.pms-page .pms-table td.status-col .pms-monitoring-badge i {flex: 0 0 auto; font-size: 11px;}
+.pms-page .pms-table td.status-col .pms-monitoring-badge.is-not-configured {background:#f1f5f9;color:#475569;border-color:#cbd5e1;}
+.pms-page .pms-table td.status-col .pms-monitoring-badge.is-unverified {background:#fff7ed;color:#9a5700;border-color:#fed7aa;}
+.pms-page .pms-table td.status-col .pms-monitoring-badge.is-upcoming {background:#dcfce7;color:#15803d;border-color:#b7efca;}
+.pms-page .pms-table td.status-col .pms-monitoring-badge.is-inactive {background:#e2e8f0;color:#475569;border-color:#cbd5e1;}
