@@ -992,3 +992,13 @@ main.inventory-restock-page .restock-table td:last-child .record-actions .action
   outline: 2px solid #0b40b5 !important;
   outline-offset: 2px;
 }
+
+
+/* Consistent breathing room between Search / Filter / Sort and table header. */
+main.inventory-restock-page .restock-card .restock-toolbar,
+main.inventory-restock-page .restock-card .records-toolbar {
+  margin-bottom: 16px !important;
+}
+main.inventory-restock-page .restock-card .records-table-wrap {
+  margin-top: 0 !important;
+}
