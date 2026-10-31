@@ -205,7 +205,7 @@
                     </div>
                   </td>
                   <td><div class="po-amount">&#8369;{{ number_format((float) $purchaseOrder->net_amount, 2) }}</div></td>
-                  <td class="po-status-cell"><span class="po-request-type po-status-box"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>{{ $purchaseOrder->receipt_display_status }}</span></td>
+                  <td class="po-status-cell"><x-ui.status-badge :status="$purchaseOrder->receipt_display_status" class="po-status-box" /></td>
                   <td>
                     <div class="po-date">
                       <strong>{{ $purchaseOrder->po_date ? \Carbon\Carbon::parse($purchaseOrder->po_date)->format('M d, Y') : '—' }}</strong>
