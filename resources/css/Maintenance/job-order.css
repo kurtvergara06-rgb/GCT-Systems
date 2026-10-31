@@ -7380,3 +7380,25 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   color: #177b4b !important;
   border: 1px solid #b8e8cb !important;
 }
+
+/* Keep long physical parts statuses inside their own badges, not clipped at a
+   fixed badge width. Limited to the Job Orders Part Status column. */
+.jo-page .job-orders-table td.part-status-cell .part-status-badge {
+  width: max-content !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__label {
+  display: inline-block;
+  min-width: max-content;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__icon {
+  flex: 0 0 auto;
+  width: 12px;
+  text-align: center;
+}
