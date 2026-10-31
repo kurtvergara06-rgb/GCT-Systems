@@ -901,3 +901,43 @@
   .warehouse-inventory-page #addModal .inventory-add-section .form-grid{grid-template-columns:1fr}
   .warehouse-inventory-page #addModal .modal-actions{bottom:-14px;margin:0 -14px -14px;padding:12px 14px}
 }
+
+
+/* Movement History redesign — responsive, photo-free audit view. */
+#movementHistoryModal { padding:22px!important; }
+#movementHistoryModal .movement-history-redesign { width:min(1120px,96vw)!important;max-width:1120px!important;max-height:90vh!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:0!important;border-radius:15px!important;background:#fff!important;box-shadow:0 26px 70px rgba(10,32,67,.24)!important; }
+#movementHistoryModal .movement-history-redesign-header { flex:none!important;padding:20px 24px!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:1px solid #e2eaf5!important; }
+#movementHistoryModal .movement-history-modal-heading { display:flex;align-items:center;gap:14px; }
+#movementHistoryModal .inventory-movement-title-icon { display:grid;place-items:center;width:43px;height:43px;background:#eaf2ff;color:#175cd1;border-radius:10px;font-size:18px; }
+#movementHistoryModal .movement-history-modal-heading h2 { margin:0!important;color:#102c53;font-size:19px!important;font-weight:800; }
+#movementHistoryModal .movement-history-modal-heading p { margin:4px 0 0;color:#6b809b;font-size:11px; }
+#movementHistoryModal .movement-history-redesign-header .close-btn { width:36px;height:36px;border-radius:8px;border:1px solid #dbe5f2;background:#f8fbff;color:#19365f;display:grid;place-items:center;cursor:pointer; }
+#movementHistoryContent { overflow-y:auto!important;overflow-x:hidden!important;flex:1;min-height:0;padding:20px 24px 12px!important; }
+#movementHistoryContent .movement-history-content { min-width:0; }
+#movementHistoryContent .item-history-header { display:block!important;margin:0 0 18px!important; }
+#movementHistoryContent .item-history-header-label { display:flex;align-items:center;gap:7px;color:#4874b6;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px; }
+#movementHistoryContent .item-history-header h2 { margin:0 0 6px!important;font-size:21px!important;font-weight:800!important;color:#122e53; }
+#movementHistoryContent .item-history-header p { margin:0!important;font-size:12px!important;color:#5b7393;line-height:1.9; }
+#movementHistoryContent .item-history-header .ref-badge { background:#edf4ff;border:1px solid #d7e6fa;color:#17437e;padding:4px 8px;border-radius:6px; }
+#movementHistoryContent .item-movement-stats { display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin:0 0 18px!important; }
+#movementHistoryContent .item-movement-stats > * { min-width:0!important;border:1px solid #dce7f5!important;border-radius:11px!important;box-shadow:none!important;background:#fff!important; }
+#movementHistoryContent .item-history-toolbar { display:flex!important;justify-content:flex-start!important;align-items:center!important;background:#fafcff!important;border:1px solid #e0eafa!important;border-radius:9px!important;margin:0 0 14px!important;padding:10px 12px!important; }
+#movementHistoryContent .item-history-toolbar .filter-group { display:flex;align-items:center;gap:8px;color:#2e5e9e; }
+#movementHistoryContent .item-history-toolbar select { min-width:155px;height:36px;font-size:12px;border-radius:7px;border:1px solid #d6e2f3;background:#fff;color:#193455; }
+#movementHistoryContent .movement-history-table-wrap { width:100%;overflow-x:auto;max-width:100%;border:1px solid #dce7f5;border-radius:10px; }
+#movementHistoryContent .stock-movement-table { width:100%;min-width:810px;border-collapse:collapse; }
+#movementHistoryContent .stock-movement-table thead th { background:#edf3fb!important;color:#243e64!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.02em;padding:12px 10px!important;white-space:nowrap; }
+#movementHistoryContent .stock-movement-table tbody td { padding:13px 10px!important;color:#1f395c;font-size:11px!important;border-bottom:1px solid #e5edf6;vertical-align:middle; }
+#movementHistoryContent .stock-movement-table tbody tr:nth-child(even) { background:#f8fbff; }
+#movementHistoryContent .movement-row-number { font-weight:800;color:#56708f!important; }
+#movementHistoryContent .movement-badge { display:inline-flex!important;align-items:center;gap:7px;border-radius:7px!important;padding:6px 9px!important;font-size:10px!important;white-space:nowrap; }
+#movementHistoryContent .movement-badge.stock-in { color:#087447!important;background:#dff8e9!important; }
+#movementHistoryContent .movement-badge.stock-out { color:#ba2530!important;background:#ffe7e7!important; }
+#movementHistoryContent .movement-badge.adjustment { color:#966000!important;background:#fff1ce!important; }
+#movementHistoryContent .movement-quantity.stock-in { color:#087447!important; }
+#movementHistoryContent .movement-quantity.stock-out { color:#d12b37!important; }
+#movementHistoryContent .movement-quantity.adjustment { color:#a26a08!important; }
+#movementHistoryContent .movement-remarks { max-width:225px;overflow-wrap:anywhere; }
+#movementHistoryModal .inventory-movement-modal__footer { display:flex!important;justify-content:flex-end!important;flex:none;padding:13px 24px!important;margin:0!important;border-top:1px solid #e2eaf5; }
+#movementHistoryModal .inventory-movement-modal__footer button { min-width:90px;border:1px solid #ccdcf2;border-radius:8px;padding:9px 18px;background:#fff;color:#17417c;font-weight:700; }
+@media(max-width:760px){#movementHistoryModal{padding:10px!important}#movementHistoryModal .movement-history-redesign{width:100%!important;max-height:95vh!important}#movementHistoryContent{padding:13px!important}#movementHistoryContent .item-movement-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}#movementHistoryModal .movement-history-redesign-header{padding:14px!important}}
