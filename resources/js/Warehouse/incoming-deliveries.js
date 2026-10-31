@@ -5,11 +5,33 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
   const linesContainer = document.getElementById('incomingReceiptLines');
   const error = document.getElementById('incomingReceiptError');
   if (!modal || !form || !linesContainer) return;
+  const allButton = document.getElementById('incomingReceiveAll');
+  const partialButton = document.getElementById('incomingReceivePartial');
+  const submitButton = document.getElementById('incomingReceiptSubmit');
+  let receiptMode = null;
+  const selectMode = (mode) => {
+    receiptMode = mode;
+    allButton?.setAttribute('aria-pressed', String(mode === 'all'));
+    partialButton?.setAttribute('aria-pressed', String(mode === 'partial'));
+    if (submitButton) submitButton.disabled = !mode;
+    linesContainer.querySelectorAll('input[type="number"]').forEach((input) => {
+      input.readOnly = mode !== 'partial';
+      input.value = mode === 'all' ? input.max : '0';
+    });
+    if (error) { error.textContent = ''; error.hidden = true; }
+    if (mode === 'partial') linesContainer.querySelector('input:not([max="0"])')?.focus();
+  };
+  allButton?.addEventListener('click', () => selectMode('all'));
+  partialButton?.addEventListener('click', () => selectMode('partial'));
 
   const close = () => {
     modal.hidden = true;
     modal.classList.remove('show', 'active');
     form.reset();
+    receiptMode = null;
+    allButton?.setAttribute('aria-pressed', 'false');
+    partialButton?.setAttribute('aria-pressed', 'false');
+    if (submitButton) submitButton.disabled = true;
     linesContainer.replaceChildren();
     window.GCTModalBackdrop?.sync?.();
   };
@@ -21,7 +43,8 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
       Number(input.value) < 0 || Number(input.value) > Number(input.max)
     );
     const hasReceived = inputs.some((input) => Number(input.value) > 0);
-    const message = invalid
+    const message = !receiptMode ? 'Choose Receive All or Partial Receipt before confirming.'
+      : invalid
       ? 'Enter a whole quantity between 0 and the remaining amount for every item.'
       : !hasReceived ? 'Enter a received quantity greater than zero for at least one item.' : '';
     error.textContent = message;
@@ -60,6 +83,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
         input.step = '1';
         input.required = true;
         input.value = '0';
+        input.readOnly = true;
         input.setAttribute('aria-label', 'Receive quantity for ' + String(line.name || 'item'));
         inputCell.appendChild(input);
         row.appendChild(inputCell);
@@ -68,11 +92,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
       form.action = button.dataset.receiptUrl || '';
       document.getElementById('incomingReceiptPo').textContent = button.dataset.po || '—';
       document.getElementById('incomingReceiptSupplier').textContent = button.dataset.supplier || '—';
-      error.hidden = true;
+      selectMode(null);
       modal.hidden = false;
       modal.classList.add('show', 'active');
       window.GCTModalBackdrop?.sync?.();
-      linesContainer.querySelector('input:not([max="0"])')?.focus();
+      allButton?.focus();
     }
   });
 
