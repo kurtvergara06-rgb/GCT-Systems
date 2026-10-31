@@ -13,12 +13,13 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
     receiptMode = mode;
     allButton?.setAttribute('aria-pressed', String(mode === 'all'));
     partialButton?.setAttribute('aria-pressed', String(mode === 'partial'));
-    if (submitButton) submitButton.disabled = !mode;
+    if (submitButton) submitButton.disabled = true;
     linesContainer.querySelectorAll('input[type="number"]').forEach((input) => {
       input.readOnly = mode !== 'partial';
       input.value = mode === 'all' ? input.max : '0';
     });
     if (error) { error.textContent = ''; error.hidden = true; }
+    updateSubmitState();
     if (mode === 'partial') linesContainer.querySelector('input:not([max="0"])')?.focus();
   };
   allButton?.addEventListener('click', () => selectMode('all'));
@@ -51,6 +52,18 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
     error.hidden = !message;
     return !message;
   };
+
+  const updateSubmitState = () => {
+    const inputs = [...linesContainer.querySelectorAll('input[type="number"]')];
+    const valid = !!receiptMode && inputs.length > 0 &&
+      inputs.every((input) => input.value.trim() !== '' &&
+        Number.isInteger(Number(input.value)) &&
+        Number(input.value) >= 0 && Number(input.value) <= Number(input.max)) &&
+      inputs.some((input) => Number(input.value) > 0);
+    if (submitButton) submitButton.disabled = !valid;
+  };
+  linesContainer.addEventListener('input', updateSubmitState);
+  linesContainer.addEventListener('change', updateSubmitState);
 
   // Delegate click handling so buttons replaced by partial navigation still work.
   document.addEventListener('click', (event) => {
