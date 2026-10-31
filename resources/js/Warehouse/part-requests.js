@@ -92,6 +92,34 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     if (signatureUpload) signatureUpload.value = '';
     if (signatureMessage) signatureMessage.textContent = 'Signature cleared. Draw above or upload an image.';
   });
+  const cropDialog = restockPrModal?.querySelector('#restockPrCropDialog');
+  const cropCanvas = restockPrModal?.querySelector('#restockPrCropCanvas');
+  const cropContext = cropCanvas?.getContext('2d');
+  const cropZoom = restockPrModal?.querySelector('#restockPrCropZoom');
+  let cropImage = null;
+  let cropUrl = null;
+  let cropOffset = { x: 0, y: 0 };
+  let cropDrag = null;
+  function renderCrop() {
+    if (!cropImage || !cropContext) return;
+    const w = cropCanvas.width, h = cropCanvas.height;
+    const fit = Math.max(w / cropImage.naturalWidth, h / cropImage.naturalHeight);
+    const scale = fit * Number(cropZoom.value);
+    const dw = cropImage.naturalWidth * scale, dh = cropImage.naturalHeight * scale;
+    cropOffset.x = Math.min((dw - w) / 2, Math.max((w - dw) / 2, cropOffset.x));
+    cropOffset.y = Math.min((dh - h) / 2, Math.max((h - dh) / 2, cropOffset.y));
+    cropContext.clearRect(0, 0, w, h);
+    cropContext.fillStyle = '#ffffff';
+    cropContext.fillRect(0, 0, w, h);
+    cropContext.drawImage(cropImage, (w - dw) / 2 + cropOffset.x, (h - dh) / 2 + cropOffset.y, dw, dh);
+  }
+  function cancelCrop() {
+    if (cropDialog) cropDialog.hidden = true;
+    if (cropUrl) URL.revokeObjectURL(cropUrl);
+    cropUrl = null;
+    cropImage = null;
+    if (signatureUpload) signatureUpload.value = '';
+  }
   signatureUpload?.addEventListener('change', function () {
     const file = signatureUpload.files?.[0];
     if (!file) return;
@@ -100,14 +128,52 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       if (signatureMessage) signatureMessage.textContent = 'Choose a PNG, JPG or WEBP image no larger than 5 MB.';
       return;
     }
-    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
-    signatureObjectUrl = URL.createObjectURL(file);
-    if (signaturePreview) {
-      signaturePreview.src = signatureObjectUrl;
-      signaturePreview.hidden = false;
-    }
-    if (signatureMessage) signatureMessage.textContent = file.name + ' selected (preview only; not saved).';
+    cropUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = function () {
+      cropImage = image;
+      cropOffset = { x: 0, y: 0 };
+      cropZoom.value = '1';
+      cropDialog.hidden = false;
+      renderCrop();
+    };
+    image.onerror = function () {
+      cancelCrop();
+      if (signatureMessage) signatureMessage.textContent = 'Unable to open that image. Please select a different file.';
+    };
+    image.src = cropUrl;
   });
+  cropZoom?.addEventListener('input', renderCrop);
+  cropCanvas?.addEventListener('pointerdown', function (event) {
+    if (!cropImage) return;
+    cropDrag = { x: event.clientX, y: event.clientY };
+    cropCanvas.setPointerCapture(event.pointerId);
+  });
+  cropCanvas?.addEventListener('pointermove', function (event) {
+    if (!cropDrag) return;
+    const rect = cropCanvas.getBoundingClientRect();
+    cropOffset.x += (event.clientX - cropDrag.x) * cropCanvas.width / rect.width;
+    cropOffset.y += (event.clientY - cropDrag.y) * cropCanvas.height / rect.height;
+    cropDrag = { x: event.clientX, y: event.clientY };
+    renderCrop();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
+    cropCanvas?.addEventListener(name, function () { cropDrag = null; });
+  });
+  ['restockPrCropClose', 'restockPrCropCancel'].forEach(function (id) {
+    restockPrModal?.querySelector('#' + id)?.addEventListener('click', cancelCrop);
+  });
+  restockPrModal?.querySelector('#restockPrCropConfirm')?.addEventListener('click', function () {
+    if (!cropImage || !cropCanvas || !signaturePreview) return;
+    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
+    signatureObjectUrl = null;
+    signaturePreview.src = cropCanvas.toDataURL('image/png');
+    signaturePreview.hidden = false;
+    signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    if (signatureMessage) signatureMessage.textContent = 'Cropped signature ready for preview. PR submission is still unavailable.';
+    cancelCrop();
+  });
+
 
   // The generic close handler does not treat X or Cancel as close actions.
   // Bind only this dialog's explicit controls; never close on backdrop clicks.
