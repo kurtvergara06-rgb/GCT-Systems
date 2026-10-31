@@ -102,11 +102,11 @@ class IncomingDeliveryController extends Controller
         );
     }
 
-    public function receive(PurchaseOrder $purchaseOrder): RedirectResponse
+    public function receive(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->authorizeWarehouseCapability('edit');
 
-        DB::transaction(function () use ($purchaseOrder): void {
+        DB::transaction(function () use ($purchaseOrder, $request): void {
             $lockedOrder = PurchaseOrder::query()
                 ->whereKey($purchaseOrder->id)
                 ->lockForUpdate()
@@ -133,7 +133,39 @@ class IncomingDeliveryController extends Controller
 
             $items = $this->validatedReceiptItems($lockedOrder);
 
-            foreach ($items as $item) {
+            $cumulative = $lockedOrder->received_quantities ?? [];
+            $posted = [];
+            $requestedQuantities = $request->input('received_quantities', []);
+            if (! is_array($requestedQuantities)) {
+                throw ValidationException::withMessages(['delivery' => 'Invalid received quantities.']);
+            }
+            if ($lockedOrder->maintenanceRequest?->source_type === 'Auto Restock' && $requestedQuantities === []) {
+                throw ValidationException::withMessages(['delivery' => 'Enter actual received quantities for this restocking PO.']);
+            }
+            foreach ($items as $index => $item) {
+                $already = (int) ($cumulative[$index] ?? 0);
+                $remaining = $item['quantity'] - $already;
+                if ($remaining < 0) {
+                    throw ValidationException::withMessages(['delivery' => 'Recorded receipts exceed the PO quantity.']);
+                }
+                $raw = $requestedQuantities[$index] ?? $remaining;
+                if (! is_scalar($raw) || ! preg_match('/^\\d+$/', (string) $raw)) {
+                    throw ValidationException::withMessages(['delivery' => 'Received quantities must be nonnegative whole numbers.']);
+                }
+                $quantity = (int) $raw;
+                if ($quantity > $remaining) {
+                    throw ValidationException::withMessages(['delivery' => 'Received quantity exceeds the outstanding balance.']);
+                }
+                $posted[$index] = $quantity;
+                $cumulative[$index] = $already + $quantity;
+            }
+            if (array_sum($posted) === 0) {
+                throw ValidationException::withMessages(['delivery' => 'Enter at least one received item quantity.']);
+            }
+
+            foreach ($items as $index => $item) {
+                if ($posted[$index] === 0) continue;
+                $item['quantity'] = $posted[$index];
                 foreach ($this->splitItemNames($item['name']) as $itemName) {
                     $inventoryItem = $this->findInventoryItemForUpdate($itemName);
 
@@ -172,12 +204,18 @@ class IncomingDeliveryController extends Controller
                 }
             }
 
+            $complete = collect($items)->every(fn ($item, $index) =>
+                (int) ($cumulative[$index] ?? 0) === $item['quantity']
+            );
             $lockedOrder->forceFill([
-                'status' => $receivedStatus,
-                'inventory_posted_at' => now(),
+                'received_quantities' => $cumulative,
+                'status' => $complete ? $receivedStatus : $lockedOrder->status,
+                'inventory_posted_at' => $complete ? now() : null,
             ])->save();
 
-            $this->syncRelatedRequestsAndJobOrders($lockedOrder, $receivedStatus);
+            if ($complete) {
+                $this->syncRelatedRequestsAndJobOrders($lockedOrder, $receivedStatus);
+            }
             // Reassess the approved JO only after the receipt stock-in is posted.
             // This reserves newly available quantities for its existing approved
             // release policy; it does not create an IR, deduct stock, or issue SWIS.
