@@ -448,11 +448,22 @@
                   </div>
 
 
-                  <div class="recent-purchase-description">
-                    {{
-                      $requestItem->item
-                      ?? 'No requested item specified.'
-                    }}
+                  @php
+                    $dashboardParts = collect($requestItem->parts_breakdown ?? [])
+                      ->map(fn ($part) => [
+                        'name' => preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($part['name'] ?? '')),
+                        'quantity' => (int) ($part['quantity'] ?? 0),
+                        'unit' => trim((string) ($part['unit'] ?? '')),
+                      ])->filter(fn ($part) => trim($part['name']) !== '')->values();
+                    $visibleParts = $dashboardParts->take(2);
+                  @endphp
+                  <div class="recent-purchase-description purchase-request-items-preview">
+                    @forelse($visibleParts as $part)
+                      <span>{{ $part['name'] }} <small>× {{ $part['quantity'] }}{{ $part['unit'] !== '' && $part['unit'] !== '—' ? ' '.$part['unit'] : '' }}</small></span>
+                    @empty
+                      <span>{{ preg_replace('/\\[item:\\d+\\]/i', '', $requestItem->item ?? 'No requested item specified.') }}</span>
+                    @endforelse
+                    @if($dashboardParts->count() > 2)<span class="purchase-request-more">+{{ $dashboardParts->count() - 2 }} more</span>@endif
                   </div>
 
 
@@ -674,7 +685,7 @@
               class="purchase-quick-item"
             >
 
-              <span class="purchase-quick-icon yellow">
+              <span class="purchase-quick-icon blue">
                 <i class="fa-solid fa-boxes-stacked"></i>
               </span>
 
@@ -698,7 +709,7 @@
               class="purchase-quick-item"
             >
 
-              <span class="purchase-quick-icon green">
+              <span class="purchase-quick-icon blue">
                 <i class="fa-solid fa-file-invoice-dollar"></i>
               </span>
 
