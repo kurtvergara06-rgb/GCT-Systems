@@ -93,6 +93,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     setField('viewRestockQuantity', button.dataset.quantity);
     setField('viewRestockUnit', button.dataset.unit);
     setField('viewRestockRemarks', button.dataset.remarks, 'No remarks');
+    const createPoLink = document.getElementById('restockReviewCreatePo');
+    if (createPoLink) {
+      const createPoUrl = button.dataset.createPoUrl || '';
+      createPoLink.hidden = !createPoUrl;
+      if (createPoUrl) createPoLink.href = createPoUrl;
+      else createPoLink.removeAttribute('href');
+    }
     const breakdown = document.getElementById('viewRestockItems');
     if (breakdown) {
       let lines = [];
