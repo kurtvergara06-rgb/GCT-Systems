@@ -107,7 +107,7 @@
                 {{-- =================================================
                     TOOLBAR
                 ================================================== --}}
-                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'gps_report_date' => 'GPS Report Date', 'current_km' => 'Current KM', 'overall_status' => 'Overall Status']" default-sort="bus_no">
+                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'current_km' => 'Current KM', 'next_pms_km' => 'Next PMS KM', 'next_pms_date' => 'Next PMS Date', 'overall_status' => 'PMS Status']" default-sort="bus_no">
                     <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(['Upcoming','Due Soon','Overdue'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
                 </x-ui.table-toolbar>
 
