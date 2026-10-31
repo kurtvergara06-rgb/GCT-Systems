@@ -739,3 +739,30 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
   .warehouse-part-main .warehouse-restock-pr-dialog { width: calc(100vw - 18px); padding: 12px; }
   .warehouse-part-main .warehouse-restock-pr-item { grid-template-columns: minmax(0,1fr) 88px 32px; }
 }
+
+
+/* Use the established shared form-modal thin scrollbar for Warehouse restocking. */
+.warehouse-part-main .warehouse-restock-pr-dialog {
+  scrollbar-width: thin;
+  scrollbar-color: #a8b2bf #f4f6f8;
+}
+.warehouse-part-main .warehouse-restock-pr-dialog::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.warehouse-part-main .warehouse-restock-pr-dialog::-webkit-scrollbar-track {
+  background: #f4f6f8;
+  border-radius: 999px;
+}
+.warehouse-part-main .warehouse-restock-pr-dialog::-webkit-scrollbar-thumb {
+  background: #a8b2bf;
+  border-radius: 999px;
+}
+.warehouse-part-main .warehouse-restock-pr-dialog::-webkit-scrollbar-thumb:hover {
+  background: #778597;
+}
+.warehouse-part-main .warehouse-restock-pr-dialog::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
