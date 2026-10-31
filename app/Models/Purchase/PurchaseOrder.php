@@ -49,6 +49,36 @@ class PurchaseOrder extends Model
         'reviewed_at' => 'datetime',
     ];
 
+
+    /**
+     * Display-only receipt progress. Keep persisted PO statuses unchanged so
+     * existing workflow filters, approval rules and inventory posting remain intact.
+     */
+    public function getIsPartiallyReceivedAttribute(): bool
+    {
+        if ($this->inventory_posted_at !== null) {
+            return false;
+        }
+
+        $ordered = collect($this->items ?? [])->sum(fn ($item) => max(0, (int) ($item['quantity'] ?? 0)));
+        $received = collect($this->received_quantities ?? [])->sum(fn ($quantity) => max(0, (int) $quantity));
+
+        return $ordered > 0 && $received > 0 && $received < $ordered;
+    }
+
+    public function getReceiptProgressAttribute(): array
+    {
+        $ordered = collect($this->items ?? [])->sum(fn ($item) => max(0, (int) ($item['quantity'] ?? 0)));
+        $received = collect($this->received_quantities ?? [])->sum(fn ($quantity) => max(0, (int) $quantity));
+
+        return ['ordered' => $ordered, 'received' => min($ordered, $received), 'remaining' => max(0, $ordered - $received)];
+    }
+
+    public function getReceiptDisplayStatusAttribute(): string
+    {
+        return $this->is_partially_received ? 'Partially Received' : (string) $this->status;
+    }
+
     public function maintenanceRequest(): BelongsTo
     {
         return $this->belongsTo(
