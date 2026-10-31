@@ -941,3 +941,31 @@
 #movementHistoryModal .inventory-movement-modal__footer { display:flex!important;justify-content:flex-end!important;flex:none;padding:13px 24px!important;margin:0!important;border-top:1px solid #e2eaf5; }
 #movementHistoryModal .inventory-movement-modal__footer button { min-width:90px;border:1px solid #ccdcf2;border-radius:8px;padding:9px 18px;background:#fff;color:#17417c;font-weight:700; }
 @media(max-width:760px){#movementHistoryModal{padding:10px!important}#movementHistoryModal .movement-history-redesign{width:100%!important;max-height:95vh!important}#movementHistoryContent{padding:13px!important}#movementHistoryContent .item-movement-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}#movementHistoryModal .movement-history-redesign-header{padding:14px!important}}
+
+
+/* Movement History final visual refinement: legible audit rows and tidy controls. */
+#movementHistoryModal .movement-history-redesign { width:min(1060px,96vw)!important; }
+#movementHistoryModal .movement-history-redesign-header { padding:16px 22px!important; }
+#movementHistoryContent { padding:17px 22px 8px!important; }
+#movementHistoryContent .item-history-header { margin-bottom:14px!important; }
+#movementHistoryContent .item-history-header h2 { font-size:19px!important; }
+#movementHistoryContent .item-history-header p { line-height:1.6!important; }
+#movementHistoryContent .item-movement-stats { gap:10px!important;margin-bottom:14px!important; }
+#movementHistoryContent .item-movement-stats > * { padding:12px!important; }
+#movementHistoryContent .item-history-toolbar { padding:8px 10px!important;margin-bottom:12px!important;background:#fff!important; }
+#movementHistoryContent .item-history-toolbar .filter-group { display:inline-flex!important;gap:0!important;position:relative!important; }
+#movementHistoryContent .item-history-toolbar .filter-group > i { position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:1;pointer-events:none;color:#3562a0; }
+#movementHistoryContent .item-history-toolbar select { height:35px!important;min-width:165px!important;padding-left:35px!important;font-size:12px!important; }
+#movementHistoryContent .stock-movement-table { min-width:860px!important;table-layout:auto; }
+#movementHistoryContent .stock-movement-table thead th { font-size:10px!important;padding:11px 12px!important; }
+#movementHistoryContent .stock-movement-table tbody td { font-size:12px!important;padding:13px 12px!important;line-height:1.45!important; }
+#movementHistoryContent .movement-date { display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:2px!important;min-width:112px; }
+#movementHistoryContent .movement-date span { white-space:nowrap;font-size:12px!important;font-weight:650; }
+#movementHistoryContent .movement-date small { white-space:nowrap;color:#7184a0;font-size:10px!important; }
+#movementHistoryContent .movement-row-number { width:30px; }
+#movementHistoryContent .stock-movement-table tbody td:last-child { min-width:170px; }
+#movementHistoryContent .movement-badge { font-size:11px!important; }
+#movementHistoryContent .movement-history-table-wrap { scrollbar-width:thin; }
+#movementHistoryModal .inventory-movement-modal__footer { padding:10px 22px!important; }
+#movementHistoryModal .inventory-movement-modal__footer button { min-height:35px!important; }
+@media(max-width:760px){#movementHistoryContent{padding:12px!important}#movementHistoryContent .item-movement-stats > *{padding:9px!important}#movementHistoryContent .stock-movement-table{min-width:840px!important}}
