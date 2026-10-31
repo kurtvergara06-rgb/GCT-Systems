@@ -179,7 +179,10 @@ class PurchaseOrderController extends Controller
 
                 // A restocking PO must exactly reflect its signed Warehouse requisition.
                 // Purchasing may set costs and supplier details, not alter approved quantities.
-                if ($maintenanceRequest->source_type === 'Auto Restock' && $maintenanceRequest->restock_items) {
+                if ($maintenanceRequest->source_type === 'Auto Restock') {
+                    if ($maintenanceRequest->job_order_no !== 'RESTOCK' || ! $maintenanceRequest->restock_signature_path || ! $maintenanceRequest->restock_items) {
+                        throw ValidationException::withMessages(['purchase_request_id' => 'A Warehouse restocking PO requires a signed, structured Warehouse PR. Maintenance requests cannot be used as restocking PRs.']);
+                    }
                     $approvedLines = collect(json_decode((string) $maintenanceRequest->restock_items, true) ?: []);
                     $matches = count($items) === $approvedLines->count();
                     foreach ($approvedLines as $line) {
@@ -316,7 +319,10 @@ class PurchaseOrderController extends Controller
                     ->where('purchase_request_id', $lockedRequest->id)
                     ->exists();
 
-                if ($lockedRequest->source_type === 'Auto Restock' && $lockedRequest->restock_items) {
+                if ($lockedRequest->source_type === 'Auto Restock') {
+                    if ($lockedRequest->job_order_no !== 'RESTOCK' || ! $lockedRequest->restock_signature_path || ! $lockedRequest->restock_items) {
+                        throw ValidationException::withMessages(['purchase_request_id' => 'A Warehouse restocking PO requires a signed, structured Warehouse PR. Maintenance requests cannot be used as restocking PRs.']);
+                    }
                     $approvedLines = collect(json_decode((string) $lockedRequest->restock_items, true) ?: []);
                     $poLines = collect($items);
                     $matches = $approvedLines->count() === $poLines->count();
