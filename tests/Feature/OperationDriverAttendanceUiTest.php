@@ -23,8 +23,8 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->actingAs($user)
             ->get(route('driver-attendance'))
             ->assertOk()
-            ->assertSeeText('Record Daily Attendance')
-            ->assertSeeText('Import Data')
+            ->assertSeeText('Driver Attendance List')
+            ->assertDontSeeText('Record Daily Attendance')
             ->assertSee('data-server-filter="true"', false);
     }
 
@@ -71,8 +71,9 @@ class OperationDriverAttendanceUiTest extends TestCase
             $view
         );
         $this->assertStringContainsString('@if($canEditOperation)', $view);
-        $this->assertStringContainsString('openImportDriverAttendanceModal', $view);
-        $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $view);
+        $this->assertStringNotContainsString('openImportDriverAttendanceModal', $view);
+        $this->assertStringNotContainsString('resources/js/Operation/Attendance/batch-attendance.js', $view);
+        $this->assertStringContainsString('resources/js/Operation/Attendance/driver-attendance.js', $view);
         $this->assertStringNotContainsString(
             'event.target === modal',
             $driverJs
