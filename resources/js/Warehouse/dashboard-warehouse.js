@@ -218,18 +218,35 @@ function initializeMovementTrend() {
     const issued = readJson(canvas, 'issued');
     const adjusted = readJson(canvas, 'adjusted');
 
+    const group = document.getElementById('warehouseTrendGrouping')?.value || 'weekly';
+    const groupValues = (values, size) => Array.from(
+        { length: Math.ceil(values.length / size) },
+        (_, index) => values.slice(index * size, (index + 1) * size)
+            .reduce((total, value) => total + (Number(value) || 0), 0)
+    );
+    const size = group === 'daily' ? 1 : group === 'monthly' ? Math.max(1, labels.length) : 7;
+    const chartLabels = group === 'daily' ? labels : group === 'monthly'
+        ? [labels.length ? 'This Month' : 'No data']
+        : Array.from({ length: Math.ceil(labels.length / 7) },
+            (_, index) => 'Week ' + (index + 1));
+    const trend = {
+        received: groupValues(received, size),
+        issued: groupValues(issued, size),
+        adjusted: groupValues(adjusted, size),
+    };
+
     new Chart(canvas, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels,
+            labels: chartLabels,
             datasets: [
                 {
                     label: 'Received',
-                    data: received,
+                    data: trend.received,
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                    fill: true,
-                    pointRadius: 3,
+                    borderRadius: 5,
+                    maxBarThickness: 25,
                     pointHoverRadius: 6,
                     pointBackgroundColor: '#10b981',
                     borderWidth: 2.5,
@@ -237,11 +254,11 @@ function initializeMovementTrend() {
                 },
                 {
                     label: 'Issued',
-                    data: issued,
+                    data: trend.issued,
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                    fill: true,
-                    pointRadius: 3,
+                    borderRadius: 5,
+                    maxBarThickness: 25,
                     pointHoverRadius: 6,
                     pointBackgroundColor: '#2563eb',
                     borderWidth: 2.5,
@@ -249,10 +266,10 @@ function initializeMovementTrend() {
                 },
                 {
                     label: 'Adjusted',
-                    data: adjusted,
+                    data: trend.adjusted,
                     borderColor: '#f59e0b',
                     backgroundColor: 'transparent',
-                    pointRadius: 2.5,
+                    maxBarThickness: 25,
                     pointHoverRadius: 5,
                     pointBackgroundColor: '#f59e0b',
                     borderWidth: 2,
@@ -331,6 +348,11 @@ function initializeWarehouseDashboard() {
     }
 
     bindInventoryCategoryFilter();
+    const grouping = document.getElementById('warehouseTrendGrouping');
+    if (grouping && !grouping.dataset.chartBound) {
+        grouping.dataset.chartBound = 'true';
+        grouping.addEventListener('change', initializeMovementTrend);
+    }
     initializeMovementTrend();
 }
 
