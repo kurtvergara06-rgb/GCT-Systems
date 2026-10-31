@@ -291,7 +291,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Supplier</label>
-              <input type="text" name="supplier" placeholder="Supplier name">
+              <input type="text" name="supplier" list="inventory-supplier-options" placeholder="Select or enter supplier">
             </div>
             <div class="form-group">
               <label>Storage Location</label>
@@ -313,6 +313,11 @@
   <datalist id="inventory-category-options">
     @foreach($categories as $category)
       <option value="{{ $category }}"></option>
+    @endforeach
+  </datalist>
+  <datalist id="inventory-supplier-options">
+    @foreach($suppliers as $supplierOption)
+      <option value="{{ $supplierOption }}"></option>
     @endforeach
   </datalist>
   <datalist id="inventory-unit-options">
@@ -392,7 +397,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Supplier</label>
-              <input type="text" name="supplier" id="edit_supplier">
+              <input type="text" name="supplier" id="edit_supplier" list="inventory-supplier-options">
             </div>
             <div class="form-group">
               <label>Storage Location</label>
