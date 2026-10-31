@@ -745,3 +745,13 @@
 .incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td:first-child strong{
   font-family:inherit!important;letter-spacing:0!important;font-weight:800!important;
 }
+
+/* Slightly larger Receive action, retaining the existing Warehouse button style. */
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table .receive-delivery-btn {
+  min-height: 35px !important;
+  height: 35px !important;
+  padding: 0 15px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  gap: 7px !important;
+}
