@@ -84,7 +84,19 @@
                   </td>
                   <td>
                     @if($movement->reference_no)
-                      <span class="ref-badge">{{ $movement->reference_no }}</span>
+                      @php
+                        $movementReference = trim((string) $movement->reference_no);
+                        $referenceUrl = str_starts_with(strtoupper($movementReference), 'PO-')
+                          ? route('incoming-deliveries', ['search' => $movementReference])
+                          : (str_starts_with(strtoupper($movementReference), 'IR-')
+                            ? route('warehouse.item-requests', ['search' => $movementReference])
+                            : null);
+                      @endphp
+                      @if($referenceUrl)
+                        <a class="ref-badge stock-movement-reference-link" href="{{ $referenceUrl }}" title="Find {{ $movementReference }} in Warehouse records">{{ $movementReference }} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                      @else
+                        <span class="ref-badge">{{ $movementReference }}</span>
+                      @endif
                     @else
                       <span>—</span>
                     @endif
