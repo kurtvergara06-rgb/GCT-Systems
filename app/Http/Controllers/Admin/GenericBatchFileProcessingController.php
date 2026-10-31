@@ -9,7 +9,6 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
-use App\Services\Warehouse\InventoryImportService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -28,8 +27,6 @@ use Throwable;
 class GenericBatchFileProcessingController extends Controller
 {
     use SystemDataUpdateBroadcaster;
-
-    public function __construct(private InventoryImportService $inventoryImport) {}
 
     private const GENERIC_PROFILES = [
         'Maintenance' => 'Fuel Reports',
@@ -485,11 +482,14 @@ class GenericBatchFileProcessingController extends Controller
 
     private function publishInventoryRecord(array $payload): InventoryItem
     {
-        return $this->inventoryImport->reconcile(
-            $payload,
-            'Admin batch file import',
-            Auth::id()
-        );
+        if (! empty($payload['item_code'])) {
+            return InventoryItem::updateOrCreate(
+                ['item_code' => $payload['item_code']],
+                $payload
+            );
+        }
+
+        return InventoryItem::create($payload);
     }
 
     private function publishPurchaseOrder(array $payload): PurchaseOrder
