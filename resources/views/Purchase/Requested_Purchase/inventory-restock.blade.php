@@ -176,8 +176,8 @@
                     <div class="actions record-actions">
                       <button
                         type="button"
-                        class="action-btn view open-restock-view-modal"
-                        title="View Details"
+                        class="restock-review-btn open-restock-view-modal"
+                        title="Review Restocking Request"
                         data-restock-no="{{ $restockRequest->display_pr_no }}"
                         data-source-type="{{ $restockRequest->source_type ?? 'Auto Restock' }}"
                         data-item="{{ $itemName }}"
@@ -187,19 +187,10 @@
                         data-created="{{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $restockRequest->remarks ?? 'No remarks' }}"
                         data-items="{{ $displayItems->toJson() }}"
+                        data-create-po-url="{{ ($restockRequest->status ?? '') === 'For Purchase' ? route('purchase-orders', ['create_from_pr' => $restockRequest->id]) : '' }}"
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i> Review
                       </button>
-
-                      @if(($restockRequest->status ?? '') === 'For Purchase')
-                        <a
-                          href="{{ route('purchase-orders', ['create_from_pr' => $restockRequest->id]) }}"
-                          class="action-btn create-po"
-                          title="Create Purchase Order"
-                        >
-                          <i class="fa-solid fa-cart-plus"></i>
-                        </a>
-                      @endif
                     </div>
                   </td>
                 </tr>
@@ -273,6 +264,7 @@
 
       <div class="restock-modal-footer">
         <button type="button" id="closeRestockViewModalBottom" class="restock-close-bottom">Close</button>
+        <a id="restockReviewCreatePo" class="restock-review-create-po" href="#" hidden><i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Create PO</a>
       </div>
     </div>
   </div>
