@@ -198,6 +198,16 @@ class GctDateTimePicker {
 
         if (input.type === 'date') {
             this.prepareDateState(input.value);
+            // PMS completion dates cannot be in the future. When a new month
+            // has just started, show the previous month so past selectable
+            // dates are visible instead of a grid of disabled future days.
+            if (input.dataset.pickerPlacement === 'below'
+                && !input.value && input.max
+                && this.viewDate.getFullYear() === new Date().getFullYear()
+                && this.viewDate.getMonth() === new Date().getMonth()
+                && new Date().getDate() <= 7) {
+                this.viewDate.setMonth(this.viewDate.getMonth() - 1);
+            }
             this.renderCalendar(false);
         } else if (input.type === 'time') {
             this.prepareTimeState(input.value);
