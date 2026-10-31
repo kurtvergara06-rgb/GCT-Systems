@@ -188,7 +188,7 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('incoming-deliveries.receive', $purchaseOrder))
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), ['received_quantities' => [4]])
             ->assertRedirect();
 
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
@@ -225,7 +225,7 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('incoming-deliveries.receive', $purchaseOrder))
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), ['received_quantities' => [3]])
             ->assertRedirect();
 
         $item = InventoryItem::where('item_name', 'Air Filter')->firstOrFail();
@@ -352,7 +352,7 @@ class InventoryLedgerTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('incoming-deliveries.receive', $purchaseOrder))
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), ['received_quantities' => [3]])
             ->assertRedirect();
 
         $this->actingAs($user)
