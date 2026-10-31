@@ -151,7 +151,7 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('OPERATIONAL INTELLIGENCE PANELS', $css);
         $this->assertStringContainsString('LOWER DASHBOARD REFERENCE LAYOUT', $css);
         $this->assertStringContainsString('bindInventoryCategoryFilter', $js);
-        $this->assertStringContainsString('For Reorder', $js);
+        $this->assertStringContainsString('reorder: Number(statusData.reorder || 0)', $js);
         $this->assertStringContainsString("text: 'Quantity'", $js);
 
         $controller = file_get_contents(app_path('Http/Controllers/Warehouse/WarehouseDashboardController.php'));
