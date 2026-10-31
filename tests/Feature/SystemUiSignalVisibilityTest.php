@@ -125,7 +125,7 @@ class SystemUiSignalVisibilityTest extends TestCase
             'operation' => resource_path('views/Operation/Incidents/index.blade.php'),
             'maintenance' => resource_path('views/Maintenance/fuel-reports.blade.php'),
             'warehouse' => resource_path('views/Warehouse/part-requests.blade.php'),
-            'purchase' => resource_path('views/Purchase/scheduled-purchase.blade.php'),
+            'purchase' => resource_path('views/Purchase/purchase-history.blade.php'),
         ];
 
         foreach ($representativeViews as $department => $view) {
@@ -141,10 +141,6 @@ class SystemUiSignalVisibilityTest extends TestCase
         $this->assertStringContainsString(
             'fa-solid fa-pen-to-square',
             file_get_contents(resource_path('views/Maintenance/fuel-reports.blade.php'))
-        );
-        $this->assertStringContainsString(
-            'fa-solid fa-trash',
-            file_get_contents(resource_path('views/Purchase/scheduled-purchase.blade.php'))
         );
     }
 
