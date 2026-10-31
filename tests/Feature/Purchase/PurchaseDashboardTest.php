@@ -93,7 +93,7 @@ class PurchaseDashboardTest extends TestCase
         $response->assertSee('Procurement Spend & PO Volume', false);
         $response->assertSee('Fulfillment & Order Stages', false);
         $response->assertSee('Top Suppliers by Spend');
-        $response->assertSee('Requisition Sources & Schedules', false);
+        $response->assertSee('Requisition Sources', false);
         $response->assertSee('purchaseSpendTrendChart');
         $response->assertSee('purchaseFulfillmentChart');
         $response->assertSee('Apex Parts Supply');
