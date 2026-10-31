@@ -459,8 +459,25 @@
                     </span>
                   </div>
 
-                  <div class="recent-purchase-description">
-                    {{ $requestItem->item ?? 'No requested item specified.' }}
+                  @php
+                    $requestParts = collect(preg_split('/\\s*,\\s*/', (string) ($requestItem->item ?? '')))
+                      ->filter(fn ($value) => trim($value) !== '')
+                      ->map(function ($value) {
+                        $clean = trim(preg_replace('/\\s*\\[item:\\d+\\]/i', '', $value));
+                        $name = trim(preg_replace('/\\s*[-–]\\s*Qty\\s*:\\s*.*$/i', '', $clean));
+                        preg_match('/\\bQty\\s*:\\s*([\\d.]+)\\s*(.*)$/i', $clean, $match);
+                        return ['name' => $name, 'qty' => isset($match[1]) ? trim($match[1].' '.($match[2] ?? '')) : ''];
+                      })->filter(fn ($part) => $part['name'] !== '')->values();
+                  @endphp
+                  <div class="recent-purchase-description purchase-dashboard-part-preview">
+                    @forelse($requestParts->take(2) as $part)
+                      <span class="purchase-dashboard-part-name">{{ $part['name'] }}@if($part['qty']) <small>× {{ $part['qty'] }}</small>@endif</span>
+                    @empty
+                      <span>No requested item specified.</span>
+                    @endforelse
+                    @if($requestParts->count() > 2)
+                      <span class="purchase-dashboard-extra-count">+{{ $requestParts->count() - 2 }} more</span>
+                    @endif
                   </div>
 
                   <div class="recent-purchase-meta">
@@ -529,7 +546,7 @@
 
                     @if(!empty($order->status))
                       <span class="po-status-tag status-{{ strtolower(str_replace(' ', '-', $order->status)) }}">
-                        {{ $order->status }}
+                        {{ $order->receipt_display_status }}
                       </span>
                     @endif
                   </div>
