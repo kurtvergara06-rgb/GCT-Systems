@@ -743,8 +743,6 @@
 .stock-movement-page .stock-movement-card .stock-movement-scroll-table {
   width: 100%;
   max-height: min(440px, 52vh) !important;
-  height: auto !important;
-  overflow-x: auto !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
   border-radius: 9px;
