@@ -21,268 +21,8 @@
 
       <x-layout.topbar
         title="Fuel Reports"
-        subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
+        subtitle="Manage recorded fuel issuance, trip mileage, and fuel report history"
       />
-
-
-      {{-- SUMMARY --}}
-      <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">
-
-        <x-ui.summary-card
-          label="Total Fuel Used"
-          value="{{ number_format($totalFuelUsed, 2) }} L"
-          small="Recorded fuel consumption"
-          icon="fa-gas-pump"
-          color="blue"
-        />
-
-        <x-ui.summary-card
-          label="Total Distance"
-          value="{{ number_format($totalDistance, 2) }} km"
-          small="GPS and manual distance"
-          icon="fa-road"
-          color="green"
-        />
-
-        <x-ui.summary-card
-          label="Fleet Average"
-          value="{{ number_format($fleetAverage, 2) }} km/L"
-          small="Overall fuel efficiency"
-          icon="fa-chart-line"
-          color="yellow"
-        />
-
-        <x-ui.summary-card
-          label="Inefficient Vehicles"
-          value="{{ $inefficientVehicles }}"
-          small="Needs inspection"
-          icon="fa-triangle-exclamation"
-          color="red"
-        />
-
-      </section>
-
-      {{-- CHARTS --}}
-      <section class="fuel-analytics-grid">
-
-        <x-ui.chart-card
-          title="Fuel Efficiency by Vehicle"
-          description="Top 10 vehicles ranked by fuel efficiency. Fleet Average: {{ number_format($fleetAverage, 2) }} km/L."
-          chart-id="fuelEfficiencyChart"
-          tag="Top 10"
-          icon="fa-chart-column"
-          icon-color="blue"
-        />
-
-        <x-ui.chart-card
-          title="Distance and Fuel Usage"
-          description="Top 10 buses by distance with total fuel consumption."
-          chart-id="fuelUsageChart"
-          tag="Top 10"
-          icon="fa-gas-pump"
-          icon-color="yellow"
-        />
-
-      </section>
-
-      {{-- INSIGHTS --}}
-      <section class="fuel-insights-grid">
-
-        <x-ui.analytics-insight
-          label="Most Efficient Vehicle"
-          :value="$mostEfficientVehicle?->bus_no ?? 'No data'"
-          :description="$mostEfficientVehicle
-            ? number_format($mostEfficientVehicle->km_per_liter, 2).' km/L'
-            : 'No fuel records available.'"
-          icon="fa-arrow-trend-up"
-          type="efficient"
-        />
-
-        <x-ui.analytics-insight
-          label="Least Efficient Vehicle"
-          :value="$leastEfficientVehicle?->bus_no ?? 'No data'"
-          :description="$leastEfficientVehicle
-            ? number_format($leastEfficientVehicle->km_per_liter, 2).' km/L'
-            : 'No fuel records available.'"
-          icon="fa-arrow-trend-down"
-          type="inefficient"
-        />
-
-        <x-ui.analytics-insight
-          label="Fleet Average"
-          :value="number_format($fleetAverage, 2).' km/L'"
-          description="Average efficiency for the selected reporting period."
-          icon="fa-chart-line"
-          type="average"
-        />
-
-      </section>
-
-      {{-- DAILY FUEL MONITORING --}}
-      <section data-ajax-region="monitoring-records" class="table-card fuel-card daily-monitoring-card">
-
-        <div class="section-header daily-monitoring-header">
-          <div>
-            <h2>Daily Fuel Monitoring</h2>
-            <p>Automated GPS mileage telemetry paired with daily refuel logging and efficiency analysis.</p>
-          </div>
-
-          <div class="daily-monitoring-summary">
-            <span class="chip-buses"><i class="fa-solid fa-bus"></i> <strong>{{ $dailyMonitoringCounts['total'] }}</strong> Buses</span>
-            <span class="needs-entry"><i class="fa-solid fa-clock"></i> <strong>{{ $dailyMonitoringCounts['for_entry'] }}</strong> For Entry</span>
-            <span class="completed"><i class="fa-solid fa-circle-check"></i> <strong>{{ $dailyMonitoringCounts['completed'] }}</strong> Completed</span>
-          </div>
-        </div>
-
-        <div class="fuel-record-controls daily-monitoring-controls">
-          <x-ui.table-toolbar
-            :action="route('fuel-reports')"
-            form-id="dailyFuelMonitoringToolbar"
-            :show-search="false"
-            :filter-count="(int) ($monitorDate !== today()->toDateString()) + (int) ($monitorFilter !== 'all')"
-            filter-title="Filter Daily Fuel Monitoring"
-            button-id="openFuelModal"
-            button-label="Manual Entry"
-            button-icon="fa-plus"
-            data-server-filter="true"
-          >
-            <x-slot:hidden>
-              @if(request()->filled('search'))
-                <input type="hidden" name="search" value="{{ request('search') }}">
-              @endif
-              <input type="hidden" name="date_filter" value="{{ request('date_filter', 'This Month') }}">
-              <input type="hidden" name="sort" value="{{ request('sort', 'report_date') }}">
-              <input type="hidden" name="sort_direction" value="{{ request('sort_direction', 'desc') }}">
-            </x-slot:hidden>
-            <x-slot:filters>
-              <x-ui.table-toolbar-field label="Monitoring Date" name="monitor_date" type="date" :value="$monitorDate" />
-              <x-ui.table-toolbar-field label="Show" name="monitor_filter" default="all">
-                <option value="all" @selected($monitorFilter === 'all')>All Buses</option>
-                <option value="needs-entry" @selected($monitorFilter === 'needs-entry')>Needs Fuel Entry</option>
-                <option value="completed" @selected($monitorFilter === 'completed')>Completed</option>
-                <option value="needs-review" @selected($monitorFilter === 'needs-review')>Needs Review</option>
-              </x-ui.table-toolbar-field>
-            </x-slot:filters>
-          </x-ui.table-toolbar>
-        </div>
-
-        <form
-          method="POST"
-          action="{{ route('fuel-reports.store') }}"
-          class="daily-monitoring-form"
-        >
-          @csrf
-          <input type="hidden" name="daily_monitoring" value="1">
-          <input type="hidden" name="monitor_date" value="{{ $monitorDate }}">
-
-          <div class="table-wrap">
-            <table class="fuel-table daily-monitoring-table">
-              <thead>
-                <tr>
-                  <th>Bus ID</th>
-                  <th>GPS Distance</th>
-                  <th>Idling</th>
-                  <th>Fuel Entry</th>
-                  <th>Driver</th>
-                  <th>Workflow</th>
-                  <th>Efficiency</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                @forelse($dailyMonitoring as $index => $row)
-                  @php
-                    $workflowClass = strtolower(str_replace(' ', '-', $row->workflow_status));
-                    $efficiencyClass = strtolower(str_replace(' ', '-', $row->efficiency_status));
-                  @endphp
-
-                  <tr class="daily-monitoring-row {{ $workflowClass }}">
-                    <td class="bus-cell">
-                      <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $row->bus_no }}</span>
-                      @if($row->bus_model)
-                        <small>{{ $row->bus_model }}</small>
-                      @endif
-                      <input
-                        type="hidden"
-                        name="entries[{{ $index }}][bus_no]"
-                        value="{{ $row->bus_no }}"
-                      >
-                    </td>
-
-                    <td class="gps-cell">
-                      <strong>{{ number_format($row->gps_distance_km, 2) }} km</strong>
-                      <small>{{ $row->gps_distance_km > 0 ? 'Processed GPS' : 'No GPS activity yet' }}</small>
-                    </td>
-
-                    <td>
-                      {{ number_format($row->idling_minutes) }} min
-                    </td>
-
-                    <td>
-                      <input
-                        class="daily-inline-input"
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        name="entries[{{ $index }}][fuel_liters]"
-                        value="{{ $row->fuel_liters > 0 ? number_format($row->fuel_liters, 2, '.', '') : '' }}"
-                        placeholder="Liters"
-                        @disabled($row->gps_distance_km <= 0)
-                      >
-                    </td>
-
-                    <td>
-                      <input
-                        class="daily-inline-input daily-driver-input"
-                        type="text"
-                        name="entries[{{ $index }}][driver_name]"
-                        value="{{ $row->driver_name }}"
-                        placeholder="Optional"
-                        maxlength="255"
-                        @disabled($row->gps_distance_km <= 0)
-                      >
-                    </td>
-
-                    <td>
-                      <x-ui.status-badge :status="$row->workflow_status" class="workflow-badge {{ $workflowClass }}" />
-                    </td>
-
-                    <td>
-                      <x-ui.status-badge :status="$row->efficiency_status" class="{{ $efficiencyClass }}" />
-
-                      @if($row->km_per_liter > 0)
-                        <small>{{ number_format($row->km_per_liter, 2) }} km/L</small>
-                      @endif
-                    </td>
-                  </tr>
-                @empty
-                  <x-ui.empty-row
-                    colspan="7"
-                    icon="fa-gas-pump"
-                    message="No Bus Fuel Efficiency Records"
-                    description="No buses match the selected filter criteria."
-                  />
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-
-          @if($dailyMonitoring->isNotEmpty())
-            <div class="daily-monitoring-actions">
-              <p>
-                <i class="fa-solid fa-circle-info"></i>
-                Blank fuel fields are ignored. Enter liters only for buses that refueled, then save all changes once.
-              </p>
-
-              <button type="submit" class="daily-save-btn">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Save All Changes
-              </button>
-            </div>
-          @endif
-        </form>
-
-      </section>
 
 
       {{-- RECENT FUEL ENTRIES --}}
@@ -290,8 +30,8 @@
 
         <div class="section-header">
           <div>
-            <h2>Recent Fuel Entries</h2>
-            <p>Latest saved fuel entries for quick verification and audit.</p>
+            <h2>Fuel Records</h2>
+            <p>Fuel issuance entries and their recorded trip distance.</p>
           </div>
         </div>
 
@@ -299,8 +39,8 @@
           <x-ui.table-toolbar
             :action="route('fuel-reports')"
             form-id="recentFuelEntriesToolbar"
-            search-label="Search Fuel Entries"
-            search-placeholder="Search bus, driver, status, or distance source..."
+            search-label="Search Fuel Records"
+            search-placeholder="Search bus, driver, or source..."
             :filter-count="(int) (request('date_filter', 'This Month') !== 'This Month')"
             filter-title="Filter Fuel Entries"
             :sort-options="[
@@ -336,13 +76,13 @@
 
             <thead>
               <tr>
+                <th>Record No.</th>
                 <th>Date</th>
-                <th>Vehicle</th>
-                <th>Distance</th>
-                <th>Fuel</th>
-                <th>KM/L</th>
+                <th>Bus</th>
                 <th>Driver</th>
-                <th>Source</th>
+                <th>Gas Station</th>
+                <th>Liters (L)</th>
+                <th>Total KM</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -364,47 +104,14 @@
                 @endphp
 
                 <tr>
-
-                  <td>
-                    {{ $record->report_date?->format('M d, Y') }}
-                  </td>
-
-                  <td>
-                    <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->distance_km, 2) }} km
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->fuel_liters, 2) }} L
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->km_per_liter, 2) }}
-                  </td>
-
-                  <td>
-                    {{ $record->driver_name ?: '—' }}
-                  </td>
-
-                  <td>
-                    <span class="source-badge {{ strtolower($record->distance_source) }}">
-                      <i
-                        class="fa-solid {{
-                          $record->distance_source === 'GPS'
-                            ? 'fa-location-dot'
-                            : 'fa-pen'
-                        }}"
-                      ></i>
-                      {{ $record->distance_source }}
-                    </span>
-                  </td>
-
-                  <td>
-                    <x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" />
-                  </td>
+                  <td><span class="fuel-record-reference">#{{ $record->id }}</span></td>
+                  <td>{{ $record->report_date?->format('M d, Y') }}</td>
+                  <td><span class="bus-badge-pill"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $record->bus_no }}</span></td>
+                  <td>{{ $record->driver_name ?: '—' }}</td>
+                  <td><span title="Gas station is not yet recorded in the existing fuel report schema">—</span></td>
+                  <td>{{ number_format((float) $record->fuel_liters, 2) }}</td>
+                  <td>{{ number_format((float) $record->distance_km, 2) }}</td>
+                  <td><x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" /></td>
 
                   <td>
 
