@@ -197,6 +197,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   function addRestockItemRow() {
     if (!restockPrItems || !restockPrTemplate) return;
     const row = restockPrTemplate.cloneNode(true);
+    row.querySelectorAll('.restock-pr-item-select, .restock-pr-item-qty').forEach(function (field) { field.required = true; });
     restockPrItems.appendChild(row);
     updateRestockRemovalButtons();
   }
