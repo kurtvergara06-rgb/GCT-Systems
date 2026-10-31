@@ -136,7 +136,7 @@
                       <small title="Supplier and storage details">Supplier: {{ $item->supplier ?: '—' }} · Location: {{ $item->storage_location ?: '—' }}</small>
                     </div>
                   </td>
-                  <td>{{ $item->category }}</td>
+                  <td class="inventory-category-cell">{{ $item->category }}</td>
                   <td class="inventory-stock-cell"><strong>{{ $onHandQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
@@ -168,18 +168,6 @@
                       </button>
 
                       @if($canEditWarehouse)
-                        <button
-                          type="button"
-                          class="action-btn openIssueModal"
-                          title="Issue Stock"
-                          data-item-id="{{ $item->id }}"
-                          data-item-name="{{ $item->item_name }}"
-                          data-quantity="{{ $item->on_hand }}"
-                          data-unit="{{ $item->unit_of_measurement }}"
-                        >
-                          <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                        </button>
-
                         <button
                           type="button"
                           class="action-btn edit openEditModal"
