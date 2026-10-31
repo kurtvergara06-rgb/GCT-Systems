@@ -25,17 +25,17 @@ assert delay_config.model_paths()["model"].name == "demo_delay_arrival_rf.pkl"
 assert delay_config.model_paths()["state"].name == "demo_delay_arrival_state.json"
 
 assert inventory_config.data_source() == "demo"
-assert inventory_config.training_data_paths()["csv"].name == "demo_inventory_training.csv"
-assert inventory_config.training_data_paths()["features_csv"].name == "demo_inventory_training_features.csv"
-assert inventory_config.model_paths()["model"].name == "demo_inventory_demand_rf.pkl"
-assert inventory_config.model_paths()["state"].name == "demo_inventory_demand_state.json"
+assert inventory_config.training_data_paths()["csv"].name == "sample_inventory_training.csv"
+assert inventory_config.training_data_paths()["features_csv"].name == "sample_inventory_training_features.csv"
+assert inventory_config.model_paths()["model"].name == "inventory_demand_rf.pkl"
+assert inventory_config.model_paths()["state"].name == "inventory_demand_state.json"
 assert callable(inventory_prepare.main)
 
 thresholds = inventory_config.data_thresholds()
-assert thresholds["min_rows"] == 260
-assert thresholds["min_parts"] == 20
+assert thresholds["min_rows"] == 1000
+assert thresholds["min_parts"] == 10
 assert thresholds["min_weeks"] == 13
-assert thresholds["min_stock_out_events"] == 500
+assert thresholds["min_buses"] == 3
 
 assert normalize_data_source("demo") == "synthetic"
 policy = evaluate_model_source("demo model", "demo")
