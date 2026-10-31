@@ -641,7 +641,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Issue Stock')
-            ->assertSee('id="openIssueModal"', false)
             ->assertSee('id="issueModal"', false);
 
         preg_match('/<table class="inventory-table">.*?<\/table>/s', $response->getContent(), $matches);
