@@ -253,6 +253,7 @@ export default defineConfig({
 
                 'resources/js/Warehouse/dashboard-warehouse.js',
                 'resources/js/Warehouse/inventory.js',
+                'resources/js/Warehouse/incoming-deliveries.js',
                 'resources/js/Warehouse/item-requests.js',
                 'resources/js/Warehouse/part-requests.js',
                 'resources/js/Warehouse/part-requests-cleanup.js',
