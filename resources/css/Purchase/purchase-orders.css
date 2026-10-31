@@ -1597,3 +1597,15 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
   height:32px!important;min-height:32px!important;padding:0 12px!important;
   gap:7px!important;white-space:nowrap!important;line-height:1!important;
 }
+
+
+/* Compact PO receipt progress shared by Warehouse and Purchasing tables. */
+.po-receipt-progress { width: 155px; max-width:100%; margin:0 auto; display:flex; flex-direction:column; gap:5px; font-variant-numeric:tabular-nums; }
+.po-receipt-top { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:10px; color:#61748e; }
+.po-receipt-top strong { font-size:12px; color:#17345b; font-weight:800; }
+.po-receipt-track { height:6px; width:100%; border-radius:999px; background:#e4ebf4; overflow:hidden; }
+.po-receipt-track > span { display:block; height:100%; border-radius:999px; background:#2563eb; transition:width .2s ease; }
+.po-receipt-track > span.is-complete { background:#16a34a; }
+.po-receipt-bottom { display:flex; justify-content:space-between; align-items:center; gap:5px; white-space:nowrap; font-size:9px; font-weight:650; }
+.po-receipt-done { color:#168349; }
+.po-receipt-left { color:#a76a16; }
