@@ -710,3 +710,98 @@
     font-size: 19px;
   }
 }
+
+/* Scheduled Purchases: legible fixed columns, shared scroll-table behavior. */
+.scheduled-purchase-page .schedule-card .purchase-list-controls {
+  margin-bottom:16px!important;
+}
+.scheduled-purchase-page .schedule-card .schedule-scroll-table {
+  max-height:440px!important;
+  min-height:0;
+  overflow:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  border:1px solid #e0e8f3;
+  border-radius:9px;
+}
+.scheduled-purchase-page .schedule-scroll-table:focus-visible {outline:2px solid #74a8ec;outline-offset:2px;}
+.scheduled-purchase-page .schedule-table {
+  min-width:1210px!important;
+  width:100%;
+  table-layout:fixed;
+}
+.scheduled-purchase-page .schedule-table th {
+  position:sticky;top:0;z-index:2;
+  background:#edf3fa!important;
+  padding:11px 10px!important;
+  font-size:10px!important;
+  letter-spacing:.02em!important;
+}
+.scheduled-purchase-page .schedule-table td {
+  padding:11px 10px!important;
+  font-size:11px!important;
+}
+.scheduled-purchase-page .schedule-table th:nth-child(1) {width:17%}
+.scheduled-purchase-page .schedule-table th:nth-child(2) {width:17%}
+.scheduled-purchase-page .schedule-table th:nth-child(3) {width:13%}
+.scheduled-purchase-page .schedule-table th:nth-child(4) {width:8%}
+.scheduled-purchase-page .schedule-table th:nth-child(5) {width:9%}
+.scheduled-purchase-page .schedule-table th:nth-child(6) {width:12%}
+.scheduled-purchase-page .schedule-table th:nth-child(7) {width:10%}
+.scheduled-purchase-page .schedule-table th:nth-child(8) {width:8%}
+.scheduled-purchase-page .schedule-table th:nth-child(9) {width:10%}
+.scheduled-purchase-page .schedule-table .two-line-cell {
+  min-width:0;max-width:100%;
+}
+.scheduled-purchase-page .schedule-table .two-line-cell strong {
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:11px!important;font-weight:750!important;
+}
+.scheduled-purchase-page .schedule-table .two-line-cell small {
+  font-size:10px!important;white-space:nowrap;
+}
+.scheduled-purchase-page .schedule-table .schedule-record-id {
+  display:table;width:auto;max-width:100%;
+  padding:2px 5px;border:1px solid #d9e5f3;border-radius:4px;
+  background:#f3f7fb;color:#244a7b;font-weight:700;
+}
+.scheduled-purchase-page .schedule-table .schedule-item-name {
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-weight:650;color:#264366;
+}
+.scheduled-purchase-page .schedule-table .amount-cell {
+  white-space:nowrap;font-weight:750!important;color:#1c3d68;
+  font-variant-numeric:tabular-nums;
+}
+.scheduled-purchase-page .schedule-table td:nth-child(4),
+.scheduled-purchase-page .schedule-table td:nth-child(5) {white-space:nowrap}
+.scheduled-purchase-page .schedule-status-wrapper {
+  display:inline-flex;align-items:center;justify-content:center;
+  max-width:100%;
+}
+.scheduled-purchase-page .schedule-status-wrapper .status-badge,
+.scheduled-purchase-page .schedule-status-wrapper .badge,
+.scheduled-purchase-page .schedule-status-wrapper [class*="status-badge"] {
+  width:auto!important;min-width:0!important;max-width:100%;
+  padding:5px 8px!important;border-radius:6px!important;
+  font-size:10px!important;white-space:nowrap!important;
+  line-height:1.2!important;
+}
+.scheduled-purchase-page .schedule-card .record-actions {
+  display:flex!important;align-items:center;justify-content:center;
+  gap:5px!important;flex-wrap:nowrap;
+}
+.scheduled-purchase-page .schedule-card .record-actions form {display:inline-flex;flex:none}
+.scheduled-purchase-page .schedule-card .record-actions .action-btn {
+  width:29px!important;min-width:29px!important;
+  height:29px!important;min-height:29px!important;
+  padding:0!important;border-radius:6px!important;
+  font-size:11px!important;
+}
+.scheduled-purchase-page .schedule-card .record-actions .action-btn.delete {
+  background:#fff4f4;color:#c03943;border-color:#f3d0d4;
+}
+.scheduled-purchase-page .schedule-card .record-actions .action-btn.view,
+.scheduled-purchase-page .schedule-card .record-actions .action-btn.edit {
+  background:#eef4fd;color:#1b58b3;border-color:#d6e5fb;
+}
