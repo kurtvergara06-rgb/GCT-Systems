@@ -92,7 +92,7 @@
                             @if($linkedPrCount > 0)
                                 <div class="warehouse-ir-pr-shortage" title="Shortage parts covered by a linked Purchase Requisition">
                                     <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-                                    PR: {{ $linkedPrCount }} {{ \\Illuminate\\Support\\Str::plural('part', $linkedPrCount) }}
+                                    PR: {{ $linkedPrCount }} {{ \Illuminate\Support\Str::plural('part', $linkedPrCount) }}
                                 </div>
                             @endif
                         </td>
