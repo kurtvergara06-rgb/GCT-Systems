@@ -3461,3 +3461,65 @@
 .warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out {
   background:#fef0f0!important;border-color:#f5c5c5!important;
 }
+
+
+/* Lower dashboard: readable compact ranking and stock-risk columns. */
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-item-icon {
+  display:none!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-item-cell {
+  gap:0!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th {
+  font-size:10px!important;
+  letter-spacing:0!important;
+  white-space:nowrap;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(1),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(1) { width:8%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(2),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(2) { width:41%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(3),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(3) { width:16%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(4),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(4) { width:16%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(5),
+.warehouse-dashboard-page [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(5) { width:19%!important; }
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-ranking {
+  justify-content:flex-start!important;
+  gap:0!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-row {
+  display:grid!important;
+  grid-template-columns:29px minmax(0,1fr)!important;
+  gap:12px!important;
+  min-height:65px!important;
+  align-items:center!important;
+  padding:9px 2px!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-rank {
+  width:27px!important;height:27px!important;display:grid!important;place-items:center!important;
+  font-size:11px!important;
+}
+.warehouse-dashboard-page .warehouse-issued-detail { display:flex;flex-direction:column;min-width:0;gap:8px; }
+.warehouse-dashboard-page .warehouse-issued-info { display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-copy { flex:1;min-width:0; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-copy strong { font-size:12px; }
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-total {
+  display:inline-flex;align-items:baseline;gap:4px;
+  flex:none;color:#17345b;font-size:13px!important;white-space:nowrap;
+}
+.warehouse-dashboard-page .warehouse-issued-info .warehouse-issued-total small {
+  display:inline!important;margin:0!important;font-size:10px!important;font-weight:600!important;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-top-issued"] .warehouse-issued-detail .warehouse-issued-meter {
+  display:block!important;width:100%!important;height:6px!important;border-radius:99px!important;
+  background:#e7edf4!important;overflow:hidden;
+}
+.warehouse-dashboard-page .warehouse-issued-detail .warehouse-issued-meter > span {
+  display:block!important;height:100%;border-radius:99px;background:#4e7db5!important;
+}
+.warehouse-dashboard-page .warehouse-trend-period select {
+  height:34px;min-width:110px;padding:0 26px 0 10px;border:1px solid #dbe5f1;
+  border-radius:8px;background:#f8fbff;color:#334d6f;font:600 11px inherit;cursor:pointer;
+}
