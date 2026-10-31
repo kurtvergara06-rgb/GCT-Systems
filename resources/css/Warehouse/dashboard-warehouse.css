@@ -760,11 +760,6 @@
   width: 14%;
 }
 
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(4),
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(4) {
-  width: 28%;
-}
-
 /* 4. Top Low Stock Items (Replenishment Watch - FIXED ALL 4 COLUMNS VISIBLE) */
 [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table th:nth-child(1),
 [data-ajax-region="dashboard-low-stock"] .warehouse-dashboard-table td:nth-child(1) {
