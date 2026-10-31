@@ -125,7 +125,7 @@
                                 data-ir-requester="{{ $ir->requester?->name ?? '—' }}"
                                 data-ir-date="{{ $ir->created_at?->format('M d, Y · h:i A') ?? '—' }}"
                                 data-ir-parts-count="{{ $parts->count() }}"
-                                data-ir-status="{{ $ir->status }}"
+                                data-ir-status="{{ $waitingForJoParts ? 'Partially Issued' : $ir->status }}"
                                 data-ir-release-policy="{{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-jo-parts="{{ json_encode($joRequirements->values()->all()) }}"
