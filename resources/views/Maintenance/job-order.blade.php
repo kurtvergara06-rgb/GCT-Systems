@@ -528,16 +528,20 @@
                                                                 @endphp
                                                                 <div class="jo-review-mechanic-field">
                                                                     <span><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Assigned Mechanics <strong class="jo-review-mechanic-count" aria-label="{{ $headReviewMechanics->count() }} assigned mechanics">{{ $headReviewMechanics->count() }}</strong></span>
-                                                                    <div class="jo-review-mechanic-summary" data-fit-mechanics>
-                                                                        @forelse($headReviewMechanics as $mechanicName)
-                                                                            <span class="jo-review-mechanic-primary" data-mechanic-chip><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                    <div class="jo-review-mechanic-summary">
+                                                                        @forelse($headReviewMechanics->take(1) as $mechanicName)
+                                                                            <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
                                                                         @empty
                                                                             <strong>Not assigned</strong>
                                                                         @endforelse
                                                                         @if($headReviewMechanics->count() > 1)
-                                                                            <details class="jo-review-mechanic-more" data-mechanic-overflow hidden>
-                                                                                <summary aria-label="Show additional assigned mechanics"><span data-overflow-count></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
-                                                                                <div class="jo-review-mechanic-expanded" data-overflow-list></div>
+                                                                            <details class="jo-review-mechanic-more">
+                                                                                <summary aria-label="Show {{ $headReviewMechanics->count() - 1 }} additional assigned mechanics">+{{ $headReviewMechanics->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                                                                <div class="jo-review-mechanic-expanded">
+                                                                                    @foreach($headReviewMechanics->skip(1) as $mechanicName)
+                                                                                        <span class="jo-review-mechanic-primary"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ $mechanicName }}</span>
+                                                                                    @endforeach
+                                                                                </div>
                                                                             </details>
                                                                         @endif
                                                                     </div>

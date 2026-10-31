@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Admin\User;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Incident;
@@ -15,6 +16,8 @@ use App\Models\Maintenance\Bus;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class FiveModuleWorkflowTest extends TestCase
@@ -102,6 +105,7 @@ class FiveModuleWorkflowTest extends TestCase
 
     public function test_maintenance_warehouse_purchase_and_inventory_round_trip_stays_synchronized(): void
     {
+        Storage::fake('local');
         $maintenanceStaff = User::factory()->create([
             'department' => 'Maintenance',
             'role' => 'staff',
@@ -141,6 +145,8 @@ class FiveModuleWorkflowTest extends TestCase
             'review_status' => 'Approved',
             'approved_by' => $maintenanceHead->id,
             'approved_at' => now(),
+            'parts_issue_strategy' => 'wait_until_complete',
+            'inventory_snapshot' => ['shortages' => [['name' => 'Brake Pad', 'quantity' => 2, 'unit' => 'pcs']]],
         ]);
 
         $this->actingAs($maintenanceStaff)
@@ -161,21 +167,17 @@ class FiveModuleWorkflowTest extends TestCase
             ->post(route('part-requests.send-to-purchase', $originalPr))
             ->assertRedirect();
 
-        $purchasePr = PurchaseRequest::query()
-            ->where('job_order_no', $jobOrder->job_order_no)
-            ->where('id', '!=', $originalPr->id)
-            ->firstOrFail();
-
-        $this->assertSame('For Purchase', $purchasePr->status);
+        $this->assertSame(1, PurchaseRequest::query()->where('job_order_no', $jobOrder->job_order_no)->count());
+        $this->assertSame('For Purchase', $originalPr->fresh()->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
         $this->actingAs($purchaseUser)->post(route('purchase-orders.store'), [
-            'purchase_request_id' => $purchasePr->id,
+            'purchase_request_id' => $originalPr->id,
             'supplier_name' => 'Flow Supplier',
             'status' => 'For Review',
             'items' => [[
-                'pr_no' => $purchasePr->pr_no,
-                'bus_no' => $purchasePr->bus_no,
+                'pr_no' => $originalPr->pr_no,
+                'bus_no' => $originalPr->bus_no,
                 'item_description' => 'Brake Pad',
                 'quantity' => 2,
                 'unit' => 'pcs',
@@ -185,16 +187,17 @@ class FiveModuleWorkflowTest extends TestCase
 
         $purchaseOrder = PurchaseOrder::query()->firstOrFail();
         $this->assertSame('For Review', $purchaseOrder->status);
-        $this->assertSame('For Purchase', $purchasePr->fresh()->status);
+        $this->assertSame('For Purchase', $originalPr->fresh()->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
         $this->actingAs($purchaseUser)
-            ->patch(route('purchase-orders.approve', $purchaseOrder))
-            ->assertRedirect('/purchase-orders');
+            ->patch(route('purchase-orders.approve', $purchaseOrder), [
+                'signature' => UploadedFile::fake()->create('purchase-head.png', 20, 'image/png'),
+            ])->assertRedirect('/purchase-orders')->assertSessionHasNoErrors();
 
         $purchaseOrder->refresh();
         $this->assertSame('Ordered', $purchaseOrder->status);
-        $this->assertSame('Ordered', $purchasePr->fresh()->status);
+        $this->assertSame('Ordered', $originalPr->fresh()->status);
         $this->assertSame('Ordered', $jobOrder->fresh()->part_status);
 
         $this->actingAs($purchaseUser)
@@ -204,24 +207,44 @@ class FiveModuleWorkflowTest extends TestCase
             ->assertRedirect('/purchase-orders');
 
         $this->actingAs($warehouseUser)
-            ->post(route('incoming-deliveries.receive', $purchaseOrder))
-            ->assertRedirect('/warehouse/incoming-deliveries');
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), ['received_quantities' => [1]])
+            ->assertRedirect('/warehouse/incoming-deliveries')->assertSessionHasNoErrors();
 
-        $inventoryItem = InventoryItem::query()
-            ->where('item_name', 'Brake Pad')
-            ->firstOrFail();
+        $inventoryItem = InventoryItem::query()->where('item_name', 'Brake Pad')->firstOrFail();
+        $this->assertSame(1, (int) $inventoryItem->quantity_available);
+        $this->assertNull($purchaseOrder->fresh()->inventory_posted_at);
+        $this->assertSame('For Delivery', $originalPr->fresh()->status);
+
+        $this->actingAs($warehouseUser)
+            ->post(route('incoming-deliveries.receive', $purchaseOrder), ['received_quantities' => [1]])
+            ->assertRedirect('/warehouse/incoming-deliveries')->assertSessionHasNoErrors();
+
+        $inventoryItem->refresh();
 
         $this->assertSame(2, (int) $inventoryItem->quantity_available);
-        $this->assertSame('Delivered', $purchasePr->fresh()->status);
+        $this->assertSame('Delivered', $originalPr->fresh()->status);
         $this->assertSame('Delivered', $jobOrder->fresh()->part_status);
         $this->assertNotNull($purchaseOrder->fresh()->inventory_posted_at);
 
+        $itemRequest = ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'requested_by' => $maintenanceStaff->id,
+            'status' => 'Submitted',
+            'requested_parts' => [[
+                'name' => 'Brake Pad', 'quantity' => 2, 'unit' => 'pcs',
+                'inventory_item_id' => $inventoryItem->id,
+            ]],
+        ]);
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalPr))
-            ->assertRedirect();
+            ->post(route('warehouse.item-requests.issue', $itemRequest), [
+                'received_by' => 'Flow Mechanic',
+                'signed_slip' => UploadedFile::fake()->create('signed-issuance.pdf', 20, 'application/pdf'),
+                'handover_confirmed' => '1',
+                'issued_quantities' => [2],
+            ])->assertRedirect()->assertSessionHasNoErrors();
 
-        $this->assertSame('Issued', $originalPr->fresh()->status);
-        $this->assertSame('Issued', $purchasePr->fresh()->status);
+        $this->assertSame('Delivered', $originalPr->fresh()->status);
+        $this->assertSame('Issued', $itemRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(0, (int) $inventoryItem->fresh()->quantity_available);
     }

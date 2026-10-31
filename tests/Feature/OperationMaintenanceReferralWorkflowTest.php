@@ -5,13 +5,16 @@ namespace Tests\Feature;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\MaintenanceReferral;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Incident;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class OperationMaintenanceReferralWorkflowTest extends TestCase
@@ -565,17 +568,9 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame('Submitted', $pr->fresh()->status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
 
-        $deliveredPurchaseRequest = PurchaseRequest::create([
-            'pr_no' => $pr->pr_no.'-P',
-            'job_order_no' => $jobOrder->job_order_no,
-            'bus_no' => $jobOrder->bus_no,
-            'item' => $pr->item,
-            'quantity' => $pr->quantity,
-            'status' => 'Delivered',
-            'warehouse_status' => 'Delivered',
-            'source_type' => 'Maintenance Request',
-            'remarks' => 'Missing parts from '.$pr->pr_no.'. Only unavailable parts were sent to Purchase Department.',
-        ]);
+        // Purchasing and receiving keep one canonical PR; physical stock-out is
+        // performed later through the linked IR and signed SWIS handover.
+        $pr->update(['status' => 'Delivered', 'warehouse_status' => 'Delivered']);
 
         // 8. Warehouse issues after the linked missing-parts procurement is received.
         $inventoryItem = InventoryItem::create([
@@ -588,18 +583,41 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             'supplier' => 'Bosch Automotive',
             'storage_location' => 'Warehouse Shelf A-2',
         ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jobOrder->id,
+            'inventory_item_id' => $inventoryItem->id,
+            'quantity' => 1,
+        ]);
+
+        $itemRequest = ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'requested_by' => $maintenanceStaff->id,
+            'status' => 'Submitted',
+            'requested_parts' => [[
+                'name' => 'Heavy Duty Alternator 24V',
+                'quantity' => 1,
+                'unit' => 'pcs',
+                'inventory_item_id' => $inventoryItem->id,
+            ]],
+        ]);
 
         $issueResponse = $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $pr));
-        $issueResponse->assertRedirect();
+            ->post(route('warehouse.item-requests.issue', $itemRequest), [
+                'received_by' => $mechanic->mechanic_name,
+                'signed_slip' => UploadedFile::fake()->create('signed-issuance.pdf', 20, 'application/pdf'),
+                'handover_confirmed' => '1',
+                'issued_quantities' => [1],
+            ]);
+        $issueResponse->assertRedirect()->assertSessionHasNoErrors();
 
-        $this->assertSame('Issued', $pr->fresh()->status);
-        $this->assertSame('Issued', $deliveredPurchaseRequest->fresh()->status);
+        $this->assertSame('Delivered', $pr->fresh()->status);
+        $this->assertSame('Issued', $itemRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
-        $this->assertSame('On Going', $jobOrder->fresh()->status);
+        $this->assertSame('On Hold', $jobOrder->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->fresh()->quantity_available);
 
         // 9. Maintenance completes the Job Order
+        $jobOrder->update(['status' => 'On Going']);
         $finishResponse = $this->actingAs($maintenanceStaff)
             ->post(route('job-orders.finish', $jobOrder));
         $finishResponse->assertRedirect();
@@ -630,6 +648,6 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
 
         // Trace from PurchaseRequest -> JobOrder
         $this->assertSame($jobOrder->job_order_no, $pr->job_order_no);
-        $this->assertSame('Issued', $pr->fresh()->status);
+        $this->assertSame('Delivered', $pr->fresh()->status);
     }
 }

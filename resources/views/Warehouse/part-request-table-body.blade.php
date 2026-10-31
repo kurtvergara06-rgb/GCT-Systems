@@ -1,5 +1,5 @@
             <tbody>
-              @foreach($purchaseRequests as $partRequest)
+              @foreach($purchaseRequests->getCollection() as $partRequest)
                 @php
                   // Initialize display values for every row before branching so
                   // Blade-rendered shared table fragments never reference undefined variables.
@@ -10,7 +10,9 @@
                   $multipleParts = $partDetails->count() > 1;
                 @endphp
                 @if($partRequest->source_type === 'Auto Restock')
-                  @php($restockLines = collect(json_decode((string) $partRequest->restock_items, true) ?: []))
+                  @php
+                    $restockLines = collect(json_decode((string) $partRequest->restock_items, true) ?: []);
+                  @endphp
                   <tr>
                     <td><div class="pr-ref-cell"><strong class="pr-main-num">{{ $partRequest->pr_no }}</strong><div class="pr-sub-tags"><span class="pr-meta-tag">Warehouse Restock</span></div></div></td>
                     <td class="item-col"><div class="warehouse-pr-item-summary"><strong class="warehouse-pr-item-name">{{ $restockLines->first()['name'] ?? $partRequest->item }}</strong>
@@ -190,7 +192,7 @@
                 </tr>
                 @endif
               @endforeach
-              @if($purchaseRequests->isEmpty())
+              @if($purchaseRequests->getCollection()->isEmpty())
                 <x-ui.empty-row
                   colspan="6"
                   icon="fa-clipboard-list"

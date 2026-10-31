@@ -1732,7 +1732,6 @@ main.purchase-maintenance-requests-page .requested-purchase-table .record-action
 
 
 /* Warehouse-inspired, compact Purchase Requisition details presentation. */
-.purchase-maintenance-requests-page .requested-pr-record-tabs { display:none; }
 .requested-pr-view-overlay .requested-pr-style-modal {
   width:min(920px,calc(100vw - 32px));max-width:920px;
   border-radius:15px;overflow:hidden;

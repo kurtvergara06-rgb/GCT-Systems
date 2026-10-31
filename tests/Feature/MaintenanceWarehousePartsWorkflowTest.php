@@ -83,7 +83,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $purchaseRequest));
 
-        $issueResponse->assertRedirect()->assertSessionHasErrors('workflow');
+        $issueResponse->assertRedirect()->assertSessionHas('error');
 
         $this->assertSame('Submitted', $purchaseRequest->fresh()->status);
         $this->assertNotSame('Issued', $purchaseRequest->fresh()->warehouse_status);
@@ -92,13 +92,13 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $purchaseRequest))
-            ->assertSessionHasErrors('workflow');
+            ->assertSessionHas('error');
 
         $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
         $this->assertSame(0, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
-    public function test_warehouse_edit_capability_controls_direct_issue(): void
+    public function test_warehouse_edit_capability_controls_retired_direct_issue_route(): void
     {
         $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -132,12 +132,13 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->actingAs($staff)
             ->post(route('part-requests.issue', $request))
             ->assertRedirect()
-            ->assertSessionHas('success');
+            ->assertSessionHas('error');
 
-        $this->assertSame(2, (int) $item->fresh()->quantity_available);
+        $this->assertSame(4, (int) $item->fresh()->quantity_available);
+        $this->assertSame('Approved', $request->fresh()->status);
     }
 
-    public function test_warehouse_staff_issues_available_parts_using_requested_quantity_automatically(): void
+    public function test_warehouse_staff_cannot_bypass_ir_and_signed_handover_with_direct_pr_issue(): void
     {
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
@@ -190,46 +191,18 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->post(route('part-requests.issue', $purchaseRequest));
 
         $response->assertRedirect();
-        $response->assertSessionHas('success', 'Parts issued successfully.');
+        $response->assertSessionHas('error');
 
         $updatedPr = $purchaseRequest->fresh();
-        $this->assertSame('Issued', $updatedPr->status);
-        $this->assertSame('Issued', $updatedPr->warehouse_status);
-        $this->assertSame('Issued', $jobOrder->fresh()->part_status);
+        $this->assertSame('Approved', $updatedPr->status);
+        $this->assertNotSame('Issued', $updatedPr->warehouse_status);
+        $this->assertSame('Not Requested', $jobOrder->fresh()->part_status);
 
         // Inventory deductions match requested quantities exactly
-        $this->assertSame(19, (int) $itemA->fresh()->quantity_available);
-        $this->assertSame(7, (int) $itemB->fresh()->quantity_available);
-
-        $issuance = InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->firstOrFail();
-        $this->assertSame($warehouseStaff->id, $issuance->issued_by);
-        $this->assertCount(2, InventoryIssuanceItem::where('inventory_issuance_id', $issuance->id)->get());
-
-        // warehouse_issue_quantities history matches requested quantities automatically
-        $history = $updatedPr->warehouse_issue_quantities;
-        $this->assertIsArray($history);
-        $this->assertCount(2, $history);
-        $this->assertSame('Air Filter', $history[0]['name']);
-        $this->assertSame(1, $history[0]['requested']);
-        $this->assertSame(1, $history[0]['issued']);
-        $this->assertSame('Fuel Filter', $history[1]['name']);
-        $this->assertSame(3, $history[1]['requested']);
-        $this->assertSame(3, $history[1]['issued']);
-
-        // Stock movement ledger records generated
-        $this->assertDatabaseHas('stock_movements', [
-            'inventory_item_id' => $itemA->id,
-            'movement_type' => 'Stock Out',
-            'quantity_change' => -1,
-            'reference_no' => $purchaseRequest->pr_no,
-        ]);
-
-        $this->assertDatabaseHas('stock_movements', [
-            'inventory_item_id' => $itemB->id,
-            'movement_type' => 'Stock Out',
-            'quantity_change' => -3,
-            'reference_no' => $purchaseRequest->pr_no,
-        ]);
+        $this->assertSame(20, (int) $itemA->fresh()->quantity_available);
+        $this->assertSame(10, (int) $itemB->fresh()->quantity_available);
+        $this->assertSame(0, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
+        $this->assertDatabaseMissing('stock_movements', ['reference_no' => $purchaseRequest->pr_no]);
     }
     public function test_similar_inventory_names_are_not_fuzzily_issued(): void
     {
@@ -261,7 +234,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $purchaseRequest))
-            ->assertSessionHasErrors('stock');
+            ->assertSessionHas('error');
 
         $this->assertSame(10, (int) $similarItem->fresh()->quantity_available);
         $this->assertSame('Approved', $purchaseRequest->fresh()->status);
@@ -271,7 +244,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         );
     }
 
-    public function test_issue_available_only_issues_stock_and_sends_only_the_shortage_to_purchase(): void
+    public function test_forwarding_shortage_reuses_pr_and_never_directly_deducts_stock(): void
     {
         $warehouseHead = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $warehouseStaff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -293,18 +266,17 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($warehouseHead)->post(route('part-requests.send-to-purchase', $request))->assertRedirect();
-        $shortage = PurchaseRequest::query()->where('pr_no', 'PR-PARTIAL-001-P')->firstOrFail();
-        $this->assertSame(3, (int) $shortage->quantity);
-        $this->assertStringContainsString('Qty: 3 pcs', $shortage->item);
+        $this->assertSame('For Purchase', $request->fresh()->status);
+        $this->assertSame(1, PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->count());
 
         $this->actingAs($warehouseStaff)->post(route('part-requests.issue', $request))
-            ->assertRedirect()->assertSessionHas('success', 'Available parts were issued successfully. The shortage remains in the Purchase workflow.');
+            ->assertRedirect()->assertSessionHas('error');
 
-        $this->assertSame(0, (int) $item->fresh()->quantity_available);
-        $this->assertSame('Approved', $request->fresh()->status);
-        $this->assertSame('Partially Issued', $request->fresh()->warehouse_status);
+        $this->assertSame(2, (int) $item->fresh()->quantity_available);
+        $this->assertSame('For Purchase', $request->fresh()->status);
+        $this->assertNotSame('Partially Issued', $request->fresh()->warehouse_status);
         $this->assertSame('For Purchase', $jobOrder->fresh()->part_status);
-        $this->assertDatabaseHas('inventory_issuance_items', ['item_name' => 'Brake Pad', 'quantity' => 2]);
+        $this->assertDatabaseMissing('inventory_issuance_items', ['item_name' => 'Brake Pad']);
     }
 
 

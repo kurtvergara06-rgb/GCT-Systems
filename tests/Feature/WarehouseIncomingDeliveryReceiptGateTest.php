@@ -3,10 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Admin\User;
+use App\Models\Maintenance\ItemRequest;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
@@ -15,6 +19,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
 
     public function test_purchased_parts_must_be_received_before_staff_can_issue(): void
     {
+        Storage::fake('local');
         $warehouseHead = User::factory()->create([
             'department' => 'Warehouse',
             'role' => 'head',
@@ -37,6 +42,20 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
             'warehouse_status' => 'Pending Warehouse Approval',
             'source_type' => 'Maintenance Request',
             'remarks' => 'Missing parts sent to Purchase as PR-RECEIVE-0001-P1.',
+        ]);
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-RECEIVE-0001',
+            'bus_no' => 'BUS-RECEIVE-01',
+            'problem_issue' => 'Replace brake pads',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Receipt Gate Mechanic',
+            'part_needed' => 'Brake Pad - Qty: 2 pcs',
+            'review_status' => 'Approved',
+            'parts_issue_strategy' => 'wait_until_complete',
+            'inventory_snapshot' => ['shortages' => [['name' => 'Brake Pad', 'quantity' => 2, 'unit' => 'pcs']]],
+            'part_status' => 'For Purchase',
+            'status' => 'On Hold',
         ]);
 
         $purchaseRequest = PurchaseRequest::create([
@@ -71,10 +90,11 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
             'status' => 'For Delivery',
         ]);
 
-        // A purchased part that is merely in transit cannot be issued.
+        // Direct PR issuance is always forbidden; physical handover must use IR/SWIS.
         $this->actingAs($warehouseStaff)
             ->post(route('part-requests.issue', $originalRequest))
-            ->assertSessionHasErrors('workflow');
+            ->assertSessionHas('error')
+            ->assertRedirect(route('warehouse.item-requests'));
 
         $this->assertNotSame('Issued', $originalRequest->fresh()->warehouse_status);
         $this->assertNull($purchaseOrder->fresh()->inventory_posted_at);
@@ -93,13 +113,30 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
         $this->assertSame('Delivered', $purchaseRequest->fresh()->status);
         $this->assertSame(2, (int) $inventoryItem->quantity_available);
 
-        // Once received into inventory, Warehouse Staff can issue it directly.
+        // Once received into inventory, Warehouse Staff can record the signed IR handover.
+        $itemRequest = ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'requested_by' => $warehouseStaff->id,
+            'status' => 'Submitted',
+            'requested_parts' => [[
+                'name' => 'Brake Pad',
+                'quantity' => 2,
+                'unit' => 'pcs',
+                'inventory_item_id' => $inventoryItem->id,
+            ]],
+        ]);
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalRequest))
-            ->assertRedirect();
+            ->post(route('warehouse.item-requests.issue', $itemRequest), [
+                'received_by' => 'Receipt Gate Mechanic',
+                'signed_slip' => UploadedFile::fake()->create('receipt-gate.pdf', 100, 'application/pdf'),
+                'handover_confirmed' => '1',
+                'issued_quantities' => [2],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
 
-        $this->assertSame('Issued', $originalRequest->fresh()->status);
-        $this->assertSame('Issued', $originalRequest->fresh()->warehouse_status);
+        $this->assertSame('Issued', $itemRequest->fresh()->status);
+        $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(0, (int) $inventoryItem->fresh()->quantity_available);
     }
 
@@ -120,7 +157,7 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
                 'unit' => 'pcs',
                 'cost' => 1,
             ]],
-            'status' => 'Ordered',
+            'status' => 'For Review',
         ]);
 
         $this->actingAs($warehouseHead)

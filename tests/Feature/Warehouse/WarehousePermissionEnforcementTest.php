@@ -126,13 +126,8 @@ class WarehousePermissionEnforcementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('success');
 
-        $missingRequest = PurchaseRequest::query()
-            ->where('job_order_no', $request->job_order_no)
-            ->where('id', '!=', $request->id)
-            ->firstOrFail();
-
-        $this->assertSame('For Purchase', $missingRequest->status);
-        $this->assertSame('Approved', $request->fresh()->status);
+        $this->assertSame('For Purchase', $request->fresh()->status);
+        $this->assertSame(1, PurchaseRequest::where('job_order_no', $request->job_order_no)->count());
     }
 
     public function test_submitted_pr_is_warehouse_authorized_only_for_matching_approved_open_job_order(): void
@@ -173,9 +168,9 @@ class WarehousePermissionEnforcementTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('purchase_requests', [
+            'id' => $request->id,
             'job_order_no' => $jobOrder->job_order_no,
             'status' => 'For Purchase',
-            'remarks' => 'Missing parts from '.$request->pr_no.'. Only unavailable parts were sent to Purchase Department.',
         ]);
 
         $mismatchedJobOrder = JobOrder::create([
@@ -205,9 +200,7 @@ class WarehousePermissionEnforcementTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('error');
 
-        $this->assertDatabaseMissing('purchase_requests', [
-            'remarks' => 'Missing parts from '.$mismatchedRequest->pr_no.'. Only unavailable parts were sent to Purchase Department.',
-        ]);
+        $this->assertSame('Submitted', $mismatchedRequest->fresh()->status);
     }
 
     public function test_system_admin_retains_full_warehouse_access(): void

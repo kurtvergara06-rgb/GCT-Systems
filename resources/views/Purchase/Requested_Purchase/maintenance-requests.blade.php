@@ -60,6 +60,14 @@
         </div>
 
         <div class="requested-pr-list-controls">
+        <nav class="requested-pr-record-tabs" aria-label="Purchase requisition status">
+          <a href="{{ route('maintenance-requests', ['record_view' => 'pending']) }}" class="requested-pr-record-tab {{ $recordView === 'pending' ? 'is-active' : '' }}" aria-current="{{ $recordView === 'pending' ? 'page' : 'false' }}" data-allow-partial-navigation="true">
+            <i class="fa-solid fa-clock" aria-hidden="true"></i><span>Pending Requests</span>
+          </a>
+          <a href="{{ route('maintenance-requests', ['record_view' => 'in_progress']) }}" class="requested-pr-record-tab {{ $recordView === 'in_progress' ? 'is-active' : '' }}" aria-current="{{ $recordView === 'in_progress' ? 'page' : 'false' }}" data-allow-partial-navigation="true">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i><span>In Progress</span>
+          </a>
+        </nav>
         <x-ui.table-toolbar
           action="{{ route('maintenance-requests', [], false) }}"
           class="records-toolbar"
@@ -72,6 +80,10 @@
           default-sort="created_at"
           default-direction="desc"
         >
+
+          <x-slot:hidden>
+            <input type="hidden" name="record_view" value="{{ $recordView }}">
+          </x-slot:hidden>
 
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All States">

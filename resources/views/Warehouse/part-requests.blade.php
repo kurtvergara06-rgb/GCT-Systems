@@ -201,7 +201,9 @@
                     <div class="pr-sub-tags"><span class="pr-meta-tag bus-tag"><i class="fa-solid fa-bus"></i> {{ $job->bus_no }}</span></div></div>
                   </td>
                   <td class="item-col">
-                    @php($joVisibleParts = collect($job->warehouse_available_parts)->values())
+                    @php
+                      $joVisibleParts = collect($job->warehouse_available_parts)->values();
+                    @endphp
                     <div class="warehouse-jo-parts-summary">
                       <strong class="item-name-text">{{ $joVisibleParts->first()['name'] ?? '—' }}</strong>
                       @if($joVisibleParts->count() > 1)

@@ -17,7 +17,7 @@ class ItemRequestPartialIssuanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_approved_jo_splits_reserved_stock_into_ir_and_shortage_pr_atomically(): void
+    public function test_approved_jo_creates_reserved_ir_and_separate_shortage_pr_without_double_requesting(): void
     {
         $staff = User::factory()->create([
             'department' => 'Maintenance', 'role' => 'staff', 'status' => 'Active',
@@ -47,6 +47,16 @@ class ItemRequestPartialIssuanceTest extends TestCase
 
         $ir = ItemRequest::where('job_order_id', $jo->id)->firstOrFail();
         $this->assertSame(6, (int) collect($ir->requested_parts)->sum('quantity'));
+        $this->assertDatabaseMissing('purchase_requests', ['job_order_no' => $jo->job_order_no]);
+
+        // IR issuance and shortage procurement are deliberately submitted as
+        // separate forms so each retains its own approval and audit workflow.
+        $this->actingAs($staff)->post(route('purchase-requests.store'), [
+            'job_order_no' => $jo->job_order_no,
+            'bus_no' => $jo->bus_no,
+            'purpose' => 'Purchase the unreserved shortage',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
         $pr = \App\Models\Maintenance\PurchaseRequest::where('job_order_no', $jo->job_order_no)->firstOrFail();
         $this->assertSame(4, (int) $pr->quantity);
         $this->assertSame('Submitted', $pr->status);
@@ -55,6 +65,11 @@ class ItemRequestPartialIssuanceTest extends TestCase
         $this->actingAs($staff)->post(route('item-requests.store'), [
             'job_order_id' => $jo->id,
         ])->assertSessionHasErrors('job_order_id');
+
+        $this->actingAs($staff)->post(route('purchase-requests.store'), [
+            'job_order_no' => $jo->job_order_no,
+            'bus_no' => $jo->bus_no,
+        ])->assertSessionHas('error', 'This Job Order already has a Purchase Request.');
         $this->assertSame(1, ItemRequest::where('job_order_id', $jo->id)->count());
         $this->assertSame(1, \App\Models\Maintenance\PurchaseRequest::where('job_order_no', $jo->job_order_no)->count());
     }
