@@ -81,7 +81,14 @@ class InventoryRestockController extends Controller
             ->unique('purchase_request_id')->keyBy('purchase_request_id');
         $restockRequests->getCollection()->each(function ($pr) use ($linkedOrders): void {
             $po = $linkedOrders->get($pr->id);
-            $pr->purchasing_display_status = $po?->receipt_display_status ?? $pr->status;
+            $pr->purchasing_display_status = $po
+                ? match ($po->status) {
+                    'For Review' => 'PO For Review',
+                    'Revision Required' => 'PO Revision Required',
+                    'Rejected' => 'PO Rejected',
+                    default => $po->receipt_display_status,
+                }
+                : $pr->status;
         });
 
         $totalRequests = MaintenanceRequest::query()
