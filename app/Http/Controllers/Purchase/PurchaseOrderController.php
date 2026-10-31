@@ -295,7 +295,7 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (! in_array($lockedOrder->status, ['For Review', 'Revision Required', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null) {
+            if (! in_array($lockedOrder->status, ['For Review', 'Revision Required', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null || collect($lockedOrder->received_quantities ?? [])->sum() > 0) {
                 throw ValidationException::withMessages([
                     'status' => 'Only an unreceived PO under review or Ordered can be edited.',
                 ]);
@@ -316,6 +316,24 @@ class PurchaseOrderController extends Controller
                     ->where('purchase_request_id', $lockedRequest->id)
                     ->exists();
 
+                if ($lockedRequest->source_type === 'Auto Restock' && $lockedRequest->restock_items) {
+                    $approvedLines = collect(json_decode((string) $lockedRequest->restock_items, true) ?: []);
+                    $poLines = collect($items);
+                    $matches = $approvedLines->count() === $poLines->count();
+                    foreach ($approvedLines as $line) {
+                        $matches = $matches && $poLines->contains(fn ($poLine) =>
+                            trim((string) ($poLine['pr_no'] ?? '')) === $lockedRequest->pr_no
+                            && trim((string) ($poLine['item_description'] ?? '')) === trim((string) ($line['name'] ?? ''))
+                            && (int) ($poLine['quantity'] ?? 0) === (int) ($line['quantity'] ?? -1)
+                            && (float) ($poLine['quantity'] ?? 0) === (float) (int) ($line['quantity'] ?? -1)
+                        );
+                    }
+                    if (! $matches) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Restocking PO items and quantities must match the signed Warehouse PR.',
+                        ]);
+                    }
+                }
                 if ((! $alreadyLinked && $lockedRequest->status !== 'For Purchase') || $linkedToAnotherOrder) {
                     throw ValidationException::withMessages([
                         'purchase_request_id' => 'The selected purchase request is not available for this purchase order.',
