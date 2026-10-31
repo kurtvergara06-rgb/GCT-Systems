@@ -96,9 +96,11 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     if (signatureMessage) signatureMessage.textContent = 'Signature cleared. Draw above or upload an image.';
   });
   const cropDialog = restockPrModal?.querySelector('#restockPrCropDialog');
-  const cropCanvas = restockPrModal?.querySelector('#restockPrCropCanvas');
+  // Escape the scrollable parent modal so crop positioning is viewport-relative.
+  if (cropDialog) document.body.appendChild(cropDialog);
+  const cropCanvas = document.getElementById('restockPrCropCanvas');
   const cropContext = cropCanvas?.getContext('2d');
-  const cropZoom = restockPrModal?.querySelector('#restockPrCropZoom');
+  const cropZoom = document.getElementById('restockPrCropZoom');
   let cropImage = null;
   let cropUrl = null;
   let cropOffset = { x: 0, y: 0 };
@@ -166,7 +168,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
   ['restockPrCropClose', 'restockPrCropCancel'].forEach(function (id) {
     restockPrModal?.querySelector('#' + id)?.addEventListener('click', cancelCrop);
   });
-  restockPrModal?.querySelector('#restockPrCropConfirm')?.addEventListener('click', function () {
+  document.getElementById('restockPrCropConfirm')?.addEventListener('click', function () {
     if (!cropImage || !cropCanvas || !signaturePreview) return;
     if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
     signatureObjectUrl = null;
