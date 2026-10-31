@@ -152,6 +152,34 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         appendCell(tr, 'No requested parts are recorded.', 'warehouse-ir-stock-empty').colSpan = 7;
         tbody.appendChild(tr);
       }
+      const handoverHistory = document.getElementById('warehouse-ir-handover-history');
+      if (handoverHistory) {
+        handoverHistory.replaceChildren();
+        const batches = Array.isArray(data.handover_history) ? data.handover_history : [];
+        if (!batches.length) {
+          const empty = document.createElement('p');
+          empty.textContent = 'No signed handovers recorded yet.';
+          handoverHistory.appendChild(empty);
+        } else {
+          batches.forEach((batch, index) => {
+            const line = document.createElement('div');
+            line.className = 'warehouse-ir-handover-entry';
+            const detail = document.createElement('span');
+            detail.textContent = 'SWIS ' + (index + 1) + ' · ' + (batch.issued_at || 'Date unavailable') + ' · Received by ' + (batch.received_by || 'Not recorded');
+            line.appendChild(detail);
+            if (batch.signed_slip_url) {
+              const link = document.createElement('a');
+              link.href = batch.signed_slip_url;
+              link.className = 'ir-secondary-button';
+              link.textContent = 'View signed SWIS';
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              line.appendChild(link);
+            }
+            handoverHistory.appendChild(line);
+          });
+        }
+      }
       const progressMessage = document.getElementById('warehouse-ir-fulfillment-message');
       if (progressMessage) {
         const remaining = irParts.reduce((sum, part) => sum + Number(part.quantity || 0), 0);
