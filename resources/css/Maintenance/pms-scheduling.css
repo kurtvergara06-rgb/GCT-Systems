@@ -2136,3 +2136,17 @@
   .pms-monitor-dialog .pms-monitor-body,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding:14px;}
   .pms-monitor-dialog .pms-monitor-footer {padding:12px 14px!important;}
 }
+
+/* Keep the searchable bus choices directly below the field (four visible rows). */
+.pms-monitor-dialog .pms-bus-picker {position:relative;z-index:20;}
+.pms-monitor-dialog .pms-bus-search-wrap {position:relative;}
+.pms-monitor-dialog .pms-bus-search-wrap>i {position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#7188a6;pointer-events:none;}
+.pms-monitor-dialog .pms-bus-search-wrap>input {padding-left:36px!important;}
+.pms-monitor-dialog .pms-bus-options {position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:120;max-height:164px;overflow-y:auto;overscroll-behavior:contain;padding:4px;background:#fff;border:1px solid #c8d9ee;border-radius:8px;box-shadow:0 12px 25px rgba(20,45,80,.18);}
+.pms-monitor-dialog .pms-bus-options[hidden],.pms-monitor-dialog .pms-bus-option[hidden],.pms-monitor-dialog .pms-bus-no-results[hidden] {display:none!important;}
+.pms-monitor-dialog .pms-bus-option {width:100%;display:block;padding:9px 11px;text-align:left;border:0;border-radius:5px;background:#fff;color:#1f3d62;font-size:12px;cursor:pointer;}
+.pms-monitor-dialog .pms-bus-option:hover,.pms-monitor-dialog .pms-bus-option:focus-visible {background:#eaf2ff;outline:none;}
+.pms-monitor-dialog .pms-bus-no-results {margin:0;padding:10px;font-size:12px;color:#64748b;}
+/* Allow popup lists room without clipping when the modal body is shorter than the menu. */
+.pms-monitor-dialog .pms-monitoring-form,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {overflow:visible;}
+.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding-bottom:20px;}
