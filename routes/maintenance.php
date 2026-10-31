@@ -8,6 +8,7 @@ use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
 use App\Http\Controllers\Maintenance\MaintenanceReferralController;
 use App\Http\Controllers\Maintenance\MechanicListController;
 use App\Http\Controllers\Maintenance\PmsSchedulingController;
+use App\Http\Controllers\Maintenance\BusPmsMonitoringController;
 use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Maintenance\PurchaseRequestIndexController;
 use App\Http\Controllers\Maintenance\ReferralJobOrderController;
@@ -41,6 +42,7 @@ Route::middleware([
             ->prefix('pms-scheduling')
             ->group(function () {
                 Route::get('/', 'index')->name('PMS-Scheduling');
+                Route::post('/monitoring', [BusPmsMonitoringController::class, 'store'])->middleware('system.permission:maintenance,approve')->name('pms-monitoring.store');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('pms-schedules.store');
                 Route::put('/{pmsSchedule}', 'update')->middleware('system.permission:maintenance,edit')->name('pms-schedules.update');
                 Route::delete('/{pmsSchedule}', 'destroy')->middleware('system.permission:maintenance,edit')->name('pms-schedules.destroy');
