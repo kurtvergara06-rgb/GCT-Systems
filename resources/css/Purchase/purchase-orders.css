@@ -1534,13 +1534,6 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 
 /* PO details reference styling: soft icon tiles, status chip, aligned signatures. */
 .po-detail-facts>div{position:relative;padding:12px 10px 12px 46px;min-height:58px;background:#fff}
-.po-detail-facts>div:before{position:absolute;left:10px;top:13px;width:27px;height:27px;display:grid;place-items:center;border-radius:7px;background:#eaf2ff;color:#1563c4;font:900 12px/1 "Font Awesome 6 Free";content:"\\f15c"}
-.po-detail-facts>div:nth-child(2):before{content:"\\f15c"}
-.po-detail-facts>div:nth-child(3):before{content:"\\f073"}
-.po-detail-facts>div:nth-child(4):before{content:"\\f058"}
-.po-detail-facts>div:nth-child(5):before{content:"\\f1ad"}
-.po-detail-facts>div:nth-child(6):before{content:"\\f0ad"}
-.po-detail-facts>div:nth-child(7):before{content:"\\f05a"}
 .po-detail-facts strong{font-size:12px;line-height:1.4}
 .po-detail-facts #poDetailStatus{display:inline-flex;align-items:center;width:max-content;border:1px solid #f2cb79;border-radius:5px;padding:4px 10px;background:#fff1d6;color:#9b6000}
 .po-detail-signature-card{min-height:215px;justify-content:space-between}
