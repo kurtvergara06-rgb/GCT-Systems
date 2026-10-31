@@ -90,15 +90,17 @@
                     </div>
 
 
+                    @if($canConfigurePms)
                     <button
                         type="button"
-                        class="pms-add-btn"
-                        data-modal-target="pmsConfigModal" class="open-pms-tasks-modal"
+                        class="pms-add-btn open-pms-tasks-modal"
+                        data-modal-target="pmsConfigModal"
                     >
                         <i class="fa-solid fa-plus"></i>
 
                         Configure PMS
                     </button>
+                    @endif
 
                 </div>
 
