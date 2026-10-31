@@ -211,6 +211,7 @@
                       @php
                         $detailPr = $purchaseOrder->relatedMaintenanceRequest();
                         $detailJo = $detailPr && $detailPr->job_order_no !== 'RESTOCK' ? \App\Models\Maintenance\JobOrder::where('job_order_no', $detailPr->job_order_no)->first() : null;
+                        $detailRestock = $detailPr?->source_type === 'Auto Restock';
                         $detailJoApprover = $detailJo?->approved_by ? \App\Models\Admin\User::find($detailJo->approved_by) : null;
                         $detailPoApprover = $purchaseOrder->approved_by ? \App\Models\Admin\User::find($purchaseOrder->approved_by) : null;
                       @endphp
@@ -219,9 +220,10 @@
                         class="action-btn view open-view-po-modal po-labeled-view"
                         data-detail-pr="{{ $detailPr?->pr_no ?? $purchaseOrder->first_pr_no ?? '' }}"
                         data-detail-jo="{{ $detailJo?->job_order_no ?? '' }}"
-                        data-detail-jo-approver="{{ $detailJoApprover?->name ?? '' }}"
-                        data-detail-jo-date="{{ $detailJo?->approved_at?->format('M d, Y h:i A') ?? '' }}"
-                        data-detail-jo-signature="{{ $detailJo && $detailJo->review_status === 'Approved' ? route('purchase.job-orders.approval-signature', $detailJo) : '' }}"
+                        data-detail-is-restock="{{ $detailRestock ? '1' : '0' }}"
+                        data-detail-jo-approver="{{ $detailRestock ? ($detailPr?->requester?->name ?? 'Warehouse Head') : ($detailJoApprover?->name ?? '') }}"
+                        data-detail-jo-date="{{ $detailRestock && $detailPr?->warehouse_approved_at ? \Illuminate\Support\Carbon::parse($detailPr->warehouse_approved_at)->format('M d, Y h:i A') : ($detailJo?->approved_at?->format('M d, Y h:i A') ?? '') }}"
+                        data-detail-jo-signature="{{ $detailRestock && $detailPr?->restock_signature_path ? route('inventory-restock.approval-signature', $detailPr->id) : ($detailJo && $detailJo->review_status === 'Approved' ? route('purchase.job-orders.approval-signature', $detailJo) : '') }}"
                         data-detail-po-approver="{{ $detailPoApprover?->name ?? '' }}"
                         data-detail-po-date="{{ $purchaseOrder->approved_at?->format('M d, Y h:i A') ?? '' }}"
                         data-detail-po-signature="{{ $purchaseOrder->approval_signature_path && $purchaseOrder->approved_at ? route('purchase-orders.approval-signature', $purchaseOrder) : '' }}"
@@ -515,7 +517,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         </div></section>
         <section class="po-detail-card"><h3><i class="fa-solid fa-box"></i> Purchase Items</h3><div class="po-detail-table-scroll"><table><thead><tr><th>#</th><th>Item Description</th><th>Quantity</th><th>Unit</th><th>Unit Cost</th><th>Amount</th></tr></thead><tbody id="poDetailItems"></tbody></table></div><div class="po-detail-total"><span>NET TOTAL</span><strong id="poDetailTotal">—</strong></div></section>
         <section class="po-detail-card"><h3><i class="fa-solid fa-file-signature"></i> Authorization Signatures</h3><div class="po-detail-signatures">
-          <div class="po-detail-signature-card"><h4>Maintenance Head — JO Approval</h4><div class="po-detail-signature-image"><img id="poDetailJoSignature" alt="Maintenance Head JO approval" hidden><p id="poDetailJoMissing">No approved JO signature available</p></div><strong id="poDetailJoApprover">—</strong><small id="poDetailJoDate">—</small></div>
+          <div class="po-detail-signature-card"><h4 id="poDetailSourceSignatureTitle">Maintenance Head — JO Approval</h4><div class="po-detail-signature-image"><img id="poDetailJoSignature" alt="Maintenance Head JO approval" hidden><p id="poDetailJoMissing">No approved JO signature available</p></div><strong id="poDetailJoApprover">—</strong><small id="poDetailJoDate">—</small></div>
           <div class="po-detail-signature-card"><h4>Purchase Head — PO Approval</h4><div class="po-detail-signature-image"><img id="poDetailPoSignature" alt="Purchase Head PO approval" hidden><p id="poDetailPoMissing">No approved PO signature available</p></div><strong id="poDetailPoApprover">—</strong><small id="poDetailPoDate">—</small></div>
         </div></section>
       </div><footer class="po-detail-footer"><button type="button" id="poDetailCloseBottom">Close</button></footer>
