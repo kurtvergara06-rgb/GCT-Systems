@@ -54,9 +54,18 @@
           <div>
             <span class="purchase-section-eyebrow">INVENTORY REPLENISHMENT</span>
             <h2>Inventory Restock Records</h2>
-            <p>Only active automatic warehouse restock requests are shown here. Completed records are available in Purchase History.</p>
+            <p>Warehouse inventory restocking requests, separated into active records and completed history.</p>
           </div>
         </div>
+
+        <nav class="restock-record-tabs" aria-label="Inventory restock record views">
+          <a href="{{ route('inventory-restock', ['record_view' => 'active']) }}" class="restock-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}" @if($recordView === 'active') aria-current="page" @endif>
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Active
+          </a>
+          <a href="{{ route('inventory-restock', ['record_view' => 'history']) }}" class="restock-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}" @if($recordView === 'history') aria-current="page" @endif>
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History
+          </a>
+        </nav>
 
         <x-ui.table-toolbar
           action="{{ route('inventory-restock', [], false) }}"
@@ -70,6 +79,7 @@
           default-sort="created_at"
           default-direction="desc"
         >
+          <x-slot:hidden><input type="hidden" name="record_view" value="{{ $recordView }}"></x-slot:hidden>
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All States">
               <option value="All States">All States</option>
@@ -177,7 +187,7 @@
                       <button
                         type="button"
                         class="restock-review-btn open-restock-view-modal"
-                        title="Review Restocking Request"
+                        title="{{ $recordView === 'history' ? 'View Completed Restocking Request' : 'Review Restocking Request' }}"
                         data-restock-no="{{ $restockRequest->display_pr_no }}"
                         data-source-type="{{ $restockRequest->source_type ?? 'Auto Restock' }}"
                         data-item="{{ $itemName }}"
@@ -189,7 +199,7 @@
                         data-items="{{ $displayItems->toJson() }}"
                         data-create-po-url="{{ ($restockRequest->status ?? '') === 'For Purchase' ? route('purchase-orders', ['create_from_pr' => $restockRequest->id]) : '' }}"
                       >
-                        <i class="fa-solid fa-eye" aria-hidden="true"></i> Review
+                        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
                       </button>
                     </div>
                   </td>
