@@ -7343,3 +7343,62 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .part-status-badge.for-purchase,.part-status-badge.is-waiting{background:#fff4df!important;color:#8e5b0e!important;border:1px solid #edce96!important}
 .part-status-badge.issued{background:#e8f8ef!important;color:#177b4b!important;border:1px solid #b8e8cb!important}
 .part-status-badge.rejected{background:#fff0ef!important;color:#b63b3b!important;border:1px solid #f3c5c2!important}
+
+/* Keep the custom job choice visible below the scrollable JO job catalog. */
+:is(#jobModal, #editJobModal) .jo-maintenance-job-other-footer {
+  flex: none;
+  padding: 7px 8px;
+  border-top: 1px solid #dce6f5;
+  background: #f8fbff;
+}
+:is(#jobModal, #editJobModal) .jo-maintenance-job-other-footer .jo-maintenance-job-category {
+  margin-bottom: 3px;
+}
+:is(#jobModal, #editJobModal) .jo-maintenance-job-option[hidden] {
+  display: none !important;
+}
+
+/* JO table: physical parts fulfillment stages have distinct semantic colors.
+   Scoped to this table so other modules' status badges remain unchanged. */
+.jo-page .job-orders-table .part-status-badge.not-issued {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.jo-page .job-orders-table .part-status-badge.waiting-for-parts {
+  background: #fff4df !important;
+  color: #8e5b0e !important;
+  border: 1px solid #edce96 !important;
+}
+.jo-page .job-orders-table .part-status-badge.partially-issued {
+  background: #e9edff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
+}
+.jo-page .job-orders-table .part-status-badge.issued {
+  background: #e8f8ef !important;
+  color: #177b4b !important;
+  border: 1px solid #b8e8cb !important;
+}
+
+/* Keep long physical parts statuses inside their own badges, not clipped at a
+   fixed badge width. Limited to the Job Orders Part Status column. */
+.jo-page .job-orders-table td.part-status-cell .part-status-badge {
+  width: max-content !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__label {
+  display: inline-block;
+  min-width: max-content;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__icon {
+  flex: 0 0 auto;
+  width: 12px;
+  text-align: center;
+}

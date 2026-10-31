@@ -211,9 +211,9 @@
                                     $partStatusClass = match ($partStatus) {
                                         'No Parts Required' => 'no-parts-needed',
                                         'Not Requested' => 'not-requested',
-                                        'Not Issued' => 'rejected',
-                                        'Partially Issued' => 'for-purchase',
-                                        'Waiting for Parts' => 'for-purchase',
+                                        'Not Issued' => 'not-issued',
+                                        'Partially Issued' => 'partially-issued',
+                                        'Waiting for Parts' => 'waiting-for-parts',
                                         'Fully Issued' => 'issued',
                                         default => 'not-requested',
                                     };
@@ -348,7 +348,13 @@
                                         @elseif($partStatus === 'Not Requested')
                                             <span class="jo-parts-not-requested-badge" title="Parts are required but have not yet been requested"><i class="fa-regular fa-clock" aria-hidden="true"></i> Not Requested</span>
                                         @else
-                                            <x-ui.status-badge :status="$partStatus" class="part-status-badge {{ $partStatusClass }}" />
+                                            <x-ui.status-badge :status="$partStatus" :icon="match ($partStatus) {
+                                                'Partially Issued' => 'fa-box-open',
+                                                'Waiting for Parts' => 'fa-clock',
+                                                'Fully Issued' => 'fa-circle-check',
+                                                'Not Issued' => 'fa-box',
+                                                default => null,
+                                            }" class="part-status-badge {{ $partStatusClass }}" />
                                         @endif
                                     </td>
 
@@ -397,9 +403,6 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            @if($hasPartsDelayRisk)
-                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are not yet fully issued. Check Warehouse availability and linked requests; any shortage may delay completion. Maintenance Head should review whether the estimated duration needs adjustment. This notice does not change the estimate.</p></div></div>
-                                        @endif
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
                                                                 <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
@@ -443,6 +446,15 @@
                                                                     </div>
                                                                 @else
                                                                     <strong>None required</strong>
+                                                                @endif
+                                                                @if($hasPartsDelayRisk)
+                                                                    <div class="jo-parts-delay-note" role="note">
+                                                                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                                        <div>
+                                                                            <strong>Possible Delay — Parts Shortage</strong>
+                                                                            <p>Some required parts are still pending. The estimated duration may need review if the shortage causes a delay.</p>
+                                                                        </div>
+                                                                    </div>
                                                                 @endif
                                                             </div>
                                                         </div>

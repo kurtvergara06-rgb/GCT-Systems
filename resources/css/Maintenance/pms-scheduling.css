@@ -505,6 +505,7 @@
     border-color: #fecaca;
 
     color: #c62828;
+    border-radius: 6px;
 }
 
 
@@ -1312,17 +1313,6 @@
 }
 
 /* =========================================================
-   DISABLED PLACEHOLDER
-========================================================= */
-
-.pms-tasks-popup .pms-action-placeholder {
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    color: #94a3b8;
-    cursor: default;
-}
-
-/* =========================================================
    CONSOLIDATED: resources/css/Maintenance/pms-table-scroll.css
 ========================================================= */
 /* PMS Scheduling: keep page controls visible while only the table records scroll. */
@@ -2053,3 +2043,21 @@
 .pms-page .pms-table-card > .gct-table-toolbar {
   margin-bottom: 16px;
 }
+
+/* Bus-level PMS overview: unknown mileage must be distinguishable from Upcoming. */
+.pms-page .pms-data-needed-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 26px;
+    padding: 4px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.pms-page .pms-table td small {font-size: 10px;color: #64748b;}
