@@ -44,7 +44,7 @@
         </x-ui.table-toolbar>
       </div>
 
-      <div class="table-wrap records-table-wrap">
+      <div class="table-wrap records-table-wrap schedule-scroll-table" role="region" aria-label="Scrollable purchase schedules" tabindex="0">
         <table class="schedule-table records-table">
           <thead>
             <tr>
@@ -56,22 +56,22 @@
               @php $displayStatus = $schedule->display_status; @endphp
               <tr>
                 <td>
-                  <div class="two-line-cell">
-                    <strong>{{ $schedule->schedule_name }}</strong>
+                  <div class="two-line-cell schedule-name-cell">
+                    <strong title="{{ $schedule->schedule_name }}">{{ $schedule->schedule_name }}</strong>
                     <small class="schedule-record-id">{{ $schedule->schedule_no }}</small>
                   </div>
                 </td>
-                <td><div class="two-line-cell"><strong>{{ $schedule->supplier_name }}</strong><small>{{ $schedule->supplier_contact ?: 'No contact details' }}</small></div></td>
-                <td>{{ $schedule->item }}</td>
+                <td><div class="two-line-cell schedule-supplier-cell"><strong title="{{ $schedule->supplier_name }}">{{ $schedule->supplier_name }}</strong><small>{{ $schedule->supplier_contact ?: 'No contact details' }}</small></div></td>
+                <td><span class="schedule-item-name" title="{{ $schedule->item }}">{{ $schedule->item }}</span></td>
                 <td class="center-text">{{ number_format((int) $schedule->quantity) }} {{ $schedule->unit }}</td>
                 <td class="center-text">{{ $schedule->frequency }}</td>
                 <td class="center-text"><div class="two-line-cell"><strong>{{ $schedule->next_purchase_date->format('M d, Y') }}</strong><small>{{ $schedule->next_purchase_date->format('l') }}</small></div></td>
                 <td class="center-text amount-cell">₱{{ number_format((float) $schedule->estimated_cost, 2) }}</td>
-                <td class="center-text"><x-ui.status-badge :status="$displayStatus" /></td>
+                <td class="center-text"><span class="schedule-status-wrapper"><x-ui.status-badge :status="$displayStatus" /></span></td>
                 <td class="center-text">
                   <div class="actions record-actions">
-                    <button type="button" class="action-btn view open-view-schedule" title="View" data-schedule='@json($schedule)'><i class="fa-solid fa-eye"></i></button>
-                    <button type="button" class="action-btn edit open-edit-schedule" title="Edit" data-schedule='@json($schedule)' data-update-url="{{ route('scheduled-purchase.update', $schedule) }}"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" class="action-btn view open-view-schedule" title="View" aria-label="View schedule {{ $schedule->schedule_no }}" data-schedule='@json($schedule)'><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" class="action-btn edit open-edit-schedule" title="Edit" aria-label="Edit schedule {{ $schedule->schedule_no }}" data-schedule='@json($schedule)' data-update-url="{{ route('scheduled-purchase.update', $schedule) }}"><i class="fa-solid fa-pen-to-square"></i></button>
 
                     @if($schedule->status !== 'Completed')
                       <form method="POST" action="{{ route('scheduled-purchase.toggle-status', $schedule) }}" data-confirm-form data-confirm-title="{{ $schedule->status === 'Paused' ? 'Resume Scheduled Purchase?' : 'Pause Scheduled Purchase?' }}" data-confirm-message="Are you sure you want to {{ $schedule->status === 'Paused' ? 'resume' : 'pause' }} {{ $schedule->schedule_name }}?" data-confirm-button="{{ $schedule->status === 'Paused' ? 'Yes, Resume' : 'Yes, Pause' }}" data-confirm-type="status">
