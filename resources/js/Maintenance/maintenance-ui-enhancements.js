@@ -240,6 +240,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       menu.querySelector('.jo-maintenance-job-other-footer')?.replaceChildren();
 
       const categoryFor = (name) => {
+        if (name === 'Other') return 'CUSTOM JOB';
         if (/brake/i.test(name)) return 'BRAKE SYSTEM';
         if (/oil|filter|fuel|engine|radiator|cooling|exhaust|transmission|clutch/i.test(name)) return 'ENGINE & LUBRICATION';
         if (/tire|wheel|steering|suspension|chassis/i.test(name)) return 'CHASSIS & SUSPENSION';
