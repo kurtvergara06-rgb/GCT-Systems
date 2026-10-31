@@ -142,7 +142,7 @@
                   <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
-                  <td class="inventory-safety-stock-cell"><span title="Safety Stock calculation has not yet been configured">Not set</span></td>
+                  <td class="inventory-safety-stock-cell"><span>{{ $item->safety_stock === null ? 'Not set' : $item->safety_stock }}</span></td>
                   <td>
                     <div class="warehouse-inventory-status-stack">
                       <x-ui.status-badge
@@ -176,6 +176,7 @@
                           data-quantity="{{ $item->on_hand }}"
                           data-unit="{{ $item->unit_of_measurement }}"
                           data-reorder="{{ $item->reorder_level }}"
+                          data-safety-stock="{{ $item->safety_stock }}"
                           data-supplier="{{ $item->supplier }}"
                           data-location="{{ $item->storage_location }}"
                       >
@@ -258,7 +259,7 @@
             </div>
             <div class="form-group">
               <label>Category</label>
-              <input type="text" name="category" required placeholder="Example: Engine Parts">
+              <input type="text" name="category" list="inventory-category-options" required placeholder="Select or enter category">
             </div>
           </div>
         </section>
@@ -267,16 +268,20 @@
           <h3>02 — Stock Information</h3>
           <div class="form-grid">
             <div class="form-group">
-              <label>Quantity Available</label>
+              <label>Initial Quantity</label>
               <input type="number" name="on_hand" min="0" required>
             </div>
             <div class="form-group">
               <label>Unit of Measurement</label>
-              <input type="text" name="unit_of_measurement" required placeholder="Example: pcs, liter, box">
+              <input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="Select or enter unit">
             </div>
             <div class="form-group">
-              <label>Reorder Level</label>
+              <label>Reorder Point</label>
               <input type="number" name="reorder_level" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Safety Stock</label>
+              <input type="number" name="safety_stock" min="0" placeholder="Optional">
             </div>
           </div>
         </section>
@@ -304,6 +309,17 @@
 
     </div>
   </div>
+
+  <datalist id="inventory-category-options">
+    @foreach($categories as $category)
+      <option value="{{ $category }}"></option>
+    @endforeach
+  </datalist>
+  <datalist id="inventory-unit-options">
+    @foreach(['pcs', 'set', 'box', 'liter', 'pair', 'pack', 'roll', 'meter', 'kg', 'unit'] as $unitOption)
+      <option value="{{ $unitOption }}"></option>
+    @endforeach
+  </datalist>
 
   {{-- EDIT MODAL --}}
   <div class="modal-overlay inventory-form-modal-overlay" id="editModal">
@@ -339,7 +355,7 @@
             </div>
             <div class="form-group">
               <label>Category</label>
-              <input type="text" name="category" id="edit_category" required>
+              <input type="text" name="category" id="edit_category" list="inventory-category-options" required>
             </div>
           </div>
         </section>
@@ -348,16 +364,20 @@
           <h3>02 — Stock Information</h3>
           <div class="form-grid">
             <div class="form-group">
-              <label>Quantity Available</label>
+              <label>On Hand (adjustment requires reason)</label>
               <input type="number" name="on_hand" id="edit_quantity" min="0" required>
             </div>
             <div class="form-group">
               <label>Unit of Measurement</label>
-              <input type="text" name="unit_of_measurement" id="edit_unit" required>
+              <input type="text" name="unit_of_measurement" id="edit_unit" list="inventory-unit-options" required>
             </div>
             <div class="form-group">
-              <label>Reorder Level</label>
+              <label>Reorder Point</label>
               <input type="number" name="reorder_level" id="edit_reorder" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Safety Stock</label>
+              <input type="number" name="safety_stock" id="edit_safety_stock" min="0" placeholder="Optional">
             </div>
             <div class="form-group full-width">
               <label for="edit_adjustment_reason">Stock adjustment reason <span id="editAdjustmentRequiredMark" hidden>*</span></label>
@@ -416,7 +436,8 @@
           <div class="details-grid">
             <div class="detail-item"><span>Quantity Available</span><strong id="view_quantity">—</strong></div>
             <div class="detail-item"><span>Unit</span><strong id="view_unit">—</strong></div>
-            <div class="detail-item"><span>Reorder Level</span><strong id="view_reorder">—</strong></div>
+            <div class="detail-item"><span>Reorder Point</span><strong id="view_reorder">—</strong></div>
+            <div class="detail-item"><span>Safety Stock</span><strong id="view_safety_stock">—</strong></div>
             <div class="detail-item"><span>Status</span><strong id="view_status">—</strong></div>
           </div>
         </section>
