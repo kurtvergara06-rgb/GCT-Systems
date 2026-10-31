@@ -185,6 +185,17 @@ class GctDateTimePicker {
         this.activeInput = input;
         this.activeTrigger = trigger;
 
+        // Keep modal-owned calendar interactions inside the modal's DOM tree.
+        // Portalling to body can break focus containment and pointer handling.
+        if (input.dataset.pickerPlacement === 'below') {
+            const modal = input.closest('.pms-monitor-dialog');
+            if (modal && this.popover.parentElement !== modal) {
+                modal.appendChild(this.popover);
+            }
+        } else if (this.popover.parentElement !== document.body) {
+            document.body.appendChild(this.popover);
+        }
+
         if (input.type === 'date') {
             this.prepareDateState(input.value);
             this.renderCalendar(false);
@@ -538,7 +549,7 @@ class GctDateTimePicker {
         if (this.activeInput?.dataset.pickerPlacement === 'below') {
             // The calendar is portalled to <body>, outside its parent modal.
             // Keep it above modal/backdrop stacking layers so days receive clicks.
-            this.popover.style.zIndex = '2147483647';
+            this.popover.style.zIndex = '';
             // PMS modal: keep the calendar under its date field, using internal
             // scrolling when there is insufficient viewport height.
             this.popover.style.maxHeight = `${Math.max(120, window.innerHeight - top - margin)}px`;
