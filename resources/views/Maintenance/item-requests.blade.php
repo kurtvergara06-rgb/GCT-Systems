@@ -206,7 +206,7 @@
                                     <small>{{ $fulfillment['remaining'] }} remaining</small>
                                 </div>
                             </td>
-                            <td><span class="ir-status">{{ $ir->status }}</span></td>
+                            <td><span class="ir-status">{{ $fulfillment['remaining'] > 0 && in_array($ir->status, ['Issued', 'Partially Issued'], true) ? 'Partially Issued' : $ir->status }}</span></td>
                             <td>
                                 @if($ir->jobOrder)
                                     <span class="ir-release-badge {{ $issueAvailable ? 'is-partial' : 'is-waiting' }}"><i class="fa-solid {{ $issueAvailable ? 'fa-circle-check' : 'fa-clock' }}" aria-hidden="true"></i> {{ $issueAvailable ? 'Issue Available Only' : 'Wait Until Complete' }}</span>
