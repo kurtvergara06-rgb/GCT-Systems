@@ -31,6 +31,12 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     }
   }
 
+  const restockPrModal = document.getElementById('warehouseRestockPrModal');
+  document.querySelector('[data-open-restock-pr]')?.addEventListener('click', function (event) {
+    event.preventDefault();
+    openModal(restockPrModal);
+  });
+
   function closeAllModals() {
     document
       .querySelectorAll(
