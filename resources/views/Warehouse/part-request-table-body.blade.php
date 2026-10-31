@@ -1,5 +1,14 @@
             <tbody>
               @foreach($purchaseRequests as $partRequest)
+                @php
+                  // Initialize display values for every row before branching so
+                  // Blade-rendered shared table fragments never reference undefined variables.
+                  $itemName = $partRequest->first_item_display ?? $partRequest->item ?? '—';
+                  $quantity = $partRequest->first_quantity_display ?? (string) ($partRequest->quantity ?? 0);
+                  $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
+                  $partDetails = collect($partRequest->parts_breakdown ?? []);
+                  $multipleParts = $partDetails->count() > 1;
+                @endphp
                 @if($partRequest->source_type === 'Auto Restock')
                   @php($restockLines = collect(json_decode((string) $partRequest->restock_items, true) ?: []))
                   <tr>
