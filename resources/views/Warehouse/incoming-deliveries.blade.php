@@ -117,7 +117,14 @@
                       </details>
                     @endif
                   </td>
-                  <td>{{ $quantitySummary }}@if($delivery->is_partially_received)<small style="display:block;color:#a35e0d;font-size:10px;margin-top:3px">{{ $delivery->receipt_progress['received'] }} received · {{ $delivery->receipt_progress['remaining'] }} remaining</small>@endif</td>
+                  <td>
+                    @php $progress = $delivery->receipt_progress; @endphp
+                    <div class="po-receipt-progress" aria-label="{{ $progress['received'] }} of {{ $progress['ordered'] }} units received; {{ $progress['remaining'] }} remaining">
+                      <div class="po-receipt-top"><span>Ordered</span><strong>{{ $progress['ordered'] }}</strong></div>
+                      <div class="po-receipt-track"><span class="{{ $progress['remaining'] === 0 ? 'is-complete' : '' }}" style="width:{{ $progress['ordered'] > 0 ? min(100, round($progress['received'] * 100 / $progress['ordered'])) : 0 }}%"></span></div>
+                      <div class="po-receipt-bottom"><span class="po-receipt-done">{{ $progress['received'] }} received</span><span class="po-receipt-left">{{ $progress['remaining'] }} remaining</span></div>
+                    </div>
+                  </td>
                   <td>
                     @if($delivery->po_date)
                       <div class="incoming-date-stack">
