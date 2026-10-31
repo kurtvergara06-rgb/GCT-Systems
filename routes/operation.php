@@ -203,7 +203,6 @@ Route::middleware(['role:operation:head,operation:staff,maintenance:head,mainten
         Route::get('/', 'index')->name('mechanic-attendance');
         Route::post('/', 'store')->name('mechanic-attendance.store');
         Route::put('/{mechanicAttendance}', 'update')->name('mechanic-attendance.update');
-        Route::post('/{mechanicAttendance}/time-out', 'recordTimeOut')->name('mechanic-attendance.time-out');
         Route::delete('/{mechanicAttendance}', 'destroy')->name('mechanic-attendance.destroy');
         Route::post('/import', 'import')->name('mechanic-attendance.import');
     });

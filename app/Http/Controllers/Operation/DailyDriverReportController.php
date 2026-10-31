@@ -255,13 +255,13 @@ class DailyDriverReportController extends Controller
             $selectedSchedule = TripSchedule::query()
                 ->whereKey($validated['selected_trip_schedule_id'])
                 ->whereDate('trip_date', $validated['report_date'])
-                ->whereIn('status', ['Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+                ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
                 ->first();
             $selectedAssignment = $selectedSchedule?->assignments()
                 ->where('driver_id', $validated['driver_id'])
                 ->where('bus_id', $validated['bus_id'])
                 ->first();
-            if (! $selectedSchedule || ! $selectedAssignment || ! $this->actualArrivalIsValid($validated['report_date'], $validated['departure_time'], $validated['arrival_time'])) {
+            if (! $selectedSchedule || ! $selectedAssignment || $selectedSchedule->estimatedArrivalDateTime()->isFuture()) {
                 throw ValidationException::withMessages([
                     'selected_trip_schedule_id' => 'The selected trip does not match the report date, driver, and bus. Re-select the assigned trip.',
                 ]);
@@ -296,13 +296,13 @@ class DailyDriverReportController extends Controller
             $schedule = TripSchedule::query()
                 ->whereKey($scheduleId)
                 ->whereDate('trip_date', $validated['report_date'])
-                ->whereIn('status', ['Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+                ->whereIn('status', ['Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
                 ->first();
             $assignment = $schedule?->assignments()
                 ->where('driver_id', $validated['driver_id'])
                 ->where('bus_id', $validated['bus_id'])
                 ->first();
-            if (! $schedule || ! $assignment || ! $this->actualArrivalIsValid($validated['report_date'], $entry['departure_time'], $entry['arrival_time'])
+            if (! $schedule || ! $assignment || $schedule->estimatedArrivalDateTime()->isFuture()
                 || in_array($assignment->id, $claimedAssignmentIds, true)
                 || DailyDriverReport::query()->where('trip_assignment_id', $assignment->id)->exists()
                 || DailyDriverReportTripEntry::query()->where('trip_assignment_id', $assignment->id)->exists()) {
@@ -597,40 +597,18 @@ class DailyDriverReportController extends Controller
             ->with('success', 'The unlinked daily driver report was deleted.');
     }
 
-    /** Actual recorded arrival, not scheduled ETA, determines DDR readiness. */
-    private function actualArrivalIsValid(string $reportDate, string $departure, string $arrival): bool
-    {
-        $zone = config('app.business_timezone', 'Asia/Manila');
-        $start = \Carbon\CarbonImmutable::createFromFormat('!Y-m-d H:i', $reportDate.' '.$departure, $zone);
-        $end = \Carbon\CarbonImmutable::createFromFormat('!Y-m-d H:i', $reportDate.' '.$arrival, $zone);
-        if ($end->lt($start)) {
-            $end = $end->addDay();
-        }
-        return $end->greaterThanOrEqualTo($start) && $end->lessThanOrEqualTo(now($zone));
-    }
-
     public function assignedDrivers(Request $request): JsonResponse
     {
         $validated = $request->validate(['report_date' => ['required', 'date_format:Y-m-d']]);
-        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        if ($validated['report_date'] > $today) {
-            return response()->json(['driver_ids' => [], 'bus_ids' => []]);
-        }
+        $driverIds = \App\Models\Operation\TripAssignment::query()
+            ->whereHas('tripSchedule', fn ($query) => $query
+                ->whereDate('trip_date', $validated['report_date'])
+                ->whereNotIn('status', ['Cancelled', 'Missed']))
+            ->distinct()
+            ->pluck('driver_id')
+            ->values();
 
-        // Use the same eligibility rule as scheduleLookup and DDR submission.
-        // Dispatched trips may finish before ETA; actual arrival is validated on submission.
-        $eligibleSchedules = TripSchedule::query()
-            ->whereDate('trip_date', $validated['report_date'])
-            ->whereIn('status', ['Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
-            ->get();
-        $assignments = \App\Models\Operation\TripAssignment::query()
-            ->whereIn('trip_schedule_id', $eligibleSchedules->pluck('id'))
-            ->get(['driver_id', 'bus_id']);
-
-        return response()->json([
-            'driver_ids' => $assignments->pluck('driver_id')->filter()->unique()->values(),
-            'bus_ids' => $assignments->pluck('bus_id')->filter()->unique()->values(),
-        ]);
+        return response()->json(['driver_ids' => $driverIds]);
     }
 
     public function scheduleLookup(Request $request): JsonResponse
@@ -654,7 +632,7 @@ class DailyDriverReportController extends Controller
                     ->with('bus'),
             ])
             ->whereDate('trip_date', $validated['report_date'])
-            ->whereIn('status', ['Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+            ->whereNotIn('status', ['Cancelled', 'Missed'])
             ->whereHas('assignments', function ($query) use ($validated): void {
                 if (! empty($validated['driver_id'])) {
                     $query->where('driver_id', $validated['driver_id']);
@@ -669,7 +647,7 @@ class DailyDriverReportController extends Controller
                 'departure_time', 'estimated_arrival_time', 'estimated_arrival_date', 'status',
             ]);
 
-        $rows = $schedules
+        $rows = $schedules->filter(fn (TripSchedule $schedule) => ! $schedule->estimatedArrivalDateTime()->isFuture())
             ->flatMap(function (TripSchedule $schedule) use ($validated) {
             return $schedule->assignments
                 ->filter(fn ($assignment) => empty($validated['bus_id'])

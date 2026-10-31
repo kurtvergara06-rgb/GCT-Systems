@@ -21,15 +21,14 @@ class BatchAttendanceController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    private const GRACE_MINUTES = 10;
-
     private const SHIFT_STARTS = [
         'Morning' => '06:00:00',
         'Afternoon' => '14:00:00',
     ];
 
+    private const GRACE_MINUTES = 10;
+
     private const MECHANIC_SHIFT_START = '08:00:00';
-    private const MECHANIC_SHIFT_END = '17:00:00';
 
     public function roster(Request $request, string $type): JsonResponse
     {
@@ -61,19 +60,15 @@ class BatchAttendanceController extends Controller
             ->get()
             ->keyBy($idColumn);
 
-        // The new-entry roster includes only personnel without a saved
-        // attendance record for the selected date. Time-out updates belong
-        // to the existing attendance record, not this creation modal.
-        $people = $people->reject(function ($person) use ($dateRecords, $idColumn, $type): bool {
-            $record = $dateRecords->get((string) $person->{$idColumn});
-            if (! $record || in_array($record->status, ['Unmarked', null, ''], true)) {
-                return false;
-            }
-            return $type !== 'mechanic'
-                || ! in_array($record->status, ['Present', 'Late', 'On Duty'], true)
-                || ! $record->time_in
-                || (bool) $record->time_out;
-        })->values();
+        // For drivers, show only personnel who still need attendance for
+        // this date. A saved Present, Absent or On Leave record must not
+        // reappear in the new-entry modal.
+        if ($type === 'driver') {
+            $people = $people->reject(
+                fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
+                    && ! in_array($record->status, ['Unmarked', null, ''], true)
+            )->values();
+        }
 
         $rows = $people->map(function ($person) use (
             $dateRecords,
@@ -111,9 +106,7 @@ class BatchAttendanceController extends Controller
             'type' => $type,
             'date' => $date,
             'grace_minutes' => self::GRACE_MINUTES,
-            'shift_starts' => $type === 'mechanic'
-                ? ['Morning' => self::MECHANIC_SHIFT_START]
-                : self::SHIFT_STARTS,
+            'shift_starts' => self::SHIFT_STARTS,
             'rows' => $rows,
         ]);
     }
@@ -192,28 +185,11 @@ class BatchAttendanceController extends Controller
                         ->whereDate('attendance_date', $date)
                         ->lockForUpdate()->first();
 
-                    // A previously checked-in mechanic may record only the
-                    // missing time-out here. Never overwrite the saved time-in
-                    // or attendance status, and never touch finalized records.
-                    if ($type === 'mechanic' && $existing
-                        && in_array($existing->status, ['Present', 'Late', 'On Duty'], true)
-                        && $existing->time_in && ! $existing->time_out) {
-                        $timeOut = $row['time_out'] ?? null;
-                        $savedIn = substr((string) $existing->time_in, 0, 5);
-                        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-                        if (! $timeOut || $date !== $today || $timeOut <= $savedIn
-                            || $timeOut > now(config('app.business_timezone', 'Asia/Manila'))->format('H:i')) {
-                            throw ValidationException::withMessages([
-                                "rows.{$index}.time_out" => 'Enter a valid actual time-out after the saved time-in and not in the future.',
-                            ]);
-                        }
-                        $existing->update(['time_out' => $timeOut.':00']);
-                        $saved++;
-                        continue;
-                    }
+                    // A batch is create-only: never silently replace an existing
+                    // daily record, including one linked to a trip or job order.
                     if ($existing && ! in_array($existing->status, ['Unmarked', null, ''], true)) {
                         throw ValidationException::withMessages([
-                            "rows.{$index}.person_id" => 'Attendance is already finalized for this person on the selected date. Refresh the roster.',
+                            "rows.{$index}.person_id" => 'Attendance is already recorded for this person on the selected date. Refresh the roster.',
                         ]);
                     }
 
@@ -250,7 +226,7 @@ class BatchAttendanceController extends Controller
                         }
 
                         $status = $type === 'mechanic'
-                            ? $this->attendanceStatus($timeIn)
+                            ? $this->attendanceStatus($row['shift'], $timeIn)
                             : 'Present';
                     }
 
@@ -308,7 +284,7 @@ class BatchAttendanceController extends Controller
         ]);
     }
 
-    private function attendanceStatus(string $timeIn): string
+    private function attendanceStatus(string $shift, string $timeIn): string
     {
         $start = Carbon::createFromFormat('H:i:s', self::MECHANIC_SHIFT_START);
         $actual = Carbon::createFromFormat('H:i', $timeIn);

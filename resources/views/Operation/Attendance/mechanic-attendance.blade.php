@@ -18,12 +18,6 @@
   @endphp
 
   <style>
-    .mechanic-attendance-profile { display: flex; align-items: center; gap: 10px; min-width: 175px; }
-    .mechanic-attendance-profile-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; border: 1px solid #cfe0ff; border-radius: 9px; background: #e7f0ff; color: #1a5bd1; font-size: 14px; }
-    .mechanic-attendance-profile-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-    .mechanic-attendance-profile-info strong { font-size: 12px; font-weight: 750; color: #172d50; line-height: 1.25; }
-    .mechanic-attendance-profile-info small { font-size: 10px; color: #627794; line-height: 1.2; }
-
     .badge.leave {
       display: inline-flex;
       align-items: center;
@@ -158,21 +152,8 @@
 
                 <tr>
                   <td><span class="system-id-badge system-id-badge--small">{{ $attendance->mechanic_id }}</span></td>
-                  <td>
-                    <div class="mechanic-attendance-profile">
-                      <span class="mechanic-attendance-profile-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-                      <span class="mechanic-attendance-profile-info">
-                        <strong>{{ $attendance->mechanic_name }}</strong>
-                        <small>Mechanic profile</small>
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;max-width:300px">
-                      <span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span>
-
-                    </div>
-                  </td>
+                  <td><span class="mechanic-attendance-name-chip">{{ $attendance->mechanic_name }}</span></td>
+                  <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
                   <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
@@ -191,15 +172,6 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
                       @if($canEditMechanicAttendance)
-                      @if(!$attendance->time_out && $attendance->time_in && in_array($attendance->status, ['Present', 'Late', 'On Duty'], true) && $attendance->attendance_date?->toDateString() === now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-                      <button type="button" class="action-btn open-mechanic-timeout-modal"
-                        title="Record Time-out" aria-label="Record time-out for {{ $attendance->mechanic_name }}"
-                        data-name="{{ $attendance->mechanic_name }}"
-                        data-time-in="{{ date('h:i A', strtotime($attendance->time_in)) }}"
-                        data-action="{{ route('mechanic-attendance.time-out', $attendance->id, false) }}">
-                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-                      </button>
-                      @endif
                       <button type="button" class="action-btn edit open-edit-attendance-modal"
                         @if($attendance->has_active_job) disabled aria-disabled="true" title="Locked: active Maintenance Job Order" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
@@ -254,33 +226,6 @@
       </section>
     </main>
   </div>
-
-  @if($canEditMechanicAttendance)
-  <div id="recordMechanicTimeOutModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="recordMechanicTimeOutTitle" style="max-width:490px">
-      <div class="modal-header">
-        <h2 id="recordMechanicTimeOutTitle">Record Mechanic Time-out</h2>
-        <button type="button" class="close-btn" data-close-mechanic-timeout aria-label="Close">&times;</button>
-      </div>
-      <form id="recordMechanicTimeOutForm" method="POST">
-        @csrf
-        <div style="padding:20px 24px">
-          <p style="margin:0 0 12px">Mechanic: <strong id="mechanicTimeOutName"></strong></p>
-          <p style="margin:0 0 18px">Recorded time-in: <strong id="mechanicTimeOutIn"></strong></p>
-          <div class="form-group">
-            <label for="mechanicTimeOutValue">Actual time-out</label>
-            <input id="mechanicTimeOutValue" name="time_out" type="time" required>
-          </div>
-          <p style="margin:12px 0 0;color:#64748b;font-size:12px">This updates the existing attendance record without changing time-in or status.</p>
-        </div>
-        <div class="modal-actions full-width" style="padding:14px 24px">
-          <button type="button" class="cancel-btn" data-close-mechanic-timeout>Cancel</button>
-          <button type="submit" class="save-btn">Save Time-out</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  @endif
 
   <div id="viewMechanicAttendanceModal" class="modal-overlay">
     <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="viewMechanicAttendanceTitle">

@@ -104,7 +104,6 @@ class DriverAttendanceController extends Controller
         $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
 
         $nextDriverId = 'From Driver Master List';
-        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
 
         return view('Operation.Attendance.driver-attendance', compact(
             'driverAttendances',
@@ -116,7 +115,6 @@ class DriverAttendanceController extends Controller
             'late',
             'onDuty',
             'nextDriverId',
-            'canEditOperation',
             'summaryDate',
             'activeTab'
         ));

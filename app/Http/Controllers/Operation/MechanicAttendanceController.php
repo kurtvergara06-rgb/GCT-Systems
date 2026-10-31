@@ -73,7 +73,7 @@ class MechanicAttendanceController extends Controller
 
             if ($names->isNotEmpty()) {
                 $activeJobsByMechanic = JobOrder::query()->with('mechanicAssignments')
-                    ->whereIn('status', ['On Going', 'On Hold'])
+                    ->where('status', 'On Going')
                     ->where('review_status', 'Approved')
                     ->orderByDesc('id')
                     ->get()
@@ -86,7 +86,6 @@ class MechanicAttendanceController extends Controller
                         return $assignedNames->filter(fn ($name) => $names->contains($name))->map(fn ($name) => (object) [
                             'mechanic_name' => $name,
                             'job_order_no' => $jobOrder->job_order_no,
-                            'work_to_perform' => trim((string) $jobOrder->work_to_perform),
                         ]);
                     })->groupBy(fn ($job) => mb_strtolower(trim((string) $job->mechanic_name)));
             }
@@ -97,9 +96,6 @@ class MechanicAttendanceController extends Controller
             $attendance->display_assigned_job = $jobs && $jobs->isNotEmpty()
                 ? $jobs->pluck('job_order_no')->filter()->unique()->implode(', ')
                 : (trim((string) $attendance->assigned_job) ?: 'Unassigned');
-            $attendance->display_assigned_work = $jobs && $jobs->isNotEmpty()
-                ? $jobs->pluck('work_to_perform')->filter()->unique()->implode(' / ')
-                : '';
         });
 
         // Preload active JO names for permission-aware Edit buttons.
@@ -162,7 +158,6 @@ class MechanicAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
-            'mechanic_id' => 'nullable|string|max:255',
             'shift' => 'required|string|in:Morning',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
@@ -170,18 +165,9 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $mechanicQuery = Mechanic::query();
-        if (! empty($validated['mechanic_id'])) {
-            $mechanicQuery->where('mechanic_id', $validated['mechanic_id']);
-        } else {
-            $mechanicQuery->where('mechanic_name', $validated['mechanic_name']);
-            if ((clone $mechanicQuery)->count() > 1) {
-                throw ValidationException::withMessages([
-                    'mechanic_id' => 'Two mechanics have this name. Select the correct Mechanic ID.',
-                ]);
-            }
-        }
-        $mechanic = $mechanicQuery->first();
+        $mechanic = Mechanic::query()
+            ->where('mechanic_name', $validated['mechanic_name'])
+            ->first();
 
         if (! $mechanic) {
             if ($request->ajax() || $request->expectsJson()) {
@@ -210,10 +196,7 @@ class MechanicAttendanceController extends Controller
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = 'Morning';
-        if (! in_array($validated['status'], ['Absent', 'On Leave'], true) && ! empty($validated['time_in'])) {
-            $validated['status'] = $validated['time_in'] > '08:00' ? 'Late' : 'Present';
-        }
+        $validated['shift'] = $validated['shift'];
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -282,10 +265,7 @@ class MechanicAttendanceController extends Controller
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;
         $validated['mechanic_name'] = $mechanic->mechanic_name;
-        $validated['shift'] = 'Morning';
-        if (! in_array($validated['status'], ['Absent', 'On Leave'], true) && ! empty($validated['time_in'])) {
-            $validated['status'] = $validated['time_in'] > '08:00' ? 'Late' : 'Present';
-        }
+        $validated['shift'] = $validated['shift'];
 
         // Prevent an ongoing Maintenance Job Order from being made unavailable
         // or moved to a different attendance day.
@@ -324,49 +304,6 @@ class MechanicAttendanceController extends Controller
 
         return redirect()->route('mechanic-attendance')
             ->with('success', 'Mechanic attendance record updated successfully.');
-    }
-
-    public function recordTimeOut(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
-    {
-        $this->authorizeModuleAction($request, 'edit');
-        $validated = $request->validate(['time_out' => ['required', 'date_format:H:i']]);
-        $zone = config('app.business_timezone', 'Asia/Manila');
-        $today = now($zone)->toDateString();
-
-        DB::transaction(function () use ($mechanicAttendance, $validated, $zone, $today): void {
-            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)
-                ->lockForUpdate()->firstOrFail();
-            $attendance = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
-            if ($attendance->attendance_date?->toDateString() !== $today
-                || ! in_array($attendance->status, ['Present', 'Late', 'On Duty'], true)
-                || ! $attendance->time_in
-                || $attendance->time_out) {
-                throw ValidationException::withMessages([
-                    'time_out' => 'Time-out requires a current-day checked-in mechanic without an existing time-out.',
-                ]);
-            }
-
-            $timeIn = substr((string) $attendance->time_in, 0, 5);
-            $timeOut = $validated['time_out'];
-            if ($timeOut <= $timeIn || $timeOut > now($zone)->format('H:i')) {
-                throw ValidationException::withMessages([
-                    'time_out' => 'Time-out must be after time-in and cannot be in the future.',
-                ]);
-            }
-
-            $attendance->update(['time_out' => $timeOut.':00']);
-        });
-
-        $this->broadcastSystemDataUpdated(
-            $this->moduleName($request),
-            'Attendance',
-            'updated',
-            $mechanicAttendance->id,
-            'Mechanic time-out recorded.'
-        );
-
-        return redirect()->route('mechanic-attendance')
-            ->with('success', 'Mechanic time-out recorded successfully.');
     }
 
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
@@ -475,11 +412,7 @@ class MechanicAttendanceController extends Controller
 
                 try {
                     $status = trim($data['status'] ?? 'Present');
-                    $importTimeIn = $this->parseCsvTime($data['time_in'] ?? null);
-                    if (! in_array($status, ['Absent', 'On Leave'], true) && $importTimeIn) {
-                        $status = substr((string) $importTimeIn, 0, 5) > '08:00' ? 'Late' : 'Present';
-                    }
-                    if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
+                    if (! in_array($status, ['Present', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 

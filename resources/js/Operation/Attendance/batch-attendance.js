@@ -19,7 +19,6 @@ function initBatchAttendancePage() {
 
     let shiftStarts = {};
     let graceMinutes = 10;
-    let mechanicMode = 'in';
 
     button.addEventListener('click', openModal);
 
@@ -40,13 +39,12 @@ function initBatchAttendancePage() {
                         <div class="batch-title-row">
                             <i class="fa-regular fa-calendar-check"></i>
                             <div>
-                                <h2>${type === 'mechanic' ? 'Manage Daily Attendance' : 'Record Daily Attendance'}</h2>
+                                <h2>Record Daily Attendance</h2>
                                 <p>${modalDescription}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="batch-header-actions" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end">
-                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button></div>
+                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
                 </div>
 
                 <div class="batch-attendance-controls">
@@ -71,7 +69,6 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchUseCurrentTime"><i class="fa-regular fa-clock"></i> Use Current Time</button>
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
-                        ${type === 'mechanic' ? `<div class="batch-attendance-switch" role="group" aria-label="Attendance entry mode" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin-left:auto"><button type="button" class="batch-control-btn" data-mechanic-mode="in" aria-pressed="true"><i class="fa-solid fa-right-to-bracket"></i> Time-in</button><button type="button" class="batch-control-btn" data-mechanic-mode="out" aria-pressed="false"><i class="fa-solid fa-right-from-bracket"></i> Time-out</button><span id="batchMechanicModeCount" style="font-size:12px;color:#64748b;white-space:nowrap"></span></div>` : ''}
                     </div>
                     ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
@@ -79,8 +76,8 @@ function initBatchAttendancePage() {
                 <div class="batch-shared-time-layer" id="batchSharedTimeLayer" hidden>
                     <div class="batch-shared-time-dialog" role="dialog" aria-modal="true" aria-labelledby="batchSharedTimeTitle">
                         <h3 id="batchSharedTimeTitle"><i class="fa-regular fa-clock"></i> Apply Time to Selected</h3>
-                        <p>Apply the selected time to Time-in for new attendance, or Time-out for checked-in mechanics.</p>
-                        <label for="batchSharedTimeInput">Attendance Time</label>
+                        <p>Choose a time-in for the selected available personnel.</p>
+                        <label for="batchSharedTimeInput">Time In</label>
                         <input type="time" id="batchSharedTimeInput" required />
                         <div class="batch-shared-time-actions">
                             <button type="button" class="secondary-btn" id="batchSharedTimeCancel">Cancel</button>
@@ -111,7 +108,7 @@ function initBatchAttendancePage() {
                     </div>
                     <div class="batch-attendance-note">
                         <i class="fa-solid fa-circle-info"></i>
-                        <span>${type === 'mechanic' ? 'New mechanics: record Time-in. Checked-in mechanics: enter Time-out; saved Time-in and status remain locked.' : 'Drivers remain Present when checked in.'}</span>
+                        <span>Mechanics are marked Late after the grace period; drivers remain Present when checked in.</span>
                     </div>
                 </div>
 
@@ -131,12 +128,6 @@ function initBatchAttendancePage() {
         overlay.querySelectorAll('[data-batch-close]').forEach((el) => {
             el.addEventListener('click', closeModal);
         });
-        overlay.querySelectorAll('[data-mechanic-mode]').forEach(button => {
-            button.addEventListener('click', () => {
-                mechanicMode = button.dataset.mechanicMode;
-                updateMechanicMode();
-            });
-        });
         overlay.querySelector('#batchAttendanceDate').addEventListener('change', loadRoster);
         overlay.querySelector('#batchAttendanceShift').addEventListener('change', loadRoster);
         overlay.querySelector('#batchDriverSearch')?.addEventListener('input', (event) => {
@@ -148,8 +139,8 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
-                if (!row.hidden && !row.classList.contains('is-unavailable')) {
-                    row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]').value = currentTime();
+                if (!row.classList.contains('is-unavailable')) {
+                    row.querySelector('[data-time-in]').value = currentTime();
                     detectLate(row);
                     updateAvailability(row);
                 }
@@ -165,7 +156,7 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchClearAll').addEventListener('click', clearAllRows);
         overlay.querySelector('#batchSelectAll').addEventListener('change', (event) => {
             overlay.querySelectorAll('[data-row-select]').forEach((input) => {
-                if (!input.closest('[data-batch-row]')?.hidden) input.checked = event.target.checked;
+                input.checked = event.target.checked;
             });
         });
         overlay.querySelector('#batchSaveAttendance').addEventListener('click', saveAttendance);
@@ -195,42 +186,13 @@ function initBatchAttendancePage() {
             graceMinutes = Number(data.grace_minutes || 10);
             const note = modal.querySelector('.batch-attendance-note span');
             if (note) {
-                note.textContent = type === 'mechanic' ? 'New mechanics: record Time-in. Checked-in mechanics: enter Time-out; saved Time-in and status remain locked.' : 'Drivers remain Present when checked in.';
+                note.textContent = `Mechanics are marked Late after the grace period; drivers remain Present when checked in.`;
             }
             renderRows(Array.isArray(data.rows) ? data.rows : []);
         } catch (error) {
             body.innerHTML = `<tr><td colspan="8" class="batch-error">${escapeHtml(error.message || 'Unable to load attendance roster.')}</td></tr>`;
             updateSummary();
         }
-    }
-
-    function updateMechanicMode() {
-        if (type !== 'mechanic') return;
-        const modal = document.getElementById('batchAttendanceModal');
-        if (!modal) return;
-        const modeIn = mechanicMode === 'in';
-        let count = 0;
-        modal.querySelectorAll('[data-batch-row]').forEach(row => {
-            const isTimeOut = row.dataset.recorded === 'true';
-            row.hidden = modeIn ? isTimeOut : !isTimeOut;
-            if (!row.hidden) count++;
-        });
-        modal.querySelectorAll('[data-mechanic-mode]').forEach(button => {
-            const active = button.dataset.mechanicMode === mechanicMode;
-            button.setAttribute('aria-pressed', String(active));
-            button.classList.toggle('success', active);
-            button.style.borderColor = active ? '#1c58a7' : '';
-            button.style.background = active ? '#e9f2ff' : '';
-        });
-        const counter = modal.querySelector('#batchMechanicModeCount');
-        if (counter) counter.textContent = count + (modeIn ? ' awaiting time-in' : ' awaiting time-out');
-        const save = modal.querySelector('#batchSaveAttendance');
-        if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + (modeIn ? 'Save Time-ins' : 'Save Time-outs');
-        const mark = modal.querySelector('#batchMarkPresent');
-        if (mark) mark.hidden = !modeIn;
-        const selectAll = modal.querySelector('#batchSelectAll');
-        if (selectAll) selectAll.checked = false;
-        updateSummary();
     }
 
     function renderRows(rows) {
@@ -241,7 +203,7 @@ function initBatchAttendancePage() {
         if (!rows.length) {
             body.innerHTML = type === 'driver'
                 ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">All mechanics have completed attendance for this date.</td></tr>';
+                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics.</td></tr>';
             updateSummary();
             return;
         }
@@ -259,13 +221,13 @@ function initBatchAttendancePage() {
                     data-shift="${escapeHtml(row.shift)}"
                     data-assigned-job="${escapeHtml(row.assigned_job || '')}"
                 >
-                    <td class="select-col"><input type="checkbox" data-row-select ${(isRecorded && type === 'driver') ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
+                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
                     <td>
                         <div class="batch-person-cell">
                             <span class="batch-avatar">${escapeHtml(initials(row.name))}</span>
                             <div class="batch-person-meta">
                                 <strong>${escapeHtml(row.name)}</strong>
-                                <small>${isRecorded && type === 'mechanic' ? 'Time-in recorded · Awaiting time-out' : isRecorded ? 'Recorded · View in attendance list to edit' : 'New time-in · Not yet recorded'}</small>
+                                <small>${isRecorded ? 'Recorded · View in attendance list to edit' : label}</small>
                             </div>
                         </div>
                     </td>
@@ -310,13 +272,9 @@ function initBatchAttendancePage() {
         body.querySelectorAll('[data-batch-row]').forEach((row) => {
             initializeRow(row);
             if (row.dataset.recorded === 'true') {
-                row.querySelector('[data-time-in]').readOnly = true;
-                row.querySelector('[data-row-now]').disabled = true;
-                row.querySelectorAll('[data-status-btn]').forEach(button => { button.disabled = true; });
-                row.classList.add('batch-awaiting-timeout');
+                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
             }
         });
-        updateMechanicMode();
         updateSummary();
     }
 
@@ -349,7 +307,6 @@ function initBatchAttendancePage() {
             updateSummary();
         });
 
-        if (type === 'mechanic' && row.dataset.recorded !== 'true') timeOut.disabled = true;
         timeOut.addEventListener('change', updateSummary);
 
         nowButton.addEventListener('click', () => {
@@ -399,7 +356,7 @@ function initBatchAttendancePage() {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
-            .filter((row) => !row.hidden && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
+            .filter((row) => row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked && !row.classList.contains('is-unavailable'));
         if (!selectedRows.length) {
             toast('Select at least one available personnel row.', 'warning');
             return;
@@ -443,11 +400,11 @@ function initBatchAttendancePage() {
         }
         let updated = 0;
         modal.querySelectorAll('[data-batch-row]').forEach((row) => {
-            if (row.hidden || !row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
-            const target = row.querySelector(row.dataset.recorded === 'true' ? '[data-time-out]' : '[data-time-in]');
-            target.value = time;
-            target.dispatchEvent(new Event('input', { bubbles: true }));
-            target.dispatchEvent(new Event('change', { bubbles: true }));
+            if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
+            const timeIn = row.querySelector('[data-time-in]');
+            timeIn.value = time;
+            timeIn.dispatchEvent(new Event('input', { bubbles: true }));
+            timeIn.dispatchEvent(new Event('change', { bubbles: true }));
             detectLate(row);
             updateAvailability(row);
             updated += 1;
@@ -458,7 +415,6 @@ function initBatchAttendancePage() {
     }
 
     function applyStatusRules(row, clear = true) {
-        if (row.dataset.recorded === 'true') return;
         const status = selectedStatus(row);
         const timeIn = row.querySelector('[data-time-in]');
         const timeOut = row.querySelector('[data-time-out]');
@@ -475,13 +431,12 @@ function initBatchAttendancePage() {
     }
 
     function detectLate(row) {
-        if (row.dataset.recorded === 'true') return;
         const status = selectedStatus(row);
         const time = row.querySelector('[data-time-in]').value;
         if (!time || ['Absent', 'On Leave'].includes(status)) return;
 
         const shift = row.dataset.shift;
-        const start = type === 'mechanic' ? '08:00' : shiftStarts[shift];
+        const start = shiftStarts[shift];
         if (!start) return;
 
         const late = minutes(time) > minutes(String(start).slice(0, 5)) + graceMinutes;
@@ -514,11 +469,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => !row.hidden && (row.dataset.recorded !== 'true'
-                 ? (type !== 'mechanic' || Boolean(row.querySelector('[data-time-in]').value) || ['Absent', 'On Leave'].includes(selectedStatus(row)))
-                 : (type === 'mechanic' && Boolean(row.querySelector('[data-time-out]').value)))
-                && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked))
-                && (type !== 'mechanic' || row.querySelector('[data-row-select]').checked));
+             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
@@ -593,7 +544,7 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : ['Late'])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
+        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : [])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
     }
 
     function statusThemeClass(value) {
@@ -629,11 +580,11 @@ function initBatchAttendancePage() {
         };
 
         rows.forEach((row) => {
-            if (row.hidden) return;
+            if (row.dataset.recorded === 'true') return;
             const status = selectedStatus(row);
             counts[status] = (counts[status] || 0) + 1;
 
-            if (row.dataset.recorded !== 'true' && status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
+            if (status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
                 counts.Incomplete += 1;
             }
         });

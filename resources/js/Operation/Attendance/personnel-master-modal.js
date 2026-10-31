@@ -690,12 +690,8 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     };
 
     page.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-personnel-action], #openMechanicModal');
+        const button = event.target.closest('[data-personnel-action]');
         if (!button || !page.contains(button)) return;
-
-        if (button.id === 'openMechanicModal' && !button.dataset.personnelAction) {
-            button.dataset.personnelAction = 'add';
-        }
 
         handlePersonnelAction(button);
     });
