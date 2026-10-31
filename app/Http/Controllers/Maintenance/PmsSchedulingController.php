@@ -115,6 +115,19 @@ class PmsSchedulingController extends Controller
             })
             ->values();
 
+        $monitoringByBus = BusPmsMonitoring::query()->with('bus')->get()
+            ->keyBy(fn (BusPmsMonitoring $monitoring) => strtoupper(trim((string) $monitoring->bus?->bus_no)));
+        $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
+        $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'approve') ?? false;
+        $groups = $groups->map(function ($group) use ($monitoringByBus) {
+            $configuration = $monitoringByBus->get(strtoupper(trim((string) $group->bus_no)));
+            $group->overall_status = $configuration?->status() ?? 'Not Configured';
+            return $group;
+        });
+        $upcomingCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status() === 'Upcoming')->count();
+        $dueSoonCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status() === 'Mileage Unverified')->count();
+        $overdueCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status() === 'PMS Due')->count();
+
         /*
         |--------------------------------------------------------------------------
         | Search
@@ -173,7 +186,7 @@ class PmsSchedulingController extends Controller
                 ->values();
         }
 
-        $sort = in_array($request->query('sort'), ['bus_no', 'current_km', 'next_pms_km', 'next_pms_date', 'overall_status'], true)
+        $sort = in_array($request->query('sort'), ['bus_no', 'current_km', 'overall_status'], true)
             ? $request->query('sort')
             : 'bus_no';
         $descending = $request->query('sort_direction') === 'desc';
@@ -216,11 +229,6 @@ class PmsSchedulingController extends Controller
             })
             ->whereDate('created_at', today())
             ->count();
-
-        $monitoringByBus = BusPmsMonitoring::query()->with('bus')->get()
-            ->keyBy(fn (BusPmsMonitoring $monitoring) => strtoupper(trim((string) $monitoring->bus?->bus_no)));
-        $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
-        $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'approve') ?? false;
 
         return view('Maintenance.pms-scheduling', compact(
             'rows',
