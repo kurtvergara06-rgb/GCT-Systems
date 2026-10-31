@@ -121,8 +121,26 @@
                     @endif
                   </td>
                   <td>{{ $quantitySummary }}</td>
-                  <td>{{ $delivery->po_date?->format('M d, Y') ?? '—' }}</td>
-                  <td>{{ $delivery->inventory_posted_at?->format('M d, Y') ?? '—' }}</td>
+                  <td>
+                    @if($delivery->po_date)
+                      <div class="incoming-date-stack">
+                        <strong>{{ $delivery->po_date->format('M d, Y') }}</strong>
+                        <small>{{ ($delivery->created_at ?? $delivery->po_date)->format('h:i A') }}</small>
+                      </div>
+                    @else
+                      —
+                    @endif
+                  </td>
+                  <td>
+                    @if($delivery->inventory_posted_at)
+                      <div class="incoming-date-stack">
+                        <strong>{{ $delivery->inventory_posted_at->format('M d, Y') }}</strong>
+                        <small>{{ $delivery->inventory_posted_at->format('h:i A') }}</small>
+                      </div>
+                    @else
+                      —
+                    @endif
+                  </td>
                   <td>
                     <x-ui.status-badge :status="$displayStatus" class="delivery-status {{ $statusClass }}" />
                   </td>
