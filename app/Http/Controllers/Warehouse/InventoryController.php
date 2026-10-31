@@ -73,6 +73,10 @@ class InventoryController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
+        $suppliers = $inventoryScope()->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->distinct()->orderBy('supplier')->pluck('supplier');
+
         $totalItemsInStock = $inventoryScope()->count();
 
         $lowStockAlerts = $inventoryScope()
@@ -98,6 +102,7 @@ class InventoryController extends Controller
             'inventoryItems',
             'reservedByItem',
             'categories',
+            'suppliers',
             'totalItemsInStock',
             'lowStockAlerts',
             'criticalItems',
