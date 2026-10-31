@@ -451,7 +451,7 @@
                   @php
                     $dashboardParts = collect($requestItem->parts_breakdown ?? [])
                       ->map(fn ($part) => [
-                        'name' => preg_replace('/\\s*\\[item:\\d+\\]/i', '', (string) ($part['name'] ?? '')),
+                        'name' => trim(preg_replace('/\\s*\\[\\s*item\\s*:\\s*\\d+\\s*\\]/i', '', (string) ($part['name'] ?? ''))),
                         'quantity' => (int) ($part['quantity'] ?? 0),
                         'unit' => trim((string) ($part['unit'] ?? '')),
                       ])->filter(fn ($part) => trim($part['name']) !== '')->values();
@@ -461,7 +461,7 @@
                     @forelse($visibleParts as $part)
                       <span>{{ $part['name'] }} <small>× {{ $part['quantity'] }}{{ $part['unit'] !== '' && $part['unit'] !== '—' ? ' '.$part['unit'] : '' }}</small></span>
                     @empty
-                      <span>{{ preg_replace('/\\[item:\\d+\\]/i', '', $requestItem->item ?? 'No requested item specified.') }}</span>
+                      <span>{{ trim(preg_replace('/\\s*\\[\\s*item\\s*:\\s*\\d+\\s*\\]/i', '', $requestItem->item ?? 'No requested item specified.')) }}</span>
                     @endforelse
                     @if($dashboardParts->count() > 2)<span class="purchase-request-more">+{{ $dashboardParts->count() - 2 }} more</span>@endif
                   </div>
