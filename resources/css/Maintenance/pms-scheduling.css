@@ -1312,17 +1312,6 @@
 }
 
 /* =========================================================
-   DISABLED PLACEHOLDER
-========================================================= */
-
-.pms-tasks-popup .pms-action-placeholder {
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    color: #94a3b8;
-    cursor: default;
-}
-
-/* =========================================================
    CONSOLIDATED: resources/css/Maintenance/pms-table-scroll.css
 ========================================================= */
 /* PMS Scheduling: keep page controls visible while only the table records scroll. */
