@@ -162,14 +162,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     });
   }
 
-  if (restockViewModal) {
-    restockViewModal.addEventListener('click', function (event) {
-      if (event.target === restockViewModal) {
-        closeModal(restockViewModal);
-      }
-    });
-  }
-
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
       closeModal(restockViewModal);
