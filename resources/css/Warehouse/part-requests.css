@@ -806,3 +806,6 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-restock-crop-actions { display: flex; gap: 9px; justify-content: flex-end; margin-top: 12px; }
 .warehouse-restock-crop-actions button { padding: 10px 15px; border: 1px solid #d6e1f1; border-radius: 8px; background: white; color: #134075; font-weight: 750; cursor: pointer; }
 .warehouse-restock-crop-actions #restockPrCropConfirm { background: #ffbf19; border-color: #e7b01d; color: #102a56; }
+
+/* Compact Warehouse restocking PR submission action. */
+.warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-submit { min-width: 0; min-height: 34px; padding: 7px 12px; font-size: 11px; line-height: 1.25; border-radius: 7px; cursor: pointer; }
