@@ -682,3 +682,40 @@
   color:#fff !important;
   box-shadow:none !important;
 }
+
+/* Item / Part hierarchy matches the approved inventory reference. */
+.warehouse-inventory-page .inventory-table .inventory-item-identification{
+  align-items:flex-start;
+  gap:5px;
+}
+.warehouse-inventory-page .inventory-table .inventory-item-name{
+  display:block;
+  font-family:var(--gct-font-family,'Poppins',sans-serif);
+  color:#0d2853;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.35;
+}
+.warehouse-inventory-page .inventory-table .inventory-item-code{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  padding:4px 10px;
+  border:0;
+  border-radius:9px;
+  background:#e6eef9;
+  color:#173d75;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.warehouse-inventory-page .inventory-table .inventory-item-meta{
+  max-width:100%;
+  color:#667c9f;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.4;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
