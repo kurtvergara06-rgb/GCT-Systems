@@ -820,3 +820,84 @@
     min-width: 0;
   }
 }
+
+/* Add Inventory: image-reference visual refresh, scoped to this modal only. */
+.warehouse-inventory-page #addModal .inventory-add-dialog{
+  width:min(740px,calc(100vw - 32px));
+  max-width:740px;
+  max-height:calc(100dvh - 36px);
+  overflow-y:auto;
+  padding:20px;
+  border-radius:17px;
+}
+.warehouse-inventory-page #addModal .inventory-add-header{
+  display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:0;
+}
+.warehouse-inventory-page #addModal .inventory-add-header-icon{
+  width:52px;height:52px;flex:0 0 52px;display:grid;place-items:center;
+  border-radius:12px;color:#1262da;background:#e9f2ff;font-size:23px;
+}
+.warehouse-inventory-page #addModal .inventory-add-header-copy{flex:1;min-width:0}
+.warehouse-inventory-page #addModal .inventory-add-header-copy h2{
+  margin:0;font-size:22px;line-height:1.3;color:#0d2853;font-weight:800;
+}
+.warehouse-inventory-page #addModal .inventory-add-header-copy p{
+  margin:4px 0 0;color:#6b7f9e;font-size:12px;line-height:1.45;
+}
+.warehouse-inventory-page #addModal .inventory-add-header .close-btn{
+  align-self:flex-start;flex:0 0 36px;width:36px;height:36px;
+}
+.warehouse-inventory-page #addModal .inventory-add-dialog>form{gap:12px}
+.warehouse-inventory-page #addModal .inventory-add-section{
+  padding:0 14px 13px;border:1px solid #d9e7fa;border-radius:12px;overflow:hidden;
+}
+.warehouse-inventory-page #addModal .inventory-add-section-heading{
+  display:flex;align-items:center;gap:11px;
+  margin:0 -14px 12px;padding:9px 12px;
+  background:linear-gradient(90deg,#eff6ff,#f8fbff);
+}
+.warehouse-inventory-page #addModal .inventory-add-section-icon{
+  display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;
+  border-radius:10px;color:#1165dc;background:#e3efff;font-size:14px;
+}
+.warehouse-inventory-page #addModal .inventory-add-section-heading h3{
+  margin:0 0 2px;font-size:12px;font-weight:800;color:#123e78;
+}
+.warehouse-inventory-page #addModal .inventory-add-section-heading p{
+  margin:0;font-size:10px;line-height:1.3;color:#7485a0;
+}
+.warehouse-inventory-page #addModal .form-grid{gap:10px 14px}
+.warehouse-inventory-page #addModal .form-grid .form-group{gap:5px}
+.warehouse-inventory-page #addModal .form-grid label{
+  font-size:11px;font-weight:750;color:#0e2a4f;
+}
+.warehouse-inventory-page #addModal .inventory-required{color:#dc2626}
+.warehouse-inventory-page #addModal .inventory-add-input{position:relative;width:100%}
+.warehouse-inventory-page #addModal .inventory-add-input>i{
+  position:absolute;top:50%;left:12px;transform:translateY(-50%);
+  color:#7186a6;font-size:13px;pointer-events:none;
+}
+.warehouse-inventory-page #addModal .inventory-add-input input{
+  width:100%;height:37px;padding:0 11px 0 35px;font-size:12px;
+  border:1px solid #d6e1ee;border-radius:7px;background:#fff;
+}
+.warehouse-inventory-page #addModal .inventory-add-input input:focus{
+  border-color:#1c69d4;box-shadow:0 0 0 3px #e8f1ff;
+}
+.warehouse-inventory-page #addModal .inventory-add-note{
+  margin:0;display:flex;gap:9px;align-items:center;padding:10px 13px;
+  border-left:3px solid #3b82f6;border-radius:6px;
+  background:#eef5ff;color:#526986;font-size:10px;line-height:1.4;
+}
+.warehouse-inventory-page #addModal .inventory-add-note i{color:#1670ec;font-size:14px}
+.warehouse-inventory-page #addModal .modal-actions{
+  position:sticky;bottom:-20px;z-index:2;margin:0 -20px -20px;
+  padding:12px 20px;background:#fff;border-top:1px solid #e9eff7;
+}
+@media(max-width:600px){
+  .warehouse-inventory-page #addModal .inventory-add-dialog{padding:14px}
+  .warehouse-inventory-page #addModal .inventory-add-header-copy h2{font-size:17px}
+  .warehouse-inventory-page #addModal .inventory-add-header-icon{width:42px;height:42px;flex-basis:42px}
+  .warehouse-inventory-page #addModal .inventory-add-section .form-grid{grid-template-columns:1fr}
+  .warehouse-inventory-page #addModal .modal-actions{bottom:-14px;margin:0 -14px -14px;padding:12px 14px}
+}
