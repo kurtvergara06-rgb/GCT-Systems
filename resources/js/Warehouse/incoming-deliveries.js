@@ -29,8 +29,12 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
     return !message;
   };
 
-  document.querySelectorAll('.open-incoming-receipt').forEach((button) => {
-    button.addEventListener('click', () => {
+  // Delegate click handling so buttons replaced by partial navigation still work.
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-incoming-receipt');
+    if (!button || !document.querySelector('.incoming-delivery-page')) return;
+    event.preventDefault();
+    {
       let lines;
       try { lines = JSON.parse(button.dataset.lines || '[]'); } catch (_) { lines = []; }
       if (!Array.isArray(lines) || !lines.length) return;
@@ -69,7 +73,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
       modal.classList.add('show', 'active');
       window.GCTModalBackdrop?.sync?.();
       linesContainer.querySelector('input:not([max="0"])')?.focus();
-    });
+    }
   });
 
   form.addEventListener('submit', (event) => {
