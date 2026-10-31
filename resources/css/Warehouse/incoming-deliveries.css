@@ -258,17 +258,18 @@
    TABLE WRAPPER
 ========================================================= */
 
-.incoming-delivery-page .table-wrap {
+ .incoming-delivery-page .table-wrap {
   width: 100%;
 
-  overflow-x: auto;
+  overflow: visible;
 
   border-radius: 10px;
 }
 
+/* Keep dropdown menus unclipped even when many deliveries are listed. */
 .incoming-delivery-page .table-wrap:has(tbody > tr:nth-child(8)) {
-  max-height: 480px;
-  overflow-y: auto;
+  max-height: none;
+  overflow: visible;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
@@ -726,4 +727,21 @@
 }
 .incoming-delivery-page .incoming-delivery-card .incoming-date-stack small{
   font-size:10px!important;font-weight:500!important;color:#617690;
+}
+
+/* Ensure the last rows' +N menu escapes the table without an internal scrollbar. */
+.incoming-delivery-page .incoming-delivery-card .table-wrap,
+.incoming-delivery-page .incoming-delivery-card .table-wrap:has(tbody > tr:nth-child(8)){
+  overflow:visible!important;max-height:none!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-part-more[open]{z-index:100;}
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack strong,
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack small{
+  display:block!important;width:100%;white-space:nowrap;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-date-stack{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+}
+.incoming-delivery-page .incoming-delivery-card .incoming-delivery-table tbody td:first-child strong{
+  font-family:inherit!important;letter-spacing:0!important;font-weight:800!important;
 }
