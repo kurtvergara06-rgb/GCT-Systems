@@ -6,9 +6,12 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FuelAnalyticsController;
 use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
+use App\Mail\Transport\BrevoTransport;
 use App\Models\Maintenance\JobOrder;
 use App\Services\AdminDashboardService;
 use App\Services\RolePermissionService;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +25,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Mail::extend('brevo', function (): BrevoTransport {
+            return new BrevoTransport(
+                app(HttpFactory::class),
+                (string) config('services.brevo.key', ''),
+                (string) config('services.brevo.endpoint'),
+                (int) config('services.brevo.timeout', 10),
+                (int) config('services.brevo.connect_timeout', 3),
+            );
+        });
+
         View::composer('Admin.admin-dashboard', function ($view): void {
             $view->with(app(AdminDashboardService::class)->data());
         });

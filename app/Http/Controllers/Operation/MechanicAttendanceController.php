@@ -72,12 +72,22 @@ class MechanicAttendanceController extends Controller
                 ->values();
 
             if ($names->isNotEmpty()) {
-                $activeJobsByMechanic = JobOrder::query()
+                $activeJobsByMechanic = JobOrder::query()->with('mechanicAssignments')
                     ->where('status', 'On Going')
-                    ->whereIn('assigned_mechanic', $names)
+                    ->where('review_status', 'Approved')
                     ->orderByDesc('id')
-                    ->get(['assigned_mechanic', 'job_order_no'])
-                    ->groupBy(fn ($job) => mb_strtolower(trim((string) $job->assigned_mechanic)));
+                    ->get()
+                    ->flatMap(function (JobOrder $jobOrder) use ($names) {
+                        $assignedNames = $jobOrder->mechanicAssignments->pluck('mechanic_name');
+                        if ($assignedNames->isEmpty()) {
+                            $assignedNames = collect(preg_split('/\s*,\s*/', (string) $jobOrder->assigned_mechanic) ?: []);
+                        }
+
+                        return $assignedNames->filter(fn ($name) => $names->contains($name))->map(fn ($name) => (object) [
+                            'mechanic_name' => $name,
+                            'job_order_no' => $jobOrder->job_order_no,
+                        ]);
+                    })->groupBy(fn ($job) => mb_strtolower(trim((string) $job->mechanic_name)));
             }
         }
 
@@ -90,11 +100,7 @@ class MechanicAttendanceController extends Controller
 
         // Preload active JO names for permission-aware Edit buttons.
         $mechanicNames = $mechanicAttendances->getCollection()->pluck('mechanic_name')->filter()->unique();
-        $busyMechanicNames = $mechanicNames->isEmpty() ? collect() : JobOrder::query()
-            ->where('status', 'On Going')
-            ->whereIn('assigned_mechanic', $mechanicNames)
-            ->pluck('assigned_mechanic')
-            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+        $busyMechanicNames = $activeJobsByMechanic->keys();
         $mechanicAttendances->getCollection()->each(function (MechanicAttendance $attendance) use ($busyMechanicNames): void {
             $attendance->has_active_job = $busyMechanicNames->contains(mb_strtolower(trim((string) $attendance->mechanic_name)));
         });
@@ -224,7 +230,8 @@ class MechanicAttendanceController extends Controller
     {
         $this->authorizeModuleAction($request, 'edit');
         $this->normalizeAttendanceTimes($request);
-        if (JobOrder::query()->where('assigned_mechanic', $mechanicAttendance->mechanic_name)->where('status', 'On Going')->exists()) {
+        if (JobOrder::query()->assignedToMechanic($mechanicAttendance->mechanic_name, $mechanicAttendance->mechanic_id)
+            ->where('status', 'On Going')->where('review_status', 'Approved')->exists()) {
             throw ValidationException::withMessages([
                 'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
             ]);
@@ -263,8 +270,9 @@ class MechanicAttendanceController extends Controller
         // Prevent an ongoing Maintenance Job Order from being made unavailable
         // or moved to a different attendance day.
         if (JobOrder::query()
-            ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
+            ->assignedToMechanic($mechanicAttendance->mechanic_name, $mechanicAttendance->mechanic_id)
             ->where('status', 'On Going')
+            ->where('review_status', 'Approved')
             ->exists()
             && ($mechanicAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
                 || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
@@ -306,8 +314,9 @@ class MechanicAttendanceController extends Controller
             Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
             $locked = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
             if (JobOrder::query()
-                ->where('assigned_mechanic', $locked->mechanic_name)
+                ->assignedToMechanic($locked->mechanic_name, $locked->mechanic_id)
                 ->where('status', 'On Going')
+                ->where('review_status', 'Approved')
                 ->exists()) {
                 return false;
             }

@@ -1,6 +1,7 @@
 @props([
   'type' => 'view', // view, edit, delete, create-po, issue, send, approve, reject, reset, activate, deactivate, status
   'title' => '',
+  'icon' => null,
   'class' => '',
   'buttonType' => 'button',
   'disabled' => false,
@@ -23,7 +24,7 @@
     'status' => 'fa-arrow-right-arrow-left',
   ];
 
-  $icon = $iconMap[$type] ?? 'fa-circle';
+  $icon = $icon ?: ($iconMap[$type] ?? 'fa-circle');
   $buttonClass = 'action-btn gct-record-action ' . $type . ($disabled ? ' gct-action-unavailable' : '');
 
   if ($class) {

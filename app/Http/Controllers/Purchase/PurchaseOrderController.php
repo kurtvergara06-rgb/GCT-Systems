@@ -12,6 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
@@ -19,6 +21,9 @@ class PurchaseOrderController extends Controller
     use SystemDataUpdateBroadcaster;
 
     private array $statuses = [
+        'For Review',
+        'Revision Required',
+        'Rejected',
         'Ordered',
         'For Pick-up',
         'For Delivery',
@@ -28,7 +33,11 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = PurchaseOrder::query();
+        // Purchase Orders displays active records only. Completed records live in Purchase History.
+        $activeTab = 'active';
+        $query = PurchaseOrder::query()
+            ->whereIn('status', ['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery']);
+
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -56,6 +65,7 @@ class PurchaseOrderController extends Controller
 
         $totalOrders = PurchaseOrder::count();
         $ordered = PurchaseOrder::where('status', 'Ordered')->count();
+        $forReview = PurchaseOrder::where('status', 'For Review')->count();
         $forPickup = PurchaseOrder::where('status', 'For Pick-up')->count();
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
         $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->count();
@@ -88,9 +98,11 @@ class PurchaseOrderController extends Controller
         $openPoModal = session('open_po_modal') || $selectedPurchaseRequest !== null;
 
         return view('Purchase.purchase-orders', compact(
+            'activeTab',
             'purchaseOrders',
             'totalOrders',
             'ordered',
+            'forReview',
             'forPickup',
             'forDelivery',
             'delivered',
@@ -114,7 +126,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered',
+            'status' => 'required|string|in:For Review',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -164,6 +176,29 @@ class PurchaseOrderController extends Controller
                     ]);
                 }
 
+                // A restocking PO must exactly reflect its signed Warehouse requisition.
+                // Purchasing may set costs and supplier details, not alter approved quantities.
+                if ($maintenanceRequest->source_type === 'Auto Restock') {
+                    if ($maintenanceRequest->job_order_no !== 'RESTOCK' || ! $maintenanceRequest->restock_signature_path || ! $maintenanceRequest->restock_items) {
+                        throw ValidationException::withMessages(['purchase_request_id' => 'A Warehouse restocking PO requires a signed, structured Warehouse PR. Maintenance requests cannot be used as restocking PRs.']);
+                    }
+                    $approvedLines = collect(json_decode((string) $maintenanceRequest->restock_items, true) ?: []);
+                    $matches = count($items) === $approvedLines->count();
+                    foreach ($approvedLines as $line) {
+                        $matches = $matches && collect($items)->contains(function ($poLine) use ($line, $maintenanceRequest) {
+                            return trim((string) $poLine['pr_no']) === $maintenanceRequest->pr_no
+                                && trim((string) $poLine['item_description']) === trim((string) $line['name'])
+                                && (int) $poLine['quantity'] === (int) $line['quantity']
+                                && (float) $poLine['quantity'] === (float) (int) $line['quantity'];
+                        });
+                    }
+                    if (! $matches) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Restocking PO items and quantities must match the signed Warehouse PR.',
+                        ]);
+                    }
+                }
+
                 if (PurchaseOrder::query()->where('purchase_request_id', $maintenanceRequest->id)->exists()) {
                     throw ValidationException::withMessages([
                         'purchase_request_id' => 'A purchase order already exists for this purchase request.',
@@ -186,27 +221,26 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => 'Ordered',
+                'status' => 'For Review',
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, 'Ordered');
         });
 
         if ($newPurchaseOrder) {
             $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'created', $newPurchaseOrder->id, 'A new purchase order was created.');
         }
 
-        session()->flash('success', 'Purchase order created successfully.');
+        session()->flash('success', 'Purchase order submitted for Purchase Head review.');
 
         return new RedirectResponse('/purchase-orders');
     }
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if (strtolower(trim((string) $purchaseOrder->status)) !== 'ordered') {
+        if (! in_array($purchaseOrder->status, ['For Review', 'Revision Required', 'Ordered'], true)) {
             return redirect()->back()->with(
                 'error',
-                'Only purchase orders that are still Ordered can be edited.'
+                'Only purchase orders under review or still Ordered can be edited.'
             );
         }
 
@@ -222,7 +256,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered',
+            'status' => 'required|string|in:Ordered,For Review,Revision Required',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -263,9 +297,9 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedOrder->status !== 'Ordered' || $lockedOrder->inventory_posted_at !== null) {
+            if (! in_array($lockedOrder->status, ['For Review', 'Revision Required', 'Ordered'], true) || $lockedOrder->inventory_posted_at !== null || collect($lockedOrder->received_quantities ?? [])->sum() > 0) {
                 throw ValidationException::withMessages([
-                    'status' => 'Only an unreceived Ordered purchase order can be edited.',
+                    'status' => 'Only an unreceived PO under review or Ordered can be edited.',
                 ]);
             }
 
@@ -284,6 +318,27 @@ class PurchaseOrderController extends Controller
                     ->where('purchase_request_id', $lockedRequest->id)
                     ->exists();
 
+                if ($lockedRequest->source_type === 'Auto Restock') {
+                    if ($lockedRequest->job_order_no !== 'RESTOCK' || ! $lockedRequest->restock_signature_path || ! $lockedRequest->restock_items) {
+                        throw ValidationException::withMessages(['purchase_request_id' => 'A Warehouse restocking PO requires a signed, structured Warehouse PR. Maintenance requests cannot be used as restocking PRs.']);
+                    }
+                    $approvedLines = collect(json_decode((string) $lockedRequest->restock_items, true) ?: []);
+                    $poLines = collect($items);
+                    $matches = $approvedLines->count() === $poLines->count();
+                    foreach ($approvedLines as $line) {
+                        $matches = $matches && $poLines->contains(fn ($poLine) =>
+                            trim((string) ($poLine['pr_no'] ?? '')) === $lockedRequest->pr_no
+                            && trim((string) ($poLine['item_description'] ?? '')) === trim((string) ($line['name'] ?? ''))
+                            && (int) ($poLine['quantity'] ?? 0) === (int) ($line['quantity'] ?? -1)
+                            && (float) ($poLine['quantity'] ?? 0) === (float) (int) ($line['quantity'] ?? -1)
+                        );
+                    }
+                    if (! $matches) {
+                        throw ValidationException::withMessages([
+                            'items' => 'Restocking PO items and quantities must match the signed Warehouse PR.',
+                        ]);
+                    }
+                }
                 if ((! $alreadyLinked && $lockedRequest->status !== 'For Purchase') || $linkedToAnotherOrder) {
                     throw ValidationException::withMessages([
                         'purchase_request_id' => 'The selected purchase request is not available for this purchase order.',
@@ -306,11 +361,15 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => 'Ordered',
+                'status' => $lockedOrder->status === 'Revision Required' ? 'For Review' : $lockedOrder->status,
+                'reviewed_by' => $lockedOrder->status === 'Revision Required' ? null : $lockedOrder->reviewed_by,
+                'reviewed_at' => $lockedOrder->status === 'Revision Required' ? null : $lockedOrder->reviewed_at,
                 'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            if ($lockedOrder->status === 'Ordered') {
+                $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            }
 
             $newRequestIds = $this->relatedMaintenanceRequests($lockedOrder, true)->pluck('id');
             $oldRequests
@@ -324,14 +383,95 @@ class PurchaseOrderController extends Controller
         return new RedirectResponse('/purchase-orders');
     }
 
+    public function approvalSignature(PurchaseOrder $purchaseOrder)
+    {
+        $path = (string) ($purchaseOrder->approval_signature_path ?? '');
+        if (!$purchaseOrder->approved_at || !$path || !str_starts_with($path, 'purchase-order-approvals/')
+            || !preg_match('/^[a-zA-Z0-9_\\/.-]+$/', $path)) {
+            abort(404);
+        }
+        $disk = Storage::disk('local');
+        if (!$disk->exists($path)) {
+            abort(404);
+        }
+        $type = strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'png' ? 'image/png' : 'image/jpeg';
+        return response($disk->get($path), 200, [
+            'Content-Type' => $type,
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    public function approve(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $validated = $request->validate([
+            'signature' => ['required', 'file', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'review_remarks' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        // Keep signature private; do not publish a public storage URL.
+        $signaturePath = $request->file('signature')->store('purchase-order-approvals', 'local');
+
+        try {
+            DB::transaction(function () use ($purchaseOrder, $request, $validated, $signaturePath) {
+                $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedOrder->status !== 'For Review') {
+                    throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be approved.']);
+                }
+
+                $lockedOrder->update([
+                    'status' => 'Ordered',
+                    'approved_by' => $request->user()->id,
+                    'approved_at' => now(),
+                    'approval_signature_path' => $signaturePath,
+                    'review_remarks' => $validated['review_remarks'] ?? null,
+                ]);
+                $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+            });
+        } catch (\Throwable $e) {
+            Storage::disk('local')->delete($signaturePath);
+            throw $e;
+        }
+
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'approved', $purchaseOrder->id, 'Purchase Head approved a purchase order.');
+        return redirect('/purchase-orders')->with('success', 'Purchase Order approved and marked Ordered.');
+    }
+
+    public function reviewDecision(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $validated = $request->validate([
+            'decision' => ['required', 'in:revision,reject'],
+            'review_remarks' => ['required', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($purchaseOrder, $request, $validated) {
+            $lockedOrder = PurchaseOrder::query()->whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            if ($lockedOrder->status !== 'For Review') {
+                throw ValidationException::withMessages(['status' => 'Only purchase orders awaiting review may be returned or rejected.']);
+            }
+
+            $lockedOrder->update([
+                'status' => $validated['decision'] === 'revision' ? 'Revision Required' : 'Rejected',
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'review_remarks' => $validated['review_remarks'],
+            ]);
+        });
+
+        $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'reviewed', $purchaseOrder->id, 'A Purchase Head review decision was recorded.');
+        return redirect('/purchase-orders')->with('success', 'Purchase Order review decision saved.');
+    }
+
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:For Pick-up,For Delivery',
+            'status' => 'required|string|in:For Delivery',
         ]);
 
         $allowedTransitions = [
-            'Ordered' => ['For Pick-up', 'For Delivery'],
+            'Ordered' => ['For Delivery'],
         ];
 
         if (! in_array($validated['status'], $allowedTransitions[$purchaseOrder->status] ?? [], true)) {
@@ -369,7 +509,7 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->inventory_posted_at !== null || in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true)) {
+        if ($purchaseOrder->inventory_posted_at !== null || collect($purchaseOrder->received_quantities ?? [])->sum() > 0 || in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true)) {
             return redirect()->back()->with(
                 'error',
                 'A received purchase order cannot be deleted because its inventory movement must remain auditable.'
@@ -384,7 +524,7 @@ class PurchaseOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedOrder->inventory_posted_at !== null || in_array($lockedOrder->status, ['Delivered', 'Picked Up'], true)) {
+            if ($lockedOrder->inventory_posted_at !== null || collect($lockedOrder->received_quantities ?? [])->sum() > 0 || in_array($lockedOrder->status, ['Delivered', 'Picked Up'], true)) {
                 throw ValidationException::withMessages([
                     'purchase_order' => 'A received purchase order cannot be deleted.',
                 ]);
@@ -447,6 +587,12 @@ class PurchaseOrderController extends Controller
         $jobOrder = JobOrder::where('job_order_no', $maintenanceRequest->job_order_no)->first();
 
         if (! $jobOrder || empty($jobOrder->part_needed)) {
+            return;
+        }
+
+        // Purchase progress must never erase physical issuance recorded by Warehouse.
+        // Issued/Partial are ledger-backed JO states, not procurement milestones.
+        if (in_array($jobOrder->part_status, ['Issued', 'Partial'], true)) {
             return;
         }
 

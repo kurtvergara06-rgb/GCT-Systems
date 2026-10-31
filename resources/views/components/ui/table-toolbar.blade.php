@@ -18,6 +18,7 @@
     'buttonLabel' => null,
     'buttonIcon' => 'fa-plus',
     'showButton' => true,
+    'showSearch' => true,
 ])
 
 @php
@@ -49,23 +50,25 @@
         {{ $hidden }}
     @endisset
 
-    <div class="gct-table-tool" data-table-tool="search">
-        <button type="button" class="gct-table-tool-trigger {{ request()->filled('search') ? 'is-active' : '' }}"
-            data-table-tool-trigger="search" aria-expanded="false" aria-controls="{{ $toolbarId }}Search">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Search</span>
-        </button>
-        <div class="gct-table-tool-popover gct-table-search-popover" id="{{ $toolbarId }}Search" hidden>
-            <div class="gct-table-popover-heading">
-                <strong>{{ $searchLabel }}</strong>
-                <button type="button" data-table-popover-close aria-label="Close search"><i class="fa-solid fa-xmark"></i></button>
+    @if($showSearch)
+        <div class="gct-table-tool" data-table-tool="search">
+            <button type="button" class="gct-table-tool-trigger {{ request()->filled('search') ? 'is-active' : '' }}"
+                data-table-tool-trigger="search" aria-expanded="false" aria-controls="{{ $toolbarId }}Search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Search</span>
+            </button>
+            <div class="gct-table-tool-popover gct-table-search-popover" id="{{ $toolbarId }}Search" hidden>
+                <div class="gct-table-popover-heading">
+                    <strong>{{ $searchLabel }}</strong>
+                    <button type="button" data-table-popover-close aria-label="Close search"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <label class="gct-table-search-field">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search" name="search" value="{{ request('search') }}" placeholder="{{ $searchPlaceholder }}" autocomplete="off">
+                </label>
+                @if($resolvedSearchHelp)<small>{{ $resolvedSearchHelp }}</small>@endif
             </div>
-            <label class="gct-table-search-field">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input type="search" name="search" value="{{ request('search') }}" placeholder="{{ $searchPlaceholder }}" autocomplete="off">
-            </label>
-            @if($resolvedSearchHelp)<small>{{ $resolvedSearchHelp }}</small>@endif
         </div>
-    </div>
+    @endif
 
     @if($hasFilters)
         <div class="gct-table-tool" data-table-tool="filter">

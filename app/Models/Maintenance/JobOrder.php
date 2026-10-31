@@ -2,11 +2,14 @@
 
 namespace App\Models\Maintenance;
 
+use App\Models\Admin\User;
 use App\Models\Operation\Incident;
 use App\Models\TopbarNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -29,12 +32,28 @@ class JobOrder extends Model
         'completion_date',
         'status',
         'part_status',
+        'review_status',
+        'created_by',
+        'approved_by',
+        'approved_at',
+        'approval_signature_hash',
+        'review_notes',
+        'revision_number',
+        'actual_started_at',
+        'actual_completed_at',
+        'parts_issue_strategy',
+        'inventory_availability',
+        'inventory_snapshot',
     ];
 
     protected $casts = [
         'estimated_duration_value' => 'decimal:2',
         'start_date' => 'datetime',
         'completion_date' => 'datetime',
+        'approved_at' => 'datetime',
+        'actual_started_at' => 'datetime',
+        'actual_completed_at' => 'datetime',
+        'inventory_snapshot' => 'array',
     ];
 
     protected static function booted(): void
@@ -92,11 +111,15 @@ class JobOrder extends Model
 
     public function getEstimatedDueAtAttribute(): ?Carbon
     {
-        if (! $this->start_date || ! $this->estimated_duration_value || ! $this->estimated_duration_unit) {
+        // Parts-dependent repairs are not timed until Warehouse confirms issuance.
+        if ((trim((string) $this->part_needed) !== '' && $this->part_status !== 'Issued')
+            || ! $this->actual_started_at
+            || ! $this->estimated_duration_value
+            || ! $this->estimated_duration_unit) {
             return null;
         }
 
-        $dueAt = $this->start_date->copy();
+        $dueAt = $this->actual_started_at->copy();
         $value = (float) $this->estimated_duration_value;
 
         return match ($this->estimated_duration_unit) {
@@ -175,5 +198,84 @@ class JobOrder extends Model
     public function incident(): BelongsTo
     {
         return $this->belongsTo(Incident::class, 'incident_id');
+    }
+
+    public function mechanicAssignments(): HasMany
+    {
+        return $this->hasMany(JobOrderMechanic::class);
+    }
+
+    public function mechanics(): BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\Operation\Mechanic::class, 'job_order_mechanics')
+            ->withPivot(['mechanic_name', 'specialization_snapshot', 'assigned_by'])
+            ->withTimestamps();
+    }
+
+    public function audits(): HasMany
+    {
+        return $this->hasMany(JobOrderAudit::class)->latest();
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function isReviewLocked(): bool
+    {
+        return $this->review_status === 'For Review';
+    }
+
+    public function canBeRevised(): bool
+    {
+        return $this->review_status === 'Revision Required';
+    }
+
+    public function isWaitingForRequiredParts(): bool
+    {
+        return $this->status !== 'Completed'
+            && trim((string) $this->part_needed) !== ''
+            && $this->part_status !== 'Issued';
+    }
+
+    public function getDisplayStatusAttribute(): string
+    {
+        if (in_array($this->review_status, ['For Review', 'Revision Required', 'Rejected'], true)) {
+            return $this->review_status;
+        }
+
+        // Legacy records may still have status=On Going from assignment time.
+        // Never represent unissued parts as active repair work.
+        if ($this->isWaitingForRequiredParts() && $this->review_status === 'Approved') {
+            return 'On Hold';
+        }
+
+        return $this->status === 'On Going' ? 'In Progress' : $this->status;
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->where('status', '!=', 'Completed')
+            ->where(function ($nested): void {
+                $nested->whereNull('review_status')->orWhere('review_status', '!=', 'Rejected');
+            });
+    }
+
+    public function scopeAssignedToMechanic($query, string $mechanicName, ?string $mechanicCode = null)
+    {
+        return $query->where(function ($nested) use ($mechanicName, $mechanicCode): void {
+            $nested->whereHas('mechanicAssignments', function ($assignments) use ($mechanicName, $mechanicCode): void {
+                $assignments->where('mechanic_name', $mechanicName)
+                    ->when($mechanicCode, fn ($query, $code) => $query->orWhereHas(
+                        'mechanic', fn ($mechanic) => $mechanic->where('mechanic_id', $code)
+                    ));
+            })->orWhere('assigned_mechanic', $mechanicName);
+        });
     }
 }

@@ -5,25 +5,35 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
-use App\Models\Operation\MechanicAttendance;
+use App\Models\Operation\Mechanic;
+use App\Services\Maintenance\JobOrderDurationService;
+use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
 
 class JobOrderIndexController extends Controller
 {
+    public function __construct(
+        private readonly JobOrderWorkflowService $workflow,
+        private readonly JobOrderDurationService $durations
+    ) {}
+
     public function __invoke(Request $request)
     {
         $recordView = $request->input('record_view') === 'history'
             ? 'history'
             : 'active';
 
-        $query = JobOrder::query();
+        $query = JobOrder::query()->with(['mechanicAssignments', 'audits.user', 'creator', 'approver']);
 
         if ($recordView === 'history') {
-            $query->where('status', 'Completed');
+            $query->where(function ($nested): void {
+                $nested->where('status', 'Completed')->orWhere('review_status', 'Rejected');
+            });
         } else {
-            $query->where('status', '!=', 'Completed');
+            $query->open();
         }
 
         if ($request->filled('search')) {
@@ -38,7 +48,8 @@ class JobOrderIndexController extends Controller
                     ->orWhere('assigned_mechanic', 'like', "%{$search}%")
                     ->orWhere('part_needed', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhere('part_status', 'like', "%{$search}%");
+                    ->orWhere('part_status', 'like', "%{$search}%")
+                    ->orWhere('review_status', 'like', "%{$search}%");
             });
         }
 
@@ -64,12 +75,49 @@ class JobOrderIndexController extends Controller
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'job_order_no' => 'job_order_no', 'bus_no' => 'bus_no', 'start_date' => 'start_date', 'status' => 'status', 'part_status' => 'part_status'], 'created_at', 'desc');
         $jobOrders = $query
-            ->paginate($recordView === 'history' ? 20 : 1000)
+            ->paginate(25)
             ->withQueryString();
 
-        $onHold = JobOrder::where('status', 'On Hold')->count();
-        $onGoing = JobOrder::where('status', 'On Going')->count();
-        $completed = JobOrder::where('status', 'Completed')->count();
+        // Batch linked IR statuses for the visible JOs. Older requests may
+        // exist while their JO part_status still reads "Not Requested".
+        $existingIrStatuses = ItemRequest::query()
+            ->whereIn('job_order_id', $jobOrders->getCollection()->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+
+        // Batch PR records once for the visible page instead of querying per row.
+        $visibleJoNumbers = $jobOrders->getCollection()->pluck('job_order_no')->filter()->unique()->values();
+        $linkedPrsByJobOrderNo = $visibleJoNumbers->isEmpty()
+            ? collect()
+            : \App\Models\Maintenance\PurchaseRequest::query()
+                ->whereIn('job_order_no', $visibleJoNumbers)
+                ->where('pr_no', 'not like', '%-P')
+                ->where(function ($query) {
+                    $query->whereNull('source_type')->orWhere('source_type', 'Maintenance Request');
+                })
+                ->orderByDesc('id')
+                ->get()
+                ->groupBy('job_order_no');
+
+        $durationSuggestions = $jobOrders->getCollection()
+            ->where('review_status', 'For Review')
+            ->mapWithKeys(fn (JobOrder $jobOrder) => [
+                $jobOrder->id => $this->durations->suggestion(
+                    (string) $jobOrder->maintenance_type,
+                    $jobOrder->work_to_perform
+                ),
+            ]);
+
+        // Count the effective repair state, including legacy JOs started before parts arrived.
+        $approvedActive = JobOrder::query()
+            ->where('review_status', 'Approved')
+            ->whereIn('status', ['On Hold', 'On Going'])
+            ->get(['id', 'status', 'part_needed', 'part_status', 'review_status']);
+        $onHold = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'On Hold')->count();
+        $onGoing = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'In Progress')->count();
+        $completed = JobOrder::where('status', 'Completed')->where('review_status', 'Approved')->count();
 
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
@@ -80,35 +128,17 @@ class JobOrderIndexController extends Controller
 
         $nextJobOrderNo = $this->generateJobOrderNo();
 
-        $assignedActiveMechanics = JobOrder::query()
-            ->where('status', '!=', 'Completed')
-            ->whereNotNull('assigned_mechanic')
-            ->where('assigned_mechanic', '!=', '')
-            ->pluck('assigned_mechanic')
-            ->filter()
-            ->unique()
-            ->values();
-
-        $availableMechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-            ->whereIn('status', ['Present', 'Late', 'On Duty'])
-            ->whereHas('mechanic', fn ($query) => $query->where('employment_status', 'Active'))
-            ->whereNotIn('mechanic_name', $assignedActiveMechanics)
-            ->orderBy('mechanic_name')
-            ->get();
-
-        $allMechanics = MechanicAttendance::query()
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
-            ->orderBy('mechanic_name')
-            ->get();
+        $availableMechanics = $this->workflow->availableMechanics();
+        $allMechanics = Mechanic::query()->where('employment_status', 'Active')->orderBy('mechanic_name')->get();
 
         $buses = Bus::query()
+            ->with('authorizedDrivers:id,driver_name')
             ->where('status', 'Active')
             ->orderBy('bus_no')
             ->get();
 
         $activeBusNumbers = JobOrder::query()
-            ->where('status', '!=', 'Completed')
+            ->open()
             ->pluck('bus_no')
             ->filter()
             ->unique()
@@ -123,7 +153,11 @@ class JobOrderIndexController extends Controller
             $pmsCreate = PmsSchedule::find($request->integer('pms_schedule_id'));
         }
 
+        // Load stock reference once for the rendered list, not once per Job Order modal.
+        $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
+
         return view('Maintenance.job-order', compact(
+            'existingIrStatuses',
             'jobOrders',
             'onHold',
             'onGoing',
@@ -134,8 +168,11 @@ class JobOrderIndexController extends Controller
             'allMechanics',
             'buses',
             'availableBuses',
+            'durationSuggestions',
+            'linkedPrsByJobOrderNo',
             'pmsCreate',
-            'recordView'
+            'recordView',
+            'viewPartsStock'
         ));
     }
 

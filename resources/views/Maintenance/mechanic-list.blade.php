@@ -25,7 +25,7 @@
         <x-ui.summary-card
           label="Total Mechanics"
           value="{{ $totalMechanics ?? 0 }}"
-          small="Attendance records"
+          small="Active mechanic records"
           icon="fa-users-gear"
           color="blue"
         />
@@ -41,18 +41,22 @@
         <x-ui.summary-card
           label="Not Available"
           value="{{ $notAvailableMechanics ?? 0 }}"
-          small="Assigned, absent, or on leave"
+          small="Absent, on leave, or no attendance"
           icon="fa-user-clock"
           color="red"
         />
 
         <x-ui.summary-card
-          label="On Duty"
+          label="Working"
           value="{{ $onDutyMechanics ?? 0 }}"
-          small="Mechanics with an active Job Order"
+          small="Repair started; parts issued if required"
           icon="fa-screwdriver-wrench"
           color="blue"
         />
+        <div class="mechanic-assigned-summary" style="grid-column: 1 / -1; font-size: 12px; color: #365071; padding: 3px 4px;">
+          <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+          <strong>{{ $assignedMechanics ?? 0 }} Assigned</strong> — reserved for a Job Order, but not yet working.
+        </div>
       </section>
 
       <section data-ajax-region="records" class="table-card mechanic-list-card mechanic-table-card">
@@ -75,7 +79,7 @@
         <x-ui.table-toolbar action="{{ route('mechanic-list') }}" search-label="Search Mechanic Availability" search-placeholder="Search mechanic, JO, bus, maintenance type, or issue..." :filter-count="(int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates') + (int) (request()->filled('availability') && request('availability') !== 'All Types')" filter-title="Filter Mechanic Availability" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Shift', 'employment_status' => 'Employment Status']" default-sort="mechanic_name">
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="All Dates">@foreach(['All Dates','Today','This Week'] as $dateFilter)<option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>@endforeach</x-ui.table-toolbar-field>
-            <x-ui.table-toolbar-field label="Availability" name="availability" default="All Types"><option value="All Types">All Availability</option><option value="Available" @selected(request('availability') === 'Available')>Available</option><option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option></x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Availability" name="availability" default="All Types"><option value="All Types">All Availability</option><option value="Available" @selected(request('availability') === 'Available')>Available</option><option value="Assigned" @selected(request('availability') === 'Assigned')>Assigned</option><option value="Working" @selected(request('availability') === 'Working')>Working</option><option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option></x-ui.table-toolbar-field>
           </x-slot:filters>
         </x-ui.table-toolbar>
 
@@ -89,7 +93,8 @@
                 <th>Date</th>
                 <th>Time-In</th>
                 <th>Time-Out</th>
-                <th>Status</th>
+                <th>Attendance</th>
+                <th>Availability</th>
               </tr>
             </thead>
 
@@ -97,7 +102,8 @@
               @forelse($mechanics as $mechanic)
                 @php
                   $activeJob = $mechanic->active_job;
-                  $effectiveStatus = $mechanic->effective_status ?? $mechanic->status;
+                  $effectiveStatus = $mechanic->status;
+                  $assignmentStatus = $mechanic->assignment_status ?? 'Not Available';
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $effectiveStatus));
                   $initials = collect(explode(' ', $mechanic->mechanic_name))
                     ->filter()
@@ -106,7 +112,7 @@
                     ->implode('');
                 @endphp
 
-                <tr class="{{ $activeJob ? 'row-on-duty' : '' }}">
+                <tr class="{{ $assignmentStatus === 'Working' ? 'row-on-duty' : '' }}">
                   <td>
                     <span class="mechanic-id-pill">{{ $mechanic->mechanic_id }}</span>
                   </td>
@@ -131,7 +137,7 @@
                             {{ $activeJob->job_order_no }}
                           </span>
 
-                          <x-ui.status-badge :status="$activeJob->status" class="assigned-job-state" />
+                          <x-ui.status-badge :status="$activeJob->display_status" class="assigned-job-state" />
                         </div>
 
                         <div class="assigned-job-main">
@@ -187,10 +193,11 @@
                   <td>
                     <x-ui.status-badge :status="$effectiveStatus" class="attendance-badge {{ $statusClass }}" />
                   </td>
+                  <td><x-ui.status-badge :status="$assignmentStatus" /></td>
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="7"
+                  colspan="8"
                   icon="fa-wrench"
                   message="No Mechanic Records Found"
                   description="No mechanics match your search or availability filter."

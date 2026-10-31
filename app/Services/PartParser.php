@@ -27,6 +27,7 @@ class PartParser
                 'name' => $name,
                 'quantity' => $quantity > 0 ? $quantity : 1,
                 'unit' => $unit,
+                'inventory_item_id' => isset($part['inventory_item_id']) && (int) $part['inventory_item_id'] > 0 ? (int) $part['inventory_item_id'] : null,
             ];
         }
 
@@ -47,6 +48,8 @@ class PartParser
             $name = trim($part['name'] ?? '');
             $quantity = (int) ($part['quantity'] ?? 1);
             $unit = trim($part['unit'] ?? '');
+            $id = (int) ($part['inventory_item_id'] ?? 0);
+            if ($id > 0) $name .= ' [item:'.$id.']';
 
             if ($name === '') {
                 continue;
@@ -141,6 +144,19 @@ class PartParser
                 ];
             })
             ->filter(fn ($item) => is_array($item) && $item['name'] !== '')
+            ->map(function (array $part): array {
+                if (preg_match('/^(.*?)\\s*\\[item:(\\d+)\\]$/i', $part['name'], $match)) {
+                    $part['name'] = trim($match[1]);
+                    $part['inventory_item_id'] = (int) $match[2];
+                } elseif (preg_match('/^(.*?)\\s*\\[([^\\]]+)\\]$/', $part['name'], $match)) {
+                    // Older JO rows embedded the Warehouse item code directly
+                    // in the readable label. Keep it as an exact recovery key,
+                    // but never expose it as part of the human-readable name.
+                    $part['name'] = trim($match[1]);
+                    $part['inventory_item_code'] = trim($match[2]);
+                }
+                return $part;
+            })
             ->values()
             ->toArray();
     }

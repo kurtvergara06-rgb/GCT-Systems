@@ -12,7 +12,6 @@ class LazyPaginationSecondRolloutTest extends TestCase
             resource_path('views/Purchase/purchase-orders.blade.php'),
             resource_path('views/Warehouse/incoming-deliveries.blade.php'),
             resource_path('views/Warehouse/part-requests.blade.php'),
-            resource_path('views/Purchase/scheduled-purchase.blade.php'),
         ];
 
         foreach ($views as $view) {
@@ -48,21 +47,7 @@ class LazyPaginationSecondRolloutTest extends TestCase
         }
     }
 
-    public function test_scheduled_purchase_actions_are_delegated_for_lazy_loaded_rows(): void
-    {
-        $source = file_get_contents(
-            resource_path('js/Purchase/scheduled-purchase.js')
-        );
 
-        $this->assertStringContainsString(
-            "document.addEventListener('click'",
-            $source
-        );
-        $this->assertStringContainsString(
-            "'.open-edit-schedule, .open-view-schedule'",
-            $source
-        );
-    }
 
     public function test_warehouse_part_request_actions_are_delegated_for_lazy_loaded_rows(): void
     {

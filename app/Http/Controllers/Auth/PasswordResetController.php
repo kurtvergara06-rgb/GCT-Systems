@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +23,12 @@ class PasswordResetController extends Controller
     public function sendLink(Request $request): RedirectResponse
     {
         $request->validate(['email' => ['required', 'email']]);
-        // Always return a generic response to avoid revealing registered emails.
-        Password::sendResetLink($request->only('email'));
+        // Only active GCT accounts may receive reset links. Do not reveal whether
+        // an email is registered, inactive, pending, or otherwise ineligible.
+        $user = User::query()->where('email', $request->input('email'))->first();
+        if ($user && strtolower(trim((string) $user->status)) === 'active') {
+            Password::sendResetLink($request->only('email'));
+        }
 
         return back()->with('status', 'If an account exists for this email, a password reset link will be sent.');
     }
@@ -43,6 +48,14 @@ class PasswordResetController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
         ]);
+
+        // Never allow an old token to reactivate password access after an
+        // administrator disables an account. Use a generic token error.
+        $user = User::query()->where('email', $request->input('email'))->first();
+        if (! $user || strtolower(trim((string) $user->status)) !== 'active') {
+            return back()->withInput($request->only('email'))
+                ->withErrors(['email' => 'This password reset link is invalid or has expired.']);
+        }
 
         $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, string $password): void {

@@ -50,7 +50,10 @@ class MaintenanceDashboardController extends Controller
         $totalActiveJobOrders = $activeJobOrders->count();
         $ongoingCount = $activeJobOrders->where('status', 'On Going')->count();
         $onHoldCount = $activeJobOrders->where('status', 'On Hold')->count();
-        $completedCount = $allJobOrders->where('status', 'Completed')->count();
+        $completedCount = $allJobOrders
+            ->where('status', 'Completed')
+            ->where('review_status', 'Approved')
+            ->count();
 
         // Breakdown repairs: active JOs linked to a referral or breakdown incident
         $breakdownRepairs = $activeJobOrders->filter(function (JobOrder $jo) {
@@ -91,13 +94,10 @@ class MaintenanceDashboardController extends Controller
 
         foreach ($allPmsSchedules as $schedule) {
             $normalizedBusNo = strtoupper(trim($schedule->bus_no));
-            $gps = $gpsByBus->get($normalizedBusNo);
-
             $assessment = $this->pmsStatusService->assess(
                 $schedule,
-                $gps
+                $gpsByBus->get($normalizedBusNo)
             );
-
             $status = $assessment['status'];
 
             if ($status === 'Overdue') {
@@ -140,8 +140,9 @@ class MaintenanceDashboardController extends Controller
             ->filter(fn (JobOrder $jo) => trim((string)$jo->assigned_mechanic) !== '')
             ->keyBy(fn (JobOrder $jo) => Str::lower(trim($jo->assigned_mechanic)));
 
+        $businessDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $todayAttendance = MechanicAttendance::query()
-            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+            ->whereDate('attendance_date', $businessDate)
             ->latest('id')
             ->get()
             ->unique('mechanic_id')
@@ -205,31 +206,40 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 4. MAINTENANCE REFERRALS (Operation -> Maintenance)
         // ---------------------------------------------------------------------
-        $allReferrals = MaintenanceReferral::query()
+        // Count all referral statuses in SQL while loading only five recent details.
+        $referralCounts = MaintenanceReferral::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $referralPendingCount = (int) ($referralCounts['Pending'] ?? 0);
+        $referralApprovedCount = (int) ($referralCounts['Approved'] ?? 0);
+        $referralRejectedCount = (int) ($referralCounts['Rejected'] ?? 0);
+        $referralJobCreatedCount = (int) ($referralCounts['Job Order Created'] ?? 0);
+
+        $recentReferrals = MaintenanceReferral::query()
             ->with(['incident.bus', 'jobOrder'])
             ->latest('created_at')
+            ->limit(5)
             ->get();
-
-        $referralPendingCount = $allReferrals->where('status', 'Pending')->count();
-        $referralApprovedCount = $allReferrals->where('status', 'Approved')->count();
-        $referralRejectedCount = $allReferrals->where('status', 'Rejected')->count();
-        $referralJobCreatedCount = $allReferrals->where('status', 'Job Order Created')->count();
-
-        $recentReferrals = $allReferrals->take(5);
 
         // ---------------------------------------------------------------------
         // 5. PARTS & PURCHASE REQUESTS (Bottleneck Tracker)
         // ---------------------------------------------------------------------
-        $allPurchaseRequests = PurchaseRequest::query()->get();
+        // The dashboard only needs grouped counts, not every historical PR model.
+        $purchaseRequestCounts = PurchaseRequest::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         $prPipeline = [
-            'Submitted' => $allPurchaseRequests->where('status', 'Submitted')->count(),
-            'Approved' => $allPurchaseRequests->where('status', 'Approved')->count(),
-            'For Purchase' => $allPurchaseRequests->where('status', 'For Purchase')->count(),
-            'Ordered' => $allPurchaseRequests->where('status', 'Ordered')->count(),
-            'In Transit' => $allPurchaseRequests->filter(fn ($pr) => in_array($pr->status, ['For Delivery', 'For Pick-up']))->count(),
-            'Delivered' => $allPurchaseRequests->filter(fn ($pr) => in_array($pr->status, ['Delivered', 'Picked Up']))->count(),
-            'Issued' => $allPurchaseRequests->where('status', 'Issued')->count(),
+            'Submitted' => (int) ($purchaseRequestCounts['Submitted'] ?? 0),
+            'Approved' => (int) ($purchaseRequestCounts['Approved'] ?? 0),
+            'For Purchase' => (int) ($purchaseRequestCounts['For Purchase'] ?? 0),
+            'Ordered' => (int) ($purchaseRequestCounts['Ordered'] ?? 0),
+            'In Transit' => (int) ($purchaseRequestCounts['For Delivery'] ?? 0) + (int) ($purchaseRequestCounts['For Pick-up'] ?? 0),
+            'Delivered' => (int) ($purchaseRequestCounts['Delivered'] ?? 0) + (int) ($purchaseRequestCounts['Picked Up'] ?? 0),
+            'Issued' => (int) ($purchaseRequestCounts['Issued'] ?? 0),
         ];
 
         // Blocked repairs: active job orders waiting for parts
@@ -250,36 +260,18 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 6. FLEET READINESS
         // ---------------------------------------------------------------------
-        // Bus master status is the authoritative source of readiness. An active
-        // job order alone must not silently mark an otherwise Active bus as
-        // unavailable, and an Inactive bus must never count as operational.
-        //
-        // This query intentionally lives here rather than in the PMS section.
-        // PMS status now uses processed GPS records, while fleet readiness uses
-        // the Bus master record. Keeping the sources separate prevents one
-        // refactor from silently removing data required by the other.
-        $buses = Bus::query()->get();
+        // Fleet KPIs need status totals, not every Bus model.
+        $busStatusCounts = Bus::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+        $totalBuses = (int) $busStatusCounts->sum();
+        $activeBusesCount = (int) ($busStatusCounts['Active'] ?? 0);
+        $inactiveBusesCount = (int) ($busStatusCounts['Inactive'] ?? 0);
+        $underMaintenanceBusesCount = (int) ($busStatusCounts['Under Maintenance'] ?? 0);
 
-        $totalBuses = $buses->count();
-        $activeBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Active') === 0
-        )->count();
-        $underMaintenanceBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Under Maintenance') === 0
-        )->count();
-        $inactiveBusesCount = $buses->filter(
-            fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Inactive') === 0
-        )->count();
-
-        // Keep this separately for repair-bay workload context. It is not used
-        // to calculate fleet readiness because JO assignment and bus readiness
-        // are different operational concepts.
-        $busesInRepairBay = $activeJobOrders
-            ->pluck('bus_no')
-            ->filter()
-            ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
-            ->unique()
-            ->count();
+        // Buses currently in the repair bay based on active job orders
+        $busesInRepairBay = $activeJobOrders->pluck('bus_no')->filter()->unique()->count();
 
         $operationalRate = $totalBuses > 0
             ? round(($activeBusesCount / $totalBuses) * 100)
@@ -355,8 +347,8 @@ class MaintenanceDashboardController extends Controller
             // Fleet Readiness
             'totalBuses' => $totalBuses,
             'activeBusesCount' => $activeBusesCount,
-            'underMaintenanceBusesCount' => $underMaintenanceBusesCount,
             'inactiveBusesCount' => $inactiveBusesCount,
+            'underMaintenanceBusesCount' => $underMaintenanceBusesCount,
             'busesInRepairBay' => $busesInRepairBay,
             'operationalRate' => $operationalRate,
 

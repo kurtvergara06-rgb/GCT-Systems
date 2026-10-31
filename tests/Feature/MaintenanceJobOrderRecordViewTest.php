@@ -52,7 +52,7 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
         $response->assertOk();
         $response->assertViewHas(
             'jobOrders',
-            fn ($jobOrders) => $jobOrders->perPage() === 1000
+            fn ($jobOrders) => $jobOrders->perPage() === 25
         );
         $response->assertSee('JO-ACTIVE-001');
         $response->assertDontSee('JO-HISTORY-001');
@@ -90,7 +90,7 @@ class MaintenanceJobOrderRecordViewTest extends TestCase
         $response->assertOk();
         $response->assertViewHas(
             'jobOrders',
-            fn ($jobOrders) => $jobOrders->perPage() === 20
+            fn ($jobOrders) => $jobOrders->perPage() === 25
         );
         $response->assertSee('JO-HISTORY-002');
         $response->assertDontSee('JO-ACTIVE-002');

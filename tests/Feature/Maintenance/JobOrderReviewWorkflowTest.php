@@ -1,0 +1,332 @@
+<?php
+
+namespace Tests\Feature\Maintenance;
+
+use App\Models\Admin\User;
+use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\JobOrderPartReservation;
+use App\Models\Operation\Mechanic;
+use App\Models\Operation\MechanicAttendance;
+use App\Models\Warehouse\InventoryItem;
+use App\Services\Maintenance\JobOrderDurationService;
+use App\Http\Middleware\RequireSystemPermission;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class JobOrderReviewWorkflowTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function user(string $role): User
+    {
+        return User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => $role,
+            'status' => 'Active',
+        ]);
+    }
+
+    private function mechanic(string $id, string $name, string $specialization): Mechanic
+    {
+        $mechanic = Mechanic::create([
+            'mechanic_id' => $id,
+            'mechanic_name' => $name,
+            'specialization' => $specialization,
+            'employment_status' => 'Active',
+        ]);
+        MechanicAttendance::create([
+            'mechanic_id' => $id,
+            'mechanic_name' => $name,
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+            'status' => 'Present',
+        ]);
+
+        return $mechanic;
+    }
+
+    public function test_staff_submission_is_locked_until_head_signs_and_approves(): void
+    {
+        $staff = $this->user('staff');
+        $head = $this->user('head');
+        $bus = Bus::create(['bus_no' => 'BUS-REVIEW-01', 'plate_no' => 'ABC-1001', 'status' => 'Active']);
+        $engine = $this->mechanic('M-REV-1', 'Engine Specialist', 'Engine');
+        $electrical = $this->mechanic('M-REV-2', 'Electrical Specialist', 'Electrical');
+
+        $response = $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)->postJson(route('job-orders.store'), [
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Engine will not crank',
+            'work_to_perform' => 'Diagnose the engine and electrical starting circuit.',
+            'maintenance_type' => 'Repair',
+            'mechanic_ids' => [$engine->id, $electrical->id],
+            'estimated_duration_value' => 4,
+            'estimated_duration_unit' => 'Hours',
+            'parts' => [],
+        ]);
+
+        $response->assertOk()->assertJsonPath('success', true);
+        $jobOrder = JobOrder::query()->firstOrFail();
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('On Hold', $jobOrder->status);
+        $this->assertNull($jobOrder->start_date);
+        $this->assertSame('Active', $bus->fresh()->status);
+        $this->assertCount(2, $jobOrder->mechanicAssignments);
+        $this->assertDatabaseHas('job_order_audits', ['job_order_id' => $jobOrder->id, 'action' => 'created']);
+
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->put(route('job-orders.update', $jobOrder), [])->assertStatus(423);
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.finish', $jobOrder))->assertStatus(423);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)->post(route('job-orders.approve', $jobOrder), [
+            'electronic_signature' => $head->name,
+            'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+            'duration_decision' => 'accept',
+            'review_notes' => 'Scope and assignments verified.',
+        ])->assertRedirect();
+
+        $jobOrder->refresh();
+        $this->assertSame('Approved', $jobOrder->review_status);
+        $this->assertSame('On Going', $jobOrder->status);
+        $this->assertSame($head->id, $jobOrder->approved_by);
+        $this->assertNotNull($jobOrder->approved_at);
+        $this->assertNotNull($jobOrder->approval_signature_hash);
+        $this->assertNotNull($jobOrder->actual_started_at);
+        $this->assertSame('Under Maintenance', $bus->fresh()->status);
+    }
+
+    public function test_head_can_return_revision_and_staff_update_resubmits(): void
+    {
+        $staff = $this->user('staff');
+        $head = $this->user('head');
+        $bus = Bus::create(['bus_no' => 'BUS-REVISION-01', 'status' => 'Active']);
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-REVISION-01', 'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Unclear complaint', 'work_to_perform' => 'Inspect',
+            'maintenance_type' => 'Repair', 'status' => 'On Hold',
+            'part_status' => 'No Parts Required', 'review_status' => 'For Review', 'created_by' => $staff->id,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)->post(route('job-orders.return-for-revision', $jobOrder), [
+            'review_notes' => 'Add a specific diagnostic scope.',
+        ])->assertRedirect();
+        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
+
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)->put(route('job-orders.update', $jobOrder), [
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Starter clicks but engine does not crank',
+            'work_to_perform' => 'Test battery, starter motor, relay, and wiring.',
+            'maintenance_type' => 'Repair',
+            'estimated_duration_value' => 2,
+            'estimated_duration_unit' => 'Hours',
+            'parts' => [],
+        ])->assertRedirect();
+
+        $jobOrder->refresh();
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame(1, $jobOrder->revision_number);
+        $this->assertDatabaseHas('job_order_audits', ['job_order_id' => $jobOrder->id, 'action' => 'resubmitted']);
+    }
+
+    public function test_revision_preserves_reservation_but_rejection_is_terminal_and_releases_it(): void
+    {
+        $staff = $this->user('staff');
+        $head = $this->user('head');
+        $part = InventoryItem::create([
+            'item_code' => 'REVISION-LIFECYCLE-PART', 'item_name' => 'Drive Belt',
+            'parts_name' => 'Drive Belt', 'category' => 'Engine Parts',
+            'quantity_available' => 10, 'on_hand' => 10,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+
+        $revision = JobOrder::create([
+            'job_order_no' => 'JO-REVISION-RESERVE', 'bus_no' => 'BUS-REVISION-RESERVE',
+            'problem_issue' => 'Drive belt inspection', 'maintenance_type' => 'Repair',
+            'part_needed' => "Drive Belt [item:{$part->id}] - Qty: 4 pcs",
+            'part_status' => 'Not Requested', 'review_status' => 'For Review',
+            'status' => 'On Hold', 'created_by' => $staff->id,
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $revision->id, 'inventory_item_id' => $part->id, 'quantity' => 4,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.return-for-revision', $revision), [
+                'review_notes' => 'Clarify the replacement scope.',
+            ])->assertRedirect();
+
+        $this->assertSame('Revision Required', $revision->fresh()->review_status);
+        $this->assertDatabaseHas('job_order_part_reservations', [
+            'job_order_id' => $revision->id, 'inventory_item_id' => $part->id, 'quantity' => 4,
+        ]);
+
+        $rejected = JobOrder::create([
+            'job_order_no' => 'JO-REJECT-RESERVE', 'bus_no' => 'BUS-REJECT-RESERVE',
+            'problem_issue' => 'Duplicate request', 'maintenance_type' => 'Repair',
+            'part_needed' => "Drive Belt [item:{$part->id}] - Qty: 2 pcs",
+            'part_status' => 'Not Requested', 'review_status' => 'For Review',
+            'status' => 'On Hold', 'created_by' => $staff->id,
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $rejected->id, 'inventory_item_id' => $part->id, 'quantity' => 2,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.reject', $rejected), [
+                'review_notes' => 'This is a duplicate Job Order.',
+            ])->assertRedirect();
+
+        $rejected->refresh();
+        $this->assertSame('Rejected', $rejected->review_status);
+        $this->assertSame('Completed', $rejected->status);
+        $this->assertDatabaseMissing('job_order_part_reservations', ['job_order_id' => $rejected->id]);
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->put(route('job-orders.update', $rejected), [])->assertRedirect()->assertSessionHas('error');
+    }
+
+    public function test_staff_cannot_use_head_review_actions(): void
+    {
+        $staff = $this->user('staff');
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-STAFF-APPROVAL-GUARD', 'bus_no' => 'BUS-STAFF-GUARD',
+            'problem_issue' => 'Approval permission check', 'maintenance_type' => 'Repair',
+            'part_status' => 'No Parts Required', 'review_status' => 'For Review', 'status' => 'On Hold',
+            'created_by' => $staff->id,
+        ]);
+
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.return-for-revision', $jobOrder), [
+                'review_notes' => 'Unauthorized attempt.',
+            ])->assertForbidden();
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.reject', $jobOrder), [
+                'review_notes' => 'Unauthorized attempt.',
+            ])->assertForbidden();
+        $this->assertSame('For Review', $jobOrder->fresh()->review_status);
+    }
+
+    public function test_revision_resubmission_releases_old_part_reservation_and_reserves_replacement(): void
+    {
+        $staff = $this->user('staff');
+        $head = $this->user('head');
+        $bus = Bus::create(['bus_no' => 'BUS-REVISION-STOCK', 'status' => 'Active']);
+        $oldPart = InventoryItem::create([
+            'item_code' => 'REV-OIL', 'item_name' => 'Oil Filter', 'parts_name' => 'Oil Filter',
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs',
+            'quantity_available' => 10, 'on_hand' => 10, 'category' => 'Filters',
+        ]);
+        $newPart = InventoryItem::create([
+            'item_code' => 'REV-BELT', 'item_name' => 'Fan Belt', 'parts_name' => 'Fan Belt',
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs',
+            'quantity_available' => 10, 'on_hand' => 10, 'category' => 'Engine Parts',
+        ]);
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-REVISION-STOCK', 'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Replace part', 'work_to_perform' => 'Repair',
+            'maintenance_type' => 'Repair', 'status' => 'On Hold',
+            'part_needed' => "Oil Filter [item:{$oldPart->id}] - Qty: 5 pcs",
+            'part_status' => 'Not Requested', 'review_status' => 'For Review',
+            'inventory_snapshot' => ['reservation_at_submission' => true],
+            'created_by' => $staff->id,
+        ]);
+        \App\Models\Maintenance\JobOrderPartReservation::create([
+            'job_order_id' => $jobOrder->id, 'inventory_item_id' => $oldPart->id, 'quantity' => 5,
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.return-for-revision', $jobOrder), [
+                'review_notes' => 'Replace the originally requested part.',
+            ])->assertRedirect();
+
+        $this->actingAs($staff)->withoutMiddleware(RequireSystemPermission::class)
+            ->put(route('job-orders.update', $jobOrder), [
+                'job_order_no' => $jobOrder->job_order_no, 'bus_no' => $bus->bus_no,
+                'problem_issue' => 'Fan belt damaged', 'work_to_perform' => 'Replace fan belt',
+                'maintenance_type' => 'Repair', 'parts' => [
+                    ['inventory_item_id' => $newPart->id, 'name' => 'Fan Belt', 'unit' => 'pcs', 'quantity' => 3],
+                ],
+            ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('For Review', $jobOrder->fresh()->review_status);
+        $this->assertDatabaseMissing('job_order_part_reservations', [
+            'job_order_id' => $jobOrder->id, 'inventory_item_id' => $oldPart->id,
+        ]);
+        $this->assertDatabaseHas('job_order_part_reservations', [
+            'job_order_id' => $jobOrder->id, 'inventory_item_id' => $newPart->id, 'quantity' => 3,
+        ]);
+        $this->assertSame(10, (int) $oldPart->fresh()->quantity_available);
+        $this->assertSame(10, (int) $newPart->fresh()->quantity_available);
+    }
+
+    public function test_duration_median_uses_only_reliable_approved_completed_history(): void
+    {
+        foreach ([60, 120, 180] as $index => $minutes) {
+            JobOrder::create([
+                'job_order_no' => 'JO-MEDIAN-'.($index + 1), 'bus_no' => 'BUS-MEDIAN-'.($index + 1),
+                'problem_issue' => 'Brake repair', 'maintenance_type' => 'Repair',
+                'status' => 'Completed', 'review_status' => 'Approved', 'part_status' => 'No Parts Required',
+                'actual_started_at' => now()->subDays(5 - $index),
+                'actual_completed_at' => now()->subDays(5 - $index)->addMinutes($minutes),
+            ]);
+        }
+        JobOrder::create([
+            'job_order_no' => 'JO-UNRELIABLE', 'bus_no' => 'BUS-UNRELIABLE',
+            'problem_issue' => 'Brake repair', 'maintenance_type' => 'Repair',
+            'status' => 'Completed', 'review_status' => 'Approved', 'part_status' => 'No Parts Required',
+            'start_date' => now()->subYear(), 'completion_date' => now(),
+        ]);
+
+        $suggestion = app(JobOrderDurationService::class)->suggestion('Repair');
+        $this->assertSame(2.0, $suggestion['value']);
+        $this->assertSame('Hours', $suggestion['unit']);
+        $this->assertSame(3, $suggestion['sample_size']);
+        $this->assertNull(app(JobOrderDurationService::class)->suggestion('PMS'));
+    }
+
+    public function test_failed_approval_does_not_leave_an_orphaned_signature_file(): void
+    {
+        Storage::fake('local');
+        $head = $this->user('head');
+        $bus = Bus::create(['bus_no' => 'BUS-SIGNATURE-ROLLBACK', 'status' => 'Active']);
+        foreach (['DUPLICATE-A', 'DUPLICATE-B'] as $code) {
+            InventoryItem::create([
+                'item_code' => $code,
+                'item_name' => 'Oil Filter',
+                'parts_name' => 'Oil Filter',
+                'category' => 'Filters',
+                'quantity_available' => 5,
+                'on_hand' => 5,
+                'unit' => 'pcs',
+                'unit_of_measurement' => 'pcs',
+                'reorder_level' => 1,
+            ]);
+        }
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-SIGNATURE-ROLLBACK',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Replace oil filter',
+            'maintenance_type' => 'Repair',
+            'part_needed' => 'Oil Filter - Qty: 1 pcs',
+            'part_status' => 'Not Requested',
+            'review_status' => 'For Review',
+            'status' => 'On Hold',
+            'estimated_duration_value' => 1,
+            'estimated_duration_unit' => 'Hours',
+        ]);
+
+        $this->actingAs($head)
+            ->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.approve', $jobOrder), [
+                'electronic_signature' => $head->name,
+                'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+                'duration_decision' => 'accept',
+            ])
+            ->assertSessionHasErrors('parts_issue_strategy');
+
+        Storage::disk('local')->assertDirectoryEmpty('maintenance/job-order-signatures/'.$jobOrder->id);
+        $this->assertSame('For Review', $jobOrder->fresh()->review_status);
+        $this->assertDatabaseMissing('job_order_part_reservations', ['job_order_id' => $jobOrder->id]);
+    }
+}

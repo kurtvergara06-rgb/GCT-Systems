@@ -662,6 +662,12 @@ const navigate = async (url, options = {}) => {
 
 const eligibleLink = (link, event) => {
     if (!link || event.defaultPrevented || event.button !== 0) return false;
+    // Sidebar destinations must perform a normal document navigation until every
+    // page-specific script supports reinitialization after a DOM swap. Cached
+    // Vite modules otherwise keep listeners attached to detached elements,
+    // leaving buttons inert until the user manually refreshes. Keep AJAX
+    // navigation for other eligible links and partial table/filter updates.
+    if (link.closest('#appSidebar')) return false;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
     if (link.hasAttribute('data-no-partial-navigation')) return false;

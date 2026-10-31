@@ -77,6 +77,40 @@ class ProfilePhotoTest extends TestCase
         $this->assertNull($user->fresh()->avatar_path);
     }
 
+    public function test_failed_php_uploads_show_specific_errors_and_preserve_the_existing_avatar(): void
+    {
+        Storage::fake('public');
+        $existingPath = UploadedFile::fake()->image('existing.jpg')->store('profile-photos', 'public');
+        $user = User::factory()->create(['avatar_path' => $existingPath]);
+
+        $cases = [
+            UPLOAD_ERR_INI_SIZE => 'The profile photo exceeds the server upload limit (2 MB). Choose a smaller image.',
+            UPLOAD_ERR_PARTIAL => 'The profile photo was only partially uploaded. Please try again.',
+            UPLOAD_ERR_NO_TMP_DIR => 'The server temporary upload directory is unavailable. Contact your administrator.',
+            UPLOAD_ERR_CANT_WRITE => 'The server could not write the uploaded photo. Contact your administrator.',
+            UPLOAD_ERR_EXTENSION => 'A server extension blocked the photo upload. Contact your administrator.',
+        ];
+
+        foreach ($cases as $errorCode => $message) {
+            $invalidUpload = new UploadedFile(
+                __FILE__,
+                'failed.jpg',
+                'image/jpeg',
+                $errorCode,
+                true,
+            );
+
+            $this->actingAs($user)
+                ->from(route('account.profile'))
+                ->put(route('account.profile.photo.update'), ['avatar' => $invalidUpload])
+                ->assertRedirect(route('account.profile'))
+                ->assertSessionHasErrors(['avatar' => $message]);
+
+            $this->assertSame($existingPath, $user->fresh()->avatar_path);
+            Storage::disk('public')->assertExists($existingPath);
+        }
+    }
+
     public function test_user_can_remove_their_profile_photo(): void
     {
         Storage::fake('public');

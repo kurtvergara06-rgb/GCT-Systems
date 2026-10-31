@@ -80,6 +80,7 @@ it('provides responsive styles for the conflict queue and report', function (): 
 it('shows compact validated driver bus pairs first with collapsible details and retained server-side actions', function (): void {
     $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
     $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+    $compactStyles = preg_replace('/\s+/', '', $styles);
 
     expect($script)
         ->toContain('Best eligible Regular Bus assignment')
@@ -91,8 +92,9 @@ it('shows compact validated driver bus pairs first with collapsible details and 
         ->toContain('Final Laravel validation applies');
     expect($styles)
         ->toContain('.gct-compact-pair-list')
-        ->toContain('.gct-compact-details')
-        ->toContain('.gct-report-actions { position:sticky');
+        ->toContain('.gct-compact-details');
+    expect($compactStyles)
+        ->toContain('.gct-report-actions{position:sticky');
 });
 
 it('rechecks driver and bus overlap before advertising valid AI pairs', function (): void {

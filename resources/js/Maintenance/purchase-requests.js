@@ -226,175 +226,6 @@ window.GCTPartialNavigation.registerInitializer(
 
 
     /* =========================================================
-       RENDER REVIEW ITEMS
-    ========================================================= */
-
-    function renderReviewParts(
-      partText,
-      fallbackQuantity = ''
-    ) {
-
-      const body =
-        document.getElementById(
-          'reviewPrItemsBody'
-        );
-
-
-      const countLabel =
-        document.getElementById(
-          'reviewPrItemCount'
-        );
-
-
-      if (!body) {
-        return;
-      }
-
-
-      const parts =
-        parseParts(
-          partText
-        );
-
-
-      if (
-        parts.length === 1 &&
-        !parts[0].quantity &&
-        fallbackQuantity
-      ) {
-
-        parts[0].quantity =
-          fallbackQuantity;
-
-      }
-
-
-      body.innerHTML =
-        '';
-
-
-      if (
-        parts.length === 0
-      ) {
-
-        const row =
-          document.createElement(
-            'tr'
-          );
-
-
-        const cell =
-          document.createElement(
-            'td'
-          );
-
-
-        cell.colSpan = 4;
-        cell.className =
-          'pr-review-empty';
-        cell.textContent =
-          'No requested items recorded.';
-
-
-        row.appendChild(
-          cell
-        );
-
-
-        body.appendChild(
-          row
-        );
-
-      } else {
-
-        parts.forEach(
-          (part, index) => {
-
-            const row =
-              document.createElement(
-                'tr'
-              );
-
-
-            const numberCell =
-              document.createElement(
-                'td'
-              );
-
-            numberCell.textContent =
-              String(
-                index + 1
-              );
-
-
-            const nameCell =
-              document.createElement(
-                'td'
-              );
-
-            nameCell.textContent =
-              part.name || '—';
-
-
-            const quantityCell =
-              document.createElement(
-                'td'
-              );
-
-            quantityCell.textContent =
-              part.quantity || '—';
-
-
-            const unitCell =
-              document.createElement(
-                'td'
-              );
-
-            unitCell.textContent =
-              part.unit || '—';
-
-
-            row.append(
-              numberCell,
-              nameCell,
-              quantityCell,
-              unitCell
-            );
-
-
-            body.appendChild(
-              row
-            );
-
-          }
-        );
-
-      }
-
-
-      const count =
-        parts.length;
-
-
-      if (
-        countLabel
-      ) {
-
-        countLabel.textContent =
-          String(count) + ' ' +
-          (
-            count === 1
-              ? 'item'
-              : 'items'
-          );
-
-      }
-
-
-    }
-
-
-    /* =========================================================
        CREATE PART ROW
     ========================================================= */
 
@@ -1124,124 +955,6 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
-    const reviewPrNo =
-      document.getElementById(
-        'reviewPrNo'
-      );
-
-
-    const reviewPrStatus =
-      document.getElementById(
-        'reviewPrStatus'
-      );
-
-
-    const reviewPrCreated =
-      document.getElementById(
-        'reviewPrCreated'
-      );
-
-
-    const reviewPrJobOrderNo =
-      document.getElementById(
-        'reviewPrJobOrderNo'
-      );
-
-
-    const reviewPrBusNo =
-      document.getElementById(
-        'reviewPrBusNo'
-      );
-
-
-    const reviewPrRemarks =
-      document.getElementById(
-        'reviewPrRemarks'
-      );
-
-
-    const reviewPrRequestDate =
-      document.getElementById(
-        'reviewPrRequestDate'
-      );
-
-
-    const reviewPrStatusText =
-      document.getElementById(
-        'reviewPrStatusText'
-      );
-
-
-    const reviewPrTotalQuantity =
-      document.getElementById(
-        'reviewPrTotalQuantity'
-      );
-
-
-    const reviewPrSource =
-      document.getElementById(
-        'reviewPrSource'
-      );
-
-
-    const reviewPrWorkToPerform =
-      document.getElementById(
-        'reviewPrWorkToPerform'
-      );
-
-
-    const prReviewInformation =
-      document.getElementById(
-        'prReviewInformation'
-      );
-
-
-    const prReviewItemsSection =
-      document.getElementById(
-        'prReviewItemsSection'
-      );
-
-
-    const prEditableSection =
-      document.getElementById(
-        'prEditableSection'
-      );
-
-
-    const reviewDecisionBlock =
-      document.getElementById(
-        'reviewDecisionBlock'
-      );
-
-
-    const reviewDecisionRemarks =
-      document.getElementById(
-        'reviewDecisionRemarks'
-      );
-
-
-    const reviewEditPrBtn =
-      document.getElementById(
-        'reviewEditPrBtn'
-      );
-
-
-    const reviewApprovePrBtn =
-      document.getElementById(
-        'reviewApprovePrBtn'
-      );
-
-
-    const reviewRejectPrBtn =
-      document.getElementById(
-        'reviewRejectPrBtn'
-      );
-
-
-    let activePrTrigger =
-      null;
-
-
     /* =========================================================
        GET METHOD SPOOF FIELD
     ========================================================= */
@@ -1405,120 +1118,6 @@ window.GCTPartialNavigation.registerInitializer(
 
 
     /* =========================================================
-       REVIEW ACTIONS
-    ========================================================= */
-
-    function configureReviewActions(
-      button,
-      mode,
-      status
-    ) {
-
-      const isView =
-        mode === 'view';
-
-
-      const canEdit =
-        isView &&
-        button?.dataset
-          .canEdit === '1';
-
-
-      const canApprove =
-        isView &&
-        status === 'Submitted' &&
-        button?.dataset
-          .canApprove === '1';
-
-
-      if (
-        reviewEditPrBtn
-      ) {
-
-        reviewEditPrBtn.hidden =
-          !canEdit;
-
-
-        const label =
-          reviewEditPrBtn
-            .querySelector(
-              'span'
-            );
-
-
-        if (label) {
-
-          label.textContent =
-            status === 'Rejected'
-              ? 'Revise'
-              : 'Edit';
-
-        }
-
-      }
-
-
-      [
-        [
-          reviewApprovePrBtn,
-          canApprove,
-          button?.dataset
-            .approveUrl
-        ],
-        [
-          reviewRejectPrBtn,
-          canApprove,
-          button?.dataset
-            .rejectUrl
-        ],
-      ].forEach(
-        ([
-          control,
-          visible,
-          actionUrl,
-        ]) => {
-
-          if (!control) {
-            return;
-          }
-
-
-          control.hidden =
-            !visible;
-
-
-          if (visible) {
-
-            control.dataset
-              .actionUrl =
-              actionUrl || '';
-
-
-            control.dataset
-              .prNo =
-              button?.dataset
-                .prNo
-              || '';
-
-          }
-
-        }
-      );
-
-
-      if (
-        reviewDecisionBlock
-      ) {
-
-        reviewDecisionBlock.hidden =
-          !canApprove;
-
-      }
-
-    }
-
-
-    /* =========================================================
        MODAL MODE
     ========================================================= */
 
@@ -1674,35 +1273,7 @@ window.GCTPartialNavigation.registerInitializer(
 
 
       /*
-       * Review / Edit workspace
-       */
-      [
-        prReviewInformation,
-        prReviewItemsSection,
-      ].forEach(
-        element => {
-
-          if (element) {
-            element.hidden =
-              !isView;
-          }
-
-        }
-      );
-
-
-      if (
-        prEditableSection
-      ) {
-
-        prEditableSection.hidden =
-          isView;
-
-      }
-
-
-      /*
-       * Review footer
+       * View Close
        */
       if (
         viewOnlyActions
@@ -1711,18 +1282,11 @@ window.GCTPartialNavigation.registerInitializer(
         viewOnlyActions
           .style
           .display =
-          isView
+          isReadonly
             ? 'flex'
             : 'none';
 
       }
-
-
-      configureReviewActions(
-        activePrTrigger,
-        mode,
-        status
-      );
 
     }
 
@@ -1731,107 +1295,89 @@ window.GCTPartialNavigation.registerInitializer(
        OPEN PR DETAILS
     ========================================================= */
 
+    // Populate saved read-only details from the selected persisted PR row.
+    // Never render dataset values as HTML.
+    function populateSavedPrDetails(button) {
+      const data = button.dataset;
+      const setText = (id, value, fallback = '—') => {
+        const element = editPrModal?.querySelector('#' + id);
+        if (element) element.textContent = String(value ?? '').trim() || fallback;
+      };
+      setText('reviewPrNo', data.prNo);
+      setText('reviewPrSummaryJobOrder', data.jobOrderNo);
+      setText('reviewPrStatus', data.status);
+      setText('reviewPrBusNo', data.busNo);
+      setText('reviewPrCreated', data.createdAt);
+      setText('reviewPrSource', data.sourceType, 'Maintenance Request');
+      setText('reviewPrJobOrderNo', data.jobOrderNo);
+      setText('reviewPrRequester', data.requester);
+      setText('reviewPrRequestDate', data.createdAt);
+      setText('reviewPrApprover', data.joApprover, 'Not recorded');
+      setText('reviewPrJoAuthorization', data.joReviewStatus);
+      setText('reviewPrApprovedAt', data.joApprovedAt);
+      setText('reviewPrAuthorizationJobOrder', data.jobOrderNo);
+      setText('reviewPrWorkToPerform', data.workToPerform);
+      setText('reviewPrPurpose', data.purpose);
+      setText('reviewPrTargetDate', data.targetDate);
+      setText('reviewPrRemarks', data.remarks, 'No remarks provided.');
+      const pill = editPrModal?.querySelector('#reviewPrStatus');
+      if (pill) pill.dataset.status = (data.status || '').toLowerCase().replaceAll(' ', '-');
+      const signature = editPrModal?.querySelector('#reviewPrSignature');
+      const signatureFallback = editPrModal?.querySelector('#reviewPrSignatureFallback');
+      if (signature) {
+        const url = data.joApproved === '1' ? data.joSignatureUrl : '';
+        signature.hidden = !url;
+        signature.removeAttribute('src');
+        if (url) signature.src = url;
+        if (signatureFallback) signatureFallback.hidden = !!url;
+      }
+      const renderTable = (bodyId, parts, emptyText, status) => {
+        const body = editPrModal?.querySelector('#' + bodyId);
+        if (!body) return;
+        body.replaceChildren();
+        if (!parts.length) {
+          const row = body.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 3;
+          cell.className = 'pr-review-empty';
+          cell.textContent = emptyText;
+          return;
+        }
+        parts.forEach(part => {
+          const row = body.insertRow();
+          const name = row.insertCell();
+          const qty = row.insertCell();
+          const state = row.insertCell();
+          name.textContent = part.name || '—';
+          qty.textContent = [part.quantity ?? 0, part.unit || ''].join(' ').trim();
+          state.textContent = status;
+        });
+      };
+      const purchased = parseParts(data.item || '');
+      let reference = [];
+      try {
+        const parsed = JSON.parse(data.referenceIrParts || '[]');
+        if (Array.isArray(parsed)) reference = parsed;
+      } catch (_) {
+        reference = [];
+      }
+      renderTable('reviewPrItemsBody', purchased, 'No requested items recorded.', data.status || 'Submitted');
+      renderTable('reviewPrIrPartsBody', reference, 'No linked allocation.', data.linkedIrStatus || 'Reference only');
+      setText('reviewPrItemCount', purchased.length + (purchased.length === 1 ? ' item' : ' items'));
+      setText('reviewPrTotalQuantity', purchased.reduce((total, part) => total + Number(part.quantity || 0), 0));
+    }
+
     function openPrDetails(
       button,
       mode
     ) {
+      activePrNo = button.dataset.prNo || '';
+      activePrMode = mode;
+      populateSavedPrDetails(button);
 
       const status =
         button.dataset.status
         || 'Submitted';
-
-
-      activePrTrigger =
-        button;
-
-
-      if (reviewPrNo) {
-        reviewPrNo.textContent =
-          button.dataset.prNo || '—';
-      }
-
-
-      if (reviewPrStatus) {
-        reviewPrStatus.textContent =
-          status === 'Submitted'
-            ? 'Under Review'
-            : status;
-        reviewPrStatus.dataset.status =
-          status.toLowerCase().replaceAll(' ', '-');
-      }
-
-
-      if (reviewPrCreated) {
-        reviewPrCreated.textContent =
-          button.dataset.createdAt || '—';
-      }
-
-
-      if (reviewPrJobOrderNo) {
-        reviewPrJobOrderNo.textContent =
-          button.dataset.jobOrderNo || '—';
-      }
-
-
-      if (reviewPrBusNo) {
-        reviewPrBusNo.textContent =
-          button.dataset.busNo || '—';
-      }
-
-
-      if (reviewPrRemarks) {
-        reviewPrRemarks.textContent =
-          button.dataset.remarks?.trim()
-            || 'No remarks provided.';
-      }
-
-
-      if (reviewPrRequestDate) {
-        reviewPrRequestDate.textContent =
-          button.dataset.createdAt || '—';
-      }
-
-
-      if (reviewPrStatusText) {
-        reviewPrStatusText.textContent =
-          status === 'Submitted'
-            ? 'Under Review'
-            : status;
-      }
-
-
-      if (reviewPrTotalQuantity) {
-        reviewPrTotalQuantity.textContent =
-          button.dataset.quantity || '—';
-      }
-
-
-      if (reviewPrSource) {
-        reviewPrSource.textContent =
-          button.dataset.sourceType
-            || 'Maintenance Request';
-      }
-
-
-      if (reviewPrWorkToPerform) {
-        reviewPrWorkToPerform.textContent =
-          button.dataset.workToPerform?.trim()
-            || 'No work / repair details recorded.';
-      }
-
-
-      if (
-        reviewDecisionRemarks &&
-        mode === 'view'
-      ) {
-        reviewDecisionRemarks.value = '';
-      }
-
-
-      renderReviewParts(
-        button.dataset.item || '',
-        button.dataset.quantity || ''
-      );
 
 
       const isRejected =
@@ -1946,53 +1492,50 @@ window.GCTPartialNavigation.registerInitializer(
 
     }
 
+    let activePrNo = '';
+    let activePrMode = 'view';
+
+    function configureReviewActions(button) {
+      const canEdit = button.dataset.canEdit === '1';
+      const status = button.dataset.status || 'Submitted';
+
+      return activePrMode === 'edit' &&
+        canEdit &&
+        !isProcessedPrStatus(status)
+        ? 'edit'
+        : 'view';
+    }
 
     const syncOpenReviewPermissions = () => {
-
-      if (
-        !activePrTrigger ||
-        !editPrModal?.classList.contains('show')
-      ) {
+      if (!activePrNo || !editPrModal?.classList.contains('show')) {
         return;
       }
 
-      const activePrNo =
-        activePrTrigger.dataset.prNo;
+      const buttons = Array.from(document.querySelectorAll(
+        '.open-view-pr-modal, .open-edit-pr-modal'
+      ));
+      const button = buttons.find((candidate) =>
+        candidate.dataset.prNo === activePrNo &&
+        (activePrMode !== 'edit' || candidate.dataset.canEdit === '1')
+      ) || buttons.find((candidate) => candidate.dataset.prNo === activePrNo);
 
-      if (!activePrNo) {
+      if (!button) {
+        closeModal(editPrModal);
+        activePrNo = '';
+        activePrMode = 'view';
         return;
       }
 
-      const freshTrigger =
-        Array.from(
-          document.querySelectorAll(
-            '.open-view-pr-modal'
-          )
-        ).find(
-          button =>
-            button.dataset.prNo === activePrNo
-        );
-
-      if (!freshTrigger) {
-        return;
-      }
-
-      activePrTrigger =
-        freshTrigger;
-
-      configureReviewActions(
-        freshTrigger,
-        'view',
-        freshTrigger.dataset.status || 'Submitted'
-      );
-
+      openPrDetails(button, configureReviewActions(button));
     };
 
-
-    window.addEventListener(
-      'system-regions-refreshed',
-      syncOpenReviewPermissions
-    );
+    window.GCTSyncOpenPrReview = syncOpenReviewPermissions;
+    if (!window.GCTPrReviewRefreshBound) {
+      window.addEventListener('system-regions-refreshed', async () => {
+        await window.GCTSyncOpenPrReview();
+      });
+      window.GCTPrReviewRefreshBound = true;
+    }
 
 
     /* =========================================================
@@ -2026,25 +1569,6 @@ window.GCTPartialNavigation.registerInitializer(
     );
 
 
-    reviewEditPrBtn
-      ?.addEventListener(
-        'click',
-        () => {
-
-          if (!activePrTrigger) {
-            return;
-          }
-
-
-          openPrDetails(
-            activePrTrigger,
-            'edit'
-          );
-
-        }
-      );
-
-
     /* =========================================================
        EDIT / REVISE BUTTON
     ========================================================= */
@@ -2076,6 +1600,7 @@ window.GCTPartialNavigation.registerInitializer(
           isProcessedPrStatus(
             status
           )
+          || button.dataset.canEdit !== '1'
         ) {
 
           return;
@@ -2186,21 +1711,6 @@ window.GCTPartialNavigation.registerInitializer(
         'click',
         () => {
 
-          if (
-            activePrTrigger
-          ) {
-
-            openPrDetails(
-              activePrTrigger,
-              'view'
-            );
-
-
-            return;
-
-          }
-
-
           closeModal(
             editPrModal
           );
@@ -2236,12 +1746,6 @@ window.GCTPartialNavigation.registerInitializer(
     const rejectPrForm =
       document.getElementById(
         'rejectPrForm'
-      );
-
-
-    const rejectPrRemarks =
-      document.getElementById(
-        'rejectPrRemarks'
       );
 
 
@@ -2414,19 +1918,6 @@ window.GCTPartialNavigation.registerInitializer(
 
                 rejectPrForm.action =
                   actionUrl;
-
-
-                if (
-                  rejectPrRemarks
-                ) {
-
-                  rejectPrRemarks.value =
-                    reviewDecisionRemarks
-                      ?.value
-                      ?.trim()
-                    || 'Rejected by Maintenance';
-
-                }
 
 
                 rejectPrForm
@@ -2620,43 +2111,6 @@ window.GCTPartialNavigation.registerInitializer(
         }
       );
 
-
-    /* =========================================================
-       LOCAL BACKDROP CLOSE
-
-       IMPORTANT:
-       Global confirmation is excluded.
-    ========================================================= */
-
-    document.addEventListener(
-      'click',
-      event => {
-
-        const overlay =
-          event.target.closest(
-            '.ui-form-overlay, ' +
-            '.modal-overlay:not(.global-confirmation-overlay), ' +
-            '.delete-modal-overlay'
-          );
-
-
-        if (
-          !overlay ||
-          event.target !==
-            overlay
-        ) {
-          return;
-        }
-
-
-        closeModal(
-          overlay
-        );
-
-      }
-    );
-
-
     /* =========================================================
        ESC CLOSE
 
@@ -2699,3 +2153,146 @@ window.GCTPartialNavigation.registerInitializer(
   }
 );
 
+
+/* Keep pending PR/IR breakdowns outside scroll-clipped table containers. */
+window.GCTPartialNavigation.registerInitializer('maintenance-pr-breakdown-popup', '.purchase-page', () => {
+  const page = document.querySelector('.purchase-page');
+  if (!page || page.dataset.breakdownPopupReady === '1') return;
+  page.dataset.breakdownPopupReady = '1';
+  let active = null;
+  const close = () => {
+    if (!active) return;
+    active.details.open = false;
+    active.list.classList.remove('pr-parts-floating-menu');
+    active.list.removeAttribute('style');
+    active.details.appendChild(active.list);
+    active = null;
+  };
+  const position = () => {
+    if (!active) return;
+    const box = active.summary.getBoundingClientRect();
+    const width = Math.min(360, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(box.left, window.innerWidth - width - 12));
+    const height = Math.min(active.list.scrollHeight, 300);
+    const roomBelow = window.innerHeight - box.bottom - 16;
+    const roomAbove = box.top - 16;
+    const up = roomBelow < Math.min(180, height) && roomAbove > roomBelow;
+    Object.assign(active.list.style, {
+      position: 'fixed', left: left + 'px', width: width + 'px', right: 'auto',
+      top: up ? 'auto' : (box.bottom + 5) + 'px',
+      bottom: up ? (window.innerHeight - box.top + 5) + 'px' : 'auto',
+      maxHeight: Math.max(90, Math.min(300, up ? roomAbove : roomBelow)) + 'px',
+      zIndex: '120000'
+    });
+  };
+  page.addEventListener('click', event => {
+    const summary = event.target.closest('.pr-ir-breakdown > summary');
+    if (!summary) return;
+    event.preventDefault();
+    const details = summary.parentElement;
+    if (active?.details === details) { close(); return; }
+    close();
+    const list = details.querySelector('.pr-pending-parts-list');
+    if (!list) return;
+    details.open = true;
+    list.classList.add('pr-parts-floating-menu');
+    document.body.appendChild(list);
+    active = {details,summary,list};
+    position();
+  });
+  document.addEventListener('click', event => {
+    if (active && !active.summary.contains(event.target) && !active.list.contains(event.target)) close();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && active) { event.preventDefault(); close(); }
+  });
+  window.addEventListener('resize', position);
+  window.addEventListener('scroll', event => {
+    if (active && !active.list.contains(event.target)) position();
+  }, true);
+});
+
+
+/* Pending PR review uses the same approved JO endpoint as PR submission. */
+window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-action', '.purchase-page', () => {
+  const root = document.querySelector('.purchase-page');
+  const modal = document.getElementById('prModal');
+  const select = document.getElementById('jobOrderSelect');
+  const form = document.getElementById('newPrForm');
+  if (!root || !modal || !select || !form) return;
+  const submit = document.getElementById('createPrBtn');
+  const tbody = document.getElementById('newPrPartsBody');
+  const irTbody = document.getElementById('prReviewAvailableParts');
+  const text = (id, value) => { const e = document.getElementById(id); if (e) e.textContent = value || '—'; };
+  const clear = (node) => { if (node) node.replaceChildren(); };
+  let sequence = 0;
+  const render = (node, parts, category) => {
+    if (!node) return;
+    node.replaceChildren();
+    for (const part of parts) {
+      const row = node.insertRow();
+      for (const value of [part.name || '—', (part.quantity || 0) + ' ' + (part.unit || ''), category]) {
+        const cell = row.insertCell();
+        cell.textContent = value;
+      }
+    }
+    if (!parts.length) {
+      const row = node.insertRow();
+      const cell = row.insertCell(); cell.colSpan = 3;
+      cell.textContent = category === 'For Purchase' ? 'No shortage requires purchasing.' : 'No available IR allocation.';
+    }
+  };
+  const load = async () => {
+    const seq = ++sequence;
+    submit.disabled = true;
+    form.querySelectorAll('[data-generated-pr-part]').forEach(el => el.remove());
+    const option = select.selectedOptions[0];
+    const url = option?.dataset.jobOrderUrl;
+    if (!url) return;
+    clear(tbody); clear(irTbody);
+    try {
+      const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const data = await response.json();
+      if (seq !== sequence) return;
+      if (!response.ok) throw new Error(data.message || 'Unable to load approved Job Order.');
+      text('prReviewLinkedJo', data.job_order_no);
+      text('prReviewBus', data.bus_no);
+      text('prReviewMechanics', data.assigned_mechanics);
+      text('prApproverName', data.approver_name);
+      const bus = document.getElementById('busNoInput'); if (bus) bus.value = data.bus_no || '';
+      const signature = document.getElementById('prApprovalSignature');
+      const placeholder = document.getElementById('prSignaturePlaceholder');
+      if (signature) { signature.hidden = !data.signature_url; if (data.signature_url) signature.src = data.signature_url; else signature.removeAttribute('src'); }
+      if (placeholder) placeholder.hidden = !!data.signature_url;
+      const shortages = Array.isArray(data.parts) ? data.parts : [];
+      render(tbody, shortages, 'For Purchase');
+      render(irTbody, Array.isArray(data.available_parts) ? data.available_parts : [], 'Available');
+      shortages.forEach((part, i) => {
+        for (const [field, value] of Object.entries({name:part.name, quantity:part.quantity,unit:part.unit})) {
+          const input = document.createElement('input');
+          input.type = 'hidden'; input.dataset.generatedPrPart = '1';
+          input.name = 'parts[' + i + '][' + field + ']';
+          input.value = value ?? ''; form.appendChild(input);
+        }
+      });
+      submit.disabled = shortages.length === 0;
+    } catch (error) {
+      if (seq !== sequence) return;
+      render(tbody, [], 'For Purchase');
+      text('prReviewLinkedJo', error.message);
+      submit.disabled = true;
+    }
+  };
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-pr-review-job]');
+    if (!button) return;
+    event.preventDefault();
+    const option = [...select.options].find(o => o.value === button.dataset.prReviewJob);
+    if (!option) return;
+    select.value = option.value;
+    modal.classList.add('show','active');
+    modal.style.display = 'flex';
+    void load();
+  });
+  select.addEventListener('change', load);
+});

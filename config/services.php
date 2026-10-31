@@ -20,6 +20,13 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+        'endpoint' => env('BREVO_API_URL', 'https://api.brevo.com/v3/smtp/email'),
+        'timeout' => (int) env('BREVO_TIMEOUT', 10),
+        'connect_timeout' => (int) env('BREVO_CONNECT_TIMEOUT', 3),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

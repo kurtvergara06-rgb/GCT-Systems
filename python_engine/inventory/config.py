@@ -1,11 +1,10 @@
-"""Configuration for Inventory Model #4.
+"""Configuration for the Model #4 inventory demand-forecasting subsystem.
 
-Sources:
-- ``sample``: generated development CSV.
-- ``demo``: realistic simulated warehouse movements (source='simulated').
-- ``genuine``: production GCT ledger rows (source='app').
-
-Production defaults to genuine and never falls back to synthetic data.
+Development may train on GENERATED / SYNTHETIC data stored under
+``training_data/inventory/``. Production must use genuine ``stock_movements``
+(``source='app'``) only. If genuine inventory history is insufficient, the
+model must report ``MODEL NOT READY`` rather than falling back to generated
+training data.
 """
 
 import os
@@ -20,55 +19,35 @@ DISCLAIMER = (
     "blocked from serving predictions in production."
 )
 
-DEMO_DISCLAIMER = (
-    "DEMO / SYNTHETIC FRONTEND DATA — NOT ACTUAL GCT OPERATIONAL HISTORY. "
-    "These records exist in the normal Warehouse/Purchase frontend for client "
-    "presentation but remain development-only ML data."
-)
-
 
 def data_source() -> str:
+    """Return the requested inventory training-data source.
+
+    Development defaults to ``sample``. Production defaults to ``genuine``.
+    The runtime policy still blocks synthetic artifacts in production even if
+    ``INVENTORY_DATA_SOURCE=sample`` is explicitly configured.
+    """
     default = "genuine" if is_production_runtime() else "sample"
-    value = os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
-    if value not in {"sample", "demo", "genuine"}:
-        raise ValueError(
-            "INVENTORY_DATA_SOURCE must be one of: sample, demo, genuine "
-            f"(received {value!r})."
-        )
-    return value
+    return os.environ.get("INVENTORY_DATA_SOURCE", default).strip().lower()
 
 
 def is_genuine() -> bool:
+    """Return True if data source is configured for genuine data."""
     return data_source() == "genuine"
 
 
-def is_demo() -> bool:
-    return data_source() == "demo"
-
-
 def data_thresholds() -> Dict[str, int]:
-    """Minimum history required before Model #4 is considered usable."""
-    if data_source() in {"genuine", "demo"}:
-        return {
-            "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "260")),
-            "min_buses": 1,
-            "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "20")),
-            "min_weeks": int(os.environ.get("INVENTORY_MIN_WEEKS", "13")),
-            "min_stock_out_events": int(
-                os.environ.get("INVENTORY_MIN_STOCK_OUT_EVENTS", "500")
-            ),
-        }
-
+    """Minimum data before the inventory model is considered usable."""
     return {
         "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "1000")),
         "min_buses": int(os.environ.get("INVENTORY_MIN_BUSES", "3")),
         "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "10")),
         "min_weeks": int(os.environ.get("INVENTORY_MIN_WEEKS", "13")),
-        "min_stock_out_events": 0,
     }
 
 
 def rf_convention() -> Dict[str, object]:
+    """Project-wide Random Forest convention."""
     return {
         "n_estimators": 200,
         "max_depth": None,
@@ -80,21 +59,21 @@ def rf_convention() -> Dict[str, object]:
 
 
 def model_paths() -> Dict[str, Path]:
-    """Demo artifacts are isolated from the canonical inventory artifact."""
+    """Canonical paths for the saved inventory model artifacts."""
     models_dir = Path(__file__).resolve().parent / "models"
-    prefix = "demo_" if data_source() == "demo" else ""
     return {
         "dir": models_dir,
-        "model": models_dir / f"{prefix}inventory_demand_rf.pkl",
-        "report": models_dir / f"{prefix}inventory_demand_report.txt",
-        "features": models_dir / f"{prefix}inventory_demand_features.json",
-        "state": models_dir / f"{prefix}inventory_demand_state.json",
+        "model": models_dir / "inventory_demand_rf.pkl",
+        "report": models_dir / "inventory_demand_report.txt",
+        "features": models_dir / "inventory_demand_features.json",
+        "state": models_dir / "inventory_demand_state.json",
     }
 
 
 def training_data_paths() -> Dict[str, Path]:
+    """Canonical paths for inventory training datasets."""
     data_dir = Path(__file__).resolve().parents[2] / "training_data" / "inventory"
-    prefix = data_source()
+    prefix = "genuine" if data_source() == "genuine" else "sample"
     return {
         "dir": data_dir,
         "csv": data_dir / f"{prefix}_inventory_training.csv",
@@ -103,8 +82,10 @@ def training_data_paths() -> Dict[str, Path]:
 
 
 def forecast_test_fraction() -> float:
+    """Fraction of the chronologically latest weeks reserved for the test set."""
     return float(os.environ.get("INVENTORY_TEST_FRACTION", "0.2"))
 
 
 def forecast_horizon() -> str:
+    """Forecast horizon label for the weekly model."""
     return "next_week"

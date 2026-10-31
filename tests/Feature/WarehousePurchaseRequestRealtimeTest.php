@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Events\SystemDataUpdated;
 use App\Models\Admin\User;
 use App\Models\Maintenance\PurchaseRequest;
-use App\Models\Warehouse\InventoryItem;
+use App\Models\Maintenance\JobOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -14,21 +14,19 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_warehouse_purchase_request_issue_dispatches_system_data_updated_event()
+    public function test_forwarding_purchase_request_dispatches_system_data_updated_event()
     {
         Event::fake([SystemDataUpdated::class]);
 
-        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff']);
+        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head']);
 
-        $inventoryItem = InventoryItem::create([
-            'item_code' => 'PART-A',
-            'item_name' => 'Part A',
-            'category' => 'Parts',
-            'quantity_available' => 10,
-            'unit_of_measurement' => 'pcs',
-            'reorder_level' => 1,
-            'supplier' => 'Test Supplier',
-            'storage_location' => 'Warehouse 1',
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-0001',
+            'bus_no' => 'BUS-001',
+            'problem_issue' => 'Part A replacement',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
         ]);
 
         $purchaseRequest = PurchaseRequest::create([
@@ -37,29 +35,28 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
             'bus_no' => 'BUS-001',
             'item' => 'Part A - Qty: 1',
             'quantity' => 1,
-            'status' => 'Approved',
+            'status' => 'Submitted',
+            'source_type' => 'Maintenance Request',
             'remarks' => 'Test purchase request',
         ]);
 
         $response = $this
-            ->actingAs($staff)
-            ->post(route('part-requests.issue', $purchaseRequest), [
-                'issued_quantities' => [1],
-            ]);
+            ->actingAs($head)
+            ->post(route('part-requests.send-to-purchase', $purchaseRequest));
 
         $response->assertRedirect();
 
         Event::assertDispatched(SystemDataUpdated::class, function (SystemDataUpdated $event) use ($purchaseRequest) {
             return $event->module === 'Warehouse'
                 && $event->entity === 'PurchaseRequest'
-                && $event->action === 'status_updated'
+                && $event->action === 'sent_to_purchase'
                 && $event->record_id === $purchaseRequest->id
-                && str_contains($event->message, 'Warehouse issued a purchase request');
+                && str_contains($event->message, 'forwarded an existing Maintenance PR');
         });
 
         $this->assertDatabaseHas('purchase_requests', [
             'id' => $purchaseRequest->id,
-            'status' => 'Issued',
+            'status' => 'For Purchase',
         ]);
     }
 }

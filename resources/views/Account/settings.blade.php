@@ -82,14 +82,6 @@
                     </div>
                 @endif
 
-                @if (session('success'))
-                    <div class="account-alert account-alert-success">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <span>{{ session('success') }}</span>
-                        <button type="button" class="account-alert-close" onclick="this.parentElement.remove()">&times;</button>
-                    </div>
-                @endif
-
                 {{-- Hero Identity Card --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">

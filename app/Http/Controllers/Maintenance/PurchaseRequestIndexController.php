@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\Maintenance\PurchaseRequestPartsService;
+use Illuminate\Validation\ValidationException;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,10 +26,10 @@ class PurchaseRequestIndexController extends Controller
         'Issued',
     ];
 
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, PurchaseRequestPartsService $missingParts)
     {
-        $recordView = $request->input('record_view') === 'history'
-            ? 'history'
+        $recordView = in_array($request->input('record_view'), ['pending', 'active', 'history'], true)
+            ? $request->input('record_view')
             : 'active';
 
         $query = $this->maintenancePurchaseRequestQuery();
@@ -63,8 +65,24 @@ class PurchaseRequestIndexController extends Controller
             }
         }
 
+        // History is always Issued; date filters narrow its audit records without changing status.
+        if ($recordView === 'history') {
+            $dates = $request->validate([
+                'created_from' => ['nullable', 'date_format:Y-m-d'],
+                'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
+            ]);
+
+            if (! empty($dates['created_from'])) {
+                $query->whereDate('created_at', '>=', $dates['created_from']);
+            }
+            if (! empty($dates['created_to'])) {
+                $query->whereDate('created_at', '<=', $dates['created_to']);
+            }
+        }
+
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
+            ->with('requester')
             ->paginate(8)
             ->withQueryString();
 
@@ -81,6 +99,21 @@ class PurchaseRequestIndexController extends Controller
                 ->whereIn('job_order_no', $visibleJobOrderNumbers)
                 ->pluck('work_to_perform', 'job_order_no');
 
+        // This is the actual /purchase-requests page controller. Supply the
+        // linked JO authorization data used by the read-only PR details modal.
+        $prJobApprovals = $visibleJobOrderNumbers->isEmpty()
+            ? collect()
+            : JobOrder::query()
+                ->with([
+                    'approver',
+                    'audits' => fn ($query) => $query
+                        ->where('action', 'approved')
+                        ->latest('id'),
+                ])
+                ->whereIn('job_order_no', $visibleJobOrderNumbers)
+                ->get()
+                ->keyBy('job_order_no');
+
         $submitted = $this->maintenancePurchaseRequestQuery()->where('status', 'Submitted')->count();
         $approved = $this->maintenancePurchaseRequestQuery()->where('status', 'Approved')->count();
         $rejected = $this->maintenancePurchaseRequestQuery()->where('status', 'Rejected')->count();
@@ -95,8 +128,65 @@ class PurchaseRequestIndexController extends Controller
             ->whereNotNull('part_needed')
             ->where('part_needed', '!=', '')
             ->where('status', '!=', 'Completed')
+            ->where('review_status', 'Approved')
             ->orderByDesc('created_at')
             ->get();
+
+        // Virtual pending PR suggestions for approved JOs with a real shortage.
+        // They are not saved PRs and must be reviewed and submitted by Maintenance.
+        $existingPrJoNumbers = $this->maintenancePurchaseRequestQuery()
+            ->whereIn('job_order_no', $jobOrders->pluck('job_order_no'))
+            ->pluck('job_order_no');
+        $eligiblePrJobs = $jobOrders->reject(fn (JobOrder $job) =>
+            $existingPrJoNumbers->contains($job->job_order_no)
+        );
+        // Capture stock and reservations once for this read-only suggestion list.
+        // The live PR submission flow continues to recalculate its own availability.
+        $inventoryItems = $eligiblePrJobs->isEmpty()
+            ? collect()
+            : \App\Models\Warehouse\InventoryItem::query()->get();
+        $inventoryReservations = $eligiblePrJobs->isEmpty()
+            ? collect()
+            : \App\Models\Maintenance\JobOrderPartReservation::query()
+                ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+                ->groupBy('inventory_item_id')
+                ->pluck('reserved', 'inventory_item_id');
+        $pendingPrJobs = $eligiblePrJobs->map(function (JobOrder $job) use ($missingParts, $inventoryItems, $inventoryReservations) {
+            try {
+                $parts = $missingParts->missingParts((string) $job->part_needed, $job, $inventoryItems, $inventoryReservations);
+            } catch (ValidationException) {
+                $parts = [];
+            }
+            return ['job' => $job, 'parts' => $parts];
+        })->filter(fn (array $proposal) => $proposal['parts'] !== [])->values();
+
+        // Keep the create dropdown unfiltered, while Search/Sort apply to the
+        // virtual suggestions displayed under the Pending tab.
+        $jobOrders = $pendingPrJobs->pluck('job')->values();
+        if ($request->filled('search')) {
+            $needle = mb_strtolower(trim((string) $request->query('search')));
+            $pendingPrJobs = $pendingPrJobs->filter(function (array $proposal) use ($needle): bool {
+                $job = $proposal['job'];
+                $partNames = collect($proposal['parts'])->pluck('name')->implode(' ');
+                return str_contains(mb_strtolower($job->job_order_no.' '.$job->bus_no.' '.$partNames), $needle);
+            })->values();
+        }
+        $pendingSortDesc = $request->query('sort_direction', $request->query('direction', 'desc')) !== 'asc';
+        if ($request->query('sort') === 'pr_no') {
+            $pendingPrJobs = $pendingPrJobs->sortBy(fn (array $proposal) => $proposal['job']->job_order_no, SORT_REGULAR, $pendingSortDesc)->values();
+        } else {
+            $pendingPrJobs = $pendingPrJobs->sortBy(fn (array $proposal) => $proposal['job']->created_at, SORT_REGULAR, $pendingSortDesc)->values();
+        }
+
+        if ($request->filled('status')
+            && ! in_array($request->query('status'), ['All Statuses', 'Pending Review'], true)) {
+            $pendingPrJobs = collect();
+        }
+
+        // Automatically open Pending when approved JOs need procurement.
+        if (! $request->has('record_view') && $pendingPrJobs->isNotEmpty()) {
+            $recordView = 'pending';
+        }
 
         $selectedJobOrder = null;
         if ($request->filled('job_order_id')) {
@@ -108,6 +198,14 @@ class PurchaseRequestIndexController extends Controller
             : array_values(array_filter($this->statuses, fn ($status) => $status !== 'Issued'));
         $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
 
+        // Saved IR lifecycle status for each JO displayed in PR records.
+        $irStatusesByJo = \App\Models\Maintenance\ItemRequest::query()
+            ->whereIn('job_order_id', $prJobApprovals->pluck('id'))
+            ->orderByDesc('id')
+            ->get(['job_order_id', 'status'])
+            ->unique('job_order_id')
+            ->pluck('status', 'job_order_id');
+
         return view('Maintenance.purchase-requests', compact(
             'purchaseRequests',
             'submitted',
@@ -117,11 +215,14 @@ class PurchaseRequestIndexController extends Controller
             'issued',
             'nextPrNo',
             'jobOrders',
+            'pendingPrJobs',
             'selectedJobOrder',
             'statuses',
             'isMaintenanceAdmin',
             'recordView',
-            'workToPerformByJobOrder'
+            'workToPerformByJobOrder',
+            'prJobApprovals',
+            'irStatusesByJo'
         ));
     }
 

@@ -26,6 +26,7 @@
     'resources/js/app.js',
   ], $assets, [
     'resources/css/Operation/operation-action-buttons.css',
+    'resources/css/Warehouse/warehouse-status.css',
     'resources/css/Main-styles/record-action-buttons.css',
     'resources/css/Main-styles/gct-scrollbar.css',
   ])));

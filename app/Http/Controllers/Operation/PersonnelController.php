@@ -102,7 +102,11 @@ class PersonnelController extends Controller
     {
         $query = Mechanic::query();
         $recordedSpecializations = $this->recordedMechanicSpecializations();
-        $specializationOptions = collect(array_keys(self::MECHANIC_SPECIALIZATIONS));
+        $customSpecializationIds = DB::table('mechanic_specialization_options')->pluck('id', 'name');
+        // Picker choices are database-managed, not hardcoded.
+        $specializationOptions = DB::table('mechanic_specialization_options')
+            ->orderBy('name')
+            ->pluck('name');
 
         $stats = [
             'total' => (clone $query)->count(),
@@ -119,7 +123,6 @@ class PersonnelController extends Controller
                 $query->where(function ($nested) use ($search, $specializationTerms): void {
                     $nested->where('mechanic_id', 'like', "%{$search}%")
                         ->orWhere('mechanic_name', 'like', "%{$search}%")
-                        ->orWhere('shift', 'like', "%{$search}%")
                         ->orWhere('contact_number', 'like', "%{$search}%")
                         ->orWhere('specialization', 'like', "%{$search}%");
 
@@ -131,7 +134,6 @@ class PersonnelController extends Controller
                 });
             })
             ->where('employment_status', $request->query('tab') === 'history' ? 'Inactive' : 'Active')
-            ->when($request->filled('shift'), fn ($query) => $query->where('shift', $request->shift))
             ->when($request->filled('specialization'), function ($query) use ($request): void {
                 $terms = $this->specializationSearchTerms((string) $request->specialization);
 
@@ -141,7 +143,7 @@ class PersonnelController extends Controller
                     }
                 });
             });
-        TableSort::apply($mechanicsQuery, $request, ['mechanic_name' => 'mechanic_name', 'mechanic_id' => 'mechanic_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'mechanic_name');
+        TableSort::apply($mechanicsQuery, $request, ['mechanic_name' => 'mechanic_name', 'mechanic_id' => 'mechanic_id', 'employment_status' => 'employment_status'], 'mechanic_name');
         $mechanics = $mechanicsQuery
             ->paginate(12)
             ->withQueryString();
@@ -157,18 +159,15 @@ class PersonnelController extends Controller
             })
         );
 
-        $mechanicNames = $mechanics->getCollection()->pluck('mechanic_name');
-        $lockedMechanicNames = $mechanicNames->isEmpty() ? collect() : JobOrder::query()
-            ->whereIn('assigned_mechanic', $mechanicNames)
-            ->where('status', 'On Going')
-            ->pluck('assigned_mechanic');
-        $mechanics->getCollection()->each(function (Mechanic $mechanic) use ($lockedMechanicNames): void {
-            $mechanic->deactivation_locked = $lockedMechanicNames->contains($mechanic->mechanic_name);
+        $mechanics->getCollection()->each(function (Mechanic $mechanic): void {
+            $mechanic->deactivation_locked = JobOrder::query()
+                ->assignedToMechanic($mechanic->mechanic_name, $mechanic->mechanic_id)
+                ->where('status', 'On Going')->where('review_status', 'Approved')->exists();
         });
 
         return view(
             'Operation.Personnel Management.mechanic_master_list',
-            compact('mechanics', 'stats', 'specializationOptions')
+            compact('mechanics', 'stats', 'specializationOptions', 'customSpecializationIds')
         );
     }
 
@@ -432,7 +431,6 @@ class PersonnelController extends Controller
         $validated = $request->validate([
             'mechanic_id' => ['required', 'string', 'max:100', Rule::unique('mechanics', 'mechanic_id')->ignore($mechanic?->id)],
             'mechanic_name' => ['required', 'string', 'max:255', Rule::unique('mechanics', 'mechanic_name')->ignore($mechanic?->id)],
-            'shift' => ['required', Rule::in(['Morning', 'Afternoon'])],
             'specialization' => ['nullable', 'string', 'max:1000'],
             'contact_number' => ['nullable', 'string', 'max:50'],
             'employment_status' => ['required', Rule::in(['Active', 'Inactive'])],
@@ -449,6 +447,9 @@ class PersonnelController extends Controller
             ]);
         }
 
+        // Retain the legacy database-required shift without asking users for one.
+        // On updates preserve the existing value to avoid changing attendance-related data.
+        $validated['shift'] = $mechanic?->shift ?? 'Morning';
         $validated['specialization'] = $this->normalizeSpecializations($validated['specialization'] ?? null);
 
         return $validated;
@@ -509,8 +510,9 @@ class PersonnelController extends Controller
     private function assertMechanicCanBeDeactivated(Mechanic $mechanic): void
     {
         $hasOngoingJobOrder = JobOrder::query()
-            ->where('assigned_mechanic', $mechanic->mechanic_name)
+            ->assignedToMechanic($mechanic->mechanic_name, $mechanic->mechanic_id)
             ->where('status', 'On Going')
+            ->where('review_status', 'Approved')
             ->lockForUpdate()
             ->first() !== null;
 
@@ -519,6 +521,61 @@ class PersonnelController extends Controller
                 'employment_status' => 'This mechanic cannot be deactivated while assigned to an ongoing Job Order.',
             ]);
         }
+    }
+
+    public function storeMechanicSpecialization(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\\pL\\pN][\\pL\\pN \\&\\/\\-\\(\\)]+$/u'],
+        ]);
+        $name = preg_replace('/\\s+/u', ' ', trim($validated['name']));
+        $normalized = mb_strtolower($name);
+        // Catalog entries are the source of truth for selectable choices.
+        // Historical mechanic profile values must not block re-adding a removed option.
+        $known = DB::table('mechanic_specialization_options')
+            ->where('normalized_name', $normalized)
+            ->exists();
+        if ($known) {
+            return response()->json(['message' => 'This specialization already exists.'], 422);
+        }
+
+        try {
+            DB::table('mechanic_specialization_options')->insert([
+                'name' => $name,
+                'normalized_name' => $normalized,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $exception) {
+            return response()->json(['message' => 'This specialization already exists.'], 422);
+        }
+
+        $option = DB::table('mechanic_specialization_options')
+            ->where('normalized_name', $normalized)
+            ->first();
+
+        return response()->json([
+            'name' => $name,
+            'delete_url' => route('maintenance.personnel.mechanics.specializations.destroy', $option->id),
+        ], 201);
+    }
+
+    public function deleteMechanicSpecialization(Request $request, int $specialization): \Illuminate\Http\JsonResponse
+    {
+        $option = DB::table('mechanic_specialization_options')->where('id', $specialization)->first();
+        if (! $option) {
+            return response()->json(['message' => 'Custom specialization not found.'], 404);
+        }
+
+        $inUse = Mechanic::query()->whereNotNull('specialization')->pluck('specialization')
+            ->contains(fn ($value) => $this->canonicalizeSpecializationList($value)
+                ->contains(fn ($name) => mb_strtolower($name) === $option->normalized_name));
+        if ($inUse) {
+            return response()->json(['message' => 'This specialization is assigned to a mechanic and cannot be deleted.'], 409);
+        }
+
+        DB::table('mechanic_specialization_options')->where('id', $specialization)->delete();
+        return response()->json(['success' => true]);
     }
 
     private function recordedMechanicSpecializations(): Collection

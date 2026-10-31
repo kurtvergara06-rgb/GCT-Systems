@@ -57,6 +57,26 @@ it('keeps the toolbar generic and supports forms without filters', function (): 
         ->not->toContain('data-bus-tool');
 });
 
+it('supports filter-only record controls without rendering an irrelevant search control', function (): void {
+    $html = Blade::render(<<<'BLADE'
+        <x-ui.table-toolbar
+            action="/records"
+            form-id="filterOnlyToolbar"
+            :show-search="false">
+            <x-slot:filters>
+                <x-ui.table-toolbar-field label="Status" name="status">
+                    <option value="">All Statuses</option>
+                </x-ui.table-toolbar-field>
+            </x-slot:filters>
+        </x-ui.table-toolbar>
+    BLADE);
+
+    expect($html)
+        ->toContain('data-table-tool-trigger="filter"')
+        ->not->toContain('data-table-tool-trigger="search"')
+        ->not->toContain('data-table-tool-trigger="sort"');
+});
+
 it('passes explicit data to reusable filter partials', function (): void {
     $html = Blade::render(<<<'BLADE'
         <x-ui.table-toolbar

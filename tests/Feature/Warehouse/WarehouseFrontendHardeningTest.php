@@ -40,7 +40,34 @@ class WarehouseFrontendHardeningTest extends TestCase
             $this->assertStringNotContainsString('event.target === modal', $contents);
             $this->assertStringNotContainsString('event.target === viewPrModal', $contents);
             $this->assertStringNotContainsString('event.target === issuePartsModal', $contents);
+            $this->assertStringContainsString('GCTSystemAnimations', $contents);
+            $this->assertStringContainsString('GCTModalBackdrop', $contents);
         }
+    }
+
+    public function test_warehouse_read_only_modals_use_the_maintenance_form_language(): void
+    {
+        $inventory = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
+        $partRequests = file_get_contents(resource_path('views/Warehouse/part-requests.blade.php'));
+        $sharedPrDetails = file_get_contents(resource_path('views/components/ui/pr-details-modal.blade.php'));
+
+        $this->assertStringContainsString('inventory-details-modal', $inventory);
+        $this->assertStringContainsString('01 — Item Information', $inventory);
+        $this->assertStringContainsString('02 — Stock Information', $inventory);
+        $this->assertStringContainsString('03 — Supply &amp; Storage', $inventory);
+        $this->assertStringContainsString('inventory-details-footer', $inventory);
+        $this->assertStringContainsString('inventory-movement-title-icon', $inventory);
+        $this->assertStringContainsString('inventory-movement-modal__footer', $inventory);
+
+        $this->assertStringContainsString('resources/css/Main-styles/form-components.css', $partRequests);
+        $this->assertStringContainsString('resources/css/Main-styles/pr-details-modal.css', $partRequests);
+        $this->assertStringContainsString('<x-ui.pr-details-modal', $partRequests);
+        $this->assertStringContainsString('Purchase Request Details', $sharedPrDetails);
+        $this->assertStringContainsString('Parts Requiring Purchase', $sharedPrDetails);
+        $this->assertStringContainsString('Maintenance Head Authorization', $sharedPrDetails);
+        $this->assertStringContainsString('Warehouse Stock Reference', $sharedPrDetails);
+        $this->assertStringContainsString('Remarks', $sharedPrDetails);
+        $this->assertStringContainsString('shared-pr-details-footer', $sharedPrDetails);
     }
 
     public function test_dashboard_uses_unique_realtime_regions(): void
@@ -58,24 +85,22 @@ class WarehouseFrontendHardeningTest extends TestCase
 
     public function test_warehouse_record_pages_expose_active_and_history_tabs(): void
     {
-        foreach (['part-requests', 'incoming-deliveries'] as $view) {
-            $contents = file_get_contents(resource_path("views/Warehouse/{$view}.blade.php"));
-
-            $this->assertStringContainsString('warehouse-record-tabs', $contents);
-            $this->assertStringContainsString("'view' => 'active'", $contents);
-            $this->assertStringContainsString("'view' => 'history'", $contents);
-            $this->assertStringContainsString('name="view"', $contents);
-        }
-
         $partRequests = file_get_contents(resource_path('views/Warehouse/part-requests.blade.php'));
-        $this->assertStringContainsString('@unless($isHistory)', $partRequests);
+        $this->assertStringContainsString('warehouse-record-tabs', $partRequests);
+        $this->assertStringContainsString("'view' => 'pr'", $partRequests);
+        $this->assertStringContainsString("'view' => 'history'", $partRequests);
+        $this->assertStringContainsString('name="view"', $partRequests);
 
         $deliveries = file_get_contents(resource_path('views/Warehouse/incoming-deliveries.blade.php'));
+        $this->assertStringContainsString('warehouse-record-tabs', $deliveries);
+        $this->assertStringContainsString("'view' => 'active'", $deliveries);
+        $this->assertStringContainsString("'view' => 'history'", $deliveries);
+        $this->assertStringContainsString('name="view"', $deliveries);
         $this->assertStringContainsString('$isHistory || $received', $deliveries);
     }
 
 
-    public function test_inventory_add_and_edit_modals_use_shared_form_language_without_breaking_ajax_contracts(): void
+    public function test_inventory_add_and_edit_modals_use_shared_form_language_and_server_submission_contracts(): void
     {
         $view = file_get_contents(resource_path('views/Warehouse/inventory.blade.php'));
 
@@ -84,11 +109,17 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('inventory-section-basic', $view);
         $this->assertStringContainsString('inventory-section-details', $view);
         $this->assertStringContainsString('inventory-section-additional', $view);
-        $this->assertStringContainsString('data-ajax-submit="true"', $view);
-        $this->assertStringContainsString('data-parent-modal-id="addModal"', $view);
-        $this->assertStringContainsString('data-parent-modal-id="editModal"', $view);
-        $this->assertStringContainsString('id="edit_adjustment_reason"', $view);
-        $this->assertStringContainsString('class="ui-form-close closeModal"', $view);
+        $this->assertStringContainsString('method="POST"', $view);
+        $this->assertStringContainsString('id="editForm"', $view);
+        $this->assertStringContainsString("@method('PUT')", $view);
+        $this->assertStringContainsString('data-confirm-form', $view);
+        $this->assertStringNotContainsString('data-ajax-submit', $view);
+        // Editing master data must not expose a manual stock adjustment field.
+        // Stock changes are recorded separately through the inventory ledger.
+        $this->assertStringNotContainsString('id="edit_adjustment_reason"', $view);
+        $this->assertStringContainsString('id="edit_quantity"', $view);
+        $this->assertStringContainsString('readonly aria-readonly="true"', $view);
+        $this->assertStringContainsString('class="close-btn closeModal"', $view);
     }
 
 
@@ -120,7 +151,7 @@ class WarehouseFrontendHardeningTest extends TestCase
         $this->assertStringContainsString('OPERATIONAL INTELLIGENCE PANELS', $css);
         $this->assertStringContainsString('LOWER DASHBOARD REFERENCE LAYOUT', $css);
         $this->assertStringContainsString('bindInventoryCategoryFilter', $js);
-        $this->assertStringContainsString('For Reorder', $js);
+        $this->assertStringContainsString('reorder: Number(statusData.reorder || 0)', $js);
         $this->assertStringContainsString("text: 'Quantity'", $js);
 
         $controller = file_get_contents(app_path('Http/Controllers/Warehouse/WarehouseDashboardController.php'));
@@ -163,22 +194,34 @@ class WarehouseFrontendHardeningTest extends TestCase
         );
     }
 
+    public function test_dashboard_kpis_use_balanced_three_column_rows(): void
+    {
+        $css = file_get_contents(resource_path('css/Warehouse/dashboard-warehouse.css'));
+
+        $this->assertStringContainsString(
+            "grid-template-columns: repeat(3, minmax(0, 1fr));",
+            $css
+        );
+    }
+
 
     public function test_part_requests_skip_duplicate_warehouse_approval_actions(): void
     {
         $view = file_get_contents(
             resource_path('views/Warehouse/part-requests.blade.php')
+        ).file_get_contents(
+            resource_path('views/Warehouse/part-request-table-body.blade.php')
         );
         $controller = file_get_contents(
             app_path('Http/Controllers/Warehouse/WarehousePartRequestController.php')
         );
 
         $this->assertStringContainsString(
-            'Approved Requests',
+            'Authorized Requests',
             $view
         );
         $this->assertStringContainsString(
-            'Ready for Warehouse processing',
+            'Approved Job Orders ready for Warehouse',
             $view
         );
         $this->assertStringContainsString(

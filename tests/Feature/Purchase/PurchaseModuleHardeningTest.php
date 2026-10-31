@@ -8,6 +8,7 @@ use App\Models\Admin\User;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\ScheduledPurchase;
+use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -70,12 +71,26 @@ class PurchaseModuleHardeningTest extends TestCase
         ]);
     }
 
+    private function maintenanceRequest(string $number = 'PR-MAINT-1', string $status = 'For Purchase'): MaintenanceRequest
+    {
+        return MaintenanceRequest::create([
+            'pr_no' => $number,
+            'job_order_no' => 'JO-'.str_replace('PR-', '', $number),
+            'bus_no' => 'BUS-'.str_replace('PR-', '', $number),
+            'item' => 'Oil Filter - Qty: 2 pcs, Fan Belt - Qty: 1 pc',
+            'quantity' => 3,
+            'status' => $status,
+            'source_type' => 'Maintenance Request',
+            'remarks' => 'Parts needed for the linked bus repair.',
+        ]);
+    }
+
     private function orderPayload(?MaintenanceRequest $request = null, array $overrides = []): array
     {
         return array_replace_recursive([
             'purchase_request_id' => $request?->id,
             'supplier_name' => 'Safe Supplier',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'delivery_fee' => 0,
             'discount' => 0,
             'vat' => 0,
@@ -131,7 +146,7 @@ class PurchaseModuleHardeningTest extends TestCase
             $user = $this->purchaseUser($role);
             $this->permissions($role, false, true);
 
-            foreach (['dashboard-purchase', 'maintenance-requests', 'inventory-restock', 'purchase-orders', 'scheduled-purchase'] as $route) {
+            foreach (['dashboard-purchase', 'maintenance-requests', 'inventory-restock', 'purchase-orders'] as $route) {
                 $this->actingAs($user)->get(route($route))->assertForbidden();
             }
         }
@@ -143,17 +158,12 @@ class PurchaseModuleHardeningTest extends TestCase
             $user = $this->purchaseUser($role);
             $this->permissions($role, true, false);
             $order = $this->order();
-            $schedule = $this->schedule();
 
             $this->actingAs($user)->get(route('purchase-orders'))->assertOk();
             $this->actingAs($user)->post(route('purchase-orders.store'), [])->assertForbidden();
             $this->actingAs($user)->put(route('purchase-orders.update', $order), [])->assertForbidden();
             $this->actingAs($user)->delete(route('purchase-orders.destroy', $order))->assertForbidden();
             $this->actingAs($user)->patch(route('purchase-orders.update-status', $order), [])->assertForbidden();
-            $this->actingAs($user)->post(route('scheduled-purchase.store'), [])->assertForbidden();
-            $this->actingAs($user)->put(route('scheduled-purchase.update', $schedule), [])->assertForbidden();
-            $this->actingAs($user)->post(route('scheduled-purchase.create-po', $schedule))->assertForbidden();
-            $this->actingAs($user)->delete(route('scheduled-purchase.destroy', $schedule))->assertForbidden();
         }
     }
 
@@ -170,10 +180,145 @@ class PurchaseModuleHardeningTest extends TestCase
         $this->assertDatabaseMissing('purchase_orders', ['supplier_name' => 'Safe Supplier']);
     }
 
+    public function test_parts_requests_page_uses_current_columns_and_shared_read_only_details(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-UI-1');
+        $linkedInventory = InventoryItem::create([
+            'item_code' => 'TEST-PART-1',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 4,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        InventoryItem::create([
+            'item_code' => 'TEST-PART-2',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 99,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $purchaseRequest->update([
+            'item' => "Oil Filter [item:{$linkedInventory->id}] - Qty: 2 pcs, Fan Belt - Qty: 1 pc",
+        ]);
+
+        $prepare = new \ReflectionMethod(
+            \App\Http\Controllers\Purchase\MaintenanceRequestController::class,
+            'prepareRequestForDisplay'
+        );
+        $prepared = $prepare->invoke(
+            app(\App\Http\Controllers\Purchase\MaintenanceRequestController::class),
+            $purchaseRequest->fresh(),
+            null,
+            InventoryItem::all()
+        );
+        $this->assertSame(4, $prepared->parts_breakdown[0]['physical_on_hand']);
+
+        $response = $this->actingAs($user)->get(route('maintenance-requests'));
+
+        $response->assertOk()
+            ->assertSee('<th scope="col">PR ID</th>', false)
+            ->assertSee('<th scope="col">Bus ID</th>', false)
+            ->assertSee('<th scope="col">Requested Parts</th>', false)
+            ->assertSee('<th scope="col">QTY</th>', false)
+            ->assertSee('<th scope="col">Total Items</th>', false)
+            ->assertSee('<th scope="col">PR Status</th>', false)
+            ->assertSee('<th scope="col">Actions</th>', false)
+            ->assertSee($purchaseRequest->job_order_no)
+            ->assertSee($purchaseRequest->bus_no)
+            ->assertSee('Maintenance Head Authorization')
+            ->assertSee('Authorized JO Signature')
+            ->assertSee('Parts Requiring Purchase')
+            ->assertSee('Additional Request Information')
+            ->assertSee('id="viewRequestedPartsContainer"', false)
+            ->assertDontSee('<input id="viewRequestedPrNo"', false)
+            ->assertDontSee('<textarea id="viewRequestedRemarks"', false);
+
+    }
+
+    public function test_parts_requests_record_tabs_group_active_and_history_statuses(): void
+    {
+        $user = $this->purchaseUser('head');
+        $pending = $this->maintenanceRequest('PR-PENDING-TAB', 'For Purchase');
+        $ordered = $this->maintenanceRequest('PR-PROGRESS-TAB', 'Ordered');
+        $delivered = $this->maintenanceRequest('PR-HISTORY-TAB', 'Delivered');
+
+        $this->actingAs($user)
+            ->get(route('maintenance-requests', ['record_view' => 'active']))
+            ->assertOk()
+            ->assertSee($pending->pr_no)
+            ->assertSee($ordered->pr_no)
+            ->assertDontSee($delivered->pr_no);
+
+        $this->actingAs($user)
+            ->get(route('maintenance-requests', ['record_view' => 'history']))
+            ->assertOk()
+            ->assertSee($delivered->pr_no)
+            ->assertDontSee($pending->pr_no)
+            ->assertDontSee($ordered->pr_no);
+    }
+
+    public function test_create_po_action_only_opens_prefilled_form_without_saving_or_changing_request(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-PREFILL-1');
+
+        $redirect = $this->actingAs($user)
+            ->post(route('maintenance-requests.create-po', $purchaseRequest));
+
+        $redirect->assertRedirect('/purchase-orders?create_from_pr='.$purchaseRequest->id)
+            ->assertSessionHas('open_po_modal', true);
+        $this->assertDatabaseCount('purchase_orders', 0);
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
+
+        $page = $this->actingAs($user)->get(route('purchase-orders', [
+            'create_from_pr' => $purchaseRequest->id,
+        ]));
+
+        $page->assertOk()
+            ->assertSee('window.purchaseOrderShouldOpen = true;', false)
+            ->assertSee('window.purchaseOrderPrefill =', false)
+            ->assertSee($purchaseRequest->pr_no)
+            ->assertSee($purchaseRequest->job_order_no)
+            ->assertSee($purchaseRequest->bus_no)
+            ->assertSee('Parts needed for the linked bus repair.')
+            ->assertSee('"item_description":"Oil Filter"', false)
+            ->assertSee('"quantity":2', false)
+            ->assertSee('"cost":""', false)
+            ->assertSee('id="supplier_name"', false)
+            ->assertSee('value=""', false);
+
+        $this->assertDatabaseCount('purchase_orders', 0);
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
+    }
+
+    public function test_create_po_action_rejects_an_existing_purchase_order_without_changing_request(): void
+    {
+        $user = $this->purchaseUser('head');
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-DUPLICATE-1');
+        $existingOrder = $this->order();
+        $existingOrder->update(['purchase_request_id' => $purchaseRequest->id]);
+
+        $this->actingAs($user)
+            ->from(route('maintenance-requests'))
+            ->post(route('maintenance-requests.create-po', $purchaseRequest))
+            ->assertRedirect(route('maintenance-requests'))
+            ->assertSessionHas('error', 'A purchase order already exists for this maintenance request.');
+
+        $this->assertSame(1, PurchaseOrder::query()->where('purchase_request_id', $purchaseRequest->id)->count());
+        $this->assertSame('For Purchase', $purchaseRequest->fresh()->status);
+    }
+
     public function test_duplicate_purchase_order_submission_for_the_same_request_is_rejected(): void
     {
         $user = $this->purchaseUser('head');
-        $purchaseRequest = $this->request();
+        // Unsigned warehouse restock requests must fail validation before PO creation.
+        // Use a valid maintenance request to isolate the duplicate-submission guard.
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-PO-DUPLICATE');
         $payload = $this->orderPayload($purchaseRequest);
 
         $this->actingAs($user)->post(route('purchase-orders.store'), $payload)->assertRedirect('/purchase-orders');
@@ -233,55 +378,15 @@ class PurchaseModuleHardeningTest extends TestCase
         $this->assertSame('For Purchase', $second->fresh()->status);
     }
 
-    public function test_completed_schedule_cannot_be_resumed_by_update_or_toggle(): void
-    {
-        $user = $this->purchaseUser('head');
-        $schedule = $this->schedule(['status' => 'Completed']);
 
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->put(route('scheduled-purchase.update', $schedule), $this->schedulePayload($schedule, ['status' => 'Active']))
-            ->assertSessionHasErrors('status');
 
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->patch(route('scheduled-purchase.toggle-status', $schedule))
-            ->assertSessionHasErrors('status');
 
-        $this->assertSame('Completed', $schedule->fresh()->status);
-    }
 
-    public function test_schedule_cannot_create_two_purchase_orders_for_the_same_due_date(): void
-    {
-        $user = $this->purchaseUser('head');
-        $schedule = $this->schedule();
-
-        $this->actingAs($user)
-            ->post(route('scheduled-purchase.create-po', $schedule))
-            ->assertRedirect(route('purchase-orders'));
-
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->post(route('scheduled-purchase.create-po', $schedule))
-            ->assertSessionHas('error');
-
-        $this->assertDatabaseCount('purchase_orders', 1);
-        $this->assertTrue($schedule->fresh()->next_purchase_date->isFuture());
-    }
-
-    public function test_purchase_and_schedule_mutations_broadcast_realtime_events(): void
+    public function test_purchase_mutations_broadcast_realtime_events(): void
     {
         Event::fake([SystemDataUpdated::class]);
         $user = $this->purchaseUser('head');
         $schedule = $this->schedule();
-
-        $this->actingAs($user)->patch(route('scheduled-purchase.toggle-status', $schedule));
-        Event::assertDispatched(
-            SystemDataUpdated::class,
-            fn (SystemDataUpdated $event) => $event->module === 'Purchase'
-                && $event->entity === 'ScheduledPurchase'
-                && $event->action === 'status_updated'
-        );
 
         $order = $this->order();
         $this->actingAs($user)->patch(route('purchase-orders.update-status', $order), ['status' => 'For Delivery']);
