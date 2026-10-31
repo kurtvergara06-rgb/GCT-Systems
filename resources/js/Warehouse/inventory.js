@@ -322,10 +322,10 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
         ?.textContent
         ?.trim();
 
+      // The item name is already displayed prominently within the content.
+      // Keep the redesigned modal title stable rather than repeating the name.
       if (movementHistoryTitle) {
-        movementHistoryTitle.textContent = itemName
-          ? `Movement History — ${itemName}`
-          : 'Movement History';
+        movementHistoryTitle.textContent = 'Movement History';
       }
 
       movementHistoryContent.scrollTop = 0;
