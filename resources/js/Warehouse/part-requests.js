@@ -243,7 +243,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       .filter(({ item }) => item.inventory_item_id || String(item.quantity || '').trim());
     const validItems = activeRows.map(({ item }) => item);
     const invalid = activeRows.find(({ item }) =>
-      !item.inventory_item_id || !/^[1-9]\\d*$/.test(String(item.quantity || '').trim()));
+      !item.inventory_item_id || !/^[1-9]\d*$/.test(String(item.quantity || '').trim()));
     const firstDuplicate = validItems.find((item, index) =>
       validItems.findIndex(candidate => candidate.inventory_item_id === item.inventory_item_id) !== index);
     if (!validItems.length || invalid || firstDuplicate) {
