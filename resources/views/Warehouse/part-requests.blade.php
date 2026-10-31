@@ -82,7 +82,7 @@
                         <select class="restock-pr-item-select" required>
                           <option value="">Select an inventory item</option>
                           @foreach($restockInventoryItems as $stockItem)
-                          <option value="{{ $stockItem->id }}" data-code="{{ $stockItem->item_code }}" data-stock="{{ (int) $stockItem->quantity_available }}" data-rop="{{ (int) $stockItem->reorder_level }}" data-safety="{{ $stockItem->safety_stock }}" data-unit="{{ $stockItem->unit_of_measurement }}" data-supplier="{{ $stockItem->supplier }}">{{ $stockItem->item_name }} ({{ $stockItem->item_code }})</option>
+                          <option value="{{ $stockItem->id }}" data-code="{{ $stockItem->item_code }}" data-stock="{{ (int) $stockItem->quantity_available }}" data-rop="{{ (int) $stockItem->reorder_level }}" data-safety="{{ $stockItem->safety_stock }}" data-unit="{{ $stockItem->unit_of_measurement }}" data-supplier="{{ $stockItem->supplier }}">{{ $stockItem->item_name }}</option>
                           @endforeach
                         </select>
                       </div>
@@ -112,7 +112,7 @@
                       <p id="restockPrSignatureMessage" class="warehouse-restock-signature-help" role="status">Draw above or choose an image. No signature is saved until submission is implemented.</p>
                     </div>
                     <div class="warehouse-restock-signatory-column">
-                      <div class="form-group"><label for="restockPrSignatoryName"><i class="fa-regular fa-user" aria-hidden="true"></i> Signatory Name <span class="warehouse-restock-required">*</span></label><input id="restockPrSignatoryName" maxlength="150" autocomplete="name" placeholder="Enter full name"><small>Use the authenticated Warehouse Head's name.</small></div>
+                      <div class="form-group"><label for="restockPrSignatoryName"><i class="fa-regular fa-user" aria-hidden="true"></i> Signatory Name <span class="warehouse-restock-required">*</span></label><input id="restockPrSignatoryName" maxlength="150" value="{{ auth()->user()?->name ?? '' }}" readonly aria-readonly="true" autocomplete="off"><small>Use the authenticated Warehouse Head's name.</small></div>
                       <div class="form-group"><label for="restockPrApprovalNotes"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> Approval Notes (optional)</label><textarea id="restockPrApprovalNotes" rows="3" maxlength="500" placeholder="Add any notes or remarks for this authorization"></textarea></div>
                     </div>
                   </div>
