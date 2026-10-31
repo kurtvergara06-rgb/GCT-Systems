@@ -389,7 +389,7 @@
                     <td class="warehouse-row-number">{{ $loop->iteration }}</td>
                     <td>
                       <div class="warehouse-item-cell">
-                        <span class="warehouse-item-icon tone-{{ (($loop->iteration - 1) % 5) + 1 }}"><i class="fa-solid fa-box"></i></span>
+                        <span class="warehouse-item-icon"><i class="fa-solid fa-box"></i></span>
                         <span><strong class="warehouse-table-primary">{{ $movement->item_name ?? 'Inventory Item' }}</strong><small>{{ $movement->item_code ?? 'No item code' }}</small></span>
                       </div>
                     </td>
@@ -400,7 +400,7 @@
                       <div class="warehouse-date-cell"><i class="fa-regular fa-clock"></i><span><strong>{{ $movement->created_at?->format('M d, Y') ?? 'No date' }}</strong><small>{{ $movement->created_at?->format('h:i A') ?? '' }}</small></span></div>
                     </td>
                     <td>
-                      <div class="warehouse-user-cell"><span class="warehouse-user-avatar tone-{{ (($loop->iteration - 1) % 3) + 1 }}">{{ $creatorInitials ?: 'SY' }}</span><span><strong>{{ $creatorName }}</strong><small>{{ $creatorRole }}</small></span></div>
+                      <div class="warehouse-user-cell"><span class="warehouse-user-avatar">{{ $creatorInitials ?: 'SY' }}</span><span><strong>{{ $creatorName }}</strong><small>{{ $creatorRole }}</small></span></div>
                     </td>
                     <td><a href="{{ route('stock-movements', ['search' => $movement->reference_no ?: $movement->item_code]) }}" class="warehouse-view-action"><i class="fa-regular fa-eye"></i> View</a></td>
                   </tr>
@@ -448,7 +448,7 @@
                     <td class="warehouse-row-number">{{ $loop->iteration }}</td>
                     <td>
                       <div class="warehouse-item-cell">
-                        <span class="warehouse-item-icon tone-{{ (($loop->iteration - 1) % 5) + 1 }}"><i class="fa-solid fa-box"></i></span>
+                        <span class="warehouse-item-icon"><i class="fa-solid fa-box"></i></span>
                         <span>
                       <strong class="warehouse-table-primary">{{ $item->item_name ?? $item->parts_name ?? 'Inventory Item' }}</strong>
                       <small>{{ $item->item_code ?? '—' }}</small>
