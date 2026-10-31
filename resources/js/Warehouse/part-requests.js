@@ -306,7 +306,27 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         const validation = result.errors ? Object.values(result.errors).flat().join(' ') : result.message;
         throw new Error(validation || 'Purchase Request could not be saved.');
       }
-      window.location.assign('/part-requests?view=active');
+      // Confirm the server-created identifier before returning to the records page.
+      const prNumber = String(result.pr_no || 'Purchase Request');
+      const successOverlay = document.createElement('div');
+      successOverlay.className = 'warehouse-restock-submit-confirmation';
+      successOverlay.setAttribute('role', 'dialog');
+      successOverlay.setAttribute('aria-modal', 'true');
+      successOverlay.setAttribute('aria-label', 'Purchase Request submitted');
+      const confirmation = document.createElement('div');
+      confirmation.className = 'warehouse-restock-submit-confirmation-box';
+      const heading = document.createElement('h3');
+      heading.textContent = 'Purchase Request Submitted';
+      const description = document.createElement('p');
+      description.textContent = prNumber + ' has been saved and forwarded to Purchasing.';
+      const okay = document.createElement('button');
+      okay.type = 'button';
+      okay.textContent = 'View Restocking Requests';
+      okay.addEventListener('click', () => window.location.assign('/part-requests?view=active'));
+      confirmation.append(heading, description, okay);
+      successOverlay.appendChild(confirmation);
+      document.body.appendChild(successOverlay);
+      okay.focus();
     } catch (error) {
       if (signatureMessage) { signatureMessage.textContent = error.message || 'Submission failed. Please try again.'; signatureMessage.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
       console.error('Warehouse restocking PR submission failed:', error);
