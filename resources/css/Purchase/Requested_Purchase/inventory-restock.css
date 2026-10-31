@@ -947,3 +947,48 @@
   gap: 4px !important;
   border-radius: 6px !important;
 }
+
+
+/* Match Maintenance Requisitions' compact, solid status badge presentation. */
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 106px !important;
+  max-width: 100% !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 11px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  border-radius: 5px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+}
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] .status-badge__icon {
+  font-size: 11px !important;
+}
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] .status-badge__label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+/* Action controls: eliminate double framing/extra outline, retain button hit areas. */
+main.inventory-restock-page .restock-table td:last-child .record-actions {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+main.inventory-restock-page .restock-table td:last-child .record-actions .action-btn {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+main.inventory-restock-page .restock-table td:last-child .record-actions .action-btn:focus-visible {
+  outline: 2px solid #0b40b5 !important;
+  outline-offset: 2px;
+}
