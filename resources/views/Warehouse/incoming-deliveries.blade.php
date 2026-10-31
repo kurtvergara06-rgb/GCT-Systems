@@ -50,7 +50,7 @@
               aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
             >
               <i class="fa-solid fa-list-check"></i>
-              <span>Active</span>
+              <span>Active</span><span class="gct-record-tab-count">{{ $activeCount }}</span>
             </a>
             <a
               href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
@@ -60,7 +60,7 @@
               aria-selected="{{ $isHistory ? 'true' : 'false' }}"
             >
               <i class="fa-solid fa-clock-rotate-left"></i>
-              <span>History</span>
+              <span>History</span><span class="gct-record-tab-count">{{ $historyCount }}</span>
             </a>
           </nav>
           <div class="incoming-delivery-toolbar">
