@@ -95,6 +95,12 @@ class ItemRequestController extends Controller
                 'shortage' => $part['shortage'],
                 'fulfillable' => $part['fulfillable'],
             ])->values(),
+            'handover_history' => $previous->map(fn ($batch) => [
+                'reference' => $batch->reference_no,
+                'issued_at' => $batch->issued_at?->format('M d, Y h:i A'),
+                'received_by' => $batch->received_by,
+                'signed_slip_url' => route('warehouse.item-requests.signed-slip', [$itemRequest, 'batch' => $batch->id]),
+            ])->values(),
             'checked_at' => now(config('app.business_timezone', 'Asia/Manila'))->toIso8601String(),
             'note' => 'Availability is informational. Verify again during actual issuance.',
         ]);
@@ -320,15 +326,20 @@ class ItemRequestController extends Controller
             throw $error;
         }
 
-        return redirect()->route('warehouse.item-requests')->with('success', 'Signed issuance recorded. Any remaining IR quantities stay pending.');
+        return redirect()->route('warehouse.item-requests')->with('success', 'Signed handover recorded. Remaining JO parts stay on the same IR for the next Warehouse release.');
     }
 
-    public function signedSlip(ItemRequest $itemRequest)
+    public function signedSlip(Request $request, ItemRequest $itemRequest)
     {
         $reference = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        $issuance = InventoryIssuance::query()->where(fn ($query) => $query
-            ->where('reference_no', $reference)->orWhere('reference_no', 'like', $reference.'-B%'))
-            ->latest('id')->firstOrFail();
+        $query = InventoryIssuance::query()->where(fn ($q) => $q
+            ->where('reference_no', $reference)->orWhere('reference_no', 'like', $reference.'-B%'));
+        if ($request->filled('batch')) {
+            $batchId = $request->query('batch');
+            abort_unless(is_scalar($batchId) && ctype_digit((string) $batchId), 404);
+            $query->whereKey((int) $batchId);
+        }
+        $issuance = $query->latest('id')->firstOrFail();
         if (! $issuance->signed_slip_path || ! Storage::disk('local')->exists($issuance->signed_slip_path)) {
             abort(404, 'Signed issuance slip not found.');
         }
