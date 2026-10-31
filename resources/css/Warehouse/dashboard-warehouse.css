@@ -3523,3 +3523,30 @@
   height:34px;min-width:110px;padding:0 26px 0 10px;border:1px solid #dbe5f1;
   border-radius:8px;background:#f8fbff;color:#334d6f;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;
 }
+
+
+/* Trend card: calmer chart proportions and a tighter, purposeful header. */
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-header {
+  align-items:center;
+  gap:10px;
+  margin-bottom:9px;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-heading {
+  min-width:0;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-feature-header h2 {
+  font-size:15px;
+  line-height:1.3;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .warehouse-trend-period select {
+  height:35px;
+  min-width:102px;
+  border-radius:8px;
+  background:#f7f9fc;
+  border-color:#dbe4f0;
+  color:#334b68;
+}
+.warehouse-dashboard-page [data-ajax-region="dashboard-movement-trend"] .trend-chart-wrap {
+  padding-top:5px;
+  min-height:255px;
+}
