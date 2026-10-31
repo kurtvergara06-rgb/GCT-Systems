@@ -130,8 +130,8 @@ class ItemRequestController extends Controller
                     throw ValidationException::withMessages(['issue' => 'This IR is not ready for issuance.']);
                 }
                 $jo = $ir->jobOrder;
-                if (! $jo || $jo->review_status !== 'Approved') {
-                    throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved.']);
+                if (! $jo || $jo->review_status !== 'Approved' || $jo->status === 'Completed') {
+                    throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved and still open for maintenance.']);
                 }
                 $previous = InventoryIssuance::query()
                     ->where(fn ($query) => $query->where('reference_no', $irNumber)
