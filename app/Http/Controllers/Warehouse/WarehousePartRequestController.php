@@ -23,6 +23,9 @@ class WarehousePartRequestController extends Controller
 
     private InventoryLedgerService $ledger;
 
+    // Used only while preparing the paginated Warehouse PR listing.
+    private ?\Illuminate\Support\Collection $listingInventory = null;
+
     public function __construct(InventoryLedgerService $ledger)
     {
         $this->ledger = $ledger;
@@ -254,11 +257,18 @@ class WarehousePartRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
-            return $purchaseRequest->source_type === 'Auto Restock'
-                ? $purchaseRequest
-                : $this->prepareRequestForWarehouse($purchaseRequest);
-        });
+        // Resolve stock identities from one snapshot for this page rather than
+        // issuing a separate inventory query for every requested part.
+        $this->listingInventory = InventoryItem::query()->get();
+        try {
+            $purchaseRequests->getCollection()->transform(function ($purchaseRequest) {
+                return $purchaseRequest->source_type === 'Auto Restock'
+                    ? $purchaseRequest
+                    : $this->prepareRequestForWarehouse($purchaseRequest);
+            });
+        } finally {
+            $this->listingInventory = null;
+        }
 
         $activeCount = (clone $query)->whereIn('status', $this->statuses)->count();
 
@@ -778,7 +788,13 @@ class WarehousePartRequestController extends Controller
 
         // Never take an arbitrary first stock row when names are duplicated.
         // This must agree with Maintenance's conservative identity policy.
-        $candidates = InventoryItem::query()->where($identityScope)->get();
+        $candidates = $this->listingInventory !== null
+            ? $this->listingInventory->filter(fn (InventoryItem $item) =>
+                $this->normalizeText((string) $item->item_name) === $partName
+                || $this->normalizeText((string) $item->item_code) === $partName
+                || $this->normalizeText((string) $item->parts_name) === $partName
+            )
+            : InventoryItem::query()->where($identityScope)->get();
         if ($unit !== '') {
             $unitMatched = $candidates->filter(fn (InventoryItem $item) =>
                 $this->normalizeUnit((string) ($item->unit_of_measurement ?: $item->unit)) === $unit
