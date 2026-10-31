@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
+use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Maintenance\JobOrderPartReservation;
 use Illuminate\Http\Request;
 use App\Services\Maintenance\JobOrderWorkflowService;
@@ -417,6 +418,14 @@ class ItemRequestController extends Controller
                     'remaining' => max(0, $required->sum() - $issued),
                 ]];
             });
+        // Display the same persisted PR shortage breakdown as Maintenance.
+        // This is informational only; Warehouse issuance remains immutable.
+        $linkedPrPartsByJo = PurchaseRequest::query()
+            ->whereIn('job_order_no', $requests->getCollection()->pluck('jobOrder.job_order_no')->filter()->unique())
+            ->whereNotIn('status', ['Cancelled', 'Rejected'])
+            ->get(['job_order_no', 'item'])
+            ->groupBy('job_order_no')
+            ->map(fn ($prs) => $prs->sum(fn ($pr) => count($parser->parsePartText((string) $pr->item))));
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
         $waitingIssuedCount = ItemRequest::query()->where('status', 'Issued')
@@ -425,7 +434,7 @@ class ItemRequestController extends Controller
         $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count() - $waitingIssuedCount;
 
         return view('Warehouse.item-requests', compact(
-            'requests', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'stockByRequest', 'fulfillmentByJob'
+            'requests', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'stockByRequest', 'fulfillmentByJob', 'linkedPrPartsByJo'
         ));
     }
 }
