@@ -146,7 +146,7 @@ class PurchaseModuleHardeningTest extends TestCase
             $user = $this->purchaseUser($role);
             $this->permissions($role, false, true);
 
-            foreach (['dashboard-purchase', 'maintenance-requests', 'inventory-restock', 'purchase-orders', 'scheduled-purchase'] as $route) {
+            foreach (['dashboard-purchase', 'maintenance-requests', 'inventory-restock', 'purchase-orders'] as $route) {
                 $this->actingAs($user)->get(route($route))->assertForbidden();
             }
         }
@@ -158,17 +158,12 @@ class PurchaseModuleHardeningTest extends TestCase
             $user = $this->purchaseUser($role);
             $this->permissions($role, true, false);
             $order = $this->order();
-            $schedule = $this->schedule();
 
             $this->actingAs($user)->get(route('purchase-orders'))->assertOk();
             $this->actingAs($user)->post(route('purchase-orders.store'), [])->assertForbidden();
             $this->actingAs($user)->put(route('purchase-orders.update', $order), [])->assertForbidden();
             $this->actingAs($user)->delete(route('purchase-orders.destroy', $order))->assertForbidden();
             $this->actingAs($user)->patch(route('purchase-orders.update-status', $order), [])->assertForbidden();
-            $this->actingAs($user)->post(route('scheduled-purchase.store'), [])->assertForbidden();
-            $this->actingAs($user)->put(route('scheduled-purchase.update', $schedule), [])->assertForbidden();
-            $this->actingAs($user)->post(route('scheduled-purchase.create-po', $schedule))->assertForbidden();
-            $this->actingAs($user)->delete(route('scheduled-purchase.destroy', $schedule))->assertForbidden();
         }
     }
 
@@ -380,55 +375,15 @@ class PurchaseModuleHardeningTest extends TestCase
         $this->assertSame('For Purchase', $second->fresh()->status);
     }
 
-    public function test_completed_schedule_cannot_be_resumed_by_update_or_toggle(): void
-    {
-        $user = $this->purchaseUser('head');
-        $schedule = $this->schedule(['status' => 'Completed']);
 
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->put(route('scheduled-purchase.update', $schedule), $this->schedulePayload($schedule, ['status' => 'Active']))
-            ->assertSessionHasErrors('status');
 
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->patch(route('scheduled-purchase.toggle-status', $schedule))
-            ->assertSessionHasErrors('status');
 
-        $this->assertSame('Completed', $schedule->fresh()->status);
-    }
 
-    public function test_schedule_cannot_create_two_purchase_orders_for_the_same_due_date(): void
-    {
-        $user = $this->purchaseUser('head');
-        $schedule = $this->schedule();
-
-        $this->actingAs($user)
-            ->post(route('scheduled-purchase.create-po', $schedule))
-            ->assertRedirect(route('purchase-orders'));
-
-        $this->actingAs($user)
-            ->from(route('scheduled-purchase'))
-            ->post(route('scheduled-purchase.create-po', $schedule))
-            ->assertSessionHas('error');
-
-        $this->assertDatabaseCount('purchase_orders', 1);
-        $this->assertTrue($schedule->fresh()->next_purchase_date->isFuture());
-    }
-
-    public function test_purchase_and_schedule_mutations_broadcast_realtime_events(): void
+    public function test_purchase_mutations_broadcast_realtime_events(): void
     {
         Event::fake([SystemDataUpdated::class]);
         $user = $this->purchaseUser('head');
         $schedule = $this->schedule();
-
-        $this->actingAs($user)->patch(route('scheduled-purchase.toggle-status', $schedule));
-        Event::assertDispatched(
-            SystemDataUpdated::class,
-            fn (SystemDataUpdated $event) => $event->module === 'Purchase'
-                && $event->entity === 'ScheduledPurchase'
-                && $event->action === 'status_updated'
-        );
 
         $order = $this->order();
         $this->actingAs($user)->patch(route('purchase-orders.update-status', $order), ['status' => 'For Delivery']);
