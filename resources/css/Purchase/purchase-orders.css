@@ -1609,3 +1609,12 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
 .po-receipt-bottom { display:flex; justify-content:space-between; align-items:center; gap:5px; white-space:nowrap; font-size:9px; font-weight:650; }
 .po-receipt-done { color:#168349; }
 .po-receipt-left { color:#a76a16; }
+
+
+/* Compact receiving progress: received/ordered + one slim bar + remaining. */
+.po-receipt-progress { width: 124px; max-width: 100%; gap: 3px; }
+.po-receipt-compact { display:flex; align-items:center; gap:7px; min-width:0; }
+.po-receipt-compact > strong { font-size:11px; font-weight:800; color:#17345b; white-space:nowrap; min-width:34px; text-align:left; }
+.po-receipt-compact .po-receipt-track { flex:1; min-width:25px; height:5px; }
+.po-receipt-progress .po-receipt-bottom { justify-content:flex-start; }
+.po-receipt-progress .po-receipt-left { font-size:9px; font-weight:600; white-space:nowrap; }
