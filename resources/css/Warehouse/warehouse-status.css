@@ -56,3 +56,30 @@
   line-height: inherit;
   letter-spacing: inherit;
 }
+
+/* Incoming Deliveries uses Maintenance-sized statuses and labeled actions.
+ * Keep this exception after the Warehouse-wide compact badge contract.
+ */
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table [data-ui-component="status-badge"],
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table .delivery-status {
+  height: 34px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table .receive-delivery-btn {
+  min-width: 96px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 15px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 8px;
+}
