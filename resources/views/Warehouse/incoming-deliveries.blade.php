@@ -4,7 +4,8 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Warehouse/incoming-deliveries.css',
-    'resources/js/Main-js/sidebar.js'
+    'resources/js/Main-js/sidebar.js',
+    'resources/js/Warehouse/incoming-deliveries.js'
   ]"
 >
   @php
@@ -144,39 +145,28 @@
                     @if($isHistory || $received)
                       <span class="delivery-status received"><i class="fa-solid fa-lock"></i>&nbsp; Read only</span>
                     @elseif($canEditWarehouse && in_array($delivery->status, ['Ordered', 'For Delivery', 'For Pick-up'], true))
-                      <form
-                        action="{{ route('incoming-deliveries.receive', $delivery) }}"
-                        method="POST"
-                        class="inline-action-form"
-                        data-confirm-form
-                        data-confirm-title="Receive Delivery?"
-                        data-confirm-message="Confirm only the actual quantities entered for {{ $delivery->po_no }} were physically received. Only those quantities will be posted to inventory."
-                        data-confirm-button="Yes, Receive Delivery"
-                        data-confirm-type="approve"
-                      >
-                        @csrf
-                        <div class="incoming-receipt-quantities">
-                          @foreach(($delivery->items ?? []) as $lineIndex => $line)
-                            @php
-                              $orderedQty = max(0, (int) ($line['quantity'] ?? 0));
-                              $receivedQty = max(0, (int) (($delivery->received_quantities ?? [])[$lineIndex] ?? 0));
-                              $remainingQty = max(0, $orderedQty - $receivedQty);
-                            @endphp
-                            @if($remainingQty > 0)
-                              <label title="{{ $line['item_description'] ?? 'Item' }}">
-                                <span>{{ $line['item_description'] ?? 'Item' }} (remaining: {{ $remainingQty }})</span>
-                                <input type="number" name="received_quantities[{{ $lineIndex }}]" min="0" max="{{ $remainingQty }}" step="1" placeholder="Enter qty" required aria-label="Received quantity for {{ $line['item_description'] ?? 'item' }}">
-                              </label>
-                            @else
-                              <input type="hidden" name="received_quantities[{{ $lineIndex }}]" value="0">
-                            @endif
-                          @endforeach
-                        </div>
-                        <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
-                          <i class="fa-solid fa-box-open"></i>
-                          Receive
-                        </button>
-                      </form>
+                      @php
+                        $receiptLines = $items->map(function ($line, $lineIndex) use ($delivery) {
+                          $ordered = max(0, (int) ($line['quantity'] ?? 0));
+                          $already = max(0, (int) (($delivery->received_quantities ?? [])[$lineIndex] ?? 0));
+                          return [
+                            'index' => $lineIndex,
+                            'name' => trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', (string) ($line['item_description'] ?? 'Item'))),
+                            'ordered' => $ordered,
+                            'received' => $already,
+                            'remaining' => max(0, $ordered - $already),
+                            'unit' => $line['unit'] ?? '',
+                          ];
+                        })->values();
+                      @endphp
+                      <button type="button" class="primary-btn receive-delivery-btn open-incoming-receipt"
+                        data-receipt-url="{{ route('incoming-deliveries.receive', $delivery) }}"
+                        data-po="{{ $delivery->po_no }}"
+                        data-supplier="{{ $delivery->supplier_name }}"
+                        data-lines="{{ e($receiptLines->toJson()) }}"
+                        aria-label="Review and receive items for {{ $delivery->po_no }}">
+                        <i class="fa-solid fa-box-open" aria-hidden="true"></i> Receive
+                      </button>
                     @else
                       <span class="delivery-status for-delivery"><i class="fa-solid fa-lock"></i>&nbsp; View only</span>
                     @endif
@@ -197,5 +187,37 @@
         <x-ui.table-footer :items="$deliveries" data-lazy-pagination="true" />
       </section>
     </main>
+  </div>
+  <div class="incoming-receipt-overlay" id="incomingReceiptModal" role="presentation" hidden>
+    <div class="incoming-receipt-dialog" role="dialog" aria-modal="true" aria-labelledby="incomingReceiptTitle">
+      <header class="incoming-receipt-header">
+        <div><small>WAREHOUSE RECEIVING</small><h2 id="incomingReceiptTitle">Receive Purchase Order</h2>
+          <p>Record only the quantities physically received. Unreceived quantities remain outstanding.</p></div>
+        <button type="button" id="incomingReceiptClose" aria-label="Close receiving" class="incoming-receipt-close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </header>
+      <form id="incomingReceiptForm" method="POST" class="incoming-receipt-form" data-confirm-form
+        data-confirm-title="Confirm Physical Receipt?"
+        data-confirm-message="Only the entered quantities will be posted to inventory. Any outstanding quantities will remain open."
+        data-confirm-button="Yes, Receive Items" data-confirm-type="approve">
+        @csrf
+        <div class="incoming-receipt-content">
+          <div class="incoming-receipt-meta">
+            <div><small>Purchase Order</small><strong id="incomingReceiptPo">—</strong></div>
+            <div><small>Supplier</small><strong id="incomingReceiptSupplier">—</strong></div>
+          </div>
+          <div class="incoming-receipt-table-wrap">
+            <table class="incoming-receipt-items"><thead><tr><th>Item / Part</th><th>Ordered</th><th>Previously Received</th><th>Outstanding</th><th>Receive Now</th></tr></thead>
+              <tbody id="incomingReceiptLines"></tbody>
+            </table>
+          </div>
+          <p class="incoming-receipt-help">Enter 0 for items not included in this delivery. At least one item must have a received quantity greater than 0.</p>
+          <div id="incomingReceiptError" class="incoming-receipt-error" role="alert" hidden></div>
+        </div>
+        <footer class="incoming-receipt-footer">
+          <button type="button" id="incomingReceiptCancel" class="incoming-receipt-cancel">Cancel</button>
+          <button type="submit" id="incomingReceiptSubmit" class="primary-btn receive-delivery-btn"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Confirm Receipt</button>
+        </footer>
+      </form>
+    </div>
   </div>
 </x-layout.app>
