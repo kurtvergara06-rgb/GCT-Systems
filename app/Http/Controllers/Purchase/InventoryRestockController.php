@@ -16,11 +16,16 @@ class InventoryRestockController extends Controller
         'For Delivery',
     ];
 
+    private array $historyStatuses = ['Delivered', 'Picked Up', 'Issued'];
+
     public function index(Request $request)
     {
+        $recordView = $request->query('record_view') === 'history' ? 'history' : 'active';
+        $visibleStatuses = $recordView === 'history' ? $this->historyStatuses : $this->activeStatuses;
+
         $query = MaintenanceRequest::query()
             ->where('source_type', 'Auto Restock')
-            ->whereIn('status', $this->activeStatuses);
+            ->whereIn('status', $visibleStatuses);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -62,7 +67,7 @@ class InventoryRestockController extends Controller
             ->whereIn('status', ['Delivered', 'Picked Up', 'Issued'])
             ->count();
 
-        $statuses = $this->activeStatuses;
+        $statuses = $visibleStatuses;
 
         return view('Purchase.Requested_Purchase.inventory-restock', compact(
             'restockRequests',
@@ -70,7 +75,8 @@ class InventoryRestockController extends Controller
             'forPurchase',
             'ordered',
             'delivered',
-            'statuses'
+            'statuses',
+            'recordView'
         ));
     }
 }
