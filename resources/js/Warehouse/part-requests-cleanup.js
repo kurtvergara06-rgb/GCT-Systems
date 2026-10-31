@@ -218,7 +218,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     });
   });
   sendModal?.querySelectorAll('[data-send-missing-close]').forEach(button => button.addEventListener('click', closeSendModal));
-  sendModal?.addEventListener('click', event => { if (event.target === sendModal) closeSendModal(); });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && sendModal?.classList.contains('show')) closeSendModal(); });
 
 });
