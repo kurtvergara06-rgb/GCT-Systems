@@ -3445,3 +3445,19 @@
 .warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-movement-item-icon.is-adjustment {
   color:#285886!important;background:#eef3f9!important;border-color:#d9e5f2!important;
 }
+
+/* Final icon override: movement type controls the box icon color, not generic item styling. */
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in i {
+  color:#15803d!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-in {
+  background:#eaf8ee!important;border-color:#bce7cc!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out,
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out i {
+  color:#dc2626!important;
+}
+.warehouse-dashboard-page [data-ajax-region="recent-stock-movements"] .warehouse-item-cell .warehouse-movement-item-icon.is-stock-out {
+  background:#fef0f0!important;border-color:#f5c5c5!important;
+}
