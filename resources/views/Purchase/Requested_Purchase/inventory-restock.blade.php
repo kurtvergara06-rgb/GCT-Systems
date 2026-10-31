@@ -254,7 +254,7 @@
               <span>Quantity</span>
               <span>Unit</span>
             </div>
-            <div class="restock-breakdown-row" id="viewRestockItems">
+            <div class="restock-breakdown-list" id="viewRestockItems">
               <span id="viewRestockItem">—</span>
               <span id="viewRestockQuantity">—</span>
               <span id="viewRestockUnit">—</span>
