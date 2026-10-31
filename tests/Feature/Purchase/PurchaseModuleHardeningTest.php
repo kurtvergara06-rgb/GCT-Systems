@@ -240,25 +240,26 @@ class PurchaseModuleHardeningTest extends TestCase
 
     }
 
-    public function test_parts_requests_record_tabs_group_pending_and_in_progress_statuses(): void
+    public function test_parts_requests_record_tabs_group_active_and_history_statuses(): void
     {
         $user = $this->purchaseUser('head');
         $pending = $this->maintenanceRequest('PR-PENDING-TAB', 'For Purchase');
         $ordered = $this->maintenanceRequest('PR-PROGRESS-TAB', 'Ordered');
+        $delivered = $this->maintenanceRequest('PR-HISTORY-TAB', 'Delivered');
 
         $this->actingAs($user)
-            ->get(route('maintenance-requests', ['record_view' => 'pending']))
+            ->get(route('maintenance-requests', ['record_view' => 'active']))
             ->assertOk()
             ->assertSee($pending->pr_no)
-            ->assertDontSee($ordered->pr_no)
-            ->assertSee('name="record_view" value="pending"', false);
+            ->assertSee($ordered->pr_no)
+            ->assertDontSee($delivered->pr_no);
 
         $this->actingAs($user)
-            ->get(route('maintenance-requests', ['record_view' => 'in_progress']))
+            ->get(route('maintenance-requests', ['record_view' => 'history']))
             ->assertOk()
-            ->assertSee($ordered->pr_no)
+            ->assertSee($delivered->pr_no)
             ->assertDontSee($pending->pr_no)
-            ->assertSee('name="record_view" value="in_progress"', false);
+            ->assertDontSee($ordered->pr_no);
     }
 
     public function test_create_po_action_only_opens_prefilled_form_without_saving_or_changing_request(): void
@@ -315,7 +316,9 @@ class PurchaseModuleHardeningTest extends TestCase
     public function test_duplicate_purchase_order_submission_for_the_same_request_is_rejected(): void
     {
         $user = $this->purchaseUser('head');
-        $purchaseRequest = $this->request();
+        // Unsigned warehouse restock requests must fail validation before PO creation.
+        // Use a valid maintenance request to isolate the duplicate-submission guard.
+        $purchaseRequest = $this->maintenanceRequest('PR-MAINT-PO-DUPLICATE');
         $payload = $this->orderPayload($purchaseRequest);
 
         $this->actingAs($user)->post(route('purchase-orders.store'), $payload)->assertRedirect('/purchase-orders');
