@@ -166,7 +166,24 @@
 
                                     <td class="status-col">
 
-                                        @if(!$config)<span class="pms-data-needed-badge">Not Configured</span>@else<span class="pms-monitoring-badge {{ $config->status() === 'PMS Due' ? 'is-due' : 'is-unverified' }}">{{ $config->status() }}</span>@endif
+                                        @php
+                                            $monitorStatus = $config?->status() ?? 'Not Configured';
+                                            $monitorTone = match ($monitorStatus) {
+                                                'PMS Due' => 'is-due',
+                                                'Upcoming' => 'is-upcoming',
+                                                'Inactive' => 'is-inactive',
+                                                'Mileage Unverified' => 'is-unverified',
+                                                default => 'is-not-configured',
+                                            };
+                                            $monitorIcon = match ($monitorStatus) {
+                                                'PMS Due' => 'fa-circle-exclamation',
+                                                'Upcoming' => 'fa-calendar-check',
+                                                'Inactive' => 'fa-circle-pause',
+                                                'Mileage Unverified' => 'fa-gauge',
+                                                default => 'fa-circle-info',
+                                            };
+                                        @endphp
+                                        <span class="pms-monitoring-badge {{ $monitorTone }}"><i class="fa-solid {{ $monitorIcon }}" aria-hidden="true"></i> {{ $monitorStatus }}</span>
 
                                     </td>
                                     <td><button class="pms-view-tasks-btn open-pms-tasks-modal" type="button" data-modal-target="pmsDetails-{{ $loop->index }}" aria-label="View PMS details for {{ $row->bus_no }}"><i class="fa-solid fa-eye"></i></button></td>
