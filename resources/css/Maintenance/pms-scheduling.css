@@ -2061,3 +2061,13 @@
     white-space: nowrap;
 }
 .pms-page .pms-table td small {font-size: 10px;color: #64748b;}
+
+/* New bus-level PMS overview and accessible configuration forms. */
+.pms-page .pms-monitoring-badge {display:inline-flex;align-items:center;min-height:26px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;}
+.pms-page .pms-monitoring-badge.is-due {border-color:#fecaca;background:#fee2e2;color:#b91c1c;}
+.pms-monitoring-details {display:grid;gap:12px;padding:20px 24px;font-size:13px;line-height:1.5;}
+.pms-monitoring-details p {margin:0;}
+.pms-monitoring-form {display:grid;gap:10px;padding:18px 24px;}
+.pms-monitoring-form label {font-size:12px;font-weight:700;color:#1e3556;}
+.pms-monitoring-form input,.pms-monitoring-form select {width:100%;min-height:38px;border:1px solid #cbd5e1;border-radius:7px;padding:8px 10px;background:#fff;color:#0f172a;}
+.pms-monitoring-form p {font-size:12px;color:#475569;margin:0 0 4px;}
