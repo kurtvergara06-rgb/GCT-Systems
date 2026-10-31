@@ -1371,3 +1371,11 @@
 #viewItemRequestModal .ir-review-jo-banner .ir-view-status.is-active {
  background:#eaf3ff!important;color:#15519e!important;border-color:#bfd7f9!important;
 }
+
+/* JO-wide physical issuance progress (same presentation as Warehouse IR). */
+.maintenance-ir-page .maintenance-ir-fulfillment{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:135px;max-width:170px}
+.maintenance-ir-page .maintenance-ir-fulfillment strong{font-size:11px;font-weight:800;color:#15355e;line-height:1.2}
+.maintenance-ir-page .maintenance-ir-fulfillment small{font-size:10px;font-weight:650;color:#647b98;line-height:1.2}
+.maintenance-ir-page .maintenance-ir-fulfillment-track{display:block;width:100%;height:5px;border-radius:999px;background:#e2eaf4;overflow:hidden}
+.maintenance-ir-page .maintenance-ir-fulfillment-track>span{display:block;height:100%;border-radius:inherit;background:#d5a12a;transition:width .2s ease}
+.maintenance-ir-page .maintenance-ir-fulfillment-track.is-complete>span{background:#16a36b}
