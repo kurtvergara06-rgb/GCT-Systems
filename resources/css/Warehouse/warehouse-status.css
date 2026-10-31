@@ -63,6 +63,7 @@
 .app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
   .warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status,
   .warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status,
+  .warehouse-ir-page .ir-table tbody td .warehouse-ir-policy,
   .warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-stock-status,
   .warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-process-status,
   .warehouse-part-main .warehouse-part-table-clean tbody td .warehouse-ir-stock-status,
