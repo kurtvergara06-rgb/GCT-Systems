@@ -25,13 +25,14 @@
   --gct-table-body-font-size: 12px;
   --gct-table-row-height: 46px;
 
-  --gct-status-min-height: 23px;
-  --gct-status-padding-block: 4px;
-  --gct-status-padding-inline: 9px;
-  --gct-status-radius: 6px;
-  --gct-status-gap: 5px;
-  --gct-status-font-size: 10px;
-  --gct-status-icon-size: 10px;
+  /* System-wide workflow status badges: Administration / Operation / Maintenance / Warehouse / Purchasing. */
+  --gct-status-min-height: 34px;
+  --gct-status-padding-block: 7px;
+  --gct-status-padding-inline: 12px;
+  --gct-status-radius: 8px;
+  --gct-status-gap: 7px;
+  --gct-status-font-size: 11px;
+  --gct-status-icon-size: 11px;
 
   --brand-blue: #0B40B5;
   --brand-navy: #061F3D;
