@@ -471,13 +471,13 @@
 
   {{-- MOVEMENT HISTORY MODAL --}}
   <div class="modal-overlay" id="movementHistoryModal" aria-hidden="true">
-    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="movementHistoryModalTitle">
-      <div class="modal-header">
-        <h2 id="movementHistoryModalTitle">
-          <span class="inventory-movement-title-icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
-          Movement History
-        </h2>
-        <button type="button" class="close-btn closeModal" aria-label="Close movement history">&times;</button>
+    <div class="modal-box wide-modal movement-history-redesign" role="dialog" aria-modal="true" aria-labelledby="movementHistoryModalTitle">
+      <div class="modal-header movement-history-redesign-header">
+        <div class="movement-history-modal-heading">
+          <span class="inventory-movement-title-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>
+          <div><h2 id="movementHistoryModalTitle">Movement History</h2><p>Complete stock movement audit trail for this inventory item</p></div>
+        </div>
+        <button type="button" class="close-btn closeModal" aria-label="Close movement history"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
       <div id="movementHistoryContent" data-movement-history-content></div>
       <div class="inventory-movement-modal__footer">
