@@ -93,9 +93,9 @@
                   $partNames = $items->pluck('item_description')->filter()->map(fn ($name) => trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', (string) $name)))->filter()->values();
                   $quantitySummary = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
                   $received = !is_null($delivery->inventory_posted_at);
-                  $displayStatus = $received ? 'Received' : $delivery->status;
+                  $displayStatus = $received ? 'Received' : $delivery->receipt_display_status;
                   $statusClass = match($displayStatus) {
-                    'Ordered', 'For Delivery', 'For Pick-up' => 'for-delivery',
+                    'Ordered', 'For Delivery', 'For Pick-up', 'Partially Received' => 'for-delivery',
                     'Delivered', 'Picked Up' => 'delivered',
                     'Received' => 'received',
                     default => 'default',
@@ -117,7 +117,7 @@
                       </details>
                     @endif
                   </td>
-                  <td>{{ $quantitySummary }}</td>
+                  <td>{{ $quantitySummary }}@if($delivery->is_partially_received)<small style="display:block;color:#a35e0d;font-size:10px;margin-top:3px">{{ $delivery->receipt_progress['received'] }} received · {{ $delivery->receipt_progress['remaining'] }} remaining</small>@endif</td>
                   <td>
                     @if($delivery->po_date)
                       <div class="incoming-date-stack">
