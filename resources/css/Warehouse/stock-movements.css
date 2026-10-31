@@ -677,3 +677,33 @@
 .item-history-toolbar {
   margin-bottom: 12px;
 }
+
+
+/* Let the page scroll normally; keep only horizontal overflow for narrow screens. */
+.stock-movement-page .stock-movement-card .table-wrap {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+  scrollbar-width: auto;
+}
+.stock-movement-page .stock-movement-card .stock-movement-table {
+  max-height: none !important;
+}
+.stock-movement-page .stock-movement-reference-link {
+  text-decoration: none;
+  cursor: pointer;
+  color: #124ca0;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.stock-movement-page .stock-movement-reference-link:hover,
+.stock-movement-page .stock-movement-reference-link:focus-visible {
+  background: #eaf2ff;
+  border-color: #9abcee;
+  text-decoration: underline;
+  outline-offset: 2px;
+}
+.stock-movement-page .stock-movement-reference-link i {
+  font-size: 9px;
+  opacity: .8;
+}
