@@ -197,6 +197,11 @@
                         data-created="{{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $restockRequest->remarks ?? 'No remarks' }}"
                         data-items="{{ $displayItems->toJson() }}"
+                        data-approved-by="{{ $restockRequest->requester?->name ?? 'Warehouse Head' }}"
+                        data-approved-at="{{ $restockRequest->warehouse_approved_at ? \Illuminate\Support\Carbon::parse($restockRequest->warehouse_approved_at)->format('M d, Y h:i A') : '—' }}"
+                        data-purpose="{{ $restockRequest->purpose ?? 'Inventory replenishment' }}"
+                        data-approval-notes="{{ $restockRequest->restock_approval_notes ?? 'None' }}"
+                        data-signature-url="{{ $restockRequest->restock_signature_path ? route('inventory-restock.approval-signature', $restockRequest->id) : '' }}"
                         data-create-po-url="{{ ($restockRequest->status ?? '') === 'For Purchase' ? route('purchase-orders', ['create_from_pr' => $restockRequest->id]) : '' }}"
                       >
                         <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
@@ -223,9 +228,9 @@
     <div class="restock-view-modal">
       <div class="restock-modal-header">
         <div>
-          <h2>Inventory Restock Details</h2>
-          <h3>Restock Information</h3>
-          <p>This is a read-only view of the selected automatic restock request.</p>
+          <span class="restock-review-eyebrow">SIGNED WAREHOUSE REQUEST</span>
+          <h2>Review Inventory Restock Request</h2>
+          <p>Review the Warehouse Head authorization, requested parts, and quantities before creating a Purchase Order.</p>
         </div>
         <button type="button" id="closeRestockViewModal" class="restock-close-btn">
           <i class="fa-solid fa-xmark"></i>
@@ -250,6 +255,23 @@
           <input id="viewRestockCreated" type="text" value="—" readonly>
         </div>
 
+        <section class="restock-authorization restock-full" aria-label="Warehouse Head authorization">
+          <div class="restock-authorization-heading"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Warehouse Head Authorization</div>
+          <div class="restock-authorization-content">
+            <div class="restock-authorization-details">
+              <div><small>Approved by</small><strong id="viewRestockApprovedBy">—</strong></div>
+              <div><small>Approved at</small><strong id="viewRestockApprovedAt">—</strong></div>
+              <div><small>Purpose</small><strong id="viewRestockPurpose">—</strong></div>
+              <div><small>Authorization notes</small><strong id="viewRestockApprovalNotes">—</strong></div>
+            </div>
+            <div class="restock-authorization-signature">
+              <small>WAREHOUSE HEAD SIGNATURE</small>
+              <img id="viewRestockSignature" alt="Warehouse Head approval signature" hidden>
+              <p id="viewRestockSignatureUnavailable">Signature unavailable for this record</p>
+              <strong id="viewRestockSignatureName">—</strong>
+            </div>
+          </div>
+        </section>
         <div class="restock-field restock-full">
           <label>Requested Item / Part</label>
           <div class="restock-breakdown-box">
