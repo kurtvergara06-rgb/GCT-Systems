@@ -145,16 +145,24 @@ class JobOrderController extends Controller
         $prJoNumbers = PurchaseRequest::whereIn('job_order_no', $pageJobs->pluck('job_order_no'))
             ->pluck('job_order_no')->flip();
         $irJoIds = $allJoIrs->pluck('job_order_id')->flip();
-        $joPartsDisplayStatuses = $pageJobs->mapWithKeys(function ($jo) use ($partKey, $issuedByJo, $resByJo, $prJoNumbers, $irJoIds) {
+        $joPartsDisplayStatuses = $pageJobs->mapWithKeys(function ($jo) use ($partKey, $issuedByJo, $resByJo, $prJoNumbers, $irJoIds, $existingIrStatuses) {
             $required = collect($this->partParser->parsePartText((string) $jo->part_needed))
                 ->groupBy(fn ($part) => $partKey($part['name'], $part['unit']))
                 ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
             if ($required->isEmpty()) return [$jo->id => 'No Parts Required'];
             $issued = $required->sum(fn ($qty, $key) => min((int) $qty, (int) ($issuedByJo[$jo->id][$key] ?? 0)));
-            if ($issued >= $required->sum()) return [$jo->id => 'Fully Issued'];
-            if (!$irJoIds->has($jo->id) && !$prJoNumbers->has($jo->job_order_no)) return [$jo->id => 'Not Requested'];
+            // The Warehouse confirms physical issuance and updates both the
+            // JO and parent IR. Honor those authoritative statuses when older
+            // issuance references cannot be matched to a parsed part name/unit.
+            if ($issued >= $required->sum() || $jo->part_status === 'Issued') return [$jo->id => 'Fully Issued'];
+            if ($issued > 0 || $existingIrStatuses->get($jo->id) === 'Partially Issued') {
+                return [$jo->id => 'Partially Issued'];
+            }
+            if (!$irJoIds->has($jo->id) && !$prJoNumbers->has($jo->job_order_no)) {
+                return [$jo->id => 'Not Requested'];
+            }
             if ($resByJo->get($jo->id, collect())->sum('quantity') <= 0) return [$jo->id => 'Waiting for Parts'];
-            return [$jo->id => $issued > 0 ? 'Partially Issued' : 'Not Issued'];
+            return [$jo->id => 'Not Issued'];
         });
         if ($request->filled('part_status') && $request->part_status !== 'All Part Statuses') {
             $matching = $joPartsDisplayStatuses->filter(fn ($status) => $status === $request->part_status);
