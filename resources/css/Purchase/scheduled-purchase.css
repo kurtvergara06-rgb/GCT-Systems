@@ -888,3 +888,28 @@
 .scheduled-purchase-page .schedule-scroll-table td:nth-child(9) .record-actions {
   gap:4px!important;
 }
+
+
+/* Compact schedule status: override the shared badge's wide minimum width. */
+.scheduled-purchase-page .schedule-scroll-table .schedule-status-wrapper,
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .schedule-status-wrapper {
+  width:fit-content!important;
+  max-width:100%!important;
+  margin:0 auto!important;
+}
+.scheduled-purchase-page .schedule-scroll-table td:nth-child(8) .schedule-status-wrapper > .badge {
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  width:max-content!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:24px!important;
+  min-height:24px!important;
+  padding:3px 7px!important;
+  gap:4px!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+  font-size:10px!important;
+  border-radius:5px!important;
+}
