@@ -153,7 +153,7 @@ class LazyPaginationRolloutTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            "->paginate(\$recordView === 'history' ? 20 : 1000)",
+            "->paginate(25)",
             $source
         );
     }
