@@ -180,7 +180,7 @@ class InventoryController extends Controller
                 );
             }
 
-            $this->createAutoRestockRequestIfNeeded($inventoryItem);
+            // Low-stock items remain visible in Inventory alerts; a Warehouse Head must authorize the restock PR.
         });
 
         if ($inventoryItem) {
@@ -231,7 +231,7 @@ class InventoryController extends Controller
                 (int) $validated['reorder_level']
             );
             $lockedItem->update($validated);
-            $this->createAutoRestockRequestIfNeeded($lockedItem->fresh());
+            // Editing thresholds does not create an unsigned purchase request.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -458,9 +458,7 @@ class InventoryController extends Controller
                     $created++;
                 }
 
-                $this->createAutoRestockRequestIfNeeded(
-                    $inventoryItem->fresh()
-                );
+                // Imported low-stock inventory is flagged in the dashboard, not auto-purchased.
             }
         });
 
@@ -592,108 +590,6 @@ class InventoryController extends Controller
             .'-'
             .str_pad(
                 (string) ($lastNumber + 1),
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-    }
-
-    private function syncAutoRestockRequests(): void
-    {
-        $lowStockItems = InventoryItem::query()
-            ->whereColumn('quantity_available', '<=', 'reorder_level')
-            ->where('reorder_level', '>', 0)
-            ->get();
-
-        foreach ($lowStockItems as $inventoryItem) {
-            $this->createAutoRestockRequestIfNeeded($inventoryItem);
-        }
-    }
-
-    private function createAutoRestockRequestIfNeeded(
-        InventoryItem $inventoryItem
-    ): void {
-        $itemName = $this->getInventoryItemName($inventoryItem);
-        $unit = $this->getInventoryUnit($inventoryItem);
-
-        $onHand = (int) (
-            $inventoryItem->quantity_available
-                ?? $inventoryItem->on_hand
-            ?? 0
-        );
-
-        $reorderLevel = (int) (
-            $inventoryItem->reorder_level
-            ?? 0
-        );
-
-        if ($itemName === '' || $reorderLevel <= 0) {
-            return;
-        }
-
-        if ($onHand > $reorderLevel) {
-            return;
-        }
-
-        $existingActiveRequest = MaintenanceRequest::query()
-            ->where('source_type', 'Auto Restock')
-            ->where(function ($q) use ($itemName) {
-                $q->where('item', 'like', "{$itemName}%")
-                    ->orWhere('remarks', 'like', "%{$itemName}%");
-            })
-            ->whereIn('status', [
-                'For Purchase',
-                'Ordered',
-                'For Pick-up',
-                'For Delivery',
-                'Delivered',
-                'Picked Up',
-            ])
-            ->exists();
-
-        if ($existingActiveRequest) {
-            return;
-        }
-
-        $neededQuantity = max(
-            $reorderLevel - $onHand,
-            1
-        );
-
-        MaintenanceRequest::create([
-            'pr_no' => $this->generateRestockPrNo(),
-            'job_order_no' => 'RESTOCK',
-            'bus_no' => 'RESTOCK',
-            'item' => "{$itemName} - Qty: {$neededQuantity} {$unit}",
-            'quantity' => $neededQuantity,
-            'status' => 'For Purchase',
-            'source_type' => 'Auto Restock',
-            'remarks' => 'Auto restock request from Warehouse Inventory. '
-                ."{$itemName} is below reorder level. "
-                ."Current stock: {$onHand} {$unit}. "
-                ."Reorder level: {$reorderLevel} {$unit}.",
-        ]);
-    }
-
-    private function generateRestockPrNo(): string
-    {
-        $year = now()->format('Y');
-
-        $latest = MaintenanceRequest::query()
-            ->where('pr_no', 'like', "RST-{$year}-%")
-            ->orderByDesc('id')
-            ->first();
-
-        if (! $latest || ! $latest->pr_no) {
-            return "RST-{$year}-0001";
-        }
-
-        $lastNumber = (int) substr($latest->pr_no, -4);
-        $nextNumber = $lastNumber + 1;
-
-        return "RST-{$year}-"
-            .str_pad(
-                (string) $nextNumber,
                 4,
                 '0',
                 STR_PAD_LEFT
