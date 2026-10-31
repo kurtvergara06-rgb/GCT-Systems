@@ -195,7 +195,7 @@ class PurchaseUiConsistencyTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'type="view"',
+            'class="action-btn view open-view-po-modal',
             $view
         );
         $this->assertStringContainsString(
