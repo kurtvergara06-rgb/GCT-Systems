@@ -74,6 +74,17 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
   window.addEventListener('resize', closeExpandedItems);
   window.addEventListener('scroll', closeExpandedItems, true);
 
+  const reviewSignature = document.getElementById('viewRestockSignature');
+  reviewSignature?.addEventListener('load', () => {
+    reviewSignature.hidden = false;
+    const unavailable = document.getElementById('viewRestockSignatureUnavailable');
+    if (unavailable) unavailable.hidden = true;
+  });
+  reviewSignature?.addEventListener('error', () => {
+    reviewSignature.hidden = true;
+    const unavailable = document.getElementById('viewRestockSignatureUnavailable');
+    if (unavailable) unavailable.hidden = false;
+  });
   const restockViewModal = document.getElementById('restockViewModal');
   const closeRestockViewModal = document.getElementById('closeRestockViewModal');
   const closeRestockViewModalBottom = document.getElementById('closeRestockViewModalBottom');
@@ -93,6 +104,19 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     setField('viewRestockQuantity', button.dataset.quantity);
     setField('viewRestockUnit', button.dataset.unit);
     setField('viewRestockRemarks', button.dataset.remarks, 'No remarks');
+    setField('viewRestockApprovedBy', button.dataset.approvedBy);
+    setField('viewRestockApprovedAt', button.dataset.approvedAt);
+    setField('viewRestockPurpose', button.dataset.purpose);
+    setField('viewRestockApprovalNotes', button.dataset.approvalNotes, 'None');
+    setField('viewRestockSignatureName', button.dataset.approvedBy);
+    const signatureImage = document.getElementById('viewRestockSignature');
+    const signatureUnavailable = document.getElementById('viewRestockSignatureUnavailable');
+    if (signatureImage) {
+      signatureImage.hidden = true;
+      signatureImage.removeAttribute('src');
+      if (signatureUnavailable) signatureUnavailable.hidden = false;
+      if (button.dataset.signatureUrl) signatureImage.src = button.dataset.signatureUrl;
+    }
     const createPoLink = document.getElementById('restockReviewCreatePo');
     if (createPoLink) {
       const createPoUrl = button.dataset.createPoUrl || '';
