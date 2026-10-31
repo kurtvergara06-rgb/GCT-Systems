@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Purchase;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
-use App\Models\Purchase\ScheduledPurchase;
 
 class PurchaseDashboardController extends Controller
 {
@@ -178,11 +177,6 @@ class PurchaseDashboardController extends Controller
                     ->orWhere('pr_no', 'like', 'RST-%');
             })
             ->count();
-        $activeSchedulesCount = ScheduledPurchase::where('status', 'Active')->count();
-        $scheduledDueSoon = ScheduledPurchase::where('status', 'Active')
-            ->where('next_purchase_date', '<=', now()->addDays(7)->endOfDay())
-            ->count();
-        $totalEstScheduledSpend = (float) ScheduledPurchase::where('status', 'Active')->sum('estimated_cost');
 
         return compact(
             'totalRequests',
@@ -192,7 +186,6 @@ class PurchaseDashboardController extends Controller
             'ordered',
             'forPickup',
             'forDelivery',
-            'scheduledPurchases',
             'recentPurchaseRequests',
             'recentPurchaseOrders',
             'totalSpend',
@@ -205,10 +198,7 @@ class PurchaseDashboardController extends Controller
             'fulfillmentDistribution',
             'topSuppliers',
             'joRequestsCount',
-            'restockRequestsCount',
-            'activeSchedulesCount',
-            'scheduledDueSoon',
-            'totalEstScheduledSpend'
+            'restockRequestsCount'
         );
     }
 }
