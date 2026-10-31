@@ -7,6 +7,7 @@ use App\Http\Controllers\Warehouse\InventoryMovementController;
 use App\Http\Controllers\Warehouse\StockMovementController;
 use App\Http\Controllers\Warehouse\WarehouseDashboardController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
+use App\Http\Controllers\Warehouse\RestockingPurchaseRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -44,6 +45,8 @@ Route::middleware([
             ->prefix('part-requests')
             ->group(function () {
                 Route::get('/', 'index')->name('part-requests');
+                Route::post('/restocking', [RestockingPurchaseRequestController::class, 'store'])
+                    ->middleware('system.permission:warehouse,edit')->name('part-requests.restock.store');
                 Route::post('/job-orders/{jobOrder}/issue', 'issueJobOrder')
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.job-order.issue');
