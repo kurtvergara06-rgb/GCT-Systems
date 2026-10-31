@@ -25,9 +25,16 @@ class ItemRequestController extends Controller
      */
     public function verify(ItemRequest $itemRequest, JobOrderWorkflowService $workflow, PartParser $parser)
     {
-        $parts = $itemRequest->requested_parts ?? [];
-        $snapshot = $workflow->inventoryAvailability($parts);
+        // An IR is the durable parent of all JO handovers. After its first
+        // signed batch, track remaining JO requirements without rewriting
+        // the originally submitted request or any signed issuance record.
         $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
+        $hasHandover = InventoryIssuance::query()->where(fn ($q) => $q
+            ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))->exists();
+        $parts = $hasHandover && $itemRequest->jobOrder
+            ? $parser->parsePartText((string) $itemRequest->jobOrder->part_needed)
+            : ($itemRequest->requested_parts ?? []);
+        $snapshot = $workflow->inventoryAvailability($parts);
         $previous = InventoryIssuance::query()->where(fn ($query) => $query
             ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))
             ->with('items')->get();
@@ -113,22 +120,26 @@ class ItemRequestController extends Controller
             $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
             DB::transaction(function () use ($itemRequest, $ledger, $parser, $irNumber, $slipPath, $validated): void {
                 $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
-                if (! in_array($ir->status, ['Submitted', 'Partially Issued'], true)) {
+                if (! in_array($ir->status, ['Submitted', 'Partially Issued', 'Issued'], true)) {
                     throw ValidationException::withMessages(['issue' => 'This IR is not ready for issuance.']);
                 }
                 $jo = $ir->jobOrder;
                 if (! $jo || $jo->review_status !== 'Approved') {
                     throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved.']);
                 }
-                $parts = collect($ir->requested_parts ?? [])->values();
-                if ($parts->isEmpty() || count($validated['issued_quantities']) !== $parts->count()) {
-                    throw ValidationException::withMessages(['issued_quantities' => 'All IR item rows must be included.']);
-                }
-
                 $previous = InventoryIssuance::query()
                     ->where(fn ($query) => $query->where('reference_no', $irNumber)
                         ->orWhere('reference_no', 'like', $irNumber.'-B%'))
                     ->with('items')->orderBy('id')->lockForUpdate()->get();
+                if ($ir->status === 'Issued' && ($previous->isEmpty() || $jo->part_status === 'Issued')) {
+                    throw ValidationException::withMessages(['issue' => 'This request is already fully issued.']);
+                }
+                $parts = collect($previous->isNotEmpty()
+                    ? $parser->parsePartText((string) $jo->part_needed)
+                    : ($ir->requested_parts ?? []))->values();
+                if ($parts->isEmpty() || count($validated['issued_quantities']) !== $parts->count()) {
+                    throw ValidationException::withMessages(['issued_quantities' => 'All current JO item rows must be included. Refresh the issuance slip.']);
+                }
                 // Canonicalize legacy name-only IR lines against Warehouse item IDs.
                 // Never silently choose between duplicate-name inventory records.
                 $stockItems = InventoryItem::query()->get();
@@ -247,10 +258,10 @@ class ItemRequestController extends Controller
                         $reserved->quantity <= $qty ? $reserved->delete() : $reserved->decrement('quantity', $qty);
                     }
                 }
-                $complete = collect($expectedTotals)->every(fn ($quantity, $partKey) =>
-                    (int) ($already[$partKey] ?? 0) + (int) ($nowTotals[$partKey] ?? 0) === (int) $quantity);
-                $ir->update(['status' => $complete ? 'Issued' : 'Partially Issued']);
-                // An approved JO may have several sequential IRs after replenishment.
+                // The parent IR is completed only when the WHOLE linked JO is fulfilled.
+                // An initial handover can cover its originally submitted lines yet
+                // still have purchased parts outstanding.
+                // An approved JO may have several legacy sequential IRs after replenishment.
                 // Completing the latest IR does not alone prove every JO part was issued.
                 $allIr = ItemRequest::query()->where('job_order_id', $jo->id)->get();
                 $allReferences = $allIr->map(fn ($record) => 'IR-'.($record->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $record->id, 4, '0', STR_PAD_LEFT));
@@ -274,6 +285,7 @@ class ItemRequestController extends Controller
                 $priorPartStatus = $jo->part_status;
                 $newPartStatus = $allJoPartsIssued || $priorPartStatus === 'Issued' ? 'Issued' : 'Partial';
                 $jo->update(['part_status' => $newPartStatus]);
+                $ir->update(['status' => $allJoPartsIssued ? 'Issued' : 'Partially Issued']);
 
                 // Persist the physical handover as a JO audit event inside the
                 // same transaction as its issuance ledger, so rolled-back
