@@ -447,6 +447,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
       const rawDate=button.dataset.poDate||'';const parsedDate=/^\d{4}-\d{2}-\d{2}/.test(rawDate)?new Date(rawDate.slice(0,10)+'T12:00:00'):null;
       put('poDetailDate',parsedDate&&!Number.isNaN(parsedDate.getTime())?parsedDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):rawDate);
       put('poDetailStatus',button.dataset.status);
+      const receiptProgress = document.getElementById('poDetailReceiptProgress');
+      if (receiptProgress) {
+        const received = Number(button.dataset.detailReceived || 0);
+        const remaining = Number(button.dataset.detailRemaining || 0);
+        receiptProgress.style.display = received > 0 || remaining > 0 ? 'block' : 'none';
+        receiptProgress.textContent = received + ' received · ' + remaining + ' remaining' + (received > 0 && remaining > 0 ? ' — Partial receipt, PO remains Active' : '');
+      }
       put('poDetailSupplier',button.dataset.supplierName);put('poDetailJo',button.dataset.detailJo);
       put('poDetailPurpose',button.dataset.purpose);put('poDetailTotal',cash(button.dataset.detailTotal));
       const isRestock = button.dataset.detailIsRestock === '1';
