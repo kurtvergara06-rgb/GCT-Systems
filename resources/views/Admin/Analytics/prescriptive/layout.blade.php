@@ -103,15 +103,7 @@
             @endif
 
             @if($activeDomain === 'fleet-trip')
-                <section class="analytics-domain-section analytics-domain-pending" aria-label="Scheduling insights availability">
-                    <div class="analytics-card analytics-pending-card">
-                        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
-                        <div>
-                            <strong>Live scheduling recommendations are not yet available.</strong>
-                            <p>The current scheduling scenario is illustrative. Operational recommendations will appear here when supported by verified dispatch records.</p>
-                        </div>
-                    </div>
-                </section>
+                <x-analytics.availability-dashboard domain="scheduling" />
             @else
                 @include($domainViews[$activeDomain])
             @endif

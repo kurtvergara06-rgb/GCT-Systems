@@ -72,15 +72,7 @@
             @endif
 
             @if($activeDomain === 'fleet-trip')
-                <section class="analytics-domain-section analytics-domain-pending" aria-label="Incident analytics availability">
-                    <div class="analytics-card analytics-pending-card">
-                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                        <div>
-                            <strong>Incident analytics is awaiting a verified incident data source.</strong>
-                            <p>The existing diagnostic dataset describes trip delays and idling, not incident frequency or causes. Incident figures will appear here when a dedicated, authorized data source is connected.</p>
-                        </div>
-                    </div>
-                </section>
+                <x-analytics.availability-dashboard domain="incident" />
             @else
                 @include($domainViews[$activeDomain])
             @endif

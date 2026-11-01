@@ -234,6 +234,19 @@
 
                             <small>{{ $inventoryCriticalCount }} out of stock · {{ $inventoryLowCount }} low stock</small>
                         </a>
+
+                        <a href="{{ route('analytics.stage', ['stage' => 'diagnostic', 'domain' => 'fleet-trip'], false) }}" class="health-module incident">
+                            <div class="health-module-top">
+                                <div class="health-module-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                <span class="health-state">Not connected</span>
+                            </div>
+                            <div class="health-module-content">
+                                <span>Incident Analytics</span>
+                                <strong>—</strong>
+                                <p>Incident reporting data is not connected to this Analytics view yet.</p>
+                            </div>
+                            <small>Open incident dashboard</small>
+                        </a>
                     </div>
                 </article>
 

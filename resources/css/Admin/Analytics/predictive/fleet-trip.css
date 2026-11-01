@@ -61,7 +61,7 @@
 .predictive-fleet-page .analytics-kpi-strip,
 .predictive-fleet-page .ft-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
     gap: 14px;
 }
 
@@ -160,12 +160,12 @@
 }
 
 /* =========================================================
-   MIDDLE 3-COLUMN GRID (x-analytics.card)
+   AGGREGATE SIGNALS AND RISK DISTRIBUTION
    ========================================================= */
 
 .predictive-fleet-page .ft-top-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.15fr) minmax(0, 1.35fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -1075,10 +1075,14 @@
    RESPONSIVE QUERIES
    ========================================================= */
 
-@media (max-width: 1200px) {
+@media (max-width: 1500px) {
+    .predictive-fleet-page .analytics-kpi-strip,
     .predictive-fleet-page .ft-kpi-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+}
+
+@media (max-width: 1200px) {
     .predictive-fleet-page .ft-top-grid {
         grid-template-columns: 1fr;
     }
@@ -1088,10 +1092,18 @@
 }
 
 @media (max-width: 768px) {
+    .predictive-fleet-page .analytics-kpi-strip,
     .predictive-fleet-page .ft-kpi-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .predictive-fleet-page .ft-insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 430px) {
+    .predictive-fleet-page .analytics-kpi-strip,
+    .predictive-fleet-page .ft-kpi-grid {
         grid-template-columns: 1fr;
     }
 }

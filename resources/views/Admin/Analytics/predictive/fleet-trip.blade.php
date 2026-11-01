@@ -33,7 +33,7 @@
     $displayPredictedDelays = $predictedDelaysCount;
     $displayUtilization = $utilizationPct > 0 ? number_format($utilizationPct, 1) . '%' : '0.0%';
     $displayHighIdleRisk = $highIdleRiskCount;
-    $displayCompletionForecast = $completionForecastPct > 0 ? number_format($completionForecastPct, 1) . '%' : '—';
+    $displayCompletionForecast = $tripCount > 0 && $completionForecastPct > 0 ? number_format($completionForecastPct, 1) . '%' : '—';
 
     $periodTextMap = [
         'this-week' => 'This Week',
@@ -87,26 +87,26 @@
     $kpiCards = [
         [
             'label' => 'Trips at Risk',
-            'value' => (string) $displayTripsAtRisk,
+            'value' => $tripCount > 0 ? (string) $displayTripsAtRisk : '—',
             'description' => 'Trips predicted to experience delays or operational issues.',
             'icon' => 'fa-triangle-exclamation',
             'variant' => 'red',
-            'change' => $displayTripsAtRisk > 0 ? $displayTripsAtRisk . ' flagged for review' : 'Nominal schedule',
+            'change' => $tripCount === 0 ? null : ($displayTripsAtRisk > 0 ? $displayTripsAtRisk . ' flagged for review' : 'No trips flagged'),
             'change_type' => $displayTripsAtRisk > 0 ? 'negative' : 'positive',
         ],
         [
             'label' => 'Predicted Delays',
-            'value' => (string) $displayPredictedDelays,
+            'value' => $tripCount > 0 ? (string) $displayPredictedDelays : '—',
             'description' => 'Trips likely to exceed their expected schedule.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
-            'change' => $displayPredictedDelays > 0 ? $displayPredictedDelays . ' variance alerts' : 'On schedule',
+            'change' => $tripCount === 0 ? null : ($displayPredictedDelays > 0 ? $displayPredictedDelays . ' variance alerts' : 'No delays flagged'),
             'change_type' => $displayPredictedDelays > 0 ? 'negative' : 'positive',
         ],
         [
-            'label' => 'Fleet Utilization Forecast',
+            'label' => 'Active Fleet Share',
             'value' => $displayUtilization,
-            'description' => 'Expected percentage of active fleet utilization.',
+            'description' => 'Current active buses as a share of the fleet.',
             'icon' => 'fa-chart-line',
             'variant' => 'green',
             'change' => $activeBuses . ' of ' . $totalBuses . ' buses active',
@@ -114,11 +114,11 @@
         ],
         [
             'label' => 'High Idle Risk',
-            'value' => (string) $displayHighIdleRisk,
+            'value' => $tripCount > 0 ? (string) $displayHighIdleRisk : '—',
             'description' => 'Buses predicted to experience excessive idle time.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
-            'change' => $displayHighIdleRisk > 0 ? $displayHighIdleRisk . ' elevated units' : 'Efficient idling',
+            'change' => $tripCount === 0 ? null : ($displayHighIdleRisk > 0 ? $displayHighIdleRisk . ' elevated units' : 'No high-idle risk flagged'),
             'change_type' => $displayHighIdleRisk > 0 ? 'warning' : 'positive',
         ],
         [
@@ -127,59 +127,10 @@
             'description' => 'Predicted successful trip completion rate.',
             'icon' => 'fa-circle-check',
             'variant' => 'purple',
-            'change' => $growthChangeText,
+            'change' => $tripCount > 0 ? $growthChangeText : null,
             'change_type' => $growthChangeType,
         ],
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Top Predicted Issues
-    |--------------------------------------------------------------------------
-    */
-    $fleetIssues = collect($issues ?? [])->isNotEmpty()
-        ? collect($issues)->map(fn ($iss) => [
-            'title' => $iss['title'] ?? 'Operational Signal',
-            'description' => $iss['description'] ?? 'Requires dispatch review.',
-            'icon' => $iss['icon'] ?? 'fa-triangle-exclamation',
-            'tone' => $iss['class'] ?? ($iss['tone'] ?? 'danger'),
-            'level' => $iss['level'] ?? 'Medium',
-            'count' => $iss['count'] ?? '1 item',
-        ])->all()
-        : [
-            [
-                'title' => 'Trip delay risk',
-                'description' => 'Trips predicted to be delayed due to traffic and route conditions.',
-                'icon' => 'fa-clock',
-                'tone' => 'danger',
-                'level' => 'High',
-                'count' => $displayPredictedDelays . ' trips',
-            ],
-            [
-                'title' => 'High idle risk',
-                'description' => 'Buses predicted to have excessive idle time during operations.',
-                'icon' => 'fa-clock',
-                'tone' => 'warning',
-                'level' => 'Medium',
-                'count' => $displayHighIdleRisk . ' buses',
-            ],
-            [
-                'title' => 'Route performance risk',
-                'description' => 'Routes with negative performance based on historical trip duration.',
-                'icon' => 'fa-route',
-                'tone' => 'warning',
-                'level' => 'Medium',
-                'count' => max(1, $routePredictionsRaw->count()) . ' routes',
-            ],
-            [
-                'title' => 'Fleet availability risk',
-                'description' => 'Buses currently in maintenance or inactive.',
-                'icon' => 'fa-bus-simple',
-                'tone' => 'purple',
-                'level' => 'Low',
-                'count' => $unavailableBuses . ' buses',
-            ],
-        ];
 
     /*
     |--------------------------------------------------------------------------
@@ -197,75 +148,38 @@
     | Insights
     |--------------------------------------------------------------------------
     */
-    $insights = [
-        [
+    $insights = collect();
+    if ($tripGrowthTrend !== null && $tripCount > 0) {
+        $insights->push([
             'title' => 'Trip activity trend',
-            'text' => $tripGrowthTrend !== null
-                ? sprintf('Trip volume is %s by %.1f%% compared to previous period.', $tripGrowth >= 0 ? 'up' : 'down', abs($tripGrowth))
-                : 'Trip volume remains steady across scheduled operating corridors.',
+            'text' => sprintf('Recorded trip volume is %s by %.1f%% compared with the prior period.', $tripGrowth >= 0 ? 'up' : 'down', abs($tripGrowth)),
             'icon' => 'fa-chart-line',
             'tone' => 'blue',
-        ],
-        [
+        ]);
+    }
+    if ($topDelayedRoute) {
+        $insights->push([
             'title' => 'Route delay pattern',
-            'text' => sprintf('Route "%s" exhibits elevated variance and delay exposure based on trip duration.', $delayedRouteName),
+            'text' => sprintf('Route "%s" has the highest delay risk among the available route records.', $delayedRouteName),
             'icon' => 'fa-clock',
             'tone' => 'orange',
-        ],
-        [
+        ]);
+    }
+    if ($displayHighIdleRisk > 0 && $tripCount > 0) {
+        $insights->push([
             'title' => 'Idle behavior telemetry',
-            'text' => $displayHighIdleRisk > 0
-                ? sprintf('%d units exceed recommended 15-minute idle threshold.', $displayHighIdleRisk)
-                : 'Fleet idle intensity is within nominal operating bounds.',
+            'text' => sprintf('%d units have a recorded high-idle risk signal.', $displayHighIdleRisk),
             'icon' => 'fa-gas-pump',
             'tone' => 'yellow',
-        ],
-        [
-            'title' => 'Fleet utilization forecast',
-            'text' => sprintf('Active fleet availability is %s with %d serviceable shuttles.', $displayUtilization, $activeBuses),
-            'icon' => 'fa-bus-simple',
-            'tone' => 'green',
-        ],
-    ];
+        ]);
+    }
 
     /*
     |--------------------------------------------------------------------------
     | Chart Data Setup
     |--------------------------------------------------------------------------
     */
-    $chartLabels = $fleetTrend->pluck('label')->values()->all();
-    if (empty($chartLabels)) {
-        $chartLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
-    }
-
-    $chartTripsAtRisk = [];
-    $chartPredictedDelays = [];
-    $chartHighIdleEvents = [];
-    $chartRouteRisk = [];
-    $perfActiveBuses = [];
-    $perfTripVolume = [];
-    $perfAvgDuration = [];
-
-    foreach ($fleetTrend as $b) {
-        $cnt = is_object($b) ? (int) ($b->count ?? 0) : (int) ($b['count'] ?? 0);
-        $perfTripVolume[] = $cnt;
-        $chartTripsAtRisk[] = (int) round($cnt * ($tripsAtRiskCount > 0 ? min(0.6, $tripsAtRiskCount / max(1, $tripCount)) : 0.15));
-        $chartPredictedDelays[] = (int) round($cnt * ($predictedDelaysCount > 0 ? min(0.4, $predictedDelaysCount / max(1, $tripCount)) : 0.1));
-        $chartHighIdleEvents[] = (int) round($cnt * ($highIdleRiskCount > 0 ? min(0.3, $highIdleRiskCount / max(1, $tripCount)) : 0.08));
-        $chartRouteRisk[] = (int) round($cnt * 0.35);
-        $perfActiveBuses[] = max(1, $activeBuses);
-        $perfAvgDuration[] = (int) round($averageTripDuration > 0 ? $averageTripDuration : 35);
-    }
-
-    if (empty($perfTripVolume)) {
-        $perfTripVolume = [24, 30, 28, 35, 30, 32, 36];
-        $chartTripsAtRisk = [8, 10, 11, 15, 14, 17, 19];
-        $chartPredictedDelays = [5, 7, 7, 8, 7, 10, 13];
-        $chartHighIdleEvents = [4, 5, 5, 6, 5, 6, 7];
-        $chartRouteRisk = [12, 13, 15, 14, 13, 14, 17];
-        $perfActiveBuses = [52, 60, 58, 65, 59, 63, 68];
-        $perfAvgDuration = [20, 35, 42, 45, 40, 48, 55];
-    }
+    $tripTrendMax = max(1, (int) $fleetTrend->max('count'));
 @endphp
 
 <div class="predictive-page predictive-fleet-page">
@@ -287,49 +201,20 @@
         @endforeach
     </section>
 
-    {{-- =========================================================
-        MIDDLE 3-COLUMN GRID (USING <x-analytics.card>)
-    ========================================================== --}}
+    {{-- Aggregate trip signals and risk distribution. --}}
     <section class="ft-top-grid">
 
-        {{-- 1. Trip Risk Forecast (Line Chart) --}}
+        {{-- Aggregate signals only; the source has no per-period prediction series. --}}
         <x-analytics.card
             class="ft-card ft-chart-card"
-            title="Trip Risk Forecast"
-            description="Predicted trip performance and operational risk for the selected period."
+            title="Trip Review Signals"
+            description="Current aggregate signals from available trip records; a time-series forecast is not connected."
         >
-            <x-slot:headerActions>
-                <span class="ft-telemetry-badge">
-                    <i class="fa-solid fa-bullseye"></i>
-                    <span>Target On-Time: ≥ 92%</span>
-                </span>
-                <span class="ft-select-badge">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>{{ $periodText }}</span>
-                </span>
-            </x-slot:headerActions>
-
-            <div class="ft-chart-legend" aria-hidden="true">
-                <span>
-                    <i class="legend-dot blue"></i>
-                    Trips at Risk
-                </span>
-                <span>
-                    <i class="legend-dot orange"></i>
-                    Predicted Delays
-                </span>
-                <span>
-                    <i class="legend-dot red"></i>
-                    High Idle Events
-                </span>
-                <span>
-                    <i class="legend-dot green"></i>
-                    Route Risk
-                </span>
-            </div>
-
-            <div class="ft-chart-wrapper ft-main-line-chart">
-                <canvas id="tripRiskChart" role="img" aria-label="Trip risk forecast chart"></canvas>
+            <div class="analytics-signal-grid">
+                <div><span>Trips at Risk</span><strong>{{ number_format($tripsAtRiskCount) }}</strong></div>
+                <div><span>Predicted Delays</span><strong>{{ number_format($predictedDelaysCount) }}</strong></div>
+                <div><span>High Idle Risk</span><strong>{{ number_format($highIdleRiskCount) }}</strong></div>
+                <div><span>Selected Period</span><strong>{{ $periodText }}</strong></div>
             </div>
         </x-analytics.card>
 
@@ -376,55 +261,6 @@
                 </ul>
             </div>
 
-            {{-- Dispatch Confidence Index Ratio Meter --}}
-            <div class="health-ratio-bar-wrap" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <span style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">
-                        <i class="fa-solid fa-shield-check" style="color: #10b981; margin-right: 4px;"></i> Dispatch Confidence Index
-                    </span>
-                    <strong style="font-size: 11.5px; font-weight: 800; color: #0f172a;">{{ $displayCompletionForecast }}</strong>
-                </div>
-                <div class="health-ratio-bar" title="{{ $displayCompletionForecast }} On-Time Dispatch Confidence">
-                    <div class="ratio-segment ratio-healthy" style="width: {{ min(100, (float) $displayCompletionForecast) }}%"></div>
-                    <div class="ratio-segment ratio-critical" style="width: {{ max(0, 100 - (float) $displayCompletionForecast) }}%"></div>
-                </div>
-            </div>
-        </x-analytics.card>
-
-        {{-- 3. Top Predicted Issues (Priority Cards) --}}
-        <x-analytics.card
-            class="ft-card ft-issues-card"
-            title="Top Predicted Issues"
-        >
-            <div class="ft-issues-list">
-                @foreach ($fleetIssues as $index => $issue)
-                    <article class="ft-issue">
-                        <div class="ft-issue-number">
-                            {{ $index + 1 }}
-                        </div>
-                        <div class="ft-issue-icon {{ $issue['tone'] }}">
-                            <i class="fa-solid {{ $issue['icon'] }}"></i>
-                        </div>
-                        <div class="ft-issue-content">
-                            <h5>{{ $issue['title'] }}</h5>
-                            <p>{{ $issue['description'] }}</p>
-                        </div>
-                        <span class="ft-badge {{ strtolower($issue['level']) }}">
-                            {{ $issue['level'] }}
-                        </span>
-                        <strong class="ft-issue-count">
-                            {{ $issue['count'] }}
-                        </strong>
-                    </article>
-                @endforeach
-            </div>
-
-            <div class="ft-issues-footer">
-                <a href="#" class="ft-view-link">
-                    View all issues
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
         </x-analytics.card>
 
     </section>
@@ -533,35 +369,25 @@
     ========================================================== --}}
     <section class="ft-lower-grid">
 
-        {{-- 1. Fleet Performance Forecast --}}
+        {{-- Recorded trip volume only; no synthetic active-bus or duration series. --}}
         <x-analytics.card
             class="ft-card ft-performance-card"
-            title="Fleet Performance Forecast"
-            description="Historical performance vs forecast for the selected period."
+            title="Recorded Trip Activity"
+            description="Trip counts from the available fleet trend records."
         >
-            <div class="ft-chart-legend ft-perf-legend" aria-hidden="true">
-                <span>
-                    <i class="legend-bar blue"></i>
-                    Active Buses
-                </span>
-                <span>
-                    <i class="legend-bar green"></i>
-                    Trip Volume
-                </span>
-                <span>
-                    <i class="legend-dot orange"></i>
-                    Avg. Trip Duration (mins)
-                </span>
-            </div>
-
-            <div class="ft-chart-wrapper ft-perf-chart-wrapper">
-                <canvas id="performanceChart" role="img" aria-label="Fleet performance forecast chart"></canvas>
-            </div>
-
-            <div class="ft-perf-bottom-legend" aria-hidden="true">
-                <span><i class="legend-solid-line"></i> Historical</span>
-                <span><i class="legend-dashed-line"></i> Forecast</span>
-            </div>
+            @if($fleetTrend->isEmpty())
+                <div class="analytics-compact-empty">No processed trip records available for this period.</div>
+            @else
+                <div class="analytics-trip-bars" role="img" aria-label="Recorded trip counts by period">
+                    @foreach($fleetTrend as $bucket)
+                        <div class="analytics-trip-bars__item">
+                            <span>{{ data_get($bucket, 'label') }}</span>
+                            <div><i style="width: {{ ((int) data_get($bucket, 'count', 0) / $tripTrendMax) * 100 }}%"></i></div>
+                            <strong>{{ number_format((int) data_get($bucket, 'count', 0)) }}</strong>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </x-analytics.card>
 
         {{-- 2. Route Risk Analysis --}}
@@ -599,7 +425,7 @@
                                 <span><i class="fa-solid fa-bus"></i> {{ number_format((float) ($route[1] ?? 0)) }} trips</span>
                                 <span><i class="fa-regular fa-clock"></i> {{ number_format((float) ($route[2] ?? 0)) }}m avg</span>
                                 <span class="ft-route-variance {{ $delayPct >= 70 ? 'danger' : 'safe' }}">
-                                    <i class="fa-solid fa-chart-line"></i> {{ $delayPct >= 70 ? '+15m deviation' : 'nominal' }}
+                                    <i class="fa-solid fa-chart-line"></i> {{ number_format($delayPct, 1) }}% delay risk
                                 </span>
                             </div>
                             <div class="ft-route-meter-wrap">
@@ -633,7 +459,7 @@
             title="Fleet & Trip Predictive Insights"
         >
             <div class="ft-insights-grid">
-                @foreach ($insights as $insight)
+                @forelse ($insights as $insight)
                     <div class="ft-insight-tile ft-insight-tile--{{ $insight['tone'] }}">
                         <div class="ft-insight-icon {{ $insight['tone'] }}">
                             <i class="fa-solid {{ $insight['icon'] }}"></i>
@@ -643,7 +469,9 @@
                             <p>{{ $insight['text'] }}</p>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="analytics-empty-state">No insight signals are available for the selected period.</div>
+                @endforelse
             </div>
         </x-analytics.card>
 
@@ -669,21 +497,6 @@
             medium: @json($fleetRisk['medium']),
             high: @json($fleetRisk['high']),
             total: @json($fleetRiskTotal)
-        },
-
-        tripRisk: {
-            labels: @json($chartLabels),
-            trips_at_risk: @json($chartTripsAtRisk),
-            predicted_delays: @json($chartPredictedDelays),
-            high_idle_events: @json($chartHighIdleEvents),
-            route_risk: @json($chartRouteRisk)
-        },
-
-        performance: {
-            labels: @json($chartLabels),
-            active_buses: @json($perfActiveBuses),
-            trip_volume: @json($perfTripVolume),
-            avg_duration: @json($perfAvgDuration)
         }
     };
 </script>
