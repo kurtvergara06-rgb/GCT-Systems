@@ -94,7 +94,6 @@
                 <th>Gas Station</th>
                 <th>Liters (L)</th>
                 <th>Total KM</th>
-                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -102,17 +101,6 @@
             <tbody>
 
               @forelse($recentFuelRecords as $record)
-
-                @php
-                  $recordStatusClass =
-                    strtolower(
-                      str_replace(
-                        ' ',
-                        '-',
-                        $record->status
-                      )
-                    );
-                @endphp
 
                 <tr>
                   <td><span class="fuel-record-reference">#{{ $record->id }}</span></td>
@@ -122,7 +110,6 @@
                   <td>{{ $record->gas_station ?: '—' }}</td>
                   <td>{{ number_format((float) $record->fuel_liters, 2) }}</td>
                   <td>{{ number_format((float) $record->distance_km, 2) }}</td>
-                  <td><x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" /></td>
 
                   <td>
 
@@ -201,7 +188,7 @@
               @empty
 
                 <x-ui.empty-row
-                  colspan="9"
+                  colspan="8"
                   icon="fa-gas-pump"
                   message="No Fuel Records Found"
                   description="No fuel dispensing or consumption logs match your search or filter criteria."
