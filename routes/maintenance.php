@@ -49,6 +49,11 @@ Route::middleware([
                 Route::get('/{pmsSchedule}/create-job-order', 'createJobOrder')->middleware('system.permission:maintenance,edit')->name('pms-schedules.create-job-order');
             });
 
+        Route::post('/maintenance-job-catalog', [\App\Http\Controllers\Maintenance\MaintenanceJobCatalogController::class, 'store'])
+            ->middleware('system.permission:maintenance,approve')->name('maintenance-job-catalog.store');
+        Route::put('/maintenance-job-catalog/{job}', [\App\Http\Controllers\Maintenance\MaintenanceJobCatalogController::class, 'update'])
+            ->middleware('system.permission:maintenance,approve')->name('maintenance-job-catalog.update');
+
         Route::controller(FuelReportController::class)
             ->prefix('fuel-reports')
             ->group(function () {
