@@ -387,18 +387,18 @@ class FuelReportController extends Controller
 
         $bus = Bus::query()->where('bus_no', $data['bus_no'])->firstOrFail();
         $driver = Driver::query()->where('driver_id', $data['driver_id'])->firstOrFail();
-        // Duplicate paper form entries for an identical bus and issuance
-        // timestamp require review; do not silently overwrite history.
-        if (FuelReport::query()->where('bus_no', $data['bus_no'])
-            ->whereDate('report_date', $data['report_date'])
-            ->where('issued_at', $data['issued_at'] ?? null)
-            ->where('entry_type', 'Physical Form')->exists()) {
-            throw ValidationException::withMessages([
-                'report_date' => 'A fuel form already exists for this bus, date and issuance time. Review the existing record.',
-            ]);
-        }
-
         $record = DB::transaction(function () use ($data, $bus, $driver) {
+            // Serialize paper-form submissions for the same bus, including when
+            // the reported time is blank. Avoid check-then-insert races.
+            Bus::query()->whereKey($bus->getKey())->lockForUpdate()->firstOrFail();
+            if (FuelReport::query()->where('bus_no', $data['bus_no'])
+                ->whereDate('report_date', $data['report_date'])
+                ->where('issued_at', $data['issued_at'] ?? null)
+                ->where('entry_type', 'Physical Form')->exists()) {
+                throw ValidationException::withMessages([
+                    'report_date' => 'A fuel form already exists for this bus, date and issuance time. Review the existing record.',
+                ]);
+            }
             $distance = round(array_sum(array_map(
                 fn (array $trip) => (float) $trip['distance_km'],
                 $data['trips']
@@ -443,6 +443,15 @@ class FuelReportController extends Controller
         Request $request,
         FuelReport $fuelReport
     ): RedirectResponse|JsonResponse {
+        // Legacy editor does not submit the physical form's individual trips.
+        // Refuse the incompatible update rather than silently desynchronizing
+        // trip details and the stored total distance.
+        if ($fuelReport->entry_type === 'Physical Form') {
+            throw ValidationException::withMessages([
+                'fuel_report' => 'Physical fuel forms cannot be edited through the legacy editor. Their trip rows must be preserved.',
+            ]);
+        }
+
         $validated = $this->validateFuelReport($request);
 
         $resolved = $this->resolveDistance($validated);
