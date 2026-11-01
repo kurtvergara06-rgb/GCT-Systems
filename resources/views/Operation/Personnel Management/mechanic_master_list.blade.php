@@ -257,13 +257,24 @@
         </div>
     </section>
     <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
-        <p class="personnel-catalog-hint">Current shared mechanic specialization options. To add or edit options, use the existing specialization controls in Add Mechanic.</p>
-        <div class="personnel-catalog-items">
+        <div class="personnel-catalog-skills-heading">
+            <div><h3>Mechanic Specializations</h3><p>Qualifications shared with Mechanic Master List and Job Orders.</p></div>
+            <button type="button" class="personnel-catalog-new-job" data-catalog-new-skill><i class="fa-solid fa-plus"></i> Add Specialization</button>
+        </div>
+        <form data-catalog-skill-form hidden class="personnel-catalog-skill-form" data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}">
+            <label for="catalogSkillName">Specialization Name</label>
+            <div class="personnel-catalog-skill-input-row"><input id="catalogSkillName" name="name" required minlength="2" maxlength="100" placeholder="e.g. Hydraulics"><button type="submit" class="personnel-catalog-new-job">Save</button><button type="button" class="personnel-catalog-reset" data-catalog-cancel-skill>Cancel</button></div>
+            <p data-catalog-skill-feedback role="status" aria-live="polite"></p>
+        </form>
+        <label class="personnel-catalog-search-label" for="catalogSkillSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" id="catalogSkillSearch" data-catalog-skill-search placeholder="Search specializations..."></label>
+        <div class="personnel-catalog-skills-grid" data-catalog-skills-grid>
             @foreach($specializationOptions as $specialization)
-                <span class="personnel-catalog-item">{{ $specialization }}</span>
+            <div class="personnel-catalog-skill-card" data-catalog-skill-entry>
+                <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><strong>{{ $specialization }}</strong>
+            </div>
             @endforeach
         </div>
-        <button type="button" class="personnel-catalog-manage-skills" data-catalog-manage-skills>Manage Specializations</button>
+        <p data-catalog-skill-empty hidden>No matching specializations.</p>
     </section>
 </dialog>
 @endif
