@@ -160,7 +160,11 @@ function initBatchAttendancePage() {
                 overlay.querySelector('#batchSaveAttendance').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save ' + (mode === 'out' ? 'Time Out' : 'Attendance');
                 ['batchMarkPresent','batchUseCurrentTime','batchApplyTime','batchClearAll'].forEach(id => {
                     const control = overlay.querySelector('#' + id);
-                    if (control) control.hidden = mode === 'out';
+                    if (control) {
+                        control.hidden = false;
+                        control.disabled = mode === 'out';
+                        control.title = mode === 'out' ? 'Use Time In mode for this attendance action' : '';
+                    }
                 });
                 loadRoster();
             };
@@ -194,7 +198,7 @@ function initBatchAttendancePage() {
         body.innerHTML = `<tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>`;
 
         try {
-            const response = await fetch(`${type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver'}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
+            const response = await fetch(`${type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver'}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}&mode=${encodeURIComponent(attendanceMode)}`, {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
