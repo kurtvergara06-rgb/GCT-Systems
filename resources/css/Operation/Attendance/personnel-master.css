@@ -2431,6 +2431,7 @@
 /* Maintenance catalog two-pane management layout; no changes to other personnel modals. */
 .personnel-catalog-dialog { display:none;flex-direction:column; }
 .personnel-catalog-dialog[open] { display:flex; }
+.personnel-catalog-dialog:has([data-catalog-panel="skills"]:not([hidden])) { height:auto;max-height:min(76dvh,760px); }
 .personnel-catalog-dialog .personnel-catalog-heading,
 .personnel-catalog-dialog .personnel-catalog-tabs { flex-shrink:0; }
 .personnel-catalog-dialog [data-catalog-panel] { min-height:0;overflow-y:auto;flex:1;padding:16px 18px 18px; }
@@ -2457,3 +2458,16 @@
  .personnel-catalog-browser .personnel-catalog-job-list { max-height:230px; }
  .personnel-catalog-editor { overflow:visible; }
 }
+
+.personnel-catalog-skills-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.personnel-catalog-skills-heading h3 {margin:0;font-size:14px;}
+.personnel-catalog-skills-heading p {font-size:11px;color:#72819b;margin:5px 0 0;}
+.personnel-catalog-skill-form {background:#f6f9fd;border:1px solid #dbe7f4;border-radius:9px;padding:12px;margin-bottom:12px;display:grid;gap:7px;font-size:12px;}
+.personnel-catalog-skill-form[hidden] {display:none;}
+.personnel-catalog-skill-input-row {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.personnel-catalog-skill-input-row input {flex:1;min-width:140px;border:1px solid #d4e0ee;border-radius:8px;min-height:34px;padding:6px 9px;}
+.personnel-catalog-skill-form [data-catalog-skill-feedback] {margin:0;color:#ba2a31;}
+.personnel-catalog-skills-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:12px;}
+.personnel-catalog-skill-card {display:flex;align-items:center;gap:8px;padding:12px;border:1px solid #dae5f1;border-radius:9px;background:#f8fbff;font-size:12px;}
+.personnel-catalog-skill-card i {color:#2560ae;}
+.personnel-catalog-skill-card[hidden] {display:none;}
