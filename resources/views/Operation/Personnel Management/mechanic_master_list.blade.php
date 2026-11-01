@@ -201,34 +201,35 @@
 @if($canEditMechanic && $isMaintenanceUser)
 <dialog class="personnel-catalog-dialog" data-maintenance-catalog aria-labelledby="personnelCatalogTitle">
     <div class="personnel-catalog-heading">
-        <div><h2 id="personnelCatalogTitle">Maintenance Catalog</h2><p>Review the repair catalog and mechanic qualifications</p></div>
+        <div class="personnel-catalog-heading-brand"><span class="personnel-catalog-heading-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><div><h2 id="personnelCatalogTitle">Maintenance Catalog</h2><p>Review, add, and manage repair jobs and mechanic qualifications.</p></div></div>
         <button type="button" class="personnel-catalog-close" data-close-maintenance-catalog aria-label="Close catalog"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="personnel-catalog-tabs" role="tablist" aria-label="Catalog sections">
-        <button type="button" role="tab" id="catalogJobsTab" aria-controls="catalogJobsPanel" aria-selected="true" data-catalog-tab="jobs">Maintenance Jobs</button>
-        <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills">Specializations</button>
+        <button type="button" role="tab" id="catalogJobsTab" aria-controls="catalogJobsPanel" aria-selected="true" data-catalog-tab="jobs"><i class="fa-solid fa-wrench" aria-hidden="true"></i> Maintenance Jobs</button>
+        <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Specializations</button>
     </div>
     <section role="tabpanel" id="catalogJobsPanel" aria-labelledby="catalogJobsTab" data-catalog-panel="jobs">
         <div class="personnel-catalog-workspace">
             <div class="personnel-catalog-browser">
-                        <div class="personnel-catalog-list-heading"><h3>Maintenance Jobs</h3><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
+                        <div class="personnel-catalog-list-heading"><div><h3><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Jobs</h3><p>Repair types available for Job Orders</p></div><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
+        <label class="personnel-catalog-search-label" for="catalogJobSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="catalogJobSearch" type="search" data-catalog-job-search placeholder="Search maintenance jobs..." autocomplete="off"></label>
         <div class="personnel-catalog-job-list" data-catalog-job-list>
         @foreach($maintenanceJobCatalog as $job)
             @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
-            <div class="personnel-catalog-job-entry">
-                <div><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }} · {{ $job->is_active ? 'Active' : 'Inactive' }}</small></div>
+            <div class="personnel-catalog-job-entry" data-catalog-job-row data-catalog-job-row>
+                <div class="personnel-catalog-job-details"><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }}</small></div><span class="personnel-catalog-status {{ $job->is_active ? 'is-active' : 'is-inactive' }}">{{ $job->is_active ? 'Active' : 'Inactive' }}</span>
                 @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
                     <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
                         data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
                         data-job-name="{{ $job->name }}"
                         data-job-skills="{{ json_encode($jobSkills) }}"
-                        data-job-active="{{ $job->is_active ? '1' : '0' }}">Edit</button>
+                        data-job-active="{{ $job->is_active ? '1' : '0' }}"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i><span class="visually-hidden">Edit</span></button>
                 @endif
             </div>
         @endforeach
         </div>
 
-                <label class="personnel-catalog-search-label" for="catalogJobSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="catalogJobSearch" type="search" data-catalog-job-search placeholder="Search maintenance jobs..." autocomplete="off"></label>
+                
                 <p class="personnel-catalog-no-results" data-catalog-job-empty hidden>No matching maintenance jobs.</p>
             </div>
             <div class="personnel-catalog-editor">
@@ -236,8 +237,8 @@
         <form class="personnel-catalog-job-form" method="POST" action="{{ route('maintenance-job-catalog.store') }}" data-catalog-job-form data-create-url="{{ route('maintenance-job-catalog.store') }}">
             @csrf
             <input type="hidden" name="_method" value="POST" data-catalog-job-method>
-            <h3 data-catalog-form-heading>Add Maintenance Job</h3>
-            <label>Job Name <input name="name" required maxlength="255" placeholder="e.g. Hydraulic Hose Replacement"></label>
+            <div class="personnel-catalog-editor-title"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><div><h3 data-catalog-form-heading>Add Maintenance Job</h3><p>Set the job details and required specializations.</p></div></div>
+            <label>Job Name <span class="personnel-required">*</span> <input name="name" required maxlength="255" placeholder="e.g. Hydraulic Hose Replacement"></label>
             <fieldset><legend>Qualified Specializations (one or more)</legend>
                 <div class="personnel-catalog-items">
                 @foreach($specializationOptions as $skill)
@@ -247,7 +248,7 @@
             </fieldset>
             <label class="personnel-catalog-active"><input type="checkbox" name="is_active" value="1" checked> Active (available in New JO)</label>
             <div class="personnel-catalog-job-actions">
-                <button type="submit" class="personnel-catalog-manage-skills" data-catalog-save-job>Save Job</button>
+                <button type="submit" class="personnel-catalog-manage-skills" data-catalog-save-job><i class="fa-solid fa-check" aria-hidden="true"></i> Save Job</button>
                 <button type="button" class="personnel-catalog-reset" data-catalog-reset-job hidden>Cancel Edit</button>
             </div>
         </form>
