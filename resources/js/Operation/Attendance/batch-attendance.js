@@ -95,8 +95,8 @@ function initBatchAttendancePage() {
                                     <th>${label}</th>
                                     <th style="${type === 'mechanic' ? 'display:none' : ''}">${type === 'driver' ? 'Duty' : 'Shift'}</th>
                                     <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
-                                    <th>Time In</th>
-                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}</th>
+                                    <th>Time In ${type === 'mechanic' ? '<button type="button" class="batch-heading-time-btn" id="batchHeaderTimeIn" title="Set current time in for selected mechanics"><i class="fa-regular fa-clock"></i> Set</button>' : ''}</th>
+                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}${type === 'mechanic' ? ' <button type="button" class="batch-heading-time-btn" id="batchHeaderTimeOut" title="Set current time out for selected mechanics"><i class="fa-regular fa-clock"></i> Set</button>' : ''}</th>
                                     <th>Attendance Status</th>
                                     <th>Availability</th>
                                 </tr>
@@ -148,6 +148,24 @@ function initBatchAttendancePage() {
             updateSummary();
         });
         overlay.querySelector('#batchApplyTime').addEventListener('click', applySharedTime);
+        if (type === 'mechanic') {
+            const setSelectedTime = (field) => {
+                const selected = Array.from(overlay.querySelectorAll('[data-batch-row]'))
+                    .filter(row => !row.classList.contains('is-unavailable')
+                        && row.querySelector('[data-row-select]')?.checked);
+                selected.forEach(row => {
+                    const input = row.querySelector(field);
+                    if (!input || input.disabled) return;
+                    input.value = currentTime();
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateAvailability(row);
+                });
+                updateSummary();
+            };
+            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => setSelectedTime('[data-time-in]'));
+            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => setSelectedTime('[data-time-out]'));
+        }
+
         overlay.querySelector('#batchSharedTimeCancel').addEventListener('click', closeSharedTime);
         overlay.querySelector('#batchSharedTimeConfirm').addEventListener('click', confirmSharedTime);
         overlay.querySelector('#batchSharedTimeInput').addEventListener('gct:time-selected', (event) => {
