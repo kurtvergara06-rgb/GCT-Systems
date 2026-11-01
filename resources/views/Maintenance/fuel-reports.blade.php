@@ -228,7 +228,12 @@
         <div><h2 id="physicalFuelTitle">New Fuel Report</h2><p>Encode the driver's Fuel Efficiency Monitoring Form</p></div>
         <button type="button" id="closePhysicalFuelForm" class="fuel-paper-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form method="POST" action="{{ route('fuel-reports.store') }}" id="physicalFuelForm">
+      <form method="POST" action="{{ route('fuel-reports.store') }}" id="physicalFuelForm"
+        data-confirm-form
+        data-confirm-title="Save Fuel Report?"
+        data-confirm-message="Confirm the fuel issuance and trip details are accurate before saving."
+        data-confirm-button="Yes, Save Fuel Report"
+        data-confirm-type="create">
         @csrf
         <input type="hidden" name="physical_fuel_form" value="1">
         <div class="fuel-paper-content">
@@ -238,8 +243,16 @@
             <div class="fuel-paper-grid">
               <div class="fuel-paper-field"><label for="physical-date">Report Date *</label><input type="date" id="physical-date" name="report_date" value="{{ old('report_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></div>
               <div class="fuel-paper-field"><label for="physical-station">Gas Station *</label><input id="physical-station" name="gas_station" value="{{ old('gas_station') }}" placeholder="Enter gas station" maxlength="150" required></div>
-              <div class="fuel-paper-field"><label for="physical-bus">Bus *</label><select id="physical-bus" name="bus_no" required><option value="">Select a bus</option>@foreach($buses as $bus)<option value="{{ $bus->bus_no }}" data-plate="{{ $bus->plate_no }}" @selected(old('bus_no') === $bus->bus_no)>{{ $bus->bus_no }}{{ $bus->plate_no ? ' — '.$bus->plate_no : '' }}</option>@endforeach</select></div>
-              <div class="fuel-paper-field"><label for="physical-driver">Driver / Employee *</label><input id="physical-driver" name="driver_name" value="{{ old('driver_name') }}" placeholder="Enter driver / employee" maxlength="255" required></div>
+              <div class="fuel-paper-field fuel-paper-search-picker" data-picker="bus"><label for="physical-bus-search">Bus *</label>
+                <input type="hidden" id="physical-bus" name="bus_no" value="{{ old('bus_no') }}">
+                <div class="fuel-paper-search-shell"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="physical-bus-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="physical-bus-options" placeholder="Search bus number or plate..." autocomplete="off" required></div>
+                <div class="fuel-paper-search-options" id="physical-bus-options" role="listbox" hidden>@foreach($buses as $bus)<button type="button" role="option" class="fuel-paper-search-option" data-value="{{ $bus->bus_no }}" data-name="{{ $bus->bus_no }}{{ $bus->plate_no ? ' — '.$bus->plate_no : '' }}" data-search="{{ strtolower($bus->bus_no.' '.$bus->plate_no) }}" data-plate="{{ $bus->plate_no }}">{{ $bus->bus_no }}{{ $bus->plate_no ? ' — '.$bus->plate_no : '' }}</button>@endforeach<p class="fuel-paper-search-empty" hidden>No matching buses</p></div>
+              </div>
+              <div class="fuel-paper-field fuel-paper-search-picker" data-picker="driver"><label for="physical-driver-search">Driver / Employee *</label>
+                <input type="hidden" id="physical-driver" name="driver_id" value="{{ old('driver_id') }}">
+                <div class="fuel-paper-search-shell"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="physical-driver-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="physical-driver-options" placeholder="Search driver name or ID..." autocomplete="off" required></div>
+                <div class="fuel-paper-search-options" id="physical-driver-options" role="listbox" hidden>@foreach($drivers as $driver)<button type="button" role="option" class="fuel-paper-search-option" data-value="{{ $driver->driver_id }}" data-name="{{ $driver->driver_name }} ({{ $driver->driver_id }})" data-search="{{ strtolower($driver->driver_name.' '.$driver->driver_id) }}">{{ $driver->driver_name }} ({{ $driver->driver_id }})</button>@endforeach<p class="fuel-paper-search-empty" hidden>No matching drivers</p></div>
+              </div>
               <div class="fuel-paper-field"><label for="physical-plate">Plate Number</label><input id="physical-plate" readonly placeholder="Selected bus plate"></div>
               <div class="fuel-paper-field"><label for="physical-time">Issuance Time</label><input id="physical-time" type="time" name="issued_at" value="{{ old('issued_at') }}"></div>
               <div class="fuel-paper-field"><label for="physical-po">PO Number</label><input id="physical-po" name="po_reference" value="{{ old('po_reference') }}" maxlength="80" placeholder="Optional reference"></div>
