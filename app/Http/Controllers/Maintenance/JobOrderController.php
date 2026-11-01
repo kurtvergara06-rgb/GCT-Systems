@@ -26,6 +26,8 @@ class JobOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
+    private array $catalogSkillCache = [];
+
     private PartParser $partParser;
 
     private LinkedJobOrderResetService $linkedJobOrderResetService;
@@ -1730,14 +1732,16 @@ class JobOrderController extends Controller
             return array_values(array_filter($customSkills, 'is_string'));
         }
         // Legacy fallback supports previously created JOs and migration rollouts.
+        if (array_key_exists($job, $this->catalogSkillCache)) {
+            return $this->catalogSkillCache[$job];
+        }
         $catalogJob = DB::table('maintenance_job_catalog')->where('name', $job)->first();
         if ($catalogJob) {
-            if (!$catalogJob->is_active) {
-                return []; // Deactivated jobs are unavailable for new work.
-            }
-            return array_values(array_filter(json_decode($catalogJob->specializations, true) ?: [], 'is_string'));
+            return $this->catalogSkillCache[$job] = $catalogJob->is_active
+                ? array_values(array_filter(json_decode($catalogJob->specializations, true) ?: [], 'is_string'))
+                : [];
         }
-        return $jobs[$job] ?? [];
+        return $this->catalogSkillCache[$job] = ($jobs[$job] ?? []);
     }
 
     private function matchesSpecialization(Mechanic $mechanic, array $requiredSkills): bool
