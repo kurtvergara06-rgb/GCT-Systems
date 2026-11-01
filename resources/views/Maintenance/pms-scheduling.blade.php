@@ -25,7 +25,7 @@
             ====================================================== --}}
             <x-layout.topbar
                 title="PMS Scheduling"
-                subtitle="Monitor preventive maintenance tasks based on processed GPS vehicle mileage data."
+                subtitle="Monitor bus-level preventive maintenance thresholds and available mileage estimates."
                 notification-count="6"
             />
 
@@ -80,11 +80,11 @@
                     <div>
 
                         <h2>
-                            Automated PMS Record
+                            Bus PMS Monitoring
                         </h2>
 
                         <p>
-                            Monitor each bus using its available PMS mileage thresholds and GPS records.
+                            Monitor configured service baselines, due dates, and available trip-distance estimates.
                         </p>
 
                     </div>
@@ -108,7 +108,7 @@
                 {{-- =================================================
                     TOOLBAR
                 ================================================== --}}
-                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'bus_no' => 'Vehicle ID', 'overall_status' => 'PMS Status']" default-sort="bus_no">
+                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'overall_status' => 'PMS Status']" default-sort="bus_no">
                     <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(['Not Configured','Mileage Unverified','PMS Due','Inactive','Upcoming'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
                 </x-ui.table-toolbar>
 
