@@ -28,28 +28,44 @@ class AdminDashboardService
             'Operations' => $operationsTotal,
         ];
 
+        $now = now();
+        $activityCounts = $this->activityCountsByDate(
+            $now->copy()->subMonths(5)->startOfMonth(),
+            $now->copy()->endOfDay()
+        );
+
         $monthLabels = [];
         $monthlyActivity = [];
 
         for ($offset = 5; $offset >= 0; $offset--) {
-            $month = now()->copy()->subMonths($offset);
+            $month = $now->copy()->subMonths($offset);
+            $monthKey = $month->format('Y-m');
             $monthLabels[] = $month->format('M');
-            $monthlyActivity[] = $this->countCreatedDuringMonth($month);
+            $monthlyActivity[] = (int) ($activityCounts['monthly'][$monthKey] ?? 0);
         }
 
         $dayLabels = [];
         $dailyActivity = [];
 
         for ($offset = 6; $offset >= 0; $offset--) {
-            $day = now()->copy()->subDays($offset);
+            $day = $now->copy()->subDays($offset);
             $dayLabels[] = $day->format('M j');
-            $dailyActivity[] = $this->countCreatedOnDate($day);
+            $dailyActivity[] = (int) ($activityCounts['daily'][$day->toDateString()] ?? 0);
         }
 
         $activeJobOrders = JobOrder::whereNotIn('status', ['Completed', 'Cancelled', 'Canceled'])->count();
-        $lowStockItems = InventoryItem::query()->get()->filter(
-            fn ($item) => in_array($item->stock_status, ['Low Stock', 'Critical'], true)
-        )->count();
+        $lowStockItems = InventoryItem::query()
+            ->where(function ($query) {
+                $stock = 'COALESCE(quantity_available, on_hand, 0)';
+
+                $query->whereRaw($stock.' <= 0')
+                    ->orWhere(function ($lowStock) use ($stock) {
+                        $lowStock->whereRaw($stock.' > 0')
+                            ->where('reorder_level', '>', 0)
+                            ->whereRaw($stock.' <= reorder_level');
+                    });
+            })
+            ->count();
         $activePurchaseOrders = PurchaseOrder::whereIn('status', ['Ordered', 'For Pick-up', 'For Delivery'])->count();
         $attendanceToday = DriverAttendance::whereDate('created_at', today())->count()
             + MechanicAttendance::whereDate('created_at', today())->count();
@@ -72,24 +88,38 @@ class AdminDashboardService
         ];
     }
 
-    private function countCreatedDuringMonth(Carbon $month): int
+    /**
+     * Read recent dashboard activity with one grouped query per source table,
+     * instead of running one count query for every displayed day and month.
+     *
+     * @return array{daily: array<string, int>, monthly: array<string, int>}
+     */
+    private function activityCountsByDate(Carbon $start, Carbon $end): array
     {
-        $start = $month->copy()->startOfMonth();
-        $end = $month->copy()->endOfMonth();
+        $daily = [];
+        $monthly = [];
 
-        return JobOrder::whereBetween('created_at', [$start, $end])->count()
-            + StockMovement::whereBetween('created_at', [$start, $end])->count()
-            + PurchaseOrder::whereBetween('created_at', [$start, $end])->count()
-            + DriverAttendance::whereBetween('created_at', [$start, $end])->count()
-            + MechanicAttendance::whereBetween('created_at', [$start, $end])->count();
-    }
+        foreach ([
+            JobOrder::class,
+            StockMovement::class,
+            PurchaseOrder::class,
+            DriverAttendance::class,
+            MechanicAttendance::class,
+        ] as $model) {
+            $counts = $model::query()
+                ->whereBetween('created_at', [$start, $end])
+                ->selectRaw('DATE(created_at) AS activity_date, COUNT(*) AS activity_count')
+                ->groupBy('activity_date')
+                ->pluck('activity_count', 'activity_date');
 
-    private function countCreatedOnDate(Carbon $day): int
-    {
-        return JobOrder::whereDate('created_at', $day)->count()
-            + StockMovement::whereDate('created_at', $day)->count()
-            + PurchaseOrder::whereDate('created_at', $day)->count()
-            + DriverAttendance::whereDate('created_at', $day)->count()
-            + MechanicAttendance::whereDate('created_at', $day)->count();
+            foreach ($counts as $date => $count) {
+                $count = (int) $count;
+                $daily[$date] = ($daily[$date] ?? 0) + $count;
+                $month = substr((string) $date, 0, 7);
+                $monthly[$month] = ($monthly[$month] ?? 0) + $count;
+            }
+        }
+
+        return ['daily' => $daily, 'monthly' => $monthly];
     }
 }

@@ -55,7 +55,7 @@
                         <p>One audit trail for Batch Processing, Import, and Export activities.</p>
                     </div>
 
-                    <x-ui.id-badge :value="number_format($history->count()) . ' Records'" />
+                    <x-ui.id-badge :value="number_format($history->total()) . ' Records'" />
                 </div>
 
                 <x-ui.table-toolbar action="{{ route('admin.data-history') }}" search-label="Search Data History" search-placeholder="Search file, module, data type, or source..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('module') && request('module') !== 'All Modules') + (int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter Data History" :sort-options="['created_at' => 'Date and Time', 'file_name' => 'File Name', 'activity_type' => 'Type', 'module' => 'Module', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
@@ -204,8 +204,13 @@
 
                 <div class="table-footer">
                     <p>
-                        Showing {{ number_format($history->count()) }} {{ \Illuminate\Support\Str::plural('record', $history->count()) }}
+                        @if($history->total() > 0)
+                            Showing {{ number_format($history->firstItem()) }}–{{ number_format($history->lastItem()) }} of {{ number_format($history->total()) }} records
+                        @else
+                            Showing 0 records
+                        @endif
                     </p>
+                    {{ $history->links() }}
                 </div>
             </section>
         </main>

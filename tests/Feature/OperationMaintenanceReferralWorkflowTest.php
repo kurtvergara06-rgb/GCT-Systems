@@ -613,11 +613,11 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame('Delivered', $pr->fresh()->status);
         $this->assertSame('Issued', $itemRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
-        $this->assertSame('On Hold', $jobOrder->fresh()->status);
+        $this->assertSame('On Going', $jobOrder->fresh()->status);
+        $this->assertNotNull($jobOrder->fresh()->start_date);
         $this->assertSame(2, (int) $inventoryItem->fresh()->quantity_available);
 
         // 9. Maintenance completes the Job Order
-        $jobOrder->update(['status' => 'On Going']);
         $finishResponse = $this->actingAs($maintenanceStaff)
             ->post(route('job-orders.finish', $jobOrder));
         $finishResponse->assertRedirect();

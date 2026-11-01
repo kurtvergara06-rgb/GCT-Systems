@@ -89,7 +89,7 @@
                   </div>
 
                   @if($recordView === 'history')
-                      <p class="maintenance-history-note">Issued Purchase Requests are kept here for reference and audit history.</p>
+                      <p class="maintenance-history-note">Delivered, picked-up, issued, and cancelled Purchase Requests are kept here for reference and audit history.</p>
                   @endif
 
                   <div class="maintenance-list-controls purchase-requests-controls-row">
@@ -138,6 +138,12 @@
                                       @endforeach
                                   </x-ui.table-toolbar-field>
                               @else
+                                  <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
+                                      <option value="All Statuses">All Statuses</option>
+                                      @foreach($statuses as $status)
+                                          <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                                      @endforeach
+                                  </x-ui.table-toolbar-field>
                                   <x-ui.table-toolbar-field label="Created From" name="created_from" type="date" />
                                   <x-ui.table-toolbar-field label="Created To" name="created_to" type="date" />
                               @endif

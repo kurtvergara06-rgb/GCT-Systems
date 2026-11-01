@@ -93,11 +93,10 @@
                   $partNames = $items->pluck('item_description')->filter()->map(fn ($name) => trim(preg_replace('/\\s*\\[item:\\s*\\d+\\]/i', '', (string) $name)))->filter()->values();
                   $quantitySummary = $items->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
                   $received = !is_null($delivery->inventory_posted_at);
-                  $displayStatus = $received ? 'Received' : $delivery->receipt_display_status;
+                  $displayStatus = $delivery->receipt_display_status;
                   $statusClass = match($displayStatus) {
                     'Ordered', 'For Delivery', 'For Pick-up', 'Partially Received' => 'for-delivery',
                     'Delivered', 'Picked Up' => 'delivered',
-                    'Received' => 'received',
                     default => 'default',
                   };
                 @endphp

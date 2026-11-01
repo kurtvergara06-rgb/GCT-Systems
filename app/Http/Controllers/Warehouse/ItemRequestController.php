@@ -111,7 +111,13 @@ class ItemRequestController extends Controller
      * Signed physical handover. Supports cumulative partial batches while
      * enforcing the Maintenance Head policy and JO-scoped stock allocations.
      */
-    public function issue(Request $request, ItemRequest $itemRequest, InventoryLedgerService $ledger, PartParser $parser)
+    public function issue(
+        Request $request,
+        ItemRequest $itemRequest,
+        InventoryLedgerService $ledger,
+        PartParser $parser,
+        JobOrderWorkflowService $workflow
+    )
     {
         $validated = $request->validate([
             'received_by' => ['required', 'string', 'max:255'],
@@ -122,9 +128,12 @@ class ItemRequestController extends Controller
         ]);
 
         $slipPath = $request->file('signed_slip')->store('warehouse/signed-ir-slips', 'local');
+        $fullyIssued = false;
+        $workStarted = false;
+
         try {
             $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-            DB::transaction(function () use ($itemRequest, $ledger, $parser, $irNumber, $slipPath, $validated): void {
+            DB::transaction(function () use ($itemRequest, $ledger, $parser, $workflow, $irNumber, $slipPath, $validated, &$fullyIssued, &$workStarted): void {
                 $ir = ItemRequest::query()->whereKey($itemRequest->id)->lockForUpdate()->firstOrFail();
                 if (! in_array($ir->status, ['Submitted', 'Partially Issued', 'Issued'], true)) {
                     throw ValidationException::withMessages(['issue' => 'This IR is not ready for issuance.']);
@@ -326,10 +335,38 @@ class ItemRequestController extends Controller
                     ->map(fn ($rows) => $rows->sum(fn ($part) => (int) $part['quantity']));
                 $allJoPartsIssued = $requiredAcrossJo->every(fn ($required, $partKey) =>
                     (int) ($issuedAcrossJo[$partKey] ?? 0) >= (int) $required);
+                $fullyIssued = $allJoPartsIssued;
                 $priorPartStatus = $jo->part_status;
                 $newPartStatus = $allJoPartsIssued || $priorPartStatus === 'Issued' ? 'Issued' : 'Partial';
-                $jo->update(['part_status' => $newPartStatus]);
+                $jobUpdates = ['part_status' => $newPartStatus];
+                $workStarted = $allJoPartsIssued
+                    && $jo->status === 'On Hold'
+                    && $jo->review_status === 'Approved'
+                    && filled($jo->assigned_mechanic);
+
+                if ($workStarted) {
+                    $startedAt = now();
+                    $jobUpdates += [
+                        'status' => 'On Going',
+                        'start_date' => $jo->start_date ?? $startedAt,
+                        'actual_started_at' => $jo->actual_started_at ?? $startedAt,
+                    ];
+                }
+
+                $jo->update($jobUpdates);
                 $ir->update(['status' => $allJoPartsIssued ? 'Issued' : 'Partially Issued']);
+
+                if ($workStarted) {
+                    $workflow->setAttendanceStatus($jo->fresh('mechanicAssignments.mechanic'), 'On Duty');
+                    $workflow->audit(
+                        $jo,
+                        'work_started_after_parts_issue',
+                        'On Hold',
+                        'On Going',
+                        'All required parts were physically issued by Warehouse; maintenance work was started automatically.',
+                        ['item_request_id' => $ir->id, 'inventory_issuance_id' => $issuance->id]
+                    );
+                }
 
                 // Persist the physical handover as a JO audit event inside the
                 // same transaction as its issuance ledger, so rolled-back
@@ -364,7 +401,13 @@ class ItemRequestController extends Controller
             throw $error;
         }
 
-        return redirect()->route('warehouse.item-requests')->with('success', 'Signed handover recorded. Remaining JO parts stay on the same IR for the next Warehouse release.');
+        $message = $fullyIssued
+            ? ($workStarted
+                ? 'Signed handover recorded. All JO parts are issued and maintenance work is now In Progress.'
+                : 'Signed handover recorded. All required JO parts are fully issued.')
+            : 'Signed handover recorded. Remaining JO parts stay on the same IR for the next Warehouse release.';
+
+        return redirect()->route('warehouse.item-requests')->with('success', $message);
     }
 
     public function signedSlip(Request $request, ItemRequest $itemRequest)

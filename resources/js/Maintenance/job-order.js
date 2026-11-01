@@ -3504,8 +3504,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-readonly-view', 
   const dialog = overlay?.querySelector('.jo-view-dialog');
   const body = document.getElementById('joReadonlyBody');
   if (!page || !overlay || !dialog || !body) return;
-  if (page.dataset.joReadonlyBound === '1') return;
-  page.dataset.joReadonlyBound = '1';
+  // Partial navigation already aborts the previous initializer listeners.
+  // A persistent dataset guard leaves the replacement listener unbound when
+  // the Job Order table refreshes without replacing the page root.
   let previousFocus = null;
   const close = () => {
     overlay.hidden = true;

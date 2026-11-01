@@ -397,7 +397,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         <div class="shared-pr-parts-head">
           <span>Part Name</span>
           <span>Quantity</span>
-          <span>On Hand</span>
+          <span>Available</span>
         </div>
     `;
 
@@ -406,7 +406,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         <div class="shared-pr-parts-row">
           <span class="part-name">${escapeHtml(String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim())}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
-          <span>${escapeHtml(part.physical_on_hand_display || part.available_display || part.available || '0')}</span>
+          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
         </div>
       `;
     });

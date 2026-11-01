@@ -339,16 +339,19 @@
           </header>
           <div class="warehouse-modal-section-body">
             <div class="warehouse-pr-view-table-wrap">
-              <table class="warehouse-pr-view-table"><thead><tr><th>PART NAME</th><th>PR QTY</th><th>PHYSICAL ON HAND</th></tr></thead>
+              <table class="warehouse-pr-view-table"><thead><tr><th>PART NAME</th><th>PR QTY</th><th>AVAILABLE</th></tr></thead>
                 <tbody id="sendMissingPartsRows"><tr><td colspan="3">No parts selected.</td></tr></tbody>
               </table>
             </div>
-            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Only missing quantities will be submitted. Current availability, duplicate requests, and permissions are checked by the existing server workflow.</p>
+            <p class="warehouse-pr-reference-info"><i class="fa-solid fa-circle-info"></i> Available quantity excludes stock reserved for other Job Orders. Only missing quantities will be submitted.</p>
+            <label for="sendMissingRevisionRemarks" class="warehouse-pr-reference-info">Revision remarks</label>
+            <textarea id="sendMissingRevisionRemarks" rows="3" maxlength="1000" placeholder="Required when returning this PR to Maintenance"></textarea>
           </div>
         </section>
       </div>
       <div class="warehouse-edit-footer">
         <button type="button" class="warehouse-cancel-btn" data-send-missing-close>Cancel</button>
+        <button type="button" id="sendMissingRevision" class="warehouse-cancel-btn"><i class="fa-solid fa-rotate-left"></i> Return for Revision</button>
         <button type="button" id="sendMissingConfirm" class="confirm-issue-btn warehouse-send-purchase-yellow"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
       </div>
     </div>

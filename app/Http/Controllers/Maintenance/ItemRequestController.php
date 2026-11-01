@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryIssuance;
+use App\Models\Warehouse\InventoryItem;
 use App\Services\PartParser;
 use App\Services\Maintenance\JobOrderWorkflowService;
 use App\Services\Maintenance\ItemRequestPartsService;
@@ -128,31 +130,67 @@ class ItemRequestController extends Controller
             ->with(['approver', 'audits' => fn ($q) => $q->whereIn('action', ['created', 'resubmitted'])->orderByDesc('id')])
             ->orderByDesc('created_at')
             ->get(['id', 'job_order_no', 'bus_no', 'assigned_mechanic', 'part_needed', 'parts_issue_strategy', 'inventory_snapshot', 'part_status', 'created_at', 'approved_by']);
+        // Cache inventory and reservation snapshots once for the pending-JO previews.
+        // Without this, each candidate re-queries and scans the full inventory and reservation tables.
+        $inventoryItems = collect();
+        $inventoryReservations = collect();
+        $jobOrderReservations = collect();
+        if ($candidateJobs->isNotEmpty()) {
+            $inventoryItems = InventoryItem::query()->get();
+            $inventoryReservations = JobOrderPartReservation::query()
+                ->select('inventory_item_id', DB::raw('SUM(quantity) AS reserved'))
+                ->groupBy('inventory_item_id')->pluck('reserved', 'inventory_item_id');
+            $jobOrderReservations = JobOrderPartReservation::query()
+                ->whereIn('job_order_id', $candidateJobs->pluck('id'))
+                ->get(['job_order_id', 'inventory_item_id', 'quantity']);
+        }
+
         $issuedQuantitiesByJo = ItemRequest::query()
             ->whereIn('job_order_id', $candidateJobs->pluck('id'))
             ->where('status', 'Issued')->get()
             ->groupBy('job_order_id')
             ->map(fn ($requests) => $requests->sum(fn ($ir) =>
                 collect($ir->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0))));
-        $eligibleJobs = $candidateJobs->filter(function (JobOrder $job) use ($irParts): bool {
-            try {
-                return $irParts->availableParts((string) $job->part_needed, $job) !== [];
-            } catch (ValidationException) {
-                return false;
+        $availablePartsByJo = [];
+        $eligibleJobs = $candidateJobs->filter(
+            function (JobOrder $job) use ($irParts, $inventoryItems, $inventoryReservations, $jobOrderReservations, &$availablePartsByJo): bool {
+                try {
+                    $parts = $irParts->availableParts(
+                        (string) $job->part_needed,
+                        $job,
+                        $inventoryItems,
+                        $inventoryReservations,
+                        $jobOrderReservations
+                    );
+                    $availablePartsByJo[$job->id] = $parts;
+
+                    return $parts !== [];
+                } catch (ValidationException) {
+                    return false;
+                }
             }
-        })->values();
-        $jobOrderPreviews = $eligibleJobs->mapWithKeys(function (JobOrder $job) use ($irParts, $prParts, $issuedQuantitiesByJo) {
-            return [$job->id => [
-                'jo' => $job->job_order_no,
-                'previously_issued' => (int) $issuedQuantitiesByJo->get($job->id, 0),
-                'bus' => $job->bus_no,
-                'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
-                'approver' => $job->approver?->name ?? 'Not recorded',
-                'signature_url' => route('job-orders.approval-signature', $job, false),
-                'parts' => $irParts->availableParts((string) $job->part_needed, $job),
-                'missing_parts' => $prParts->missingParts((string) $job->part_needed, $job),
-            ]];
-        });
+        )->values();
+
+        $jobOrderPreviews = $eligibleJobs->mapWithKeys(
+            function (JobOrder $job) use ($prParts, $issuedQuantitiesByJo, $availablePartsByJo, $inventoryItems, $inventoryReservations, $jobOrderReservations) {
+                return [$job->id => [
+                    'jo' => $job->job_order_no,
+                    'previously_issued' => (int) $issuedQuantitiesByJo->get($job->id, 0),
+                    'bus' => $job->bus_no,
+                    'mechanic' => $job->assigned_mechanic ?: 'Not assigned',
+                    'approver' => $job->approver?->name ?? 'Not recorded',
+                    'signature_url' => route('job-orders.approval-signature', $job, false),
+                    'parts' => $availablePartsByJo[$job->id] ?? [],
+                    'missing_parts' => $prParts->missingParts(
+                        (string) $job->part_needed,
+                        $job,
+                        $inventoryItems,
+                        $inventoryReservations,
+                        $jobOrderReservations
+                    ),
+                ]];
+            }
+        );
 
         // Search and sort the virtual pending suggestions independently of
         // the persisted Active/History records.
