@@ -2391,7 +2391,7 @@
 .personnel-master-page .personnel-catalog-header-actions { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
 .personnel-master-page .personnel-catalog-open { display:inline-flex;gap:7px;align-items:center;justify-content:center;padding:10px 13px;background:#fff;border:1px solid #d4dfeb;border-radius:9px;color:#183153;font-size:12px;font-weight:700;cursor:pointer; }
 .personnel-master-page .personnel-catalog-open:hover { border-color:#9cb8df;background:#f5f9ff; }
-.personnel-catalog-dialog { position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(640px,calc(100vw - 32px));max-height:min(78vh,800px);overflow-y:auto;border:1px solid #d6e2f1;border-radius:14px;padding:0;background:#fff;color:#162e50;box-shadow:0 24px 70px #112b4960; }
+.personnel-catalog-dialog { position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(920px,calc(100vw - 32px));height:min(78vh,760px);max-height:calc(100dvh - 32px);overflow:hidden;border:1px solid #d6e2f1;border-radius:14px;padding:0;background:#fff;color:#162e50;box-shadow:0 24px 70px #112b4960; }
 .personnel-catalog-dialog::backdrop { background:#14284288;backdrop-filter:blur(5px); }
 .personnel-catalog-heading { display:flex;align-items:start;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #e2eaf4; }
 .personnel-catalog-heading h2 { margin:0;font-size:17px;font-weight:800; }
@@ -2427,3 +2427,33 @@
 .personnel-catalog-list-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px; }
 .personnel-catalog-list-heading h3 { margin:0;font-size:13px; }
 .personnel-catalog-new-job { display:inline-flex;align-items:center;gap:6px;background:#ffc400;color:#1b2b42;border:0;border-radius:8px;padding:9px 12px;font-size:11px;font-weight:750;cursor:pointer; }
+
+/* Maintenance catalog two-pane management layout; no changes to other personnel modals. */
+.personnel-catalog-dialog { display:none;flex-direction:column; }
+.personnel-catalog-dialog[open] { display:flex; }
+.personnel-catalog-dialog .personnel-catalog-heading,
+.personnel-catalog-dialog .personnel-catalog-tabs { flex-shrink:0; }
+.personnel-catalog-dialog [data-catalog-panel] { min-height:0;overflow-y:auto;flex:1;padding:16px 18px 18px; }
+.personnel-catalog-dialog [data-catalog-panel="jobs"] { overflow:hidden; }
+.personnel-catalog-workspace { display:grid;grid-template-columns:minmax(260px,0.9fr) minmax(0,1.1fr);gap:14px;height:100%;min-height:0; }
+.personnel-catalog-browser,.personnel-catalog-editor { min-width:0;min-height:0;display:flex;flex-direction:column;gap:12px; }
+.personnel-catalog-browser { border:1px solid #e0e9f5;border-radius:10px;padding:12px;background:#fff; }
+.personnel-catalog-editor { overflow-y:auto; }
+.personnel-catalog-browser .personnel-catalog-list-heading { margin:0; }
+.personnel-catalog-search-label { display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid #d2deec;border-radius:8px;color:#6d809d;min-height:38px; }
+.personnel-catalog-search-label:focus-within { border-color:#397bd4;box-shadow:0 0 0 2px #397bd41b; }
+.personnel-catalog-search-label input { min-width:0;width:100%;border:0;outline:0;background:transparent;font:inherit;font-size:12px; }
+.personnel-catalog-browser .personnel-catalog-job-list { flex:1;min-height:0;overflow-y:auto;margin:0;align-content:start;padding-right:3px; }
+.personnel-catalog-job-entry[hidden],.personnel-catalog-no-results[hidden],.personnel-catalog-reset[hidden] { display:none; }
+.personnel-catalog-job-entry { background:#fff; }
+.personnel-catalog-edit-job[aria-pressed="true"] { background:#e6f0ff;border-color:#8bb5f2;color:#1253a1; }
+.personnel-catalog-job-form { margin:0; }
+.personnel-catalog-no-results { font-size:12px;color:#6b7d97; }
+@media (max-width:650px) {
+ .personnel-catalog-dialog { width:calc(100vw - 20px);height:min(88dvh,800px); }
+ .personnel-catalog-dialog [data-catalog-panel="jobs"] { overflow-y:auto; }
+ .personnel-catalog-workspace { grid-template-columns:1fr;height:auto; }
+ .personnel-catalog-browser { min-height:230px;max-height:310px; }
+ .personnel-catalog-browser .personnel-catalog-job-list { max-height:230px; }
+ .personnel-catalog-editor { overflow:visible; }
+}
