@@ -19,6 +19,7 @@ function initBatchAttendancePage() {
 
     let shiftStarts = {};
     let graceMinutes = 10;
+    let attendanceMode = 'in';
 
     button.addEventListener('click', openModal);
 
@@ -27,6 +28,7 @@ function initBatchAttendancePage() {
     }
 
     function openModal() {
+        attendanceMode = 'in';
         closeModal();
 
         const overlay = document.createElement('div');
@@ -70,7 +72,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
-                    ${type === 'mechanic' ? '<div class="batch-toolbar-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
+                    ${type === 'mechanic' ? '<div class="batch-toolbar-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn" aria-pressed="true"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut" aria-pressed="false"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
                     ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
 
@@ -150,8 +152,16 @@ function initBatchAttendancePage() {
         });
         overlay.querySelector('#batchApplyTime').addEventListener('click', () => applySharedTime('in'));
         if (type === 'mechanic') {
-            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => applySharedTime('in'));
-            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => applySharedTime('out'));
+            const switchMode = (mode) => {
+                if (attendanceMode === mode) return;
+                attendanceMode = mode;
+                overlay.querySelector('#batchHeaderTimeIn')?.setAttribute('aria-pressed', String(mode === 'in'));
+                overlay.querySelector('#batchHeaderTimeOut')?.setAttribute('aria-pressed', String(mode === 'out'));
+                overlay.querySelector('#batchSaveAttendance').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save ' + (mode === 'out' ? 'Time Out' : 'Attendance');
+                loadRoster();
+            };
+            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => switchMode('in'));
+            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => switchMode('out'));
         }
 
         overlay.querySelector('#batchSharedTimeCancel').addEventListener('click', closeSharedTime);
@@ -209,14 +219,14 @@ function initBatchAttendancePage() {
         if (!rows.length) {
             body.innerHTML = type === 'driver'
                 ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics.</td></tr>';
+                : '<tr><td colspan="8" class="batch-empty">' + (attendanceMode === 'out' ? 'No checked-in mechanics are awaiting Time Out.' : 'All eligible mechanics already have attendance for this date.') + '</td></tr>';
             updateSummary();
             return;
         }
 
         body.innerHTML = rows.map((row) => {
             const normalizedStatus = normalizeStatus(row.status);
-            const isRecorded = row.recorded === true;
+            const isRecorded = row.recorded === true && !(type === 'mechanic' && attendanceMode === 'out');
             const initialAvailability = computeAvailability(normalizedStatus, row.assigned_job || '');
             return `
                 <tr
@@ -277,8 +287,12 @@ function initBatchAttendancePage() {
 
         body.querySelectorAll('[data-batch-row]').forEach((row) => {
             initializeRow(row);
-            if (row.dataset.recorded === 'true') {
-                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+            if (type === 'mechanic' && attendanceMode === 'out') {
+                row.querySelector('[data-time-in]').disabled = true;
+                row.querySelector('[data-row-now]').disabled = true;
+                row.querySelectorAll('[data-status-btn]').forEach(control => { control.disabled = true; });
+            } else if (row.dataset.recorded === 'true') {
+                row.querySelectorAll('input, button').forEach(control => { control.disabled = true; });
             }
         });
         updateSummary();
@@ -487,7 +501,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
+             .filter((row) => (attendanceMode === 'out' ? row.querySelector('[data-row-select]').checked : row.dataset.recorded !== 'true') && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
@@ -523,6 +537,7 @@ function initBatchAttendancePage() {
                 },
                 body: JSON.stringify({
                     attendance_date: modal.querySelector('#batchAttendanceDate').value,
+                    mode: type === 'mechanic' ? attendanceMode : 'in',
                     rows,
                 }),
             });
