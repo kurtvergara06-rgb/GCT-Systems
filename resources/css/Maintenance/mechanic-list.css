@@ -609,14 +609,14 @@
 .mechanic-page .attendance-badge {
   min-width: 88px;
 
-  min-height: 26px;
+  min-height: 28px;
 
-  padding: 0 11px;
+  padding: 5px 11px;
 
   border:
     1px solid transparent;
 
-  border-radius: 999px;
+  border-radius: 8px;
 
   display: inline-flex;
 
