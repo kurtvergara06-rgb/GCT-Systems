@@ -19,6 +19,34 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                 panel.hidden = panel.dataset.catalogPanel !== name;
             });
         };
+        const jobForm = catalog.querySelector('[data-catalog-job-form]');
+        const resetJob = () => {
+            if (!jobForm) return;
+            jobForm.reset();
+            jobForm.action = jobForm.dataset.createUrl;
+            jobForm.querySelector('[data-catalog-job-method]').value = 'POST';
+            jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Add Maintenance Job';
+            jobForm.querySelector('[data-catalog-save-job]').textContent = 'Save Job';
+        };
+        catalog.querySelector('[data-catalog-reset-job]')?.addEventListener('click', resetJob);
+        catalog.querySelectorAll('[data-catalog-edit-job]').forEach((button) => {
+            button.addEventListener('click', () => {
+                if (!jobForm) return;
+                selectCatalogTab('jobs');
+                resetJob();
+                jobForm.action = button.dataset.updateUrl;
+                jobForm.querySelector('[data-catalog-job-method]').value = 'PUT';
+                jobForm.elements.namedItem('name').value = button.dataset.jobName;
+                const skills = JSON.parse(button.dataset.jobSkills || '[]');
+                jobForm.querySelectorAll('[name="specializations[]"]').forEach((checkbox) => {
+                    checkbox.checked = skills.includes(checkbox.value);
+                });
+                jobForm.elements.namedItem('is_active').checked = button.dataset.jobActive === '1';
+                jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Edit Maintenance Job';
+                jobForm.querySelector('[data-catalog-save-job]').textContent = 'Update Job';
+                jobForm.scrollIntoView({block:'nearest'});
+            });
+        });
         open?.addEventListener('click', () => {
             selectCatalogTab('jobs');
             if (!catalog.open) catalog.showModal();
