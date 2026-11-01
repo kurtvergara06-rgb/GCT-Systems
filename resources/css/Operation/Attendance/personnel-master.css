@@ -2500,3 +2500,13 @@
 .personnel-catalog-dialog .personnel-catalog-editor-title p {font-size:12px;line-height:1.5}
 .personnel-catalog-dialog .personnel-catalog-job-form legend {font-size:12px;line-height:1.5}
 .personnel-catalog-dialog .personnel-catalog-job-form .personnel-catalog-item {font-size:11px;line-height:1.4}
+
+/* Job-row actions: compact inline Edit and distinct rectangular status boxes. */
+.personnel-catalog-dialog .personnel-catalog-job-entry {gap:8px;min-height:58px}
+.personnel-catalog-dialog .personnel-catalog-job-details {flex:1;min-width:0}
+.personnel-catalog-dialog .personnel-catalog-status {display:inline-flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0;border-radius:7px;border:1px solid #bceacf;padding:6px 9px;font-size:10px;line-height:1;white-space:nowrap}
+.personnel-catalog-dialog .personnel-catalog-status.is-inactive {border-color:#d4deeb;background:#f1f4f8;color:#66758b}
+.personnel-catalog-dialog .personnel-catalog-edit-job {display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:auto;min-width:64px;min-height:32px;padding:6px 10px;border:1px solid #ccdbef;border-radius:8px;background:#fff;color:#154f91;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.personnel-catalog-dialog .personnel-catalog-edit-job:hover {background:#edf5ff;border-color:#9bbbe4}
+.personnel-catalog-dialog .personnel-catalog-edit-job[aria-pressed="true"] {background:#e7f0fe;border-color:#94b8e9}
+@media(max-width:920px){.personnel-catalog-dialog .personnel-catalog-job-entry {flex-wrap:wrap}.personnel-catalog-dialog .personnel-catalog-job-details {flex-basis:100%}}
