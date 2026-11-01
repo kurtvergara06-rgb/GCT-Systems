@@ -2396,11 +2396,11 @@
 .personnel-catalog-dialog {display:none;flex-direction:column}
 .personnel-catalog-dialog[open] {display:flex}
 .personnel-catalog-dialog:has([data-catalog-panel="skills"]:not([hidden])) {height:auto;max-height:min(76dvh,760px)}
-.personnel-catalog-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 24px;background:linear-gradient(112deg,#123a72,#1864af 76%,#2e7cd1);color:#fff;flex-shrink:0}
+.personnel-catalog-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 24px;background:#fff;color:#152b49;border-bottom:1px solid #dce6f2;flex-shrink:0}
 .personnel-catalog-heading-brand {display:flex;align-items:center;gap:14px;min-width:0}
-.personnel-catalog-heading-icon {display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#dcecff;color:#1559ab;font-size:19px}
-.personnel-catalog-heading h2 {margin:0;font-size:22px;font-weight:800;color:#fff}
-.personnel-catalog-heading p {margin:4px 0 0;color:#e1ecff;font-size:12px}
+.personnel-catalog-heading-icon {display:grid;place-items:center;width:44px;height:44px;border-radius:11px;background:#fff5ce;color:#a76500;font-size:18px}
+.personnel-catalog-heading h2 {margin:0;font-size:20px;font-weight:800;color:#152b49}
+.personnel-catalog-heading p {margin:5px 0 0;color:#677c99;font-size:12px}
 .personnel-catalog-close {background:#fff;border:1px solid #dbe5f1;color:#183153;border-radius:9px;padding:10px 13px;cursor:pointer}
 .personnel-catalog-tabs {display:flex;gap:7px;padding:14px 20px 10px;border-bottom:1px solid #dce6f3;flex-shrink:0}
 .personnel-catalog-tabs button {display:flex;align-items:center;gap:8px;border:1px solid #dbe5f2;border-radius:9px;background:#f4f7fc;padding:11px 17px;color:#355477;font-size:12px;font-weight:700;cursor:pointer}
@@ -2487,3 +2487,16 @@
 .personnel-catalog-skill-edit-actions {display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 0 0;margin-top:12px;border-top:1px solid #e1e9f3;}
 .personnel-catalog-skill-edit-actions span {margin-right:auto;font-size:11px;color:#697c95;}
 .personnel-catalog-skill-edit-actions .personnel-catalog-new-job:disabled {opacity:.45;cursor:not-allowed;}
+
+/* Catalog text hierarchy and clearly separated row actions. */
+.personnel-catalog-dialog .personnel-catalog-tabs button {font-size:12px;letter-spacing:0;font-weight:750}
+.personnel-catalog-dialog .personnel-catalog-list-heading h3 {font-size:14px;font-weight:800}
+.personnel-catalog-dialog .personnel-catalog-list-heading p {font-size:12px}
+.personnel-catalog-dialog .personnel-catalog-job-entry strong {font-size:12px;line-height:1.4;font-weight:750}
+.personnel-catalog-dialog .personnel-catalog-job-entry small {font-size:11px;line-height:1.5}
+.personnel-catalog-dialog .personnel-catalog-edit-job {display:grid;place-items:center;min-width:32px;min-height:32px;border:1px solid #dce5ef;border-radius:8px;background:#fff;color:#285885}
+.personnel-catalog-dialog .personnel-catalog-edit-job:hover {background:#f0f5fd;border-color:#9fbce5}
+.personnel-catalog-dialog .personnel-catalog-editor-title h3 {font-size:15px;font-weight:800}
+.personnel-catalog-dialog .personnel-catalog-editor-title p {font-size:12px;line-height:1.5}
+.personnel-catalog-dialog .personnel-catalog-job-form legend {font-size:12px;line-height:1.5}
+.personnel-catalog-dialog .personnel-catalog-job-form .personnel-catalog-item {font-size:11px;line-height:1.4}
