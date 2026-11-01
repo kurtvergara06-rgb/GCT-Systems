@@ -32,6 +32,25 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     { label: 'Exhaust System Inspection and Repair', value: 4, unit: 'Hours' },
   ];
 
+  // The server-side catalog is the source of truth for available JO jobs.
+  // Legacy duration estimates are kept only as optional presentation defaults.
+  const catalogElement = document.querySelector('#maintenanceJobCatalogData');
+  if (catalogElement) {
+    try {
+      const activeNames = JSON.parse(catalogElement.textContent || '[]');
+      if (Array.isArray(activeNames)) {
+        const durations = new Map(maintenanceJobPresets.map(({label,value,unit}) => [label,{value,unit}]));
+        maintenanceJobPresets.splice(0, maintenanceJobPresets.length,
+          ...activeNames.filter(name => typeof name === 'string').map(label => ({
+            label, value: durations.get(label)?.value ?? 0,
+            unit: durations.get(label)?.unit ?? 'Hours',
+          })));
+      }
+    } catch (error) {
+      console.warn('Maintenance job catalog could not be parsed; retaining legacy options.', error);
+    }
+  }
+
   const presetLabels = new Set(maintenanceJobPresets.map((preset) => preset.label));
 
   const enhanceMaintenanceJobSelect = (select) => {
