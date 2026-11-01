@@ -2051,21 +2051,84 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
     row.addEventListener('input', recalc);
     renumber();
   };
-  const bus = document.getElementById('physical-bus');
-  const syncPlate = () => { document.getElementById('physical-plate').value = bus.selectedOptions[0]?.dataset.plate || ''; };
-  bus.addEventListener('change', syncPlate);
-  syncPlate();
+  const pickers = [...modal.querySelectorAll('.fuel-paper-search-picker')];
+  const pickerInputs = [];
+  for (const picker of pickers) {
+    const input = picker.querySelector('input[type="search"]');
+    const hidden = picker.querySelector('input[type="hidden"]');
+    const menu = picker.querySelector('.fuel-paper-search-options');
+    const options = [...menu.querySelectorAll('.fuel-paper-search-option')];
+    const empty = menu.querySelector('.fuel-paper-search-empty');
+    const closeMenu = () => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+    const filter = () => {
+      const term = input.value.trim().toLowerCase();
+      let matches = 0;
+      options.forEach(option => {
+        option.hidden = !option.dataset.search.includes(term);
+        if (!option.hidden) matches++;
+      });
+      empty.hidden = matches !== 0;
+      menu.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    };
+    const select = option => {
+      hidden.value = option.dataset.value;
+      input.value = option.dataset.name;
+      input.setCustomValidity('');
+      if (picker.dataset.picker === 'bus') {
+        document.getElementById('physical-plate').value = option.dataset.plate || '';
+      }
+      closeMenu();
+    };
+    input.addEventListener('focus', filter);
+    input.addEventListener('input', () => {
+      hidden.value = '';
+      if (picker.dataset.picker === 'bus') document.getElementById('physical-plate').value = '';
+      input.setCustomValidity('');
+      filter();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMenu();
+      if (e.key === 'ArrowDown') { e.preventDefault(); filter(); options.find(option => !option.hidden)?.focus(); }
+    });
+    options.forEach(option => {
+      option.addEventListener('click', () => { select(option); input.focus(); });
+      option.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(option); input.focus(); }
+        if (e.key === 'Escape') { closeMenu(); input.focus(); }
+      });
+    });
+    picker.addEventListener('focusout', () => {
+      window.setTimeout(() => { if (!picker.contains(document.activeElement)) closeMenu(); }, 0);
+    });
+    pickerInputs.push({input, hidden, options, select, filter, closeMenu});
+    const restored = options.find(option => option.dataset.value === hidden.value);
+    if (restored) select(restored);
+  }
+  document.addEventListener('pointerdown', e => {
+    if (!modal.hidden && !e.target.closest('.fuel-paper-search-picker')) pickerInputs.forEach(picker => picker.closeMenu());
+  });
   document.getElementById('addPhysicalTrip').addEventListener('click', addTrip);
   trigger.addEventListener('click', () => {
     if (rows.children.length === 0) addTrip();
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
-    bus.focus();
+    pickerInputs[0]?.input.focus();
   });
   document.getElementById('cancelPhysicalFuelForm').addEventListener('click', close);
   document.getElementById('closePhysicalFuelForm').addEventListener('click', close);
   modal.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   form.addEventListener('submit', event => {
+    for (const picker of pickerInputs) {
+      if (!picker.hidden.value) {
+        event.preventDefault();
+        picker.input.setCustomValidity('Select an option from the master list.');
+        picker.input.reportValidity();
+        picker.input.focus();
+        picker.filter();
+        return;
+      }
+    }
     renumber();
     if (rows.children.length === 0) { event.preventDefault(); addTrip(); }
   });
