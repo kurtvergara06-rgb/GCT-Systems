@@ -147,24 +147,10 @@ function initBatchAttendancePage() {
             });
             updateSummary();
         });
-        overlay.querySelector('#batchApplyTime').addEventListener('click', applySharedTime);
+        overlay.querySelector('#batchApplyTime').addEventListener('click', () => applySharedTime('in'));
         if (type === 'mechanic') {
-            const setSelectedTime = (field) => {
-                const selected = Array.from(overlay.querySelectorAll('[data-batch-row]'))
-                    .filter(row => row.dataset.recorded !== 'true'
-                        && !row.classList.contains('is-unavailable')
-                        && row.querySelector('[data-row-select]')?.checked);
-                selected.forEach(row => {
-                    const input = row.querySelector(field);
-                    if (!input || input.disabled) return;
-                    input.value = currentTime();
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                    updateAvailability(row);
-                });
-                updateSummary();
-            };
-            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => setSelectedTime('[data-time-in]'));
-            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => setSelectedTime('[data-time-out]'));
+            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => applySharedTime('in'));
+            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => applySharedTime('out'));
         }
 
         overlay.querySelector('#batchSharedTimeCancel').addEventListener('click', closeSharedTime);
@@ -368,10 +354,12 @@ function initBatchAttendancePage() {
         const layer = modal.querySelector('#batchSharedTimeLayer');
         layer.hidden = true;
         layer.classList.remove('is-picker-only');
-        modal.querySelector('#batchApplyTime')?.focus();
+        (modal.querySelector('#batchSharedTimeLayer')?.dataset.target === 'out'
+            ? modal.querySelector('#batchHeaderTimeOut')
+            : modal.querySelector('#batchApplyTime'))?.focus();
     }
 
-    function applySharedTime() {
+    function applySharedTime(target = 'in') {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
@@ -383,8 +371,16 @@ function initBatchAttendancePage() {
 
         const input = modal.querySelector('#batchSharedTimeInput');
         input.value = currentTime();
-        input.dataset.pickerAnchor = '#batchApplyTime';
+        input.dataset.pickerAnchor = target === 'out' ? '#batchHeaderTimeOut' : '#batchApplyTime';
         const layer = modal.querySelector('#batchSharedTimeLayer');
+        layer.dataset.target = target;
+        modal.querySelector('#batchSharedTimeTitle').innerHTML = '<i class="fa-regular fa-clock"></i> Set Time ' + (target === 'out' ? 'Out' : 'In');
+        const label = layer.querySelector('label[for="batchSharedTimeInput"]');
+        if (label) label.textContent = target === 'out' ? 'Time Out' : 'Time In';
+        const help = layer.querySelector('p');
+        if (help) help.textContent = 'Choose the time ' + (target === 'out' ? 'out' : 'in') + ' for selected available mechanics.';
+        const confirm = modal.querySelector('#batchSharedTimeConfirm');
+        if (confirm) confirm.textContent = 'Apply Time ' + (target === 'out' ? 'Out' : 'In');
         layer.hidden = false;
         layer.classList.add('is-picker-only');
         // The shared GCT picker enhances inputs added dynamically.
@@ -419,12 +415,14 @@ function initBatchAttendancePage() {
         }
         let updated = 0;
         modal.querySelectorAll('[data-batch-row]').forEach((row) => {
-            if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
-            const timeIn = row.querySelector('[data-time-in]');
-            timeIn.value = time;
-            timeIn.dispatchEvent(new Event('input', { bubbles: true }));
-            timeIn.dispatchEvent(new Event('change', { bubbles: true }));
-            detectLate(row);
+            if (row.dataset.recorded === 'true' || !row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
+            const field = layer.dataset.target === 'out' ? '[data-time-out]' : '[data-time-in]';
+            const timeInput = row.querySelector(field);
+            if (!timeInput || timeInput.disabled) return;
+            timeInput.value = time;
+            timeInput.dispatchEvent(new Event('input', { bubbles: true }));
+            timeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            if (field === '[data-time-in]') detectLate(row);
             updateAvailability(row);
             updated += 1;
         });
