@@ -29,6 +29,12 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             jobForm.querySelector('[data-catalog-save-job]').textContent = 'Save Job';
         };
         catalog.querySelector('[data-catalog-reset-job]')?.addEventListener('click', resetJob);
+        catalog.querySelector('[data-catalog-new-job]')?.addEventListener('click', () => {
+            selectCatalogTab('jobs');
+            resetJob();
+            jobForm?.scrollIntoView({block:'start',behavior:'smooth'});
+            jobForm?.elements.namedItem('name')?.focus({preventScroll:true});
+        });
         catalog.querySelectorAll('[data-catalog-edit-job]').forEach((button) => {
             button.addEventListener('click', () => {
                 if (!jobForm) return;
