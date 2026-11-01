@@ -32,6 +32,44 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (empty) empty.hidden = visible > 0;
         };
         skillSearch?.addEventListener('input', filterSkills);
+        // Two-step removal confirmation within the catalog dialog.
+        catalog.querySelector('[data-catalog-skills-grid]')?.addEventListener('click', async (event) => {
+            const button = event.target.closest('[data-catalog-remove-skill]');
+            if (!button || button.disabled) return;
+            if (button.dataset.confirmRemove !== 'yes') {
+                catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(other => {
+                    if (other !== button) {
+                        other.dataset.confirmRemove = '';
+                        other.title = 'Remove unused specialization';
+                        other.setAttribute('aria-label', 'Remove specialization ' + other.dataset.skillName);
+                        other.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
+                    }
+                });
+                button.dataset.confirmRemove = 'yes';
+                button.title = 'Confirm permanent removal';
+                button.setAttribute('aria-label', 'Confirm permanent removal of ' + button.dataset.skillName);
+                button.textContent = 'Confirm?';
+                return;
+            }
+            button.disabled = true;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                    || modal.querySelector('input[name="_token"]')?.value;
+                const response = await fetch(button.dataset.deleteUrl, {
+                    method: 'DELETE',
+                    headers: { 'Accept':'application/json', 'X-CSRF-TOKEN': csrf }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Unable to remove specialization.');
+                button.closest('[data-catalog-skill-entry]')?.remove();
+                filterSkills();
+            } catch (error) {
+                window.alert(error.message);
+                button.disabled = false;
+                button.dataset.confirmRemove = '';
+                button.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
+            }
+        });
         catalog.querySelector('[data-catalog-new-skill]')?.addEventListener('click', () => {
             if (!skillForm) return;
             skillForm.hidden = false;
