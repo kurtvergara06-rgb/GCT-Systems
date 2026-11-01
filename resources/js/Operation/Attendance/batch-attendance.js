@@ -44,7 +44,10 @@ function initBatchAttendancePage() {
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
+                    <div class="batch-header-actions">
+                        ${type === 'mechanic' ? '<div class="batch-header-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
+                        <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
+                    </div>
                 </div>
 
                 <div class="batch-attendance-controls">
@@ -95,8 +98,8 @@ function initBatchAttendancePage() {
                                     <th>${label}</th>
                                     <th style="${type === 'mechanic' ? 'display:none' : ''}">${type === 'driver' ? 'Duty' : 'Shift'}</th>
                                     <th>${type === 'driver' ? 'Reporting' : 'Scheduled Time'}</th>
-                                    <th>Time In ${type === 'mechanic' ? '<button type="button" class="batch-heading-time-btn" id="batchHeaderTimeIn" title="Set current time in for selected mechanics"><i class="fa-regular fa-clock"></i> Set</button>' : ''}</th>
-                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}${type === 'mechanic' ? ' <button type="button" class="batch-heading-time-btn" id="batchHeaderTimeOut" title="Set current time out for selected mechanics"><i class="fa-regular fa-clock"></i> Set</button>' : ''}</th>
+                                    <th>Time In</th>
+                                    <th>${type === 'driver' ? 'Recorded' : 'Time Out'}</th>
                                     <th>Attendance Status</th>
                                     <th>Availability</th>
                                 </tr>
