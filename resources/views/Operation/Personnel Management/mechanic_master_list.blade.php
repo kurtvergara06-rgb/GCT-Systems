@@ -259,7 +259,7 @@
     </section>
     <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
         <div class="personnel-catalog-skills-heading">
-            <div><h3>Mechanic Specializations</h3><p>Qualifications shared with Mechanic Master List and Job Orders.</p></div>
+            <div class="personnel-catalog-skills-title"><span class="personnel-catalog-skills-title-icon"><i class="fa-solid fa-gears" aria-hidden="true"></i></span><div><h3>Mechanic Specializations</h3><p>Qualifications shared with Mechanic Master List and Job Orders.</p></div></div>
             <div class="personnel-catalog-skill-toolbar"><button type="button" class="personnel-catalog-skill-edit-toggle" data-catalog-edit-skills><i class="fa-solid fa-pen"></i> Edit</button><button type="button" class="personnel-catalog-new-job" data-catalog-new-skill><i class="fa-solid fa-plus"></i> Add Specialization</button></div>
         </div>
         <form data-catalog-skill-form hidden class="personnel-catalog-skill-form" data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}">
@@ -271,7 +271,7 @@
         <div class="personnel-catalog-skills-grid" data-catalog-skills-grid>
             @foreach($specializationOptions as $specialization)
             <div class="personnel-catalog-skill-card" data-catalog-skill-entry>
-                <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><strong>{{ $specialization }}</strong>
+                <span class="personnel-catalog-skill-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><strong>{{ $specialization }}</strong>
                 @if(auth()->user()?->hasSystemPermission('maintenance','approve') && $customSpecializationIds->has($specialization))
                     <button type="button" class="personnel-catalog-remove-skill" data-catalog-remove-skill hidden data-skill-name="{{ $specialization }}" data-delete-url="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}" aria-label="Remove specialization {{ $specialization }}" title="Remove unused specialization"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
                 @endif
