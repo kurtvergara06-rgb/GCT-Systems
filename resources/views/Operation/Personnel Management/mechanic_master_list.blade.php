@@ -49,9 +49,11 @@
                 </div>
 @if($canEditMechanic)
                 <div class="personnel-catalog-header-actions">
+                    @if($isMaintenanceUser)
                     <button type="button" class="personnel-catalog-open" data-open-maintenance-catalog aria-haspopup="dialog">
                         <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span>Manage Catalog</span>
                     </button>
+                    @endif
                 <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Mechanic</span>
@@ -196,7 +198,7 @@
     </main>
 </div>
 
-@if($canEditMechanic)
+@if($canEditMechanic && $isMaintenanceUser)
 <dialog class="personnel-catalog-dialog" data-maintenance-catalog aria-labelledby="personnelCatalogTitle">
     <div class="personnel-catalog-heading">
         <div><h2 id="personnelCatalogTitle">Maintenance Catalog</h2><p>Review the repair catalog and mechanic qualifications</p></div>
