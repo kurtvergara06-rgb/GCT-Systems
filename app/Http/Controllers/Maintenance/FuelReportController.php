@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
+use App\Models\Operation\Driver;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
@@ -118,6 +119,8 @@ class FuelReportController extends Controller
             ->first();
 
         $recentFuelRecords = $fuelReports->values();
+
+        $drivers = Driver::query()->orderBy('driver_name')->get(['driver_id', 'driver_name', 'employment_status']);
 
         $buses = Bus::query()
             ->orderBy('bus_no')
@@ -251,6 +254,7 @@ class FuelReportController extends Controller
             'vehicleSummaries',
             'recentFuelRecords',
             'buses',
+            'drivers',
             'totalFuelUsed',
             'totalDistance',
             'fleetAverage',
@@ -368,7 +372,7 @@ class FuelReportController extends Controller
             'report_date' => ['required', 'date', 'before_or_equal:today'],
             'issued_at' => ['nullable', 'date_format:H:i'],
             'bus_no' => ['required', 'string', 'exists:buses,bus_no'],
-            'driver_name' => ['required', 'string', 'max:255'],
+            'driver_id' => ['required', 'string', 'exists:drivers,driver_id'],
             'gas_station' => ['required', 'string', 'max:150'],
             'po_reference' => ['nullable', 'string', 'max:80'],
             'fuel_liters' => ['required', 'numeric', 'gt:0', 'max:999999.99'],
@@ -382,6 +386,7 @@ class FuelReportController extends Controller
         ]);
 
         $bus = Bus::query()->where('bus_no', $data['bus_no'])->firstOrFail();
+        $driver = Driver::query()->where('driver_id', $data['driver_id'])->firstOrFail();
         // Duplicate paper form entries for an identical bus and issuance
         // timestamp require review; do not silently overwrite history.
         if (FuelReport::query()->where('bus_no', $data['bus_no'])
@@ -393,7 +398,7 @@ class FuelReportController extends Controller
             ]);
         }
 
-        $record = DB::transaction(function () use ($data, $bus) {
+        $record = DB::transaction(function () use ($data, $bus, $driver) {
             $distance = round(array_sum(array_map(
                 fn (array $trip) => (float) $trip['distance_km'],
                 $data['trips']
@@ -402,7 +407,7 @@ class FuelReportController extends Controller
                 'report_date' => $data['report_date'],
                 'bus_no' => $data['bus_no'],
                 'plate_number' => $bus->plate_no,
-                'driver_name' => $data['driver_name'],
+                'driver_name' => $driver->driver_name,
                 'gas_station' => $data['gas_station'],
                 'issued_at' => $data['issued_at'] ?? null,
                 'po_reference' => $data['po_reference'] ?? null,
