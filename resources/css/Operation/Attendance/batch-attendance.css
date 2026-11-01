@@ -494,3 +494,11 @@
 .batch-attendance-header .batch-header-time-actions .batch-control-btn {min-height:34px;padding:7px 12px;font-size:12px;border-color:#bcd0e9;color:#1758ac}
 .batch-attendance-header .batch-header-time-actions .batch-control-btn:hover {background:#ecf4ff;border-color:#91b4e0}
 @media(max-width:680px) {.batch-attendance-header {flex-wrap:wrap}.batch-attendance-header .batch-header-actions {margin-left:auto}.batch-attendance-header .batch-header-time-actions {flex-wrap:wrap}.batch-attendance-header .batch-header-time-actions .batch-control-btn {padding:7px 9px}}
+
+/* Mechanic bulk times share Clear All's toolbar baseline, right aligned. */
+.batch-attendance-mechanic .batch-attendance-controls {display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.batch-attendance-mechanic .batch-attendance-controls>.batch-action-row {flex:1 1 auto;align-items:center}
+.batch-attendance-mechanic .batch-toolbar-time-actions {display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-left:auto}
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn {min-height:42px;padding:10px 14px;border-color:#ced6e2;color:#1c2430;background:#fff;font-size:12px;font-weight:700}
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn:hover {background:#f4f5f7;border-color:#9ba7b8;color:#111827}
+@media(max-width:780px) {.batch-attendance-mechanic .batch-toolbar-time-actions {width:100%;justify-content:flex-end}.batch-attendance-mechanic .batch-attendance-controls>.batch-action-row {flex:1 1 100%}}
