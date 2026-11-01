@@ -2510,3 +2510,29 @@
 .personnel-catalog-dialog .personnel-catalog-edit-job:hover {background:#edf5ff;border-color:#9bbbe4}
 .personnel-catalog-dialog .personnel-catalog-edit-job[aria-pressed="true"] {background:#e7f0fe;border-color:#94b8e9}
 @media(max-width:920px){.personnel-catalog-dialog .personnel-catalog-job-entry {flex-wrap:wrap}.personnel-catalog-dialog .personnel-catalog-job-details {flex-basis:100%}}
+
+/* Blue-system Specializations catalog: scoped to the native catalog dialog. */
+.personnel-catalog-dialog:has([data-catalog-panel="skills"]:not([hidden])) {height:auto;max-height:min(82dvh,800px)}
+.personnel-catalog-dialog [data-catalog-panel="skills"] {padding:22px 24px 24px}
+.personnel-catalog-dialog .personnel-catalog-skills-heading {margin-bottom:16px;gap:16px}
+.personnel-catalog-skills-title {display:flex;align-items:center;gap:12px;min-width:0}
+.personnel-catalog-skills-title-icon {display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#e6f0ff;color:#145eb3;flex-shrink:0;font-size:16px}
+.personnel-catalog-dialog .personnel-catalog-skills-heading h3 {font-size:16px;line-height:1.3}
+.personnel-catalog-dialog .personnel-catalog-skills-heading p {font-size:12px;line-height:1.5}
+.personnel-catalog-dialog .personnel-catalog-skill-toolbar {gap:9px}
+.personnel-catalog-dialog .personnel-catalog-skill-edit-toggle {min-height:36px;font-size:12px;padding:9px 14px;border-color:#ccdaed}
+.personnel-catalog-dialog .personnel-catalog-skill-toolbar .personnel-catalog-new-job {background:#1765c6;color:#fff;min-height:36px;font-size:12px;padding:9px 14px}
+.personnel-catalog-dialog [data-catalog-panel="skills"]>.personnel-catalog-search-label {min-height:42px;margin-bottom:14px}
+.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:0}
+.personnel-catalog-dialog .personnel-catalog-skill-card {min-height:62px;gap:9px;padding:9px 10px;border-color:#d7e3f3;background:#fff;border-radius:10px}
+.personnel-catalog-dialog .personnel-catalog-skill-icon {display:grid;place-items:center;width:31px;height:31px;flex-shrink:0;border-radius:9px;background:#e7f1ff;color:#185fb7}
+.personnel-catalog-dialog .personnel-catalog-skill-icon i {color:inherit;font-size:13px}
+.personnel-catalog-dialog .personnel-catalog-skill-card strong {font-size:12px;line-height:1.35;font-weight:750}
+.personnel-catalog-dialog .personnel-catalog-remove-skill {margin-left:auto}
+.personnel-catalog-dialog .personnel-catalog-skill-edit-actions {margin-top:22px;padding-top:17px;gap:10px}
+.personnel-catalog-dialog .personnel-catalog-skill-edit-actions span {font-size:12px}
+.personnel-catalog-dialog .personnel-catalog-skill-edit-actions .personnel-catalog-new-job {background:#1765c6;color:#fff;font-size:12px;padding:10px 14px}
+.personnel-catalog-dialog .personnel-catalog-skill-edit-actions .personnel-catalog-new-job:disabled {background:#e5edfa;color:#6a82a6}
+@media(max-width:950px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(2,minmax(0,1fr))}.personnel-catalog-dialog .personnel-catalog-skills-heading {align-items:flex-start}}
+@media(max-width:420px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:1fr}}
