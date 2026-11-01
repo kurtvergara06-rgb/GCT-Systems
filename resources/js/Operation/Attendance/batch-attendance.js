@@ -158,6 +158,10 @@ function initBatchAttendancePage() {
                 overlay.querySelector('#batchHeaderTimeIn')?.setAttribute('aria-pressed', String(mode === 'in'));
                 overlay.querySelector('#batchHeaderTimeOut')?.setAttribute('aria-pressed', String(mode === 'out'));
                 overlay.querySelector('#batchSaveAttendance').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save ' + (mode === 'out' ? 'Time Out' : 'Attendance');
+                ['batchMarkPresent','batchUseCurrentTime','batchApplyTime','batchClearAll'].forEach(id => {
+                    const control = overlay.querySelector('#' + id);
+                    if (control) control.hidden = mode === 'out';
+                });
                 loadRoster();
             };
             overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => switchMode('in'));
