@@ -11,6 +11,8 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class FuelReportController extends Controller
@@ -20,7 +22,7 @@ class FuelReportController extends Controller
     public function index(Request $request): View
     {
         $query = FuelReport::query()
-            ->with(['gpsTripRecord', 'bus']);
+            ->with(['gpsTripRecord', 'bus', 'trips']);
 
         if ($request->filled('search')) {
             $search = trim($request->string('search'));
@@ -295,6 +297,10 @@ class FuelReportController extends Controller
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
+        if ($request->boolean('physical_fuel_form')) {
+            return $this->storePhysicalFuelForm($request);
+        }
+
         if ($request->boolean('daily_monitoring')) {
             return $this->storeDailyMonitoring($request);
         }
@@ -350,6 +356,82 @@ class FuelReportController extends Controller
         return redirect()
             ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record saved successfully.');
+    }
+
+    /**
+     * Separate physical-paper encoding path. Historical GPS/manual records
+     * retain their original behavior; no invented verified efficiency.
+     */
+    private function storePhysicalFuelForm(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'report_date' => ['required', 'date', 'before_or_equal:today'],
+            'issued_at' => ['nullable', 'date_format:H:i'],
+            'bus_no' => ['required', 'string', 'exists:buses,bus_no'],
+            'driver_name' => ['required', 'string', 'max:255'],
+            'gas_station' => ['required', 'string', 'max:150'],
+            'po_reference' => ['nullable', 'string', 'max:80'],
+            'fuel_liters' => ['required', 'numeric', 'gt:0', 'max:999999.99'],
+            'trips' => ['required', 'array', 'min:1', 'max:30'],
+            'trips.*.trip_date' => ['required', 'date', 'before_or_equal:today'],
+            'trips.*.ticket_number' => ['nullable', 'string', 'max:80'],
+            'trips.*.origin' => ['required', 'string', 'max:150'],
+            'trips.*.destination' => ['required', 'string', 'max:150'],
+            'trips.*.distance_km' => ['required', 'numeric', 'gt:0', 'max:99999999.99'],
+            'remarks' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $bus = Bus::query()->where('bus_no', $data['bus_no'])->firstOrFail();
+        // Duplicate paper form entries for an identical bus and issuance
+        // timestamp require review; do not silently overwrite history.
+        if (FuelReport::query()->where('bus_no', $data['bus_no'])
+            ->whereDate('report_date', $data['report_date'])
+            ->where('issued_at', $data['issued_at'] ?? null)
+            ->where('entry_type', 'Physical Form')->exists()) {
+            throw ValidationException::withMessages([
+                'report_date' => 'A fuel form already exists for this bus, date and issuance time. Review the existing record.',
+            ]);
+        }
+
+        $record = DB::transaction(function () use ($data, $bus) {
+            $distance = round(array_sum(array_map(
+                fn (array $trip) => (float) $trip['distance_km'],
+                $data['trips']
+            )), 2);
+            $report = FuelReport::create([
+                'report_date' => $data['report_date'],
+                'bus_no' => $data['bus_no'],
+                'plate_number' => $bus->plate_no,
+                'driver_name' => $data['driver_name'],
+                'gas_station' => $data['gas_station'],
+                'issued_at' => $data['issued_at'] ?? null,
+                'po_reference' => $data['po_reference'] ?? null,
+                'fuel_liters' => $data['fuel_liters'],
+                'distance_km' => $distance,
+                'distance_source' => 'Manual',
+                'km_per_liter' => 0,
+                'status' => 'No Data',
+                'entry_type' => 'Physical Form',
+                'remarks' => $data['remarks'] ?? null,
+                'manual_distance_reason' => 'Physical fuel monitoring form',
+            ]);
+            foreach (array_values($data['trips']) as $index => $trip) {
+                $report->trips()->create([
+                    'sequence' => $index + 1,
+                    'trip_date' => $trip['trip_date'],
+                    'ticket_number' => $trip['ticket_number'] ?? null,
+                    'origin' => $trip['origin'],
+                    'destination' => $trip['destination'],
+                    'distance_km' => $trip['distance_km'],
+                ]);
+            }
+            return $report;
+        });
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'created', $record->id, 'A physical fuel report was recorded.');
+
+        return redirect()->route('fuel-reports', ['date_filter' => 'All Dates'])
+            ->with('success', 'Fuel report saved successfully.');
     }
 
     public function update(
