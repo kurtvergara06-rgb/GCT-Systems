@@ -229,7 +229,7 @@
             </div>
         </form>
         @endif
-        <h3>Maintenance Job List</h3>
+        <div class="personnel-catalog-list-heading"><h3>Maintenance Job List</h3><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
         <div class="personnel-catalog-job-list">
         @foreach($maintenanceJobCatalog as $job)
             @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
