@@ -121,6 +121,24 @@ class PmsSchedulingController extends Controller
         $ddrMileageByBus = app(DdrPmsMileageService::class)->estimates($monitoringByBus->values());
         $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
         $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'approve') ?? false;
+        // Configured buses must be visible even when no legacy PMS tasks exist.
+        foreach ($monitoringByBus as $busKey => $monitoring) {
+            if ($groups->contains(fn ($group) => strtoupper(trim((string) $group->bus_no)) === $busKey)) {
+                continue;
+            }
+            $groups->push((object) [
+                'bus_no' => $monitoring->bus?->bus_no,
+                'gps_report_date' => null,
+                'current_km' => null,
+                'km_traveled' => null,
+                'tasks' => collect(),
+                'next_pms_km' => $monitoring->nextDueOdometerKm(),
+                'next_pms_date' => $monitoring->nextDueDate(),
+                'has_processed_gps' => false,
+                'due_pms_count' => 0,
+                'overall_status' => $monitoring->status(),
+            ]);
+        }
         $groups = $groups->map(function ($group) use ($monitoringByBus) {
             $configuration = $monitoringByBus->get(strtoupper(trim((string) $group->bus_no)));
             $group->overall_status = $configuration?->status() ?? 'Not Configured';
