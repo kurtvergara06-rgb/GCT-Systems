@@ -263,6 +263,10 @@
       </form>
     </div>
   </div>
+  @if(old('physical_fuel_form'))
+    <span id="physicalFuelReopen" hidden></span>
+  @endif
+  <script type="application/json" id="physicalFuelOldTrips">@json(old('trips', []))</script>
   <template id="physicalTripTemplate">
     <div class="fuel-paper-trip">
       <div class="fuel-paper-trip-title"><strong>Trip <span class="fuel-paper-trip-number"></span></strong><button type="button" class="fuel-paper-remove-trip" aria-label="Remove trip"><i class="fa-solid fa-trash-can"></i></button></div>
