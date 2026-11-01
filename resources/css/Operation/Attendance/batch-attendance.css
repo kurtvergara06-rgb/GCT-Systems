@@ -502,3 +502,7 @@
 .batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn {min-height:42px;padding:10px 14px;border-color:#ced6e2;color:#1c2430;background:#fff;font-size:12px;font-weight:700}
 .batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn:hover {background:#f4f5f7;border-color:#9ba7b8;color:#111827}
 @media(max-width:780px) {.batch-attendance-mechanic .batch-toolbar-time-actions {width:100%;justify-content:flex-end}.batch-attendance-mechanic .batch-attendance-controls>.batch-action-row {flex:1 1 100%}}
+
+/* Time In/Time Out are alternate attendance workflows, not bulk timestamp actions. */
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn[aria-pressed="true"] {background:#f0f2f5;border-color:#9ba5b2;color:#111827}
+.batch-attendance-mechanic .batch-attendance-controls .batch-control-btn[hidden] {display:none}
