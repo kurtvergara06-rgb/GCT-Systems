@@ -44,10 +44,7 @@ function initBatchAttendancePage() {
                             </div>
                         </div>
                     </div>
-                    <div class="batch-header-actions">
-                        ${type === 'mechanic' ? '<div class="batch-header-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
-                        <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
-                    </div>
+                    <button type="button" class="batch-close-btn" data-batch-close aria-label="Close modal">&times;</button>
                 </div>
 
                 <div class="batch-attendance-controls">
@@ -73,6 +70,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
+                    ${type === 'mechanic' ? '<div class="batch-toolbar-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
                     ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
 
