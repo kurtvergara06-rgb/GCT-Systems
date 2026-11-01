@@ -209,11 +209,41 @@
         <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills">Specializations</button>
     </div>
     <section role="tabpanel" id="catalogJobsPanel" aria-labelledby="catalogJobsTab" data-catalog-panel="jobs">
-        <p class="personnel-catalog-hint">Existing predefined repair jobs are still managed in the Job Order workflow. Custom job mapping is not yet enabled.</p>
-        <div class="personnel-catalog-items">
-            @foreach(['Change Oil','Oil Filter Replacement','Brake Inspection','Brake Pad Replacement','Air Filter Replacement','Aircon Servicing','Battery Replacement','Tire Replacement','Engine Tune-Up','Full PMS','Fuel Filter Replacement','Transmission and Clutch Inspection','Suspension Inspection and Repair','Wiring and Electrical Troubleshooting'] as $jobName)
-                <span class="personnel-catalog-item">{{ $jobName }}</span>
-            @endforeach
+        @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+        <form class="personnel-catalog-job-form" method="POST" action="{{ route('maintenance-job-catalog.store') }}" data-catalog-job-form data-create-url="{{ route('maintenance-job-catalog.store') }}">
+            @csrf
+            <input type="hidden" name="_method" value="POST" data-catalog-job-method>
+            <h3 data-catalog-form-heading>Add Maintenance Job</h3>
+            <label>Job Name <input name="name" required maxlength="255" placeholder="e.g. Hydraulic Hose Replacement"></label>
+            <fieldset><legend>Qualified Specializations (one or more)</legend>
+                <div class="personnel-catalog-items">
+                @foreach($specializationOptions as $skill)
+                    <label class="personnel-catalog-item"><input type="checkbox" name="specializations[]" value="{{ $skill }}"> {{ $skill }}</label>
+                @endforeach
+                </div>
+            </fieldset>
+            <label class="personnel-catalog-active"><input type="checkbox" name="is_active" value="1" checked> Active (available in New JO)</label>
+            <div class="personnel-catalog-job-actions">
+                <button type="submit" class="personnel-catalog-manage-skills" data-catalog-save-job>Save Job</button>
+                <button type="button" class="personnel-catalog-reset" data-catalog-reset-job>Cancel Edit</button>
+            </div>
+        </form>
+        @endif
+        <h3>Maintenance Job List</h3>
+        <div class="personnel-catalog-job-list">
+        @foreach($maintenanceJobCatalog as $job)
+            @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
+            <div class="personnel-catalog-job-entry">
+                <div><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }} · {{ $job->is_active ? 'Active' : 'Inactive' }}</small></div>
+                @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+                    <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
+                        data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
+                        data-job-name="{{ $job->name }}"
+                        data-job-skills="{{ json_encode($jobSkills) }}"
+                        data-job-active="{{ $job->is_active ? '1' : '0' }}">Edit</button>
+                @endif
+            </div>
+        @endforeach
         </div>
     </section>
     <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
