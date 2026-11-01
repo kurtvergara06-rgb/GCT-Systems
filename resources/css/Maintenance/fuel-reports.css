@@ -1482,68 +1482,31 @@
   min-width: 1100px;
 }
 
-/* Text columns */
+/* Eight-column Fuel Records layout (Status removed). */
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(1),
 .fuel-page .recent-fuel-card .recent-records-table td:nth-child(1),
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(2),
 .fuel-page .recent-fuel-card .recent-records-table td:nth-child(2),
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6),
-.fuel-page .recent-fuel-card .recent-records-table td:nth-child(6) {
-  text-align: left;
-}
-
-/* Numeric, source, status and actions columns */
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3),
-.fuel-page .recent-fuel-card .recent-records-table td:nth-child(3),
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(4),
 .fuel-page .recent-fuel-card .recent-records-table td:nth-child(4),
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(5),
-.fuel-page .recent-fuel-card .recent-records-table td:nth-child(5),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(5) {text-align:left;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(3),
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6),
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(6),
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(7),
 .fuel-page .recent-fuel-card .recent-records-table td:nth-child(7),
 .fuel-page .recent-fuel-card .recent-records-table th:nth-child(8),
-.fuel-page .recent-fuel-card .recent-records-table td:nth-child(8),
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(9),
-.fuel-page .recent-fuel-card .recent-records-table td:nth-child(9) {
-  text-align: center;
-}
-
-/* Column widths */
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(1) {
-  width: 12%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(2) {
-  width: 12%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3) {
-  width: 11%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(4) {
-  width: 9%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(5) {
-  width: 9%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6) {
-  width: 15%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(7) {
-  width: 10%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(8) {
-  width: 10%;
-}
-
-.fuel-page .recent-fuel-card .recent-records-table th:nth-child(9) {
-  width: 12%;
-}
+.fuel-page .recent-fuel-card .recent-records-table td:nth-child(8) {text-align:center;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(1) {width:12%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(2) {width:13%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(3) {width:12%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(4) {width:13%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(5) {width:15%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(6) {width:11%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(7) {width:11%;}
+.fuel-page .recent-fuel-card .recent-records-table th:nth-child(8) {width:13%;}
 
 /* Important date and bus values */
 .fuel-page .recent-fuel-card .recent-records-table td:nth-child(1),
