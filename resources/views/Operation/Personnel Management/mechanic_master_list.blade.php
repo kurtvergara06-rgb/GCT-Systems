@@ -340,22 +340,8 @@
                         </div>
                     </div>
 
-                    @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
-                        <div class="personnel-specialization-inline-create" style="display:flex;align-items:center;gap:8px;max-width:100%;min-width:0;margin-left:auto">
-                            <input type="text" data-specialization-create-name maxlength="100" hidden placeholder="New specialization name" aria-label="New specialization name" style="width:200px;max-width:min(200px,45vw);height:32px;padding:0 10px;border:1px solid #d8e2ef;border-radius:8px;font-size:11px;box-sizing:border-box">
-                            <button type="button" class="personnel-specialization-create-btn" data-specialization-create-toggle data-specialization-create-save data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}" aria-expanded="false" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:0 10px;background:#ffc400;border:0;border-radius:8px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer">
-                                <i class="fa-solid fa-plus" aria-hidden="true"></i><span data-specialization-create-label>New</span>
-                            </button>
-                            <button type="button" data-specialization-edit-toggle aria-pressed="false" style="min-height:32px;padding:0 10px;border:1px solid #d8e2ef;background:#fff;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">
-                                <i class="fa-solid fa-pen" aria-hidden="true"></i> <span data-specialization-edit-label>Edit</span>
-                            </button>
-                        </div>
-                    @endif
                 </div>
 
-                @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
-                    <small data-specialization-create-feedback role="status" aria-live="polite"></small>
-                @endif
                 <input type="hidden" name="specialization" value="{{ old('specialization') }}" data-specialization-value>
 
                 <div class="personnel-specialization-picker" data-specialization-picker>
