@@ -216,14 +216,14 @@
         <div class="personnel-catalog-job-list" data-catalog-job-list>
         @foreach($maintenanceJobCatalog as $job)
             @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
-            <div class="personnel-catalog-job-entry" data-catalog-job-row data-catalog-job-row>
-                <div class="personnel-catalog-job-details"><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }}</small></div><span class="personnel-catalog-status {{ $job->is_active ? 'is-active' : 'is-inactive' }}">{{ $job->is_active ? 'Active' : 'Inactive' }}</span>
+            <div class="personnel-catalog-job-entry" data-catalog-job-row>
+                <div class="personnel-catalog-job-details"><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }}</small></div><span class="personnel-catalog-status {{ $job->is_active ? 'is-active' : 'is-inactive' }}"><i class="fa-solid {{ $job->is_active ? 'fa-circle-check' : 'fa-circle-minus' }}" aria-hidden="true"></i> {{ $job->is_active ? 'Active' : 'Inactive' }}</span>
                 @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
                     <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
                         data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
                         data-job-name="{{ $job->name }}"
                         data-job-skills="{{ json_encode($jobSkills) }}"
-                        data-job-active="{{ $job->is_active ? '1' : '0' }}"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i><span class="visually-hidden">Edit</span></button>
+                        data-job-active="{{ $job->is_active ? '1' : '0' }}"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit</span></button>
                 @endif
             </div>
         @endforeach
