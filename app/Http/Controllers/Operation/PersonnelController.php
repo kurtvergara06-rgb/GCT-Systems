@@ -575,6 +575,18 @@ class PersonnelController extends Controller
             return response()->json(['message' => 'This specialization is assigned to a mechanic and cannot be deleted.'], 409);
         }
 
+        // Also protect qualifications referenced by Maintenance Job Catalog entries.
+        $usedByJobs = DB::table('maintenance_job_catalog')->pluck('specializations')
+            ->contains(function ($json) use ($option) {
+                $skills = json_decode((string) $json, true);
+                return is_array($skills) && collect($skills)->contains(
+                    fn ($skill) => mb_strtolower(trim((string) $skill)) === $option->normalized_name
+                );
+            });
+        if ($usedByJobs) {
+            return response()->json(['message' => 'This specialization is required by a Maintenance Job. Remove that mapping first.'], 409);
+        }
+
         DB::table('mechanic_specialization_options')->where('id', $specialization)->delete();
         return response()->json(['success' => true]);
     }
