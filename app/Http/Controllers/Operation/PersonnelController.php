@@ -165,9 +165,10 @@ class PersonnelController extends Controller
                 ->where('status', 'On Going')->where('review_status', 'Approved')->exists();
         });
 
+        $maintenanceJobCatalog = DB::table('maintenance_job_catalog')->orderBy('name')->get();
         return view(
             'Operation.Personnel Management.mechanic_master_list',
-            compact('mechanics', 'stats', 'specializationOptions', 'customSpecializationIds')
+            compact('mechanics', 'stats', 'specializationOptions', 'customSpecializationIds', 'maintenanceJobCatalog')
         );
     }
 
