@@ -43,7 +43,7 @@
             <h2>Fuel Records</h2>
             <p>Fuel issuance entries and their recorded trip distance.</p>
           </div>
-          <button type="button" id="openFuelModal" class="fuel-new-report-btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Fuel Report</button>
+          <button type="button" id="openPhysicalFuelForm" class="fuel-new-report-btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Fuel Report</button>
         </div>
 
         <div class="fuel-record-controls recent-fuel-controls">
@@ -119,7 +119,7 @@
                   <td>{{ $record->report_date?->format('M d, Y') }}</td>
                   <td><span class="bus-badge-pill"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $record->bus_no }}</span></td>
                   <td>{{ $record->driver_name ?: '—' }}</td>
-                  <td><span title="Gas station is not yet recorded in the existing fuel report schema">—</span></td>
+                  <td>{{ $record->gas_station ?: '—' }}</td>
                   <td>{{ number_format((float) $record->fuel_liters, 2) }}</td>
                   <td>{{ number_format((float) $record->distance_km, 2) }}</td>
                   <td><x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" /></td>
@@ -220,6 +220,61 @@
     </main>
 
   </div>
+
+  <div class="fuel-paper-overlay" id="physicalFuelModal" hidden>
+    <div class="fuel-paper-modal" role="dialog" aria-modal="true" aria-labelledby="physicalFuelTitle">
+      <div class="fuel-paper-header">
+        <span class="fuel-paper-heading-icon"><i class="fa-solid fa-gas-pump" aria-hidden="true"></i></span>
+        <div><h2 id="physicalFuelTitle">New Fuel Report</h2><p>Encode the driver's Fuel Efficiency Monitoring Form</p></div>
+        <button type="button" id="closePhysicalFuelForm" class="fuel-paper-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form method="POST" action="{{ route('fuel-reports.store') }}" id="physicalFuelForm">
+        @csrf
+        <input type="hidden" name="physical_fuel_form" value="1">
+        <div class="fuel-paper-content">
+          @if($errors->any())<div class="fuel-paper-errors" role="alert">{{ $errors->first() }}</div>@endif
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">01</span> Fuel Issuance Details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-grid">
+              <div class="fuel-paper-field"><label for="physical-date">Report Date *</label><input type="date" id="physical-date" name="report_date" value="{{ old('report_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></div>
+              <div class="fuel-paper-field"><label for="physical-station">Gas Station *</label><input id="physical-station" name="gas_station" value="{{ old('gas_station') }}" placeholder="Enter gas station" maxlength="150" required></div>
+              <div class="fuel-paper-field"><label for="physical-bus">Bus *</label><select id="physical-bus" name="bus_no" required><option value="">Select a bus</option>@foreach($buses as $bus)<option value="{{ $bus->bus_no }}" data-plate="{{ $bus->plate_no }}" @selected(old('bus_no') === $bus->bus_no)>{{ $bus->bus_no }}{{ $bus->plate_no ? ' — '.$bus->plate_no : '' }}</option>@endforeach</select></div>
+              <div class="fuel-paper-field"><label for="physical-driver">Driver / Employee *</label><input id="physical-driver" name="driver_name" value="{{ old('driver_name') }}" placeholder="Enter driver / employee" maxlength="255" required></div>
+              <div class="fuel-paper-field"><label for="physical-plate">Plate Number</label><input id="physical-plate" readonly placeholder="Selected bus plate"></div>
+              <div class="fuel-paper-field"><label for="physical-time">Issuance Time</label><input id="physical-time" type="time" name="issued_at" value="{{ old('issued_at') }}"></div>
+              <div class="fuel-paper-field"><label for="physical-po">PO Number</label><input id="physical-po" name="po_reference" value="{{ old('po_reference') }}" maxlength="80" placeholder="Optional reference"></div>
+              <div class="fuel-paper-field"><label for="physical-liters">Diesel Issued (L) *</label><input id="physical-liters" type="number" step="0.01" min="0.01" name="fuel_liters" value="{{ old('fuel_liters') }}" placeholder="0.00" required></div>
+            </div>
+          </details>
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">02</span> Trip Details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-trip-content">
+              <p class="fuel-paper-hint">Enter the trips on the paper form. Do not double-count DDR distances.</p>
+              <div id="physicalTripRows" class="fuel-paper-trip-rows"></div>
+              <div class="fuel-paper-trip-bottom"><button type="button" id="addPhysicalTrip" class="fuel-paper-add-trip"><i class="fa-solid fa-plus"></i> Add Trip Row</button><strong>Total KM: <span id="physicalTripTotal">0.00</span> km</strong></div>
+            </div>
+          </details>
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">03</span> Remarks <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-remarks"><label for="physical-remarks">Additional notes (optional)</label><textarea id="physical-remarks" name="remarks" rows="3" maxlength="2000" placeholder="Full tank, special trip, observations...">{{ old('remarks') }}</textarea></div>
+          </details>
+        </div>
+        <div class="fuel-paper-footer"><button type="button" id="cancelPhysicalFuelForm" class="fuel-paper-cancel">Cancel</button><button type="submit" class="fuel-paper-save"><i class="fa-solid fa-floppy-disk"></i> Save Fuel Report</button></div>
+      </form>
+    </div>
+  </div>
+  <template id="physicalTripTemplate">
+    <div class="fuel-paper-trip">
+      <div class="fuel-paper-trip-title"><strong>Trip <span class="fuel-paper-trip-number"></span></strong><button type="button" class="fuel-paper-remove-trip" aria-label="Remove trip"><i class="fa-solid fa-trash-can"></i></button></div>
+      <div class="fuel-paper-trip-grid">
+        <div class="fuel-paper-field"><label>Trip Date *</label><input type="date" data-field="trip_date" required></div>
+        <div class="fuel-paper-field"><label>Trip Ticket No.</label><input data-field="ticket_number" maxlength="80"></div>
+        <div class="fuel-paper-field"><label>Origin *</label><input data-field="origin" maxlength="150" required></div>
+        <div class="fuel-paper-field"><label>Destination *</label><input data-field="destination" maxlength="150" required></div>
+        <div class="fuel-paper-field"><label>Distance (km) *</label><input type="number" data-field="distance_km" step="0.01" min="0.01" required></div>
+      </div>
+    </div>
+  </template>
 
   {{-- ADD / EDIT FUEL RECORD --}}
   <div class="fuel-modal-overlay" id="fuelModal">
