@@ -486,3 +486,7 @@
   .batch-attendance-mechanic .batch-action-row { flex-direction: row; }
   .batch-attendance-mechanic .batch-control-btn { width: auto; white-space: normal; }
 }
+
+/* Column-level time actions for selected mechanics, without changing the attendance grid. */
+.batch-attendance-table .batch-heading-time-btn {display:inline-flex;align-items:center;justify-content:center;gap:5px;margin-left:8px;padding:5px 8px;min-height:26px;border:1px solid #bfd4f1;border-radius:6px;background:#edf5ff;color:#1758ac;font-size:10px;font-weight:700;white-space:nowrap;cursor:pointer}
+.batch-attendance-table .batch-heading-time-btn:hover {background:#dcecff;border-color:#8cb7ec}
