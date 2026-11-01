@@ -2042,7 +2042,7 @@ window.addEventListener('load', () => {
     const row = template.content.firstElementChild.cloneNode(true);
     rows.appendChild(row);
     row.querySelector('[data-field="trip_date"]').value = form.querySelector('#physical-date').value;
-    row.querySelectorAll('input[type="date"]').forEach(input => { input.max = new Date().toLocaleDateString('en-CA'); });
+    row.querySelectorAll('input[type="date"]').forEach(input => { input.max = document.getElementById('physical-date').max; });
     row.querySelector('.fuel-paper-remove-trip').addEventListener('click', () => {
       if (rows.children.length <= 1) return;
       row.remove(); renumber();
@@ -2069,4 +2069,21 @@ window.addEventListener('load', () => {
     if (rows.children.length === 0) { event.preventDefault(); addTrip(); }
   });
   if (rows.children.length === 0) addTrip();
+  const previousTrips = (() => {
+    const element = document.getElementById('physicalFuelOldTrips');
+    if (!element) return [];
+    try { return JSON.parse(element.textContent) || []; } catch { return []; }
+  })();
+  if (Array.isArray(previousTrips) && previousTrips.length) {
+    rows.innerHTML = '';
+    previousTrips.slice(0, 30).forEach(trip => {
+      addTrip();
+      const row = rows.lastElementChild;
+      row.querySelectorAll('[data-field]').forEach(input => {
+        input.value = trip[input.dataset.field] ?? '';
+      });
+    });
+    renumber();
+  }
+  if (document.getElementById('physicalFuelReopen')) trigger.click();
 })();
