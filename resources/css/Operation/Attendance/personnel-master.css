@@ -2477,3 +2477,12 @@
 .personnel-catalog-remove-skill { flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;min-height:27px;border:1px solid #fecaca;background:#fff1f2;color:#b91c1c;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer; }
 .personnel-catalog-remove-skill:hover { background:#ffe4e6; }
 .personnel-catalog-remove-skill:disabled { opacity:0.5;cursor:wait; }
+
+.personnel-catalog-skill-toolbar {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.personnel-catalog-skill-edit-toggle {display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #d4deed;border-radius:8px;background:#fff;font-size:11px;font-weight:750;cursor:pointer;}
+.personnel-catalog-remove-skill[hidden],.personnel-catalog-skill-edit-actions[hidden] {display:none;}
+.personnel-catalog-skill-card.is-pending-delete {border-color:#fca5a5;background:#fff6f6;}
+.personnel-catalog-remove-skill[aria-pressed="true"] {background:#fecaca;color:#991b1b;}
+.personnel-catalog-skill-edit-actions {display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 0 0;margin-top:12px;border-top:1px solid #e1e9f3;}
+.personnel-catalog-skill-edit-actions span {margin-right:auto;font-size:11px;color:#697c95;}
+.personnel-catalog-skill-edit-actions .personnel-catalog-new-job:disabled {opacity:.45;cursor:not-allowed;}
