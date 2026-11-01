@@ -220,6 +220,7 @@ class OperationAutoSchedulingTest extends TestCase
         $user = User::factory()->create();
         [$trip, $attendance, $allocatedBus] = $this->makeScheduleResources();
         $client = OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        $trip->shuttleRoute->update(['operation_client_id' => $client->id]);
         $trip->update(['client_name' => $client->name]);
         $allocatedBus->update(['client_allocation_type' => 'Exclusive']);
         $allocatedBus->operationClients()->sync([$client->id]);
@@ -417,7 +418,7 @@ class OperationAutoSchedulingTest extends TestCase
         $response
             ->assertUnprocessable()
             ->assertJsonValidationErrors(
-                'recommendations.0'
+                'recommendations'
             );
 
         $this->assertDatabaseMissing(
@@ -803,7 +804,10 @@ class OperationAutoSchedulingTest extends TestCase
     {
         $scheduleDate = now()->addDay()->toDateString();
 
+        $client = OperationClient::firstOrCreate(['name' => 'Test Client'], ['status' => 'Active']);
+
         $route = ShuttleRoute::create([
+            'operation_client_id' => $client->id,
             'route_code' => 'R-001',
             'route_name' => 'Test Route',
             'origin' => 'Batangas',
@@ -821,6 +825,8 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $bus->operationClients()->syncWithoutDetaching([$client->id]);
+
         $driverMaster = $this->createDriverMaster();
         $driverMaster->authorizedBuses()->syncWithoutDetaching([$bus->id]);
 
@@ -835,6 +841,7 @@ class OperationAutoSchedulingTest extends TestCase
             'trip_code' => 'T-001',
             'trip_date' => $scheduleDate,
             'shuttle_route_id' => $route->id,
+            'client_name' => $client->name,
             'departure_time' => '09:00:00',
             'estimated_arrival_time' => '10:00:00',
             'estimated_arrival_date' => $scheduleDate,
@@ -878,7 +885,9 @@ class OperationAutoSchedulingTest extends TestCase
         $user = User::factory()->create();
         $scheduleDate = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
 
+        $client = OperationClient::create(['name' => 'Directional Test Client', 'status' => 'Active']);
         $route = ShuttleRoute::create([
+            'operation_client_id' => $client->id,
             'route_code' => 'R-TEST',
             'route_name' => 'Test Route',
             'origin' => 'Origin',
@@ -888,6 +897,7 @@ class OperationAutoSchedulingTest extends TestCase
 
         $incomingTrip = TripSchedule::create([
             'trip_code' => 'T-INC-01',
+            'client_name' => $client->name,
             'trip_date' => $scheduleDate,
             'shuttle_route_id' => $route->id,
             'direction' => 'Incoming',
@@ -902,6 +912,7 @@ class OperationAutoSchedulingTest extends TestCase
 
         $outgoingTrip = TripSchedule::create([
             'trip_code' => 'T-OUT-01',
+            'client_name' => $client->name,
             'trip_date' => $scheduleDate,
             'shuttle_route_id' => $route->id,
             'direction' => 'Outgoing',
@@ -955,7 +966,9 @@ class OperationAutoSchedulingTest extends TestCase
             ->addDay()
             ->toDateString();
 
+        $client = OperationClient::create(['name' => 'Both Direction Client', 'status' => 'Active']);
         $route = ShuttleRoute::create([
+            'operation_client_id' => $client->id,
             'route_code' => 'R-BOTH',
             'route_name' => 'Both Route',
             'origin' => 'Origin',
@@ -1001,11 +1014,14 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Present',
         ]);
 
+        $bus1->operationClients()->syncWithoutDetaching([$client->id]);
+        $bus2->operationClients()->syncWithoutDetaching([$client->id]);
         $driver1Master->authorizedBuses()->syncWithoutDetaching([$bus1->id]);
         $driver2Master->authorizedBuses()->syncWithoutDetaching([$bus2->id]);
 
         $incomingTrip = TripSchedule::create([
             'trip_code' => 'T-INC-CONFIRM',
+            'client_name' => $client->name,
             'trip_date' => $scheduleDate,
             'shuttle_route_id' => $route->id,
             'direction' => 'Incoming',
@@ -1020,6 +1036,7 @@ class OperationAutoSchedulingTest extends TestCase
 
         $outgoingTrip = TripSchedule::create([
             'trip_code' => 'T-OUT-CONFIRM',
+            'client_name' => $client->name,
             'trip_date' => $scheduleDate,
             'shuttle_route_id' => $route->id,
             'direction' => 'Outgoing',
@@ -1334,6 +1351,7 @@ class OperationAutoSchedulingTest extends TestCase
             'capacity' => 40,
             'status' => 'Active',
         ]);
+        $secondBus->operationClients()->syncWithoutDetaching([$trip->shuttleRoute->operation_client_id]);
         $secondDriver->authorizedBuses()->syncWithoutDetaching([$secondBus->id]);
 
         $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
@@ -1419,6 +1437,7 @@ class OperationAutoSchedulingTest extends TestCase
             'capacity' => 40,
             'status' => 'Active',
         ]);
+        $secondBus->operationClients()->syncWithoutDetaching([$trip->shuttleRoute->operation_client_id]);
         $secondDriver->authorizedBuses()->syncWithoutDetaching([$secondBus->id]);
 
         $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
@@ -1505,8 +1524,14 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
         $date = now()->addDays(2)->toDateString();
+        $epson = OperationClient::firstOrCreate(['name' => 'EPSON'], ['status' => 'Active']);
+        $sm = OperationClient::firstOrCreate(['name' => 'SM'], ['status' => 'Active']);
+        $murata = OperationClient::firstOrCreate(['name' => 'Murata'], ['status' => 'Active']);
+        $internal = OperationClient::firstOrCreate(['name' => 'Internal Shuttle Client'], ['status' => 'Active']);
+
 
         $routeFpipCalamba = ShuttleRoute::create([
+            'operation_client_id' => $epson->id,
             'route_code' => 'R-FPIP-CAL',
             'route_name' => 'FPIP – Calamba',
             'origin' => 'FPIP',
@@ -1516,6 +1541,7 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
         $routeCalambaFpip = ShuttleRoute::create([
+            'operation_client_id' => $epson->id,
             'route_code' => 'R-CAL-FPIP',
             'route_name' => 'Calamba – FPIP',
             'origin' => 'Calamba',
@@ -1525,6 +1551,7 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
         $routeFpipTanauan = ShuttleRoute::create([
+            'operation_client_id' => $murata->id,
             'route_code' => 'R-FPIP-TAN',
             'route_name' => 'FPIP – Tanauan',
             'origin' => 'FPIP',
@@ -1534,12 +1561,24 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
         $routeInternal = ShuttleRoute::create([
+            'operation_client_id' => $internal->id,
             'route_code' => 'R-INTERNAL',
             'route_name' => 'Internal Shuttle',
             'origin' => 'Gate 1',
             'destination' => 'Gate 2',
             'distance_km' => 5.0,
             'estimated_time_minutes' => 20,
+            'status' => 'Active',
+        ]);
+
+        $routeSm = ShuttleRoute::create([
+            'operation_client_id' => $sm->id,
+            'route_code' => 'R-FPIP-CAL-SM',
+            'route_name' => 'FPIP – Calamba (SM)',
+            'origin' => 'FPIP',
+            'destination' => 'Calamba',
+            'distance_km' => 15.0,
+            'estimated_time_minutes' => 45,
             'status' => 'Active',
         ]);
 
@@ -1563,10 +1602,10 @@ class OperationAutoSchedulingTest extends TestCase
             'required_buses' => 2,
         ])->assertSessionHasNoErrors();
 
-        // Trip 3: Incoming | Client: SM | Route: FPIP – Calamba | 06:00 AM | 1 bus (Same route & time, different client)
+        // Trip 3: Incoming | Client: SM | Route: FPIP – Calamba | 06:00 AM | 1 bus (Same physical endpoints and time, separate client-owned route)
         $this->actingAs($user)->post(route('trip-schedule.store'), [
             'trip_date' => $date,
-            'shuttle_route_id' => $routeFpipCalamba->id,
+            'shuttle_route_id' => $routeSm->id,
             'client_name' => 'SM',
             'direction' => 'Incoming',
             'departure_time' => '06:00',
@@ -1603,11 +1642,11 @@ class OperationAutoSchedulingTest extends TestCase
             'required_buses' => 1,
         ])->assertSessionHasNoErrors();
 
-        // Trip 6: Incoming | No client | Route: Internal Shuttle | 08:00 AM | 1 bus
+        // Trip 6: Incoming | Internal Shuttle Client | Route: Internal Shuttle | 08:00 AM | 1 bus
         $this->actingAs($user)->post(route('trip-schedule.store'), [
             'trip_date' => $date,
             'shuttle_route_id' => $routeInternal->id,
-            'client_name' => null,
+            'client_name' => $internal->name,
             'direction' => 'Incoming',
             'departure_time' => '08:00',
             'required_buses' => 1,
@@ -1708,6 +1747,9 @@ class OperationAutoSchedulingTest extends TestCase
             'client_name' => 'EPSON',
             'departure_time' => '08:00:00',
             'estimated_arrival_time' => '08:30:00',
+        ]);
+        $trip->shuttleRoute->update([
+            'operation_client_id' => OperationClient::firstOrCreate(['name' => 'EPSON'], ['status' => 'Active'])->id,
         ]);
         $epson = OperationClient::firstOrCreate(['name' => 'EPSON'], ['status' => 'Active']);
         $bus->operationClients()->sync([$epson->id]);

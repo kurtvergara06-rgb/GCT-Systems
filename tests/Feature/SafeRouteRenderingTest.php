@@ -148,7 +148,7 @@ class SafeRouteRenderingTest extends TestCase
             ->get(route('admin.data-history'));
 
         $response->assertOk();
-        $response->assertSeeText('Showing 1 record');
+        $response->assertSeeText('Showing 1–1 of 1 records');
         $response->assertDontSee('class="pagination"');
         $response->assertDontSee('page-number');
     }

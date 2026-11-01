@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
+use App\Models\Operation\Driver;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class FuelReportController extends Controller
@@ -20,7 +23,7 @@ class FuelReportController extends Controller
     public function index(Request $request): View
     {
         $query = FuelReport::query()
-            ->with(['gpsTripRecord', 'bus']);
+            ->with(['gpsTripRecord', 'bus', 'trips']);
 
         if ($request->filled('search')) {
             $search = trim($request->string('search'));
@@ -116,6 +119,8 @@ class FuelReportController extends Controller
             ->first();
 
         $recentFuelRecords = $fuelReports->values();
+
+        $drivers = Driver::query()->orderBy('driver_name')->get(['driver_id', 'driver_name', 'employment_status']);
 
         $buses = Bus::query()
             ->orderBy('bus_no')
@@ -249,6 +254,7 @@ class FuelReportController extends Controller
             'vehicleSummaries',
             'recentFuelRecords',
             'buses',
+            'drivers',
             'totalFuelUsed',
             'totalDistance',
             'fleetAverage',
@@ -295,6 +301,10 @@ class FuelReportController extends Controller
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
+        if ($request->boolean('physical_fuel_form')) {
+            return $this->storePhysicalFuelForm($request);
+        }
+
         if ($request->boolean('daily_monitoring')) {
             return $this->storeDailyMonitoring($request);
         }
@@ -352,10 +362,96 @@ class FuelReportController extends Controller
             ->with('success', 'Fuel record saved successfully.');
     }
 
+    /**
+     * Separate physical-paper encoding path. Historical GPS/manual records
+     * retain their original behavior; no invented verified efficiency.
+     */
+    private function storePhysicalFuelForm(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'report_date' => ['required', 'date', 'before_or_equal:today'],
+            'issued_at' => ['nullable', 'date_format:H:i'],
+            'bus_no' => ['required', 'string', 'exists:buses,bus_no'],
+            'driver_id' => ['required', 'string', 'exists:drivers,driver_id'],
+            'gas_station' => ['required', 'string', 'max:150'],
+            'po_reference' => ['nullable', 'string', 'max:80'],
+            'fuel_liters' => ['required', 'numeric', 'gt:0', 'max:999999.99'],
+            'trips' => ['required', 'array', 'min:1', 'max:30'],
+            'trips.*.trip_date' => ['required', 'date', 'before_or_equal:today'],
+            'trips.*.ticket_number' => ['nullable', 'string', 'max:80'],
+            'trips.*.origin' => ['required', 'string', 'max:150'],
+            'trips.*.destination' => ['required', 'string', 'max:150'],
+            'trips.*.distance_km' => ['required', 'numeric', 'gt:0', 'max:99999999.99'],
+            'remarks' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $bus = Bus::query()->where('bus_no', $data['bus_no'])->firstOrFail();
+        $driver = Driver::query()->where('driver_id', $data['driver_id'])->firstOrFail();
+        $record = DB::transaction(function () use ($data, $bus, $driver) {
+            // Serialize paper-form submissions for the same bus, including when
+            // the reported time is blank. Avoid check-then-insert races.
+            Bus::query()->whereKey($bus->getKey())->lockForUpdate()->firstOrFail();
+            if (FuelReport::query()->where('bus_no', $data['bus_no'])
+                ->whereDate('report_date', $data['report_date'])
+                ->where('issued_at', $data['issued_at'] ?? null)
+                ->where('entry_type', 'Physical Form')->exists()) {
+                throw ValidationException::withMessages([
+                    'report_date' => 'A fuel form already exists for this bus, date and issuance time. Review the existing record.',
+                ]);
+            }
+            $distance = round(array_sum(array_map(
+                fn (array $trip) => (float) $trip['distance_km'],
+                $data['trips']
+            )), 2);
+            $report = FuelReport::create([
+                'report_date' => $data['report_date'],
+                'bus_no' => $data['bus_no'],
+                'plate_number' => $bus->plate_no,
+                'driver_name' => $driver->driver_name,
+                'gas_station' => $data['gas_station'],
+                'issued_at' => $data['issued_at'] ?? null,
+                'po_reference' => $data['po_reference'] ?? null,
+                'fuel_liters' => $data['fuel_liters'],
+                'distance_km' => $distance,
+                'distance_source' => 'Manual',
+                'km_per_liter' => 0,
+                'status' => 'No Data',
+                'entry_type' => 'Physical Form',
+                'remarks' => $data['remarks'] ?? null,
+                'manual_distance_reason' => 'Physical fuel monitoring form',
+            ]);
+            foreach (array_values($data['trips']) as $index => $trip) {
+                $report->trips()->create([
+                    'sequence' => $index + 1,
+                    'trip_date' => $trip['trip_date'],
+                    'ticket_number' => $trip['ticket_number'] ?? null,
+                    'origin' => $trip['origin'],
+                    'destination' => $trip['destination'],
+                    'distance_km' => $trip['distance_km'],
+                ]);
+            }
+            return $report;
+        });
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'created', $record->id, 'A physical fuel report was recorded.');
+
+        return redirect()->route('fuel-reports', ['date_filter' => 'All Dates'])
+            ->with('success', 'Fuel report saved successfully.');
+    }
+
     public function update(
         Request $request,
         FuelReport $fuelReport
     ): RedirectResponse|JsonResponse {
+        // Legacy editor does not submit the physical form's individual trips.
+        // Refuse the incompatible update rather than silently desynchronizing
+        // trip details and the stored total distance.
+        if ($fuelReport->entry_type === 'Physical Form') {
+            throw ValidationException::withMessages([
+                'fuel_report' => 'Physical fuel forms cannot be edited through the legacy editor. Their trip rows must be preserved.',
+            ]);
+        }
+
         $validated = $this->validateFuelReport($request);
 
         $resolved = $this->resolveDistance($validated);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
 use App\Http\Controllers\Maintenance\MaintenanceReferralController;
 use App\Http\Controllers\Maintenance\MechanicListController;
 use App\Http\Controllers\Maintenance\PmsSchedulingController;
+use App\Http\Controllers\Maintenance\BusPmsMonitoringController;
 use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Maintenance\PurchaseRequestIndexController;
 use App\Http\Controllers\Maintenance\ReferralJobOrderController;
@@ -41,11 +42,18 @@ Route::middleware([
             ->prefix('pms-scheduling')
             ->group(function () {
                 Route::get('/', 'index')->name('PMS-Scheduling');
+                Route::post('/monitoring', [BusPmsMonitoringController::class, 'store'])->middleware('system.permission:maintenance,edit')->name('pms-monitoring.store');
+                Route::post('/monitoring/{monitoring}/prepare-job-order', 'prepareMonitoringJobOrder')->middleware('system.permission:maintenance,edit')->name('pms-monitoring.prepare-job-order');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('pms-schedules.store');
                 Route::put('/{pmsSchedule}', 'update')->middleware('system.permission:maintenance,edit')->name('pms-schedules.update');
                 Route::delete('/{pmsSchedule}', 'destroy')->middleware('system.permission:maintenance,edit')->name('pms-schedules.destroy');
                 Route::get('/{pmsSchedule}/create-job-order', 'createJobOrder')->middleware('system.permission:maintenance,edit')->name('pms-schedules.create-job-order');
             });
+
+        Route::post('/maintenance-job-catalog', [\App\Http\Controllers\Maintenance\MaintenanceJobCatalogController::class, 'store'])
+            ->middleware('system.permission:maintenance,approve')->name('maintenance-job-catalog.store');
+        Route::put('/maintenance-job-catalog/{job}', [\App\Http\Controllers\Maintenance\MaintenanceJobCatalogController::class, 'update'])
+            ->middleware('system.permission:maintenance,approve')->name('maintenance-job-catalog.update');
 
         Route::controller(FuelReportController::class)
             ->prefix('fuel-reports')
@@ -76,7 +84,7 @@ Route::middleware([
                 Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
                 Route::get('/duration-suggestion', 'durationSuggestion')->name('job-orders.duration-suggestion');
                 Route::post('/inventory-availability', 'inventoryAvailability')->name('job-orders.inventory-availability');
-                Route::post('/head-review-inventory-availability', 'headReviewInventoryAvailability')->name('job-orders.head-review-inventory-availability');
+                Route::post('/head-review-inventory-availability', 'headReviewInventoryAvailability')->middleware('system.permission:maintenance,approve')->name('job-orders.head-review-inventory-availability');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
                 Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
                 Route::post('/{jobOrder}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('job-orders.approve');

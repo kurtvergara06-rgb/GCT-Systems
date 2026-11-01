@@ -29,7 +29,8 @@ class MaintenanceReferralController extends Controller
         $query = MaintenanceReferral::query()
             ->with([
                 'incident.bus',
-                'incident.tripSchedule',
+                'incident.tripSchedule.shuttleRoute',
+                'incident.reporter',
                 'referrer',
                 'reviewer',
                 'jobOrder',

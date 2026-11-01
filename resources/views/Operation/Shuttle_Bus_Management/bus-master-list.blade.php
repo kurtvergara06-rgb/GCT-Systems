@@ -196,7 +196,7 @@
                                                     <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->operationClients->count() - 1 }} more companies for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->operationClients->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
                                                     <div class="bus-more-source" hidden>
                                                         @foreach($bus->operationClients->skip(1) as $company)
-                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="bus-identity-details"><strong title="{{ $company->name }} — {{ $company->status }}">{{ $company->name }}</strong><small>Client / Company · {{ $company->status }}</small></span></div>
+                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-company-avatar" aria-hidden="true"><i class="fa-solid fa-building"></i></span><span class="bus-identity-details"><strong title="{{ $company->name }} — {{ $company->status }}">{{ $company->name }}</strong><small>Client / Company · <x-ui.status-badge :status="$company->status" /></small></span></div>
                                                         @endforeach
                                                     </div>
                                                 @endif

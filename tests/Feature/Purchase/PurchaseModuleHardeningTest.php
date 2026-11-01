@@ -180,6 +180,27 @@ class PurchaseModuleHardeningTest extends TestCase
         $this->assertDatabaseMissing('purchase_orders', ['supplier_name' => 'Safe Supplier']);
     }
 
+    public function test_purchase_head_can_return_a_for_review_order_for_revision(): void
+    {
+        $head = $this->purchaseUser('head');
+        $order = $this->order('For Review');
+
+        $this->actingAs($head)
+            ->from(route('purchase-orders'))
+            ->patch(route('purchase-orders.review-decision', $order), [
+                'decision' => 'revision',
+                'review_remarks' => 'Correct the supplier details and unit cost.',
+            ])
+            ->assertRedirect('/purchase-orders')
+            ->assertSessionHasNoErrors();
+
+        $order->refresh();
+        $this->assertSame('Revision Required', $order->status);
+        $this->assertSame($head->id, $order->reviewed_by);
+        $this->assertNotNull($order->reviewed_at);
+        $this->assertSame('Correct the supplier details and unit cost.', $order->review_remarks);
+    }
+
     public function test_parts_requests_page_uses_current_columns_and_shared_read_only_details(): void
     {
         $user = $this->purchaseUser('head');

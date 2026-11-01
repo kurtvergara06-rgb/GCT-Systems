@@ -1,4 +1,4 @@
-window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests', '.purchase-maintenance-requests-page', function () {
+window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests', '.purchase-maintenance-requests-page, .purchase-history-page', function () {
   // Render parts breakdown above table clipping/stacking contexts, like the
   // Maintenance mechanic "+N more" popover. The row never expands.
   let partsPopover = null;
@@ -266,7 +266,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     table.className = 'shared-pr-parts-table';
     const head = document.createElement('div');
     head.className = 'shared-pr-parts-head';
-    ['Part Name', 'Quantity', 'On Hand'].forEach((label) => {
+    ['Part Name', 'Quantity', 'Available'].forEach((label) => {
       const cell = document.createElement('span');
       cell.textContent = label;
       head.appendChild(cell);

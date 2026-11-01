@@ -19,13 +19,17 @@ class TopbarSummaryService
                 ->value('notifications_read_at')
             : null;
 
-        $individuallyReadIds = $this->individuallyReadIds((int) $user->id);
         $notificationQuery = $this->notificationQueryFor($user);
 
-        $notifications = (clone $notificationQuery)
+        $notificationModels = (clone $notificationQuery)
             ->latest()
             ->limit(12)
-            ->get()
+            ->get();
+        $individuallyReadIds = $this->individuallyReadIds(
+            (int) $user->id,
+            $notificationModels->modelKeys()
+        );
+        $notifications = $notificationModels
             ->map(fn (TopbarNotification $notification) => $this->formatNotification($notification, $readAt, $individuallyReadIds)
             )
             ->values();
@@ -36,8 +40,13 @@ class TopbarSummaryService
             $unreadQuery->where('created_at', '>', $readAt);
         }
 
-        if ($individuallyReadIds->isNotEmpty()) {
-            $unreadQuery->whereNotIn('id', $individuallyReadIds->all());
+        if (Schema::hasTable('topbar_notification_reads')) {
+            $unreadQuery->whereNotExists(function ($query) use ($user) {
+                $query->selectRaw('1')
+                    ->from('topbar_notification_reads')
+                    ->whereColumn('topbar_notification_reads.notification_id', 'topbar_notifications.id')
+                    ->where('topbar_notification_reads.user_id', $user->id);
+            });
         }
 
         return [
@@ -53,14 +62,15 @@ class TopbarSummaryService
         ];
     }
 
-    private function individuallyReadIds(int $userId): Collection
+    private function individuallyReadIds(int $userId, array $notificationIds): Collection
     {
-        if (! Schema::hasTable('topbar_notification_reads')) {
+        if (! Schema::hasTable('topbar_notification_reads') || $notificationIds === []) {
             return collect();
         }
 
         return DB::table('topbar_notification_reads')
             ->where('user_id', $userId)
+            ->whereIn('notification_id', $notificationIds)
             ->pluck('notification_id')
             ->map(fn ($id) => (int) $id)
             ->values();

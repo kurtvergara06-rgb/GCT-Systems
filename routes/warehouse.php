@@ -56,6 +56,9 @@ Route::middleware([
                 Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')
                     ->middleware('role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin')
                     ->name('part-requests.send-to-purchase');
+                Route::post('/{purchaseRequest}/return-for-revision', 'returnForRevision')
+                    ->middleware('role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin')
+                    ->name('part-requests.return-for-revision');
             });
 
         Route::get('/warehouse/stock-movements', [StockMovementController::class, 'index'])

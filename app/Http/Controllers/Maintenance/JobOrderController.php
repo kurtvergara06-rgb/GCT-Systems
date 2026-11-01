@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\MaintenanceReferral;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
@@ -25,6 +26,8 @@ use Illuminate\Validation\ValidationException;
 class JobOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    private array $catalogSkillCache = [];
 
     private PartParser $partParser;
 
@@ -284,6 +287,23 @@ class JobOrderController extends Controller
                 )
                 ->values();
 
+        // Referral-originated JO follows the same editable form and submission rules.
+        $referralCreate = null;
+        if ($request->filled('maintenance_referral_id')) {
+            $referralCreate = MaintenanceReferral::query()
+                ->with('incident.bus')
+                ->findOrFail($request->integer('maintenance_referral_id'));
+            abort_unless($referralCreate->status === 'Approved' && ! $referralCreate->jobOrder()->exists(), 409,
+                'Only approved referrals without an existing Job Order can start a new Job Order.');
+            abort_unless(auth()->user()?->hasSystemPermission('maintenance', 'edit'), 403);
+            if ($referralCreate->incident?->bus) {
+                $referralBus = $referralCreate->incident->bus;
+                if (! $availableBuses->contains('id', $referralBus->id)) {
+                    $availableBuses->push($referralBus);
+                }
+            }
+        }
+
         /* =====================================================
            PMS CREATE
         ====================================================== */
@@ -322,7 +342,8 @@ class JobOrderController extends Controller
                 'allMechanics',
                 'buses',
                 'availableBuses',
-                'pmsCreate'
+                'pmsCreate',
+                'referralCreate'
             )
         );
     }
@@ -497,7 +518,23 @@ class JobOrderController extends Controller
             'parts.*.inventory_item_id' => 'nullable|integer|exists:inventory_items,id',
             'parts_issue_strategy' => 'nullable|in:complete_before_issuance,issue_available_only',
             'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
+            'maintenance_referral_id' => 'nullable|integer|exists:maintenance_referrals,id',
         ]);
+
+        $sourceReferral = null;
+        if (! empty($validated['maintenance_referral_id'])) {
+            abort_unless(auth()->user()?->hasSystemPermission('maintenance', 'edit'), 403);
+            $sourceReferral = MaintenanceReferral::query()
+                ->with('incident.bus')
+                ->findOrFail($validated['maintenance_referral_id']);
+            if ($sourceReferral->status !== 'Approved'
+                || $sourceReferral->jobOrder()->exists()
+                || $sourceReferral->incident?->bus?->bus_no !== $validated['bus_no']) {
+                throw ValidationException::withMessages([
+                    'maintenance_referral_id' => 'The referral is no longer approved and available for this bus.',
+                ]);
+            }
+        }
 
         $selectedJobs = array_values(array_unique(array_filter(
             $validated['maintenance_jobs'] ?? [$validated['maintenance_job'] ?? null],
@@ -545,11 +582,9 @@ class JobOrderController extends Controller
             ]);
         }
 
-        if (JobOrder::query()->where('bus_no', $validated['bus_no'])->open()->exists()) {
-            throw ValidationException::withMessages([
-                'bus_no' => 'This bus already has an active Job Order.',
-            ]);
-        }
+        // The locked transaction below handles all duplicate-JO checks.
+        // Do not reject linked PMS here before its concurrent-maintenance
+        // exception and duplicate-PMS guard have been evaluated.
 
         $mechanicIds = $validated['mechanic_ids'] ?? [];
         if ($mechanicIds === [] && ! empty($validated['assigned_mechanic'])) {
@@ -645,16 +680,31 @@ class JobOrderController extends Controller
             $partStatus,
             $pmsSchedule,
             $validated,
-            $selectedJobs
+            $selectedJobs,
+            $sourceReferral
         ): JobOrder {
+            $lockedReferral = null;
+            if ($sourceReferral) {
+                $lockedReferral = MaintenanceReferral::query()->lockForUpdate()->findOrFail($sourceReferral->id);
+                if ($lockedReferral->status !== 'Approved' || $lockedReferral->jobOrder()->exists()) {
+                    throw ValidationException::withMessages([
+                        'maintenance_referral_id' => 'The referral was already processed.',
+                    ]);
+                }
+            }
             $bus = Bus::query()
                 ->where('bus_no', $validated['bus_no'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($bus->status !== 'Active') {
+            // A linked PMS service may be planned during an existing repair.
+            // Only the PMS exception is allowed; unrelated duplicate JOs stay blocked.
+            $concurrentPms = $pmsSchedule !== null
+                && $validated['maintenance_type'] === 'PMS'
+                && $bus->status === 'Under Maintenance';
+            if ($bus->status !== 'Active' && ! ($lockedReferral && $bus->status === 'Under Maintenance') && ! $concurrentPms) {
                 throw ValidationException::withMessages([
-                    'bus_no' => 'Only active buses without an open Job Order can be selected.',
+                    'bus_no' => 'Only active buses, approved referrals, or linked PMS work during existing maintenance are eligible.',
                 ]);
             }
 
@@ -666,9 +716,15 @@ class JobOrderController extends Controller
                 ]);
             }
 
-            if (JobOrder::query()->where('bus_no', $bus->bus_no)->open()->exists()) {
+            $openJobs = JobOrder::query()->where('bus_no', $bus->bus_no)->open();
+            if ((clone $openJobs)->exists() && ! $concurrentPms) {
                 throw ValidationException::withMessages([
                     'bus_no' => 'This bus already has an active Job Order.',
+                ]);
+            }
+            if ($concurrentPms && (clone $openJobs)->where('maintenance_type', 'PMS')->exists()) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'An active PMS Job Order already exists for this bus.',
                 ]);
             }
 
@@ -676,6 +732,8 @@ class JobOrderController extends Controller
                 'job_order_no' => $this->generateJobOrderNo(),
                 'bus_no' => $validated['bus_no'],
                 'pms_schedule_id' => $pmsSchedule?->id,
+                'maintenance_referral_id' => $lockedReferral?->id,
+                'incident_id' => $sourceReferral?->incident_id,
                 'problem_issue' => $validated['problem_issue'],
                 'work_to_perform' => in_array('Other', $selectedJobs, true)
                     ? trim($validated['custom_maintenance_job'])
@@ -710,10 +768,17 @@ class JobOrderController extends Controller
                 'required_specializations' => $validated['specializations'] ?? [],
             ]);
 
+            if ($lockedReferral) {
+                $lockedReferral->update(['status' => 'Job Order Created']);
+            }
+
             return $createdJobOrder;
         });
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
+        if ($sourceReferral) {
+            $this->broadcastSystemDataUpdated('Maintenance', 'MaintenanceReferral', 'updated', $sourceReferral->id, 'Referral status updated to Job Order Created.');
+        }
 
         $successMsg = 'Job order submitted for Maintenance Head review. It is view-only until reviewed.';
 
@@ -1726,9 +1791,20 @@ class JobOrderController extends Controller
             'Exhaust System Inspection and Repair' => ['Engine'],
         ];
 
-        return $job === 'Other'
-            ? array_values(array_filter($customSkills, 'is_string'))
-            : ($jobs[$job] ?? []);
+        if ($job === 'Other') {
+            return array_values(array_filter($customSkills, 'is_string'));
+        }
+        // Legacy fallback supports previously created JOs and migration rollouts.
+        if (array_key_exists($job, $this->catalogSkillCache)) {
+            return $this->catalogSkillCache[$job];
+        }
+        $catalogJob = DB::table('maintenance_job_catalog')->where('name', $job)->first();
+        if ($catalogJob) {
+            return $this->catalogSkillCache[$job] = $catalogJob->is_active
+                ? array_values(array_filter(json_decode($catalogJob->specializations, true) ?: [], 'is_string'))
+                : [];
+        }
+        return $this->catalogSkillCache[$job] = ($jobs[$job] ?? []);
     }
 
     private function matchesSpecialization(Mechanic $mechanic, array $requiredSkills): bool

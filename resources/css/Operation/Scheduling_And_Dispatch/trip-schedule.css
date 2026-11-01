@@ -2304,11 +2304,13 @@
 .trip-schedule-page .service-chip {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 6px 10px;
+    min-height: 30px;
+    border-radius: 6px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -2834,6 +2836,19 @@
 }
 
 /* Approved unified New/Edit Trip modal layout — one form, mode-dependent action text. */
+#tripModal fieldset.trip-service-mode{display:block;width:100%;box-sizing:border-box;border:0;padding:0;margin:0 0 18px;min-width:0}
+#tripModal .trip-service-mode legend{font-size:12px;font-weight:800;color:#183253;margin-bottom:9px}
+#tripModal .trip-service-mode-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#tripModal label.trip-service-mode-choice{display:flex;align-items:center;gap:11px;min-width:0;padding:13px 14px;border:1px solid #dce5f2;border-radius:11px;background:#fff;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+#tripModal label.trip-service-mode-choice:has(input:checked){border-color:#1165db;background:#edf5ff;box-shadow:0 0 0 1px #1165db}
+#tripModal .trip-service-mode-choice input{accent-color:#1165db;width:17px;height:17px;flex:none}
+#tripModal .trip-service-mode-choice>i{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:8px;background:#e8f0ff;color:#155bc5}
+#tripModal .trip-service-mode-choice span{display:flex;flex-direction:column;min-width:0;gap:2px}
+#tripModal .trip-service-mode-choice strong{font-size:12px;color:#132b4d}
+#tripModal .trip-service-mode-choice small{font-size:10px;color:#617593;line-height:1.45}
+#tripModal .trip-general-service-notice{margin:9px 0 0;border:1px solid #f1d7a3;border-radius:8px;background:#fff8e9;color:#775019;padding:10px 12px;font-size:11px;line-height:1.5}
+#tripModal [hidden]{display:none!important}
+@media(max-width:580px){#tripModal .trip-service-mode-options{grid-template-columns:1fr}}
 #tripModal .trip-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:13px}
 #tripModal .trip-editor-grid .trip-service-planning-fields{display:contents}
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group{min-width:0}
@@ -3124,7 +3139,7 @@
 }
 
 /* Compact New/Edit Trip form: retain the current field names and behavior. */
-#tripModal .ui-form-modal{width:min(690px,calc(100vw - 28px));border-radius:16px}
+#tripModal .ui-form-modal{border-radius:16px}
 #tripModal .ui-form-modal-header{padding:13px 20px}
 #tripModal .ui-form-title-icon{width:42px;height:42px;border-radius:11px}
 #tripModal .ui-form-heading h2{font-size:18px}
@@ -3153,7 +3168,7 @@
 }
 
 /* Compact Trip editor: explicit grid placement prevents single-column gaps. */
-#tripModal .ui-form-modal{width:min(640px,calc(100vw - 24px))}
+#tripModal .ui-form-modal{width:min(940px,calc(100vw - 32px));max-width:min(940px,calc(100vw - 32px))}
 #tripModal .ui-form-modal-header{padding:11px 18px}
 #tripModal .ui-form-title-icon{width:39px;height:39px;border-radius:10px}
 #tripModal .ui-form-heading h2{font-size:17px}

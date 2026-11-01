@@ -152,6 +152,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             'name' => 'Configured Trip Client',
             'status' => 'Active',
         ]);
+        $route->update(['operation_client_id' => $client->id]);
         $configuration = ClientTripTimeConfiguration::create([
             'operation_client_id' => $client->id,
             'category' => 'incoming_am',

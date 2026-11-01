@@ -237,7 +237,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('data-status="Submitted"', false)
             ->assertSee('data-jo-approved="1"', false)
             ->assertSee('data-jo-review-status="Approved"', false)
-            ->assertSee('data-jo-approver="'.$approver->name.'"', false)
+            ->assertSee('data-jo-approver="'.e($approver->name).'"', false)
             ->assertSee('data-jo-signature-url="'.route('job-orders.approval-signature', $jobOrder, false).'"', false);
 
         $this->actingAs($head)

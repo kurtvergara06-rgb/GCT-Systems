@@ -18,17 +18,26 @@ class WarehouseDashboardController extends Controller
     public function data(): array
     {
         $inventoryItems = InventoryItem::query()->get();
+        $calculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $reservations = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) AS reserved'))
+            ->groupBy('inventory_item_id')
+            ->pluck('reserved', 'inventory_item_id');
+
+        foreach ($inventoryItems as $item) {
+            $threshold = $calculator->effectiveReorderPoint($item);
+            $reserved = (int) $reservations->get($item->id, 0);
+            $onHand = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
+            $item->warehouse_effective_reorder_point = $threshold;
+            $item->warehouse_free_stock = max(0, $onHand - $reserved);
+            $item->warehouse_stock_status = $calculator->stockStatus($onHand, $reserved, $threshold);
+        }
 
         $totalInventory = $inventoryItems->count();
-        $availableStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
-        $lowStockItems = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
-        $outOfStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Critical')->count();
-        $forReorder = $inventoryItems->filter(function ($item) {
-            $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-            $reorderLevel = (int) ($item->reorder_level ?? 0);
-
-            return $reorderLevel > 0 && $stock <= $reorderLevel;
-        })->count();
+        $availableStock = $inventoryItems->filter(fn ($item) => $item->warehouse_stock_status === 'In Stock')->count();
+        $lowStockItems = $inventoryItems->filter(fn ($item) => $item->warehouse_stock_status === 'Low Stock')->count();
+        $outOfStock = $inventoryItems->filter(fn ($item) => $item->warehouse_stock_status === 'Critical')->count();
+        $forReorder = $inventoryItems->filter(fn ($item) => in_array($item->warehouse_stock_status, ['Low Stock', 'Critical'], true))->count();
 
         $inventoryCategoryOptions = $inventoryItems
             ->pluck('category')
@@ -39,15 +48,10 @@ class WarehouseDashboardController extends Controller
 
         $buildInventoryStatus = static function ($items): array {
             $total = $items->count();
-            $available = $items->filter(fn ($item) => $item->stock_status === 'In Stock')->count();
-            $low = $items->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
-            $out = $items->filter(fn ($item) => $item->stock_status === 'Critical')->count();
-            $reorder = $items->filter(function ($item) {
-                $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-                $reorderLevel = (int) ($item->reorder_level ?? 0);
-
-                return $reorderLevel > 0 && $stock <= $reorderLevel;
-            })->count();
+            $available = $items->filter(fn ($item) => $item->warehouse_stock_status === 'In Stock')->count();
+            $low = $items->filter(fn ($item) => $item->warehouse_stock_status === 'Low Stock')->count();
+            $out = $items->filter(fn ($item) => $item->warehouse_stock_status === 'Critical')->count();
+            $reorder = $items->filter(fn ($item) => in_array($item->warehouse_stock_status, ['Low Stock', 'Critical'], true))->count();
 
             return compact('total', 'available', 'low', 'out', 'reorder');
         };
@@ -67,10 +71,10 @@ class WarehouseDashboardController extends Controller
             ->count();
 
         $criticalStockItems = $inventoryItems
-            ->filter(fn ($item) => in_array($item->stock_status, ['Critical', 'Low Stock'], true))
+            ->filter(fn ($item) => in_array($item->warehouse_stock_status, ['Critical', 'Low Stock'], true))
             ->sortBy(function ($item) {
-                $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
-                $reorder = max(1, (int) ($item->reorder_level ?? 0));
+                $stock = (int) $item->warehouse_free_stock;
+                $reorder = max(1, (int) ($item->warehouse_effective_reorder_point ?? 0));
 
                 return $stock / $reorder;
             })

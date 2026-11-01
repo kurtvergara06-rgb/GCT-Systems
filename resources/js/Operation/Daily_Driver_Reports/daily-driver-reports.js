@@ -188,18 +188,30 @@ function initDdrExceptionMode() {
     const reasonInput = modal?.querySelector('#ddrUnscheduledReason');
     const tripPanel = modal?.querySelector('.ddr-modal-sched-panel');
     const selectedId = modal?.querySelector('#ddrSelectedTripId');
+    const busField = modal?.querySelector('[name="bus_id"]')?.closest('.ui-form-group, .ddr-form-group');
     if (!checkbox || !reasonWrap) return;
     const sync = () => {
         reasonWrap.hidden = !checkbox.checked;
         if (reasonInput) reasonInput.required = checkbox.checked;
         if (tripPanel) tripPanel.hidden = checkbox.checked;
+        if (busField) busField.hidden = false;
         const busInput = modal?.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
-        if (busInput) busInput.readOnly = !checkbox.checked && Boolean(selectedId?.value);
+        if (busInput) busInput.readOnly = !checkbox.checked;
         for (const name of ['from_location', 'to_location']) {
             const input = modal?.querySelector('[name="' + name + '"]');
             if (input) input.readOnly = false;
         }
-        if (checkbox.checked && selectedId) selectedId.value = '';
+        if (checkbox.checked && selectedId) {
+            selectedId.value = '';
+            const busCombo = modal?.querySelector('[data-combo][data-field="bus"]');
+            if (busCombo) {
+                const busValue = busCombo.querySelector('[data-combo-value]');
+                const busText = busCombo.querySelector('[data-combo-input]');
+                if (busValue) busValue.value = '';
+                if (busText) busText.value = '';
+                busCombo.classList.remove('has-value');
+            }
+        }
     };
     checkbox.addEventListener('change', sync);
     modal?.querySelector('form')?.addEventListener('reset', () => {
@@ -230,7 +242,11 @@ function initDdrDriverFirstLayout() {
     const numberField = document.createElement('div');
     numberField.className = 'ddr-number-preview';
     numberField.innerHTML = '<label>DDR Number</label><span><i class="fa-solid fa-hashtag" aria-hidden="true"></i> Auto-generated</span>';
-    meta.append(dateField, driverField, busField, numberField);
+    driverField.classList.add('ddr-meta-driver');
+    busField.classList.add('ddr-meta-bus');
+    dateField.classList.add('ddr-meta-date');
+    numberField.classList.add('ddr-meta-number');
+    meta.append(driverField, busField, dateField, numberField);
 
     const firstTripHeading = document.createElement('div');
     firstTripHeading.className = 'ddr-trip-one-heading';
@@ -305,60 +321,66 @@ function initScheduleContextPanel() {
         listEl.replaceChildren();
         root.ddrEligibleSchedules = schedules;
         root.dispatchEvent(new CustomEvent('ddr:schedules-updated', {detail: {schedules}}));
-        const select = document.createElement('select');
-        select.className = 'ddr-assigned-trip-select';
-        select.setAttribute('aria-label', 'Select assigned trip');
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = schedules.length ? 'Select an assigned trip...' : 'No eligible completed-service trips';
-        select.appendChild(placeholder);
-        schedules.forEach((schedule, index) => {
-            const option = document.createElement('option');
-            option.value = String(index);
-            option.textContent = [schedule.trip_code, schedule.bus_no && 'Bus ' + schedule.bus_no,
-                schedule.departure_time + '–' + schedule.estimated_arrival_time]
-                .filter(Boolean).join(' · ');
-            option.title = schedule.route_label || '';
-            select.appendChild(option);
-        });
-        select.disabled = !schedules.length;
-        select.addEventListener('change', () => {
-            const schedule = select.value === '' ? null : schedules[Number(select.value)];
+        const list = document.createElement('div');
+        list.className = 'ddr-ready-trip-list';
+        const choose = (schedule, card) => {
+            list.querySelectorAll('.ddr-ready-trip-card').forEach(item => {
+                item.classList.toggle('is-selected', item === card);
+                item.setAttribute('aria-pressed', item === card ? 'true' : 'false');
+            });
             const selectedId = root.querySelector('#ddrSelectedTripId');
-            if (selectedId) selectedId.value = schedule ? String(schedule.id) : '';
-            const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
-            if (!schedule) {
-                if (busInput) busInput.readOnly = false;
-                for (const name of ['from_location', 'to_location']) {
-                    const input = find('input[name="' + name + '"]');
-                    if (input) input.readOnly = false;
-                }
-                return;
-            }
+            if (selectedId) selectedId.value = String(schedule.id);
             selectComboValue('driver', schedule.driver_id, schedule.driver_name);
+            const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
             if (busInput) busInput.readOnly = true;
             selectComboValue('bus', schedule.bus_id, schedule.bus_no);
-            const origin = find('input[name="from_location"]');
-            const destination = find('input[name="to_location"]');
-            // From/To are ACTUAL DDR locations, not the route's planned endpoints.
-            // Never populate them from the selected schedule.
-            // Physical DDR captures actual locations; keep them editable.
-            if (origin) origin.readOnly = false;
-            if (destination) destination.readOnly = false;
-            showStatus('matched', 'fa-circle-check', 'Assignment linked. Enter actual From/To locations and travel times from the physical DDR.');
+            for (const name of ['from_location', 'to_location']) {
+                const input = find('input[name="' + name + '"]');
+                if (input) input.readOnly = false;
+            }
+            showStatus('matched', 'fa-circle-check', 'Assigned trip linked. Record actual From/To locations and travel times from the physical DDR.');
+        };
+        schedules.forEach(schedule => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'ddr-ready-trip-card';
+            card.setAttribute('aria-pressed', 'false');
+            const details = document.createElement('span');
+            const name = document.createElement('strong');
+            name.textContent = [schedule.trip_code, schedule.route_label].filter(Boolean).join(' · ');
+            const sub = document.createElement('small');
+            sub.textContent = [schedule.driver_name, schedule.bus_no && 'Bus ' + schedule.bus_no,
+                schedule.departure_time + '–' + schedule.estimated_arrival_time].filter(Boolean).join(' · ');
+            details.append(name, sub);
+            const status = document.createElement('span');
+            status.className = 'ddr-ready-trip-status';
+            status.textContent = schedule.status || 'Awaiting DDR';
+            card.append(details, status);
+            card.addEventListener('click', () => choose(schedule, card));
+            list.appendChild(card);
         });
-        listEl.appendChild(select);
+        if (!schedules.length) {
+            const empty = document.createElement('p');
+            empty.textContent = 'No completed-service assignments awaiting DDR for this date and driver.';
+            list.appendChild(empty);
+        }
+        listEl.appendChild(list);
+        if (schedules.length === 1) choose(schedules[0], list.querySelector('.ddr-ready-trip-card'));
         listEl.classList.toggle('has-items', schedules.length > 0);
     };
 
     let lookupSequence = 0;
     const lookup = async () => {
         const sequence = ++lookupSequence;
-        const { date, driverId, busId } = comboValues();
+        const { date, driverId } = comboValues();
         const selectedId = root.querySelector('#ddrSelectedTripId');
         if (selectedId) selectedId.value = '';
-        const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
-        if (busInput) busInput.readOnly = false;
+        const busCombo = root.querySelector('[data-combo][data-field="bus"]');
+        const busInput = busCombo?.querySelector('[data-combo-input]');
+        const busValue = busCombo?.querySelector('[data-combo-value]');
+        if (busInput) { busInput.readOnly = !root.querySelector('#ddrUnscheduledMode')?.checked; busInput.value = ''; }
+        if (busValue) busValue.value = '';
+        busCombo?.classList.remove('has-value');
         for (const name of ['from_location', 'to_location']) {
             const input = find('input[name="' + name + '"]');
             if (input) input.readOnly = false;
@@ -369,8 +391,8 @@ function initScheduleContextPanel() {
         root.ddrEligibleSchedules = [];
         root.dispatchEvent(new CustomEvent('ddr:schedules-updated', {detail: {schedules: []}}));
 
-        if (!date || (!driverId && !busId)) {
-            showStatus('idle', 'fa-magnifying-glass', 'Select a date, then choose a driver or bus to see assignments.');
+        if (!date || !driverId) {
+            showStatus('idle', 'fa-magnifying-glass', 'Select a report date and driver to see their trips awaiting DDR.');
             return;
         }
 
@@ -380,8 +402,7 @@ function initScheduleContextPanel() {
             const query = new URLSearchParams({
                 report_date: date,
             });
-            if (driverId) query.set('driver_id', driverId);
-            if (busId) query.set('bus_id', busId);
+            query.set('driver_id', driverId);
 
             const response = await fetch(
                 window.ddrScheduleLookupUrl + '?' + query.toString(),
@@ -395,15 +416,6 @@ function initScheduleContextPanel() {
             const rows = payload.schedules || [];
 
             renderSchedules(rows);
-            if (rows.length === 1) {
-                // One clear assignment: no need for an extra selection step.
-                const select = listEl.querySelector('.ddr-assigned-trip-select');
-                if (select) {
-                    select.value = '0';
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            }
-
             showStatus(
                 rows.length > 0 ? 'matched' : 'unmatched',
                 rows.length > 0 ? 'fa-circle-check' : 'fa-triangle-exclamation',
@@ -422,20 +434,17 @@ function initScheduleContextPanel() {
     }
 
     window.addEventListener('combo:select', (event) => {
-        const field = event.detail?.field;
-        if (field !== 'driver' && field !== 'bus') return;
-        const otherField = field === 'driver' ? 'bus' : 'driver';
-        const other = root.querySelector('[data-combo][data-field="' + otherField + '"]');
-        if (other) {
-            const hidden = other.querySelector('[data-combo-value]');
-            const input = other.querySelector('[data-combo-input]');
-            if (hidden) hidden.value = '';
-            if (input) {
-                input.value = '';
-                input.readOnly = false;
-            }
-            other.classList.remove('has-value');
+        if (!root.contains(event.target) && event.target !== window) {
+            // Combo events are dispatched globally; only this DDR modal owns this lookup.
+            return;
         }
+        if (event.detail?.field !== 'driver') return;
+        const bus = root.querySelector('[data-combo][data-field="bus"]');
+        const hidden = bus?.querySelector('[data-combo-value]');
+        const input = bus?.querySelector('[data-combo-input]');
+        if (hidden) hidden.value = '';
+        if (input) { input.value = ''; input.readOnly = false; }
+        bus?.classList.remove('has-value');
         lookup();
     });
 }
@@ -519,9 +528,7 @@ function initDdrEncodeModal() {
         button.addEventListener('click', close);
     });
 
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) close();
-    });
+    // Keep the DDR form open when the user clicks outside the dialog.
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;

@@ -523,8 +523,8 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp = $this->actingAs($this->maintenanceUser)->get(route('fuel-reports'));
         $resp->assertOk();
 
-        $resp->assertSee('fuelEfficiencyChart', false);
-        $resp->assertSee('fuelUsageChart', false);
+        $resp->assertSee('fuel-records', false);
+        $resp->assertSee('efficiencyPreview', false);
         $resp->assertSee('fuelAnalyticsData', false);
     }
 
@@ -647,7 +647,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $table = $matches[0] ?? '';
 
         $this->assertNotSame('', $table);
-        $this->assertSame(9, substr_count($table, '<th>'));
+        $this->assertSame(8, substr_count($table, '<th>'));
         $this->assertStringContainsString('<th>Item / Part</th>', $table);
         $this->assertStringContainsString('<th>On Hand</th>', $table);
         $this->assertStringContainsString('Supplier:', $table);

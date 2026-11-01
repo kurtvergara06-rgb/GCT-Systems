@@ -252,7 +252,9 @@ class JobOrder extends Model
 
         // Legacy records may still have status=On Going from assignment time.
         // Never represent unissued parts as active repair work.
-        if ($this->isWaitingForRequiredParts() && $this->review_status === 'Approved') {
+        if ($this->isWaitingForRequiredParts()
+            && $this->review_status === 'Approved'
+            && $this->status !== 'On Going') {
             return 'On Hold';
         }
 

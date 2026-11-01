@@ -11,6 +11,26 @@ class FirstLoginOnboardingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_self_registered_password_does_not_require_first_login_change(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'password' => Hash::make('ChosenPassword123!'),
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
+        ]);
+
+        $this->post(route('login.submit'), [
+            'email' => $user->email,
+            'password' => 'ChosenPassword123!',
+        ])->assertRedirect(route('maintenance-dashboard'));
+
+        $this->assertFalse($user->fresh()->must_change_password);
+    }
+
     public function test_new_account_sees_welcome_before_password_change(): void
     {
         $user = User::factory()->create([

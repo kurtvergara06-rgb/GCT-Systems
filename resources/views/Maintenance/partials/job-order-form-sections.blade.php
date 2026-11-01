@@ -47,7 +47,7 @@
                 id="{{ $problemFieldId }}"
                 placeholder="Describe the reported issue or complaint..."
                 required
-            >@if(!$isEdit){{ old('problem_issue', $pmsCreate ? request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.') : '') }}@endif</textarea>
+            >@if(!$isEdit){{ old('problem_issue', $referralCreate ? ($referralCreate->incident?->description ?: 'Bus breakdown reported at '.($referralCreate->incident?->location ?: 'an unspecified location').'.') : ($pmsCreate ? request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.') : '')) }}@endif</textarea>
         </div>
     </div>
 </section>

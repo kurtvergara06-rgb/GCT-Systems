@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\MaintenanceReferral;
 use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Operation\Mechanic;
@@ -148,13 +149,51 @@ class JobOrderIndexController extends Controller
             ->reject(fn ($bus) => $activeBusNumbers->contains($bus->bus_no))
             ->values();
 
+        // The live /job-orders route is served here, not by JobOrderController@index.
+        // Only approved, unprocessed referrals may prefill a draft JO.
+        $referralCreate = null;
+        if ($request->filled('maintenance_referral_id')) {
+            abort_unless(auth()->user()?->hasSystemPermission('maintenance', 'edit'), 403);
+            $referralCreate = MaintenanceReferral::query()
+                ->with('incident.bus')
+                ->findOrFail($request->integer('maintenance_referral_id'));
+
+            abort_unless(
+                $referralCreate->status === 'Approved' && ! $referralCreate->jobOrder()->exists(),
+                409,
+                'Only approved referrals without an existing Job Order can start a new Job Order.'
+            );
+
+            $referralBus = $referralCreate->incident?->bus;
+            abort_unless($referralBus, 409, 'The referred incident has no valid bus.');
+
+            if (! $availableBuses->contains('id', $referralBus->id)) {
+                $availableBuses->push($referralBus->loadMissing('authorizedDrivers:id,driver_name'));
+            }
+        }
+
         $pmsCreate = null;
         if ($request->boolean('create_pms') && $request->filled('pms_schedule_id')) {
-            $pmsCreate = PmsSchedule::find($request->integer('pms_schedule_id'));
+            abort_unless(auth()->user()?->hasSystemPermission('maintenance', 'edit'), 403);
+            $pmsCreate = PmsSchedule::findOrFail($request->integer('pms_schedule_id'));
+            $pmsBus = Bus::query()->with('authorizedDrivers:id,driver_name')
+                ->where('bus_no', $pmsCreate->bus_no)->firstOrFail();
+            if ($pmsBus->status === 'Under Maintenance'
+                && ! JobOrder::query()->where('bus_no', $pmsBus->bus_no)
+                    ->where('maintenance_type', 'PMS')->open()->exists()
+                && ! JobOrder::query()->where('pms_schedule_id', $pmsCreate->id)->open()->exists()
+                && ! $pmsBus->hasOngoingDispatch()
+                && ! $availableBuses->contains('id', $pmsBus->id)) {
+                // The server-side create action enforces the same PMS-only exception.
+                $availableBuses->push($pmsBus);
+            }
         }
 
         // Load stock reference once for the rendered list, not once per Job Order modal.
         $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
+
+        $maintenanceJobCatalog = \Illuminate\Support\Facades\DB::table('maintenance_job_catalog')
+            ->where('is_active', true)->orderBy('name')->pluck('name')->all();
 
         return view('Maintenance.job-order', compact(
             'existingIrStatuses',
@@ -171,8 +210,10 @@ class JobOrderIndexController extends Controller
             'durationSuggestions',
             'linkedPrsByJobOrderNo',
             'pmsCreate',
+            'referralCreate',
             'recordView',
-            'viewPartsStock'
+            'viewPartsStock',
+            'maintenanceJobCatalog'
         ));
     }
 

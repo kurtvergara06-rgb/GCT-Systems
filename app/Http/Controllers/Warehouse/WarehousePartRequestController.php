@@ -413,6 +413,52 @@ class WarehousePartRequestController extends Controller
         return redirect()->back()->with('success', 'Purchase Request forwarded to Purchasing.');
     }
 
+    public function returnForRevision(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        $this->authorizeWarehouseHead();
+
+        $validated = $request->validate([
+            'revision_remarks' => ['required', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($purchaseRequest, $validated): void {
+            $locked = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
+
+            if ($this->isRestockRequest($locked)) {
+                throw ValidationException::withMessages([
+                    'revision_remarks' => 'Inventory restock requests cannot be returned through the Maintenance PR workflow.',
+                ]);
+            }
+
+            if (! in_array($locked->status, ['Submitted', 'Approved'], true)
+                || $this->missingPurchaseRequestExists($locked)) {
+                throw ValidationException::withMessages([
+                    'revision_remarks' => 'Only an unforwarded Maintenance Purchase Request may be returned for revision.',
+                ]);
+            }
+
+            $note = trim($validated['revision_remarks']);
+            $existingRemarks = trim((string) $locked->remarks);
+            $locked->update([
+                // Rejected is the existing editable/resubmittable Maintenance state.
+                'status' => 'Rejected',
+                'warehouse_status' => 'Revision Required',
+                'rejected_at' => now(),
+                'remarks' => trim($existingRemarks.($existingRemarks !== '' ? "\n\n" : '').'Warehouse revision requested: '.$note),
+            ]);
+        });
+
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'revision_required',
+            $purchaseRequest->id,
+            'Warehouse returned a Maintenance Purchase Request for revision.'
+        );
+
+        return redirect()->back()->with('success', 'Purchase Request returned to Maintenance for revision.');
+    }
+
     private function prepareRequestForWarehouse(PurchaseRequest $purchaseRequest): PurchaseRequest
     {
         $parts = $this->parseParts($purchaseRequest->item);

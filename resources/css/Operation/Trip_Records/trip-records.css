@@ -2378,7 +2378,7 @@
 .trip-history-slots { display:inline-block; padding:5px 9px; border-radius:7px; font-weight:800; background:#f1f5fa; color:#64748b; }
 .trip-history-slots.is-full { background:#e4f8ed; color:#16824c; }
 .trip-history-slots.is-partial { background:#fff3da; color:#a76510; }
-.trip-history-table .trip-history-outcome { white-space:nowrap; padding:5px 9px; min-height:25px; font-size:10px; }
+.trip-history-table .trip-history-outcome { white-space:nowrap; padding:5px 9px; min-height:25px; font-size:12px; }
 @media(max-width:700px) {
     .trip-records-page .trip-history-card { padding:13px; }
     .trip-history-controls { align-items:stretch; flex-direction:column; }

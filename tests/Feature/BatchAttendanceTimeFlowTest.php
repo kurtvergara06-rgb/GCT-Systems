@@ -103,8 +103,8 @@ class BatchAttendanceTimeFlowTest extends TestCase
             ->whereDate('attendance_date', '2026-10-08')
             ->firstOrFail();
         $this->assertSame('07:30:00', $mechanicAttendance->time_in);
-        // 07:30 is late under the configured mechanic attendance boundary.
-        $this->assertSame('Late', $mechanicAttendance->status);
+        // Batch attendance preserves the explicitly submitted status without inferring a shift cutoff.
+        $this->assertSame('Present', $mechanicAttendance->status);
 
         $this->actingAs($user)
             ->getJson(route('operation.attendance.batch.roster', [

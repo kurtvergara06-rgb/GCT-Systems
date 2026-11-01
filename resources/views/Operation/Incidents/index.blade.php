@@ -109,9 +109,6 @@
                                     $currentUser = auth()->user();
                                     $currentDepartment = strtolower(trim((string) ($currentUser?->department ?? '')));
                                     $currentRole = strtolower(trim((string) ($currentUser?->role ?? '')));
-                                    $canReferToMaintenance = $canEditOperation && ((in_array($currentDepartment, ['operation', 'operations'], true)
-                                            && in_array($currentRole, ['head', 'admin', 'operation head', 'operations head', 'operation admin'], true))
-                                        || ($currentDepartment === 'admin' && in_array($currentRole, ['head', 'admin', 'system admin'], true)));
                                     $maintenanceReferral = $incident->maintenanceReferral;
                                     $canDeployReplacement = $currentUser?->hasSystemPermission('operation', 'edit') && $incident->incident_type === 'Bus Breakdown' && !$incident->replacement && !in_array($incident->status, ['Resolved', 'Cancelled'], true);
                                     $canModifyIncident = $canEditOperation && $incident->status === 'Reported' && !$maintenanceReferral && !$incident->replacement && $incident->responses->count() <= 1;
@@ -190,8 +187,8 @@
                                     <td>
                                         <div class="inc-driver-cell">
                                             @if($incident->driver_name)
-                                                <span>{{ $incident->driver_name }}</span>
-                                                @if($incident->driver_id)<small>{{ $incident->driver_id }}</small>@endif
+                                                <span class="inc-driver-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                                                <span class="inc-driver-info"><strong>{{ $incident->driver_name }}</strong><small>Driver profile</small></span>
                                             @else
                                                 <span style="color:#94a3b8;">—</span>
                                             @endif
@@ -202,7 +199,7 @@
                                     </td>
                                     <td>
                                         <div class="inc-actions inc-record-actions">
-                                            <button type="button" class="action-btn view inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident workflow" title="Open Incident Workflow"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                                            <button type="button" class="action-btn view inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident details and workflow" title="Incident Details & Workflow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></button>
                                             @if($canModifyIncident)
                                                 <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
                                             @else
@@ -218,14 +215,7 @@
                                                 <button type="button" class="action-btn delete inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                                             @endif
 
-                                            @if($incident->incident_type === 'Bus Breakdown' && $canReferToMaintenance && !$maintenanceReferral)
-                                                <form method="POST" action="{{ route('incidents.maintenance-referral.store', $incident) }}">
-                                                    @csrf
-                                                    <button type="submit" class="inc-action view" title="Refer to Maintenance" aria-label="Refer incident to Maintenance">
-                                                        <i class="fa-solid fa-screwdriver-wrench"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
+
                                         </div>
                                     </td>
                                 </tr>

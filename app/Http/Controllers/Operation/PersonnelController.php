@@ -165,9 +165,10 @@ class PersonnelController extends Controller
                 ->where('status', 'On Going')->where('review_status', 'Approved')->exists();
         });
 
+        $maintenanceJobCatalog = DB::table('maintenance_job_catalog')->orderBy('name')->get();
         return view(
             'Operation.Personnel Management.mechanic_master_list',
-            compact('mechanics', 'stats', 'specializationOptions', 'customSpecializationIds')
+            compact('mechanics', 'stats', 'specializationOptions', 'customSpecializationIds', 'maintenanceJobCatalog')
         );
     }
 
@@ -572,6 +573,18 @@ class PersonnelController extends Controller
                 ->contains(fn ($name) => mb_strtolower($name) === $option->normalized_name));
         if ($inUse) {
             return response()->json(['message' => 'This specialization is assigned to a mechanic and cannot be deleted.'], 409);
+        }
+
+        // Also protect qualifications referenced by Maintenance Job Catalog entries.
+        $usedByJobs = DB::table('maintenance_job_catalog')->pluck('specializations')
+            ->contains(function ($json) use ($option) {
+                $skills = json_decode((string) $json, true);
+                return is_array($skills) && collect($skills)->contains(
+                    fn ($skill) => mb_strtolower(trim((string) $skill)) === $option->normalized_name
+                );
+            });
+        if ($usedByJobs) {
+            return response()->json(['message' => 'This specialization is required by a Maintenance Job. Remove that mapping first.'], 409);
         }
 
         DB::table('mechanic_specialization_options')->where('id', $specialization)->delete();

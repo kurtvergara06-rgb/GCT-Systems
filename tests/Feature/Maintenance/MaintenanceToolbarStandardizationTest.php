@@ -28,16 +28,16 @@ it('keeps daily monitoring filters and recent fuel record controls independent',
     $view = file_get_contents(resource_path('views/Maintenance/fuel-reports.blade.php'));
     $controller = file_get_contents((new ReflectionClass(FuelReportController::class))->getFileName());
 
+    // The legacy daily-monitoring panel was removed. Its date/filter values
+    // are retained as hidden inputs inside the independent fuel-record toolbar.
     expect($view)
-        ->toContain('form-id="dailyFuelMonitoringToolbar"')
-        ->toContain(':show-search="false"')
+        ->toContain('form-id="recentFuelEntriesToolbar"')
+        ->toContain('search-label="Search Fuel Records"')
         ->toContain('name="monitor_date"')
         ->toContain('name="monitor_filter"')
-        ->toContain('form-id="recentFuelEntriesToolbar"')
-        ->toContain('search-label="Search Fuel Entries"')
         ->toContain('name="date_filter"')
         ->toContain("'report_date' => 'Report Date'")
-        ->toContain('button-id="openFuelModal"');
+        ->toContain('id="openPhysicalFuelForm"');
 
     expect($controller)
         ->toContain('TableSort::apply($query, $request')

@@ -76,13 +76,13 @@
                         @if($stepIndex === 3)
                             <div class="inc-wf-parallel-heading">
                                 <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
-                                <span><strong>Parallel follow-up activities</strong><small>Trip continuation and maintenance referral are tracked independently.</small></span>
+                                <span><strong>Parallel follow-up activities</strong><small>Trip continuation and Maintenance referral are tracked independently.</small></span>
                             </div>
                             <div class="inc-wf-parallel-steps">
                         @endif
                         @php
                             $isActiveStep = !$step['done'] && $firstPendingStep === $stepIndex;
-                            $stepState = $step['done'] ? 'Completed' : ($isActiveStep ? 'In Progress' : 'Pending');
+                            $stepState = $step['state'] ?? ($step['done'] ? 'Completed' : ($isActiveStep ? 'In Progress' : 'Pending'));
                         @endphp
                         <article class="inc-wf-step {{ $step['done'] ? 'is-complete' : '' }} {{ $isActiveStep ? 'is-active' : '' }} {{ $stepIndex >= 3 ? 'is-parallel' : '' }}">
                             <div class="inc-wf-step-rail">
@@ -106,7 +106,9 @@
                                         <i class="fa-solid fa-user"></i>
                                         <span><strong>Reported by:</strong> {{ $incident->reporter?->name ?: 'Operations' }}<br>{{ $incident->incident_reported_at?->format('M d, Y · g:i A') }} · {{ $incident->location ?: 'Location not recorded' }}</span>
                                     </div>
-                                @elseif($stepIndex === 1 && $canEditIncident && !$isClosed)
+                                @elseif($stepIndex === 1 && $hasOicResponse)
+                                    <div class="inc-wf-step-note is-success"><i class="fa-solid fa-circle-check"></i><span>OIC response recorded. See the Updates tab for recorded instructions and response history.</span></div>
+                                @elseif($stepIndex === 1 && $canEditIncident && !$isClosed && !$hasOicResponse)
                                     <form method="POST" action="{{ route('incidents.response', ['incident' => $incident->incident_no]) }}" class="inc-wf-inline-form">
                                         @csrf
                                         <input type="hidden" name="embedded" value="1">
@@ -157,12 +159,12 @@
                                     <button type="button" class="inc-wf-outline-btn inc-wf-step-action" data-wf-show-panel="updates" data-wf-focus="statusSelect"><i class="fa-solid fa-route"></i>Update Incident Status</button>
                                 @elseif($stepIndex === 4 && $isBreakdown)
                                     @if($hasReferral)
-                                        <div class="inc-wf-step-note is-success"><i class="fa-solid fa-screwdriver-wrench"></i><span>Maintenance referral is already recorded and protected as operational history.</span></div>
+                                        <div class="inc-wf-step-note is-success"><i class="fa-solid fa-screwdriver-wrench"></i><span><strong>Maintenance referral: {{ $incident->maintenanceReferral->status }}</strong>{{ $incident->maintenanceReferral->notes ? ' — '.$incident->maintenanceReferral->notes : '' }}</span></div>
                                     @elseif($canReferToMaintenance && !$isClosed)
                                         <form method="POST" action="{{ route('incidents.maintenance-referral.store', $incident) }}" class="inc-wf-inline-form">
                                             @csrf
                                             <label for="maintenance_referral_notes">Maintenance referral notes</label>
-                                            <div class="inc-wf-inline-fields">
+                                            <div class="inc-wf-inline-fields inc-wf-referral-fields">
                                                 <textarea id="maintenance_referral_notes" name="notes" rows="2" maxlength="2000" placeholder="Describe the inspection or repair required..."></textarea>
                                                 <button type="submit" class="inc-wf-outline-btn"><i class="fa-solid fa-screwdriver-wrench"></i>Record Maintenance Referral</button>
                                             </div>
@@ -261,7 +263,7 @@
                                 <small>This describes the trip response; it does not mark the scheduled trip Completed.</small>
                             @endif
                             <label for="resolution_notes">OIC / Maintenance Coordination Update</label>
-                            <textarea name="resolution_notes" id="resolution_notes" rows="5" maxlength="2000" placeholder="Record the verified response, operational decision, trip continuation, or resolution details...">{{ old('resolution_notes') }}</textarea>
+                            <textarea name="resolution_notes" id="resolution_notes" rows="5" maxlength="2000" placeholder="Record the verified response, operational decision, or resolution details...">{{ old('resolution_notes') }}</textarea>
                             <small>Record only information actually confirmed by OIC or Maintenance.</small>
                         </div>
                         <div class="inc-wf-update-footer">
@@ -335,7 +337,7 @@
                 <p class="inc-wf-progress-caption">Independent follow-ups</p>
                 <div class="inc-wf-followup-summary">
                     @foreach(collect($workflowSteps)->slice(3) as $stepIndex => $step)
-                        <div><i class="fa-solid {{ $step['icon'] }}"></i><span>{{ $step['label'] }}</span><strong class="{{ $step['done'] ? 'is-complete' : 'is-pending' }}">{{ $step['done'] ? 'Recorded' : 'Pending' }}</strong></div>
+                        <div><i class="fa-solid {{ $step['icon'] }}"></i><span>{{ $step['label'] }}</span><strong class="{{ $step['done'] ? 'is-complete' : 'is-pending' }}">{{ $step['state'] ?? ($step['done'] ? 'Recorded' : 'Pending') }}</strong></div>
                     @endforeach
                 </div>
                 <div class="inc-wf-current-message {{ $isClosed ? 'is-closed' : '' }}"><i class="fa-solid fa-circle-info"></i><span><strong>{{ $workflowStatus }}.</strong><br>{{ $isClosed ? 'This incident workflow is protected.' : 'Operations can record the next verified update.' }}</span></div>
@@ -352,23 +354,6 @@
                 </div>
             </section>
 
-            @if($canEditIncident || $canReferToMaintenance)
-            <section class="inc-wf-side-card inc-wf-actions-card">
-                <h2><i class="fa-solid fa-bolt"></i>Actions (Operations Only)</h2>
-                @if($canEditIncident && !$isClosed)
-                    <button type="button" class="inc-wf-primary-btn" data-wf-show-panel="workflow" data-wf-focus="oic_response_notes"><i class="fa-solid fa-pen"></i>Record OIC Response</button>
-                @endif
-                @if($canEditIncident && $isBreakdown && !$incident->replacement && !$isClosed)
-                    <button type="button" class="inc-wf-outline-btn" data-wf-show-panel="workflow" data-wf-focus="replacement_bus_id"><i class="fa-solid fa-bus"></i>Record Bus Deployment</button>
-                @endif
-                @if($canEditIncident && !$isClosed)
-                    <button type="button" class="inc-wf-outline-btn" data-wf-show-panel="updates" data-wf-focus="statusSelect"><i class="fa-solid fa-route"></i>Update Incident Status</button>
-                @endif
-                @if($canReferToMaintenance && $isBreakdown && !$hasReferral && !$isClosed)
-                    <button type="button" class="inc-wf-outline-btn" data-wf-show-panel="workflow" data-wf-focus="maintenance_referral_notes"><i class="fa-solid fa-screwdriver-wrench"></i>Record Maintenance Referral</button>
-                @endif
-            </section>
-            @endif
         </aside>
     </div>
 </section>

@@ -6,6 +6,7 @@ use App\Models\Admin\GpsTripRecord;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FuelReport extends Model
 {
@@ -23,6 +24,7 @@ class FuelReport extends Model
         'status',
         'remarks',
         'manual_distance_reason',
+        'gas_station', 'po_reference', 'issued_at', 'plate_number', 'entry_type',
     ];
 
     protected $casts = [
@@ -31,6 +33,11 @@ class FuelReport extends Model
         'fuel_liters' => 'decimal:2',
         'km_per_liter' => 'decimal:2',
     ];
+
+    public function trips(): HasMany
+    {
+        return $this->hasMany(FuelReportTrip::class)->orderBy('sequence');
+    }
 
     public function gpsTripRecord(): BelongsTo
     {

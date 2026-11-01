@@ -9,6 +9,7 @@ use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -505,6 +506,13 @@ class OperationMultiBusWorkflowTest extends TestCase
         $d2 = $this->createDriver('T10-2');
         $a2 = $this->createAttendance($d2, $date);
         $b2 = $this->createBus('T10-2');
+
+        // Auto Scheduling requires an active route-client allocation.
+        $client = OperationClient::firstOrCreate(['name' => 'Multi Bus Test Client'], ['status' => 'Active']);
+        $this->route->update(['operation_client_id' => $client->id]);
+        $trip->update(['client_name' => $client->name]);
+        $b1->operationClients()->syncWithoutDetaching([$client->id]);
+        $b2->operationClients()->syncWithoutDetaching([$client->id]);
 
         // Generate recommendations
         $genResp = $this->actingAs($this->admin)->postJson(route('auto-scheduling.generate'), [

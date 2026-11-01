@@ -175,7 +175,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     signaturePreview.src = cropCanvas.toDataURL('image/png');
     signaturePreview.hidden = false;
     signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-    if (signatureMessage) signatureMessage.textContent = 'Cropped signature ready for preview. PR submission is still unavailable.';
+    if (signatureMessage) signatureMessage.textContent = 'Cropped signature ready. Submit the Purchase Request to save it with the signed authorization.';
     cancelCrop();
   });
 
@@ -220,7 +220,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     const info = row?.querySelector('.warehouse-restock-stock-info');
     if (!info) return;
     info.textContent = option?.value
-      ? 'On hand: ' + (option.dataset.stock || '0') + ' ' + (option.dataset.unit || '') +
+      ? 'Available: ' + (option.dataset.stock || '0') + ' ' + (option.dataset.unit || '') +
         ' · Reorder point: ' + (option.dataset.rop || '0') +
         ' · Safety stock: ' + (option.dataset.safety || 'Not set') +
         (option.dataset.supplier ? ' · Supplier: ' + option.dataset.supplier : '')
@@ -397,7 +397,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         <div class="shared-pr-parts-head">
           <span>Part Name</span>
           <span>Quantity</span>
-          <span>On Hand</span>
+          <span>Available</span>
         </div>
     `;
 
@@ -406,7 +406,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
         <div class="shared-pr-parts-row">
           <span class="part-name">${escapeHtml(String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim())}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
-          <span>${escapeHtml(part.physical_on_hand_display || part.available_display || part.available || '0')}</span>
+          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
         </div>
       `;
     });

@@ -403,7 +403,7 @@
             id="tripModal"
             title="New Trip"
             title-id="tripModalTitle"
-            description="Set the route, trip date, departure time, and schedule details."
+            description="Set the trip type, route, schedule, and other trip details."
             icon="fa-calendar-plus"
             size="large"
             form-id="tripForm"
@@ -421,6 +421,25 @@
             <input type="hidden" name="return_search" value="{{ request('search') }}">
             <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
 
+            <fieldset class="trip-service-mode" id="tripServiceMode">
+                <legend>Trip Type <span class="ui-required">*</span></legend>
+                <div class="trip-service-mode-options">
+                    <label class="trip-service-mode-choice">
+                        <input type="radio" name="trip_service_mode" value="client" checked>
+                        <i class="fa-solid fa-building" aria-hidden="true"></i>
+                        <span><strong>Has Client</strong><small>Trip for an assigned client / company</small></span>
+                    </label>
+                    <label class="trip-service-mode-choice">
+                        <input type="radio" name="trip_service_mode" value="general">
+                        <i class="fa-solid fa-bus" aria-hidden="true"></i>
+                        <span><strong>No Client</strong><small>General or unallocated service</small></span>
+                    </label>
+                </div>
+                <p class="trip-general-service-notice" id="tripGeneralServiceNotice" hidden>
+                    Choose an active route without a client allocation. Routes assigned to companies are unavailable for No Client trips.
+                </p>
+            </fieldset>
+
             <div class="ui-form-grid trip-ui-form-grid trip-editor-grid">
                 <x-ui.form-field label="Trip ID" name="trip_code_display" id="tripCode" value="Auto-generated" icon="fa-hashtag" :readonly="true" />
                 <x-ui.form-field
@@ -435,27 +454,11 @@
                 />
 
                 <div class="ui-form-group ui-form-full">
-                    <label for="tripRoute">Route <span class="ui-required">*</span></label>
-                    <div class="ui-input-wrap has-icon">
-                        <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
-                        <select name="shuttle_route_id" id="tripRoute" required>
-                            <option value="">Select active route</option>
-                            @foreach($activeRoutes as $route)
-                                <option value="{{ $route->id }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
-                                    {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="ui-form-group ui-form-full">
-                    <label for="tripClientName">Client / Company <small>(Optional)</small></label>
+                    <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
                     <div class="ui-input-wrap has-icon">
                         <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                        <select id="tripClientName" name="client_name">
-                            <option value="">No client — unallocated service</option>
+                        <select id="tripClientName" name="client_name" required>
+                            <option value="">Select active client</option>
                             @foreach($operationClientNames as $clientName)
                                 <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
                             @endforeach
@@ -466,6 +469,22 @@
                     </div>
                     @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
+                <div class="ui-form-group ui-form-full">
+                    <label for="tripRoute">Client Route <span class="ui-required">*</span></label>
+                    <div class="ui-input-wrap has-icon">
+                        <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
+                        <select name="shuttle_route_id" id="tripRoute" required>
+                            <option value="">Select client first</option>
+                            @foreach($activeRoutes as $route)
+                                <option value="{{ $route->id }}" data-client-id="{{ $route->operation_client_id }}" data-client-name="{{ $route->client?->name }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
+                                    {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
+                </div>
+
                 <div class="trip-service-planning-fields">
                     <div class="ui-form-group">
                         <label for="tripDirection">Service Direction <span class="ui-required">*</span></label>

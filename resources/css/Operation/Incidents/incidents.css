@@ -722,7 +722,7 @@
     align-items: center;
     gap: 7px;
     padding: 5px 12px;
-    border-radius: 999px;
+    border-radius: 6px;
     font-size: 11.5px;
     font-weight: 700;
     white-space: nowrap;
@@ -779,26 +779,11 @@
    DRIVER CELL
 ========================================================= */
 
-.inc-driver-cell {
-    display: flex;
-    flex-direction: column;
-
-    gap: 2px;
-}
-
-
-.inc-driver-cell span {
-    font-weight: 700;
-    color: var(--inc-navy);
-    font-size: 12px;
-}
-
-
-.inc-driver-cell small {
-    color: var(--inc-muted);
-    font-size: 11px;
-}
-
+.inc-driver-cell { display:flex; align-items:center; gap:9px; min-width:0; }
+.inc-driver-cell .inc-driver-icon { display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; border-radius:8px; background:#eaf2ff; border:1px solid #cfe0ff; color:#1755bf; font-size:13px; }
+.inc-driver-cell .inc-driver-info { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.inc-driver-cell .inc-driver-info strong { color:var(--inc-navy); font-size:12px; font-weight:750; overflow-wrap:anywhere; }
+.inc-driver-cell .inc-driver-info small { color:var(--inc-muted); font-size:10px; font-weight:500; }
 
 /* =========================================================
    LOCATION / ROUTE CELL
@@ -1870,7 +1855,7 @@
     gap: 7px;
     padding: 5px 11px;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 750;
     line-height: 1.35;
@@ -2355,8 +2340,6 @@
 .inc-page .inc-table th:nth-child(7), .inc-page .inc-table td:nth-child(7) { width:13%; }
 .inc-page .inc-table td:nth-child(6) { max-width:none; }
 .inc-page .inc-table .inc-driver-cell { min-width:0; }
-.inc-page .inc-table .inc-driver-cell > span { display:block; overflow-wrap:anywhere; }
-.inc-page .inc-table .inc-driver-cell > small { display:block; margin-top:4px; color:#75849d; font-weight:500; font-size:11px; overflow-wrap:anywhere; }
 .inc-page .inc-table th:last-child { text-align:center; }
 .inc-page .inc-table td:last-child { text-align:center; }
 .inc-page .inc-table .inc-record-actions { min-width:0; }
@@ -2763,6 +2746,10 @@
 .inc-wf-inline-form > label,
 .inc-wf-update-form > label { display: block; margin: 0 0 5px; color: #344a67; font-size: 10.5px; font-weight: 750; }
 .inc-wf-inline-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.inc-wf-referral-fields { grid-template-columns: minmax(0, 1fr); }
+.inc-wf-referral-fields textarea { box-sizing: border-box; min-width: 0; min-height: 82px; resize: vertical; }
+.inc-wf-referral-fields .inc-wf-outline-btn { width: fit-content; max-width: 100%; justify-self: end; }
+.inc-wf-parallel-steps .inc-wf-referral-fields { min-width: 0; }
 .inc-wf-inline-fields textarea,
 .inc-wf-inline-fields select,
 .inc-wf-update-form textarea,
@@ -3816,7 +3803,7 @@
     min-height: 26px;
     padding: 5px 10px;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 750;
     line-height: 1.25;

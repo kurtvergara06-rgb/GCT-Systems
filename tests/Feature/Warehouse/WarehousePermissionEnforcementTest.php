@@ -234,7 +234,6 @@ class WarehousePermissionEnforcementTest extends TestCase
             'category' => 'Parts',
             'on_hand' => 0,
             'unit_of_measurement' => 'pcs',
-            'reorder_level' => 0,
         ])->assertRedirect('/inventory');
 
         $this->assertDatabaseHas('inventory_items', ['item_code' => 'ADMIN-ITEM']);

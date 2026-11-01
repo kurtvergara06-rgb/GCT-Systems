@@ -190,24 +190,17 @@
   box-sizing:border-box;
   padding:12px 9px;
 }
-/* Nine-column layout: reorder point and safety stock remain distinct. */
-.warehouse-inventory-page .inventory-table th:nth-child(1){width:20%}
-.warehouse-inventory-page .inventory-table th:nth-child(2){width:10%}
-.warehouse-inventory-page .inventory-table th:nth-child(3){width:8%}
-.warehouse-inventory-page .inventory-table th:nth-child(4){width:8%}
-.warehouse-inventory-page .inventory-table th:nth-child(5){width:8%}
-.warehouse-inventory-page .inventory-table th:nth-child(6){width:11%}
-.warehouse-inventory-page .inventory-table th:nth-child(7){width:10%}
-.warehouse-inventory-page .inventory-table th:nth-child(8){width:12%}
-.warehouse-inventory-page .inventory-table th:nth-child(9){width:13%}
+/* Eight-column layout: Safety Stock is intentionally hidden from Inventory. */
+.warehouse-inventory-page .inventory-table th:nth-child(1){width:22%}
+.warehouse-inventory-page .inventory-table th:nth-child(2){width:12%}
+.warehouse-inventory-page .inventory-table th:nth-child(3){width:9%}
+.warehouse-inventory-page .inventory-table th:nth-child(4){width:9%}
+.warehouse-inventory-page .inventory-table th:nth-child(5){width:9%}
+.warehouse-inventory-page .inventory-table th:nth-child(6){width:13%}
+.warehouse-inventory-page .inventory-table th:nth-child(7){width:13%}
+.warehouse-inventory-page .inventory-table th:nth-child(8){width:13%}
 .warehouse-inventory-page .inventory-table th:nth-child(n+3),
 .warehouse-inventory-page .inventory-table td:nth-child(n+3){text-align:center}
-.warehouse-inventory-page .inventory-table .inventory-safety-stock-cell span{
-  color:#64748b;
-  font-size:10px;
-  font-weight:650;
-  white-space:nowrap;
-}
 .warehouse-inventory-page .inventory-item-identification{
   display:flex;flex-direction:column;align-items:flex-start;gap:4px;
   min-width:0;
@@ -222,7 +215,7 @@
 .warehouse-inventory-page .inventory-table td strong small{
   color:#64748b;font-size:10px;font-weight:600;
 }
-.warehouse-inventory-page .inventory-table td:nth-child(9){padding-right:12px}
+.warehouse-inventory-page .inventory-table td:nth-child(8){padding-right:12px}
 .warehouse-inventory-page .inventory-table .actions{
   display:flex;flex-wrap:wrap;justify-content:center;gap:5px;
 }
@@ -731,11 +724,42 @@
 .warehouse-inventory-page .inventory-table thead th{
   padding:13px 12px;
   vertical-align:middle;
+  font-weight:800;
+  color:#0f2747;
 }
 .warehouse-inventory-page .inventory-table tbody td{
   padding:11px 10px;
   vertical-align:middle;
   border-bottom:1px solid #e6edf7;
+}
+.warehouse-inventory-page .inventory-reorder-value{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  white-space:nowrap;
+}
+.warehouse-inventory-page .inventory-reorder-auto{
+  display:inline-block;
+  padding:2px 5px;
+  border-radius:5px;
+  background:#e8f3eb;
+  color:#217347;
+  font-size:9px;
+  font-weight:750;
+}
+.warehouse-inventory-page .inventory-reorder-info{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#64748b;
+  font-size:12px;
+  cursor:help;
+  outline-offset:3px;
+}
+.warehouse-inventory-page .inventory-reorder-info:hover,
+.warehouse-inventory-page .inventory-reorder-info:focus-visible{
+  color:#1d4ed8;
 }
 .warehouse-inventory-page .inventory-table tbody td:first-child{
   padding-left:14px;
@@ -755,15 +779,15 @@
   justify-content:center;
   gap:8px;
 }
+.warehouse-inventory-page .inventory-table th:nth-child(7),
+.warehouse-inventory-page .inventory-table td:nth-child(7),
 .warehouse-inventory-page .inventory-table th:nth-child(8),
-.warehouse-inventory-page .inventory-table td:nth-child(8),
-.warehouse-inventory-page .inventory-table th:nth-child(9),
-.warehouse-inventory-page .inventory-table td:nth-child(9){
+.warehouse-inventory-page .inventory-table td:nth-child(8){
   text-align:center;
   padding-left:8px;
   padding-right:8px;
 }
-.warehouse-inventory-page .inventory-table td:nth-child(8) .warehouse-inventory-status-stack{
+.warehouse-inventory-page .inventory-table td:nth-child(7) .warehouse-inventory-status-stack{
   align-items:center;
 }
 @media(max-width:1100px){
@@ -816,7 +840,7 @@
     height: 30px;
     min-height: 30px;
   }
-  .warehouse-inventory-page .inventory-card .inventory-table td:nth-child(8) .warehouse-inventory-status-stack {
+  .warehouse-inventory-page .inventory-card .inventory-table td:nth-child(7) .warehouse-inventory-status-stack {
     min-width: 0;
   }
 }
@@ -986,7 +1010,11 @@
 #editModal .inventory-edit-section-heading h3{font-size:14px;font-weight:800;color:#17345b;margin:0 0 3px}
 #editModal .inventory-edit-section-heading p{font-size:11px;color:#73849e;margin:0}
 #editModal .inventory-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 19px}
-#editModal .inventory-edit-threshold-grid{grid-template-columns:1fr 1fr 1fr}
+#editModal .inventory-edit-threshold-grid{grid-template-columns:minmax(0,1.65fr) minmax(185px,1fr);align-items:stretch}
+#editModal .inventory-edit-threshold-notice{display:flex;align-items:flex-start;gap:10px;min-width:0;border:1px solid #dce8f8;background:#f5f9ff;padding:13px;border-radius:9px}
+#editModal .inventory-edit-threshold-notice>i{color:#2469d2;font-size:14px;margin-top:2px;flex:none}
+#editModal .inventory-edit-threshold-notice strong{display:block;font-size:12px;font-weight:800;color:#17345b;margin-bottom:5px}
+#editModal .inventory-edit-threshold-notice p{font-size:11px;line-height:1.55;color:#607793;margin:0}
 #editModal .form-group{display:flex;flex-direction:column;gap:5px;min-width:0;margin:0}
 #editModal .form-group label{font-size:12px;font-weight:750;color:#1d395f}
 #editModal .form-group label em{font-style:normal;color:#dc2626}

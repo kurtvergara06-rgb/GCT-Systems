@@ -57,7 +57,7 @@ class OperationMechanicAttendanceUiTest extends TestCase
             $mechanicJs
         );
         $this->assertStringContainsString(
-            'Active mechanics from the Mechanic Master List load automatically',
+            'Active mechanics load automatically',
             $batchJs
         );
         $this->assertStringNotContainsString(

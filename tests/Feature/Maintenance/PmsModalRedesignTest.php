@@ -78,42 +78,16 @@ class PmsModalRedesignTest extends TestCase
         }
     }
 
-    public function test_pms_task_list_modal_uses_redesigned_header_table_and_footer(): void
+    public function test_pms_details_modal_uses_current_monitoring_layout(): void
     {
-        $view = file_get_contents(
-            resource_path('views/Maintenance/pms-scheduling.blade.php')
-        );
+        $view = file_get_contents(resource_path('views/Maintenance/pms-scheduling.blade.php'));
 
-        $this->assertStringContainsString(
-            'pms-task-list-modal',
-            $view
-        );
-        $this->assertStringContainsString(
-            'pms-task-list-heading',
-            $view
-        );
-        $this->assertStringContainsString(
-            'pms-modal-title-icon',
-            $view
-        );
-        $this->assertStringContainsString(
-            'pms-task-list-body',
-            $view
-        );
-
-        // Existing task actions must remain available.
-        $this->assertStringContainsString(
-            'open-edit-pms',
-            $view
-        );
-        $this->assertStringContainsString(
-            'pms-schedules.destroy',
-            $view
-        );
-        $this->assertStringContainsString(
-            'pms-schedules.create-job-order',
-            $view
-        );
+        foreach (['pms-monitor-dialog', 'pms-monitor-heading', 'pms-monitor-body',
+            'pms-monitor-footer', 'close-pms-tasks-modal', 'pmsConfigModal'] as $hook) {
+            $this->assertStringContainsString($hook, $view);
+        }
+        // Details are read-only; configuration actions live in a separate modal.
+        $this->assertStringContainsString('No PMS baseline configured', $view);
     }
 
     public function test_pms_modal_css_matches_the_new_visual_system_and_responsive_layout(): void

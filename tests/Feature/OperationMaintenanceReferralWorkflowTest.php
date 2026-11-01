@@ -74,7 +74,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertNotNull($referral->reviewed_at);
     }
 
-    public function test_maintenance_staff_creates_traceable_job_order_from_approved_referral(): void
+    public function test_maintenance_staff_opens_standard_job_order_form_from_approved_referral(): void
     {
         $operationHead = User::factory()->create([
             'department' => 'Operation',
@@ -120,22 +120,16 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             ->post(route('maintenance-referrals.approve', $referral))
             ->assertRedirect();
 
+        // Starting a referral JO opens the standard form; a JO is only
+        // persisted after mechanics and repair details are submitted.
         $this->actingAs($maintenanceStaff)
             ->post(route('maintenance-referrals.job-order.store', $referral))
-            ->assertRedirect();
+            ->assertRedirect(route('job-orders', ['maintenance_referral_id' => $referral->id]));
 
-        $jobOrder = JobOrder::query()->firstOrFail();
-        $referral->refresh();
-
-        $this->assertSame($referral->id, $jobOrder->maintenance_referral_id);
-        $this->assertSame($incident->id, $jobOrder->incident_id);
-        $this->assertSame($bus->bus_no, $jobOrder->bus_no);
-        $this->assertSame('Repair', $jobOrder->maintenance_type);
-        $this->assertSame('On Hold', $jobOrder->status);
-        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertDatabaseCount('job_orders', 0);
+        $this->assertSame('Approved', $referral->fresh()->status);
+        // A breakdown referral already holds the bus for safety, even before JO submission.
         $this->assertSame('Under Maintenance', $bus->fresh()->status);
-        $this->assertSame('Job Order Created', $referral->status);
-        $this->assertSame($jobOrder->id, $referral->jobOrder?->id);
     }
 
     public function test_referral_permissions_and_duplicate_guards_are_enforced(): void
@@ -487,31 +481,19 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame('Approved', $referral->status);
         $this->assertSame($maintenanceHead->id, $referral->reviewed_by);
 
-        // 5. Maintenance Staff creates Job Order from approved referral
-        $createJoResponse = $this->actingAs($maintenanceStaff)
-            ->post(route('maintenance-referrals.job-order.store', $referral));
-        $createJoResponse->assertRedirect();
+        // 5. Starting an approved referral opens the standard JO form, but
+        // must not create an incomplete JO without a qualified mechanic.
+        $this->actingAs($maintenanceStaff)
+            ->post(route('maintenance-referrals.job-order.store', $referral))
+            ->assertRedirect(route('job-orders', ['maintenance_referral_id' => $referral->id]));
+        $this->assertDatabaseCount('job_orders', 0);
 
-        $jobOrder = JobOrder::where('maintenance_referral_id', $referral->id)->firstOrFail();
-        $referral->refresh();
-
-        $this->assertSame('Job Order Created', $referral->status);
-        $this->assertSame('On Hold', $jobOrder->status);
-        $this->assertSame('Repair', $jobOrder->maintenance_type);
-        $this->assertSame($bus->bus_no, $jobOrder->bus_no);
-        $this->assertSame($incident->id, $jobOrder->incident_id);
-        $this->assertNull($jobOrder->assigned_mechanic);
-        $this->assertSame('For Review', $jobOrder->review_status);
-
-        $this->actingAs($maintenanceHead)->post(route('job-orders.return-for-revision', $jobOrder), [
-            'review_notes' => 'Assign a qualified mechanic and confirm the repair scope.',
-        ])->assertRedirect();
-        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
-
-        // 6. Setup mechanic attendance & assign mechanic with required parts
+        // 6. Submit the standard JO form with an on-duty qualified mechanic,
+        // a supported maintenance job, and the required alternator part.
         $mechanic = Mechanic::create([
             'mechanic_id' => 'MECH-E2E',
             'mechanic_name' => 'Juan Dela Cruz',
+            'specialization' => 'Electrical, Diagnostics',
             'employment_status' => 'Active',
             'shift' => 'Day',
         ]);
@@ -522,23 +504,32 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             'status' => 'Present',
         ]);
 
-        $updateJoResponse = $this->actingAs($maintenanceStaff)
-            ->put(route('job-orders.update', $jobOrder), [
-                'job_order_no' => $jobOrder->job_order_no,
-                'bus_no' => $jobOrder->bus_no,
-                'problem_issue' => $jobOrder->problem_issue,
+        $this->actingAs($maintenanceStaff)
+            ->post(route('job-orders.store'), [
+                'maintenance_referral_id' => $referral->id,
+                'bus_no' => $bus->bus_no,
+                'problem_issue' => $incident->description,
                 'maintenance_type' => 'Repair',
-                'assigned_mechanic' => $mechanic->mechanic_name,
+                'maintenance_jobs' => ['Wiring and Electrical Troubleshooting'],
+                'mechanic_ids' => [$mechanic->id],
                 'parts' => [
                     ['name' => 'Heavy Duty Alternator 24V', 'quantity' => 1, 'unit' => 'pcs'],
                 ],
-            ]);
-        $updateJoResponse->assertRedirect();
+                'estimated_duration_value' => 4,
+                'estimated_duration_unit' => 'Hours',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
 
-        $jobOrder->refresh();
-        $this->assertSame('For Review', $jobOrder->review_status);
+        $jobOrder = JobOrder::where('maintenance_referral_id', $referral->id)->firstOrFail();
+        $referral->refresh();
+        $this->assertSame('Job Order Created', $referral->status);
         $this->assertSame('On Hold', $jobOrder->status);
+        $this->assertSame('Repair', $jobOrder->maintenance_type);
+        $this->assertSame($bus->bus_no, $jobOrder->bus_no);
+        $this->assertSame($incident->id, $jobOrder->incident_id);
         $this->assertSame($mechanic->mechanic_name, $jobOrder->assigned_mechanic);
+        $this->assertSame('For Review', $jobOrder->review_status);
         $this->assertSame('Not Requested', $jobOrder->part_status);
         $this->assertStringContainsString('Heavy Duty Alternator 24V', $jobOrder->part_needed);
 
@@ -613,11 +604,11 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame('Delivered', $pr->fresh()->status);
         $this->assertSame('Issued', $itemRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
-        $this->assertSame('On Hold', $jobOrder->fresh()->status);
+        $this->assertSame('On Going', $jobOrder->fresh()->status);
+        $this->assertNotNull($jobOrder->fresh()->start_date);
         $this->assertSame(2, (int) $inventoryItem->fresh()->quantity_available);
 
         // 9. Maintenance completes the Job Order
-        $jobOrder->update(['status' => 'On Going']);
         $finishResponse = $this->actingAs($maintenanceStaff)
             ->post(route('job-orders.finish', $jobOrder));
         $finishResponse->assertRedirect();

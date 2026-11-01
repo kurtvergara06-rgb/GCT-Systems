@@ -54,10 +54,18 @@ class InventoryController extends Controller
             $query->where('category', $request->category);
         }
 
-        TableSort::apply($query, $request, ['item_name' => 'item_name', 'item_code' => 'item_code', 'category' => 'category', 'quantity' => 'quantity_available', 'reorder_level' => 'reorder_level'], 'item_name');
+        TableSort::apply($query, $request, ['item_name' => 'item_name', 'item_code' => 'item_code', 'category' => 'category', 'quantity' => 'quantity_available'], 'item_name');
         $inventoryItems = $query
             ->paginate(8)
             ->withQueryString();
+
+        // Auto-calculated Reorder Point is read-only and derived from signed
+        // issuances. Historical gaps retain the existing configured threshold.
+        $calculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $calculatedThresholds = $inventoryItems->getCollection()
+            ->mapWithKeys(fn (InventoryItem $item) => [
+                $item->id => $calculator->calculate($item),
+            ]);
 
         // Actual stock stays unchanged on JO reservation. Show committed and free balances separately.
         $reservedByItem = \App\Models\Maintenance\JobOrderPartReservation::query()
@@ -79,20 +87,49 @@ class InventoryController extends Controller
 
         $totalItemsInStock = $inventoryScope()->count();
 
-        $lowStockAlerts = $inventoryScope()
-            ->whereColumn('quantity_available', '<=', 'reorder_level')
-            ->where('quantity_available', '>', 0)
-            ->count();
+        // Count against usable stock, not physical on-hand stock. A reservation
+        // does not deduct inventory until a signed Warehouse issuance occurs.
+        $reservations = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->select('inventory_item_id', DB::raw('SUM(quantity) AS reserved'))
+            ->groupBy('inventory_item_id');
 
-        $criticalItems = $inventoryScope()
-            ->where('quantity_available', '<=', 0)
-            ->count();
+        $lowStockAlerts = 0;
+        $criticalItems = 0;
+        $itemsAtRisk = 0;
+        $periodEnd = \Carbon\CarbonImmutable::now()->startOfMonth();
+        $periodStart = $periodEnd->subMonths(3);
+        $signedUsage = DB::table('inventory_issuance_items as lines')
+            ->join('inventory_issuances as issues', 'issues.id', '=', 'lines.inventory_issuance_id')
+            ->whereNotNull('issues.handover_confirmed_at')
+            ->whereNotNull('issues.signed_slip_path')
+            ->where('issues.issued_at', '>=', $periodStart)
+            ->where('issues.issued_at', '<', $periodEnd)
+            ->select('lines.inventory_item_id', DB::raw('SUM(lines.quantity) AS issued_units'))
+            ->groupBy('lines.inventory_item_id');
 
-        $forecastedStockouts = $inventoryScope()
-            ->whereColumn('quantity_available', '<=', 'reorder_level')
-            ->count();
-
-        $itemsAtRisk = $forecastedStockouts;
+        foreach ($inventoryScope()
+            ->leftJoinSub($reservations, 'jo_reservations', 'inventory_items.id', '=', 'jo_reservations.inventory_item_id')
+            ->leftJoinSub($signedUsage, 'signed_usage', 'inventory_items.id', '=', 'signed_usage.inventory_item_id')
+            ->select('inventory_items.quantity_available', 'inventory_items.reorder_level',
+                'inventory_items.created_at', 'jo_reservations.reserved', 'signed_usage.issued_units')
+            ->cursor() as $stock) {
+            $available = max(0, (int) $stock->quantity_available - max(0, (int) $stock->reserved));
+            $issued = (int) $stock->issued_units;
+            $completeHistory = $calculator->hasEnoughHistory(
+                $stock->created_at !== null ? \Carbon\CarbonImmutable::parse($stock->created_at) : null,
+                $periodStart,
+                $issued
+            );
+            $minimum = $completeHistory ? $calculator->roundedMonthlyUsage($issued) : (int) $stock->reorder_level;
+            $status = $calculator->stockStatus((int) $stock->quantity_available, (int) $stock->reserved, $minimum > 0 ? $minimum : null);
+            if ($status === 'Critical') {
+                $criticalItems++;
+                $itemsAtRisk++;
+            } elseif ($status === 'Low Stock') {
+                $lowStockAlerts++;
+                $itemsAtRisk++;
+            }
+        }
         $issueItems = InventoryItem::query()
             ->where('quantity_available', '>', 0)
             ->orderBy('item_name')
@@ -101,12 +138,13 @@ class InventoryController extends Controller
         return view('Warehouse.inventory', compact(
             'inventoryItems',
             'reservedByItem',
+            'calculatedThresholds',
+            'calculator',
             'categories',
             'suppliers',
             'totalItemsInStock',
             'lowStockAlerts',
             'criticalItems',
-            'forecastedStockouts',
             'itemsAtRisk',
             'issueItems'
         ));
@@ -130,8 +168,8 @@ class InventoryController extends Controller
             'quantity_available' => ['nullable', 'integer', 'min:0'],
             'unit' => ['nullable', 'string', 'max:255'],
             'unit_of_measurement' => ['required', 'string', 'max:255'],
-            'reorder_level' => ['required', 'integer', 'min:0'],
-            'safety_stock' => ['nullable', 'integer', 'min:0', 'lte:reorder_level'],
+            'reorder_level' => ['prohibited'],
+            'safety_stock' => ['prohibited'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
@@ -160,6 +198,9 @@ class InventoryController extends Controller
                 ?? $validated['storage_location']
                 ?? null;
 
+            // No manual threshold: zero is a storage fallback until history qualifies.
+            // The Inventory UI labels this as pending, not an auto-calculated zero.
+            $validated['reorder_level'] = 0;
             $validated['on_hand'] = 0;
             $validated['quantity_available'] = 0;
 
@@ -210,8 +251,8 @@ class InventoryController extends Controller
         $validated = $request->validate([
             'item_name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:255'],
-            'reorder_level' => ['required', 'integer', 'min:0'],
-            'safety_stock' => ['nullable', 'integer', 'min:0', 'lte:reorder_level'],
+            'reorder_level' => ['prohibited'],
+            'safety_stock' => ['prohibited'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
         ]);
@@ -228,7 +269,7 @@ class InventoryController extends Controller
             $validated['location'] = $validated['storage_location'] ?? null;
             $validated['status'] = $this->inventoryStatus(
                 (int) ($lockedItem->quantity_available ?? $lockedItem->on_hand ?? 0),
-                (int) $validated['reorder_level']
+                (int) $lockedItem->reorder_level
             );
             $lockedItem->update($validated);
             // Editing thresholds does not create an unsigned purchase request.
@@ -366,11 +407,9 @@ class InventoryController extends Controller
                 }
 
                 $rawOnHand = $data['on_hand'] ?? $data['quantity_available'] ?? 0;
-                $rawReorderLevel = $data['reorder_level'] ?? 0;
                 $onHand = filter_var($rawOnHand, FILTER_VALIDATE_INT);
-                $reorderLevel = filter_var($rawReorderLevel, FILTER_VALIDATE_INT);
 
-                if ($onHand === false || $onHand < 0 || $reorderLevel === false || $reorderLevel < 0) {
+                if ($onHand === false || $onHand < 0) {
                     throw ValidationException::withMessages([
                         'inventory_file' => "Invalid negative or non-integer quantity for {$itemCode}.",
                     ]);
@@ -395,7 +434,6 @@ class InventoryController extends Controller
                     'category' => trim((string) ($data['category'] ?? '')) ?: null,
                     'unit' => $unit ?: null,
                     'unit_of_measurement' => $unit ?: null,
-                    'reorder_level' => $reorderLevel,
                     'supplier' => trim((string) ($data['supplier'] ?? '')) ?: null,
                     'location' => $location ?: null,
                     'storage_location' => $location ?: null,
@@ -417,11 +455,9 @@ class InventoryController extends Controller
                         ?? 0
                     );
 
+                    // Imports must not override either legacy or computed reorder points.
                     $inventoryItem->update($payload + [
-                        'status' => $this->inventoryStatus(
-                            $onHand,
-                            $reorderLevel
-                        ),
+                        'status' => $this->inventoryStatus($onHand, (int) $inventoryItem->reorder_level),
                     ]);
 
                     if ($onHand !== $previousStock) {
@@ -439,10 +475,8 @@ class InventoryController extends Controller
                     $inventoryItem = InventoryItem::create($payload + [
                         'on_hand' => 0,
                         'quantity_available' => 0,
-                        'status' => $this->inventoryStatus(
-                            $onHand,
-                            $reorderLevel
-                        ),
+                        'reorder_level' => 0,
+                        'status' => $this->inventoryStatus($onHand, 0),
                     ]);
 
                     if ($onHand > 0) {

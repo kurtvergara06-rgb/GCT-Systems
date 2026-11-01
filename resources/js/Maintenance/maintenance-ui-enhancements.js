@@ -32,6 +32,25 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     { label: 'Exhaust System Inspection and Repair', value: 4, unit: 'Hours' },
   ];
 
+  // The server-side catalog is the source of truth for available JO jobs.
+  // Legacy duration estimates are kept only as optional presentation defaults.
+  const catalogElement = document.querySelector('#maintenanceJobCatalogData');
+  if (catalogElement) {
+    try {
+      const activeNames = JSON.parse(catalogElement.textContent || '[]');
+      if (Array.isArray(activeNames)) {
+        const durations = new Map(maintenanceJobPresets.map(({label,value,unit}) => [label,{value,unit}]));
+        maintenanceJobPresets.splice(0, maintenanceJobPresets.length,
+          ...activeNames.filter(name => typeof name === 'string').map(label => ({
+            label, value: durations.get(label)?.value ?? 0,
+            unit: durations.get(label)?.unit ?? 'Hours',
+          })));
+      }
+    } catch (error) {
+      console.warn('Maintenance job catalog could not be parsed; retaining legacy options.', error);
+    }
+  }
+
   const presetLabels = new Set(maintenanceJobPresets.map((preset) => preset.label));
 
   const enhanceMaintenanceJobSelect = (select) => {
@@ -89,7 +108,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       searchInput.placeholder = 'Search maintenance jobs...';
       searchInput.setAttribute('aria-label', 'Search maintenance jobs');
       search.append(searchInput);
-      browser.append(search, optionsContainer);
+      const otherFooter = document.createElement('div');
+      otherFooter.className = 'jo-maintenance-job-other-footer';
+      browser.append(search, optionsContainer, otherFooter);
       const summary = document.createElement('aside');
       summary.className = 'jo-maintenance-job-menu-summary';
       const summaryHead = document.createElement('div');
@@ -108,10 +129,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       menu.replaceChildren(workspace);
       const filter = () => {
         const query = searchInput.value.trim().toLocaleLowerCase();
-        optionsContainer.querySelectorAll('.jo-maintenance-job-option').forEach(button => {
+        menu.querySelectorAll('.jo-maintenance-job-option').forEach(button => {
           button.hidden = !button.dataset.value.toLocaleLowerCase().includes(query);
         });
-        optionsContainer.querySelectorAll('.jo-maintenance-job-category').forEach(heading => {
+        menu.querySelectorAll('.jo-maintenance-job-category').forEach(heading => {
           const group = heading.closest('.jo-maintenance-job-group');
           group.hidden = !Array.from(group.querySelectorAll('.jo-maintenance-job-option')).some(button => !button.hidden);
         });
@@ -217,7 +238,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         selectedChips.appendChild(chip);
       });
 
-      optionsContainer
+      menu
         .querySelectorAll('.jo-maintenance-job-option')
         .forEach((optionButton) => {
           optionButton.classList.toggle(
@@ -235,8 +256,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
 
     const render = () => {
       optionsContainer.innerHTML = '';
+      menu.querySelector('.jo-maintenance-job-other-footer')?.replaceChildren();
 
       const categoryFor = (name) => {
+        if (name === 'Other') return 'CUSTOM JOB';
         if (/brake/i.test(name)) return 'BRAKE SYSTEM';
         if (/oil|filter|fuel|engine|radiator|cooling|exhaust|transmission|clutch/i.test(name)) return 'ENGINE & LUBRICATION';
         if (/tire|wheel|steering|suspension|chassis/i.test(name)) return 'CHASSIS & SUSPENSION';
@@ -244,7 +267,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         return 'OTHER MAINTENANCE';
       };
       const groups = new Map();
-      Array.from(select.options).filter(option => option.value).forEach(option => {
+      Array.from(select.options)
+        .filter(option => option.value && option.value !== 'Other')
+        .concat(Array.from(select.options).filter(option => option.value === 'Other'))
+        .forEach(option => {
         const category = categoryFor(option.value);
         if (!groups.has(category)) groups.set(category, []);
         groups.get(category).push(option);
@@ -287,7 +313,11 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           });
           group.append(optionButton);
         });
-        optionsContainer.append(group);
+        if (isCreatePicker && options.some(option => option.value === 'Other')) {
+          menu.querySelector('.jo-maintenance-job-other-footer')?.append(group);
+        } else {
+          optionsContainer.append(group);
+        }
       });
       menu.dispatchEvent(new Event('jo-jobs-rendered'));
 
@@ -506,7 +536,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
           <select id="${idPrefix}MaintenanceJob" required>
             <option value="">Select Maintenance Job</option>
             ${options}
-            <option value="Other">Other / Custom Work</option>
+            <option value="Other">Other</option>
           </select>
         </div>
       `;

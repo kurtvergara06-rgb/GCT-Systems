@@ -114,11 +114,24 @@
                 $hasOicResponse = $incident->responses->count() > 1
                     || $incident->responses->contains(fn ($response) => $response->status !== 'Reported');
                 $hasReferral = $incident->maintenanceReferral()->exists();
+                // Derive the latest verified outcome from audited incident responses.
+                // Do not confuse reserve deployment with verified trip resumption.
+                $verifiedTripOutcome = null;
+                foreach ($incident->responses->sortByDesc('id') as $outcomeResponse) {
+                    if (preg_match('/\\[Trip outcome: (Continued|Interrupted|Cancelled|Unknown)\\]/', (string) $outcomeResponse->notes, $outcomeMatch)) {
+                        $verifiedTripOutcome = $outcomeMatch[1];
+                        break;
+                    }
+                }
+                if (!$verifiedTripOutcome && preg_match('/\\[Trip outcome: (Continued|Interrupted|Cancelled|Unknown)\\]/', (string) $incident->resolution_notes, $outcomeMatch)) {
+                    $verifiedTripOutcome = $outcomeMatch[1];
+                }
+                $continuationState = $verifiedTripOutcome ?: ($incident->replacement ? 'In Progress' : 'Pending');
                 $workflowSteps = [
                     ['label' => $isBreakdown ? 'Breakdown Reported' : 'Incident Reported', 'note' => 'Recorded by Operations after receiving the incident report.', 'done' => true, 'icon' => 'fa-file-circle-check'],
                     ['label' => 'OIC Coordination (External)', 'note' => 'Driver contacts OIC. OIC coordinates with Maintenance Manager by phone or radio; Operations records updates.', 'done' => $hasOicResponse, 'icon' => 'fa-phone-volume'],
                     ['label' => 'Reserve Bus Deployment', 'note' => $isBreakdown ? 'OIC selects and deploys the replacement unit. Operations records the actual deployment.' : 'Only applicable if a replacement bus is needed.', 'done' => (bool) $incident->replacement, 'icon' => 'fa-bus'],
-                    ['label' => 'Trip Continuation', 'note' => 'Driver resumes the trip; Operations records the operational outcome.', 'done' => $isResolved, 'icon' => 'fa-route'],
+                    ['label' => 'Trip Continuation', 'note' => 'Track continuation after OIC reserve deployment; confirmed resumption requires verified operational update.', 'done' => $verifiedTripOutcome === 'Continued', 'state' => $continuationState, 'icon' => 'fa-route'],
                     ['label' => 'Maintenance Referral', 'note' => 'Maintenance Manager handles the affected vehicle and its repair workflow.', 'done' => $hasReferral, 'icon' => 'fa-screwdriver-wrench'],
                 ];
             @endphp

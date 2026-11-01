@@ -9,6 +9,8 @@ use App\Models\Maintenance\MaintenanceReferral;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
+use App\Models\Operation\Mechanic;
+use App\Models\Operation\MechanicAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -236,7 +238,31 @@ class UnplannedBreakdownWorkflowTest extends TestCase
 
         $this->actingAs($maintenanceStaff)
             ->post(route('maintenance-referrals.job-order.store', $referral))
-            ->assertRedirect();
+            ->assertRedirect(route('job-orders', ['maintenance_referral_id' => $referral->id]));
+
+        $this->assertDatabaseMissing('job_orders', ['maintenance_referral_id' => $referral->id]);
+
+        $mechanic = Mechanic::create([
+            'mechanic_id' => 'MEC-BRK-002',
+            'mechanic_name' => 'Breakdown Electrical Specialist',
+            'specialization' => 'Electrical, Diagnostics',
+            'employment_status' => 'Active',
+        ]);
+        MechanicAttendance::create([
+            'mechanic_id' => $mechanic->mechanic_id,
+            'mechanic_name' => $mechanic->mechanic_name,
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+            'status' => 'Present',
+        ]);
+
+        $this->actingAs($maintenanceStaff)->post(route('job-orders.store'), [
+            'maintenance_referral_id' => $referral->id,
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => '[Unplanned Breakdown] Trip T-BRK-002 on Malvar Shuttle Route. '.$incident->description,
+            'maintenance_type' => 'Repair',
+            'maintenance_jobs' => ['Wiring and Electrical Troubleshooting'],
+            'mechanic_ids' => [$mechanic->id],
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
         $jobOrder = JobOrder::query()->where('incident_id', $incident->id)->firstOrFail();
 

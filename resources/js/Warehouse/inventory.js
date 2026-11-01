@@ -499,8 +499,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     setInputValue('edit_unit', editButton.dataset.unit);
     const onHandUnit = document.getElementById('edit_onhand_unit');
     if (onHandUnit) onHandUnit.textContent = editButton.dataset.unit || 'pcs';
-    setInputValue('edit_reorder', editButton.dataset.reorder);
-    setInputValue('edit_safety_stock', editButton.dataset.safetyStock);
     setInputValue('edit_supplier', editButton.dataset.supplier);
     setInputValue('edit_location', editButton.dataset.location);
 

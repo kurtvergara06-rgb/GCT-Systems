@@ -175,6 +175,7 @@
                           data-pr-no="{{ $partRequest->pr_no }}"
                           data-jo-no="{{ $partRequest->job_order_no }}"
                           data-bus-no="{{ $partRequest->bus_no }}"
+                          data-revision-url="{{ route('part-requests.return-for-revision', $partRequest->id) }}"
                           data-parts='@json($partRequest->parts_breakdown ?? [])'
                         >
                           @csrf

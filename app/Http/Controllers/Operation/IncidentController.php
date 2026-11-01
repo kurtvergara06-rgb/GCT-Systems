@@ -416,6 +416,20 @@ class IncidentController extends Controller
                 'reported_by' => auth()->id(),
             ]);
 
+            // A reported breakdown with a known bus automatically enters
+            // Maintenance review. This does not approve a Job Order.
+            if ($incident->incident_type === 'Bus Breakdown' && $incident->bus_id) {
+                \App\Models\Maintenance\MaintenanceReferral::firstOrCreate(
+                    ['incident_id' => $incident->id],
+                    [
+                        'status' => 'Pending',
+                        'notes' => 'Automatic referral from breakdown '.$incident->incident_no
+                            .'. Original bus requires Maintenance assessment.',
+                        'referred_by' => auth()->id(),
+                    ]
+                );
+            }
+
             if (Schema::hasTable('incident_responses')) {
                 IncidentResponse::create([
                     'incident_id' => $incident->id,
@@ -426,6 +440,16 @@ class IncidentController extends Controller
                 ]);
             }
         }, 5);
+
+        if ($validated['incident_type'] === 'Bus Breakdown' && ! empty($validated['bus_id'])) {
+            $this->broadcastSystemDataUpdated(
+                'Maintenance',
+                'MaintenanceReferral',
+                'created',
+                $incidentNo,
+                "Breakdown {$incidentNo} automatically referred to Maintenance for review."
+            );
+        }
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -656,8 +680,8 @@ class IncidentController extends Controller
                 $updateData['resolved_at'] = now();
                 $updateData['resolved_by'] = auth()->id();
             }
-            if (! empty($validated['resolution_notes'])) {
-                $updateData['resolution_notes'] = $outcomeNote.$validated['resolution_notes'];
+            if ($outcomeNote !== '' || ! empty($validated['resolution_notes'])) {
+                $updateData['resolution_notes'] = $outcomeNote.($validated['resolution_notes'] ?? '');
             }
 
             $locked->update($updateData);

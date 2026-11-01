@@ -90,7 +90,7 @@ class OperationMasterListHardeningTest extends TestCase
             ->put(route('operation.routes.update', $route), [])
             ->assertForbidden();
         $this->actingAs($staff)
-            ->delete(route('operation.routes.destroy', $route))
+            ->patch(route('operation.routes.status', $route), ['status' => 'Inactive'])
             ->assertForbidden();
 
         $this->assertDatabaseHas('shuttle_routes', ['id' => $route->id]);

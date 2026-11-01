@@ -66,46 +66,36 @@
     @endphp
 
 
-    @if($message)
-
-        <div
-            class="
-                modal-overlay
-                show
-                active
-                feedback-modal-overlay
-            "
-        >
-
+    @if($message && $isSuccess)
+        {{-- Success is non-blocking; the layout already renders flashed success as a system toast. --}}
+        @if(trim((string) session('success')) !== trim((string) $message))
+            <div class="system-toast-root" aria-live="polite" aria-atomic="true">
+                <div class="system-toast-notification system-toast-notification--success"
+                    data-system-toast data-type="success" role="status" aria-live="polite">
+                    <div class="system-toast-icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="system-toast-body">
+                        <div class="system-toast-title">Success</div>
+                        <div class="system-toast-message">{{ $message }}</div>
+                    </div>
+                    <button type="button" class="system-toast-close" aria-label="Close notification">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        @endif
+    @elseif($message)
+        <div class="modal-overlay show active feedback-modal-overlay">
             <div class="modal-card success-modal-box">
-
                 <div class="{{ $iconWrapper }}">
                     <i class="fa-solid {{ $iconClass }}"></i>
                 </div>
-
-
-                <h2>
-                    {{ $modalTitle }}
-                </h2>
-
-
-                <p>
-                    {{ $message }}
-                </p>
-
-
-                <button
-                    type="button"
-                    class="primary-btn close-feedback-modal"
-                    data-close-feedback
-                >
+                <h2>{{ $modalTitle }}</h2>
+                <p>{{ $message }}</p>
+                <button type="button" class="primary-btn close-feedback-modal" data-close-feedback>
                     {{ $buttonText }}
                 </button>
-
             </div>
-
         </div>
-
     @endif
 
 

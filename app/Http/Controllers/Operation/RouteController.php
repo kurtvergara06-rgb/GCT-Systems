@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Operation\ShuttleRoute;
+use App\Models\Operation\OperationClient;
 use App\Support\TableSort;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
@@ -30,11 +31,11 @@ class RouteController extends Controller
     public function index(Request $request): View
     {
         $query = ShuttleRoute::query()
-            ->with('stops')
+            ->with(['stops', 'client'])
             ->withCount('tripSchedules');
 
         // Tabs define the record group; the old status filter remains optional within it.
-        $query->where('status', $request->query('tab') === 'history' ? 'Inactive' : 'Active');
+        $query->where('status', in_array($request->query('tab'), ['history', 'inactive'], true) ? 'Inactive' : 'Active');
 
         /*
         |--------------------------------------------------------------------------
@@ -112,6 +113,15 @@ class RouteController extends Controller
         | Table Data
         |--------------------------------------------------------------------------
         */
+
+        if ($request->filled('client') && $request->input('client') !== 'all') {
+            if ($request->input('client') === 'unallocated') {
+                $query->whereNull('operation_client_id');
+            } else {
+                $request->validate(['client' => ['integer', Rule::exists('operation_clients', 'id')]]);
+                $query->where('operation_client_id', $request->integer('client'));
+            }
+        }
 
         TableSort::apply($query, $request, ['id' => 'id', 'route_code' => 'route_code', 'route_name' => 'route_name', 'origin' => 'origin', 'destination' => 'destination', 'distance_km' => 'distance_km', 'status' => 'status'], 'id', 'desc');
         $routes = $query
@@ -249,10 +259,13 @@ class RouteController extends Controller
         $nextRouteCode =
             $this->generateNextRouteCode();
 
+        $routeClients = OperationClient::query()->where('status', 'Active')->orderBy('name')->get(['id', 'name']);
+
         return view(
             'Operation.Routes.routes-stops',
             compact(
                 'routes',
+                'routeClients',
                 'routeStats',
                 'nextRouteCode',
                 'gpsTripRecords',
@@ -932,6 +945,10 @@ class RouteController extends Controller
             $request
         );
 
+        if ($validated['status'] !== 'Active') {
+            $this->assertCanApproveRouteChanges();
+        }
+
         $validated = array_merge(
             $validated,
             $this->verifiedRoutePayload(
@@ -996,16 +1013,10 @@ class RouteController extends Controller
                 ->exists();
 
         if ($routeWasAlreadyUsed) {
-            $validatedStatus =
-                $request->validate([
-                    'status' => [
-                        'required',
-                        Rule::in([
-                            'Active',
-                            'Inactive',
-                        ]),
-                    ],
-                ]);
+            $validatedStatus = $request->validate([
+                'status' => ['required', Rule::in(['Active', 'Inactive'])],
+                'operation_client_id' => ['required', 'integer', Rule::exists('operation_clients', 'id')->where('status', 'Active')],
+            ]);
 
             DB::transaction(
                 function () use (
@@ -1026,8 +1037,20 @@ class RouteController extends Controller
                         );
                     }
 
+                    if ($lockedRoute->status !== $validatedStatus['status']) {
+                        $this->assertCanApproveRouteChanges();
+                    }
+
+                    if ($lockedRoute->operation_client_id !== null
+                        && (int) $lockedRoute->operation_client_id !== (int) $validatedStatus['operation_client_id']) {
+                        throw ValidationException::withMessages([
+                            'operation_client_id' => 'A route with trip history cannot be reassigned to another client.',
+                        ]);
+                    }
+
                     $lockedRoute->update([
                         'status' => $validatedStatus['status'],
+                        'operation_client_id' => $validatedStatus['operation_client_id'],
                     ]);
                 }
             );
@@ -1046,6 +1069,13 @@ class RouteController extends Controller
             $request,
             $shuttleRoute
         );
+
+        // Staff can make initial allocations; status changes remain Head-only.
+        if ($shuttleRoute->status !== $validated['status']
+            || ($shuttleRoute->operation_client_id !== null
+                && (int) $shuttleRoute->operation_client_id !== (int) $validated['operation_client_id'])) {
+            $this->assertCanApproveRouteChanges();
+        }
 
         $verifiedPayload =
             $this->verifiedRoutePayload(
@@ -1078,8 +1108,16 @@ class RouteController extends Controller
                         );
                     }
 
+                    if ($lockedRoute->operation_client_id !== null
+                        && (int) $lockedRoute->operation_client_id !== (int) $validated['operation_client_id']) {
+                        throw ValidationException::withMessages([
+                            'operation_client_id' => 'A route with trip history cannot be reassigned to another client.',
+                        ]);
+                    }
+
                     $lockedRoute->update([
                         'status' => $validated['status'],
+                        'operation_client_id' => $validated['operation_client_id'],
                     ]);
 
                     return;
@@ -1122,63 +1160,28 @@ class RouteController extends Controller
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Delete Route
-    |--------------------------------------------------------------------------
-    */
+    /** Activate/deactivate without rewriting historical route definitions. */
+    public function updateStatus(Request $request, ShuttleRoute $shuttleRoute): RedirectResponse
+    {
+        $this->assertCanApproveRouteChanges();
 
-    public function destroy(
-        ShuttleRoute $shuttleRoute
-    ): RedirectResponse {
-        $this->assertCanManageRoutes();
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['Active', 'Inactive'])],
+        ]);
 
-        $deleted = DB::transaction(
-            function () use (
-                $shuttleRoute
-            ): bool {
-                $lockedRoute = ShuttleRoute::query()
-                    ->whereKey($shuttleRoute->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+        DB::transaction(function () use ($shuttleRoute, $validated): void {
+            $route = ShuttleRoute::query()->whereKey($shuttleRoute->id)->lockForUpdate()->firstOrFail();
 
-                if (
-                    $lockedRoute
-                        ->tripSchedules()
-                        ->exists()
-                ) {
-                    return false;
-                }
-
-                $lockedRoute
-                    ->stops()
-                    ->delete();
-
-                $lockedRoute->delete();
-
-                return true;
+            if ($validated['status'] === 'Inactive') {
+                $this->assertCanDeactivateRoute($route);
             }
-        );
 
-        if (! $deleted) {
-            session()->flash(
-                'error',
-                'This route cannot be deleted because it is already used by one or more trip schedules. Set the route to Inactive instead.'
-            );
+            $route->update(['status' => $validated['status']]);
+        });
 
-            return new RedirectResponse(
-                '/operation/routes'
-            );
-        }
+        session()->flash('success', 'Route '.($validated['status'] === 'Active' ? 'activated' : 'deactivated').' successfully.');
 
-        session()->flash(
-            'success',
-            'Route deleted successfully.'
-        );
-
-        return new RedirectResponse(
-            '/operation/routes'
-        );
+        return new RedirectResponse('/operation/routes?tab='.($validated['status'] === 'Inactive' ? 'inactive' : 'active'));
     }
 
     /*
@@ -1217,6 +1220,11 @@ class RouteController extends Controller
 
         $validated = $request->validate(
             [
+                'operation_client_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('operation_clients', 'id')->where('status', 'Active'),
+                ],
                 'route_name' => [
                     'required',
                     'string',
@@ -1418,6 +1426,22 @@ class RouteController extends Controller
     |--------------------------------------------------------------------------
     */
 
+    private function assertCanApproveRouteChanges(): void
+    {
+        $user = auth()->user();
+        $department = strtolower(trim((string) ($user?->department ?? '')));
+        $role = strtolower(trim((string) ($user?->role ?? '')));
+
+        if ($user?->hasSystemPermission('operation', 'edit')
+            && $user->hasSystemPermission('operation', 'approve')
+            && (($role === 'head' && in_array($department, ['operation', 'admin'], true))
+                || $role === 'system admin')) {
+            return;
+        }
+
+        abort(403, 'Only an authorized Operations Head may allocate clients or change route activation.');
+    }
+
     private function assertCanManageRoutes(): void
     {
         $user = auth()->user();
@@ -1513,18 +1537,16 @@ class RouteController extends Controller
     private function assertCanDeactivateRoute(
         ShuttleRoute $route
     ): void {
+        // Protect ongoing and unresolved trips even if their scheduled date
+        // was yesterday (e.g. overnight trips or overdue DDRs).
         $upcomingTrips = $route
             ->tripSchedules()
-            ->whereDate(
-                'trip_date',
-                '>=',
-                today(config('app.business_timezone', 'Asia/Manila'))->toDateString()
-            )
             ->whereNotIn(
                 'status',
                 [
                     'Completed',
                     'Cancelled',
+                    'Missed',
                 ]
             )
             ->lockForUpdate()
@@ -1536,7 +1558,7 @@ class RouteController extends Controller
 
         throw ValidationException::withMessages([
             'status' => sprintf(
-                'This route has %d current or upcoming trip(s). Cancel or move those trips before setting the route to Inactive.',
+                'This route has %d unresolved trip(s). Complete, cancel, or reassign those trips before setting the route to Inactive.',
                 $upcomingTrips->count()
             ),
         ]);
@@ -1759,6 +1781,7 @@ class RouteController extends Controller
         }
 
         $payload = [
+            'operation_client_id' => $validated['operation_client_id'],
             'route_name' => trim(
                 $validated['route_name']
             ),

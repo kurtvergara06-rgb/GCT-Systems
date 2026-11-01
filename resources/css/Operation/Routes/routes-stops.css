@@ -449,6 +449,9 @@
     font-weight: 700;
 }
 
+/* Route ownership is shown within the existing Route Name column. */
+.routes-page .route-name-primary { display: block; font-weight: 700; overflow-wrap: anywhere; }
+.routes-page .route-client-line { display: flex; align-items: center; gap: 5px; margin-top: 5px; color: #52657f; font-size: 10px; font-weight: 600; }
 /* Stops button */
 
 .routes-page .stops-btn {
@@ -460,8 +463,8 @@
     align-items: center;
     justify-content: center;
 
-    border: 0;
-    border-radius: 999px;
+    border: 1px solid #cfe1ff;
+    border-radius: 6px;
 
     color: var(--route-blue);
     background: #eaf2ff;
@@ -483,13 +486,13 @@
 .routes-page .route-badge {
     min-width: 72px;
     min-height: 27px;
-    padding: 0 11px;
+    padding: 4px 10px;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    border-radius: 999px;
+    border-radius: 6px;
 
     font-size: 11px;
     font-weight: 700;

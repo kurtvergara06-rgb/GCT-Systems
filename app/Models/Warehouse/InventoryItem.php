@@ -68,18 +68,16 @@ class InventoryItem extends Model
 
     public function getStockStatusAttribute(): string
     {
-        $stock = (int) ($this->quantity_available ?? $this->on_hand ?? 0);
-        $reorderLevel = (int) ($this->reorder_level ?? 0);
+        // Always compute live status: JO allocations can change without any
+        // physical stock movement. Do not mutate reservations in this accessor.
+        $calculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $onHand = (int) ($this->quantity_available ?? $this->on_hand ?? 0);
+        $reserved = $this->exists
+            ? (int) \App\Models\Maintenance\JobOrderPartReservation::query()
+                ->where('inventory_item_id', $this->getKey())->sum('quantity')
+            : 0;
 
-        if ($stock <= 0) {
-            return 'Critical';
-        }
-
-        if ($reorderLevel > 0 && $stock <= $reorderLevel) {
-            return 'Low Stock';
-        }
-
-        return 'In Stock';
+        return $calculator->stockStatus($onHand, $reserved, $calculator->effectiveReorderPoint($this));
     }
 
     public function getPartsNameAttribute(): ?string

@@ -414,7 +414,6 @@ class InventoryLedgerTest extends TestCase
                 'category' => 'Engine Parts',
                 'on_hand' => 20,
                 'unit_of_measurement' => 'pcs',
-                'reorder_level' => 0,
                 'adjustment_reason' => 'Initial physical count',
             ])
             ->assertRedirect();
@@ -443,7 +442,6 @@ class InventoryLedgerTest extends TestCase
             'category' => $item->category,
             'on_hand' => 7,
             'unit_of_measurement' => $item->unit_of_measurement,
-            'reorder_level' => $item->reorder_level,
             'supplier' => $item->supplier,
             'storage_location' => $item->storage_location,
             'adjustment_reason' => 'Physical count correction',
@@ -494,7 +492,7 @@ class InventoryLedgerTest extends TestCase
         $data = $inventoryView->getData();
         $this->assertSame(0, $data['lowStockAlerts']);
         $this->assertSame(0, $data['criticalItems']);
-        $this->assertSame(0, $data['forecastedStockouts']);
+        $this->assertSame(0, $data['itemsAtRisk']);
     }
 
 

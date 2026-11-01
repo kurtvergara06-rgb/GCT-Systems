@@ -39,6 +39,18 @@
                     </div>
                 </div>
 
+                <div class="maintenance-list-controls referral-controls-row">
+                <nav class="maintenance-record-tabs referral-record-tabs" aria-label="Referral records">
+                    <a href="{{ route('maintenance-referrals', ['record_view' => 'active'], false) }}" class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}" @if($recordView === 'active') aria-current="page" @endif>
+                        <i class="fa-solid fa-list-check" aria-hidden="true"></i> Active
+
+                    </a>
+                    <a href="{{ route('maintenance-referrals', ['record_view' => 'history'], false) }}" class="maintenance-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}" @if($recordView === 'history') aria-current="page" @endif>
+                        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History
+
+                    </a>
+                </nav>
+
                 <x-ui.table-toolbar
                     action="{{ route('maintenance-referrals', [], false) }}"
                     class="referral-toolbar"
@@ -57,12 +69,13 @@
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Status" name="status" default="all">
                             <option value="all" @selected(request('status', 'all') === 'all')>All Statuses</option>
-                            @foreach(['Pending', 'Approved', 'Job Order Created', 'Rejected'] as $status)
+                            @foreach($viewStatuses as $status)
                                 <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                             @endforeach
                         </x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
 
                 <div class="table-wrap">
                     <table class="referrals-table">
@@ -107,7 +120,7 @@
                                             <p class="problem-desc">{{ \Illuminate\Support\Str::limit($incident?->description ?: 'No description provided.', 95) }}</p>
                                         </div>
                                     </td>
-                                    <td><x-ui.status-badge :status="$referral->status" /></td>
+                                    <td><x-ui.status-badge :status="$referral->status" :label="$referral->status === 'Pending' ? 'For Review' : null" /></td>
                                     <td>
                                         @if($referral->jobOrder)
                                             <a href="{{ route('job-orders', [
@@ -121,19 +134,67 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="referral-actions-wrap">
+                                        <button type="button" class="btn-ref-action btn-ref-review" onclick="document.getElementById('referral-review-{{ $referral->id }}').showModal()" aria-haspopup="dialog" aria-controls="referral-review-{{ $referral->id }}"><i class="fa-solid {{ $recordView === 'history' ? 'fa-eye' : 'fa-clipboard-check' }}" aria-hidden="true"></i> {{ $recordView === 'history' ? 'View' : 'Review' }}</button>
+                                        <dialog id="referral-review-{{ $referral->id }}" class="referral-review-dialog" aria-labelledby="referral-review-title-{{ $referral->id }}">
+                                            <div class="referral-review-head">
+                                                <div class="referral-review-heading">
+                                                    <span class="referral-review-heading-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+                                                    <div>
+                                                        <h2 id="referral-review-title-{{ $referral->id }}">Maintenance Referral Review</h2>
+                                                        <p>Review the reported breakdown and take the appropriate action.</p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="referral-review-close" onclick="this.closest('dialog').close()" aria-label="Close review"><i class="fa-solid fa-xmark"></i></button>
+                                            </div>
+                                            <div class="referral-review-body">
+                                                <div class="referral-review-banner">
+                                                    <strong>{{ $incident?->incident_no ?? 'Incident' }}</strong>
+                                                    <span class="referral-review-incident-type"><i class="fa-solid fa-triangle-exclamation"></i> {{ $incident?->incident_type ?? 'Incident' }}</span>
+                                                    <span class="referral-review-status {{ $referral->status === 'Pending' ? 'is-pending' : '' }}">{{ $referral->status === 'Approved' ? 'Approved' : ($referral->status === 'Pending' ? 'For Review' : $referral->status) }}</span>
+                                                </div>
+                                                <div class="referral-review-columns">
+                                                    <div class="referral-review-main">
+                                                        <section class="referral-review-section">
+                                                            <h3><i class="fa-solid fa-clipboard-list"></i> Incident Details</h3>
+                                                            <dl class="referral-review-details">
+                                                                <div><dt><i class="fa-solid fa-bus"></i> Bus</dt><dd>{{ $referral->jobOrder?->bus_no ?? $incident?->bus?->bus_no ?? '—' }}</dd></div>
+                                                                <div><dt><i class="fa-solid fa-route"></i> Route</dt><dd>{{ $incident?->tripSchedule?->shuttleRoute?->route_name ?? 'Not recorded' }}</dd></div>
+                                                                <div><dt><i class="fa-solid fa-calendar-check"></i> Trip</dt><dd>{{ $incident?->tripSchedule?->trip_code ?? 'Not linked' }}</dd></div>
+                                                                <div><dt><i class="fa-solid fa-user"></i> Driver</dt><dd>{{ $incident?->driver_name ?: 'Not recorded' }}</dd></div>
+                                                                <div><dt><i class="fa-solid fa-location-dot"></i> Location</dt><dd>{{ $incident?->location ?? 'Not recorded' }}</dd></div>
+                                                                <div><dt><i class="fa-solid fa-clock"></i> Incident Reported</dt><dd>{{ $incident?->incident_reported_at?->format('M d, Y · h:i A') ?? 'Not recorded' }}</dd></div>
+                                                            </dl>
+                                                        </section>
+                                                        <section class="referral-review-section">
+                                                            <h3><i class="fa-solid fa-circle-exclamation"></i> Incident Description</h3>
+                                                            <div class="referral-review-note">{{ $incident?->description ?: 'No description provided.' }}</div>
+                                                        </section>
+                                                        <section class="referral-review-section">
+                                                            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance Referral Notes</h3>
+                                                            <div class="referral-review-note">{{ $referral->notes ?: 'No maintenance notes recorded.' }}</div>
+                                                        </section>
+                                                    </div>
+                                                    <aside class="referral-review-aside">
+                                                        <section class="referral-review-section">
+                                                            <h3><i class="fa-solid fa-circle-info"></i> Referral Information</h3>
+                                                            <dl class="referral-review-summary">
+                                                                <div><dt>Referral Status</dt><dd>{{ $referral->status === 'Approved' ? 'Approved' : ($referral->status === 'Pending' ? 'For Review' : $referral->status) }}</dd></div>
+                                                                <div><dt>Incident Status</dt><dd>{{ $incident?->status ?? 'Not recorded' }}</dd></div>
+                                                                <div><dt>Job Order</dt><dd>{{ $referral->jobOrder?->job_order_no ?? 'Not created' }}</dd></div>
+                                                                <div><dt>Reported By</dt><dd>{{ $incident?->reporter?->name ?? 'Not recorded' }}</dd></div>
+                                                                <div><dt>Referral Submitted</dt><dd>{{ $referral->created_at?->format('M d, Y · h:i A') ?? 'Not recorded' }}</dd></div>
+                                                                <div><dt>Reviewed By</dt><dd>{{ $referral->reviewer?->name ?? 'Not reviewed' }}</dd></div>
+                                                                <div><dt>Reviewed At</dt><dd>{{ $referral->reviewed_at?->format('M d, Y · h:i A') ?? 'Not reviewed' }}</dd></div>
+                                                            </dl>
+                                                        </section>
+                                                    </aside>
+                                                </div>
+                                            </div>
+                                            <div class="referral-review-footer">
+                                                <button type="button" class="btn-ref-action referral-review-cancel" onclick="this.closest('dialog').close()">Close</button>
+                                                <div class="referral-actions-wrap">
                                             @if($referral->status === 'Pending' && $canReview)
-                                                <form method="POST" action="{{ route('maintenance-referrals.approve', $referral) }}"
-                                                    data-confirm-form data-confirm-type="approve"
-                                                    data-confirm-title="Approve Maintenance Referral?"
-                                                    data-confirm-message="Approve this referral so Maintenance Staff can create a Job Order?"
-                                                    data-confirm-button="Yes, Approve">
-                                                    @csrf
-                                                    <button type="submit" class="btn-ref-action btn-approve" title="Approve Referral">
-                                                        <i class="fa-solid fa-check"></i> Approve
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('maintenance-referrals.reject', $referral) }}"
+                                                <form onsubmit="this.closest('dialog')?.close()" method="POST" action="{{ route('maintenance-referrals.reject', $referral) }}"
                                                     data-confirm-form data-confirm-type="reject"
                                                     data-confirm-title="Reject Maintenance Referral?"
                                                     data-confirm-message="Reject this referral? The incident will remain in Operation for follow-up."
@@ -143,15 +204,22 @@
                                                         <i class="fa-solid fa-xmark"></i> Reject
                                                     </button>
                                                 </form>
+                                                <form onsubmit="this.closest('dialog')?.close()" method="POST" action="{{ route('maintenance-referrals.approve', $referral) }}"
+                                                    data-confirm-form data-confirm-type="approve"
+                                                    data-confirm-title="Approve Maintenance Referral?"
+                                                    data-confirm-message="Approve this referral so Maintenance Staff can create a Job Order?"
+                                                    data-confirm-button="Yes, Approve">
+                                                    @csrf
+                                                    <button type="submit" class="btn-ref-action btn-approve" title="Approve Referral">
+                                                        <i class="fa-solid fa-check"></i> Approve
+                                                    </button>
+                                                </form>
                                             @endif
 
                                             @if($referral->status === 'Approved' && $canCreateJo)
-                                                <form method="POST" action="{{ route('maintenance-referrals.job-order.store', $referral) }}">
-                                                    @csrf
-                                                    <button type="submit" class="btn-ref-action btn-create-jo" title="Create Job Order">
+                                                <a href="{{ route('job-orders', ['maintenance_referral_id' => $referral->id], false) }}" class="btn-ref-action btn-ref-create-jo" title="Open Job Order form">
                                                         <i class="fa-solid fa-screwdriver-wrench"></i> Create JO
-                                                    </button>
-                                                </form>
+                                                </a>
                                             @endif
 
                                             @if($referral->status === 'Job Order Created' && $referral->jobOrder)
@@ -160,6 +228,8 @@
                                                 </a>
                                             @endif
                                         </div>
+                                            </div>
+                                        </dialog>
                                     </td>
                                 </tr>
                             @empty

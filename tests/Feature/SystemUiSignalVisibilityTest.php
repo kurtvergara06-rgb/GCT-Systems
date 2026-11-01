@@ -131,8 +131,12 @@ class SystemUiSignalVisibilityTest extends TestCase
         foreach ($representativeViews as $department => $view) {
             $source = file_get_contents($view);
 
+            $expectedIcon = $department === 'operation'
+                ? 'fa-solid fa-diagram-project'
+                : 'fa-solid fa-eye';
+
             $this->assertStringContainsString(
-                'fa-solid fa-eye',
+                $expectedIcon,
                 $source,
                 "Expected the {$department} module to use its approved View or Workflow icon."
             );

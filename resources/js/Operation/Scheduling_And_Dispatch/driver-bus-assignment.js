@@ -313,10 +313,69 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
         assignmentDriverOptions = [];
         assignmentBusOptions = [];
+        eligiblePairs = [];
+        availabilitySummary = { drivers: 0, buses: 0, reason: message };
+        updatePairTripContext(null);
+        renderPairCards();
     }
 
 
+    const pairPicker = document.getElementById('assignmentPairPicker');
+    const pairList = document.getElementById('assignmentPairList');
+    const pairSearch = document.getElementById('assignmentPairSearch');
+    const pairCount = document.getElementById('assignmentPairCount');
+    let eligiblePairs = [];
+    let availabilitySummary = { drivers: 0, buses: 0, reason: 'Select a trip to load eligible pairs.' };
+
+    function updatePairTripContext(trip = null) {
+        const summary = document.getElementById('assignmentPairTrip');
+        if (!summary) return;
+        summary.hidden = !trip;
+        if (!trip) return;
+
+        const name = [trip.trip_code || 'Trip', trip.route_code].filter(Boolean).join(' · ');
+        document.getElementById('assignmentPairTripName').textContent = name;
+        const time = String(trip.departure_time || '').slice(0, 5);
+        document.getElementById('assignmentPairTripDetail').textContent =
+            ['Client: ' + (trip.client_name || 'No Client'), time, trip.direction].filter(Boolean).join(' · ');
+        const assigned = Number(trip.assigned_slots || 0);
+        const required = Number(trip.required_buses || 1);
+        document.getElementById('assignmentPairSlot').textContent =
+            'Slot ' + Math.min(assigned + 1, required) + ' of ' + required;
+    }
+
+    function renderPairCards() {
+        if (!pairList) return;
+        const query = (pairSearch?.value || '').trim().toLowerCase();
+        const visible = eligiblePairs.filter(pair => pair.search.includes(query));
+        if (pairCount) pairCount.textContent = `${eligiblePairs.length} eligible pairs · ${availabilitySummary.drivers} drivers · ${availabilitySummary.buses} buses`;
+        const emptyMessage = eligiblePairs.length === 0
+            ? availabilitySummary.reason
+            : 'No driver–bus pair matches your search. Clear the search to see all available pairs.';
+        pairList.innerHTML = visible.length ? visible.map(pair => {
+            const selected = String(assignmentDriver?.value) === String(pair.driver.id)
+                && String(assignmentBus?.value) === String(pair.bus.id);
+            return `<button type="button" class="assignment-pair-card ${selected ? 'is-selected' : ''}"
+                data-pair-driver="${escapeHtml(String(pair.driver.id))}" data-pair-bus="${escapeHtml(String(pair.bus.id))}"
+                aria-pressed="${selected ? 'true' : 'false'}">
+                <span class="assignment-pair-driver"><i class="fa-solid fa-user-tie"></i><span><strong>${escapeHtml(pair.driver.name)}</strong><small>${escapeHtml(pair.driver.driver_id)} · ${escapeHtml(pair.driver.status)}</small></span></span>
+                <span class="assignment-pair-bus"><i class="fa-solid fa-bus"></i><span><strong>${escapeHtml(pair.bus.bus_no || 'Bus')}</strong><small>${escapeHtml(pair.bus.model || 'Authorized bus')}</small></span></span>
+                <i class="fa-solid ${selected ? 'fa-circle-check' : 'fa-circle'} assignment-pair-check"></i>
+            </button>`;
+        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(emptyMessage)}</p>`;
+    }
+
+    pairSearch?.addEventListener('input', renderPairCards);
+    pairList?.addEventListener('click', event => {
+        const card = event.target.closest('[data-pair-driver][data-pair-bus]');
+        if (!card) return;
+        selectDriverById(card.dataset.pairDriver);
+        selectBusById(card.dataset.pairBus);
+        renderPairCards();
+    });
+
     function renderAvailability(data) {
+        updatePairTripContext(data?.trip || null);
         const drivers = Array.isArray(data?.drivers) ? data.drivers : [];
         const buses = Array.isArray(data?.buses) ? data.buses : [];
 
@@ -345,6 +404,25 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 }).join('')
                 : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
         }
+
+        // The endpoint already filters buses by trip client and excludes
+        // maintenance/conflicting resources. Intersect with driver authorization.
+        eligiblePairs = drivers.flatMap(driver => {
+            const authorized = new Set((driver.authorized_bus_ids || []).map(String));
+            return buses.filter(bus => authorized.has(String(bus.id))).map(bus => ({
+                driver, bus, search: [driver.name, driver.driver_id, bus.bus_no, bus.model, bus.plate_no].join(' ').toLowerCase()
+            }));
+        });
+        availabilitySummary = {
+            drivers: drivers.length,
+            buses: buses.length,
+            reason: !drivers.length
+                ? 'No eligible drivers were returned for this trip. Check active driver records, licence dates, and overlapping assignments.'
+                : !buses.length
+                    ? 'No compatible buses were returned. Check bus client allocation, active status, maintenance jobs, and overlapping assignments.'
+                    : 'Drivers and buses are available separately, but none of these drivers is authorized for the available buses. Review Driver Master List → Assigned Buses.'
+        };
+        renderPairCards();
 
         assignmentDriverOptions = Array.from(
             assignmentDriverOptionsContainer?.querySelectorAll('.assignment-driver-option') || []
@@ -792,6 +870,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         assignmentForm.reset();
+        document.getElementById('companyAssignmentFields')?.classList.remove('pending-slot-trip-locked');
+        document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
+        if (pairPicker) pairPicker.hidden = false;
+        if (pairSearch) pairSearch.value = '';
         assignmentTrip?.querySelectorAll('option[data-edit-only="true"]')
             .forEach((option) => option.remove());
 
@@ -858,6 +940,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             const lockedTripInput = document.getElementById('assignmentLockedTrip');
             const pendingContext = document.getElementById('assignmentPendingSlotContext');
             if (slotNumber) {
+                document.getElementById('companyAssignmentFields')?.classList.add('pending-slot-trip-locked');
                 if (pendingSlotInput) { pendingSlotInput.value = slotNumber; pendingSlotInput.disabled = false; }
                 if (lockedTripInput) { lockedTripInput.value = tripId; lockedTripInput.disabled = false; }
                 if (assignmentTrip) { assignmentTrip.disabled = true; assignmentTrip.required = false; }
@@ -910,6 +993,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             if (assignmentFormMethod) {
                 assignmentFormMethod.disabled = false;
                 assignmentFormMethod.value = 'PUT';
+                document.getElementById('companyAssignmentFields')?.classList.remove('pair-picker-active');
+                if (pairPicker) pairPicker.hidden = true;
             }
 
             if (assignmentTrip) {

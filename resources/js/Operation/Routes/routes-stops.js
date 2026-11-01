@@ -19,6 +19,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
 
     const routeCode = $('routeCode');
     const routeName = $('routeName');
+    const routeClient = $('routeClient');
     const routeOrigin = $('routeOrigin');
     const routeDestination = $('routeDestination');
     const routeDistance = $('routeDistance');
@@ -471,6 +472,8 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
         }
 
         routeForm.reset();
+        if (routeClient) routeClient.disabled = false;
+        if ($('routeClientLockedValue')) $('routeClientLockedValue').disabled = true;
         routeForm.setAttribute(
             'action',
             originalAction
@@ -580,6 +583,16 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             'Update Route'
         );
 
+        setValue(routeClient, route.clientId || '');
+        if (routeClient) {
+            routeClient.disabled = Boolean(route.hasSchedules && route.clientId);
+        }
+        const lockedClientInput = $('routeClientLockedValue');
+        if (lockedClientInput) {
+            lockedClientInput.value = route.clientId || '';
+            lockedClientInput.disabled = !routeClient?.disabled;
+        }
+        setValue($('routeClientReadOnlyValue'), route.clientId || '');
         setValue(routeCode, route.routeCode);
         setValue(routeEditingId, route.id);
         setValue(routeName, route.routeName);
@@ -612,6 +625,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
             routeStatus,
             route.status
         );
+        setValue($('routeStatusReadOnlyValue'), route.status);
 
         populateStops(route.stops);
 
@@ -3099,6 +3113,7 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
                 button.dataset.routeCode ||
                 '',
 
+            clientId: button.dataset.clientId || '',
             routeName:
                 button.dataset.routeName ||
                 '',
