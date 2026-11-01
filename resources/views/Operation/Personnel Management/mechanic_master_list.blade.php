@@ -48,10 +48,15 @@
                     <p>Permanent mechanic information only. Daily attendance remains separate from mechanic skills and profile data.</p>
                 </div>
 @if($canEditMechanic)
+                <div class="personnel-catalog-header-actions">
+                    <button type="button" class="personnel-catalog-open" data-open-maintenance-catalog aria-haspopup="dialog">
+                        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span>Manage Catalog</span>
+                    </button>
                 <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Mechanic</span>
                 </button>
+                </div>
                 @endif
 
             </div>
@@ -190,6 +195,36 @@
         </section>
     </main>
 </div>
+
+@if($canEditMechanic)
+<dialog class="personnel-catalog-dialog" data-maintenance-catalog aria-labelledby="personnelCatalogTitle">
+    <div class="personnel-catalog-heading">
+        <div><h2 id="personnelCatalogTitle">Maintenance Catalog</h2><p>Review the repair catalog and mechanic qualifications</p></div>
+        <button type="button" class="personnel-catalog-close" data-close-maintenance-catalog aria-label="Close catalog"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="personnel-catalog-tabs" role="tablist" aria-label="Catalog sections">
+        <button type="button" role="tab" id="catalogJobsTab" aria-controls="catalogJobsPanel" aria-selected="true" data-catalog-tab="jobs">Maintenance Jobs</button>
+        <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills">Specializations</button>
+    </div>
+    <section role="tabpanel" id="catalogJobsPanel" aria-labelledby="catalogJobsTab" data-catalog-panel="jobs">
+        <p class="personnel-catalog-hint">Existing predefined repair jobs are still managed in the Job Order workflow. Custom job mapping is not yet enabled.</p>
+        <div class="personnel-catalog-items">
+            @foreach(['Change Oil','Oil Filter Replacement','Brake Inspection','Brake Pad Replacement','Air Filter Replacement','Aircon Servicing','Battery Replacement','Tire Replacement','Engine Tune-Up','Full PMS','Fuel Filter Replacement','Transmission and Clutch Inspection','Suspension Inspection and Repair','Wiring and Electrical Troubleshooting'] as $jobName)
+                <span class="personnel-catalog-item">{{ $jobName }}</span>
+            @endforeach
+        </div>
+    </section>
+    <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
+        <p class="personnel-catalog-hint">Current shared mechanic specialization options. To add or edit options, use the existing specialization controls in Add Mechanic.</p>
+        <div class="personnel-catalog-items">
+            @foreach($specializationOptions as $specialization)
+                <span class="personnel-catalog-item">{{ $specialization }}</span>
+            @endforeach
+        </div>
+        <button type="button" class="personnel-catalog-manage-skills" data-catalog-manage-skills>Manage Specializations</button>
+    </section>
+</dialog>
+@endif
 
 @if($canEditMechanic)
 <div class="personnel-modal-overlay" data-personnel-modal data-open-on-error="{{ $errors->any() ? 'true' : 'false' }}" aria-hidden="true">
