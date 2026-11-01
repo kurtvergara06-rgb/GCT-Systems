@@ -487,6 +487,10 @@
   .batch-attendance-mechanic .batch-control-btn { width: auto; white-space: normal; }
 }
 
-/* Column-level time actions for selected mechanics, without changing the attendance grid. */
-.batch-attendance-table .batch-heading-time-btn {display:inline-flex;align-items:center;justify-content:center;gap:5px;margin-left:8px;padding:5px 8px;min-height:26px;border:1px solid #bfd4f1;border-radius:6px;background:#edf5ff;color:#1758ac;font-size:10px;font-weight:700;white-space:nowrap;cursor:pointer}
-.batch-attendance-table .batch-heading-time-btn:hover {background:#dcecff;border-color:#8cb7ec}
+
+/* Bulk mechanic Time In/Time Out actions beside the modal close button. */
+.batch-attendance-header .batch-header-actions {display:flex;align-items:center;gap:12px;flex-shrink:0}
+.batch-attendance-header .batch-header-time-actions {display:flex;align-items:center;gap:8px}
+.batch-attendance-header .batch-header-time-actions .batch-control-btn {min-height:34px;padding:7px 12px;font-size:12px;border-color:#bcd0e9;color:#1758ac}
+.batch-attendance-header .batch-header-time-actions .batch-control-btn:hover {background:#ecf4ff;border-color:#91b4e0}
+@media(max-width:680px) {.batch-attendance-header {flex-wrap:wrap}.batch-attendance-header .batch-header-actions {margin-left:auto}.batch-attendance-header .batch-header-time-actions {flex-wrap:wrap}.batch-attendance-header .batch-header-time-actions .batch-control-btn {padding:7px 9px}}
