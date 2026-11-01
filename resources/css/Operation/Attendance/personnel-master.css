@@ -2406,3 +2406,20 @@
 .personnel-catalog-items { display:flex;gap:8px;flex-wrap:wrap; }
 .personnel-catalog-item { background:#f7faff;border:1px solid #dde8f4;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:650; }
 .personnel-catalog-manage-skills { margin-top:18px;padding:9px 13px;border:none;border-radius:8px;background:#ffca0a;color:#152a45;font-size:12px;font-weight:700;cursor:pointer; }
+
+.personnel-catalog-job-form {display:grid;gap:11px;padding:13px;margin-bottom:20px;background:#f7faff;border:1px solid #e1e9f3;border-radius:10px;}
+.personnel-catalog-job-form h3,.personnel-catalog-dialog [data-catalog-panel]>h3 {margin:0;font-size:13px;}
+.personnel-catalog-job-form>label {display:grid;gap:5px;font-size:12px;font-weight:700;}
+.personnel-catalog-job-form input[type=text],.personnel-catalog-job-form input[name=name] {min-height:36px;border:1px solid #cedded;border-radius:8px;padding:7px 10px;background:white;font:inherit;}
+.personnel-catalog-job-form fieldset {border:0;padding:0;margin:0;min-width:0;}
+.personnel-catalog-job-form legend {font-size:12px;font-weight:700;margin-bottom:7px;}
+.personnel-catalog-job-form .personnel-catalog-item {display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+.personnel-catalog-job-form .personnel-catalog-active {display:flex;align-items:center;gap:7px;}
+.personnel-catalog-job-actions {display:flex;gap:8px;align-items:center;}
+.personnel-catalog-job-actions .personnel-catalog-manage-skills {margin:0;}
+.personnel-catalog-reset {border:1px solid #d5e0eb;border-radius:8px;background:#fff;padding:9px 12px;cursor:pointer;font-size:12px;font-weight:650;}
+.personnel-catalog-job-list {display:grid;gap:8px;margin-top:12px;}
+.personnel-catalog-job-entry {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid #e2eaf4;border-radius:8px;}
+.personnel-catalog-job-entry strong {font-size:12px;display:block;}
+.personnel-catalog-job-entry small {font-size:11px;color:#6a7b94;display:block;margin-top:3px;}
+.personnel-catalog-edit-job {background:#fff;border:1px solid #d4deed;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;}
