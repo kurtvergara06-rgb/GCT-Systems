@@ -271,6 +271,9 @@
             @foreach($specializationOptions as $specialization)
             <div class="personnel-catalog-skill-card" data-catalog-skill-entry>
                 <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><strong>{{ $specialization }}</strong>
+                @if(auth()->user()?->hasSystemPermission('maintenance','approve') && $customSpecializationIds->has($specialization))
+                    <button type="button" class="personnel-catalog-remove-skill" data-catalog-remove-skill data-skill-name="{{ $specialization }}" data-delete-url="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}" aria-label="Remove specialization {{ $specialization }}" title="Remove unused specialization"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                @endif
             </div>
             @endforeach
         </div>
