@@ -5,6 +5,37 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     if (!page || !modal || !form) return;
 
+    const catalog = document.querySelector('[data-maintenance-catalog]');
+    if (catalog) {
+        const open = page.querySelector('[data-open-maintenance-catalog]');
+        const close = catalog.querySelector('[data-close-maintenance-catalog]');
+        const selectCatalogTab = (name) => {
+            catalog.querySelectorAll('[data-catalog-tab]').forEach((tab) => {
+                const active = tab.dataset.catalogTab === name;
+                tab.setAttribute('aria-selected', String(active));
+                tab.tabIndex = active ? 0 : -1;
+            });
+            catalog.querySelectorAll('[data-catalog-panel]').forEach((panel) => {
+                panel.hidden = panel.dataset.catalogPanel !== name;
+            });
+        };
+        open?.addEventListener('click', () => {
+            selectCatalogTab('jobs');
+            if (!catalog.open) catalog.showModal();
+        });
+        close?.addEventListener('click', () => catalog.close());
+        catalog.addEventListener('click', (event) => {
+            if (event.target === catalog) catalog.close();
+            const tab = event.target.closest('[data-catalog-tab]');
+            if (tab && catalog.contains(tab)) selectCatalogTab(tab.dataset.catalogTab);
+        });
+        catalog.querySelector('[data-catalog-manage-skills]')?.addEventListener('click', () => {
+            catalog.close();
+            page.querySelector('[data-personnel-action="add"]')?.click();
+            modal.querySelector('[data-specialization-create-toggle]')?.focus();
+        });
+    }
+
     // Portal the table disclosure into the document overlay layer so it never
     // changes the table row height or gets clipped by the scrollable table.
     let openBusDisclosure = null;
