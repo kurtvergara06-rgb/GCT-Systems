@@ -3718,3 +3718,42 @@
 .fuel-page .fuel-new-report-btn:focus-visible {outline:3px solid #1956b8;outline-offset:2px;}
 .fuel-page .fuel-record-reference {font-weight:750;color:#264b78;white-space:nowrap;}
 .fuel-page .recent-records-table td,.fuel-page .recent-records-table th {white-space:nowrap;}
+
+/* Physical fuel report modal: one scoped component, no global CSS overrides. */
+.fuel-paper-overlay[hidden] {display:none;}
+.fuel-paper-overlay {position:fixed;inset:0;z-index:100001;display:grid;place-items:center;padding:16px;background:rgba(15,23,42,.48);backdrop-filter:blur(5px);}
+.fuel-paper-modal {display:flex;flex-direction:column;width:min(780px,100%);max-height:calc(100dvh - 32px);overflow:hidden;border:1px solid #d7e4f3;border-radius:14px;background:#fff;box-shadow:0 22px 70px rgba(17,39,73,.25);color:#152e50;}
+.fuel-paper-header {display:flex;align-items:center;gap:12px;padding:15px 18px;background:#f6f9ff;border-bottom:1px solid #d9e5f5;}
+.fuel-paper-heading-icon {display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border-radius:9px;color:#1554aa;background:#e5efff;}
+.fuel-paper-header>div {flex:1;min-width:0;}
+.fuel-paper-header h2 {font-size:16px;margin:0;font-weight:800;}
+.fuel-paper-header p {font-size:11px;color:#60758e;margin:4px 0 0;}
+.fuel-paper-close {height:32px;width:32px;flex-shrink:0;border:1px solid #d5e1f2;border-radius:7px;background:#fff;color:#244268;cursor:pointer;}
+.fuel-paper-modal form {display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.fuel-paper-content {display:grid;gap:12px;padding:16px 18px;overflow-y:auto;min-height:0;}
+.fuel-paper-section {border:1px solid #dbe5f3;border-radius:9px;overflow:visible;background:#fff;}
+.fuel-paper-section summary {display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;list-style:none;font-size:12px;font-weight:800;background:#f2f6fc;color:#163a69;}
+.fuel-paper-section summary::-webkit-details-marker {display:none;}
+.fuel-paper-section summary>i {margin-left:auto;}
+.fuel-paper-step {display:grid;place-items:center;min-width:25px;height:22px;background:#dfeafa;border-radius:6px;color:#1554aa;}
+.fuel-paper-grid,.fuel-paper-trip-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;}
+.fuel-paper-field {display:grid;gap:6px;min-width:0;}
+.fuel-paper-field label,.fuel-paper-remarks label {font-size:11px;font-weight:700;color:#29446b;}
+.fuel-paper-field input,.fuel-paper-field select,.fuel-paper-remarks textarea {width:100%;box-sizing:border-box;min-height:38px;padding:8px 10px;border:1px solid #cbd9eb;border-radius:7px;background:white;color:#142f50;font-size:12px;}
+.fuel-paper-field input:focus-visible,.fuel-paper-field select:focus-visible,.fuel-paper-remarks textarea:focus-visible {outline:2px solid #2e69bb;outline-offset:1px;}
+.fuel-paper-field input[readonly] {background:#f5f7fb;}
+.fuel-paper-trip-content {padding:12px;}
+.fuel-paper-hint {font-size:11px;color:#5b7190;margin:0 0 10px;}
+.fuel-paper-trip-rows {display:grid;gap:10px;}
+.fuel-paper-trip {border:1px solid #dce7f5;border-radius:8px;background:#fbfcff;}
+.fuel-paper-trip-title {display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e4ebf7;font-size:12px;}
+.fuel-paper-remove-trip {border:0;background:#fff1f2;color:#be123c;border-radius:6px;padding:6px 9px;cursor:pointer;}
+.fuel-paper-trip-bottom {display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;font-size:12px;}
+.fuel-paper-add-trip {border:1px solid #b9d0f6;border-radius:7px;padding:8px 12px;background:#f2f7ff;color:#1554aa;font-size:11px;font-weight:750;cursor:pointer;}
+.fuel-paper-remarks {display:grid;gap:7px;padding:14px;}
+.fuel-paper-errors {border-radius:8px;padding:10px 12px;background:#fff1f2;color:#991b1b;font-size:12px;}
+.fuel-paper-footer {display:flex;justify-content:flex-end;gap:9px;padding:12px 18px;border-top:1px solid #dbe5f3;background:#fff;}
+.fuel-paper-cancel,.fuel-paper-save {display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:7px;padding:10px 15px;font-size:12px;font-weight:750;cursor:pointer;}
+.fuel-paper-cancel {border:1px solid #cbd9ec;color:#20416c;background:#fff;}
+.fuel-paper-save {border:1px solid #1452a4;color:#fff;background:#1452a4;}
+@media(max-width:580px){.fuel-paper-grid,.fuel-paper-trip-grid{grid-template-columns:minmax(0,1fr)}.fuel-paper-header{padding:12px}.fuel-paper-content{padding:11px}.fuel-paper-trip-bottom{flex-wrap:wrap}}
