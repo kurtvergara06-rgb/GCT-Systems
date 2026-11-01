@@ -38,6 +38,7 @@ class BatchAttendanceController extends Controller
         $validated = $request->validate([
             'date' => ['required', 'date'],
             'shift' => ['nullable', Rule::in(['all', 'Morning', 'Afternoon'])],
+            'mode' => ['nullable', Rule::in(['in','out'])],
         ]);
 
         if ($type === 'mechanic' && ($validated['shift'] ?? 'all') === 'Afternoon') {
@@ -60,6 +61,18 @@ class BatchAttendanceController extends Controller
             ->whereDate('attendance_date', $date)
             ->get()
             ->keyBy($idColumn);
+
+        if ($type === 'mechanic') {
+            $mode = $validated['mode'] ?? 'in';
+            $people = $people->filter(function ($person) use ($dateRecords, $idColumn, $mode) {
+                $record = $dateRecords->get((string) $person->{$idColumn});
+                if ($mode === 'in') {
+                    return ! $record || in_array($record->status, ['Unmarked', null, ''], true);
+                }
+                return $record && $record->time_in && ! $record->time_out
+                    && in_array($record->status, ['Present', 'Late', 'On Duty'], true);
+            })->values();
+        }
 
         // For drivers, show only personnel who still need attendance for
         // this date. A saved Present, Absent or On Leave record must not
@@ -119,6 +132,7 @@ class BatchAttendanceController extends Controller
 
         $validated = $request->validate([
             'attendance_date' => ['required', 'date'],
+            'mode' => ['nullable', Rule::in(['in','out'])],
             'rows' => ['required', 'array', 'min:1', 'max:300'],
             'rows.*.person_id' => ['required', 'string', 'max:100'],
             'rows.*.name' => ['required', 'string', 'max:255'],
@@ -186,6 +200,29 @@ class BatchAttendanceController extends Controller
                         ->where($idColumn, $personId)
                         ->whereDate('attendance_date', $date)
                         ->lockForUpdate()->first();
+
+                    if ($type === 'mechanic' && ($validated['mode'] ?? 'in') === 'out') {
+                        if (! $existing || ! $existing->time_in || $existing->time_out
+                            || ! in_array($existing->status, ['Present', 'Late', 'On Duty'], true)) {
+                            throw ValidationException::withMessages([
+                                "rows.{$index}.person_id" => 'Mechanic must have a recorded Time In and no Time Out.',
+                            ]);
+                        }
+                        $out = $row['time_out'] ?? null;
+                        if (! $out) {
+                            throw ValidationException::withMessages([
+                                "rows.{$index}.time_out" => 'A Time Out is required.',
+                            ]);
+                        }
+                        if (Carbon::parse($out)->lessThanOrEqualTo(Carbon::parse($existing->time_in))) {
+                            throw ValidationException::withMessages([
+                                "rows.{$index}.time_out" => 'Time Out must be later than Time In.',
+                            ]);
+                        }
+                        $existing->update(['time_out' => $out . ':00']);
+                        $saved++;
+                        continue;
+                    }
 
                     // A batch is create-only: never silently replace an existing
                     // daily record, including one linked to a trip or job order.
