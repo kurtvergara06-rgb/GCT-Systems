@@ -137,6 +137,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
+                      @if($record->entry_type !== 'Physical Form')
                       <button
                         type="button"
                         class="fuel-action-btn edit"
@@ -155,6 +156,7 @@
                       >
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
+                      @endif
 
                       <form
                         action="{{ route('fuel-reports.destroy', $record) }}"
