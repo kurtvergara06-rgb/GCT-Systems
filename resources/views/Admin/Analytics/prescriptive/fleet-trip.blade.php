@@ -42,13 +42,6 @@
             title="Headway & Schedule Recovery Simulation"
             description="Comparison of projected trip delay with vs without prescriptive dispatch staggering."
         >
-            <x-slot:headerActions>
-                <span class="ft-telemetry-badge">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <span>-24 mins peak savings</span>
-                </span>
-            </x-slot:headerActions>
-
             <div class="prescriptive-chart-legend" aria-hidden="true">
                 <span class="chart-legend-item">
                     <span class="chart-legend-indicator delay"></span>

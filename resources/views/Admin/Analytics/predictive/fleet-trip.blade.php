@@ -33,7 +33,7 @@
     $displayPredictedDelays = $predictedDelaysCount;
     $displayUtilization = $utilizationPct > 0 ? number_format($utilizationPct, 1) . '%' : '0.0%';
     $displayHighIdleRisk = $highIdleRiskCount;
-    $displayCompletionForecast = $completionForecastPct > 0 ? number_format($completionForecastPct, 1) . '%' : ($tripCount > 0 ? '100.0%' : '—');
+    $displayCompletionForecast = $completionForecastPct > 0 ? number_format($completionForecastPct, 1) . '%' : '—';
 
     $periodTextMap = [
         'this-week' => 'This Week',

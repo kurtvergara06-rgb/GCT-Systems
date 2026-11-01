@@ -1,8 +1,19 @@
 @php
-    $stageDescription = match ($stage) {
-        'predictive' => 'What may happen next based on validated historical evidence and forecast readiness.',
-        'prescriptive' => 'What actions should be considered, with the operator remaining in control.',
-        default => 'Analytics stage overview.',
+    $pageTitle = match (true) {
+        $stage === 'predictive' && $domain === 'fleet-trip' => 'Fleet & Trip Analytics',
+        $stage === 'prescriptive' && $domain === 'fleet-trip' => 'Scheduling Insights',
+        $domain === 'fuel' => 'Fuel Analytics',
+        $domain === 'inventory' => 'Inventory Analytics',
+        $domain === 'fleet-trip' => 'Incident Analytics',
+        default => 'Analytics Overview',
+    };
+    $stageDescription = match ($pageTitle) {
+        'Fleet & Trip Analytics' => 'Analyze trip performance, delays, estimated arrival times, GPS records, and fleet utilization.',
+        'Scheduling Insights' => 'Review scheduling recommendations, dispatch readiness, and resource assignment insights.',
+        'Fuel Analytics' => 'Monitor fuel consumption trends, efficiency, and unusual usage patterns.',
+        'Inventory Analytics' => 'Monitor inventory availability, stock health, and replenishment requirements using recorded warehouse data.',
+        'Incident Analytics' => 'Review incident frequency, causes, severity, and bus replacement activity.',
+        default => 'Monitor cross-module performance, operational summaries, and important system-wide analytics.',
     };
 
     $tabs = [
@@ -22,31 +33,20 @@
     ];
 @endphp
 
-<x-layout.app title="FROMS - {{ $stageLabel }} Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - {{ $pageTitle }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page {{ $stage }}-analytics-page {{ $stage }}-domain-{{ $activeDomain }}">
-            <x-layout.topbar :title="$stageLabel . ' Analytics'" :subtitle="$stageDescription" />
+            <x-layout.topbar :title="$pageTitle" :subtitle="$stageDescription" />
 
             <section class="analytics-domain-toolbar">
-                <nav class="analytics-domain-tabs" aria-label="{{ $stageLabel }} analytics domains">
-                    @foreach($tabs as $key => $tab)
-                        <a
-                            href="{{ $stageUrl }}?{{ http_build_query(['domain' => $key, 'period' => $period, 'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null]) }}"
-                            class="{{ $activeDomain === $key ? 'active' : '' }}"
-                        >
-                            <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
-                        </a>
-                    @endforeach
-                </nav>
-
                 <form method="GET" action="{{ $stageUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
 
                     <label>
                         <span>Period</span>
-                        <select name="period">
+                        <select name="period" onchange="this.form.requestSubmit()">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
                             <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
@@ -56,7 +56,7 @@
 
                     <label>
                         <span>Bus</span>
-                        <select name="bus">
+                        <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
                             @foreach($busOptions as $busNo)
                                 <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
@@ -64,7 +64,6 @@
                         </select>
                     </label>
 
-                    <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
 

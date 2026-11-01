@@ -1,5 +1,5 @@
 <x-layout.app
-    title="FROMS - Activity Logs"
+    title="FROMS - System Activity"
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
@@ -13,8 +13,8 @@
 
         <main class="main activity-logs-page">
             <x-layout.topbar
-                title="Activity Logs"
-                subtitle="Monitor real user and system activities across FROMS"
+                title="System Activity"
+                subtitle="Track administrative activity, user actions, and notification-related system events."
                 notification-count="6"
             />
 

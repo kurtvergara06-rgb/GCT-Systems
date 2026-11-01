@@ -52,37 +52,22 @@
     }
 @endphp
 
-<x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - Fleet & Trip Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Predictive Analytics" subtitle="AI-powered predictions and forecasts for proactive decision making." />
+            <x-layout.topbar title="Fleet & Trip Analytics" subtitle="Analyze trip performance, delays, estimated arrival times, GPS records, and fleet utilization." />
 
             <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
             <section class="analytics-domain-toolbar predictive-toolbar">
-                <nav class="analytics-domain-tabs" aria-label="Predictive analytics domains">
-                    @foreach($tabs as $key => $tab)
-                        <a
-                            href="{{ $predictiveUrl }}?{{ http_build_query(array_filter([
-                                'domain' => $key,
-                                'period' => $period,
-                                'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null,
-                            ])) }}"
-                            class="{{ $activeDomain === $key ? 'active' : '' }}"
-                        >
-                            <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
-                        </a>
-                    @endforeach
-                </nav>
-
                 <form method="GET" action="{{ $predictiveUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
 
                     <label>
                         <span>Period</span>
-                        <select name="period">
+                        <select name="period" onchange="this.form.requestSubmit()">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
                             <option value="this-week" @selected($period === 'this-week')>This Week</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
@@ -93,7 +78,7 @@
 
                     <label>
                         <span>Bus</span>
-                        <select name="bus">
+                        <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
                             @foreach($busOptions as $busNo)
                                 <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
@@ -101,7 +86,6 @@
                         </select>
                     </label>
 
-                    <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
 
