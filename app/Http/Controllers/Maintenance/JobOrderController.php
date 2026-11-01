@@ -1726,9 +1726,18 @@ class JobOrderController extends Controller
             'Exhaust System Inspection and Repair' => ['Engine'],
         ];
 
-        return $job === 'Other'
-            ? array_values(array_filter($customSkills, 'is_string'))
-            : ($jobs[$job] ?? []);
+        if ($job === 'Other') {
+            return array_values(array_filter($customSkills, 'is_string'));
+        }
+        // Legacy fallback supports previously created JOs and migration rollouts.
+        $catalogJob = DB::table('maintenance_job_catalog')->where('name', $job)->first();
+        if ($catalogJob) {
+            if (!$catalogJob->is_active) {
+                return []; // Deactivated jobs are unavailable for new work.
+            }
+            return array_values(array_filter(json_decode($catalogJob->specializations, true) ?: [], 'is_string'));
+        }
+        return $jobs[$job] ?? [];
     }
 
     private function matchesSpecialization(Mechanic $mechanic, array $requiredSkills): bool
