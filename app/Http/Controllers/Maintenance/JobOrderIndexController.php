@@ -156,6 +156,9 @@ class JobOrderIndexController extends Controller
         // Load stock reference once for the rendered list, not once per Job Order modal.
         $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
 
+        $maintenanceJobCatalog = \Illuminate\Support\Facades\DB::table('maintenance_job_catalog')
+            ->where('is_active', true)->orderBy('name')->pluck('name')->all();
+
         return view('Maintenance.job-order', compact(
             'existingIrStatuses',
             'jobOrders',
@@ -172,7 +175,8 @@ class JobOrderIndexController extends Controller
             'linkedPrsByJobOrderNo',
             'pmsCreate',
             'recordView',
-            'viewPartsStock'
+            'viewPartsStock',
+            'maintenanceJobCatalog'
         ));
     }
 
