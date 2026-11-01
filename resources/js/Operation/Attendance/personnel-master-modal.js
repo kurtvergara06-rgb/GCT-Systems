@@ -27,12 +27,28 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             jobForm.querySelector('[data-catalog-job-method]').value = 'POST';
             jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Add Maintenance Job';
             jobForm.querySelector('[data-catalog-save-job]').textContent = 'Save Job';
+            jobForm.querySelector('[data-catalog-reset-job]').hidden = true;
+            catalog.querySelectorAll('[data-catalog-edit-job]').forEach(button => button.setAttribute('aria-pressed','false'));
         };
         catalog.querySelector('[data-catalog-reset-job]')?.addEventListener('click', resetJob);
+        const catalogSearch = catalog.querySelector('[data-catalog-job-search]');
+        const filterJobs = () => {
+            const term = (catalogSearch?.value || '').trim().toLocaleLowerCase();
+            let matches = 0;
+            catalog.querySelectorAll('.personnel-catalog-job-entry').forEach(entry => {
+                const found = entry.textContent.toLocaleLowerCase().includes(term);
+                entry.hidden = !found;
+                if (found) matches++;
+            });
+            const empty = catalog.querySelector('[data-catalog-job-empty]');
+            if (empty) empty.hidden = matches !== 0;
+        };
+        catalogSearch?.addEventListener('input', filterJobs);
         catalog.querySelector('[data-catalog-new-job]')?.addEventListener('click', () => {
             selectCatalogTab('jobs');
             resetJob();
-            jobForm?.scrollIntoView({block:'start',behavior:'smooth'});
+            catalogSearch.value = '';
+            filterJobs();
             jobForm?.elements.namedItem('name')?.focus({preventScroll:true});
         });
         catalog.querySelectorAll('[data-catalog-edit-job]').forEach((button) => {
@@ -50,11 +66,13 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                 jobForm.elements.namedItem('is_active').checked = button.dataset.jobActive === '1';
                 jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Edit Maintenance Job';
                 jobForm.querySelector('[data-catalog-save-job]').textContent = 'Update Job';
-                jobForm.scrollIntoView({block:'nearest'});
+                jobForm.querySelector('[data-catalog-reset-job]').hidden = false;
+                button.setAttribute('aria-pressed','true');
             });
         });
         open?.addEventListener('click', () => {
             selectCatalogTab('jobs');
+            resetJob();
             if (!catalog.open) catalog.showModal();
         });
         close?.addEventListener('click', () => catalog.close());
