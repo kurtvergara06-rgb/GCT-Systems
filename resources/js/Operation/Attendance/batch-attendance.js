@@ -142,15 +142,17 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
-                if (!row.classList.contains('is-unavailable')) {
-                    row.querySelector('[data-time-in]').value = currentTime();
-                    detectLate(row);
-                    updateAvailability(row);
+                if (!row.classList.contains('is-unavailable') && row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked) {
+                    const target = attendanceMode === 'out' ? row.querySelector('[data-time-out]') : row.querySelector('[data-time-in]');
+                    if (target && !target.disabled) {
+                        target.value = currentTime();
+                        target.dispatchEvent(new Event('change', {bubbles:true}));
+                    }
                 }
             });
             updateSummary();
         });
-        overlay.querySelector('#batchApplyTime').addEventListener('click', () => applySharedTime('in'));
+        overlay.querySelector('#batchApplyTime').addEventListener('click', () => applySharedTime(attendanceMode));
         if (type === 'mechanic') {
             const switchMode = (mode) => {
                 if (attendanceMode === mode) return;
@@ -162,10 +164,14 @@ function initBatchAttendancePage() {
                     const control = overlay.querySelector('#' + id);
                     if (control) {
                         control.hidden = false;
-                        control.disabled = mode === 'out';
-                        control.title = mode === 'out' ? 'Use Time In mode for this attendance action' : '';
+                        control.disabled = false;
+                        control.title = '';
                     }
                 });
+                const mark = overlay.querySelector('#batchMarkPresent');
+                if (mark) mark.innerHTML = mode === 'out' ? '<i class="fa-solid fa-check-double"></i> Select All' : '<i class="fa-solid fa-user-check"></i> Mark All Present';
+                const clear = overlay.querySelector('#batchClearAll');
+                if (clear) clear.innerHTML = mode === 'out' ? '<i class="fa-solid fa-trash"></i> Clear Time Out' : '<i class="fa-solid fa-trash"></i> Clear All';
                 loadRoster();
             };
             overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => switchMode('in'));
@@ -350,6 +356,10 @@ function initBatchAttendancePage() {
 
     function markAllPresent() {
         document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
+            if (attendanceMode === 'out' && type === 'mechanic') {
+                row.querySelector('[data-row-select]').checked = true;
+                return;
+            }
             setSelectedStatus(row, 'Present');
             if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
@@ -361,6 +371,11 @@ function initBatchAttendancePage() {
 
     function clearAllRows() {
         document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
+            if (attendanceMode === 'out' && type === 'mechanic') {
+                row.querySelector('[data-time-out]').value = '';
+                row.querySelector('[data-time-out]').dispatchEvent(new Event('change',{bubbles:true}));
+                return;
+            }
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
