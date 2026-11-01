@@ -2423,3 +2423,7 @@
 .personnel-catalog-job-entry strong {font-size:12px;display:block;}
 .personnel-catalog-job-entry small {font-size:11px;color:#6a7b94;display:block;margin-top:3px;}
 .personnel-catalog-edit-job {background:#fff;border:1px solid #d4deed;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;}
+
+.personnel-catalog-list-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px; }
+.personnel-catalog-list-heading h3 { margin:0;font-size:13px; }
+.personnel-catalog-new-job { display:inline-flex;align-items:center;gap:6px;background:#ffc400;color:#1b2b42;border:0;border-radius:8px;padding:9px 12px;font-size:11px;font-weight:750;cursor:pointer; }
