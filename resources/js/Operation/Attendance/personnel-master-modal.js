@@ -32,43 +32,58 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             if (empty) empty.hidden = visible > 0;
         };
         skillSearch?.addEventListener('input', filterSkills);
-        // Two-step removal confirmation within the catalog dialog.
-        catalog.querySelector('[data-catalog-skills-grid]')?.addEventListener('click', async (event) => {
+        const pendingSkillDeletes = new Set();
+        let editingSkills = false;
+        const refreshSkillEditing = () => {
+            catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(button => {
+                button.hidden = !editingSkills;
+                button.setAttribute('aria-pressed', String(pendingSkillDeletes.has(button.dataset.deleteUrl)));
+                button.closest('[data-catalog-skill-entry]')?.classList.toggle('is-pending-delete',pendingSkillDeletes.has(button.dataset.deleteUrl));
+            });
+            const footer = catalog.querySelector('[data-catalog-skill-edit-actions]');
+            if (footer) footer.hidden = !editingSkills;
+            const count = catalog.querySelector('[data-catalog-pending-count]');
+            if (count) count.textContent = pendingSkillDeletes.size + ' selected for removal';
+            const save = catalog.querySelector('[data-catalog-save-skills]');
+            if (save) save.disabled = pendingSkillDeletes.size === 0;
+        };
+        const finishSkillEditing = () => {
+            pendingSkillDeletes.clear();
+            editingSkills = false;
+            refreshSkillEditing();
+        };
+        catalog.querySelector('[data-catalog-edit-skills]')?.addEventListener('click', () => {
+            editingSkills = !editingSkills;
+            if (!editingSkills) pendingSkillDeletes.clear();
+            refreshSkillEditing();
+        });
+        catalog.querySelector('[data-catalog-cancel-skills]')?.addEventListener('click', finishSkillEditing);
+        catalog.querySelector('[data-catalog-skills-grid]')?.addEventListener('click', event => {
             const button = event.target.closest('[data-catalog-remove-skill]');
-            if (!button || button.disabled) return;
-            if (button.dataset.confirmRemove !== 'yes') {
-                catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(other => {
-                    if (other !== button) {
-                        other.dataset.confirmRemove = '';
-                        other.title = 'Remove unused specialization';
-                        other.setAttribute('aria-label', 'Remove specialization ' + other.dataset.skillName);
-                        other.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
-                    }
-                });
-                button.dataset.confirmRemove = 'yes';
-                button.title = 'Confirm permanent removal';
-                button.setAttribute('aria-label', 'Confirm permanent removal of ' + button.dataset.skillName);
-                button.textContent = 'Confirm?';
-                return;
+            if (!editingSkills || !button) return;
+            if (pendingSkillDeletes.has(button.dataset.deleteUrl)) pendingSkillDeletes.delete(button.dataset.deleteUrl);
+            else pendingSkillDeletes.add(button.dataset.deleteUrl);
+            refreshSkillEditing();
+        });
+        catalog.querySelector('[data-catalog-save-skills]')?.addEventListener('click', async () => {
+            if (!editingSkills || !pendingSkillDeletes.size) return;
+            const save = catalog.querySelector('[data-catalog-save-skills]');
+            save.disabled = true;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || modal.querySelector('input[name="_token"]')?.value;
+            const errors = [];
+            for (const url of pendingSkillDeletes) {
+                try {
+                    const response = await fetch(url,{method:'DELETE',headers:{'Accept':'application/json','X-CSRF-TOKEN':csrf}});
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Deletion was rejected.');
+                    catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(button => {
+                        if (button.dataset.deleteUrl === url) button.closest('[data-catalog-skill-entry]')?.remove();
+                    });
+                } catch(error) { errors.push(error.message); }
             }
-            button.disabled = true;
-            try {
-                const csrf = document.querySelector('meta[name="csrf-token"]')?.content
-                    || modal.querySelector('input[name="_token"]')?.value;
-                const response = await fetch(button.dataset.deleteUrl, {
-                    method: 'DELETE',
-                    headers: { 'Accept':'application/json', 'X-CSRF-TOKEN': csrf }
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Unable to remove specialization.');
-                button.closest('[data-catalog-skill-entry]')?.remove();
-                filterSkills();
-            } catch (error) {
-                window.alert(error.message);
-                button.disabled = false;
-                button.dataset.confirmRemove = '';
-                button.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
-            }
+            finishSkillEditing();
+            filterSkills();
+            if (errors.length) window.alert(errors.join('\\n'));
         });
         catalog.querySelector('[data-catalog-new-skill]')?.addEventListener('click', () => {
             if (!skillForm) return;
