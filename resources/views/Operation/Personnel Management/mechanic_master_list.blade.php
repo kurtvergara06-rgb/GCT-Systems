@@ -209,7 +209,30 @@
         <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills">Specializations</button>
     </div>
     <section role="tabpanel" id="catalogJobsPanel" aria-labelledby="catalogJobsTab" data-catalog-panel="jobs">
-        @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+        <div class="personnel-catalog-workspace">
+            <div class="personnel-catalog-browser">
+                        <div class="personnel-catalog-list-heading"><h3>Maintenance Jobs</h3><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
+        <div class="personnel-catalog-job-list" data-catalog-job-list>
+        @foreach($maintenanceJobCatalog as $job)
+            @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
+            <div class="personnel-catalog-job-entry">
+                <div><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }} · {{ $job->is_active ? 'Active' : 'Inactive' }}</small></div>
+                @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+                    <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
+                        data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
+                        data-job-name="{{ $job->name }}"
+                        data-job-skills="{{ json_encode($jobSkills) }}"
+                        data-job-active="{{ $job->is_active ? '1' : '0' }}">Edit</button>
+                @endif
+            </div>
+        @endforeach
+        </div>
+
+                <label class="personnel-catalog-search-label" for="catalogJobSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="catalogJobSearch" type="search" data-catalog-job-search placeholder="Search maintenance jobs..." autocomplete="off"></label>
+                <p class="personnel-catalog-no-results" data-catalog-job-empty hidden>No matching maintenance jobs.</p>
+            </div>
+            <div class="personnel-catalog-editor">
+                        @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
         <form class="personnel-catalog-job-form" method="POST" action="{{ route('maintenance-job-catalog.store') }}" data-catalog-job-form data-create-url="{{ route('maintenance-job-catalog.store') }}">
             @csrf
             <input type="hidden" name="_method" value="POST" data-catalog-job-method>
@@ -225,25 +248,12 @@
             <label class="personnel-catalog-active"><input type="checkbox" name="is_active" value="1" checked> Active (available in New JO)</label>
             <div class="personnel-catalog-job-actions">
                 <button type="submit" class="personnel-catalog-manage-skills" data-catalog-save-job>Save Job</button>
-                <button type="button" class="personnel-catalog-reset" data-catalog-reset-job>Cancel Edit</button>
+                <button type="button" class="personnel-catalog-reset" data-catalog-reset-job hidden>Cancel Edit</button>
             </div>
         </form>
         @endif
-        <div class="personnel-catalog-list-heading"><h3>Maintenance Job List</h3><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
-        <div class="personnel-catalog-job-list">
-        @foreach($maintenanceJobCatalog as $job)
-            @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
-            <div class="personnel-catalog-job-entry">
-                <div><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }} · {{ $job->is_active ? 'Active' : 'Inactive' }}</small></div>
-                @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
-                    <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
-                        data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
-                        data-job-name="{{ $job->name }}"
-                        data-job-skills="{{ json_encode($jobSkills) }}"
-                        data-job-active="{{ $job->is_active ? '1' : '0' }}">Edit</button>
-                @endif
+
             </div>
-        @endforeach
         </div>
     </section>
     <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
