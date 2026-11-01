@@ -16,7 +16,13 @@ class PurchaseRequestPartsService
         private JobOrderWorkflowService $workflow
     ) {}
 
-    public function missingParts(string $partText, ?JobOrder $jobOrder = null, ?Collection $inventoryItems = null, ?Collection $inventoryReservations = null): array
+    public function missingParts(
+        string $partText,
+        ?JobOrder $jobOrder = null,
+        ?Collection $inventoryItems = null,
+        ?Collection $inventoryReservations = null,
+        ?Collection $jobOrderReservations = null
+    ): array
     {
         $requestedParts = $this->partParser->parsePartText($partText);
         if ($requestedParts === []) {
@@ -71,11 +77,13 @@ class PurchaseRequestPartsService
         }
         // Load JO reservations once instead of querying once for each part.
         // Keep the exact existing coverage calculation and fallback semantics.
-        $jobReservations = $jobOrder
-            ? JobOrderPartReservation::query()
-                ->where('job_order_id', $jobOrder->id)
-                ->pluck('quantity', 'inventory_item_id')
-            : collect();
+        $jobReservations = collect();
+        if ($jobOrder) {
+            $jobReservations = $jobOrderReservations !== null
+                ? $jobOrderReservations->where('job_order_id', $jobOrder->id)->pluck('quantity', 'inventory_item_id')
+                : JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
+                    ->pluck('quantity', 'inventory_item_id');
+        }
         $missingParts = [];
 
         foreach ($partsByName as $key => $parts) {

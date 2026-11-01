@@ -2009,3 +2009,145 @@ window.addEventListener('load', () => {
     renderUsageChart(data);
   });
 });
+
+/* Physical fuel form: initialize on every partial page navigation. */
+window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form', '.fuel-page', () => {
+  const modal = document.getElementById('physicalFuelModal');
+  const trigger = document.getElementById('openPhysicalFuelForm');
+  const form = document.getElementById('physicalFuelForm');
+  const rows = document.getElementById('physicalTripRows');
+  const template = document.getElementById('physicalTripTemplate');
+  if (!modal || !trigger || !form || !rows || !template || form.dataset.physicalBound === '1') return;
+  form.dataset.physicalBound = '1';
+
+  const close = () => { modal.hidden = true; document.body.style.overflow = ''; trigger.focus(); };
+  const recalc = () => {
+    let total = 0;
+    [...rows.querySelectorAll('[data-field="distance_km"]')].forEach(field => {
+      const value = Number(field.value);
+      if (Number.isFinite(value) && value > 0) total += value;
+    });
+    document.getElementById('physicalTripTotal').textContent = total.toFixed(2);
+  };
+  const renumber = () => {
+    [...rows.children].forEach((row, index) => {
+      row.querySelector('.fuel-paper-trip-number').textContent = String(index + 1);
+      row.querySelectorAll('[data-field]').forEach(field => {
+        field.name = 'trips[' + index + '][' + field.dataset.field + ']';
+      });
+    });
+    recalc();
+  };
+  const addTrip = () => {
+    if (rows.children.length >= 30) return;
+    const row = template.content.firstElementChild.cloneNode(true);
+    rows.appendChild(row);
+    row.querySelector('[data-field="trip_date"]').value = form.querySelector('#physical-date').value;
+    row.querySelectorAll('input[type="date"]').forEach(input => { input.max = document.getElementById('physical-date').max; });
+    row.querySelector('.fuel-paper-remove-trip').addEventListener('click', () => {
+      if (rows.children.length <= 1) return;
+      row.remove(); renumber();
+    });
+    row.addEventListener('input', recalc);
+    renumber();
+  };
+  const pickers = [...modal.querySelectorAll('.fuel-paper-search-picker')];
+  const pickerInputs = [];
+  for (const picker of pickers) {
+    const input = picker.querySelector('input[type="search"]');
+    const hidden = picker.querySelector('input[type="hidden"]');
+    const menu = picker.querySelector('.fuel-paper-search-options');
+    const options = [...menu.querySelectorAll('.fuel-paper-search-option')];
+    const empty = menu.querySelector('.fuel-paper-search-empty');
+    const closeMenu = () => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+    const filter = () => {
+      const term = input.value.trim().toLowerCase();
+      let matches = 0;
+      options.forEach(option => {
+        option.hidden = !option.dataset.search.includes(term);
+        if (!option.hidden) matches++;
+      });
+      empty.hidden = matches !== 0;
+      menu.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    };
+    const select = option => {
+      hidden.value = option.dataset.value;
+      input.value = option.dataset.name;
+      input.setCustomValidity('');
+      if (picker.dataset.picker === 'bus') {
+        document.getElementById('physical-plate').value = option.dataset.plate || '';
+      }
+      closeMenu();
+    };
+    input.addEventListener('focus', filter);
+    input.addEventListener('input', () => {
+      hidden.value = '';
+      if (picker.dataset.picker === 'bus') document.getElementById('physical-plate').value = '';
+      input.setCustomValidity('');
+      filter();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMenu();
+      if (e.key === 'ArrowDown') { e.preventDefault(); filter(); options.find(option => !option.hidden)?.focus(); }
+    });
+    options.forEach(option => {
+      option.addEventListener('click', () => { select(option); input.focus(); });
+      option.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(option); input.focus(); }
+        if (e.key === 'Escape') { closeMenu(); input.focus(); }
+      });
+    });
+    picker.addEventListener('focusout', () => {
+      window.setTimeout(() => { if (!picker.contains(document.activeElement)) closeMenu(); }, 0);
+    });
+    pickerInputs.push({input, hidden, options, select, filter, closeMenu});
+    const restored = options.find(option => option.dataset.value === hidden.value);
+    if (restored) select(restored);
+  }
+  document.addEventListener('pointerdown', e => {
+    if (!modal.hidden && !e.target.closest('.fuel-paper-search-picker')) pickerInputs.forEach(picker => picker.closeMenu());
+  });
+  document.getElementById('addPhysicalTrip').addEventListener('click', addTrip);
+  trigger.addEventListener('click', () => {
+    if (rows.children.length === 0) addTrip();
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    pickerInputs[0]?.input.focus();
+  });
+  document.getElementById('cancelPhysicalFuelForm').addEventListener('click', close);
+  document.getElementById('closePhysicalFuelForm').addEventListener('click', close);
+  modal.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  form.addEventListener('submit', event => {
+    for (const picker of pickerInputs) {
+      if (!picker.hidden.value) {
+        event.preventDefault();
+        picker.input.setCustomValidity('Select an option from the master list.');
+        picker.input.reportValidity();
+        picker.input.focus();
+        picker.filter();
+        return;
+      }
+    }
+    renumber();
+    if (rows.children.length === 0) { event.preventDefault(); addTrip(); }
+  });
+  if (rows.children.length === 0) addTrip();
+  const previousTrips = (() => {
+    const element = document.getElementById('physicalFuelOldTrips');
+    if (!element) return [];
+    try { return JSON.parse(element.textContent) || []; } catch { return []; }
+  })();
+  if (Array.isArray(previousTrips) && previousTrips.length) {
+    rows.innerHTML = '';
+    previousTrips.slice(0, 30).forEach(trip => {
+      addTrip();
+      const row = rows.lastElementChild;
+      row.querySelectorAll('[data-field]').forEach(input => {
+        input.value = trip[input.dataset.field] ?? '';
+      });
+    });
+    renumber();
+  }
+  if (document.getElementById('physicalFuelReopen')) trigger.click();
+});

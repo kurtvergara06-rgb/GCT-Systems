@@ -9,10 +9,15 @@
         'resources/js/Maintenance/job-order.js'
     ]"
 >
+    @php
+        // Safe for normal JO entry and older render paths without referral context.
+        $referralCreate = $referralCreate ?? null;
+    @endphp
     <div class="app">
         <x-layout.sidebar department="Maintenance" />
 
         <main class="main jo-page">
+            <script type="application/json" id="maintenanceJobCatalogData">@json($maintenanceJobCatalog)</script>
             <x-layout.topbar
                 title="Job Orders"
                 subtitle="Manage repair and preventive maintenance service requests"
@@ -211,9 +216,9 @@
                                     $partStatusClass = match ($partStatus) {
                                         'No Parts Required' => 'no-parts-needed',
                                         'Not Requested' => 'not-requested',
-                                        'Not Issued' => 'rejected',
-                                        'Partially Issued' => 'for-purchase',
-                                        'Waiting for Parts' => 'for-purchase',
+                                        'Not Issued' => 'not-issued',
+                                        'Partially Issued' => 'partially-issued',
+                                        'Waiting for Parts' => 'waiting-for-parts',
                                         'Fully Issued' => 'issued',
                                         default => 'not-requested',
                                     };
@@ -233,15 +238,15 @@
                                                 Est. {{ $jobOrder->formatted_estimated_duration }}
                                             </span>
                                         @endif
-                                        @if($hasPartsDelayRisk)
-                                            <span class="jo-parts-delay-indicator" title="Required parts have not been fully issued. Completion may be delayed; the estimated duration is unchanged.">
-                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
-                                            </span>
-                                        @endif
                                         @if($isOverdue)
                                             <span class="jo-overdue-indicator" title="Estimated repair duration exceeded; revisit this Job Order.">
                                                 <i class="fa-solid fa-clock" aria-hidden="true"></i>
                                                 {{ $jobOrder->overdue_label }}
+                                            </span>
+                                        @endif
+                                        @if($hasPartsDelayRisk)
+                                            <span class="jo-parts-delay-indicator" title="Required parts have not been fully issued. Completion may be delayed; the estimated duration is unchanged.">
+                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
                                             </span>
                                         @endif
                                     </td>
@@ -348,7 +353,13 @@
                                         @elseif($partStatus === 'Not Requested')
                                             <span class="jo-parts-not-requested-badge" title="Parts are required but have not yet been requested"><i class="fa-regular fa-clock" aria-hidden="true"></i> Not Requested</span>
                                         @else
-                                            <x-ui.status-badge :status="$partStatus" class="part-status-badge {{ $partStatusClass }}" />
+                                            <x-ui.status-badge :status="$partStatus" :icon="match ($partStatus) {
+                                                'Partially Issued' => 'fa-box-open',
+                                                'Waiting for Parts' => 'fa-clock',
+                                                'Fully Issued' => 'fa-circle-check',
+                                                'Not Issued' => 'fa-box',
+                                                default => null,
+                                            }" class="part-status-badge {{ $partStatusClass }}" />
                                         @endif
                                     </td>
 
@@ -397,9 +408,6 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            @if($hasPartsDelayRisk)
-                                        <div class="jo-parts-delay-note" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Possible Completion Delay — Parts Shortage</strong><p>Some required parts are not yet fully issued. Check Warehouse availability and linked requests; any shortage may delay completion. Maintenance Head should review whether the estimated duration needs adjustment. This notice does not change the estimate.</p></div></div>
-                                        @endif
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
                                                                 <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
@@ -411,8 +419,26 @@
                                                     <section class="jo-view-section jo-view-warehouse-section">
                                                         <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Parts &amp; Warehouse <span class="jo-view-parts-pill {{ !$hasNeededParts ? 'is-none' : ($partStatus === 'Not Requested' ? 'is-pending' : 'is-active') }}">{{ $hasNeededParts ? $partStatus : 'No Parts Required' }}</span></h3>
                                                         <div class="jo-view-grid jo-view-warehouse-grid">
+                                                            @if($hasNeededParts)
+                                                                <div class="jo-view-release-policy">
+                                                                    <span class="jo-view-release-policy-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
+                                                                    <div class="jo-view-release-policy-content">
+                                                                        <span class="jo-view-release-policy-label">Head's Parts Release Policy</span>
+                                                                        <strong>{{ $jobOrder->review_status !== 'Approved'
+                                                                            ? 'Awaiting Head Approval'
+                                                                            : ($jobOrder->parts_issue_strategy === 'issue_available_only'
+                                                                                ? 'Allow Partial Release of Available Parts'
+                                                                                : 'Wait Until All Required Parts Are Issued') }}</strong>
+                                                                        <p>{{ $jobOrder->review_status !== 'Approved'
+                                                                            ? 'The release policy is not final until Maintenance Head approves this Job Order.'
+                                                                            : ($jobOrder->parts_issue_strategy === 'issue_available_only'
+                                                                                ? 'Repair may start after Warehouse records a signed partial handover; remaining parts are still required for completion.'
+                                                                                : 'Repair stays on hold until all required parts are physically issued by Warehouse.') }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
                                                             <div class="jo-view-parts-cell jo-view-parts-fullwidth">
-                                                                <span>Requested Parts</span>
+                                                                <h4 class="jo-view-requested-parts-title">Requested Parts</h4>
                                                                 @php
                                                                     $viewRequestedParts = app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed);
                                                                 @endphp
@@ -443,6 +469,15 @@
                                                                     </div>
                                                                 @else
                                                                     <strong>None required</strong>
+                                                                @endif
+                                                                @if($hasPartsDelayRisk)
+                                                                    <div class="jo-parts-delay-note" role="note">
+                                                                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                                        <div>
+                                                                            <strong>Possible Delay — Parts Shortage</strong>
+                                                                            <p>Some required parts are still pending. The estimated duration may need review if the shortage causes a delay.</p>
+                                                                        </div>
+                                                                    </div>
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -833,6 +868,8 @@
         confirm-type="create"
         class="jo-create-modal-overlay"
         data-pms-create="{{ $pmsCreate ? 'true' : 'false' }}"
+        data-referral-create="{{ $referralCreate ? 'true' : 'false' }}"
+        data-referral-bus="{{ $referralCreate?->incident?->bus?->bus_no ?? '' }}"
     >
         <input
             type="hidden"
@@ -840,6 +877,10 @@
             id="pms_schedule_id"
             value="{{ $pmsCreate?->id ?? '' }}"
         >
+        <input type="hidden" name="maintenance_referral_id" value="{{ $referralCreate?->id ?? '' }}">
+        @if($referralCreate)
+            <div class="jo-referral-origin"><i class="fa-solid fa-link"></i> From approved Incident {{ $referralCreate->incident?->incident_no }} — complete this form to submit the Job Order for review.</div>
+        @endif
         <input type="hidden" name="maintenance_type" value="Repair" data-maintenance-type-hidden="newJo">
 
         <nav class="jo-new-stepper" aria-label="Job Order form sections">

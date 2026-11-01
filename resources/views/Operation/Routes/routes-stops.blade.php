@@ -14,6 +14,12 @@
         $routeUser = auth()->user();
 
         $canManageRoutes = $routeUser?->hasSystemPermission('operation', 'edit') ?? false;
+        $routeDepartment = strtolower(trim((string) ($routeUser?->department ?? '')));
+        $routeRole = strtolower(trim((string) ($routeUser?->role ?? '')));
+        $canApproveRouteChanges = $canManageRoutes
+            && ($routeUser?->hasSystemPermission('operation', 'approve') ?? false)
+            && (($routeRole === 'head' && in_array($routeDepartment, ['operation', 'admin'], true))
+                || $routeRole === 'system admin');
     @endphp
 
     {{-- Validation errors are shown by the shared system toast and inline field feedback. --}}
@@ -115,16 +121,16 @@
 
                 <div class="gct-table-toolbar-row routes-record-controls">
                     <nav class="gct-record-tabs routes-segmented-tabs" aria-label="Route record groups">
-                        <a class="gct-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-route" aria-hidden="true"></i> Active Routes</a>
-                        <a class="gct-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+                        <a class="gct-record-tab {{ !in_array(request('tab', 'active'), ['inactive', 'history'], true) ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-route" aria-hidden="true"></i> Active Routes</a>
+                        <a class="gct-record-tab {{ in_array(request('tab'), ['inactive', 'history'], true) ? 'is-active' : '' }}" href="{{ route('operation.routes', array_merge(request()->except(['tab','status','page']), ['tab' => 'inactive'])) }}"><i class="fa-solid fa-power-off" aria-hidden="true"></i> Inactive Routes</a>
                     </nav>
 
                 {{-- =================================================
                     TOOLBAR
                 ================================================== --}}
                 <x-ui.table-toolbar action="{{ route('operation.routes', [], false) }}" search-label="Search Routes" search-placeholder="Search route, origin, destination, or stop..." :sort-options="['route_code' => 'Route ID', 'route_name' => 'Route Name', 'origin' => 'Origin', 'destination' => 'Destination', 'distance_km' => 'Distance', 'status' => 'Status']" default-sort="id" default-direction="desc">
-                    <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
-                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status"><option value="all">All Statuses</option><option value="Active" @selected(request('status') === 'Active')>Active</option><option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option></x-ui.table-toolbar-field></x-slot:filters>
+                    <x-slot:hidden><input type="hidden" name="tab" value="{{ in_array(request('tab'), ['inactive', 'history'], true) ? 'inactive' : 'active' }}"></x-slot:hidden>
+                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status"><option value="all">All Statuses</option><option value="Active" @selected(request('status') === 'Active')>Active</option><option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option></x-ui.table-toolbar-field><x-ui.table-toolbar-field label="Client / Company" name="client"><option value="all">All Clients</option><option value="unallocated" @selected(request('client') === 'unallocated')>Unallocated</option>@foreach($routeClients as $client)<option value="{{ $client->id }}" @selected((string) request('client') === (string) $client->id)>{{ $client->name }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
                 </x-ui.table-toolbar></div>
 
 
@@ -184,7 +190,12 @@
 
                                     {{-- ROUTE NAME --}}
                                     <td>
-                                        {{ $route->route_name }}
+                                        <strong class="route-name-primary">{{ $route->route_name }}</strong>
+                                        <span class="route-client-line">
+                                            <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                            {{ $route->client?->name ?? 'Unallocated' }}
+                                        </span>
+
                                     </td>
 
 
@@ -210,6 +221,7 @@
                                             data-id="{{ $route->id }}"
                                             data-route-code="{{ $route->route_code }}"
                                             data-route-name="{{ $route->route_name }}"
+                                            data-client-id="{{ $route->operation_client_id }}"
                                             data-origin="{{ $route->origin }}"
                                             data-destination="{{ $route->destination }}"
                                                 data-origin-address="{{ $route->origin_address }}"
@@ -331,27 +343,12 @@
 
 
                                             @if($canManageRoutes)
-                                            {{-- Used routes must keep their historical definition. --}}
-                                            @if($route->trip_schedules_count > 0)
-                                                <button type="button" class="route-action edit gct-action-unavailable"
-                                                    data-has-schedules="1"
-                                                    disabled aria-disabled="true" title="Unavailable: route already used by a trip"
-                                                    aria-label="Edit unavailable: route already used by a trip">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </button>
-                                                <button type="button" class="route-action delete gct-action-unavailable"
-                                                    disabled aria-disabled="true" title="Unavailable: route already used by a trip"
-                                                    aria-label="Delete unavailable: route already used by a trip">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            @else
-                                                <button
-                                                    type="button"
-                                                    class="route-action edit edit-route-btn"
+                                                <button type="button" class="route-action edit edit-route-btn"
                                                     title="Edit Route"
                                                     data-id="{{ $route->id }}"
                                                     data-route-code="{{ $route->route_code }}"
                                                     data-route-name="{{ $route->route_name }}"
+                                                    data-client-id="{{ $route->operation_client_id }}"
                                                     data-origin="{{ $route->origin }}"
                                                     data-destination="{{ $route->destination }}"
                                                     data-origin-address="{{ $route->origin_address }}"
@@ -366,26 +363,30 @@
                                                     data-distance="{{ $route->distance_km }}"
                                                     data-time="{{ $route->estimated_time_minutes }}"
                                                     data-status="{{ $route->status }}"
-                                                    data-has-schedules="0"
+                                                    data-has-schedules="{{ $route->trip_schedules_count > 0 ? '1' : '0' }}"
                                                     data-update-url="{{ route('operation.routes.update', $route->id, false) }}"
-                                                    data-stops="{{ $stopsJson }}"
-                                                >
+                                                    data-stops="{{ $stopsJson }}">
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </button>
-                                                <form id="deleteRouteForm-{{ $route->id }}"
-                                                    action="{{ route('operation.routes.destroy', $route->id, false) }}"
-                                                    method="POST" class="route-delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="route-action delete open-delete-route-modal"
-                                                        title="Delete Route"
-                                                        data-form-id="deleteRouteForm-{{ $route->id }}"
-                                                        data-route-code="{{ $route->route_code }}"
-                                                        data-route-name="{{ $route->route_name }}">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
+                                                @else
+                                                <button type="button" class="route-action edit gct-action-unavailable" disabled aria-disabled="true"
+                                                    title="Historical route: only Operations Head can allocate clients" aria-label="Editing restricted to Operations Head">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                @endif
+                                            @if($canApproveRouteChanges)
+                                            <form action="{{ route('operation.routes.status', $route->id, false) }}"
+                                                method="POST" class="route-status-form"
+                                                onsubmit="return confirm('{{ $route->status === 'Active' ? 'Deactivate this route? It will be unavailable for new trips.' : 'Activate this route for scheduling?' }}')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="{{ $route->status === 'Active' ? 'Inactive' : 'Active' }}">
+                                                <button type="submit" class="route-action {{ $route->status === 'Active' ? 'delete' : 'edit' }}"
+                                                    title="{{ $route->status === 'Active' ? 'Deactivate Route' : 'Activate Route' }}"
+                                                    aria-label="{{ $route->status === 'Active' ? 'Deactivate Route' : 'Activate Route' }}">
+                                                    <i class="fa-solid fa-power-off" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
                                             @endif
 
                                         </div>
@@ -432,7 +433,7 @@
     </div>
 
 
-    {{-- =========================================================
+        {{-- =========================================================
         ADD / EDIT ROUTE
         GLOBAL FORM COMPONENT
     ========================================================== --}}
@@ -495,12 +496,24 @@
             <i class="fa-solid fa-lock"></i>
             <div>
                 <strong>Historical route details are protected.</strong>
-                <span>This route is already used by trip schedules. Create a new route variant to change its name, locations, stops, distance, or map path. Only Status can be changed here.</span>
+                <span>This route is already used by trip schedules. Create a new route variant to change its name, locations, stops, distance, or map path. Only client allocation can be set for an unallocated route; geographic details stay locked.</span>
             </div>
         </div>
 
         <div class="ui-form-grid">
 
+            <x-ui.form-select
+                label="Client / Company"
+                name="operation_client_id"
+                id="routeClient"
+                data-can-approve="{{ $canApproveRouteChanges ? '1' : '0' }}"
+                :options="$routeClients->pluck('name', 'id')->all()"
+                placeholder="Select a client from Client Trip Times"
+                icon="fa-building"
+                required
+                full
+            />
+            <input type="hidden" name="operation_client_id" id="routeClientLockedValue" disabled>
             {{-- ROUTE ID --}}
             <x-ui.form-field
                 label="Route ID"
@@ -619,6 +632,7 @@
 
             {{-- STATUS --}}
             <x-ui.form-select
+                :disabled="!$canApproveRouteChanges"
                 label="Status"
                 name="status"
                 id="routeStatus"
@@ -635,6 +649,9 @@
                 required
                 full
             />
+            @unless($canApproveRouteChanges)
+                <input type="hidden" name="status" id="routeStatusReadOnlyValue" value="Active">
+            @endunless
 
         </div>
         </x-ui.form-section>
@@ -1090,38 +1107,6 @@
         </div>
     </section>
 </div>
-
-
-    {{-- =========================================================
-        DELETE MODAL
-    ========================================================== --}}
-    <x-ui.action-buttom-modal
-        mode="delete"
-        id="deleteRouteModal"
-
-        delete-title="Delete Route?"
-        delete-message="Are you sure you want to delete"
-
-        name-id="deleteRouteName"
-
-        cancel-id="cancelDeleteRoute"
-        confirm-id="confirmDeleteRoute"
-    />
-
-
- {{-- =========================================================
-    SUCCESS FEEDBACK
-========================================================== --}}
-@if(session('success'))
-
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="success"
-        :message="session('success')"
-        button-text="Okay"
-    />
-
-@endif
 
 
 {{-- =========================================================

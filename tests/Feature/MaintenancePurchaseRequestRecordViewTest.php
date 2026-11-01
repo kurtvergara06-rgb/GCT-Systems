@@ -22,7 +22,7 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         ]);
     }
 
-    public function test_active_request_returns_200_and_excludes_issued_and_marks_active_tab(): void
+    public function test_active_request_returns_200_and_excludes_fulfilled_requests_and_marks_active_tab(): void
     {
         $user = $this->maintenanceHead();
 
@@ -44,11 +44,21 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
             'status' => 'Issued',
         ]);
 
+        $deliveredPr = PurchaseRequest::create([
+            'pr_no' => 'PR-2026-DELIVERED-02',
+            'job_order_no' => 'JO-1002-D',
+            'bus_no' => 'BUS-02-D',
+            'item' => 'Oil Filter',
+            'quantity' => 2,
+            'status' => 'Delivered',
+        ]);
+
         $response = $this->actingAs($user)->get(route('purchase-requests'));
 
         $response->assertStatus(200);
         $response->assertSee('PR-2026-ACTIVE-01');
         $response->assertDontSee('PR-2026-ISSUED-02');
+        $response->assertDontSee('PR-2026-DELIVERED-02');
         $response->assertSee('data-maintenance-record-tab-link="active"', false);
         $response->assertSee('class="maintenance-record-tab is-active"', false);
         $response->assertDontSee('id="openPrModal"', false);
@@ -66,7 +76,7 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertSee('id="createPrBtn"', false);
     }
 
-    public function test_history_request_returns_200_and_includes_issued_and_marks_history_tab(): void
+    public function test_history_request_returns_200_and_includes_fulfilled_requests_and_marks_history_tab(): void
     {
         $user = $this->maintenanceHead();
 
@@ -88,14 +98,24 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
             'status' => 'Issued',
         ]);
 
+        $deliveredPr = PurchaseRequest::create([
+            'pr_no' => 'PR-2026-DELIVERED-04',
+            'job_order_no' => 'JO-1004-D',
+            'bus_no' => 'BUS-04-D',
+            'item' => 'Oil Filter',
+            'quantity' => 2,
+            'status' => 'Delivered',
+        ]);
+
         $response = $this->actingAs($user)->get(route('purchase-requests', ['record_view' => 'history']));
 
         $response->assertStatus(200);
         $response->assertSee('PR-2026-ISSUED-04');
+        $response->assertSee('PR-2026-DELIVERED-04');
         $response->assertDontSee('PR-2026-ACTIVE-03');
         $response->assertSee('data-maintenance-record-tab-link="history"', false);
         $response->assertSee('class="maintenance-record-tab is-active"', false);
-        $response->assertSee('Issued Purchase Requests are kept here for reference and audit history.');
+        $response->assertSee('Delivered, picked-up, issued, and cancelled Purchase Requests are kept here for reference and audit history.');
         $response->assertDontSee('id="openPrModal"', false);
         $response->assertSee('data-lazy-pagination="true"', false);
         $response->assertSee('data-server-filter="true"', false);

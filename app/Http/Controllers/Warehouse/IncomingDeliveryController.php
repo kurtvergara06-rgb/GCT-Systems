@@ -182,7 +182,7 @@ class IncomingDeliveryController extends Controller
                             'quantity_available' => 0,
                             'unit' => $item['unit'],
                             'unit_of_measurement' => $item['unit'],
-                            'reorder_level' => 5,
+                            'reorder_level' => 0, // Pending three-month signed issuance history.
                             'supplier' => $lockedOrder->supplier_name ?: 'N/A',
                             'location' => 'Warehouse',
                             'storage_location' => 'Warehouse',

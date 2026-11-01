@@ -652,6 +652,10 @@ class DailyDriverReportController extends Controller
             return $schedule->assignments
                 ->filter(fn ($assignment) => empty($validated['bus_id'])
                     || (int) $assignment->bus_id === (int) $validated['bus_id'])
+                ->filter(fn ($assignment) => ! DailyDriverReport::query()
+                    ->where('trip_assignment_id', $assignment->id)->exists()
+                    && ! DailyDriverReportTripEntry::query()
+                        ->where('trip_assignment_id', $assignment->id)->exists())
                 ->map(fn ($assignment) => [
                     'id' => $schedule->id,
                     'trip_code' => $schedule->trip_code,

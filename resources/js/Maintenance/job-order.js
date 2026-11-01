@@ -1047,6 +1047,19 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
   }
 
 
+  // Open a referral-originated draft from the same initializer that owns openModal().
+  // The later combobox initializer cannot reliably call this scoped helper.
+  if (jobModal?.dataset.referralCreate === 'true') {
+    const referralBus = jobModal.dataset.referralBus || '';
+    const busField = document.getElementById('jobBusNo');
+    if (busField && referralBus) {
+      busField.value = referralBus;
+      busField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    openModal(jobModal);
+    void refreshAvailableMechanicsDropdown();
+  }
+
   if (closeJobModal) {
 
     closeJobModal.addEventListener(
@@ -3471,16 +3484,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
     }
   });
 
+  const isReferralCreateFlow = modal.dataset.referralCreate === 'true';
   const isPmsCreateFlow = modal.dataset.pmsCreate === 'true';
   function cleanPmsCreateUrl() {
     const url = new URL(window.location.href);
-    ['pms_create', 'pms_schedule_id', 'bus_no', 'problem_issue'].forEach((key) => {
+    ['pms_create', 'pms_schedule_id', 'bus_no', 'problem_issue', 'maintenance_referral_id'].forEach((key) => {
       url.searchParams.delete(key);
     });
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   }
   function cancelNewJobOrder() {
-    if (isPmsCreateFlow) {
+    if (isPmsCreateFlow || isReferralCreateFlow) {
       cleanPmsCreateUrl();
     }
   }
@@ -3490,8 +3504,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-final-act
 
   if (isPmsCreateFlow) {
     window.requestAnimationFrame(() => {
-      openModal(modal);
-      updateLinkedDriver();
+      document.getElementById('openJobModal')?.click();
     });
   }
 });
@@ -3504,8 +3517,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-readonly-view', 
   const dialog = overlay?.querySelector('.jo-view-dialog');
   const body = document.getElementById('joReadonlyBody');
   if (!page || !overlay || !dialog || !body) return;
-  if (page.dataset.joReadonlyBound === '1') return;
-  page.dataset.joReadonlyBound = '1';
+  // Partial navigation already aborts the previous initializer listeners.
+  // A persistent dataset guard leaves the replacement listener unbound when
+  // the Job Order table refreshes without replacing the page root.
   let previousFocus = null;
   const close = () => {
     overlay.hidden = true;
@@ -3529,4 +3543,28 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-readonly-view', 
   overlay.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); close(); }
   });
+});
+
+
+// Referral deep-link opener is deliberately independent of the main JO initializer.
+// A failure in unrelated table logic must not prevent the approved referral form opening.
+window.GCTPartialNavigation.registerInitializer('maintenance-referral-jo-deeplink', '.jo-page', () => {
+  const params = new URLSearchParams(window.location.search);
+  const referralId = params.get('maintenance_referral_id');
+  if (!referralId) return;
+  const modal = document.getElementById('jobModal');
+  const form = modal?.querySelector('form');
+  const hiddenReferral = form?.querySelector('[name="maintenance_referral_id"]');
+  if (!modal || !form || !hiddenReferral || hiddenReferral.value !== referralId) return;
+
+  const busSelect = form.querySelector('[name="bus_no"]');
+  const referralBus = modal.dataset.referralBus || '';
+  if (busSelect && referralBus && Array.from(busSelect.options).some(option => option.value === referralBus)) {
+    busSelect.value = referralBus;
+    busSelect.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  modal.classList.add('show', 'active');
+  window.GCTModalBackdrop?.sync?.();
+  window.GCTSystemAnimations?.animateModalOpen?.(modal);
 });

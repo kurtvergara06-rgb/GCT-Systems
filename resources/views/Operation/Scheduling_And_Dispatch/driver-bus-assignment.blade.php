@@ -877,6 +877,25 @@
             </div>
         </div>
 
+        <div class="assignment-pair-trip" id="assignmentPairTrip" hidden>
+            <div class="assignment-pair-trip-main">
+                <strong id="assignmentPairTripName">Select a trip</strong>
+                <span id="assignmentPairTripDetail"></span>
+            </div>
+            <span id="assignmentPairSlot"></span>
+        </div>
+
+        <section class="assignment-pair-picker" id="assignmentPairPicker" aria-label="Eligible driver and bus pairs">
+            <div class="assignment-pair-header">
+                <div><strong>Eligible Driver & Bus Pairs</strong><small>Select an authorized pair compatible with this trip's client.</small></div>
+                <span id="assignmentPairCount">Select a trip</span>
+            </div>
+            <input type="search" id="assignmentPairSearch" placeholder="Search driver, ID, or bus..." aria-label="Search eligible driver and bus pairs">
+            <div class="assignment-pair-list" id="assignmentPairList" aria-live="polite">
+                <p class="assignment-pair-empty">Select a trip to load eligible pairs.</p>
+            </div>
+        </section>
+
         <div class="assignment-validation">
             <i class="fa-solid fa-circle-check"></i>
             <div>

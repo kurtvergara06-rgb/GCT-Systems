@@ -1133,6 +1133,36 @@
     grid-column: 1 / -1;
 }
 
+/* Client-aware driver/bus pair selector, using the existing availability response. */
+#assignmentModal .assignment-form-grid.pair-picker-active > .ui-form-group:not(.ui-form-full) { display: none; }
+#assignmentModal .assignment-form-grid.pending-slot-trip-locked > .ui-form-group.ui-form-full { display: none; }
+#assignmentModal .assignment-pair-trip[hidden] { display: none; }
+#assignmentModal .assignment-pair-trip { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #bfdbfe; border-radius: 9px; background: #eff6ff; padding: 13px 15px; margin-top: 12px; }
+#assignmentModal .assignment-pair-trip-main { display: grid; gap: 5px; min-width: 0; }
+#assignmentModal .assignment-pair-trip-main strong { color: #132b4d; font-size: 13px; }
+#assignmentModal .assignment-pair-trip-main span { color: #64748b; font-size: 11px; overflow-wrap: anywhere; }
+#assignmentModal #assignmentPairSlot { flex-shrink: 0; background: #e9f1ff; color: #1d4ed8; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 700; }
+#assignmentModal .assignment-pair-picker[hidden] { display: none; }
+#assignmentModal .assignment-pair-picker { margin: 12px 0 16px; min-width: 0; }
+#assignmentModal .assignment-pair-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+#assignmentModal .assignment-pair-header div { display: grid; gap: 3px; }
+#assignmentModal .assignment-pair-header strong { font-size: 13px; color: #132b4d; }
+#assignmentModal .assignment-pair-header small { font-size: 11px; color: #64748b; }
+#assignmentModal .assignment-pair-header > span { flex-shrink: 0; font-size: 11px; color: #1d4ed8; font-weight: 700; background: #eff6ff; border-radius: 6px; padding: 6px 9px; }
+#assignmentModal #assignmentPairSearch { box-sizing: border-box; width: 100%; height: 40px; border: 1px solid #dce5f2; border-radius: 8px; background: #fff; padding: 0 12px; font: inherit; font-size: 12px; margin-bottom: 10px; }
+#assignmentModal .assignment-pair-list { display: grid; gap: 9px; max-height: min(42vh, 350px); overflow-y: auto; padding: 2px; overscroll-behavior: contain; }
+#assignmentModal .assignment-pair-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr) auto; width: 100%; gap: 12px; align-items: center; padding: 13px 14px; background: #fff; border: 1px solid #dce5f2; border-radius: 9px; cursor: pointer; text-align: left; color: #183253; }
+#assignmentModal .assignment-pair-card:hover { background: #f6f9fe; border-color: #a5c3f5; }
+#assignmentModal .assignment-pair-card.is-selected { background: #eff6ff; border-color: #2563eb; box-shadow: inset 0 0 0 1px #2563eb; }
+#assignmentModal .assignment-pair-driver, #assignmentModal .assignment-pair-bus { display: flex; gap: 9px; align-items: center; min-width: 0; }
+#assignmentModal .assignment-pair-driver > i, #assignmentModal .assignment-pair-bus > i { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 7px; background: #eaf2ff; color: #1751aa; }
+#assignmentModal .assignment-pair-driver span, #assignmentModal .assignment-pair-bus span { display: grid; min-width: 0; gap: 3px; }
+#assignmentModal .assignment-pair-card strong { font-size: 12px; overflow-wrap: anywhere; }
+#assignmentModal .assignment-pair-card small { font-size: 10px; color: #64748b; overflow-wrap: anywhere; }
+#assignmentModal .assignment-pair-check { color: #2563eb; font-size: 16px; }
+#assignmentModal .assignment-pair-empty { padding: 18px; text-align: center; color: #64748b; font-size: 12px; }
+@media (max-width: 650px) { #assignmentModal .assignment-pair-card { grid-template-columns: 1fr auto; } #assignmentModal .assignment-pair-bus { grid-column: 1; } #assignmentModal .assignment-pair-check { grid-column: 2; grid-row: 1 / 3; } }
+
 .assignment-validation {
     margin-top: 18px;
     padding: 13px 14px;
@@ -2070,7 +2100,7 @@
 }
 
 /* Compact, conditional pending-slot assignment modal */
-#assignmentModal .ui-form-modal { width: min(690px, calc(100vw - 32px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; overflow: hidden; }
+#assignmentModal .ui-form-modal { width: min(980px, calc(100vw - 32px)); max-height: calc(100dvh - 36px); display: flex; flex-direction: column; overflow: hidden; }
 #assignmentModal .ui-form-modal-body { overflow-y: auto; overflow-x: hidden; min-height: 0; overscroll-behavior: contain; }
 #assignmentSourceSelector[hidden], #externalRentalFields[hidden], #companyAssignmentFields[hidden] { display: none !important; }
 .assignment-choice-section { margin-bottom: 16px; }
@@ -2133,7 +2163,7 @@
     min-width:0;
     min-height:24px;
     padding:4px 8px;
-    font-size:10px;
+    font-size:12px;
     line-height:1.15;
     gap:4px;
     max-width:100%;

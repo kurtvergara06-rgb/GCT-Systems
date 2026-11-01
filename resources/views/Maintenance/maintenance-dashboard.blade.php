@@ -4,9 +4,23 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Maintenance/maintenance-dashboard.css',
-    'resources/js/Main-js/sidebar.js'
+    'resources/js/Main-js/sidebar.js',
+    'resources/js/Maintenance/maintenance-dashboard.js'
   ]"
 >
+
+  @php
+    $workloadDailyTrend = $workloadDailyTrend ?? [];
+    $workloadWeeklyTrend = $workloadWeeklyTrend ?? [];
+    $workloadMonthlyTrend = $workloadMonthlyTrend ?? [];
+    $fleetHealthDistribution = $fleetHealthDistribution ?? [
+      'labels' => ['Active Ready Fleet', 'Under Maintenance', 'Inactive / Restricted'],
+      'values' => [$activeBusesCount ?? 0, $underMaintenanceBusesCount ?? 0, $inactiveBusesCount ?? 0],
+      'colors' => ['#10b981', '#f59e0b', '#ef4444'],
+    ];
+    $totalWorkOrdersCount = $totalWorkOrdersCount ?? 0;
+    $overallCompletionRate = $overallCompletionRate ?? 0;
+  @endphp
 
   <div class="app maintenance-dashboard-page">
 
@@ -83,7 +97,144 @@
       </section>
 
       {{-- =====================================================
-          ROW 2: ACTIVE & RECENT JOB ORDERS + MECHANIC ROSTER
+          ROW 2: OPERATIONAL ANALYTICS & FLEET READINESS CHARTS
+      ====================================================== --}}
+      <section class="maintenance-analytics-grid mb-4">
+
+        {{-- 1. WORK ORDER ACTIVITY & REPAIR COMPLETION TREND --}}
+        <div class="maintenance-dashboard-card maintenance-chart-card">
+          <div class="dashboard-card-header">
+            <div>
+              <span class="dashboard-eyebrow">OPERATIONAL ANALYTICS</span>
+              <h2>Repair & Work Order Activity</h2>
+              <p>Dispatched repairs, ongoing workloads, and completed maintenance tickets</p>
+            </div>
+
+            <div class="chart-header-actions">
+              <div class="chart-kpi-pill">
+                <i class="fa-solid fa-screwdriver-wrench text-blue"></i>
+                <span>Active: <strong>{{ $totalActiveJobOrders }}</strong></span>
+              </div>
+              <div class="chart-kpi-pill">
+                <i class="fa-solid fa-circle-check text-green"></i>
+                <span>Done: <strong>{{ $completedCount }}</strong></span>
+              </div>
+              <div class="chart-kpi-pill">
+                <i class="fa-solid fa-gauge-high text-purple"></i>
+                <span>Rate: <strong>{{ $overallCompletionRate }}%</strong></span>
+              </div>
+              <div class="chart-group-selector-wrap">
+                <select id="maintenanceWorkloadGrouping" class="chart-group-select" aria-label="Select workload period grouping">
+                  <option value="daily">Daily (7 Days)</option>
+                  <option value="weekly">Weekly (6 Wks)</option>
+                  <option value="monthly">Monthly (6 Mos)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="maintenance-chart-shell">
+            <canvas
+              id="maintenanceWorkloadChart"
+              role="img"
+              aria-label="Maintenance work order activity and repair completion chart"
+              data-daily="{{ json_encode($workloadDailyTrend) }}"
+              data-weekly="{{ json_encode($workloadWeeklyTrend) }}"
+              data-monthly="{{ json_encode($workloadMonthlyTrend) }}"
+            ></canvas>
+
+            <div id="maintenanceWorkloadEmpty" class="maintenance-chart-empty" style="display: none;">
+              <i class="fa-solid fa-chart-column"></i>
+              <strong>No job orders recorded in this period</strong>
+              <span>Dispatched and completed work orders will appear here automatically.</span>
+            </div>
+          </div>
+        </div>
+
+        {{-- 2. FLEET HEALTH & STATUS DISTRIBUTION --}}
+        <div class="maintenance-dashboard-card maintenance-fleet-card">
+          <div class="dashboard-card-header">
+            <div>
+              <span class="dashboard-eyebrow">FLEET READINESS</span>
+              <h2>Fleet Health & Status</h2>
+              <p>Active fleet availability vs vehicles undergoing shop servicing</p>
+            </div>
+
+            <a href="{{ route('job-orders') }}" class="dashboard-view-link">
+              <span>View Bay</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="fleet-health-visual-wrap">
+            {{-- Doughnut Chart Container --}}
+            <div class="fleet-health-chart-container">
+              <canvas
+                id="maintenanceFleetHealthChart"
+                role="img"
+                aria-label="Fleet health and readiness distribution chart"
+                data-distribution="{{ json_encode($fleetHealthDistribution) }}"
+              ></canvas>
+              <div class="fleet-health-chart-center" aria-hidden="true">
+                <strong>{{ $operationalRate }}%</strong>
+                <span>Operational</span>
+              </div>
+            </div>
+
+            {{-- Status Breakdown Stack --}}
+            <div class="fleet-health-status-stack">
+              {{-- Active Fleet --}}
+              <div class="fleet-health-row">
+                <div class="fleet-health-left">
+                  <span class="status-indicator-dot dot-green"></span>
+                  <div class="status-name-desc">
+                    <strong>Active Ready Fleet</strong>
+                    <small>Available for daily trips</small>
+                  </div>
+                </div>
+                <div class="fleet-health-right">
+                  <span class="fleet-count text-green">{{ $activeBusesCount }}</span>
+                  <small>{{ $totalBuses > 0 ? round(($activeBusesCount / $totalBuses) * 100) : 0 }}%</small>
+                </div>
+              </div>
+
+              {{-- Under Maintenance --}}
+              <div class="fleet-health-row">
+                <div class="fleet-health-left">
+                  <span class="status-indicator-dot dot-amber"></span>
+                  <div class="status-name-desc">
+                    <strong>Under Maintenance</strong>
+                    <small>{{ $busesInRepairBay }} bus{{ $busesInRepairBay === 1 ? '' : 'es' }} in bay</small>
+                  </div>
+                </div>
+                <div class="fleet-health-right">
+                  <span class="fleet-count text-amber">{{ $underMaintenanceBusesCount }}</span>
+                  <small>{{ $totalBuses > 0 ? round(($underMaintenanceBusesCount / $totalBuses) * 100) : 0 }}%</small>
+                </div>
+              </div>
+
+              {{-- Inactive --}}
+              <div class="fleet-health-row">
+                <div class="fleet-health-left">
+                  <span class="status-indicator-dot dot-red"></span>
+                  <div class="status-name-desc">
+                    <strong>Inactive / Restricted</strong>
+                    <small>Decommissioned / grounded</small>
+                  </div>
+                </div>
+                <div class="fleet-health-right">
+                  <span class="fleet-count text-muted">{{ $inactiveBusesCount }}</span>
+                  <small>{{ $totalBuses > 0 ? round(($inactiveBusesCount / $totalBuses) * 100) : 0 }}%</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      {{-- =====================================================
+          ROW 3: ACTIVE & RECENT JOB ORDERS + MECHANIC ROSTER
       ====================================================== --}}
       <section class="maintenance-dashboard-grid mb-4">
 

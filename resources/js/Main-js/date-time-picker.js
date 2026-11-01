@@ -185,8 +185,29 @@ class GctDateTimePicker {
         this.activeInput = input;
         this.activeTrigger = trigger;
 
+        // Keep modal-owned calendar interactions inside the modal's DOM tree.
+        // Portalling to body can break focus containment and pointer handling.
+        if (input.dataset.pickerPlacement === 'below') {
+            const modal = input.closest('.pms-monitor-dialog');
+            if (modal && this.popover.parentElement !== modal) {
+                modal.appendChild(this.popover);
+            }
+        } else if (this.popover.parentElement !== document.body) {
+            document.body.appendChild(this.popover);
+        }
+
         if (input.type === 'date') {
             this.prepareDateState(input.value);
+            // PMS completion dates cannot be in the future. When a new month
+            // has just started, show the previous month so past selectable
+            // dates are visible instead of a grid of disabled future days.
+            if (input.dataset.pickerPlacement === 'below'
+                && !input.value && input.max
+                && this.viewDate.getFullYear() === new Date().getFullYear()
+                && this.viewDate.getMonth() === new Date().getMonth()
+                && new Date().getDate() <= 7) {
+                this.viewDate.setMonth(this.viewDate.getMonth() - 1);
+            }
             this.renderCalendar(false);
         } else if (input.type === 'time') {
             this.prepareTimeState(input.value);
@@ -535,12 +556,37 @@ class GctDateTimePicker {
         let left = Math.min(Math.max(rect.left, margin), maxLeft);
         let top = rect.bottom + 8;
 
-        if (top + this.popover.offsetHeight > window.innerHeight - margin) {
-            top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+        if (this.activeInput?.dataset.pickerPlacement === 'below') {
+            // The calendar is portalled to <body>, outside its parent modal.
+            // Keep it above modal/backdrop stacking layers so days receive clicks.
+            this.popover.style.zIndex = '';
+            // PMS modal: keep the calendar under its date field, using internal
+            // scrolling when there is insufficient viewport height.
+            this.popover.style.maxHeight = `${Math.max(120, window.innerHeight - top - margin)}px`;
+            this.popover.style.overflowY = 'auto';
+        } else {
+            this.popover.style.zIndex = '';
+            this.popover.style.maxHeight = '';
+            this.popover.style.overflowY = '';
+            if (top + this.popover.offsetHeight > window.innerHeight - margin) {
+                top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+            }
         }
 
-        this.popover.style.left = `${left}px`;
-        this.popover.style.top = `${top}px`;
+        if (this.activeInput?.dataset.pickerPlacement === 'below'
+            && this.popover.parentElement?.matches('.pms-monitor-dialog')) {
+            // Absolute coordinates relative to the full-screen modal overlay.
+            // Fixed viewport coordinates inside a backdrop-filter containing block
+            // are offset, causing the calendar to appear at the page edge.
+            const overlayRect = this.popover.parentElement.getBoundingClientRect();
+            this.popover.style.position = 'absolute';
+            this.popover.style.left = `${left - overlayRect.left}px`;
+            this.popover.style.top = `${top - overlayRect.top}px`;
+        } else {
+            this.popover.style.position = 'fixed';
+            this.popover.style.left = `${left}px`;
+            this.popover.style.top = `${top}px`;
+        }
     }
 
     bindGlobalEvents() {

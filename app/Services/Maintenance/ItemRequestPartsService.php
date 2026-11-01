@@ -6,6 +6,7 @@ use App\Services\PartParser;
 use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class ItemRequestPartsService
@@ -16,7 +17,13 @@ class ItemRequestPartsService
     ) {}
 
     /** Preview of allocatable quantities. The controller reserves before storing IR. */
-    public function availableParts(string $partText, ?JobOrder $jobOrder = null): array
+    public function availableParts(
+        string $partText,
+        ?JobOrder $jobOrder = null,
+        ?Collection $inventoryItems = null,
+        ?Collection $inventoryReservations = null,
+        ?Collection $jobOrderReservations = null
+    ): array
     {
         $parsed = $this->parser->parsePartText($partText);
         if ($parsed === []) {
@@ -27,7 +34,8 @@ class ItemRequestPartsService
             ? 'id:'.(int) $part['inventory_item_id']
             : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) ($part['name'] ?? ''))).'|'.
                 $this->parser->normalizeUnit((string) ($part['unit'] ?? ''));
-        $groups = collect($this->workflow->inventoryAvailability($parsed)['parts'])->groupBy($partKey);
+        $groups = collect($this->workflow->inventoryAvailability($parsed, $inventoryItems, $inventoryReservations)['parts'])
+            ->groupBy($partKey);
         // When a PR was submitted first, its quantities must not be
         // suggested again in a later IR even if Warehouse stock changes.
         $purchaseQuantities = collect();
@@ -73,8 +81,18 @@ class ItemRequestPartsService
             $committedIr = (int) $previousIrQuantities->get($key, 0);
             $committedPr = (int) $purchaseQuantities->get($key, 0);
             $remainingAfterPr = max(0, $needed - $committedIr - $committedPr);
-            $reserved = $jobOrder ? JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
-                ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity') : null;
+            $reserved = null;
+            if ($jobOrder) {
+                if ($jobOrderReservations !== null) {
+                    $reserved = (int) ($jobOrderReservations->first(fn ($reservation) =>
+                        (int) $reservation->job_order_id === (int) $jobOrder->id
+                        && (int) $reservation->inventory_item_id === (int) ($first['inventory_item_id'] ?? 0)
+                    )?->quantity ?? 0);
+                } else {
+                    $reserved = JobOrderPartReservation::query()->where('job_order_id', $jobOrder->id)
+                        ->where('inventory_item_id', $first['inventory_item_id'] ?? 0)->value('quantity');
+                }
+            }
             $free = max(0, (int) $first['available']);
             // New submission-reserved JOs may request only the locked allocation.
             // Legacy JOs with a shortage snapshot but no submission reservation

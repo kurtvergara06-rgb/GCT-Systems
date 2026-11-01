@@ -3726,7 +3726,7 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
   line-height: 1.3;
 }
 .jo-page .job-orders-table .jo-overdue-indicator {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
   width: fit-content;
@@ -5141,7 +5141,7 @@ body.jo-readonly-open { overflow: hidden; }
   align-items: start;
   padding: 16px 18px;
 }
-#joReadonlyOverlay .jo-view-warehouse-grid > div,
+#joReadonlyOverlay .jo-view-warehouse-grid > div:not(.jo-view-release-policy),
 #joReadonlyOverlay .jo-view-approval-grid > div {
   min-width: 0;
   padding: 0;
@@ -5269,7 +5269,7 @@ body.jo-readonly-open { overflow: hidden; }
   gap: 16px 18px;
   padding: 16px 18px 18px;
 }
-#joReadonlyOverlay .jo-view-warehouse-grid > div {
+#joReadonlyOverlay .jo-view-warehouse-grid > div:not(.jo-view-release-policy) {
   border-left: 0 !important;
   border-inline-start: 0 !important;
   padding-left: 0 !important;
@@ -7057,7 +7057,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 
 /* Procurement-linked ETC risk: advisory only, does not alter baseline duration. */
-.jo-type-cell .jo-parts-delay-indicator{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin-top:5px;padding:4px 7px;border:1px solid #f4d18a;border-radius:5px;background:#fff8e8;color:#986000;font-size:10px;font-weight:700;line-height:1.35;white-space:normal}
+.jo-type-cell .jo-parts-delay-indicator{display:flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin-top:5px;padding:4px 7px;border:1px solid #f4d18a;border-radius:5px;background:#fff8e8;color:#986000;font-size:10px;font-weight:700;line-height:1.35;white-space:normal}
 .jo-parts-delay-indicator i{flex-shrink:0;color:#c88912}
 .jo-view-section .jo-parts-delay-note{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #f1d5a0;border-radius:8px;background:#fff9ed;color:#76551e;margin:10px 0}
 .jo-parts-delay-note>i{color:#c38a21;margin-top:2px}
@@ -7343,3 +7343,100 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .part-status-badge.for-purchase,.part-status-badge.is-waiting{background:#fff4df!important;color:#8e5b0e!important;border:1px solid #edce96!important}
 .part-status-badge.issued{background:#e8f8ef!important;color:#177b4b!important;border:1px solid #b8e8cb!important}
 .part-status-badge.rejected{background:#fff0ef!important;color:#b63b3b!important;border:1px solid #f3c5c2!important}
+
+/* Keep the custom job choice visible below the scrollable JO job catalog. */
+:is(#jobModal, #editJobModal) .jo-maintenance-job-other-footer {
+  flex: none;
+  padding: 7px 8px;
+  border-top: 1px solid #dce6f5;
+  background: #f8fbff;
+}
+:is(#jobModal, #editJobModal) .jo-maintenance-job-other-footer .jo-maintenance-job-category {
+  margin-bottom: 3px;
+}
+:is(#jobModal, #editJobModal) .jo-maintenance-job-option[hidden] {
+  display: none !important;
+}
+
+/* JO table: physical parts fulfillment stages have distinct semantic colors.
+   Scoped to this table so other modules' status badges remain unchanged. */
+.jo-page .job-orders-table .part-status-badge.not-issued {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.jo-page .job-orders-table .part-status-badge.waiting-for-parts {
+  background: #fff4df !important;
+  color: #8e5b0e !important;
+  border: 1px solid #edce96 !important;
+}
+.jo-page .job-orders-table .part-status-badge.partially-issued {
+  background: #e9edff !important;
+  color: #4338ca !important;
+  border: 1px solid #c7d2fe !important;
+}
+.jo-page .job-orders-table .part-status-badge.issued {
+  background: #e8f8ef !important;
+  color: #177b4b !important;
+  border: 1px solid #b8e8cb !important;
+}
+
+/* Keep long physical parts statuses inside their own badges, not clipped at a
+   fixed badge width. Limited to the Job Orders Part Status column. */
+.jo-page .job-orders-table td.part-status-cell .part-status-badge {
+  width: max-content !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__label {
+  display: inline-block;
+  min-width: max-content;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+.jo-page .job-orders-table td.part-status-cell .part-status-badge .status-badge__icon {
+  flex: 0 0 auto;
+  width: 12px;
+  text-align: center;
+}
+
+/* Read-only JO: Head's release decision, matching the Parts & Warehouse design. */
+#joReadonlyOverlay .jo-view-release-policy {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  box-sizing: border-box;
+  margin: 2px 0 8px;
+  padding: 16px 18px;
+  background: #f3f8ff;
+  border: 1px solid #cbdffa;
+  border-radius: 10px;
+  width: 100%;
+  min-width: 0;
+}
+#joReadonlyOverlay .jo-view-release-policy-icon {
+  display:grid; place-items:center; flex:0 0 48px; width:48px; height:48px;
+  border-radius:10px; background:#dceaff; color:#175ab1; font-size:19px;
+}
+#joReadonlyOverlay .jo-view-release-policy-content { min-width:0; flex:1; }
+#joReadonlyOverlay .jo-view-release-policy-label {
+  display:block; margin-bottom:5px; color:#526b89; font-size:12px; font-weight:600;
+}
+#joReadonlyOverlay .jo-view-release-policy-content strong {
+  display:block; color:#0d2f69; font-size:14px; font-weight:800; line-height:1.4;
+}
+#joReadonlyOverlay .jo-view-release-policy-content p {
+  margin:5px 0 0; color:#475e7d; font-size:12px; font-weight:400; line-height:1.55;
+}
+#joReadonlyOverlay .jo-view-requested-parts-title {
+  margin:0 0 12px; color:#0c2d62; font-size:14px; font-weight:800;
+}
+@media(max-width:540px) {
+  #joReadonlyOverlay .jo-view-release-policy { align-items:flex-start; padding:12px; gap:10px; }
+  #joReadonlyOverlay .jo-view-release-policy-icon { flex-basis:38px; width:38px; height:38px; font-size:16px; }
+}

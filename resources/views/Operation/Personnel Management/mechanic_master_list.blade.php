@@ -48,10 +48,17 @@
                     <p>Permanent mechanic information only. Daily attendance remains separate from mechanic skills and profile data.</p>
                 </div>
 @if($canEditMechanic)
+                <div class="personnel-catalog-header-actions">
+                    @if($isMaintenanceUser)
+                    <button type="button" class="personnel-catalog-open" data-open-maintenance-catalog aria-haspopup="dialog">
+                        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span>Manage Catalog</span>
+                    </button>
+                    @endif
                 <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Mechanic</span>
                 </button>
+                </div>
                 @endif
 
             </div>
@@ -191,6 +198,92 @@
     </main>
 </div>
 
+@if($canEditMechanic && $isMaintenanceUser)
+<dialog class="personnel-catalog-dialog" data-maintenance-catalog aria-labelledby="personnelCatalogTitle">
+    <div class="personnel-catalog-heading">
+        <div class="personnel-catalog-heading-brand"><span class="personnel-catalog-heading-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><div><h2 id="personnelCatalogTitle">Maintenance Catalog</h2><p>Review, add, and manage repair jobs and mechanic qualifications.</p></div></div>
+        <button type="button" class="personnel-catalog-close" data-close-maintenance-catalog aria-label="Close catalog"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="personnel-catalog-tabs" role="tablist" aria-label="Catalog sections">
+        <button type="button" role="tab" id="catalogJobsTab" aria-controls="catalogJobsPanel" aria-selected="true" data-catalog-tab="jobs"><i class="fa-solid fa-wrench" aria-hidden="true"></i> Maintenance Jobs</button>
+        <button type="button" role="tab" id="catalogSkillsTab" aria-controls="catalogSkillsPanel" aria-selected="false" data-catalog-tab="skills"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Specializations</button>
+    </div>
+    <section role="tabpanel" id="catalogJobsPanel" aria-labelledby="catalogJobsTab" data-catalog-panel="jobs">
+        <div class="personnel-catalog-workspace">
+            <div class="personnel-catalog-browser">
+                        <div class="personnel-catalog-list-heading"><div><h3><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Maintenance Jobs</h3><p>Repair types available for Job Orders</p></div><button type="button" class="personnel-catalog-new-job" data-catalog-new-job><i class="fa-solid fa-plus" aria-hidden="true"></i> New Job</button></div>
+        <label class="personnel-catalog-search-label" for="catalogJobSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="catalogJobSearch" type="search" data-catalog-job-search placeholder="Search maintenance jobs..." autocomplete="off"></label>
+        <div class="personnel-catalog-job-list" data-catalog-job-list>
+        @foreach($maintenanceJobCatalog as $job)
+            @php $jobSkills = json_decode($job->specializations, true) ?: []; @endphp
+            <div class="personnel-catalog-job-entry" data-catalog-job-row>
+                <div class="personnel-catalog-job-details"><strong>{{ $job->name }}</strong><small>{{ implode(', ', $jobSkills) }}</small></div><span class="personnel-catalog-status {{ $job->is_active ? 'is-active' : 'is-inactive' }}"><i class="fa-solid {{ $job->is_active ? 'fa-circle-check' : 'fa-circle-minus' }}" aria-hidden="true"></i> {{ $job->is_active ? 'Active' : 'Inactive' }}</span>
+                @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+                    <button type="button" class="personnel-catalog-edit-job" data-catalog-edit-job
+                        data-update-url="{{ route('maintenance-job-catalog.update', $job->id) }}"
+                        data-job-name="{{ $job->name }}"
+                        data-job-skills="{{ json_encode($jobSkills) }}"
+                        data-job-active="{{ $job->is_active ? '1' : '0' }}"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit</span></button>
+                @endif
+            </div>
+        @endforeach
+        </div>
+
+                
+                <p class="personnel-catalog-no-results" data-catalog-job-empty hidden>No matching maintenance jobs.</p>
+            </div>
+            <div class="personnel-catalog-editor">
+                        @if(auth()->user()?->hasSystemPermission('maintenance','approve'))
+        <form class="personnel-catalog-job-form" method="POST" action="{{ route('maintenance-job-catalog.store') }}" data-catalog-job-form data-create-url="{{ route('maintenance-job-catalog.store') }}">
+            @csrf
+            <input type="hidden" name="_method" value="POST" data-catalog-job-method>
+            <div class="personnel-catalog-editor-title"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><div><h3 data-catalog-form-heading>Add Maintenance Job</h3><p>Set the job details and required specializations.</p></div></div>
+            <label>Job Name <span class="personnel-required">*</span> <input name="name" required maxlength="255" placeholder="e.g. Hydraulic Hose Replacement"></label>
+            <fieldset><legend>Qualified Specializations (one or more)</legend>
+                <div class="personnel-catalog-items">
+                @foreach($specializationOptions as $skill)
+                    <label class="personnel-catalog-item"><input type="checkbox" name="specializations[]" value="{{ $skill }}"> {{ $skill }}</label>
+                @endforeach
+                </div>
+            </fieldset>
+            <label class="personnel-catalog-active"><input type="checkbox" name="is_active" value="1" checked> Active (available in New JO)</label>
+            <div class="personnel-catalog-job-actions">
+                <button type="submit" class="personnel-catalog-manage-skills" data-catalog-save-job><i class="fa-solid fa-check" aria-hidden="true"></i> Save Job</button>
+                <button type="button" class="personnel-catalog-reset" data-catalog-reset-job hidden>Cancel Edit</button>
+            </div>
+        </form>
+        @endif
+
+            </div>
+        </div>
+    </section>
+    <section role="tabpanel" id="catalogSkillsPanel" aria-labelledby="catalogSkillsTab" data-catalog-panel="skills" hidden>
+        <div class="personnel-catalog-skills-heading">
+            <div class="personnel-catalog-skills-title"><span class="personnel-catalog-skills-title-icon"><i class="fa-solid fa-gears" aria-hidden="true"></i></span><div><h3>Mechanic Specializations</h3><p>Qualifications shared with Mechanic Master List and Job Orders.</p></div></div>
+            <div class="personnel-catalog-skill-toolbar"><button type="button" class="personnel-catalog-skill-edit-toggle" data-catalog-edit-skills><i class="fa-solid fa-pen"></i> Edit</button><button type="button" class="personnel-catalog-new-job" data-catalog-new-skill><i class="fa-solid fa-plus"></i> Add Specialization</button></div>
+        </div>
+        <form data-catalog-skill-form hidden class="personnel-catalog-skill-form" data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}">
+            <label for="catalogSkillName">Specialization Name</label>
+            <div class="personnel-catalog-skill-input-row"><input id="catalogSkillName" name="name" required minlength="2" maxlength="100" placeholder="e.g. Hydraulics"><button type="submit" class="personnel-catalog-new-job">Save</button><button type="button" class="personnel-catalog-reset" data-catalog-cancel-skill>Cancel</button></div>
+            <p data-catalog-skill-feedback role="status" aria-live="polite"></p>
+        </form>
+        <label class="personnel-catalog-search-label" for="catalogSkillSearch"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" id="catalogSkillSearch" data-catalog-skill-search placeholder="Search specializations..."></label>
+        <div class="personnel-catalog-skills-grid" data-catalog-skills-grid>
+            @foreach($specializationOptions as $specialization)
+            <div class="personnel-catalog-skill-card" data-catalog-skill-entry>
+                <span class="personnel-catalog-skill-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><strong>{{ $specialization }}</strong>
+                @if(auth()->user()?->hasSystemPermission('maintenance','approve') && $customSpecializationIds->has($specialization))
+                    <button type="button" class="personnel-catalog-remove-skill" data-catalog-remove-skill hidden data-skill-name="{{ $specialization }}" data-delete-url="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}" aria-label="Remove specialization {{ $specialization }}" title="Remove unused specialization"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        <p data-catalog-skill-empty hidden>No matching specializations.</p>
+        <div class="personnel-catalog-skill-edit-actions" data-catalog-skill-edit-actions hidden><span data-catalog-pending-count>0 selected for removal</span><button type="button" class="personnel-catalog-reset" data-catalog-cancel-skills>Cancel</button><button type="button" class="personnel-catalog-new-job" data-catalog-save-skills>Save Changes</button></div>
+    </section>
+</dialog>
+@endif
+
 @if($canEditMechanic)
 <div class="personnel-modal-overlay" data-personnel-modal data-open-on-error="{{ $errors->any() ? 'true' : 'false' }}" aria-hidden="true">
     <div class="personnel-modal personnel-modal-mechanic" role="dialog" aria-modal="true" aria-labelledby="personnelModalTitle">
@@ -252,22 +345,8 @@
                         </div>
                     </div>
 
-                    @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
-                        <div class="personnel-specialization-inline-create" style="display:flex;align-items:center;gap:8px;max-width:100%;min-width:0;margin-left:auto">
-                            <input type="text" data-specialization-create-name maxlength="100" hidden placeholder="New specialization name" aria-label="New specialization name" style="width:200px;max-width:min(200px,45vw);height:32px;padding:0 10px;border:1px solid #d8e2ef;border-radius:8px;font-size:11px;box-sizing:border-box">
-                            <button type="button" class="personnel-specialization-create-btn" data-specialization-create-toggle data-specialization-create-save data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}" aria-expanded="false" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:0 10px;background:#ffc400;border:0;border-radius:8px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer">
-                                <i class="fa-solid fa-plus" aria-hidden="true"></i><span data-specialization-create-label>New</span>
-                            </button>
-                            <button type="button" data-specialization-edit-toggle aria-pressed="false" style="min-height:32px;padding:0 10px;border:1px solid #d8e2ef;background:#fff;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">
-                                <i class="fa-solid fa-pen" aria-hidden="true"></i> <span data-specialization-edit-label>Edit</span>
-                            </button>
-                        </div>
-                    @endif
                 </div>
 
-                @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
-                    <small data-specialization-create-feedback role="status" aria-live="polite"></small>
-                @endif
                 <input type="hidden" name="specialization" value="{{ old('specialization') }}" data-specialization-value>
 
                 <div class="personnel-specialization-picker" data-specialization-picker>
@@ -310,19 +389,6 @@
                             <span>{{ $specialization }}</span>
                             <i class="fa-solid fa-plus personnel-specialization-state-icon" aria-hidden="true"></i>
                         </button>
-                        @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit') && $customSpecializationIds->has($specialization))
-                            <button type="button"
-                                class="personnel-specialization-delete-btn"
-                                data-specialization-delete
-                                hidden
-                                data-specialization-name="{{ $specialization }}"
-                                data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}"
-                                aria-label="Delete custom specialization {{ $specialization }}"
-                                title="Delete custom specialization {{ $specialization }}"
-                                style="min-height:18px;min-width:18px;padding:0 3px;font-size:10px;border:1px solid #fecaca;border-radius:6px;background:#fff1f2;color:#b91c1c;cursor:pointer;align-items:center;justify-content:center">
-                                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                            </button>
-                        @endif
                     @endforeach
                 </div>
 

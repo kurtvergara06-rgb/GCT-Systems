@@ -65,6 +65,7 @@ a {
 
 .main {
   flex: 1;
+  min-width: 0;
   min-height: 100vh;
   padding: 28px 32px;
   background: var(--bg);
@@ -518,6 +519,8 @@ header.topbar {
 ========================================================= */
 
 .table-card {
+  min-width: 0;
+  max-width: 100%;
   background: var(--card);
 
   border: 1px solid var(--border);
@@ -534,8 +537,11 @@ header.topbar {
 
 .table-wrap {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 table {

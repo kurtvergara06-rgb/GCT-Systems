@@ -138,6 +138,7 @@ class AutoSchedulingController extends Controller
         );
 
         $activeRoutes = ShuttleRoute::query()
+            ->whereHas('client', fn ($query) => $query->where('status', 'Active'))
             ->where(
                 'status',
                 'Active'
@@ -228,7 +229,7 @@ class AutoSchedulingController extends Controller
             ?? 'all';
 
         $trips = TripSchedule::query()
-            ->with(['shuttleRoute', 'assignments'])
+            ->with(['shuttleRoute.client', 'assignments'])
             ->withCount('assignments')
             ->notDeparted()
             ->whereDate(
@@ -274,7 +275,9 @@ class AutoSchedulingController extends Controller
                 }
             )
             ->orderBy('departure_time')
-            ->get();
+            ->get()
+            ->filter(fn (TripSchedule $trip): bool => $this->routeMatchesTripClient($trip))
+            ->values();
 
         $drivers = $this->assumedPresentDrivers($scheduleDate);
 
@@ -1150,6 +1153,7 @@ class AutoSchedulingController extends Controller
                 ->get();
 
             foreach ($trips as $trip) {
+                $this->assertRouteMatchesTripClient($trip, 'recommendations');
                 if ($trip->hasDeparted() || ! in_array($trip->status, ['Scheduled', 'Ready'], true)) {
                     $recommendationIndex = $recommendations->search(
                         fn (array $item): bool => (int) $item['trip_schedule_id'] === (int) $trip->id
@@ -2159,6 +2163,8 @@ class AutoSchedulingController extends Controller
                     ]);
                 }
 
+                $this->assertRouteMatchesTripClient($trip, 'trip_schedule_id');
+
                 /*
                 |--------------------------------------------------------------------------
                 | Preserve the original trip duration
@@ -2516,6 +2522,29 @@ class AutoSchedulingController extends Controller
      * A dedicated client trip uses only that client's buses. A general
      * service uses only unallocated buses; borrowing needs explicit review.
      */
+    private function routeMatchesTripClient(TripSchedule $trip): bool
+    {
+        $route = $trip->shuttleRoute;
+        if (! $route || $route->status !== 'Active' || ! $route->operation_client_id) {
+            return false;
+        }
+
+        $client = $route->client ?? $route->client()->first();
+        return $client !== null
+            && $client->status === 'Active'
+            && filled($trip->client_name)
+            && mb_strtolower(trim((string) $client->name)) === mb_strtolower(trim((string) $trip->client_name));
+    }
+
+    private function assertRouteMatchesTripClient(TripSchedule $trip, string $field): void
+    {
+        if (! $this->routeMatchesTripClient($trip)) {
+            throw ValidationException::withMessages([
+                $field => 'The selected route is not allocated to this active client. Assign the correct client route and regenerate the schedule.',
+            ]);
+        }
+    }
+
     private function busMatchesTripClient(TripSchedule $trip, Bus $bus): bool
     {
         // Reserve units are unallocated shared emergency assets. They may be

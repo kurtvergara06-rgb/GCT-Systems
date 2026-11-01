@@ -16,6 +16,7 @@ use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -233,6 +234,7 @@ class SystemBackendFullAuditTest extends TestCase
         $this->actingAs($operationHead);
 
         // 3.1 Routes CRUD
+        $client = OperationClient::firstOrCreate(['name' => 'Audit Client'], ['status' => 'Active']);
         $this->get(route('operation.routes'))->assertOk();
 
         Http::fake([
@@ -253,6 +255,7 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
 
         $routeResponse = $this->post(route('operation.routes.store'), [
+            'operation_client_id' => $client->id,
             'route_name' => 'Calamba to Alabang Express',
             'origin' => 'Calamba Central Terminal',
             'origin_latitude' => 14.2145,
@@ -273,6 +276,7 @@ class SystemBackendFullAuditTest extends TestCase
         $tripResponse = $this->post(route('trip-schedule.store'), [
             'trip_date' => now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString(),
             'shuttle_route_id' => $shuttleRoute->id,
+            'client_name' => $client->name,
             'direction' => 'Incoming',
             'departure_time' => '07:30',
             'estimated_arrival_time' => '08:30',
@@ -330,6 +334,7 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
         $busResponse->assertRedirect();
         $bus = Bus::where('bus_no', 'BUS-AUDIT-101')->firstOrFail();
+        $bus->operationClients()->syncWithoutDetaching([$client->id]);
         $driver->authorizedBuses()->sync([$bus->id]);
         $this->get(route('bus-master-list'))->assertOk();
 
@@ -413,9 +418,33 @@ class SystemBackendFullAuditTest extends TestCase
         $this->actingAs($maintHead)->post(route('maintenance-referrals.approve', $referral))->assertRedirect();
         $this->assertSame('Approved', $referral->fresh()->status);
 
-        // 4.2 Job Orders
+        // 4.2 Job Orders: referral handoff opens the standard form.
         $this->actingAs($maintStaff)->get(route('job-orders'))->assertOk();
-        $this->actingAs($maintStaff)->post(route('maintenance-referrals.job-order.store', $referral))->assertRedirect();
+        $this->actingAs($maintStaff)
+            ->post(route('maintenance-referrals.job-order.store', $referral))
+            ->assertRedirect(route('job-orders', ['maintenance_referral_id' => $referral->id]));
+        $this->assertDatabaseMissing('job_orders', ['maintenance_referral_id' => $referral->id]);
+
+        $mechanic = Mechanic::create([
+            'mechanic_id' => 'MEC-AUDIT-001',
+            'mechanic_name' => 'Audit Electrical Mechanic',
+            'specialization' => 'Electrical',
+            'employment_status' => 'Active',
+        ]);
+        MechanicAttendance::create([
+            'mechanic_id' => $mechanic->mechanic_id,
+            'mechanic_name' => $mechanic->mechanic_name,
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+            'status' => 'Present',
+        ]);
+        $this->actingAs($maintStaff)->post(route('job-orders.store'), [
+            'maintenance_referral_id' => $referral->id,
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Alternator failure.',
+            'maintenance_type' => 'Repair',
+            'maintenance_jobs' => ['Wiring and Electrical Troubleshooting'],
+            'mechanic_ids' => [$mechanic->id],
+        ])->assertRedirect()->assertSessionHasNoErrors();
         $jobOrder = JobOrder::where('maintenance_referral_id', $referral->id)->firstOrFail();
         $this->assertSame('On Hold', $jobOrder->status);
         $this->assertSame('Repair', $jobOrder->maintenance_type);
@@ -457,7 +486,6 @@ class SystemBackendFullAuditTest extends TestCase
             'category' => 'Filters',
             'on_hand' => 15,
             'unit_of_measurement' => 'pcs',
-            'reorder_level' => 5,
             'supplier' => 'Shell Lubricants Philippines',
             'storage_location' => 'Bay 4 Shelf B',
         ]);
@@ -642,25 +670,15 @@ class SystemBackendFullAuditTest extends TestCase
             ->assertRedirect();
         $this->assertSame('Approved', $referral->fresh()->status);
 
-        // 7.6 Job Order Creation
+        // 7.6 Referral handoff does not automatically create a JO.
         $this->actingAs($maintStaff)
             ->post(route('maintenance-referrals.job-order.store', $referral))
-            ->assertRedirect();
+            ->assertRedirect(route('job-orders', ['maintenance_referral_id' => $referral->id]));
 
-        $jobOrder = JobOrder::where('maintenance_referral_id', $referral->id)->firstOrFail();
-        $this->assertSame('On Hold', $jobOrder->status);
-        $this->assertSame($bus->bus_no, $jobOrder->bus_no);
-        $this->assertSame($incident->id, $jobOrder->incident_id);
-
-        $this->actingAs($maintHead)->post(route('job-orders.return-for-revision', $jobOrder), [
-            'review_notes' => 'Assign a mechanic and specify the required replacement part.',
-        ])->assertRedirect();
-        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
-
-        // Assign mechanic
         $mechanic = Mechanic::create([
             'mechanic_id' => 'MEC-E2E-701',
             'mechanic_name' => 'Roberto Clutch Specialist',
+            'specialization' => 'Electrical, Diagnostics',
             'employment_status' => 'Active',
             'shift' => 'Day',
         ]);
@@ -671,20 +689,25 @@ class SystemBackendFullAuditTest extends TestCase
             'status' => 'Present',
         ]);
 
-        $this->actingAs($maintStaff)->put(route('job-orders.update', $jobOrder), [
-            'job_order_no' => $jobOrder->job_order_no,
-            'bus_no' => $jobOrder->bus_no,
-            'problem_issue' => $jobOrder->problem_issue,
+        $this->actingAs($maintStaff)->post(route('job-orders.store'), [
+            'maintenance_referral_id' => $referral->id,
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => $incident->description,
             'maintenance_type' => 'Repair',
-            'assigned_mechanic' => $mechanic->mechanic_name,
+            'maintenance_jobs' => ['Wiring and Electrical Troubleshooting'],
+            'mechanic_ids' => [$mechanic->id],
             'parts' => [
                 ['name' => 'Clutch Master Cylinder 24V', 'quantity' => 1, 'unit' => 'pcs'],
             ],
-        ])->assertRedirect();
+            'estimated_duration_value' => 4,
+            'estimated_duration_unit' => 'Hours',
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
-        $jobOrder->refresh();
-        $this->assertSame('For Review', $jobOrder->review_status);
+        $jobOrder = JobOrder::where('maintenance_referral_id', $referral->id)->firstOrFail();
         $this->assertSame('On Hold', $jobOrder->status);
+        $this->assertSame($bus->bus_no, $jobOrder->bus_no);
+        $this->assertSame($incident->id, $jobOrder->incident_id);
+        $this->assertSame('For Review', $jobOrder->review_status);
 
         $this->actingAs($maintHead)->post(route('job-orders.approve', $jobOrder), [
             'electronic_signature' => $maintHead->name,

@@ -132,10 +132,12 @@ class TripScheduleController extends Controller
             ->map(fn ($replacements) => $replacements->count());
 
         $activeRoutes = ShuttleRoute::query()
+            ->with('client')
             ->where('status', 'Active')
             ->orderBy('route_code')
             ->get([
                 'id',
+                'operation_client_id',
                 'route_code',
                 'route_name',
                 'origin',
@@ -239,6 +241,7 @@ class TripScheduleController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $this->assertRouteBelongsToClient($route, $validated['client_name'] ?? null);
                 $this->assertActiveTripClientLocked($validated['client_name'] ?? null);
 
                 $departure = $this->departureDateTime(
@@ -354,6 +357,7 @@ class TripScheduleController extends Controller
                     // Recheck client status while holding the client row lock.
                     // Client deactivation takes the same lock.
                     if ($validated['status'] !== 'Cancelled') {
+                        $this->assertRouteBelongsToClient($route, $effectiveClientName);
                         $this->assertActiveTripClientLocked($effectiveClientName);
                     }
 
@@ -538,6 +542,27 @@ class TripScheduleController extends Controller
         if ($client && $client->status !== 'Active') {
             throw ValidationException::withMessages([
                 'client_name' => 'This client is inactive and cannot be used for new trip scheduling.',
+            ]);
+        }
+    }
+
+    private function assertRouteBelongsToClient(ShuttleRoute $route, ?string $clientName): void
+    {
+        if ($route->operation_client_id === null) {
+            if (blank($clientName)) {
+                return; // General service may use only active, unallocated routes.
+            }
+
+            throw ValidationException::withMessages([
+                'shuttle_route_id' => 'This route is unallocated. Choose No Client or select a route assigned to the client.',
+            ]);
+        }
+
+        $client = OperationClient::query()->whereKey($route->operation_client_id)->first();
+        if (! $client || $client->status !== 'Active'
+            || mb_strtolower(trim($client->name)) !== mb_strtolower(trim((string) $clientName))) {
+            throw ValidationException::withMessages([
+                'shuttle_route_id' => 'This route is allocated to a different client or its assigned client is inactive.',
             ]);
         }
     }

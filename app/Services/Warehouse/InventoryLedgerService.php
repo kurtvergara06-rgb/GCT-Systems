@@ -175,10 +175,19 @@ class InventoryLedgerService
                 }
             }
 
+            // Operational status uses the same effective threshold and JO-free
+            // quantity as Warehouse Inventory. Reservations are only read here.
+            $calculator = app(InventoryThresholdCalculator::class);
+            $effectiveReorderPoint = $calculator->effectiveReorderPoint($item);
+            $allReserved = (int) JobOrderPartReservation::query()
+                ->where('inventory_item_id', $item->id)
+                ->sum('quantity');
+            $status = $calculator->stockStatus($new, $allReserved, $effectiveReorderPoint);
+
             $item->forceFill([
                 'on_hand' => $new,
                 'quantity_available' => $new,
-                'status' => $this->statusFor($new, (int) $item->reorder_level),
+                'status' => $status,
             ])->save();
 
             return StockMovement::create([

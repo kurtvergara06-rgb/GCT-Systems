@@ -5,6 +5,202 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     if (!page || !modal || !form) return;
 
+    const catalog = document.querySelector('[data-maintenance-catalog]');
+    if (catalog) {
+        const open = page.querySelector('[data-open-maintenance-catalog]');
+        const close = catalog.querySelector('[data-close-maintenance-catalog]');
+        const selectCatalogTab = (name) => {
+            catalog.querySelectorAll('[data-catalog-tab]').forEach((tab) => {
+                const active = tab.dataset.catalogTab === name;
+                tab.setAttribute('aria-selected', String(active));
+                tab.tabIndex = active ? 0 : -1;
+            });
+            catalog.querySelectorAll('[data-catalog-panel]').forEach((panel) => {
+                panel.hidden = panel.dataset.catalogPanel !== name;
+            });
+        };
+        const skillForm = catalog.querySelector('[data-catalog-skill-form]');
+        const skillSearch = catalog.querySelector('[data-catalog-skill-search]');
+        const filterSkills = () => {
+            const term = (skillSearch?.value || '').trim().toLocaleLowerCase();
+            let visible = 0;
+            catalog.querySelectorAll('[data-catalog-skill-entry]').forEach(entry => {
+                entry.hidden = !entry.textContent.toLocaleLowerCase().includes(term);
+                if (!entry.hidden) visible++;
+            });
+            const empty = catalog.querySelector('[data-catalog-skill-empty]');
+            if (empty) empty.hidden = visible > 0;
+        };
+        skillSearch?.addEventListener('input', filterSkills);
+        const pendingSkillDeletes = new Set();
+        let editingSkills = false;
+        const refreshSkillEditing = () => {
+            catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(button => {
+                button.hidden = !editingSkills;
+                button.setAttribute('aria-pressed', String(pendingSkillDeletes.has(button.dataset.deleteUrl)));
+                button.closest('[data-catalog-skill-entry]')?.classList.toggle('is-pending-delete',pendingSkillDeletes.has(button.dataset.deleteUrl));
+            });
+            const footer = catalog.querySelector('[data-catalog-skill-edit-actions]');
+            if (footer) footer.hidden = !editingSkills;
+            const count = catalog.querySelector('[data-catalog-pending-count]');
+            if (count) count.textContent = pendingSkillDeletes.size + ' selected for removal';
+            const save = catalog.querySelector('[data-catalog-save-skills]');
+            if (save) save.disabled = pendingSkillDeletes.size === 0;
+        };
+        const finishSkillEditing = () => {
+            pendingSkillDeletes.clear();
+            editingSkills = false;
+            refreshSkillEditing();
+        };
+        catalog.querySelector('[data-catalog-edit-skills]')?.addEventListener('click', () => {
+            editingSkills = !editingSkills;
+            if (!editingSkills) pendingSkillDeletes.clear();
+            refreshSkillEditing();
+        });
+        catalog.querySelector('[data-catalog-cancel-skills]')?.addEventListener('click', finishSkillEditing);
+        catalog.querySelector('[data-catalog-skills-grid]')?.addEventListener('click', event => {
+            const button = event.target.closest('[data-catalog-remove-skill]');
+            if (!editingSkills || !button) return;
+            if (pendingSkillDeletes.has(button.dataset.deleteUrl)) pendingSkillDeletes.delete(button.dataset.deleteUrl);
+            else pendingSkillDeletes.add(button.dataset.deleteUrl);
+            refreshSkillEditing();
+        });
+        catalog.querySelector('[data-catalog-save-skills]')?.addEventListener('click', async () => {
+            if (!editingSkills || !pendingSkillDeletes.size) return;
+            const save = catalog.querySelector('[data-catalog-save-skills]');
+            save.disabled = true;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || modal.querySelector('input[name="_token"]')?.value;
+            const errors = [];
+            for (const url of pendingSkillDeletes) {
+                try {
+                    const response = await fetch(url,{method:'DELETE',headers:{'Accept':'application/json','X-CSRF-TOKEN':csrf}});
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Deletion was rejected.');
+                    catalog.querySelectorAll('[data-catalog-remove-skill]').forEach(button => {
+                        if (button.dataset.deleteUrl === url) button.closest('[data-catalog-skill-entry]')?.remove();
+                    });
+                } catch(error) { errors.push(error.message); }
+            }
+            finishSkillEditing();
+            filterSkills();
+            if (errors.length) window.alert(errors.join('\\n'));
+        });
+        catalog.querySelector('[data-catalog-new-skill]')?.addEventListener('click', () => {
+            if (!skillForm) return;
+            skillForm.hidden = false;
+            skillForm.querySelector('[name="name"]')?.focus();
+        });
+        catalog.querySelector('[data-catalog-cancel-skill]')?.addEventListener('click', () => {
+            if (!skillForm) return;
+            skillForm.reset();
+            skillForm.hidden = true;
+        });
+        skillForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const submit = skillForm.querySelector('[type="submit"]');
+            const feedback = skillForm.querySelector('[data-catalog-skill-feedback]');
+            const name = skillForm.querySelector('[name="name"]').value.trim();
+            if (!name || !skillForm.reportValidity()) return;
+            submit.disabled = true;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                    || modal.querySelector('input[name="_token"]')?.value;
+                const response = await fetch(skillForm.dataset.endpoint, {
+                    method: 'POST',
+                    headers: { 'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({name})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Unable to create specialization.');
+                const card = document.createElement('div');
+                card.className = 'personnel-catalog-skill-card';
+                card.dataset.catalogSkillEntry = '';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-screwdriver-wrench';
+                icon.setAttribute('aria-hidden','true');
+                const label = document.createElement('strong');
+                label.textContent = data.name;
+                card.append(icon,label);
+                catalog.querySelector('[data-catalog-skills-grid]')?.append(card);
+                skillForm.reset();
+                skillForm.hidden = true;
+                filterSkills();
+                if (feedback) feedback.textContent = '';
+                // Refresh catalog records from the server before selecting the new skill in a job.
+                window.location.reload();
+            } catch (error) {
+                if (feedback) feedback.textContent = error.message;
+            } finally { submit.disabled = false; }
+        });
+        const jobForm = catalog.querySelector('[data-catalog-job-form]');
+        const resetJob = () => {
+            if (!jobForm) return;
+            jobForm.reset();
+            jobForm.action = jobForm.dataset.createUrl;
+            jobForm.querySelector('[data-catalog-job-method]').value = 'POST';
+            jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Add Maintenance Job';
+            jobForm.querySelector('[data-catalog-save-job]').textContent = 'Save Job';
+            jobForm.querySelector('[data-catalog-reset-job]').hidden = true;
+            catalog.querySelectorAll('[data-catalog-edit-job]').forEach(button => button.setAttribute('aria-pressed','false'));
+        };
+        catalog.querySelector('[data-catalog-reset-job]')?.addEventListener('click', resetJob);
+        const catalogSearch = catalog.querySelector('[data-catalog-job-search]');
+        const filterJobs = () => {
+            const term = (catalogSearch?.value || '').trim().toLocaleLowerCase();
+            let matches = 0;
+            catalog.querySelectorAll('.personnel-catalog-job-entry').forEach(entry => {
+                const found = entry.textContent.toLocaleLowerCase().includes(term);
+                entry.hidden = !found;
+                if (found) matches++;
+            });
+            const empty = catalog.querySelector('[data-catalog-job-empty]');
+            if (empty) empty.hidden = matches !== 0;
+        };
+        catalogSearch?.addEventListener('input', filterJobs);
+        catalog.querySelector('[data-catalog-new-job]')?.addEventListener('click', () => {
+            selectCatalogTab('jobs');
+            resetJob();
+            catalogSearch.value = '';
+            filterJobs();
+            jobForm?.elements.namedItem('name')?.focus({preventScroll:true});
+        });
+        catalog.querySelectorAll('[data-catalog-edit-job]').forEach((button) => {
+            button.addEventListener('click', () => {
+                if (!jobForm) return;
+                selectCatalogTab('jobs');
+                resetJob();
+                jobForm.action = button.dataset.updateUrl;
+                jobForm.querySelector('[data-catalog-job-method]').value = 'PUT';
+                jobForm.elements.namedItem('name').value = button.dataset.jobName;
+                const skills = JSON.parse(button.dataset.jobSkills || '[]');
+                jobForm.querySelectorAll('[name="specializations[]"]').forEach((checkbox) => {
+                    checkbox.checked = skills.includes(checkbox.value);
+                });
+                jobForm.elements.namedItem('is_active').checked = button.dataset.jobActive === '1';
+                jobForm.querySelector('[data-catalog-form-heading]').textContent = 'Edit Maintenance Job';
+                jobForm.querySelector('[data-catalog-save-job]').textContent = 'Update Job';
+                jobForm.querySelector('[data-catalog-reset-job]').hidden = false;
+                button.setAttribute('aria-pressed','true');
+            });
+        });
+        open?.addEventListener('click', () => {
+            selectCatalogTab('jobs');
+            resetJob();
+            if (!catalog.open) catalog.showModal();
+        });
+        close?.addEventListener('click', () => catalog.close());
+        catalog.addEventListener('click', (event) => {
+            if (event.target === catalog) catalog.close();
+            const tab = event.target.closest('[data-catalog-tab]');
+            if (tab && catalog.contains(tab)) selectCatalogTab(tab.dataset.catalogTab);
+        });
+        catalog.querySelector('[data-catalog-manage-skills]')?.addEventListener('click', () => {
+            catalog.close();
+            page.querySelector('[data-personnel-action="add"]')?.click();
+            modal.querySelector('[data-specialization-create-toggle]')?.focus();
+        });
+    }
+
     // Portal the table disclosure into the document overlay layer so it never
     // changes the table row height or gets clipped by the scrollable table.
     let openBusDisclosure = null;

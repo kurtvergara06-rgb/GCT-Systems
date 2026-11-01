@@ -16,15 +16,19 @@
   gap: 12px;
 }
 
-.mechanic-page .availability-heading-icon {
+.mechanic-page .availability-heading-icon,
+.mechanic-page .mechanic-avatar {
   display: grid;
   place-items: center;
+  color: #0b40b5;
+}
+
+.mechanic-page .availability-heading-icon {
   flex: 0 0 42px;
   width: 42px;
   height: 42px;
   border-radius: 12px;
   background: #eaf2ff;
-  color: #0b40b5;
   font-size: 17px;
 }
 
@@ -71,14 +75,11 @@
 }
 
 .mechanic-page .mechanic-avatar {
-  display: grid;
-  place-items: center;
   flex: 0 0 38px;
   width: 38px;
   height: 38px;
   border-radius: 10px;
   background: #e0ecff;
-  color: #0b40b5;
   border: 1px solid #bfdbfe;
   font-size: 12px;
   font-weight: 800;

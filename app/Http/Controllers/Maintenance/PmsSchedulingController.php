@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\PmsSchedule;
+use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\BusPmsMonitoring;
 use App\Services\Maintenance\PmsStatusService;
+use App\Services\Maintenance\DdrPmsMileageService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -84,7 +87,7 @@ class PmsSchedulingController extends Controller
             ->count();
 
         $groups = $allTasks
-            ->groupBy('bus_no')
+            ->groupBy(fn ($task) => strtoupper(trim((string) $task->bus_no)))
             ->map(function ($tasks, string $busNo) {
                 $firstTask = $tasks->first();
 
@@ -94,6 +97,11 @@ class PmsSchedulingController extends Controller
                     'current_km' => $firstTask->current_km,
                     'km_traveled' => $firstTask->km_traveled,
                     'tasks' => $tasks->values(),
+                    // Display the nearest milestone only; these are still task-based
+                    // schedules, not a verified bus-level PMS service baseline.
+                    'next_pms_km' => $tasks->min('next_pms_km'),
+                    'next_pms_date' => $tasks->pluck('recommended_date')->filter()->sort()->first(),
+                    'has_processed_gps' => $firstTask->current_km !== null,
                     'due_pms_count' => $tasks
                         ->filter(
                             fn ($task) => in_array(
@@ -107,6 +115,76 @@ class PmsSchedulingController extends Controller
                 ];
             })
             ->values();
+
+        $monitoringByBus = BusPmsMonitoring::query()->with('bus')->get()
+            ->keyBy(fn (BusPmsMonitoring $monitoring) => strtoupper(trim((string) $monitoring->bus?->bus_no)));
+        $ddrMileageByBus = app(DdrPmsMileageService::class)->estimates($monitoringByBus->values());
+        $currentOdometerByBus = $monitoringByBus->mapWithKeys(function (BusPmsMonitoring $monitoring) use ($ddrMileageByBus) {
+            $estimate = $ddrMileageByBus->get($monitoring->bus_id);
+            $mileage = $estimate['estimated_odometer_km'] ?? $monitoring->verified_current_odometer_km;
+            return [$monitoring->bus_id => $mileage !== null ? (float) $mileage : null];
+        });
+        $configurableBuses = Bus::query()->orderBy('bus_no')->get(['id', 'bus_no']);
+        $canConfigurePms = $request->user()?->hasSystemPermission('maintenance', 'edit') ?? false;
+        // Configured buses must be visible even when no legacy PMS tasks exist.
+        foreach ($monitoringByBus as $busKey => $monitoring) {
+            if ($groups->contains(fn ($group) => strtoupper(trim((string) $group->bus_no)) === $busKey)) {
+                continue;
+            }
+            $groups->push((object) [
+                'bus_no' => $monitoring->bus?->bus_no,
+                'gps_report_date' => null,
+                'current_km' => null,
+                'km_traveled' => null,
+                'tasks' => collect(),
+                'next_pms_km' => $monitoring->nextDueOdometerKm(),
+                'next_pms_date' => $monitoring->nextDueDate(),
+                'has_processed_gps' => false,
+                'due_pms_count' => 0,
+                'overall_status' => $monitoring->status(),
+            ]);
+        }
+        // Bus Master List is authoritative: show every bus, including buses
+        // without any PMS schedule or monitoring baseline.
+        $masterBusKeys = $configurableBuses->mapWithKeys(
+            fn (Bus $bus) => [strtoupper(trim((string) $bus->bus_no)) => $bus->bus_no]
+        );
+        $groups = $groups->filter(
+            fn ($group) => $masterBusKeys->has(strtoupper(trim((string) $group->bus_no)))
+        );
+        foreach ($masterBusKeys as $busKey => $busNo) {
+            if ($groups->contains(fn ($group) => strtoupper(trim((string) $group->bus_no)) === $busKey)) {
+                continue;
+            }
+            $groups->push((object) [
+                'bus_no' => $busNo,
+                'gps_report_date' => null,
+                'current_km' => null,
+                'km_traveled' => null,
+                'tasks' => collect(),
+                'next_pms_km' => null,
+                'next_pms_date' => null,
+                'has_processed_gps' => false,
+                'due_pms_count' => 0,
+                'overall_status' => 'Not Configured',
+            ]);
+        }
+        // Legacy schedule numbers may differ by casing/whitespace. A bus must
+        // occupy one monitoring row even if old task records use other formats.
+        $groups = $groups->groupBy(fn ($group) => strtoupper(trim((string) $group->bus_no)))
+            ->map(function ($matches) {
+                $primary = $matches->first();
+                $primary->tasks = $matches->flatMap(fn ($group) => $group->tasks)->values();
+                return $primary;
+            })->values();
+        $groups = $groups->map(function ($group) use ($monitoringByBus, $currentOdometerByBus) {
+            $configuration = $monitoringByBus->get(strtoupper(trim((string) $group->bus_no)));
+            $group->overall_status = $configuration?->status($configuration ? $currentOdometerByBus->get($configuration->bus_id) : null) ?? 'Not Configured';
+            return $group;
+        });
+        $upcomingCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status($currentOdometerByBus->get($monitoring->bus_id)) === 'Upcoming')->count();
+        $dueSoonCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status($currentOdometerByBus->get($monitoring->bus_id)) === 'Mileage Unverified')->count();
+        $overdueCount = $monitoringByBus->filter(fn ($monitoring) => $monitoring->status($currentOdometerByBus->get($monitoring->bus_id)) === 'PMS Due')->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -157,16 +235,12 @@ class PmsSchedulingController extends Controller
         ) {
             $groups = $groups
                 ->filter(function ($group) use ($request) {
-                    return $group->overall_status === $request->status
-                        || $group->tasks->contains(
-                            fn ($task) => $task->status
-                                === $request->status
-                        );
+                    return $group->overall_status === $request->status;
                 })
                 ->values();
         }
 
-        $sort = in_array($request->query('sort'), ['bus_no', 'gps_report_date', 'current_km', 'overall_status'], true)
+        $sort = in_array($request->query('sort'), ['bus_no', 'current_km', 'overall_status'], true)
             ? $request->query('sort')
             : 'bus_no';
         $descending = $request->query('sort_direction') === 'desc';
@@ -210,13 +284,29 @@ class PmsSchedulingController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
+        // Batch open PMS JOs to avoid one database query per rendered bus.
+        $visibleBusNumbers = $rows->getCollection()->pluck('bus_no')->filter()->values();
+        $openPmsJobsByBus = \App\Models\Maintenance\JobOrder::query()
+            ->whereIn('bus_no', $visibleBusNumbers)
+            ->where('maintenance_type', 'PMS')
+            ->open()
+            ->orderByDesc('id')
+            ->get()
+            ->keyBy(fn ($jobOrder) => strtoupper(trim((string) $jobOrder->bus_no)));
+
         return view('Maintenance.pms-scheduling', compact(
             'rows',
+            'openPmsJobsByBus',
             'processedBuses',
             'gpsRecordsToday',
             'upcomingCount',
             'dueSoonCount',
-            'overdueCount'
+            'overdueCount',
+            'monitoringByBus',
+            'ddrMileageByBus',
+            'currentOdometerByBus',
+            'configurableBuses',
+            'canConfigurePms'
         ));
     }
 
@@ -397,6 +487,58 @@ class PmsSchedulingController extends Controller
                 'success',
                 'PMS task deleted successfully.'
             );
+    }
+
+    /**
+     * Bridge the newer bus-level monitoring baseline into the existing linked
+     * PMS JO workflow. The request only prepares the JO form: it never changes
+     * the bus status and does not approve or create a Job Order.
+     */
+    public function prepareMonitoringJobOrder(BusPmsMonitoring $monitoring)
+    {
+        $monitoring->loadMissing('bus');
+        $bus = $monitoring->bus;
+        abort_unless($bus, 404, 'The monitored bus no longer exists.');
+
+        $estimate = app(DdrPmsMileageService::class)->estimates(collect([$monitoring]))->get($bus->id);
+        $currentKm = $estimate['estimated_odometer_km'] ?? $monitoring->verified_current_odometer_km;
+        abort_unless($monitoring->status($currentKm !== null ? (float) $currentKm : null) === 'PMS Due', 409,
+            'The bus is not yet due for preventive maintenance.');
+
+        abort_if($bus->hasOngoingDispatch(), 409,
+            'This bus is currently dispatched. Prepare PMS after the trip is completed.');
+        abort_unless(in_array($bus->status, ['Active', 'Under Maintenance'], true), 409,
+            'This bus is not eligible for a PMS Job Order in its current status.');
+
+        $openPms = \App\Models\Maintenance\JobOrder::query()
+            ->where('bus_no', $bus->bus_no)
+            ->where('maintenance_type', 'PMS')->open()->first();
+        if ($openPms) {
+            return redirect()->route('job-orders', ['search' => $openPms->job_order_no])
+                ->with('info', 'This bus already has an open PMS Job Order.');
+        }
+
+        // Use the existing PMS link required by the JO creation and completion
+        // workflow. Do not change the baseline when preparing a draft.
+        $schedule = PmsSchedule::query()->firstOrCreate(
+            ['bus_no' => $bus->bus_no, 'maintenance_type' => 'PMS'],
+            [
+                'last_pms_km' => (float) $monitoring->last_completed_pms_odometer_km,
+                'pms_interval_km' => (float) $monitoring->interval_km,
+                'next_pms_km' => $monitoring->nextDueOdometerKm(),
+                'recommended_date' => $monitoring->nextDueDate()->toDateString(),
+            ]
+        );
+
+        return redirect()->route('job-orders', [
+            'create_pms' => 1,
+            'pms_schedule_id' => $schedule->id,
+            'bus_no' => $bus->bus_no,
+            'maintenance_type' => 'PMS',
+            'problem_issue' => 'PMS due for '.$bus->bus_no.
+                '. Next service: '.$monitoring->nextDueDate()->format('M d, Y').
+                ' or '.number_format($monitoring->nextDueOdometerKm(), 2).' km.',
+        ]);
     }
 
     public function createJobOrder(PmsSchedule $pmsSchedule)

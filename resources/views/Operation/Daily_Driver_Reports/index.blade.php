@@ -441,7 +441,7 @@
                                 data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->shift . ' ' . $driver->employment_status) }}"
                             >
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }} &bull; {{ $driver->employment_status }}</small>
+                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }} &bull; <x-ui.status-badge :status="$driver->employment_status" /></small>
                             </li>
                         @endforeach
                     </ul>
@@ -454,7 +454,7 @@
 
             <div class="ddr-form-group">
                 <label for="busCombo">
-                    Bus
+                    Bus <small>(Auto-filled from selected trip)</small>
                     <span class="ui-required">*</span>
                 </label>
 
@@ -484,7 +484,7 @@
                                 data-search="{{ strtolower($bus->bus_no . ' ' . $bus->plate_no . ' ' . $bus->bus_model . ' ' . $bus->status) }}"
                             >
                                 <strong>{{ $bus->bus_no }}</strong>
-                                <small>{{ $bus->plate_no }} &bull; {{ $bus->bus_model }} &bull; {{ $bus->status }}</small>
+                                <small>{{ $bus->plate_no }} &bull; {{ $bus->bus_model }} &bull; <x-ui.status-badge :status="$bus->status" /></small>
                             </li>
                         @endforeach
                     </ul>
@@ -595,7 +595,7 @@
         </div>
 
         <div class="ddr-sched-panel ddr-modal-sched-panel ddr-sched-panel-compact">
-            <label for="sfcList">Assigned Trip <span class="ui-required">*</span></label>
+            <label for="sfcList">Trips Awaiting DDR <span class="ui-required">*</span></label>
             <p class="ddr-assigned-trip-hint">Select the assigned trip to link its bus. Enter actual locations and times manually.</p>
             <div id="sfcList" class="ddr-sched-list" aria-live="polite"></div>
             <div id="sfcStatus" class="ddr-sched-status idle">

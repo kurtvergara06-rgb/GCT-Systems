@@ -321,7 +321,8 @@ class MaintenanceDashboardTest extends TestCase
                     $busRow = collect($rows->items())
                         ->firstWhere('bus_no', 'BUS-DATE-01');
 
-                    if (! $busRow || $busRow->overall_status !== 'Overdue') {
+                    // Legacy task urgency is retained, but bus-level status requires a verified baseline.
+                    if (! $busRow || $busRow->overall_status !== 'Not Configured') {
                         return false;
                     }
 

@@ -34,10 +34,12 @@ class PurchaseRequestIndexController extends Controller
 
         $query = $this->maintenancePurchaseRequestQuery();
 
+        $historyStatuses = ['Issued', 'Delivered', 'Picked Up', 'Cancelled'];
+
         if ($recordView === 'history') {
-            $query->where('status', 'Issued');
+            $query->whereIn('status', $historyStatuses);
         } else {
-            $query->where('status', '!=', 'Issued');
+            $query->whereNotIn('status', $historyStatuses);
         }
 
         if ($request->filled('search')) {
@@ -57,15 +59,15 @@ class PurchaseRequestIndexController extends Controller
             $requestedStatus = (string) $request->status;
 
             if ($recordView === 'history') {
-                if ($requestedStatus === 'Issued') {
-                    $query->where('status', 'Issued');
+                if (in_array($requestedStatus, $historyStatuses, true)) {
+                    $query->where('status', $requestedStatus);
                 }
-            } elseif ($requestedStatus !== 'Issued') {
+            } elseif (! in_array($requestedStatus, $historyStatuses, true)) {
                 $query->where('status', $requestedStatus);
             }
         }
 
-        // History is always Issued; date filters narrow its audit records without changing status.
+        // Fulfilled and terminal procurement belongs in History.
         if ($recordView === 'history') {
             $dates = $request->validate([
                 'created_from' => ['nullable', 'date_format:Y-m-d'],
@@ -194,8 +196,8 @@ class PurchaseRequestIndexController extends Controller
         }
 
         $statuses = $recordView === 'history'
-            ? ['Issued']
-            : array_values(array_filter($this->statuses, fn ($status) => $status !== 'Issued'));
+            ? $historyStatuses
+            : array_values(array_filter($this->statuses, fn ($status) => ! in_array($status, $historyStatuses, true)));
         $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
 
         // Saved IR lifecycle status for each JO displayed in PR records.

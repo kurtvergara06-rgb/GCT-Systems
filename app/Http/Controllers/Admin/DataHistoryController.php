@@ -40,7 +40,7 @@ class DataHistoryController extends Controller
         }
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'file_name' => 'file_name', 'activity_type' => 'activity_type', 'module' => 'module', 'status' => 'status'], 'created_at', 'desc');
-        $history = $query->get();
+        $history = $query->paginate(25)->withQueryString();
 
         $stats = [
             'total' => DataActivity::count(),

@@ -81,7 +81,7 @@ class BatchAttendanceServiceProvider extends ServiceProvider
                     ->middleware('system.permission:maintenance,view')
                     ->name('maintenance.personnel.mechanics');
                 Route::delete('/specializations/{specialization}', [PersonnelController::class, 'deleteMechanicSpecialization'])
-                    ->middleware('system.permission:maintenance,edit')
+                    ->middleware('system.permission:maintenance,approve')
                     ->name('maintenance.personnel.mechanics.specializations.destroy');
                 Route::post('/specializations', [PersonnelController::class, 'storeMechanicSpecialization'])
                     ->middleware('system.permission:maintenance,edit')

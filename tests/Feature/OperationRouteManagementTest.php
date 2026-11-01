@@ -7,6 +7,7 @@ use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -432,6 +433,8 @@ class OperationRouteManagementTest extends TestCase
             'route_code' => 'R-10',
             'route_name' => 'Protected Historical Route',
         ]);
+        $client = OperationClient::firstOrCreate(['name' => 'Historical Route Client'], ['status' => 'Active']);
+        $route->update(['operation_client_id' => $client->id]);
 
         TripSchedule::create([
             'trip_code' => 'T-HISTORY-001',
@@ -468,6 +471,7 @@ class OperationRouteManagementTest extends TestCase
                     $route
                 ),
                 [
+                    'operation_client_id' => $route->operation_client_id,
                     'status' => 'Inactive',
                     'route_name' =>
                         'Tampered Historical Name',
@@ -506,6 +510,8 @@ class OperationRouteManagementTest extends TestCase
             'route_code' => 'R-20',
             'route_name' => 'Future Scheduled Route',
         ]);
+        $client = OperationClient::firstOrCreate(['name' => 'Historical Route Client'], ['status' => 'Active']);
+        $route->update(['operation_client_id' => $client->id]);
 
         TripSchedule::create([
             'trip_code' => 'T-FUTURE-001',
@@ -529,6 +535,7 @@ class OperationRouteManagementTest extends TestCase
                     $route
                 ),
                 [
+                    'operation_client_id' => $route->operation_client_id,
                     'status' => 'Inactive',
                 ]
             )
@@ -896,7 +903,10 @@ class OperationRouteManagementTest extends TestCase
     private function validRoutePayload(
         array $overrides = []
     ): array {
+        $client = OperationClient::firstOrCreate(['name' => 'Route Test Client'], ['status' => 'Active']);
+
         return array_merge([
+            'operation_client_id' => $client->id,
             'route_name' =>
                 'Tanauan - Malvar New',
             'origin' =>

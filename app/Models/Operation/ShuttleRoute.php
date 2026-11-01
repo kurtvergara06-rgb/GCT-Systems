@@ -5,12 +5,14 @@ namespace App\Models\Operation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShuttleRoute extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'operation_client_id',
         'route_code',
         'route_name',
 
@@ -61,6 +63,11 @@ class ShuttleRoute extends Model
         'route_geometry' => 'array',
         'route_calculated_at' => 'datetime',
     ];
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(OperationClient::class, 'operation_client_id');
+    }
 
     public function stops(): HasMany
     {

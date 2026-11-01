@@ -15,10 +15,11 @@ function initBatchAttendancePage() {
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
     const modalDescription = type === 'driver'
         ? 'All active drivers from the Driver Master List load automatically for the selected date.'
-        : 'Active mechanics from the Mechanic Master List load automatically for the selected date.';
+        : 'Active mechanics load automatically. Regular duty: 8:00 AM–5:00 PM (10-minute time-in grace period).';
 
     let shiftStarts = {};
     let graceMinutes = 10;
+    let attendanceMode = 'in';
 
     button.addEventListener('click', openModal);
 
@@ -27,6 +28,7 @@ function initBatchAttendancePage() {
     }
 
     function openModal() {
+        attendanceMode = 'in';
         closeModal();
 
         const overlay = document.createElement('div');
@@ -70,6 +72,7 @@ function initBatchAttendancePage() {
                         <button type="button" class="batch-control-btn" id="batchApplyTime"><i class="fa-solid fa-clock-rotate-left"></i> Apply Same Time to Selected</button>
                         <button type="button" class="batch-control-btn danger" id="batchClearAll"><i class="fa-solid fa-trash"></i> Clear All</button>
                     </div>
+                    ${type === 'mechanic' ? '<div class="batch-toolbar-time-actions"><button type="button" class="batch-control-btn" id="batchHeaderTimeIn" aria-pressed="true"><i class="fa-regular fa-clock"></i> Time In</button><button type="button" class="batch-control-btn" id="batchHeaderTimeOut" aria-pressed="false"><i class="fa-regular fa-clock"></i> Time Out</button></div>' : ''}
                     ${type === 'driver' ? '<label class="batch-driver-search"><span>Find Driver</span><input type="search" id="batchDriverSearch" placeholder="Search driver name..." autocomplete="off" aria-label="Search attendance drivers"></label>' : ''}
                 </div>
 
@@ -139,15 +142,42 @@ function initBatchAttendancePage() {
         overlay.querySelector('#batchMarkPresent').addEventListener('click', markAllPresent);
         overlay.querySelector('#batchUseCurrentTime').addEventListener('click', () => {
             overlay.querySelectorAll('[data-batch-row]').forEach((row) => {
-                if (!row.classList.contains('is-unavailable')) {
-                    row.querySelector('[data-time-in]').value = currentTime();
-                    detectLate(row);
-                    updateAvailability(row);
+                if (!row.classList.contains('is-unavailable') && row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked) {
+                    const target = attendanceMode === 'out' ? row.querySelector('[data-time-out]') : row.querySelector('[data-time-in]');
+                    if (target && !target.disabled) {
+                        target.value = currentTime();
+                        target.dispatchEvent(new Event('change', {bubbles:true}));
+                    }
                 }
             });
             updateSummary();
         });
-        overlay.querySelector('#batchApplyTime').addEventListener('click', applySharedTime);
+        overlay.querySelector('#batchApplyTime').addEventListener('click', () => applySharedTime(attendanceMode));
+        if (type === 'mechanic') {
+            const switchMode = (mode) => {
+                if (attendanceMode === mode) return;
+                attendanceMode = mode;
+                overlay.querySelector('#batchHeaderTimeIn')?.setAttribute('aria-pressed', String(mode === 'in'));
+                overlay.querySelector('#batchHeaderTimeOut')?.setAttribute('aria-pressed', String(mode === 'out'));
+                overlay.querySelector('#batchSaveAttendance').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save ' + (mode === 'out' ? 'Time Out' : 'Attendance');
+                ['batchMarkPresent','batchUseCurrentTime','batchApplyTime','batchClearAll'].forEach(id => {
+                    const control = overlay.querySelector('#' + id);
+                    if (control) {
+                        control.hidden = false;
+                        control.disabled = false;
+                        control.title = '';
+                    }
+                });
+                const mark = overlay.querySelector('#batchMarkPresent');
+                if (mark) mark.innerHTML = mode === 'out' ? '<i class="fa-solid fa-check-double"></i> Select All' : '<i class="fa-solid fa-user-check"></i> Mark All Present';
+                const clear = overlay.querySelector('#batchClearAll');
+                if (clear) clear.innerHTML = mode === 'out' ? '<i class="fa-solid fa-trash"></i> Clear Time Out' : '<i class="fa-solid fa-trash"></i> Clear All';
+                loadRoster();
+            };
+            overlay.querySelector('#batchHeaderTimeIn')?.addEventListener('click', () => switchMode('in'));
+            overlay.querySelector('#batchHeaderTimeOut')?.addEventListener('click', () => switchMode('out'));
+        }
+
         overlay.querySelector('#batchSharedTimeCancel').addEventListener('click', closeSharedTime);
         overlay.querySelector('#batchSharedTimeConfirm').addEventListener('click', confirmSharedTime);
         overlay.querySelector('#batchSharedTimeInput').addEventListener('gct:time-selected', (event) => {
@@ -174,7 +204,7 @@ function initBatchAttendancePage() {
         body.innerHTML = `<tr><td colspan="8" class="batch-loading">${spinnerMarkup()} Loading attendance roster…</td></tr>`;
 
         try {
-            const response = await fetch(`${type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver'}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`, {
+            const response = await fetch(`${type === 'mechanic' ? '/maintenance/attendance/batch/mechanic' : '/operation/attendance/batch/driver'}?date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}&mode=${encodeURIComponent(attendanceMode)}`, {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -203,14 +233,14 @@ function initBatchAttendancePage() {
         if (!rows.length) {
             body.innerHTML = type === 'driver'
                 ? '<tr><td colspan="8" class="batch-empty">No active drivers found for this date.</td></tr>'
-                : '<tr><td colspan="8" class="batch-empty">All eligible mechanics already have attendance for this date, or there are no unrecorded mechanics.</td></tr>';
+                : '<tr><td colspan="8" class="batch-empty">' + (attendanceMode === 'out' ? 'No checked-in mechanics are awaiting Time Out.' : 'All eligible mechanics already have attendance for this date.') + '</td></tr>';
             updateSummary();
             return;
         }
 
         body.innerHTML = rows.map((row) => {
             const normalizedStatus = normalizeStatus(row.status);
-            const isRecorded = row.recorded === true;
+            const isRecorded = row.recorded === true && !(type === 'mechanic' && attendanceMode === 'out');
             const initialAvailability = computeAvailability(normalizedStatus, row.assigned_job || '');
             return `
                 <tr
@@ -271,8 +301,12 @@ function initBatchAttendancePage() {
 
         body.querySelectorAll('[data-batch-row]').forEach((row) => {
             initializeRow(row);
-            if (row.dataset.recorded === 'true') {
-                row.querySelectorAll('input, button').forEach((control) => { control.disabled = true; });
+            if (type === 'mechanic' && attendanceMode === 'out') {
+                row.querySelector('[data-time-in]').disabled = true;
+                row.querySelector('[data-row-now]').disabled = true;
+                row.querySelectorAll('[data-status-btn]').forEach(control => { control.disabled = true; });
+            } else if (row.dataset.recorded === 'true') {
+                row.querySelectorAll('input, button').forEach(control => { control.disabled = true; });
             }
         });
         updateSummary();
@@ -322,6 +356,10 @@ function initBatchAttendancePage() {
 
     function markAllPresent() {
         document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
+            if (attendanceMode === 'out' && type === 'mechanic') {
+                row.querySelector('[data-row-select]').checked = true;
+                return;
+            }
             setSelectedStatus(row, 'Present');
             if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
@@ -333,6 +371,11 @@ function initBatchAttendancePage() {
 
     function clearAllRows() {
         document.querySelectorAll('#batchAttendanceModal [data-batch-row]:not([data-recorded="true"])').forEach((row) => {
+            if (attendanceMode === 'out' && type === 'mechanic') {
+                row.querySelector('[data-time-out]').value = '';
+                row.querySelector('[data-time-out]').dispatchEvent(new Event('change',{bubbles:true}));
+                return;
+            }
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
@@ -349,10 +392,12 @@ function initBatchAttendancePage() {
         const layer = modal.querySelector('#batchSharedTimeLayer');
         layer.hidden = true;
         layer.classList.remove('is-picker-only');
-        modal.querySelector('#batchApplyTime')?.focus();
+        (modal.querySelector('#batchSharedTimeLayer')?.dataset.target === 'out'
+            ? modal.querySelector('#batchHeaderTimeOut')
+            : modal.querySelector('#batchApplyTime'))?.focus();
     }
 
-    function applySharedTime() {
+    function applySharedTime(target = 'in') {
         const modal = document.getElementById('batchAttendanceModal');
         if (!modal) return;
         const selectedRows = [...modal.querySelectorAll('[data-batch-row]')]
@@ -364,8 +409,16 @@ function initBatchAttendancePage() {
 
         const input = modal.querySelector('#batchSharedTimeInput');
         input.value = currentTime();
-        input.dataset.pickerAnchor = '#batchApplyTime';
+        input.dataset.pickerAnchor = target === 'out' ? '#batchHeaderTimeOut' : '#batchApplyTime';
         const layer = modal.querySelector('#batchSharedTimeLayer');
+        layer.dataset.target = target;
+        modal.querySelector('#batchSharedTimeTitle').innerHTML = '<i class="fa-regular fa-clock"></i> Set Time ' + (target === 'out' ? 'Out' : 'In');
+        const label = layer.querySelector('label[for="batchSharedTimeInput"]');
+        if (label) label.textContent = target === 'out' ? 'Time Out' : 'Time In';
+        const help = layer.querySelector('p');
+        if (help) help.textContent = 'Choose the time ' + (target === 'out' ? 'out' : 'in') + ' for selected available mechanics.';
+        const confirm = modal.querySelector('#batchSharedTimeConfirm');
+        if (confirm) confirm.textContent = 'Apply Time ' + (target === 'out' ? 'Out' : 'In');
         layer.hidden = false;
         layer.classList.add('is-picker-only');
         // The shared GCT picker enhances inputs added dynamically.
@@ -400,12 +453,14 @@ function initBatchAttendancePage() {
         }
         let updated = 0;
         modal.querySelectorAll('[data-batch-row]').forEach((row) => {
-            if (!row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
-            const timeIn = row.querySelector('[data-time-in]');
-            timeIn.value = time;
-            timeIn.dispatchEvent(new Event('input', { bubbles: true }));
-            timeIn.dispatchEvent(new Event('change', { bubbles: true }));
-            detectLate(row);
+            if (row.dataset.recorded === 'true' || !row.querySelector('[data-row-select]').checked || row.classList.contains('is-unavailable')) return;
+            const field = layer.dataset.target === 'out' ? '[data-time-out]' : '[data-time-in]';
+            const timeInput = row.querySelector(field);
+            if (!timeInput || timeInput.disabled) return;
+            timeInput.value = time;
+            timeInput.dispatchEvent(new Event('input', { bubbles: true }));
+            timeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            if (field === '[data-time-in]') detectLate(row);
             updateAvailability(row);
             updated += 1;
         });
@@ -469,7 +524,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => row.dataset.recorded !== 'true' && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
+             .filter((row) => (attendanceMode === 'out' ? row.querySelector('[data-row-select]').checked : row.dataset.recorded !== 'true') && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
@@ -505,6 +560,7 @@ function initBatchAttendancePage() {
                 },
                 body: JSON.stringify({
                     attendance_date: modal.querySelector('#batchAttendanceDate').value,
+                    mode: type === 'mechanic' ? attendanceMode : 'in',
                     rows,
                 }),
             });

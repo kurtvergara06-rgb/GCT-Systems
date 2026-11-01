@@ -1226,3 +1226,74 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
     updateAddMaintenanceType();
 
 });
+
+/* Searchable bus picker for the bus-level PMS configuration modal. */
+(() => {
+  const root = document.getElementById('pmsConfigModal');
+  if (!root) return;
+  const input = root.querySelector('#monitor-bus-search');
+  const hidden = root.querySelector('#monitor-bus');
+  const list = root.querySelector('#pms-bus-options');
+  const options = [...root.querySelectorAll('.pms-bus-option')];
+  const empty = root.querySelector('.pms-bus-no-results');
+  if (!input || !hidden || !list) return;
+
+  const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+  const filter = () => {
+    const search = input.value.trim().toLowerCase();
+    let visible = 0;
+    options.forEach(option => {
+      const matches = option.dataset.busLabel.toLowerCase().includes(search);
+      option.hidden = !matches;
+      if (matches) visible++;
+    });
+    if (empty) empty.hidden = visible !== 0;
+    list.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+  const setSelected = (option) => {
+    hidden.value = option.dataset.busId;
+    input.value = option.dataset.busLabel;
+    input.setCustomValidity('');
+    close();
+  };
+  input.addEventListener('focus', filter);
+  input.addEventListener('input', () => { hidden.value = ''; filter(); });
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Escape') close();
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (list.hidden) filter();
+      options.find(option => !option.hidden)?.focus();
+    }
+  });
+  options.forEach((option, index) => {
+    option.addEventListener('click', () => setSelected(option));
+    option.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { close(); input.focus(); }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const visible = options.filter(item => !item.hidden);
+        const pos = visible.indexOf(option);
+        visible[(pos + (event.key === 'ArrowDown' ? 1 : -1) + visible.length) % visible.length]?.focus();
+      }
+    });
+  });
+  root.addEventListener('pointerdown', event => {
+    if (!event.target.closest('.pms-bus-picker')) close();
+  });
+  const form = input.closest('form');
+  form?.addEventListener('submit', event => {
+    if (!hidden.value) {
+      event.preventDefault();
+      input.setCustomValidity('Select a bus from the search results.');
+      input.reportValidity();
+      input.focus();
+      filter();
+    }
+  });
+  if (hidden.value) {
+    const previous = options.find(option => option.dataset.busId === hidden.value);
+    if (previous) input.value = previous.dataset.busLabel;
+  }
+})();

@@ -38,7 +38,7 @@ class JobOrderHeadReviewModalLayoutTest extends TestCase
         $this->assertStringContainsString('Verify details, confirm duration, and authorize the Job Order.', $view);
         $this->assertStringContainsString('jo-review-detail-support-grid', $view);
         $this->assertStringContainsString('jo-review-parts-progress', $view);
-        $this->assertStringContainsString('Possible Completion Delay', $view);
+        $this->assertStringContainsString('Possible Delay — Parts Shortage', $view);
     }
 
     public function test_review_uses_real_duration_service_data_and_authenticated_signatory(): void

@@ -158,6 +158,8 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
   // Preview missing PR lines before allowing the Warehouse send action.
   const sendModal = document.getElementById('warehouseSendMissingModal');
   const sendConfirm = document.getElementById('sendMissingConfirm');
+  const sendRevision = document.getElementById('sendMissingRevision');
+  const sendRevisionRemarks = document.getElementById('sendMissingRevisionRemarks');
   let pendingSendForm = null;
   function closeSendModal() {
     if (!sendModal) return;
@@ -176,6 +178,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
     setField('sendMissingPr', form.dataset.prNo);
     setField('sendMissingJo', form.dataset.joNo);
     setField('sendMissingBus', form.dataset.busNo);
+    if (sendRevisionRemarks) sendRevisionRemarks.value = '';
     let parts = [];
     try { parts = JSON.parse(form.dataset.parts || '[]'); } catch (_) {}
     const tbody = document.getElementById('sendMissingPartsRows');
@@ -215,6 +218,39 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup
       form.dataset.sendConfirmed = '1';
       sendConfirm.disabled = true;
       form.requestSubmit();
+    });
+  });
+  sendRevision?.addEventListener('click', function () {
+    if (!pendingSendForm || sendRevision.disabled) return;
+    const note = sendRevisionRemarks?.value.trim() || '';
+    if (!note) {
+      sendRevisionRemarks?.focus();
+      sendRevisionRemarks?.setCustomValidity('Explain what Maintenance must revise.');
+      sendRevisionRemarks?.reportValidity();
+      return;
+    }
+    sendRevisionRemarks?.setCustomValidity('');
+    const revisionUrl = pendingSendForm.dataset.revisionUrl || '';
+    const csrf = pendingSendForm.querySelector('input[name="_token"]')?.value || '';
+    if (!revisionUrl || !csrf || typeof window.openSystemConfirmation !== 'function') return;
+    window.openSystemConfirmation({
+      title: 'Return Purchase Request for Revision?',
+      message: 'Maintenance must revise and resubmit this Purchase Request before Warehouse can forward it.',
+      button: 'Yes, Return for Revision',
+      type: 'warning',
+      closeOnConfirm: true,
+    }, () => {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = revisionUrl;
+      const token = document.createElement('input');
+      token.type = 'hidden'; token.name = '_token'; token.value = csrf;
+      const remarks = document.createElement('input');
+      remarks.type = 'hidden'; remarks.name = 'revision_remarks'; remarks.value = note;
+      form.append(token, remarks);
+      document.body.appendChild(form);
+      sendRevision.disabled = true;
+      form.submit();
     });
   });
   sendModal?.querySelectorAll('[data-send-missing-close]').forEach(button => button.addEventListener('click', closeSendModal));

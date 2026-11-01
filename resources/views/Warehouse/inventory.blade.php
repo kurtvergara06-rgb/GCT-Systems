@@ -36,7 +36,7 @@
             <x-ui.summary-card
               label="Low Stock Alerts"
               value="{{ $lowStockAlerts }}"
-              small="Below reorder level"
+              small="Available stock below threshold"
               icon="fa-bell"
               color="yellow"
             />
@@ -50,9 +50,9 @@
             />
 
             <x-ui.summary-card
-              label="Forecasted Stockouts"
-              value="{{ $forecastedStockouts }}"
-              small="Items at risk"
+              label="Stock at Risk"
+              value="{{ $itemsAtRisk }}"
+              small="Low stock or no free stock"
               icon="fa-chart-line"
               color="blue"
             />
@@ -84,7 +84,7 @@
             search-placeholder="Search item, code, supplier, or location..."
             :filter-count="(int) (request()->filled('category') && request('category') !== 'All Categories')"
             filter-title="Filter Inventory"
-            :sort-options="['item_name' => 'Part Name', 'item_code' => 'Item Code', 'category' => 'Category', 'quantity' => 'On Hand', 'reorder_level' => 'Reorder Level']"
+            :sort-options="['item_name' => 'Part Name', 'item_code' => 'Item Code', 'category' => 'Category', 'quantity' => 'On Hand']"
             default-sort="item_name"
           >
             <x-slot:filters>
@@ -108,7 +108,6 @@
                 <th>Reserved</th>
                 <th>Available</th>
                 <th>Reorder Point</th>
-                <th>Safety Stock</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -117,10 +116,12 @@
             <tbody>
               @forelse($inventoryItems as $item)
                 @php
-                  $status = $item->stock_status;
                   $reservedQuantity = max(0, (int) ($reservedByItem[$item->id] ?? 0));
                   $onHandQuantity = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
                   $availableQuantity = max(0, $onHandQuantity - $reservedQuantity);
+                  $autoReorderPoint = $calculatedThresholds[$item->id]['reorder_point'] ?? null;
+                  $minimumStockLevel = $autoReorderPoint ?? (int) ($item->reorder_level ?? 0);
+                  $status = $calculator->stockStatus($onHandQuantity, $reservedQuantity, $minimumStockLevel > 0 ? $minimumStockLevel : null);
 
                   $rowClass = match($status) {
                     'Critical' => 'danger-row',
@@ -141,8 +142,24 @@
                   <td class="inventory-stock-cell"><strong>{{ $onHandQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-reserved-cell"><strong>{{ $reservedQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
-                  <td><strong>{{ $item->reorder_level }}</strong></td>
-                  <td class="inventory-safety-stock-cell"><span>{{ $item->safety_stock === null ? 'Not set' : $item->safety_stock }}</span></td>
+                  <td>
+                    <span class="inventory-reorder-value">
+                      @if($autoReorderPoint === null && (int) $item->reorder_level === 0)
+                        <strong title="Awaiting three months of signed issuance history">Pending</strong>
+                      @else
+                        <strong>{{ $minimumStockLevel }}</strong>
+                      @endif
+                      @if($autoReorderPoint !== null)
+                        <span class="inventory-reorder-auto" aria-label="Automatically calculated reorder point">Auto</span>
+                      @else
+                        <span class="inventory-reorder-info" tabindex="0" role="img"
+                          aria-label="Existing reorder point; insufficient verified three-month issuance history."
+                          title="Existing threshold retained. Insufficient verified three-month issuance history.">
+                          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                        </span>
+                      @endif
+                    </span>
+                  </td>
                   <td>
                     <div class="warehouse-inventory-status-stack">
                       <x-ui.status-badge
@@ -175,8 +192,6 @@
                           data-category="{{ $item->category }}"
                           data-quantity="{{ $item->on_hand }}"
                           data-unit="{{ $item->unit_of_measurement }}"
-                          data-reorder="{{ $item->reorder_level }}"
-                          data-safety-stock="{{ $item->safety_stock }}"
                           data-supplier="{{ $item->supplier }}"
                           data-location="{{ $item->storage_location }}"
                       >
@@ -249,24 +264,17 @@
         </section>
 
         <section class="inventory-section-details inventory-add-section">
-          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><h3>02 — Stock Information</h3><p>Set stock quantity and inventory thresholds.</p></div></div>
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><h3>02 — Stock Information</h3><p>Enter opening quantity. Reorder Point is calculated automatically.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Initial Quantity <span class="inventory-required">*</span></label>
+              <label>Initial On-Hand Quantity <span class="inventory-required">*</span></label>
               <div class="inventory-add-input"><i class="fa-solid fa-hashtag" aria-hidden="true"></i><input type="number" name="on_hand" min="0" required></div>
             </div>
             <div class="form-group">
               <label>Unit of Measurement <span class="inventory-required">*</span></label>
               <div class="inventory-add-input"><i class="fa-solid fa-ruler" aria-hidden="true"></i><input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="Select or enter unit"></div>
             </div>
-            <div class="form-group">
-              <label>Reorder Point <span class="inventory-required">*</span></label>
-              <div class="inventory-add-input"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><input type="number" name="reorder_level" min="0" required></div>
-            </div>
-            <div class="form-group">
-              <label>Safety Stock</label>
-              <div class="inventory-add-input"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><input type="number" name="safety_stock" min="0" placeholder="Enter safety stock (optional)"></div>
-            </div>
+            <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reorder Point is calculated automatically from three complete months of signed parts issuances. New items show Pending Calculation until sufficient history exists.</p>
           </div>
         </section>
 
@@ -284,7 +292,7 @@
           </div>
         </section>
 
-        <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reorder Point and Safety Stock are separate thresholds; set values according to GCT's inventory policy.</p>
+        <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Low-stock alerts compare available stock (on hand minus reserved) against the item's reorder point.</p>
         <div class="modal-actions full-width">
           <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Save Item</button>
@@ -336,10 +344,12 @@
             </div>
           </section>
           <section class="inventory-edit-section">
-            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-chart-simple"></i></span><div><h3>Stock Thresholds</h3><p>Set the minimum quantities to maintain stock availability.</p></div></div>
+            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-chart-simple"></i></span><div><h3>Stock Thresholds</h3><p>Reorder Point is calculated automatically from signed issuance history.</p></div></div>
             <div class="inventory-edit-grid inventory-edit-threshold-grid">
-              <div class="form-group"><label for="edit_reorder">Reorder Level <em>*</em></label><input name="reorder_level" id="edit_reorder" type="number" min="0" step="1" required><small>Triggers a low-stock alert.</small></div>
-              <div class="form-group"><label for="edit_safety_stock">Safety Stock</label><input name="safety_stock" id="edit_safety_stock" type="number" min="0" step="1" placeholder="Optional"><small>Must not exceed reorder level.</small></div>
+              <div class="inventory-edit-threshold-notice">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <div><strong>Automatic Reorder Point</strong><p>Calculated from three complete months of signed issuances. Until then, the existing threshold is retained.</p></div>
+              </div>
               <div class="inventory-edit-onhand"><span>Current On Hand <i class="fa-solid fa-lock" aria-hidden="true"></i></span><strong><span id="edit_quantity">—</span> <small id="edit_onhand_unit">pcs</small></strong><p>Updated through inventory movements.</p></div>
             </div>
           </section>
@@ -382,7 +392,6 @@
             <div class="detail-item"><span>Quantity Available</span><strong id="view_quantity">—</strong></div>
             <div class="detail-item"><span>Unit</span><strong id="view_unit">—</strong></div>
             <div class="detail-item"><span>Reorder Point</span><strong id="view_reorder">—</strong></div>
-            <div class="detail-item"><span>Safety Stock</span><strong id="view_safety_stock">—</strong></div>
             <div class="detail-item"><span>Status</span><strong id="view_status">—</strong></div>
           </div>
         </section>
@@ -454,7 +463,7 @@
           >
 
           <small>
-            CSV format: item_code, parts_name, category, on_hand, unit, reorder_level, supplier, storage_location
+            CSV format: item_code, parts_name, category, on_hand, unit, supplier, storage_location. Reorder Point is calculated automatically from signed issuance history.
           </small>
         </div>
 

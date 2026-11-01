@@ -112,10 +112,25 @@ class MaintenanceWorkflowHardeningTest extends TestCase
             'part_status' => 'No Parts Required',
         ]);
 
+        // Reach the duplicate-JO guard with a valid submission, instead of
+        // failing earlier because no eligible mechanic was supplied.
+        $mechanic = Mechanic::create([
+            'mechanic_id' => 'MEC-DUPLICATE-GUARD',
+            'mechanic_name' => 'Duplicate Guard Mechanic',
+            'employment_status' => 'Active',
+        ]);
+        MechanicAttendance::create([
+            'mechanic_id' => $mechanic->mechanic_id,
+            'mechanic_name' => $mechanic->mechanic_name,
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+            'status' => 'Present',
+        ]);
+
         $this->actingAs($staff)->post(route('job-orders.store'), [
             'bus_no' => $bus->bus_no,
             'problem_issue' => 'Second repair',
             'maintenance_type' => 'Repair',
+            'mechanic_ids' => [$mechanic->id],
         ])->assertSessionHasErrors('bus_no');
 
         $this->assertSame(1, JobOrder::where('bus_no', $bus->bus_no)->count());
@@ -313,7 +328,7 @@ class MaintenanceWorkflowHardeningTest extends TestCase
 
         $this->assertNotEmpty($matches[1]);
         $this->assertSame($matches[1], array_values(array_unique($matches[1])));
-        $this->assertContains('monitoring-records', $matches[1]);
+        $this->assertContains('summary', $matches[1]);
         $this->assertContains('fuel-records', $matches[1]);
     }
 }

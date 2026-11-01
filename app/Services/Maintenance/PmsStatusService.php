@@ -7,6 +7,7 @@ use App\Models\Maintenance\PmsSchedule;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class PmsStatusService
 {
@@ -26,25 +27,41 @@ class PmsStatusService
      */
     public function latestProcessedGpsByBus(): Collection
     {
-        return GpsTripRecord::query()
-            ->whereNotNull('bus_no')
-            ->whereNotNull('mileage_km')
+        // PMS needs only the latest and previous processed readings for each
+        // bus. Rank in SQL so old GPS imports are not all hydrated in PHP.
+        $rankedRecords = GpsTripRecord::query()
+            ->select([
+                'gps_trip_records.id',
+                'gps_trip_records.bus_no',
+                'gps_trip_records.mileage_km',
+                'gps_trip_records.beginning_at',
+                'gps_trip_records.created_at',
+            ])
+            ->selectRaw(
+                'ROW_NUMBER() OVER (PARTITION BY UPPER(TRIM(gps_trip_records.bus_no)) '
+                .'ORDER BY gps_trip_records.beginning_at DESC, gps_trip_records.id DESC) AS row_num'
+            )
+            ->whereNotNull('gps_trip_records.bus_no')
+            ->whereNotNull('gps_trip_records.mileage_km')
             ->whereHas(
                 'batchUpload',
                 fn ($query) => $query->where('status', 'Processed')
             )
-            ->orderBy('bus_no')
+            ->toBase();
+
+        $records = DB::query()
+            ->fromSub($rankedRecords, 'ranked_gps')
+            ->where('row_num', '<=', 2)
+            ->orderByRaw('UPPER(TRIM(bus_no))')
             ->orderByDesc('beginning_at')
             ->orderByDesc('id')
-            ->get()
-            ->groupBy(
-                fn (GpsTripRecord $record) => strtoupper(
-                    trim((string) $record->bus_no)
-                )
-            )
-            ->map(function ($records): array {
-                $latestRecord = $records->first();
-                $previousRecord = $records->skip(1)->first();
+            ->get();
+
+        return $records
+            ->groupBy(fn ($record) => strtoupper(trim((string) $record->bus_no)))
+            ->map(function (Collection $busRecords): array {
+                $latestRecord = $busRecords->first();
+                $previousRecord = $busRecords->skip(1)->first();
 
                 $currentKm = (float) $latestRecord->mileage_km;
                 $previousKm = $previousRecord

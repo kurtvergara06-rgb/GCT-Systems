@@ -21,286 +21,37 @@
 
       <x-layout.topbar
         title="Fuel Reports"
-        subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
+        subtitle="Manage recorded fuel issuance, trip mileage, and fuel report history"
       />
 
 
-      {{-- SUMMARY --}}
+      {{-- Fuel issuance KPIs use the same shared cards as Job Orders.
+           These metrics reflect the selected reporting period and do not
+           imply that issued diesel has already been consumed. --}}
       <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">
-
-        <x-ui.summary-card
-          label="Total Fuel Used"
-          value="{{ number_format($totalFuelUsed, 2) }} L"
-          small="Recorded fuel consumption"
-          icon="fa-gas-pump"
-          color="blue"
-        />
-
-        <x-ui.summary-card
-          label="Total Distance"
-          value="{{ number_format($totalDistance, 2) }} km"
-          small="GPS and manual distance"
-          icon="fa-road"
-          color="green"
-        />
-
-        <x-ui.summary-card
-          label="Fleet Average"
-          value="{{ number_format($fleetAverage, 2) }} km/L"
-          small="Overall fuel efficiency"
-          icon="fa-chart-line"
-          color="yellow"
-        />
-
-        <x-ui.summary-card
-          label="Inefficient Vehicles"
-          value="{{ $inefficientVehicles }}"
-          small="Needs inspection"
-          icon="fa-triangle-exclamation"
-          color="red"
-        />
-
+        <x-ui.summary-card label="Fuel Records" value="{{ $fuelReports->count() }}" small="Recorded fuel entries" icon="fa-file-lines" color="blue" />
+        <x-ui.summary-card label="Diesel Issued" value="{{ number_format($totalFuelUsed, 2) }} L" small="Recorded issuance volume" icon="fa-gas-pump" color="yellow" />
+        <x-ui.summary-card label="Recorded Distance" value="{{ number_format($totalDistance, 2) }} km" small="Recorded GPS or manual distance" icon="fa-road" color="green" />
+        <x-ui.summary-card label="Vehicles Recorded" value="{{ $fuelReports->pluck('bus_no')->filter()->unique()->count() }}" small="Distinct buses with fuel records" icon="fa-bus" color="red" />
       </section>
-
-      {{-- CHARTS --}}
-      <section class="fuel-analytics-grid">
-
-        <x-ui.chart-card
-          title="Fuel Efficiency by Vehicle"
-          description="Top 10 vehicles ranked by fuel efficiency. Fleet Average: {{ number_format($fleetAverage, 2) }} km/L."
-          chart-id="fuelEfficiencyChart"
-          tag="Top 10"
-          icon="fa-chart-column"
-          icon-color="blue"
-        />
-
-        <x-ui.chart-card
-          title="Distance and Fuel Usage"
-          description="Top 10 buses by distance with total fuel consumption."
-          chart-id="fuelUsageChart"
-          tag="Top 10"
-          icon="fa-gas-pump"
-          icon-color="yellow"
-        />
-
-      </section>
-
-      {{-- INSIGHTS --}}
-      <section class="fuel-insights-grid">
-
-        <x-ui.analytics-insight
-          label="Most Efficient Vehicle"
-          :value="$mostEfficientVehicle?->bus_no ?? 'No data'"
-          :description="$mostEfficientVehicle
-            ? number_format($mostEfficientVehicle->km_per_liter, 2).' km/L'
-            : 'No fuel records available.'"
-          icon="fa-arrow-trend-up"
-          type="efficient"
-        />
-
-        <x-ui.analytics-insight
-          label="Least Efficient Vehicle"
-          :value="$leastEfficientVehicle?->bus_no ?? 'No data'"
-          :description="$leastEfficientVehicle
-            ? number_format($leastEfficientVehicle->km_per_liter, 2).' km/L'
-            : 'No fuel records available.'"
-          icon="fa-arrow-trend-down"
-          type="inefficient"
-        />
-
-        <x-ui.analytics-insight
-          label="Fleet Average"
-          :value="number_format($fleetAverage, 2).' km/L'"
-          description="Average efficiency for the selected reporting period."
-          icon="fa-chart-line"
-          type="average"
-        />
-
-      </section>
-
-      {{-- DAILY FUEL MONITORING --}}
-      <section data-ajax-region="monitoring-records" class="table-card fuel-card daily-monitoring-card">
-
-        <div class="section-header daily-monitoring-header">
-          <div>
-            <h2>Daily Fuel Monitoring</h2>
-            <p>Automated GPS mileage telemetry paired with daily refuel logging and efficiency analysis.</p>
-          </div>
-
-          <div class="daily-monitoring-summary">
-            <span class="chip-buses"><i class="fa-solid fa-bus"></i> <strong>{{ $dailyMonitoringCounts['total'] }}</strong> Buses</span>
-            <span class="needs-entry"><i class="fa-solid fa-clock"></i> <strong>{{ $dailyMonitoringCounts['for_entry'] }}</strong> For Entry</span>
-            <span class="completed"><i class="fa-solid fa-circle-check"></i> <strong>{{ $dailyMonitoringCounts['completed'] }}</strong> Completed</span>
-          </div>
-        </div>
-
-        <div class="fuel-record-controls daily-monitoring-controls">
-          <x-ui.table-toolbar
-            :action="route('fuel-reports')"
-            form-id="dailyFuelMonitoringToolbar"
-            :show-search="false"
-            :filter-count="(int) ($monitorDate !== today()->toDateString()) + (int) ($monitorFilter !== 'all')"
-            filter-title="Filter Daily Fuel Monitoring"
-            button-id="openFuelModal"
-            button-label="Manual Entry"
-            button-icon="fa-plus"
-            data-server-filter="true"
-          >
-            <x-slot:hidden>
-              @if(request()->filled('search'))
-                <input type="hidden" name="search" value="{{ request('search') }}">
-              @endif
-              <input type="hidden" name="date_filter" value="{{ request('date_filter', 'This Month') }}">
-              <input type="hidden" name="sort" value="{{ request('sort', 'report_date') }}">
-              <input type="hidden" name="sort_direction" value="{{ request('sort_direction', 'desc') }}">
-            </x-slot:hidden>
-            <x-slot:filters>
-              <x-ui.table-toolbar-field label="Monitoring Date" name="monitor_date" type="date" :value="$monitorDate" />
-              <x-ui.table-toolbar-field label="Show" name="monitor_filter" default="all">
-                <option value="all" @selected($monitorFilter === 'all')>All Buses</option>
-                <option value="needs-entry" @selected($monitorFilter === 'needs-entry')>Needs Fuel Entry</option>
-                <option value="completed" @selected($monitorFilter === 'completed')>Completed</option>
-                <option value="needs-review" @selected($monitorFilter === 'needs-review')>Needs Review</option>
-              </x-ui.table-toolbar-field>
-            </x-slot:filters>
-          </x-ui.table-toolbar>
-        </div>
-
-        <form
-          method="POST"
-          action="{{ route('fuel-reports.store') }}"
-          class="daily-monitoring-form"
-        >
-          @csrf
-          <input type="hidden" name="daily_monitoring" value="1">
-          <input type="hidden" name="monitor_date" value="{{ $monitorDate }}">
-
-          <div class="table-wrap">
-            <table class="fuel-table daily-monitoring-table">
-              <thead>
-                <tr>
-                  <th>Bus ID</th>
-                  <th>GPS Distance</th>
-                  <th>Idling</th>
-                  <th>Fuel Entry</th>
-                  <th>Driver</th>
-                  <th>Workflow</th>
-                  <th>Efficiency</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                @forelse($dailyMonitoring as $index => $row)
-                  @php
-                    $workflowClass = strtolower(str_replace(' ', '-', $row->workflow_status));
-                    $efficiencyClass = strtolower(str_replace(' ', '-', $row->efficiency_status));
-                  @endphp
-
-                  <tr class="daily-monitoring-row {{ $workflowClass }}">
-                    <td class="bus-cell">
-                      <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $row->bus_no }}</span>
-                      @if($row->bus_model)
-                        <small>{{ $row->bus_model }}</small>
-                      @endif
-                      <input
-                        type="hidden"
-                        name="entries[{{ $index }}][bus_no]"
-                        value="{{ $row->bus_no }}"
-                      >
-                    </td>
-
-                    <td class="gps-cell">
-                      <strong>{{ number_format($row->gps_distance_km, 2) }} km</strong>
-                      <small>{{ $row->gps_distance_km > 0 ? 'Processed GPS' : 'No GPS activity yet' }}</small>
-                    </td>
-
-                    <td>
-                      {{ number_format($row->idling_minutes) }} min
-                    </td>
-
-                    <td>
-                      <input
-                        class="daily-inline-input"
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        name="entries[{{ $index }}][fuel_liters]"
-                        value="{{ $row->fuel_liters > 0 ? number_format($row->fuel_liters, 2, '.', '') : '' }}"
-                        placeholder="Liters"
-                        @disabled($row->gps_distance_km <= 0)
-                      >
-                    </td>
-
-                    <td>
-                      <input
-                        class="daily-inline-input daily-driver-input"
-                        type="text"
-                        name="entries[{{ $index }}][driver_name]"
-                        value="{{ $row->driver_name }}"
-                        placeholder="Optional"
-                        maxlength="255"
-                        @disabled($row->gps_distance_km <= 0)
-                      >
-                    </td>
-
-                    <td>
-                      <x-ui.status-badge :status="$row->workflow_status" class="workflow-badge {{ $workflowClass }}" />
-                    </td>
-
-                    <td>
-                      <x-ui.status-badge :status="$row->efficiency_status" class="{{ $efficiencyClass }}" />
-
-                      @if($row->km_per_liter > 0)
-                        <small>{{ number_format($row->km_per_liter, 2) }} km/L</small>
-                      @endif
-                    </td>
-                  </tr>
-                @empty
-                  <x-ui.empty-row
-                    colspan="7"
-                    icon="fa-gas-pump"
-                    message="No Bus Fuel Efficiency Records"
-                    description="No buses match the selected filter criteria."
-                  />
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-
-          @if($dailyMonitoring->isNotEmpty())
-            <div class="daily-monitoring-actions">
-              <p>
-                <i class="fa-solid fa-circle-info"></i>
-                Blank fuel fields are ignored. Enter liters only for buses that refueled, then save all changes once.
-              </p>
-
-              <button type="submit" class="daily-save-btn">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Save All Changes
-              </button>
-            </div>
-          @endif
-        </form>
-
-      </section>
-
 
       {{-- RECENT FUEL ENTRIES --}}
       <section data-ajax-region="fuel-records" class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>
-            <h2>Recent Fuel Entries</h2>
-            <p>Latest saved fuel entries for quick verification and audit.</p>
+            <h2>Fuel Records</h2>
+            <p>Fuel issuance entries and their recorded trip distance.</p>
           </div>
+          <button type="button" id="openPhysicalFuelForm" class="fuel-new-report-btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> New Fuel Report</button>
         </div>
 
         <div class="fuel-record-controls recent-fuel-controls">
           <x-ui.table-toolbar
             :action="route('fuel-reports')"
             form-id="recentFuelEntriesToolbar"
-            search-label="Search Fuel Entries"
-            search-placeholder="Search bus, driver, status, or distance source..."
+            search-label="Search Fuel Records"
+            search-placeholder="Search bus, driver, or source..."
             :filter-count="(int) (request('date_filter', 'This Month') !== 'This Month')"
             filter-title="Filter Fuel Entries"
             :sort-options="[
@@ -336,14 +87,13 @@
 
             <thead>
               <tr>
+                <th>Record No.</th>
                 <th>Date</th>
-                <th>Vehicle</th>
-                <th>Distance</th>
-                <th>Fuel</th>
-                <th>KM/L</th>
+                <th>Bus</th>
                 <th>Driver</th>
-                <th>Source</th>
-                <th>Status</th>
+                <th>Gas Station</th>
+                <th>Liters (L)</th>
+                <th>Total KM</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -352,59 +102,14 @@
 
               @forelse($recentFuelRecords as $record)
 
-                @php
-                  $recordStatusClass =
-                    strtolower(
-                      str_replace(
-                        ' ',
-                        '-',
-                        $record->status
-                      )
-                    );
-                @endphp
-
                 <tr>
-
-                  <td>
-                    {{ $record->report_date?->format('M d, Y') }}
-                  </td>
-
-                  <td>
-                    <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->distance_km, 2) }} km
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->fuel_liters, 2) }} L
-                  </td>
-
-                  <td>
-                    {{ number_format((float) $record->km_per_liter, 2) }}
-                  </td>
-
-                  <td>
-                    {{ $record->driver_name ?: '—' }}
-                  </td>
-
-                  <td>
-                    <span class="source-badge {{ strtolower($record->distance_source) }}">
-                      <i
-                        class="fa-solid {{
-                          $record->distance_source === 'GPS'
-                            ? 'fa-location-dot'
-                            : 'fa-pen'
-                        }}"
-                      ></i>
-                      {{ $record->distance_source }}
-                    </span>
-                  </td>
-
-                  <td>
-                    <x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" />
-                  </td>
+                  <td><span class="fuel-record-reference">#{{ $record->id }}</span></td>
+                  <td>{{ $record->report_date?->format('M d, Y') }}</td>
+                  <td><span class="bus-badge-pill"><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $record->bus_no }}</span></td>
+                  <td>{{ $record->driver_name ?: '—' }}</td>
+                  <td>{{ $record->gas_station ?: '—' }}</td>
+                  <td>{{ number_format((float) $record->fuel_liters, 2) }}</td>
+                  <td>{{ number_format((float) $record->distance_km, 2) }}</td>
 
                   <td>
 
@@ -432,6 +137,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
+                      @if($record->entry_type !== 'Physical Form')
                       <button
                         type="button"
                         class="fuel-action-btn edit"
@@ -450,6 +156,7 @@
                       >
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
+                      @endif
 
                       <form
                         action="{{ route('fuel-reports.destroy', $record) }}"
@@ -483,7 +190,7 @@
               @empty
 
                 <x-ui.empty-row
-                  colspan="9"
+                  colspan="8"
                   icon="fa-gas-pump"
                   message="No Fuel Records Found"
                   description="No fuel dispensing or consumption logs match your search or filter criteria."
@@ -502,6 +209,78 @@
     </main>
 
   </div>
+
+  <div class="fuel-paper-overlay" id="physicalFuelModal" hidden>
+    <div class="fuel-paper-modal" role="dialog" aria-modal="true" aria-labelledby="physicalFuelTitle">
+      <div class="fuel-paper-header">
+        <span class="fuel-paper-heading-icon"><i class="fa-solid fa-gas-pump" aria-hidden="true"></i></span>
+        <div><h2 id="physicalFuelTitle">New Fuel Report</h2><p>Encode the driver's Fuel Efficiency Monitoring Form</p></div>
+        <button type="button" id="closePhysicalFuelForm" class="fuel-paper-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form method="POST" action="{{ route('fuel-reports.store') }}" id="physicalFuelForm"
+        data-confirm-form
+        data-confirm-title="Save Fuel Report?"
+        data-confirm-message="Confirm the fuel issuance and trip details are accurate before saving."
+        data-confirm-button="Yes, Save Fuel Report"
+        data-confirm-type="create">
+        @csrf
+        <input type="hidden" name="physical_fuel_form" value="1">
+        <div class="fuel-paper-content">
+          @if($errors->any())<div class="fuel-paper-errors" role="alert">{{ $errors->first() }}</div>@endif
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">01</span> Fuel Issuance Details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-grid">
+              <div class="fuel-paper-field"><label for="physical-date">Report Date *</label><input type="date" id="physical-date" name="report_date" value="{{ old('report_date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></div>
+              <div class="fuel-paper-field"><label for="physical-station">Gas Station *</label><input id="physical-station" name="gas_station" value="{{ old('gas_station') }}" placeholder="Enter gas station" maxlength="150" required></div>
+              <div class="fuel-paper-field fuel-paper-search-picker" data-picker="bus"><label for="physical-bus-search">Bus *</label>
+                <input type="hidden" id="physical-bus" name="bus_no" value="{{ old('bus_no') }}">
+                <div class="fuel-paper-search-shell"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="physical-bus-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="physical-bus-options" placeholder="Search bus number or plate..." autocomplete="off" required></div>
+                <div class="fuel-paper-search-options" id="physical-bus-options" role="listbox" hidden>@foreach($buses as $bus)<button type="button" role="option" class="fuel-paper-search-option" data-value="{{ $bus->bus_no }}" data-name="{{ $bus->bus_no }}" data-search="{{ strtolower($bus->bus_no.' '.$bus->plate_no) }}" data-plate="{{ $bus->plate_no }}">{{ $bus->bus_no }}</button>@endforeach<p class="fuel-paper-search-empty" hidden>No matching buses</p></div>
+              </div>
+              <div class="fuel-paper-field fuel-paper-search-picker" data-picker="driver"><label for="physical-driver-search">Driver / Employee *</label>
+                <input type="hidden" id="physical-driver" name="driver_id" value="{{ old('driver_id') }}">
+                <div class="fuel-paper-search-shell"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="physical-driver-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="physical-driver-options" placeholder="Search driver name or ID..." autocomplete="off" required></div>
+                <div class="fuel-paper-search-options" id="physical-driver-options" role="listbox" hidden>@foreach($drivers as $driver)<button type="button" role="option" class="fuel-paper-search-option" data-value="{{ $driver->driver_id }}" data-name="{{ $driver->driver_name }}" data-search="{{ strtolower($driver->driver_name.' '.$driver->driver_id) }}">{{ $driver->driver_name }}</button>@endforeach<p class="fuel-paper-search-empty" hidden>No matching drivers</p></div>
+              </div>
+              <div class="fuel-paper-field"><label for="physical-plate">Plate Number</label><input id="physical-plate" readonly placeholder="Selected bus plate"></div>
+              <div class="fuel-paper-field"><label for="physical-time">Issuance Time</label><input id="physical-time" type="time" name="issued_at" value="{{ old('issued_at') }}"></div>
+              <div class="fuel-paper-field"><label for="physical-po">PO Number</label><input id="physical-po" name="po_reference" value="{{ old('po_reference') }}" maxlength="80" placeholder="Optional reference"></div>
+              <div class="fuel-paper-field"><label for="physical-liters">Diesel Issued (L) *</label><input id="physical-liters" type="number" step="0.01" min="0.01" name="fuel_liters" value="{{ old('fuel_liters') }}" placeholder="0.00" required></div>
+            </div>
+          </details>
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">02</span> Trip Details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-trip-content">
+              <p class="fuel-paper-hint">Enter the trips on the paper form. Do not double-count DDR distances.</p>
+              <div id="physicalTripRows" class="fuel-paper-trip-rows"></div>
+              <div class="fuel-paper-trip-bottom"><button type="button" id="addPhysicalTrip" class="fuel-paper-add-trip"><i class="fa-solid fa-plus"></i> Add Trip Row</button><strong>Total KM: <span id="physicalTripTotal">0.00</span> km</strong></div>
+            </div>
+          </details>
+          <details class="fuel-paper-section" open>
+            <summary><span class="fuel-paper-step">03</span> Remarks <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+            <div class="fuel-paper-remarks"><label for="physical-remarks">Additional notes (optional)</label><textarea id="physical-remarks" name="remarks" rows="3" maxlength="2000" placeholder="Full tank, special trip, observations...">{{ old('remarks') }}</textarea></div>
+          </details>
+        </div>
+        <div class="fuel-paper-footer"><button type="button" id="cancelPhysicalFuelForm" class="fuel-paper-cancel">Cancel</button><button type="submit" class="fuel-paper-save"><i class="fa-solid fa-floppy-disk"></i> Save Fuel Report</button></div>
+      </form>
+    </div>
+  </div>
+  @if(old('physical_fuel_form'))
+    <span id="physicalFuelReopen" hidden></span>
+  @endif
+  <script type="application/json" id="physicalFuelOldTrips">@json(old('trips', []))</script>
+  <template id="physicalTripTemplate">
+    <div class="fuel-paper-trip">
+      <div class="fuel-paper-trip-title"><strong>Trip <span class="fuel-paper-trip-number"></span></strong><button type="button" class="fuel-paper-remove-trip" aria-label="Remove trip"><i class="fa-solid fa-trash"></i></button></div>
+      <div class="fuel-paper-trip-grid">
+        <div class="fuel-paper-field"><label>Trip Date *</label><input type="date" data-field="trip_date" required></div>
+        <div class="fuel-paper-field"><label>Trip Ticket No.</label><input data-field="ticket_number" maxlength="80"></div>
+        <div class="fuel-paper-field"><label>Origin *</label><input data-field="origin" maxlength="150" required></div>
+        <div class="fuel-paper-field"><label>Destination *</label><input data-field="destination" maxlength="150" required></div>
+        <div class="fuel-paper-field"><label>Distance (km) *</label><input type="number" data-field="distance_km" step="0.01" min="0.01" required></div>
+      </div>
+    </div>
+  </template>
 
   {{-- ADD / EDIT FUEL RECORD --}}
   <div class="fuel-modal-overlay" id="fuelModal">
