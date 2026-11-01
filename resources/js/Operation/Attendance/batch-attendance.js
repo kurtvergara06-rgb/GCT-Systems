@@ -15,7 +15,7 @@ function initBatchAttendancePage() {
     const busyLabel = type === 'driver' ? 'On Duty' : 'On Job';
     const modalDescription = type === 'driver'
         ? 'All active drivers from the Driver Master List load automatically for the selected date.'
-        : 'Active mechanics from the Mechanic Master List load automatically for the selected date.';
+        : 'Active mechanics load automatically. Regular duty: 8:00 AM–5:00 PM (10-minute time-in grace period).';
 
     let shiftStarts = {};
     let graceMinutes = 10;
