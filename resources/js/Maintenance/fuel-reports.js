@@ -2087,4 +2087,4 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
     renumber();
   }
   if (document.getElementById('physicalFuelReopen')) trigger.click();
-})();
+});
