@@ -2009,3 +2009,64 @@ window.addEventListener('load', () => {
     renderUsageChart(data);
   });
 });
+
+/* Physical fuel form; independent of historical fuel editing and GPS lookup. */
+(() => {
+  const modal = document.getElementById('physicalFuelModal');
+  const trigger = document.getElementById('openPhysicalFuelForm');
+  const form = document.getElementById('physicalFuelForm');
+  const rows = document.getElementById('physicalTripRows');
+  const template = document.getElementById('physicalTripTemplate');
+  if (!modal || !trigger || !form || !rows || !template) return;
+
+  const close = () => { modal.hidden = true; document.body.style.overflow = ''; trigger.focus(); };
+  const recalc = () => {
+    let total = 0;
+    [...rows.querySelectorAll('[data-field="distance_km"]')].forEach(field => {
+      const value = Number(field.value);
+      if (Number.isFinite(value) && value > 0) total += value;
+    });
+    document.getElementById('physicalTripTotal').textContent = total.toFixed(2);
+  };
+  const renumber = () => {
+    [...rows.children].forEach((row, index) => {
+      row.querySelector('.fuel-paper-trip-number').textContent = String(index + 1);
+      row.querySelectorAll('[data-field]').forEach(field => {
+        field.name = 'trips[' + index + '][' + field.dataset.field + ']';
+      });
+    });
+    recalc();
+  };
+  const addTrip = () => {
+    if (rows.children.length >= 30) return;
+    const row = template.content.firstElementChild.cloneNode(true);
+    rows.appendChild(row);
+    row.querySelector('[data-field="trip_date"]').value = form.querySelector('#physical-date').value;
+    row.querySelectorAll('input[type="date"]').forEach(input => { input.max = new Date().toLocaleDateString('en-CA'); });
+    row.querySelector('.fuel-paper-remove-trip').addEventListener('click', () => {
+      if (rows.children.length <= 1) return;
+      row.remove(); renumber();
+    });
+    row.addEventListener('input', recalc);
+    renumber();
+  };
+  const bus = document.getElementById('physical-bus');
+  const syncPlate = () => { document.getElementById('physical-plate').value = bus.selectedOptions[0]?.dataset.plate || ''; };
+  bus.addEventListener('change', syncPlate);
+  syncPlate();
+  document.getElementById('addPhysicalTrip').addEventListener('click', addTrip);
+  trigger.addEventListener('click', () => {
+    if (rows.children.length === 0) addTrip();
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    bus.focus();
+  });
+  document.getElementById('cancelPhysicalFuelForm').addEventListener('click', close);
+  document.getElementById('closePhysicalFuelForm').addEventListener('click', close);
+  modal.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  form.addEventListener('submit', event => {
+    renumber();
+    if (rows.children.length === 0) { event.preventDefault(); addTrip(); }
+  });
+  if (rows.children.length === 0) addTrip();
+})();
