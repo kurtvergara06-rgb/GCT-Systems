@@ -19,6 +19,66 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                 panel.hidden = panel.dataset.catalogPanel !== name;
             });
         };
+        const skillForm = catalog.querySelector('[data-catalog-skill-form]');
+        const skillSearch = catalog.querySelector('[data-catalog-skill-search]');
+        const filterSkills = () => {
+            const term = (skillSearch?.value || '').trim().toLocaleLowerCase();
+            let visible = 0;
+            catalog.querySelectorAll('[data-catalog-skill-entry]').forEach(entry => {
+                entry.hidden = !entry.textContent.toLocaleLowerCase().includes(term);
+                if (!entry.hidden) visible++;
+            });
+            const empty = catalog.querySelector('[data-catalog-skill-empty]');
+            if (empty) empty.hidden = visible > 0;
+        };
+        skillSearch?.addEventListener('input', filterSkills);
+        catalog.querySelector('[data-catalog-new-skill]')?.addEventListener('click', () => {
+            if (!skillForm) return;
+            skillForm.hidden = false;
+            skillForm.querySelector('[name="name"]')?.focus();
+        });
+        catalog.querySelector('[data-catalog-cancel-skill]')?.addEventListener('click', () => {
+            if (!skillForm) return;
+            skillForm.reset();
+            skillForm.hidden = true;
+        });
+        skillForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const submit = skillForm.querySelector('[type="submit"]');
+            const feedback = skillForm.querySelector('[data-catalog-skill-feedback]');
+            const name = skillForm.querySelector('[name="name"]').value.trim();
+            if (!name || !skillForm.reportValidity()) return;
+            submit.disabled = true;
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                    || modal.querySelector('input[name="_token"]')?.value;
+                const response = await fetch(skillForm.dataset.endpoint, {
+                    method: 'POST',
+                    headers: { 'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({name})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Unable to create specialization.');
+                const card = document.createElement('div');
+                card.className = 'personnel-catalog-skill-card';
+                card.dataset.catalogSkillEntry = '';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-screwdriver-wrench';
+                icon.setAttribute('aria-hidden','true');
+                const label = document.createElement('strong');
+                label.textContent = data.name;
+                card.append(icon,label);
+                catalog.querySelector('[data-catalog-skills-grid]')?.append(card);
+                skillForm.reset();
+                skillForm.hidden = true;
+                filterSkills();
+                if (feedback) feedback.textContent = '';
+                // Refresh catalog records from the server before selecting the new skill in a job.
+                window.location.reload();
+            } catch (error) {
+                if (feedback) feedback.textContent = error.message;
+            } finally { submit.disabled = false; }
+        });
         const jobForm = catalog.querySelector('[data-catalog-job-form]');
         const resetJob = () => {
             if (!jobForm) return;
