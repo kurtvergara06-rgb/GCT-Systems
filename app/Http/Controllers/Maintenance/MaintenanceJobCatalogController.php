@@ -11,7 +11,12 @@ class MaintenanceJobCatalogController extends Controller
 {
     private function authorizeHead(Request $request): void
     {
-        abort_unless($request->user()?->hasSystemPermission('maintenance', 'approve'), 403);
+        $user = $request->user();
+        $department = mb_strtolower(trim((string) $user?->department));
+        $role = mb_strtolower(trim((string) $user?->role));
+        $head = ($department === 'maintenance' && in_array($role, ['head', 'maintenance head', 'admin', 'maintenance admin'], true))
+            || ($department === 'admin' && in_array($role, ['head', 'admin', 'system admin'], true));
+        abort_unless($head && $user?->hasSystemPermission('maintenance', 'approve'), 403);
     }
 
     public function store(Request $request)
