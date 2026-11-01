@@ -13,6 +13,7 @@
         <x-layout.sidebar department="Maintenance" />
 
         <main class="main jo-page">
+            <script type="application/json" id="maintenanceJobCatalogData">@json($maintenanceJobCatalog)</script>
             <x-layout.topbar
                 title="Job Orders"
                 subtitle="Manage repair and preventive maintenance service requests"
