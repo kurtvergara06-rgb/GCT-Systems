@@ -384,19 +384,6 @@
                             <span>{{ $specialization }}</span>
                             <i class="fa-solid fa-plus personnel-specialization-state-icon" aria-hidden="true"></i>
                         </button>
-                        @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit') && $customSpecializationIds->has($specialization))
-                            <button type="button"
-                                class="personnel-specialization-delete-btn"
-                                data-specialization-delete
-                                hidden
-                                data-specialization-name="{{ $specialization }}"
-                                data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}"
-                                aria-label="Delete custom specialization {{ $specialization }}"
-                                title="Delete custom specialization {{ $specialization }}"
-                                style="min-height:18px;min-width:18px;padding:0 3px;font-size:10px;border:1px solid #fecaca;border-radius:6px;background:#fff1f2;color:#b91c1c;cursor:pointer;align-items:center;justify-content:center">
-                                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                            </button>
-                        @endif
                     @endforeach
                 </div>
 
