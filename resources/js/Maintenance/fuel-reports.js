@@ -2010,14 +2010,15 @@ window.addEventListener('load', () => {
   });
 });
 
-/* Physical fuel form; independent of historical fuel editing and GPS lookup. */
-(() => {
+/* Physical fuel form: initialize on every partial page navigation. */
+window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form', '.fuel-page', () => {
   const modal = document.getElementById('physicalFuelModal');
   const trigger = document.getElementById('openPhysicalFuelForm');
   const form = document.getElementById('physicalFuelForm');
   const rows = document.getElementById('physicalTripRows');
   const template = document.getElementById('physicalTripTemplate');
-  if (!modal || !trigger || !form || !rows || !template) return;
+  if (!modal || !trigger || !form || !rows || !template || form.dataset.physicalBound === '1') return;
+  form.dataset.physicalBound = '1';
 
   const close = () => { modal.hidden = true; document.body.style.overflow = ''; trigger.focus(); };
   const recalc = () => {
