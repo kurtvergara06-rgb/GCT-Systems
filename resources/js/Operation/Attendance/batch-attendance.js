@@ -151,7 +151,8 @@ function initBatchAttendancePage() {
         if (type === 'mechanic') {
             const setSelectedTime = (field) => {
                 const selected = Array.from(overlay.querySelectorAll('[data-batch-row]'))
-                    .filter(row => !row.classList.contains('is-unavailable')
+                    .filter(row => row.dataset.recorded !== 'true'
+                        && !row.classList.contains('is-unavailable')
                         && row.querySelector('[data-row-select]')?.checked);
                 selected.forEach(row => {
                     const input = row.querySelector(field);
