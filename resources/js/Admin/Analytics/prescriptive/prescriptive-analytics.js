@@ -166,6 +166,11 @@ function initRestockingPrescriptiveCharts(data) {
     const categoryCanvas = document.getElementById('prescriptiveCategoryBarChart');
     if (categoryCanvas && data.categoryLabels && data.categoryLabels.length > 0) {
         destroyPrescriptiveChart('prescriptiveCategoryBarChart');
+        const defaultPalette = ['#2563eb', '#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6', '#14b8a6'];
+        const barColors = (data.categoryColors && data.categoryColors.length === data.categoryLabels.length)
+            ? data.categoryColors
+            : data.categoryLabels.map((_, i) => defaultPalette[i % defaultPalette.length]);
+
         prescriptiveChartInstances['prescriptiveCategoryBarChart'] = new Chart(categoryCanvas, {
             type: 'bar',
             data: {
@@ -174,9 +179,9 @@ function initRestockingPrescriptiveCharts(data) {
                     {
                         label: 'Suggested Restock Quantity (Units)',
                         data: data.categoryValues || [],
-                        backgroundColor: data.categoryColors || '#2563eb',
+                        backgroundColor: barColors,
                         borderRadius: 6,
-                        maxBarThickness: 24,
+                        maxBarThickness: 28,
                     },
                 ],
             },
