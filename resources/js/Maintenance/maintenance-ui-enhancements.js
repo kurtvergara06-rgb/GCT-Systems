@@ -911,6 +911,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       debounce = setTimeout(refresh, 250);
     });
     void refresh();
+    return refresh;
   };
 
   attachAutomaticDuration(newJo);
@@ -921,6 +922,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     problemSelector: 'textarea[name="problem_issue"]',
     idPrefix: 'editJo',
   });
+  const refreshEditAutomaticDuration = attachAutomaticDuration(editJo);
 
   if (newJo?.form && newJo.maintenanceType) {
     newJo.form.addEventListener('submit', () => {
@@ -981,7 +983,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
         specializations = [];
       }
       editJo.jobField?.setSelectionFromWork(work, specializations);
-      void window.GCTLoadEditDurationSuggestion?.();
+      void refreshEditAutomaticDuration?.();
 
       const readonly = button.dataset.viewOnly === '1' || button.dataset.status === 'Completed';
 
