@@ -484,7 +484,7 @@
                                 data-search="{{ strtolower($bus->bus_no . ' ' . $bus->plate_no . ' ' . $bus->bus_model . ' ' . $bus->status) }}"
                             >
                                 <strong>{{ $bus->bus_no }}</strong>
-                                <small>{{ $bus->plate_no }} &bull; {{ $bus->bus_model }} &bull; <x-ui.status-badge :status="$bus->status" /></small>
+                                <small>{{ $bus->plate_no }} &bull; {{ $bus->bus_model }}</small>
                             </li>
                         @endforeach
                     </ul>
