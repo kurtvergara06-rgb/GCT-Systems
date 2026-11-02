@@ -1122,12 +1122,15 @@ class BatchFileProcessingController extends Controller
         });
 
         return [
-            'total' => $total,
+            'total' => $total + ($payload['skipped_invalid'] ?? 0),
             'processed' => $processed,
-            'failed' => $failed,
+            'failed' => $failed + ($payload['skipped_invalid'] ?? 0),
             'skipped_headers' => 0,
             'skipped_no_bus_no' => $skippedNoBusNo,
-            'first_error' => $firstFailureMessage,
+            'first_error' => $firstFailureMessage
+                ?? (($payload['skipped_invalid'] ?? 0) > 0
+                    ? $payload['skipped_invalid'].' PDF rows require review and were not imported.'
+                    : null),
         ];
     }
 
