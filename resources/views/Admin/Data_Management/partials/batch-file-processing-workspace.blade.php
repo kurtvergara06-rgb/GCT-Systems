@@ -209,7 +209,7 @@
                             @if($needsCheck)
                                 <span class="gps-validation-flag" title="{{ $missingLocation ? 'Source location was not reliably extracted. ' : '' }}{{ $missingMileage ? 'Mileage is missing. ' : '' }}">Needs Review</span>
                             @else
-                                <span class="gps-validation-ok">Complete</span>
+                                <span class="gps-validation-ok" title="Required displayed values present; this does not certify all source calculations">Fields Present</span>
                             @endif
                         </td>
                     </tr>
