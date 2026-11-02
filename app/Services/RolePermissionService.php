@@ -59,6 +59,13 @@ class RolePermissionService
             );
         }
 
+        // Analytics is shareable; operational modules remain department-isolated.
+        foreach (array_keys($this->modules()['analytics']['capabilities']) as $capability) {
+            $normalized['analytics'][$capability] = (bool) data_get(
+                $submittedPermissions, 'analytics.'.$capability, false
+            );
+        }
+
         return $normalized;
     }
 
