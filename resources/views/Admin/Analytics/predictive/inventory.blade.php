@@ -259,7 +259,7 @@
     </section>
 
     {{-- PREDICTION TABLE --}}
-    <x-analytics.card class="predictive-card predictions-card" title="Inventory Reorder Forecast" description="Parts ranked by stockout risk, depletion horizon, and recommended purchase quantities.">
+    <x-analytics.card class="predictive-card predictions-card" title="Inventory Replenishment Overview" description="Current inventory levels, reorder thresholds, available history, and advisory purchase quantities.">
         <div class="table-wrap predictive-inventory-table-wrap" tabindex="0" aria-label="Scrollable inventory reorder forecast table">
             <table class="predictive-table predictive-inventory-table">
                 <thead>
@@ -267,10 +267,10 @@
                         <th style="width: 11%;">Item Code</th>
                         <th style="width: 17%;">Item & Description</th>
                         <th style="width: 13%;">Category</th>
-                        <th style="width: 17%;">Stock Buffer & Level</th>
-                        <th style="width: 13%;">Runout Horizon</th>
+                        <th style="width: 17%;">On Hand / Reorder Point</th>
+                        <th style="width: 13%;">Coverage History</th>
                         <th style="width: 7%;">Gap</th>
-                        <th style="width: 11%;">Suggested PO</th>
+                        <th style="width: 11%;">Suggested Qty</th>
                         <th style="width: 11%;">Risk State</th>
                     </tr>
                 </thead>
@@ -309,15 +309,15 @@
                                     <div class="buffer-text">
                                         <span class="buffer-onhand {{ $onHand <= 0 ? 'buffer-zero' : '' }}">{{ number_format($onHand) }}</span>
                                         <span class="buffer-sep">/</span>
-                                        <span class="buffer-reorder">{{ number_format($reorder) }} min</span>
+                                        <span class="buffer-reorder">{{ number_format($reorder) }} reorder</span>
                                     </div>
-                                    <div class="buffer-track" title="{{ $bufferPct }}% safety stock">
+                                    <div class="buffer-track" title="On-hand quantity compared with reorder point">
                                         <div class="buffer-fill buffer-fill--{{ $bufferTone }}" style="width: {{ $bufferPct }}%"></div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="runout-pill runout-pill--{{ $bufferTone }}">
+                                <span class="runout-pill runout-pill--neutral">
                                     <i class="fa-regular fa-clock"></i>
                                     {{ $runout }}
                                 </span>
@@ -352,7 +352,7 @@
     </x-analytics.card>
 
     <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Stock forecasts are derived from on-hand quantity, safety reorder thresholds, and active maintenance consumption patterns.
+        <i class="fa-solid fa-circle-info"></i> Stock-level indicators use recorded quantities and reorder points. A time-to-stockout estimate requires sufficient actual issuance history.
     </p>
 
 </div>
