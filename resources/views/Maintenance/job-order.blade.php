@@ -171,12 +171,23 @@
                                     };
                                     $linkedPrs = $linkedPrsByJobOrderNo->get($jobOrder->job_order_no, collect());
 
-                                    // A linked, still-outstanding procurement request is an objective
-                                    // delay risk. Do not infer delay from "Not Requested" alone or
-                                    // flag an already fulfilled/completed Job Order.
-                                    // Show the shortage warning until Warehouse confirms all required parts.
-                                    $hasPartsDelayRisk = $isApprovedReview && !$isCompleted && $hasNeededParts
+                                    // Distinguish genuine shortage from pending physical issuance.
+                                    // Inventory availability excludes all JOs' reserved stock and uses
+                                    // identity- and unit-safe matching via the shared workflow service.
+                                    $partsStillPending = $isApprovedReview && !$isCompleted && $hasNeededParts
                                         && !in_array($partStatus, ['Fully Issued', 'No Parts Required'], true);
+                                    $partsAvailability = $partsStillPending
+                                        ? app(\App\Services\Maintenance\JobOrderWorkflowService::class)
+                                            ->inventoryAvailability(
+                                                app(\App\Services\PartParser::class)->parsePartText($jobOrder->part_needed),
+                                                $reviewStockItems,
+                                                $reviewCommittedStock
+                                            )
+                                        : ['status' => 'sufficient'];
+                                    // Fully available stock must never trigger the "Missing Parts" warning.
+                                    // Partial issuance is not proof of a shortage by itself.
+                                    $hasPartsDelayRisk = $partsStillPending && $partsAvailability['status'] !== 'sufficient';
+                                    $hasPartsAwaitingIssue = $partsStillPending && !$hasPartsDelayRisk;
                                     $linkedPr = $linkedPrs->first();
                                     $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
@@ -245,8 +256,11 @@
                                                 {{ $jobOrder->overdue_label }}
                                             </span>
                                         @endif
+                                        @if($hasPartsAwaitingIssue)
+                                            <span class="jo-estimate-inline" title="Warehouse stock is available, but physical issuance is not yet complete.">Stock Available — Awaiting Issuance</span>
+                                        @endif
                                         @if($hasPartsDelayRisk)
-                                            <span class="jo-parts-delay-indicator" title="Required parts have not been fully issued. Completion may be delayed; the estimated duration is unchanged.">
+                                            <span class="jo-parts-delay-indicator" title="Warehouse stock cannot currently cover all required parts. Check reserved and already-issued quantities before procurement.">
                                                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
                                             </span>
                                         @endif
