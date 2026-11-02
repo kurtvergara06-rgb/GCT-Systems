@@ -42,14 +42,14 @@ class DataHistoryController extends Controller
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'file_name' => 'file_name', 'activity_type' => 'activity_type', 'module' => 'module', 'status' => 'status'], 'created_at', 'desc');
         $history = $query->paginate(25)->withQueryString();
 
+        // Dashboard counters describe GPS batch-processing activity only.
+        // The table retains all historical transfer entries for auditability.
+        $batchActivities = DataActivity::query()->where('activity_type', 'Batch Processing');
         $stats = [
-            'total' => DataActivity::count(),
-            'successful' => DataActivity::where('status', 'Completed')->count(),
-            'processed_files' => DataActivity::whereIn('activity_type', [
-                'Batch Processing',
-                'Import',
-            ])->where('status', 'Completed')->count(),
-            'failed' => DataActivity::whereIn('status', ['Failed', 'Needs Correction'])->count(),
+            'total' => (clone $batchActivities)->count(),
+            'successful' => (clone $batchActivities)->where('status', 'Completed')->count(),
+            'processed_files' => (clone $batchActivities)->where('status', 'Completed')->count(),
+            'failed' => (clone $batchActivities)->whereIn('status', ['Failed', 'Needs Correction'])->count(),
         ];
 
         return view('Admin.Data_Management.data-history', compact('history', 'stats'));
@@ -65,8 +65,6 @@ class DataHistoryController extends Controller
         $remediationUrl = null;
         if ($activity->reference_type === 'batch_upload') {
             $remediationUrl = route('admin.batch-file-processing');
-        } elseif ($activity->activity_type === 'Import') {
-            $remediationUrl = route('admin.import-export');
         }
 
         return response()->json([
