@@ -419,7 +419,13 @@ class MechanicAttendanceController extends Controller
                     continue;
                 }
 
-                $mechanic = Mechanic::query()->where('mechanic_name', $name)->first();
+                // Legacy CSV rows have no stable ID: never guess among
+                // multiple employees who happen to share a name.
+                $matches = Mechanic::query()
+                    ->whereRaw('LOWER(TRIM(mechanic_name)) = ?', [mb_strtolower($name)])
+                    ->limit(2)
+                    ->get();
+                $mechanic = $matches->count() === 1 ? $matches->first() : null;
 
                 if (! $mechanic) {
                     $skipped++;
