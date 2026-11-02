@@ -7,6 +7,8 @@
     $highShare = round(($distribution->high / $totalRecords) * 100, 1);
     $fuelTrendLabels = collect($fuelPredict->trend_labels ?? [])->values();
     $fuelTrendForecast = collect($fuelPredict->trend_forecast ?? [])->values();
+    $fuelObservationCount = collect($fuelPredict->trend_actual ?? [])->filter(fn ($v) => $v !== null)->count();
+    $canDisplayFuelProjection = $fuelTrendForecast->contains(fn ($v) => $v !== null);
     $peakForecast = $fuelTrendForecast
         ->filter(fn ($value) => is_numeric($value))
         ->sortDesc()
@@ -47,20 +49,20 @@
     {{-- CHART GRID --}}
     <section class="predictive-main-grid">
 
-        <x-analytics.card class="predictive-card forecast-card" title="Fuel Consumption Trend" description="Recorded daily liters vs smooth ML forecast projection across the full period.">
+        <x-analytics.card class="predictive-card forecast-card" title="Fuel Consumption Trend" description="Actual liters on days with fuel reports. Unreported days are shown as missing, not zero.">
             <div class="chart-header-badges">
-                <span class="telemetry-badge"><i class="fa-solid fa-droplet"></i> Target: ≤ 15.0 L/day</span>
-                <span class="telemetry-badge telemetry-badge--blue"><i class="fa-solid fa-chart-line"></i> Smooth 7-day projection</span>
+                <span class="telemetry-badge"><i class="fa-solid fa-droplet"></i> {{ $fuelObservationCount }} recorded days</span>
+                <span class="telemetry-badge telemetry-badge--blue"><i class="fa-solid fa-chart-line"></i> {{ $canDisplayFuelProjection ? 'Recorded-trend estimate' : 'Insufficient history for forecast' }}</span>
             </div>
             <div class="chart-container large-chart">
                 <canvas id="consumptionChart" role="img" aria-label="Fuel consumption trend chart"></canvas>
             </div>
         </x-analytics.card>
 
-        <x-analytics.card class="predictive-card" title="Fuel Efficiency Trend" description="Fleet km/L telemetry vs 3.59 km/L baseline trajectory.">
+        <x-analytics.card class="predictive-card" title="Fuel Efficiency Trend" description="Measured efficiency on recorded fuel-report days. Missing days are not interpreted as 0 km/L.">
             <div class="chart-header-badges">
                 <span class="telemetry-badge telemetry-badge--green"><i class="fa-solid fa-gauge-high"></i> Baseline: {{ number_format($fleetAvgEfficiency, 2) }} km/L</span>
-                <span class="telemetry-badge"><i class="fa-solid fa-bullseye"></i> Goal: ≥ 4.00 km/L</span>
+                <span class="telemetry-badge"><i class="fa-solid fa-circle-info"></i> Historical measurements only</span>
             </div>
             <div class="chart-container large-chart">
                 <canvas id="efficiencyChart" role="img" aria-label="Fuel efficiency trend chart"></canvas>
@@ -225,8 +227,8 @@
         </x-analytics.card>
 
         {{-- FUEL DEMAND FORECAST --}}
-        <x-analytics.card class="predictive-card" title="Fuel Demand Forecast" description="Projected daily consumption from trend models.">
-            @if($peakForecastLabel !== null && is_numeric($peakForecastValue))
+        <x-analytics.card class="predictive-card" title="Fuel Demand Outlook" description="Projected volumes appear only when sufficient valid historical reports exist.">
+            @if($canDisplayFuelProjection && $peakForecastLabel !== null && is_numeric($peakForecastValue))
                 <div class="fuel-forecast-summary" aria-label="Fuel forecast summary">
                     <div>
                         <span><i class="fa-regular fa-calendar"></i> Peak Projected Day</span>
@@ -238,15 +240,19 @@
                     </div>
                 </div>
             @endif
-            <div class="chart-container">
-                <canvas id="fuelForecastChart" role="img" aria-label="Fuel demand forecast chart"></canvas>
-            </div>
+            @if($canDisplayFuelProjection)
+                <div class="chart-container">
+                    <canvas id="fuelForecastChart" role="img" aria-label="Fuel demand forecast chart"></canvas>
+                </div>
+            @else
+                <div class="has-empty-chart"><p class="analytics-compact-empty">Insufficient recorded fuel history for a reliable forecast.</p></div>
+            @endif
         </x-analytics.card>
 
     </section>
 
     <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Fuel projections are calculated from recorded telemetry, engine idle duration, and historical route baselines.
+        <i class="fa-solid fa-circle-info"></i> Fuel trends use actual reports. Missing observations remain blank; estimates require sufficient recorded history and are not ML forecasts.
     </p>
 
 </div>
