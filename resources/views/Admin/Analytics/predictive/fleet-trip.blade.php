@@ -15,6 +15,14 @@
     $tripGrowth = (float) $tripGrowthTrend;
 
     $predictionAvailable = (bool) ($fleet['prediction']->available ?? false);
+    $predictionStatus = $fleet['prediction'] ?? null;
+    $forecastTargetCount = (int) ($predictionStatus->target_count ?? 0);
+    $forecastHistoryCount = (int) ($predictionStatus->historical_records ?? 0);
+    $forecastEmptyReason = ! $predictionAvailable
+        ? 'The Python forecasting service is unavailable. Historical GPS diagnostics are still shown separately.'
+        : ($forecastTargetCount === 0
+            ? 'No future Scheduled or Ready trips with active routes were found in the next seven days.'
+            : 'No eligible trip-level forecasts were returned. Comparable route history or prediction eligibility may be insufficient.');
 
     $tripCount = (int) ($fleet['tripCount'] ?? 0);
     $totalBuses = (int) ($fleet['totalBuses'] ?? 0);
@@ -95,18 +103,18 @@
             'change_type' => $growthChangeType,
         ],
         [
-            'label' => 'Trips at Risk',
+            'label' => 'GPS Records Flagged', 
             'value' => $tripCount > 0 ? (string) $displayTripsAtRisk : '—',
-            'description' => 'Trips predicted to experience delays or operational issues.',
+            'description' => 'Historical GPS records flagged by diagnostic thresholds; not future trip predictions.',
             'icon' => 'fa-triangle-exclamation',
             'variant' => 'red',
             'change' => $tripCount === 0 ? null : ($displayTripsAtRisk > 0 ? $displayTripsAtRisk . ' flagged for review' : 'No trips flagged'),
             'change_type' => $displayTripsAtRisk > 0 ? 'negative' : 'positive',
         ],
         [
-            'label' => 'Predicted Delays',
+            'label' => 'Delay Indicators',
             'value' => $tripCount > 0 ? (string) $displayPredictedDelays : '—',
-            'description' => 'Trips likely to exceed their expected schedule.',
+            'description' => 'Historical delay and slow-movement indicators; not validated future delays.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
             'change' => $tripCount === 0 ? null : ($displayPredictedDelays > 0 ? $displayPredictedDelays . ' variance alerts' : 'No delays flagged'),
@@ -122,18 +130,18 @@
             'change_type' => 'positive',
         ],
         [
-            'label' => 'High Idle Risk',
+            'label' => 'High-Idle Records',
             'value' => $tripCount > 0 ? (string) $displayHighIdleRisk : '—',
-            'description' => 'Buses predicted to experience excessive idle time.',
+            'description' => 'GPS records with elevated idle indicators; not a count of distinct buses.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
             'change' => $tripCount === 0 ? null : ($displayHighIdleRisk > 0 ? $displayHighIdleRisk . ' elevated units' : 'No high-idle risk flagged'),
             'change_type' => $displayHighIdleRisk > 0 ? 'warning' : 'positive',
         ],
         [
-            'label' => 'Trip Completion Forecast',
+            'label' => 'Unflagged GPS Share',
             'value' => $displayCompletionForecast,
-            'description' => 'Predicted successful trip completion rate.',
+            'description' => 'Share of GPS records not flagged for review; not a trip completion prediction.',
             'icon' => 'fa-circle-check',
             'variant' => 'purple',
             'change' => $tripCount > 0 ? $growthChangeText : null,
@@ -248,13 +256,13 @@
         <x-analytics.card
             class="ft-card ft-risk-card"
             title="Fleet & Trip Risk Level"
-            description="Distribution of predicted operational risk."
+            description="Distribution of available future trip-level forecast risks."
         >
             @if ($fleetRiskTotal === 0)
                 <div class="ft-data-empty" role="status">
                     <span class="ft-data-empty__icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
                     <strong>No risk distribution available</strong>
-                    <span>Risk levels appear when trip predictions are available for the selected filters.</span>
+                    <span>{{ $forecastEmptyReason }}</span>
                 </div>
             @else
             <div class="ft-risk-body">
@@ -397,8 +405,8 @@
         @if ($tripPredictions->isEmpty())
             <div class="ft-data-empty ft-data-empty--table" role="status">
                 <span class="ft-data-empty__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
-                <strong>No trip predictions available for the selected filters.</strong>
-                <span>Try another period or bus. Trip-level risk rows appear when prediction results are available.</span>
+                <strong>No eligible future trip forecasts available.</strong>
+                <span>{{ $forecastEmptyReason }} Historical GPS records: {{ number_format($forecastHistoryCount) }}; upcoming eligible targets: {{ number_format($forecastTargetCount) }}.</span>
             </div>
         @endif
     </x-analytics.card>
