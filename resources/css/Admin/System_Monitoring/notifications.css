@@ -867,12 +867,12 @@
     justify-content: flex-end;
     gap: 8px;
     margin: 0 0 0 auto;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
     outline: 0;
-    background: transparent;
-    box-shadow: none;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 .notifications-page .notification-controls-row #notificationFilterForm .gct-table-tool {
     flex: 0 0 auto;
