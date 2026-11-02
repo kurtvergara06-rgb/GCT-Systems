@@ -55,8 +55,15 @@ class NotificationCenterController extends Controller
             $this->applyReadFilter($query, $readAt, $individuallyReadIds);
         }
 
+        $sortable = ['created_at', 'module', 'action'];
+        $sort = in_array($request->input('sort'), $sortable, true)
+            ? $request->input('sort')
+            : 'created_at';
+        $direction = $request->input('sort_direction', 'desc') === 'asc' ? 'asc' : 'desc';
+
         $notifications = $query
-            ->latest()
+            ->orderBy($sort, $direction)
+            ->orderBy('id', 'desc')
             ->paginate(15)
             ->withQueryString();
 
