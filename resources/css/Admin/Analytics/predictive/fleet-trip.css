@@ -1176,3 +1176,29 @@
     .predictive-fleet-page .ft-dashboard-filter-row { align-items: stretch; }
     .predictive-fleet-page .ft-dashboard-filter-heading { width: 100%; }
 }
+
+
+/* Fleet status overview: master-data breakdown, not dispatch utilization. */
+.predictive-fleet-page .ft-availability-detail {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    color: #52647f;
+    font-size: 11px;
+}
+.predictive-fleet-page .ft-availability-detail strong { color: #142e59; }
+.predictive-fleet-page .ft-availability-progress {
+    height: 9px;
+    border-radius: 999px;
+    background: #e8eef7;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.predictive-fleet-page .ft-availability-progress > span {
+    display: block;
+    height: 100%;
+    background: #16a34a;
+    border-radius: inherit;
+}
