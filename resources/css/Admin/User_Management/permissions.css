@@ -1564,3 +1564,20 @@
 @media (max-width:1180px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(245px,.35fr) minmax(0,.65fr); } .permissions-page .permission-department-picks { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:980px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:540px) { .permissions-page .permission-department-picks { grid-template-columns:repeat(2,minmax(0,1fr)); } .permissions-page .permission-access-actions { justify-content:stretch; } .permissions-page .permission-access-actions button { flex:1; } }
+
+/* Final Additional Access readability pass: no authorization changes. */
+.permissions-page .permission-access-intro p { font-size:12.5px; line-height:1.5; }
+.permissions-page .permission-access-card h2 { font-size:15px; font-weight:800; }
+.permissions-page .permission-access-card > p { margin:5px 0 9px; font-size:12.5px; line-height:1.45; }
+.permissions-page .permission-employee-choice { min-height:49px; }
+.permissions-page .permission-employee-choice.active > i:last-child { color:#0759ed; }
+.permissions-page .permission-access-selected { border-color:#d6e5fa; }
+.permissions-page .permission-access-selected > strong { font-size:15px; line-height:1.35; }
+.permissions-page .permission-access-features > p { margin:5px 0; font-size:12.5px; }
+.permissions-page #additionalAccessReview { min-height:24px; font-size:12.5px; color:#334766; }
+.permissions-page .permission-access-actions { margin-top:11px; padding-top:11px; border-top:1px solid #e8eef7; }
+.permissions-page .permission-department-choice:not(:disabled):hover { background:#edf5ff; border-color:#93b8fb; }
+.permissions-page .permission-feature-choice:hover { border-color:#a7c8fb; background:#f8fbff; }
+@media (min-width:981px) {
+    .permissions-page .permission-access-grid { grid-template-columns:minmax(310px, .32fr) minmax(0, .68fr); }
+}
