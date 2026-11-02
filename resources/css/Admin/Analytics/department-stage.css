@@ -25,3 +25,49 @@
 .department-analytics-empty { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:9px; padding:25px 12px; color:#64748b; font-size:12px; text-align:center; }
 .department-analytics-empty i { font-size:22px; color:#a8bad1; }
 @media(max-width:700px) { .department-analytics-intro { flex-wrap:wrap; } .department-analytics-scope { margin-left:53px; } }
+
+
+/* Reuse Admin Analytics stage navigation visuals, but keep department routes. */
+.department-analytics-page .department-analytics-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    box-shadow: 0 2px 8px rgba(11, 31, 68, .04);
+}
+.department-analytics-page .department-analytics-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+}
+.department-analytics-page .department-analytics-tabs a:hover {
+    background: #e0eaff;
+    color: #1d4ed8;
+}
+.department-analytics-page .department-analytics-tabs a.is-current {
+    background: #2563eb;
+    color: #fff;
+}
+.department-analytics-page .department-analytics-panels {
+    align-items: stretch;
+}
+.department-analytics-page .department-analytics-panel {
+    min-width: 0;
+}
+@media(max-width:700px) {
+    .department-analytics-page .department-analytics-tabs a { flex: 1 1 auto; justify-content: center; }
+}
