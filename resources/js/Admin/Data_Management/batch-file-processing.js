@@ -1,4 +1,39 @@
 window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batch-processing-page', function () {
+    // Automatically update the selected batch after the PDF queue finishes.
+    // Poll only while Processing; never interfere with review form edits.
+    const processingPage = document.querySelector('.batch-processing-page');
+    if (processingPage?.dataset.gpsBatchStatus === 'Processing') {
+        let attempts = 0;
+        const pollBatch = async () => {
+            if (!processingPage.isConnected || attempts >= 120) return;
+            if (document.visibilityState === 'hidden') {
+                window.setTimeout(pollBatch, 5000);
+                return;
+            }
+            attempts++;
+            try {
+                const response = await fetch(window.location.href, {
+                    headers: { Accept: 'text/html' },
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                });
+                if (response.ok) {
+                    const html = await response.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const updatedStatus = doc.querySelector('.batch-processing-page')?.dataset.gpsBatchStatus;
+                    if (updatedStatus && updatedStatus !== 'Processing') {
+                        if (processingPage.isConnected) window.location.reload();
+                        return;
+                    }
+                }
+            } catch (_) {
+                // Transient network error: retry without changing the page.
+            }
+            if (processingPage.isConnected) window.setTimeout(pollBatch, 5000);
+        };
+        window.setTimeout(pollBatch, 3500);
+    }
+
     const fileInput = document.getElementById('gpsFileInput');
     const dropzone = document.getElementById('gpsDropzone');
     const chooseFileBtn = document.getElementById('chooseGpsFileBtn');
