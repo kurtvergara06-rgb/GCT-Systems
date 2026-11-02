@@ -175,30 +175,45 @@
 
     @if($records->isNotEmpty())
     <div class="table-wrap structured-table-wrap">
-        <table class="batch-records-table">
+        <table class="batch-records-table gps-full-records-table">
             <thead>
                 <tr>
-                    <th>Bus No.</th>
-                    <th>Record No.</th>
-                    <th>Beginning</th>
-                    <th>End</th>
-                    <th>Mileage</th>
-                    <th>Engine Hours</th>
+                    <th>Bus No.</th><th>Record No.</th><th>Grouping</th>
+                    <th>Beginning</th><th>Initial Location</th>
+                    <th>End</th><th>Final Location</th>
+                    <th>Engine Hours</th><th>Total Time</th>
+                    <th>In Motion</th><th>Idling</th><th>Mileage</th><th>Validation</th>
                 </tr>
             </thead>
-
             <tbody>
-                @forelse($records as $record)
+                @foreach($records as $record)
+                    @php
+                        $missingLocation = blank($record->initial_location) || blank($record->final_location);
+                        $missingMileage = $record->mileage_km === null;
+                        $needsCheck = $missingLocation || $missingMileage;
+                    @endphp
                     <tr class="gps-compact-record-row">
                         <td><x-ui.id-badge :value="$record->bus_no" /></td>
                         <td><x-ui.id-badge :value="$record->record_no" /></td>
+                        <td>{{ $record->grouping ?? '—' }}</td>
                         <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                        <td class="gps-location-cell" title="{{ $record->initial_location ?? 'Missing from extraction' }}">{{ $record->initial_location ?? '—' }}</td>
                         <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                        <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
-                        <td>{{ $record->engine_hours ?? '—' }}</td>
+                        <td class="gps-location-cell" title="{{ $record->final_location ?? 'Missing from extraction' }}">{{ $record->final_location ?? '—' }}</td>
+                        <td>{{ $record->engine_hours !== null ? number_format((float) $record->engine_hours, 2) . ' hrs' : '—' }}</td>
+                        <td>{{ $record->total_minutes !== null ? number_format((float) $record->total_minutes, 2) . ' min' : '—' }}</td>
+                        <td>{{ $record->in_motion_minutes !== null ? number_format((float) $record->in_motion_minutes, 2) . ' min' : '—' }}</td>
+                        <td>{{ $record->idling_minutes !== null ? number_format((float) $record->idling_minutes, 2) . ' min' : '—' }}</td>
+                        <td>{{ $record->mileage_km !== null ? number_format((float) $record->mileage_km, 2) . ' km' : '—' }}</td>
+                        <td>
+                            @if($needsCheck)
+                                <span class="gps-validation-flag" title="{{ $missingLocation ? 'Source location was not reliably extracted. ' : '' }}{{ $missingMileage ? 'Mileage is missing. ' : '' }}">Needs Review</span>
+                            @else
+                                <span class="gps-validation-ok">Complete</span>
+                            @endif
+                        </td>
                     </tr>
-                @empty
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
