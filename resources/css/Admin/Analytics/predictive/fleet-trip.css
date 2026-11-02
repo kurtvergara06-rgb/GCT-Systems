@@ -1122,7 +1122,7 @@
 }
 
 
-/* Compact, usable filters replace the empty full-width toolbar. */
+/* Context heading sits below the shared stage controls. */
 .predictive-fleet-page .ft-dashboard-filter-row {
     display: flex;
     align-items: center;
@@ -1138,11 +1138,6 @@
 .predictive-fleet-page .ft-dashboard-filter-heading strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #152c4f; }
 .predictive-fleet-page .ft-dashboard-filter-heading strong i { color: #377de2; }
 .predictive-fleet-page .ft-dashboard-filter-heading span { font-size: 10px; color: #667b98; }
-.predictive-fleet-page .ft-dashboard-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
-.predictive-fleet-page .ft-dashboard-filters label { display: flex; flex-direction: column; gap: 3px; font-size: 10px; font-weight: 700; color: #657794; }
-.predictive-fleet-page .ft-dashboard-filters select { min-width: 135px; max-width: 190px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d4dfed; border-radius: 8px; background: #f9fbff; color: #1c365f; font-size: 11px; cursor: pointer; }
-.predictive-fleet-page .ft-dashboard-filters select:focus-visible { outline: 2px solid #6b9dec; outline-offset: 1px; }
-.predictive-fleet-page .ft-dashboard-filters select:hover { border-color: #9abcea; }
 .predictive-fleet-page .ft-data-empty {
     min-height: 164px;
     display: flex;
@@ -1180,7 +1175,4 @@
 @media (max-width: 700px) {
     .predictive-fleet-page .ft-dashboard-filter-row { align-items: stretch; }
     .predictive-fleet-page .ft-dashboard-filter-heading { width: 100%; }
-    .predictive-fleet-page .ft-dashboard-filters { width: 100%; }
-    .predictive-fleet-page .ft-dashboard-filters label { flex: 1 1 120px; min-width: 0; }
-    .predictive-fleet-page .ft-dashboard-filters select { min-width: 0; max-width: none; width: 100%; }
 }

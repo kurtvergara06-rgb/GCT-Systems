@@ -8,9 +8,10 @@
 
     $periodOptions = [
         'this-month' => 'This Month',
+        'this-week' => 'This Week',
         'last-30-days' => 'Last 30 Days',
-        'last-3-months' => 'Last 3 Months',
-        'this-year' => 'This Year',
+        'last-90-days' => 'Last 90 Days',
+        'last-12-months' => 'Last 12 Months',
     ];
 
     if ($activeAnalysis === 'fleet-trip') {
@@ -44,18 +45,18 @@
 <x-layout.app
     title="FROMS - Diagnostic Analytics"
     :assets="[
-        'resources/css/Admin/Analytics/design-system.css',
         'resources/css/Admin/Analytics/diagnostic/diagnostic-rebuild.css',
+        'resources/css/Admin/Analytics/design-system.css',
         'resources/js/Admin/Analytics/diagnostic/diagnostic-analytics.js'
     ]"
     :partial-navigation="false"
 >
     <div class="app">
         <x-layout.sidebar department="Admin" />
-        <main class="main diagnostic-rebuild">
+        <main class="main analytics-stage-page diagnostic-rebuild">
             <x-layout.topbar
                 title="Diagnostic Analytics"
-                subtitle="Root-cause diagnostic investigations, vehicle replacement intervals, and fuel consumption inconsistencies aligned with Thesis Objective 6.2."
+                subtitle="Incident and replacement evidence, fuel consumption patterns, and review signals · Objective 6.2."
             />
 
             <!-- Hidden JSON payload consumed by Chart.js script -->
@@ -63,54 +64,19 @@
                 {!! json_encode($chartPayload) !!}
             </script>
 
-            <!-- Controls & Filters Bar -->
-            <div class="diagnostic-controls-bar">
-                <nav class="diagnostic-nav-pills" aria-label="Diagnostic analysis domain">
-                    <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'fleet-trip'])) }}"
-                       class="{{ $activeAnalysis === 'fleet-trip' ? 'active' : '' }}"
-                       @if($activeAnalysis === 'fleet-trip') aria-current="page" @endif>
-                        <i class="fa-solid fa-triangle-exclamation"></i> Incident &amp; Replacement Analysis
-                    </a>
-                    <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'fuel'])) }}"
-                       class="{{ $activeAnalysis === 'fuel' ? 'active' : '' }}"
-                       @if($activeAnalysis === 'fuel') aria-current="page" @endif>
-                        <i class="fa-solid fa-gas-pump"></i> Fuel &amp; Consumption Analysis
-                    </a>
-                </nav>
-
-                <form method="GET" action="{{ $diagnosticUrl }}" class="diagnostic-filters-form">
-                    <input type="hidden" name="domain" value="{{ $activeAnalysis }}">
-                    @if(request()->has('demo'))
-                        <input type="hidden" name="demo" value="{{ request('demo') }}">
-                    @endif
-
-                    <div class="diagnostic-filter-group">
-                        <label for="periodSelect"><i class="fa-regular fa-calendar"></i> Period</label>
-                        <select id="periodSelect" name="period" onchange="this.form.submit()">
-                            @foreach($periodOptions as $val => $lbl)
-                                <option value="{{ $val }}" @selected($period === $val)>{{ $lbl }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="diagnostic-filter-group">
-                        <label for="busSelect"><i class="fa-solid fa-bus-simple"></i> Bus</label>
-                        <select id="busSelect" name="bus" onchange="this.form.submit()">
-                            <option value="all" @selected($normalizedSelectedBus === 'ALL')>All Fleet Buses</option>
-                            @foreach($busOptions as $busNo)
-                                <option value="{{ $busNo }}" @selected($normalizedSelectedBus === strtoupper((string)$busNo))>
-                                    {{ $busNo }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="diagnostic-date-badge">
-                        <i class="fa-solid fa-clock-rotate-left"></i> {{ ucfirst(str_replace('-', ' ', $period)) }}
-                    </div>
-                </form>
-            </div>
-
+            <x-analytics.stage-controls
+                :url="$diagnosticUrl"
+                :tabs="[
+                    'fleet-trip' => ['Incident & Replacement', 'fa-triangle-exclamation'],
+                    'fuel' => ['Fuel & Consumption', 'fa-gas-pump'],
+                ]"
+                :active="$activeAnalysis"
+                :period="$period"
+                :period-options="$periodOptions"
+                :bus-options="$busOptions"
+                :selected-bus="$selectedBus"
+                :date-label="ucwords(str_replace('-', ' ', $period))"
+            />
             <!-- Demo Mode vs Live Records Banner -->
             @if($isDemo)
                 <div class="demo-mode-banner" role="alert">
@@ -180,7 +146,8 @@
                     <!-- Primary Root Cause -->
                     <x-ui.summary-card
                         label="Primary Root Cause"
-                        value="{{ $incidentData->most_common_cause }}"
+                        class="stat-card--text"
+                        :value="$incidentData->most_common_cause"
                         small="Leading operational failure mode"
                         icon="fa-screwdriver-wrench"
                         color="yellow"

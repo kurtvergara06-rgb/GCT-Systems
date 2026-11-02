@@ -8,16 +8,15 @@
 
     $isDemo = $isRestocking ? ($restockingData->is_demo ?? true) : ($operationsData->is_demo ?? true);
 
-    $title = $isRestocking ? 'Prescriptive Analytics — Restocking' : 'Prescriptive Analytics — Operations';
-    $subtitle = $isRestocking
-        ? 'Inventory replenishment recommendations backed by historical demand, safety buffer deficits, and confirmed deliveries (Thesis Objective 6.4.2).'
-        : 'Decision-support scheduling, eligible driver and bus assignment recommendations adhering to headway and rest rules (Thesis Objective 6.4.1).';
+    $title = 'Prescriptive Analytics';
+    $subtitle = 'Operations scheduling and inventory restocking recommendations · Objective 6.4.';
 
     $periodOptions = [
         'this-month' => 'This Month',
         'this-week' => 'This Week',
         'last-30-days' => 'Last 30 Days',
         'last-90-days' => 'Last 90 Days',
+        'last-12-months' => 'Last 12 Months',
     ];
 
     $currentFilters = request()->only(['period', 'bus', 'demo']);
@@ -53,15 +52,16 @@
 <x-layout.app
     title="FROMS - {{ $title }}"
     :assets="[
-        'resources/css/Admin/Analytics/design-system.css',
         'resources/css/Admin/Analytics/prescriptive/prescriptive-rebuild.css',
+        'resources/css/Admin/Analytics/model-status-stage.css',
+        'resources/css/Admin/Analytics/design-system.css',
         'resources/js/Admin/Analytics/prescriptive/prescriptive-analytics.js'
     ]"
     :partial-navigation="false"
 >
     <div class="app">
         <x-layout.sidebar department="Admin" />
-        <main class="main prescriptive-rebuild">
+        <main class="main analytics-stage-page prescriptive-rebuild">
             <x-layout.topbar
                 :title="$title"
                 :subtitle="$subtitle"
@@ -72,68 +72,34 @@
                 {!! json_encode($chartPayload) !!}
             </script>
 
-            <!-- Controls & Filters Toolbar -->
-            <div class="prescriptive-controls-bar">
-                <nav class="prescriptive-nav-pills" aria-label="Prescriptive analytics domain">
-                    <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'fleet-trip'])) }}"
-                       class="{{ ! $isRestocking ? 'active' : '' }}"
-                       @if(! $isRestocking) aria-current="page" @endif>
-                        <i class="fa-solid fa-bus"></i> Operations Recommendations
-                    </a>
-                    <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'inventory'])) }}"
-                       class="{{ $isRestocking ? 'active' : '' }}"
-                       @if($isRestocking) aria-current="page" @endif>
-                        <i class="fa-solid fa-boxes-stacked"></i> Restocking Recommendations
-                    </a>
-                </nav>
-
-                <form method="GET" action="{{ $prescriptiveUrl }}" class="prescriptive-filters-form">
-                    <input type="hidden" name="domain" value="{{ $activeDomain }}">
-                    @if(request()->has('demo'))
-                        <input type="hidden" name="demo" value="{{ request('demo') }}">
-                    @endif
-
-                    <div class="prescriptive-filter-group">
-                        <label for="prescriptivePeriod"><i class="fa-regular fa-calendar"></i> Planning Period</label>
-                        <select id="prescriptivePeriod" name="period" onchange="this.form.submit()">
-                            @foreach($periodOptions as $val => $lbl)
-                                <option value="{{ $val }}" @selected($period === $val)>{{ $lbl }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if(! $isRestocking)
-                        <div class="prescriptive-filter-group">
-                            <label for="prescriptiveBus"><i class="fa-solid fa-bus-simple"></i> Bus</label>
-                            <select id="prescriptiveBus" name="bus" onchange="this.form.submit()">
-                                <option value="all" @selected($normalizedSelectedBus === 'ALL')>All Fleet Buses</option>
-                                @foreach($busOptions as $busNo)
-                                    <option value="{{ $busNo }}" @selected($normalizedSelectedBus === strtoupper((string)$busNo))>
-                                        {{ $busNo }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <div class="prescriptive-date-badge">
-                        <i class="fa-solid fa-clock-rotate-left"></i> {{ ucfirst(str_replace('-', ' ', $period)) }}
-                    </div>
-                </form>
-            </div>
-
+            <x-analytics.stage-controls
+                :url="$prescriptiveUrl"
+                :tabs="[
+                    'fleet-trip' => ['Operations Scheduling', 'fa-bus'],
+                    'inventory' => ['Inventory Restocking', 'fa-boxes-stacked'],
+                ]"
+                :active="$activeDomain"
+                :period="$period"
+                :period-options="$periodOptions"
+                :bus-options="$busOptions"
+                :selected-bus="$selectedBus"
+                :show-bus="! $isRestocking"
+                :date-label="ucwords(str_replace('-', ' ', $period))"
+                period-label="Planning Period"
+            />
             <!-- Unified Status, Provenance & Decision Support Mandate Bar -->
             <div class="prescriptive-status-strip">
                 <div class="status-strip-left">
                     @if($isDemo)
                         <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Demo Data</span>
                         <span class="status-strip-text">
-                            <strong>Demonstration Mode:</strong> Illustrating Thesis Objective 6.4 algorithmic guidance
+                            <strong>Demonstration mode:</strong> Illustrating Thesis Objective 6.4 algorithmic guidance
                             @if(! $isRestocking)
                                 (headway spacing &amp; PMS clearance). Live records: <strong>{{ $operationsData->real_count }} trip(s)</strong>.
                             @else
                                 (reorder thresholds &amp; buffer deficits). Live catalog: <strong>{{ $restockingData->real_count }} item(s)</strong>.
                             @endif
+                            Live model readiness is shown separately below.
                         </span>
                         @if(request()->boolean('demo'))
                             <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except('demo'), ['domain' => $activeDomain])) }}" class="strip-switch-link">
@@ -143,7 +109,11 @@
                     @else
                         <span class="live-banner-pill"><i class="fa-solid fa-circle-check"></i> Live Database Records</span>
                         <span class="status-strip-text">
-                            Displaying verified operational recommendations computed from FROMS Operations &amp; Warehouse records.
+                            @if($isRestocking)
+                                Recorded warehouse stock and thresholds inform planning estimates. Demand, open requests, and incoming supply need separate review.
+                            @else
+                                Recorded trips, active drivers, and bus status inform candidate suggestions. Attendance, rest, and dispatch clearance need manual review.
+                            @endif
                         </span>
                     @endif
                 </div>
@@ -160,6 +130,12 @@
                     </span>
                 </div>
             </div>
+
+            <details class="analytics-model-disclosure">
+                <summary><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Model readiness &amp; data provenance <span>Review production model evidence</span></summary>
+                <x-analytics.model-status />
+                <p>Recommendations remain decision support. Department heads approve scheduling and replenishment actions.</p>
+            </details>
 
             @if(! $isRestocking)
                 <!-- =========================================================================
@@ -180,9 +156,9 @@
 
                     <!-- Eligible Drivers -->
                     <x-ui.summary-card
-                        label="Eligible Drivers"
+                        label="Active Driver Candidates"
                         value="{{ $operationsData->eligible_drivers_count }}"
-                        small="Attendance & rest compliance verified"
+                        small="Attendance and rest require review"
                         icon="fa-user-check"
                         color="green"
                         href="{{ route('driver-attendance') }}"
@@ -190,9 +166,9 @@
 
                     <!-- Available Buses -->
                     <x-ui.summary-card
-                        label="Available Buses"
+                        label="Active Bus Candidates"
                         value="{{ $operationsData->available_buses_count }}"
-                        small="Active status · 0 open Job Orders"
+                        small="Active status · no open Job Orders"
                         icon="fa-bus"
                         color="purple"
                         href="{{ route('bus-master-list') }}"
@@ -215,7 +191,7 @@
                         <div class="dashboard-card-header">
                             <div>
                                 <h3><i class="fa-solid fa-chart-column"></i> Shift &amp; Departure Distribution</h3>
-                                <p class="dashboard-eyebrow">Scheduled trip volume vs prescribed headway-adjusted dispatches per shift</p>
+                                <p class="dashboard-eyebrow">Recorded scheduled trips and unassigned trips by shift</p>
                             </div>
                             <span class="dashboard-badge">Shift Allocation</span>
                         </div>
@@ -228,17 +204,13 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-chart-pie"></i> Resource &amp; Dispatch Readiness</h3>
-                                <p class="dashboard-eyebrow">Operational clearance breakdown for fleet and personnel</p>
+                                <h3><i class="fa-solid fa-chart-column"></i> Resource &amp; Dispatch Signals</h3>
+                                <p class="dashboard-eyebrow">Independent counts; categories may overlap and do not imply dispatch clearance</p>
                             </div>
                             <span class="dashboard-badge">Dispatch Status</span>
                         </div>
-                        <div class="fleet-health-visual-wrap">
+                        <div class="prescriptive-chart-wrap">
                             <canvas id="prescriptiveReadinessDonutChart"></canvas>
-                            <div class="fleet-health-chart-center">
-                                <span class="chart-center-metric">{{ $operationsData->available_buses_count }}</span>
-                                <span class="chart-center-sub">Available Units</span>
-                            </div>
                         </div>
                     </article>
                 </section>
@@ -275,7 +247,7 @@
                     <div class="dashboard-card-header">
                         <div>
                             <h3><i class="fa-solid fa-calendar-check"></i> Recommended Departure &amp; Trip Schedules</h3>
-                            <p class="dashboard-eyebrow">Prescribed departure times, corridor headway spacing, and candidate resource assignments</p>
+                            <p class="dashboard-eyebrow">Recorded departure times and candidate resources; final timing and assignments require Operations approval</p>
                         </div>
                         <span class="dashboard-badge">{{ collect($operationsData->schedule_recommendations)->count() }} Trips</span>
                     </div>
@@ -287,12 +259,12 @@
                                     <th>Trip Code</th>
                                     <th>Route &amp; Corridor</th>
                                     <th>Shift / Date</th>
-                                    <th>Suggested Departure</th>
+                                    <th>Recorded Departure</th>
                                     <th>Est. Arrival</th>
                                     <th>Duration</th>
                                     <th>Recommended Unit</th>
                                     <th>Recommended Driver</th>
-                                    <th>Algorithmic Recommendation Reason</th>
+                                    <th>Review Required</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -334,7 +306,7 @@
                                         </td>
                                         <td style="max-width: 320px;">
                                             <small style="color:#334155; line-height:1.45; display:block;">
-                                                <i class="fa-solid fa-circle-check text-green" style="color:#16a34a;"></i> {{ $rec->reason }}
+                                                <i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> {{ $rec->reason }}
                                             </small>
                                         </td>
                                         <td>
@@ -362,10 +334,10 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-id-card"></i> Eligible Driver Assignment Recommendations</h3>
-                                <p class="dashboard-eyebrow">Ranked drivers with verified shift attendance and zero scheduling conflicts</p>
+                                <h3><i class="fa-solid fa-id-card"></i> Active Driver Candidates</h3>
+                                <p class="dashboard-eyebrow">Employment status is active; attendance, rest, and authorization remain unverified here</p>
                             </div>
-                            <span class="dashboard-badge">{{ collect($operationsData->driver_recommendations)->count() }} Eligible</span>
+                            <span class="dashboard-badge">{{ collect($operationsData->driver_recommendations)->count() }} Candidates</span>
                         </div>
 
                         <div class="prescriptive-table-container scrollable-body">
@@ -386,21 +358,21 @@
                                                 <br><small style="color:#64748b;"><i class="fa-solid fa-id-card"></i> {{ $driver->bus_authorization }}</small>
                                             </td>
                                             <td>
-                                                <span class="badge-status optimal">{{ $driver->attendance_status }}</span>
+                                                <span class="badge-status warning">{{ $driver->attendance_status }}</span>
                                                 <br><small style="color:#64748b;">{{ $driver->shift }}</small>
                                             </td>
                                             <td>
                                                 <span class="code-pill">{{ $driver->duty_hours }}</span>
                                             </td>
                                             <td>
-                                                <span class="badge-status optimal"><i class="fa-solid fa-check"></i> {{ $driver->eligibility }}</span>
+                                                <span class="badge-status warning"><i class="fa-solid fa-circle-info"></i> {{ $driver->eligibility }}</span>
                                                 <small style="color:#475569; display:block; line-height:1.35; margin-top:3px;">{{ $driver->reason }}</small>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td colspan="4" style="text-align:center; padding:24px; color:#64748b;">
-                                                No eligible drivers logged in current attendance.
+                                                No active drivers found for candidate review.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -413,10 +385,10 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-bus-simple"></i> Available Bus Recommendations</h3>
-                                <p class="dashboard-eyebrow">Active units cleared of maintenance orders and within PMS limits</p>
+                                <h3><i class="fa-solid fa-bus-simple"></i> Active Bus Candidates</h3>
+                                <p class="dashboard-eyebrow">Active units without open Job Orders; PMS and pre-trip checks remain separate</p>
                             </div>
-                            <span class="dashboard-badge">{{ collect($operationsData->bus_recommendations)->count() }} Cleared</span>
+                            <span class="dashboard-badge">{{ collect($operationsData->bus_recommendations)->count() }} Candidates</span>
                         </div>
 
                         <div class="prescriptive-table-container scrollable-body">
@@ -441,7 +413,7 @@
                                                 <br><small style="font-weight:700; color:#15803d;"><i class="fa-solid fa-gauge-high"></i> {{ $bus->pms_headroom }}</small>
                                             </td>
                                             <td>
-                                                <span class="dashboard-badge">{{ $bus->capacity }} Seats</span>
+                                                <span class="dashboard-badge">{{ $bus->capacity > 0 ? $bus->capacity . ' Seats' : 'Not recorded' }}</span>
                                             </td>
                                             <td>
                                                 <small style="color:#475569; display:block; line-height:1.35;">{{ $bus->reason }}</small>
@@ -450,7 +422,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="4" style="text-align:center; padding:24px; color:#64748b;">
-                                                No buses currently cleared of active maintenance.
+                                                No active buses without open Job Orders found.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -522,7 +494,7 @@
                     <x-ui.summary-card
                         label="Critical / Out of Stock"
                         value="{{ $restockingData->out_of_stock_count }}"
-                        small="Zero on-hand units posing grounding risk"
+                        small="Zero on-hand units recorded"
                         icon="fa-circle-xmark"
                         color="red"
                         href="{{ route('inventory') }}"
@@ -530,22 +502,23 @@
 
                     <!-- Recommended Restock Qty -->
                     <x-ui.summary-card
-                        label="Recommended Restock Qty"
+                        label="Threshold Gap Units"
                         value="{{ number_format($restockingData->recommended_restock_qty) }}"
-                        small="Consolidated replenishment units needed"
+                        small="Planning estimate; confirm demand and incoming stock"
                         icon="fa-cart-shopping"
                         color="purple"
                     />
                 </section>
 
                 <!-- 2. Analytical Charts Grid (3 Columns) -->
+                @if(collect($restockingData->restock_items)->isNotEmpty())
                 <section class="prescriptive-three-grid">
                     <!-- Recommended Quantity by Category -->
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-chart-column"></i> Restock by Category</h3>
-                                <p class="dashboard-eyebrow">Suggested replenishment volume per category</p>
+                                <h3><i class="fa-solid fa-chart-column"></i> Threshold Gap by Category</h3>
+                                <p class="dashboard-eyebrow">{{ $isDemo ? 'Demonstration replenishment volumes' : 'Threshold gaps grouped by recorded part category' }}</p>
                             </div>
                             <span class="dashboard-badge">Units</span>
                         </div>
@@ -558,8 +531,8 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-chart-line"></i> Stock Coverage Projection</h3>
-                                <p class="dashboard-eyebrow">On-hand vs safety buffer vs suggested restock</p>
+                                <h3><i class="fa-solid fa-chart-line"></i> Stock Coverage vs Threshold</h3>
+                                <p class="dashboard-eyebrow">On-hand stock, configured safety stock, and threshold gap</p>
                             </div>
                             <span class="dashboard-badge">Deficit Gap</span>
                         </div>
@@ -586,13 +559,19 @@
                         </div>
                     </article>
                 </section>
+                @else
+                    <section class="prescriptive-dashboard-card analytics-stage-empty" role="status">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        <div><h3>No restocking threshold gaps</h3><p>Recorded items are above their configured reorder points. No replenishment chart is inferred for this selection.</p></div>
+                    </section>
+                @endif
 
                 <!-- 3. Restocking Recommendations Table (Full Width) -->
                 <section class="prescriptive-dashboard-card" style="margin-bottom: 18px;">
                     <div class="dashboard-card-header">
                         <div>
                             <h3><i class="fa-solid fa-list-check"></i> Spare-Parts Replenishment Recommendations</h3>
-                            <p class="dashboard-eyebrow">Recommended order volumes calculated from available stock, Job Order reservations, and supplier lead times</p>
+                            <p class="dashboard-eyebrow">Planning estimates from recorded on-hand stock and configured thresholds; reservations and incoming supply are not included</p>
                         </div>
                         <span class="dashboard-badge">{{ collect($restockingData->restock_items)->count() }} Parts</span>
                     </div>
@@ -604,11 +583,11 @@
                                     <th>Part Code</th>
                                     <th>Part Name &amp; Category</th>
                                     <th>Available Stock</th>
-                                    <th>Est. Monthly Demand</th>
+                                    <th>Monthly Demand</th>
                                     <th>Incoming Supply</th>
-                                    <th>Suggested Restock Qty</th>
+                                    <th>Threshold Gap</th>
                                     <th>Priority</th>
-                                    <th>Projected Shortage Risk</th>
+                                    <th>Recorded Stock State</th>
                                     <th>Suggested Action &amp; Rationale</th>
                                 </tr>
                             </thead>
@@ -634,10 +613,12 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <span style="font-weight:600; color:#475569;">{{ $item->monthly_demand }} units</span>
+                                            <span style="font-weight:600; color:#475569;">{{ $item->monthly_demand !== null ? $item->monthly_demand . ' units' : 'Not measured' }}</span>
                                         </td>
                                         <td>
-                                            @if($item->incoming_supply > 0)
+                                            @if($item->incoming_supply === null)
+                                                <span style="color:#64748b; font-size:11px;">Not verified</span>
+                                            @elseif($item->incoming_supply > 0)
                                                 <span class="dashboard-badge" style="background:#eff6ff; color:#1d4ed8;">
                                                     <i class="fa-solid fa-truck"></i> +{{ $item->incoming_supply }} in transit
                                                 </span>
@@ -669,7 +650,7 @@
                                     <tr>
                                         <td colspan="9" style="text-align:center; padding:32px; color:#64748b;">
                                             <i class="fa-solid fa-circle-check" style="font-size:24px; margin-bottom:8px; display:block; color:#16a34a;"></i>
-                                            All inventory items are currently above safety stock and reorder levels.
+                                            No inventory item is at or below its configured reorder point.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -683,13 +664,13 @@
                     <div class="dashboard-card-header">
                         <div>
                             <h3><i class="fa-solid fa-lightbulb"></i> Strategic Restocking Playbooks</h3>
-                            <p class="dashboard-eyebrow">Actionable inventory batching and procurement guidance for Warehouse Head review</p>
+                            <p class="dashboard-eyebrow">{{ $isDemo ? 'Demonstration scenarios for Warehouse Head review' : 'Recorded parts ranked by threshold gap for Warehouse Head review' }}</p>
                         </div>
                         <span class="dashboard-badge">Playbooks</span>
                     </div>
 
                     <div class="playbook-list">
-                        @foreach($restockingData->key_recommendations as $playbook)
+                        @forelse($restockingData->key_recommendations as $playbook)
                             <div class="playbook-card {{ $playbook->badge }}">
                                 <div class="playbook-info">
                                     <h4>
@@ -702,7 +683,9 @@
                                     <i class="fa-solid fa-file-pen"></i> {{ $playbook->action_label }}
                                 </span>
                             </div>
-                        @endforeach
+                        @empty
+                            <p class="analytics-stage-empty__text">No recorded part needs a restocking review at its current reorder point.</p>
+                        @endforelse
                     </div>
                 </section>
 

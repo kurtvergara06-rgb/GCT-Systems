@@ -100,6 +100,7 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/overview/fleet-trip-redesign.css',
                 'resources/css/Admin/Analytics/overview/fleet-trip-rankings.css',
                 'resources/css/Admin/Analytics/model-status-stage.css',
+                'resources/css/Admin/Analytics/department-stage.css',
                 'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
                 'resources/css/Admin/Analytics/descriptive/all.css',
                 'resources/css/Admin/Analytics/descriptive/fleet-trip.css',

@@ -68,7 +68,7 @@ function initOperationsPrescriptiveCharts(data) {
                         categoryPercentage: 0.75,
                     },
                     {
-                        label: 'Prescribed / Staggered Dispatches',
+                        label: 'Unassigned Trips',
                         data: data.recommendedByShift || [],
                         backgroundColor: '#2563eb',
                         borderRadius: 6,
@@ -113,45 +113,39 @@ function initOperationsPrescriptiveCharts(data) {
         });
     }
 
-    // 2. Resource Readiness & Dispatch Status Donut Chart
+    // Independent resource and dispatch signals can overlap; use bars, not a pie of a whole.
     const donutCanvas = document.getElementById('prescriptiveReadinessDonutChart');
     if (donutCanvas && data.readinessLabels && data.readinessLabels.length > 0) {
         destroyPrescriptiveChart('prescriptiveReadinessDonutChart');
         prescriptiveChartInstances['prescriptiveReadinessDonutChart'] = new Chart(donutCanvas, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
                 labels: data.readinessLabels,
                 datasets: [
                     {
                         data: data.readinessValues || [],
                         backgroundColor: data.readinessColors || ['#16a34a', '#2563eb', '#ea580c', '#dc2626'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff',
-                        hoverOffset: 4,
+                        borderRadius: 6,
+                        maxBarThickness: 24,
                     },
                 ],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '72%',
+                indexAxis: 'y',
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 11,
-                            padding: 12,
-                            font: { family: 'Poppins', size: 11, weight: '600' },
-                            color: '#334155',
-                        },
-                    },
+                    legend: { display: false },
                     tooltip: {
                         padding: 10,
                         backgroundColor: '#0f172a',
                         titleFont: { family: 'Poppins', size: 12, weight: '700' },
                         bodyFont: { family: 'Poppins', size: 11 },
                     },
+                },
+                scales: {
+                    x: { beginAtZero: true, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+                    y: { ticks: { color: '#334155', font: { family: 'Poppins', size: 10 } }, grid: { display: false } },
                 },
             },
         });
@@ -177,7 +171,7 @@ function initRestockingPrescriptiveCharts(data) {
                 labels: data.categoryLabels,
                 datasets: [
                     {
-                        label: 'Suggested Restock Quantity (Units)',
+                        label: 'Threshold Gap (Units)',
                         data: data.categoryValues || [],
                         backgroundColor: barColors,
                         borderRadius: 6,
@@ -237,7 +231,7 @@ function initRestockingPrescriptiveCharts(data) {
                         maxBarThickness: 20,
                     },
                     {
-                        label: 'Prescribed Restock Qty',
+                        label: 'Threshold Gap Estimate',
                         data: data.coverageRestock || [],
                         backgroundColor: '#8b5cf6',
                         borderRadius: 4,

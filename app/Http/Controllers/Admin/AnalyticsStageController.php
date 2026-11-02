@@ -1995,24 +1995,24 @@ class AnalyticsStageController extends Controller
 
         // Build recommendation records from real live records
         $scheduleRecommendations = $unassignedTrips->map(function (TripSchedule $trip, int $index) use ($availableBuses, $eligibleDrivers): object {
-            $assignedBus = $availableBuses->get($index % max(1, $availableBuses->count()))?->bus_no ?? 'GCT-Standby';
-            $assignedDriver = $eligibleDrivers->get($index % max(1, $eligibleDrivers->count()))?->driver_name ?? 'Assigned Pool';
-            $duration = (int) ($trip->planned_duration_minutes ?: 45);
-            $depTime = $trip->departure_time ? Carbon::parse($trip->departure_time) : Carbon::parse('07:00:00')->addMinutes($index * 20);
+            $assignedBus = $availableBuses->get($index)?->bus_no ?? 'Needs selection';
+            $assignedDriver = $eligibleDrivers->get($index)?->driver_name ?? 'Needs selection';
+            $duration = (int) ($trip->planned_duration_minutes ?: 0);
+            $depTime = $trip->departure_time ? Carbon::parse($trip->departure_time) : null;
 
             return (object) [
                 'trip_code' => $trip->trip_code,
                 'route_code' => $trip->route_code_snapshot ?: ($trip->shuttleRoute?->route_code ?? 'Route'),
-                'route_name' => $trip->route_name_snapshot ?: ($trip->shuttleRoute?->route_name ?? 'Terminal Transit'),
-                'shift' => $trip->shift ?: 'Morning',
-                'trip_date' => $trip->trip_date?->format('M d, Y') ?? now()->format('M d, Y'),
-                'suggested_departure' => $depTime->format('h:i A'),
-                'estimated_arrival' => $depTime->copy()->addMinutes($duration)->format('h:i A'),
-                'historical_duration' => $duration . ' mins',
+                'route_name' => $trip->route_name_snapshot ?: ($trip->shuttleRoute?->route_name ?? 'Not recorded'),
+                'shift' => $trip->shift ?: 'Not recorded',
+                'trip_date' => $trip->trip_date?->format('M d, Y') ?? 'Not recorded',
+                'suggested_departure' => $depTime?->format('h:i A') ?? 'Not recorded',
+                'estimated_arrival' => $depTime && $duration > 0 ? $depTime->copy()->addMinutes($duration)->format('h:i A') : 'Not calculated',
+                'historical_duration' => $duration > 0 ? $duration.' planned mins' : 'Not recorded',
                 'recommended_bus' => $assignedBus,
                 'recommended_driver' => $assignedDriver,
-                'headway_gap' => '15m+ verified',
-                'reason' => 'Compliant with 15-minute headway rule; driver attendance validated and bus cleared of PMS orders.',
+                'headway_gap' => 'Needs review',
+                'reason' => 'Candidate resources are based on active records. Confirm attendance, rest, authorization, PMS, and headway before assigning.',
                 'status' => 'Pending Approval',
             ];
         });
@@ -2021,23 +2021,23 @@ class AnalyticsStageController extends Controller
             return (object) [
                 'driver_name' => $driver->driver_name,
                 'shift' => $driver->shift ?: 'Morning Shift',
-                'attendance_status' => 'Present',
-                'bus_authorization' => 'Regular & Aircon Fleet',
-                'duty_hours' => sprintf('%.1f / 8.0 hrs', 3.0 + ($index * 0.5)),
-                'eligibility' => 'Eligible - Optimal Fit',
-                'reason' => 'Zero active schedule overlaps; valid driver license and attendance verified for today.',
+                'attendance_status' => 'Not checked',
+                'bus_authorization' => 'Not verified',
+                'duty_hours' => 'Not measured',
+                'eligibility' => 'Requires review',
+                'reason' => 'Employment is active; verify attendance, duty hours, license, and assignment conflicts.',
             ];
         });
 
         $busRecommendations = $availableBuses->take(8)->map(function (Bus $bus): object {
             return (object) [
                 'bus_no' => $bus->bus_no,
-                'plate_no' => $bus->plate_no ?: 'Standard Plate',
+                'plate_no' => $bus->plate_no ?: 'Not recorded',
                 'status' => $bus->status ?: 'Active',
-                'pms_headroom' => 'Cleared for Dispatch',
-                'capacity' => (int) ($bus->capacity ?: 50),
-                'eligibility' => 'Cleared for Dispatch',
-                'reason' => 'Mechanical pre-trip checklist completed; zero open Job Orders.',
+                'pms_headroom' => 'No open JO recorded',
+                'capacity' => (int) $bus->capacity,
+                'eligibility' => 'Requires review',
+                'reason' => 'Active status and no open Job Order recorded; verify PMS and pre-trip checklist.',
             ];
         });
 
@@ -2061,13 +2061,17 @@ class AnalyticsStageController extends Controller
             'shift_distribution' => (object) [
                 'labels' => ['Morning', 'Afternoon', 'Evening'],
                 'scheduled' => [$morningCount, $afternoonCount, $eveningCount],
-                'recommended' => [$unassignedTrips->count(), max(0, $afternoonCount - 1), max(0, $eveningCount - 1)],
+                'recommended' => [
+                    $unassignedTrips->filter(fn ($t) => strtolower((string) $t->shift) === 'morning')->count(),
+                    $unassignedTrips->filter(fn ($t) => strtolower((string) $t->shift) === 'afternoon')->count(),
+                    $unassignedTrips->filter(fn ($t) => in_array(strtolower((string) $t->shift), ['evening', 'night'], true))->count(),
+                ],
             ],
             'readiness_distribution' => collect([
-                (object) ['label' => 'Ready for Dispatch', 'count' => max(1, $availableBuses->count() - $conflicts->count()), 'color' => '#16a34a'],
-                (object) ['label' => 'Pending Driver Assignment', 'count' => $unassignedTrips->count(), 'color' => '#2563eb'],
+                (object) ['label' => 'Active Bus Candidates', 'count' => $availableBuses->count(), 'color' => '#16a34a'],
+                (object) ['label' => 'Unassigned Trips', 'count' => $unassignedTrips->count(), 'color' => '#2563eb'],
                 (object) ['label' => 'Headway / Overlap Review', 'count' => $conflicts->count(), 'color' => '#ea580c'],
-                (object) ['label' => 'Under Maintenance', 'count' => $openJobBusNos->count(), 'color' => '#dc2626'],
+                (object) ['label' => 'Buses with Open JO', 'count' => $openJobBusNos->unique()->count(), 'color' => '#dc2626'],
             ]),
         ];
     }
@@ -2246,7 +2250,7 @@ class AnalyticsStageController extends Controller
         $attentionItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand <= (int) $i->reorder_level)->values();
 
         // Check if demo simulation should be active
-        $isDemo = $demoMode || $attentionItems->isEmpty();
+        $isDemo = $demoMode || $totalItems === 0;
         if ($isDemo) {
             return $this->getDemoRestockingPrescriptiveData($period, $totalItems);
         }
@@ -2254,12 +2258,10 @@ class AnalyticsStageController extends Controller
         // Build live recommendation rows
         $restockItems = $attentionItems->map(function (InventoryItem $item): object {
             $onHand = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
-            $reorderLevel = (int) ($item->reorder_level ?: 10);
-            $safetyBuffer = (int) ($item->safety_stock ?: 5);
-            $monthlyDemand = max(10, $reorderLevel * 2);
-            $incoming = 0; // Check active PRs if available
-
-            $suggestedQty = max(0, ($reorderLevel * 2) + $safetyBuffer - $onHand - $incoming);
+            $reorderLevel = max(0, (int) $item->reorder_level);
+            $safetyBuffer = max(0, (int) $item->safety_stock);
+            // This is a threshold gap, not a demand forecast or a verified purchase quantity.
+            $suggestedQty = max(0, max($reorderLevel, $safetyBuffer) - $onHand);
 
             $priority = match (true) {
                 $onHand <= 0 => 'Critical',
@@ -2276,10 +2278,9 @@ class AnalyticsStageController extends Controller
             };
 
             $action = match ($priority) {
-                'Critical' => sprintf('Immediate PR: 0 on-hand stock poses immediate PMS grounding risk for %s.', $item->parts_name),
-                'High' => sprintf('Prepare PR for %d %s to recover depleted safety stock buffer.', $suggestedQty, $item->unit_of_measurement ?: 'pcs'),
-                'Medium' => sprintf('Schedule replenishment of %d %s at next supplier canvas cycle.', $suggestedQty, $item->unit_of_measurement ?: 'pcs'),
-                default => 'Adequate buffer; monitor consumption pace.',
+                'Critical' => sprintf('Review %s: no on-hand stock is recorded. Confirm demand and incoming supply before a PR.', $item->parts_name),
+                'High', 'Medium' => sprintf('Review a %d %s threshold gap; confirm reservations and incoming supply before a PR.', $suggestedQty, $item->unit_of_measurement ?: 'units'),
+                default => 'Review current stock and the configured reorder threshold.',
             };
 
             return (object) [
@@ -2287,14 +2288,16 @@ class AnalyticsStageController extends Controller
                 'part_name' => $item->parts_name ?: $item->item_name,
                 'category' => $item->category ?: 'General Spares',
                 'available_stock' => $onHand,
-                'monthly_demand' => $monthlyDemand,
-                'incoming_supply' => $incoming,
+                'monthly_demand' => null,
+                'incoming_supply' => null,
+                'reorder_level' => $reorderLevel,
+                'safety_buffer' => $safetyBuffer,
                 'suggested_qty' => $suggestedQty,
                 'priority' => $priority,
                 'priority_badge' => $priorityBadge,
                 'suggested_action' => $action,
-                'shortage_risk' => $onHand <= 0 ? 'Stockout Active (100%)' : sprintf('High Risk (>%d%%)', min(95, 50 + ($reorderLevel - $onHand) * 5)),
-                'lead_time' => '24–48 Hours',
+                'shortage_risk' => $onHand <= 0 ? 'Out of stock' : 'At or below reorder point',
+                'lead_time' => null,
             ];
         });
 
@@ -2325,7 +2328,7 @@ class AnalyticsStageController extends Controller
             'stock_coverage' => (object) [
                 'labels' => $restockItems->take(5)->pluck('part_name')->toArray(),
                 'on_hand' => $restockItems->take(5)->pluck('available_stock')->toArray(),
-                'safety_buffer' => $restockItems->take(5)->map(fn ($r) => 10)->toArray(),
+                'safety_buffer' => $restockItems->take(5)->pluck('safety_buffer')->toArray(),
                 'suggested_restock' => $restockItems->take(5)->pluck('suggested_qty')->toArray(),
             ],
             'priority_distribution' => collect([
@@ -2334,7 +2337,13 @@ class AnalyticsStageController extends Controller
                 (object) ['label' => 'Medium (Reorder Point)', 'count' => $mediumCount, 'color' => '#eab308'],
                 (object) ['label' => 'Normal (Adequate Stock)', 'count' => $normalCount, 'color' => '#16a34a'],
             ]),
-            'key_recommendations' => $this->getPrescriptiveRestockPlaybooks(),
+            'key_recommendations' => $restockItems->sortByDesc('suggested_qty')->take(4)->map(fn ($row) => (object) [
+                'title' => $row->part_name.' stock review',
+                'severity' => $row->priority,
+                'summary' => sprintf('%s: %d on hand, reorder level %d, safety stock %d. The threshold gap is %d units; verify open requests and supplier commitments before ordering.', $row->part_code, $row->available_stock, $row->reorder_level, $row->safety_buffer, $row->suggested_qty),
+                'action_label' => 'Review inventory',
+                'badge' => $row->priority_badge,
+            ])->values(),
             'timeline_plan' => $this->getPrescriptiveTimelinePlan(),
         ];
     }
@@ -2531,7 +2540,7 @@ class AnalyticsStageController extends Controller
     {
         return collect([
             (object) ['step' => 'Step 1', 'title' => 'Warehouse Head Review & PR Creation', 'desc' => 'Validate recommended replenishment quantities against real job order reservations and generate electronic PR with digital signature.'],
-            (object) ['step' => 'Step 2', 'title' => 'Purchasing Supplier Canvas & Quotation', 'desc' => 'Purchasing staff initiates quotation request across accredited automotive parts vendors; lead time: 24 to 48 hours.'],
+            (object) ['step' => 'Step 2', 'title' => 'Purchasing Supplier Canvas & Quotation', 'desc' => 'Purchasing staff requests and reviews quotations from accredited parts vendors; delivery timing depends on confirmed offers.'],
             (object) ['step' => 'Step 3', 'title' => 'Purchase Order Issuance & Approval', 'desc' => 'Admin and Purchase Head approve Purchase Order and transmit PO reference to supplier.'],
             (object) ['step' => 'Step 4', 'title' => 'Warehouse Receiving, QC & Stock Entry', 'desc' => 'Inspect delivered goods, verify against PO quantities, and record positive stock movement into active inventory.'],
         ]);

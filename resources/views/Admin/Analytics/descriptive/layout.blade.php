@@ -47,18 +47,18 @@
 <x-layout.app
     title="FROMS - Descriptive Analytics"
     :assets="[
-        'resources/css/Admin/Analytics/design-system.css',
         'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
+        'resources/css/Admin/Analytics/design-system.css',
         'resources/js/Admin/Analytics/descriptive/descriptive-analytics.js'
     ]"
     :partial-navigation="false"
 >
     <div class="app">
         <x-layout.sidebar department="Admin" />
-        <main class="main descriptive-rebuild">
+        <main class="main analytics-stage-page descriptive-rebuild">
             <x-layout.topbar
                 title="Descriptive Analytics"
-                subtitle="Descriptive operational telemetry and administrative activity audits aligned with Thesis Objective 6.1."
+                subtitle="Operational and administrative summaries from recorded system activity · Objective 6.1."
             />
 
             <!-- Hidden JSON payload consumed by Chart.js script -->
@@ -66,53 +66,21 @@
                 {!! json_encode($chartPayload) !!}
             </script>
 
-            <!-- Controls & Filters Bar -->
-            <div class="descriptive-controls-bar">
-                <nav class="descriptive-nav-pills" aria-label="Descriptive analytics views">
-                    <a href="{{ $url . '?' . http_build_query(array_merge(request()->only(['period', 'bus']), ['view' => 'operational'])) }}"
-                       class="{{ $activeSummary === 'operational' ? 'active' : '' }}"
-                       @if($activeSummary === 'operational') aria-current="page" @endif>
-                        <i class="fa-solid fa-bus"></i> Operational Summary
-                    </a>
-                    <a href="{{ $url . '?' . http_build_query(array_merge(request()->only(['period', 'bus']), ['view' => 'administrative'])) }}"
-                       class="{{ $activeSummary === 'administrative' ? 'active' : '' }}"
-                       @if($activeSummary === 'administrative') aria-current="page" @endif>
-                        <i class="fa-solid fa-users-gear"></i> Administrative Summary
-                    </a>
-                </nav>
-
-                <form method="GET" action="{{ $url }}" class="descriptive-filters-form">
-                    <input type="hidden" name="view" value="{{ $activeSummary }}">
-
-                    <div class="descriptive-filter-group">
-                        <label for="periodSelect"><i class="fa-regular fa-calendar"></i> Period</label>
-                        <select id="periodSelect" name="period" onchange="this.form.submit()">
-                            @foreach($periodOptions as $val => $lbl)
-                                <option value="{{ $val }}" @selected($period === $val)>{{ $lbl }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if($activeSummary === 'operational')
-                        <div class="descriptive-filter-group">
-                            <label for="busSelect"><i class="fa-solid fa-bus-simple"></i> Bus</label>
-                            <select id="busSelect" name="bus" onchange="this.form.submit()">
-                                <option value="all" @selected($selectedBus === 'ALL')>All Fleet Buses</option>
-                                @foreach($buses as $bus)
-                                    <option value="{{ $bus->bus_no }}" @selected($selectedBus === strtoupper($bus->bus_no))>
-                                        {{ $bus->bus_no }} ({{ $bus->status }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <div class="descriptive-date-badge">
-                        <i class="fa-regular fa-clock"></i> {{ $dateRangeDisplay }}
-                    </div>
-                </form>
-            </div>
-
+            <x-analytics.stage-controls
+                :url="$url"
+                :tabs="[
+                    'operational' => ['Operational Summary', 'fa-bus'],
+                    'administrative' => ['Administrative Summary', 'fa-users-gear'],
+                ]"
+                :active="$activeSummary"
+                filter-key="view"
+                :period="$period"
+                :period-options="$periodOptions"
+                :bus-options="$buses"
+                :selected-bus="$selectedBus"
+                :show-bus="$activeSummary === 'operational'"
+                :date-label="$dateRangeDisplay"
+            />
             @if($activeSummary === 'operational')
                 <!-- =========================================================================
                      THESIS OBJECTIVE 6.1.1 — OPERATIONAL SUMMARY
@@ -140,9 +108,9 @@
                         href="{{ route('driver-bus-assignment') }}"
                     />
 
-                    <!-- Fleet Readiness -->
+                    <!-- Active fleet status share; dispatch clearance is checked separately. -->
                     <x-ui.summary-card
-                        label="Fleet Readiness"
+                        label="Active Fleet Share"
                         value="{{ $fleetAvailability }}%"
                         small="{{ $activeBuses }}/{{ $totalBuses }} Active · {{ $underMaintenance }} in repair"
                         icon="fa-bus"
@@ -240,8 +208,8 @@
                         <div class="dashboard-card-header">
                             <div>
                                 <span class="dashboard-eyebrow">FLEET READINESS</span>
-                                <h2><i class="fa-solid fa-chart-pie"></i> Fleet Availability Distribution</h2>
-                                <p>Live operational status of the {{ $totalBuses }} registered fleet buses.</p>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Fleet Status Distribution</h2>
+                                <p>Recorded status of the {{ $totalBuses }} registered fleet buses; dispatch clearance is checked separately.</p>
                             </div>
                             <a href="{{ route('bus-availability') }}" class="dashboard-view-link">
                                 <span>Fleet Bay</span>
@@ -255,7 +223,7 @@
                                     <canvas id="operationalFleetDonutChart"></canvas>
                                     <div class="fleet-health-chart-center" aria-hidden="true">
                                         <strong>{{ $fleetAvailability }}%</strong>
-                                        <span>Available</span>
+                                        <span>Active</span>
                                     </div>
                                 </div>
                                 <div class="fleet-health-status-stack">
@@ -265,7 +233,7 @@
                                                 <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
                                                 <div class="status-name-desc">
                                                     <strong>{{ $item->label }}</strong>
-                                                    <small>{{ $item->label === 'Active' ? 'Available for daily dispatch' : ($item->label === 'Under Maintenance' ? 'Under shop repair bay' : 'Standby or restricted') }}</small>
+                                                    <small>{{ $item->label === 'Active Fleet' ? 'Recorded as Active' : ($item->label === 'Under Maintenance' ? 'Recorded as Under Maintenance' : 'Not recorded as Active') }}</small>
                                                 </div>
                                             </div>
                                             <div class="fleet-health-right">
@@ -365,7 +333,7 @@
                                     </div>
                                     <div class="safety-text">
                                         <h3>Zero Incidents Recorded</h3>
-                                        <p>100% Incident-Free Fleet Operations. Zero vehicle breakdowns, road collisions, or service interruptions recorded in {{ $periodLabel }}.</p>
+                                        <p>No incident reports match {{ $periodLabel }}. This count does not measure overall trip reliability.</p>
                                     </div>
                                 </div>
 
@@ -381,9 +349,9 @@
                                         <small>No emergency swaps</small>
                                     </div>
                                     <div class="safety-metric-tile">
-                                        <span class="safety-metric-num">100%</span>
-                                        <span class="safety-metric-label">Reliability</span>
-                                        <small>Clean road operations</small>
+                                        <span class="safety-metric-num">0</span>
+                                        <span class="safety-metric-label">Accidents</span>
+                                        <small>No accident reports</small>
                                     </div>
                                 </div>
                             </div>

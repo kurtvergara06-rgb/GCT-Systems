@@ -56,11 +56,12 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
             ->assertViewHas('activePrescriptiveView', 'operations')
             ->assertViewHas('operationsPrescriptive')
-            ->assertSeeText('Prescriptive Analytics — Operations')
+            ->assertSeeText('Prescriptive Analytics')
+            ->assertSeeText('Operations Scheduling')
             ->assertSeeText('Demo Data')
             ->assertSeeText('Trips Needing Assignment')
-            ->assertSeeText('Eligible Drivers')
-            ->assertSeeText('Available Buses')
+            ->assertSeeText('Active Driver Candidates')
+            ->assertSeeText('Active Bus Candidates')
             ->assertSeeText('Scheduling Conflicts')
             ->assertSeeText('Recommended Departure & Trip Schedules')
             ->assertSeeText('Thesis Objective 6.4 Decision Support Mandate');
@@ -126,6 +127,9 @@ class PrescriptiveAnalyticsTest extends TestCase
         $opsData = $response->viewData('operationsPrescriptive');
         $this->assertFalse($opsData->is_demo);
         $this->assertGreaterThanOrEqual(1, $opsData->trips_needing_assignment);
+        $this->assertSame('Requires review', $opsData->driver_recommendations->first()->eligibility);
+        $this->assertSame('Needs review', $opsData->schedule_recommendations->first()->headway_gap);
+        $response->assertDontSeeText('15m+ verified');
     }
 
     public function test_restocking_prescriptive_view_renders_demo_simulation_when_no_records(): void
@@ -141,12 +145,13 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
             ->assertViewHas('activePrescriptiveView', 'restocking')
             ->assertViewHas('restockingPrescriptive')
-            ->assertSeeText('Prescriptive Analytics — Restocking')
+            ->assertSeeText('Prescriptive Analytics')
+            ->assertSeeText('Inventory Restocking')
             ->assertSeeText('Demo Data')
             ->assertSeeText('Inventory Items Monitored')
             ->assertSeeText('Low Stock Attention')
             ->assertSeeText('Critical / Out of Stock')
-            ->assertSeeText('Recommended Restock Qty')
+            ->assertSeeText('Threshold Gap Units')
             ->assertSeeText('Spare-Parts Replenishment Recommendations')
             ->assertSeeText('Strategic Restocking Playbooks');
 
@@ -185,6 +190,38 @@ class PrescriptiveAnalyticsTest extends TestCase
 
         $restockData = $response->viewData('restockingPrescriptive');
         $this->assertFalse($restockData->is_demo);
-        $this->assertGreaterThanOrEqual(1, $restockData->recommended_restock_qty);
+        $this->assertSame(9, $restockData->recommended_restock_qty);
+        $this->assertNull($restockData->restock_items->first()->monthly_demand);
+        $this->assertNull($restockData->restock_items->first()->incoming_supply);
+        $response->assertSeeText('Not measured')
+            ->assertSeeText('Not verified')
+            ->assertDontSeeText('Urgent Brake System Restock')
+            ->assertDontSeeText('PO-2026-0004');
+    }
+
+    public function test_healthy_recorded_inventory_shows_live_empty_state_instead_of_demo_recommendations(): void
+    {
+        InventoryItem::create([
+            'item_code' => 'HEALTHY-PART-01',
+            'parts_name' => 'Healthy Test Filter',
+            'item_name' => 'Healthy Test Filter',
+            'category' => 'Filters',
+            'on_hand' => 20,
+            'reorder_level' => 10,
+            'safety_stock' => 5,
+            'unit_of_measurement' => 'pcs',
+            'status' => 'Active',
+        ]);
+
+        $response = $this->actingAs($this->createAdmin())->get(route('analytics.stage', [
+            'stage' => 'prescriptive',
+            'domain' => 'inventory',
+        ]));
+
+        $response->assertOk()
+            ->assertSeeText('Live Database Records')
+            ->assertSeeText('No restocking threshold gaps')
+            ->assertDontSeeText('Urgent Brake System Restock');
+        $this->assertFalse($response->viewData('restockingPrescriptive')->is_demo);
     }
 }

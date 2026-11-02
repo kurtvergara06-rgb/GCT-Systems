@@ -193,31 +193,11 @@
 
 <div class="predictive-page predictive-fleet-page">
 
-    <div class="ft-dashboard-filter-row" aria-label="Fleet analytics filters">
+    <div class="ft-dashboard-filter-row" aria-label="Fleet analytics context">
         <div class="ft-dashboard-filter-heading">
             <strong><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Fleet performance overview</strong>
             <span>Recorded operations and source-labeled predictions</span>
         </div>
-        <form method="GET" action="{{ $predictiveUrl }}" class="ft-dashboard-filters">
-            <input type="hidden" name="domain" value="fleet-trip">
-            <label for="ft-dashboard-period">Period
-                <select id="ft-dashboard-period" name="period" onchange="this.form.requestSubmit()">
-                    <option value="this-month" @selected($period === 'this-month')>This Month</option>
-                    <option value="this-week" @selected($period === 'this-week')>This Week</option>
-                    <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                    <option value="last-90-days" @selected($period === 'last-90-days')>Last 90 Days</option>
-                    <option value="last-12-months" @selected($period === 'last-12-months')>Last 12 Months</option>
-                </select>
-            </label>
-            <label for="ft-dashboard-bus">Bus
-                <select id="ft-dashboard-bus" name="bus" onchange="this.form.requestSubmit()">
-                    <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
-                    @foreach($busOptions as $busNo)
-                        <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
-                    @endforeach
-                </select>
-            </label>
-        </form>
     </div>
 
     {{-- =========================================================

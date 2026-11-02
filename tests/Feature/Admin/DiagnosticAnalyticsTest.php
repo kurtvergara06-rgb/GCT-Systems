@@ -55,7 +55,7 @@ class DiagnosticAnalyticsTest extends TestCase
             ->assertViewIs('Admin.Analytics.diagnostic.layout')
             ->assertViewHas('activeDiagnosticView', 'incident')
             ->assertViewHas('incidentDiagnostics')
-            ->assertSeeText('Incident & Replacement Analysis')
+            ->assertSeeText('Incident & Replacement')
             ->assertSeeText('Demo Data')
             ->assertSeeText('Demonstration Diagnostic Dataset Active')
             ->assertSeeText('Primary Root Cause')
@@ -138,7 +138,7 @@ class DiagnosticAnalyticsTest extends TestCase
             ->assertViewIs('Admin.Analytics.diagnostic.layout')
             ->assertViewHas('activeDiagnosticView', 'fuel')
             ->assertViewHas('fuelDiagnostics')
-            ->assertSeeText('Fuel & Consumption Analysis')
+            ->assertSeeText('Fuel & Consumption')
             ->assertSeeText('Demo Data')
             ->assertSeeText('Demonstration Diagnostic Dataset Active')
             ->assertSeeText('Thesis Objective 6.2.2 Scientific Rule');
