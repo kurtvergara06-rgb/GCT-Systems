@@ -1082,6 +1082,17 @@ class BatchFileProcessingController extends Controller
         }
 
         $records = $payload['records'];
+
+        // An unreadable or unsupported PDF layout must not become a
+        // successful, empty import. This also catches PDFs where only
+        // headings / summary text were extracted but no vehicle intervals.
+        if (count($records) === 0) {
+            throw new \RuntimeException(
+                'No valid GPS records were recognized in this PDF. '
+                . 'Review the report format before importing; no GPS records were saved.'
+            );
+        }
+
         $total = count($records);
         $processed = 0;
         $failed = 0;
