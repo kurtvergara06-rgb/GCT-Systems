@@ -1026,3 +1026,23 @@
 #inventory-model4-section .inventory-ml-results[hidden] {
     display: none !important;
 }
+
+
+/* Stacked actual stock-status counts by category. */
+.predictive-inventory-page .inventory-category-chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    min-height: 200px;
+    padding: 12px 8px 2px;
+}
+.predictive-inventory-page .inventory-category-chart-wrap canvas {
+    display: block;
+    max-width: 100%;
+}
+.predictive-inventory-page .inventory-category-card .ft-evidence-note {
+    margin: 8px 0 0;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #64748b;
+}
