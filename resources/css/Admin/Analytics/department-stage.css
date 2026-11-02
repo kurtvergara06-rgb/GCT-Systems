@@ -71,3 +71,25 @@
 @media(max-width:700px) {
     .department-analytics-page .department-analytics-tabs a { flex: 1 1 auto; justify-content: center; }
 }
+
+
+.department-analytics-page .department-analytics-chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.department-analytics-page .department-analytics-chart-grid > * { min-width: 0; }
+.department-analytics-page .department-analytics-chart-area {
+    position: relative;
+    height: 245px;
+    width: 100%;
+    margin-top: 10px;
+}
+.department-analytics-page .department-analytics-chart-area canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+@media (max-width: 900px) {
+    .department-analytics-page .department-analytics-chart-grid { grid-template-columns: minmax(0, 1fr); }
+}
