@@ -28,7 +28,7 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
                             .find((node) => node.dataset.gpsProgressId === id);
                         if (!current) return;
                         const value = updated.querySelector('[data-gps-progress-value]')?.textContent?.trim();
-                        if (!/^\\d{1,3}%$/.test(value || '')) return;
+                        if (!/^\d{1,3}%$/.test(value || '')) return;
                         const number = Math.min(100, parseInt(value, 10));
                         const label = current.querySelector('[data-gps-progress-value]');
                         const bar = current.querySelector('[data-gps-progress-fill]');
