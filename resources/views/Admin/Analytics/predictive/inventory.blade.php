@@ -50,7 +50,7 @@
     <section class="predictive-main-grid-two">
 
         {{-- STOCK LEVEL DISTRIBUTION CARD --}}
-        <x-analytics.card class="predictive-card forecast-card inventory-distribution-card" title="Stock Level Distribution" description="Proportion of on-hand inventory relative to safety reorder thresholds.">
+        <x-analytics.card class="predictive-card forecast-card inventory-distribution-card" title="Stock Level Distribution" description="Inventory items grouped by current stock level and reorder points.">
             <div class="risk-content inventory-donut-content">
                 <div class="donut-wrapper">
                     <canvas id="inventoryDonut"></canvas>
@@ -94,7 +94,7 @@
 
                     {{-- Distribution Visual Ratio Bar --}}
                     <div class="inventory-ratio-bar-wrap">
-                        <span class="ratio-label">Safety Coverage Ratio</span>
+                        <span class="ratio-label">Stock Status Breakdown</span>
                         <div class="inventory-ratio-bar" title="{{ $healthyCount }} Well Stocked, {{ $lowCount }} Low, {{ $criticalCount }} Out">
                             <div class="ratio-segment ratio-healthy" style="width: {{ $healthyPct }}%"></div>
                             <div class="ratio-segment ratio-low" style="width: {{ $lowPct }}%"></div>
@@ -106,7 +106,7 @@
         </x-analytics.card>
 
         {{-- RUNOUT HORIZON TIMELINE CARD --}}
-        <x-analytics.card class="predictive-card health-issues-card inventory-horizon-card" title="Projected Stockout Horizon" description="Forecasted depletion timeline based on consumption velocity and reorder thresholds.">
+        <x-analytics.card class="predictive-card health-issues-card inventory-horizon-card" title="Stock Replenishment Status" description="Current stock categories based on available quantities and reorder points; not time-to-stockout forecasts.">
             <div class="inventory-horizon-list">
                 @php
                     $horizons = $inventoryPredict->horizons ?? [
@@ -214,7 +214,7 @@
         </x-analytics.card>
 
         {{-- REORDER PRIORITY CARD --}}
-        <x-analytics.card class="predictive-card reorder-priority-card" title="Immediate Reorder Priority" description="Items requiring the most urgent replenishment.">
+        <x-analytics.card class="predictive-card reorder-priority-card" title="Replenishment Review" description="Inventory items ordered by their existing stock attention indicators.">
             <div class="inventory-priority-list">
                 @forelse($priorityRows as $row)
                     @php
@@ -237,15 +237,15 @@
                         </div>
                         <div class="inventory-priority-metrics">
                             <div class="metric-chip">
-                                <span class="metric-label">On Hand:</span>
+                                <span class="metric-label">On Hand / Reorder:</span>
                                 <strong class="{{ $onHand <= 0 ? 'color-danger' : 'color-warning' }}">{{ number_format($onHand) }} / {{ number_format($reorder) }}</strong>
                             </div>
                             <div class="metric-chip">
-                                <span class="metric-label">Runout:</span>
+                                <span class="metric-label">Coverage:</span>
                                 <strong class="metric-runout">{{ $runout }}</strong>
                             </div>
                             <div class="metric-chip highlight">
-                                <span class="metric-label">Suggest PO:</span>
+                                <span class="metric-label">Suggested Qty:</span>
                                 <strong>+{{ number_format($recommendedOrder) }} pcs</strong>
                             </div>
                         </div>
