@@ -287,7 +287,7 @@
                     [
                         'label' => 'Diagnostic Analytics',
                         'url' => route('analytics.stage', ['stage' => 'diagnostic'], false),
-                        'icon' => 'fa-magnifying-glass-chart',
+                        'icon' => 'fa-magnifying-glass',
                         'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'diagnostic',
                     ],
                     [
@@ -307,7 +307,8 @@
                         'route' => 'admin.batch-file-processing',
                         'icon' => 'fa-file-circle-check',
                         'active_routes' => ['admin.batch-file-processing'],
-                    ],                ],
+                    ],
+                ],
             ],
             [
                 'label' => 'Settings',
