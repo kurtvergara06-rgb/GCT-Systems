@@ -11,6 +11,7 @@ use App\Services\FleetTripPredictionService;
 use App\Services\StatisticalTripForecastService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -128,7 +129,32 @@ class FleetTripAnalyticsController extends Controller
             'busActivity' => $busActivity,
             'diagnostics' => $diagnostics,
             'prediction' => $prediction,
+            'pythonServiceStatus' => $this->pythonServiceStatus(),
         ];
+    }
+
+    /** Read-only probe; distinguish API reachability from a trained ETA model. */
+    private function pythonServiceStatus(): array
+    {
+        $url = rtrim((string) config('services.nlp.api_url', 'http://127.0.0.1:8000'), '/');
+
+        try {
+            $health = Http::connectTimeout(1)->timeout(2)->get($url.'/health');
+            if (! $health->successful()) {
+                return ['online' => false, 'eta_ready' => false];
+            }
+
+            $eta = Http::connectTimeout(1)->timeout(2)->get($url.'/eta/status');
+
+            return [
+                'online' => true,
+                'eta_ready' => $eta->successful()
+                    && $eta->json('model_ready') === true
+                    && $eta->json('is_production_model') === true,
+            ];
+        } catch (\\Throwable $exception) {
+            return ['online' => false, 'eta_ready' => false];
+        }
     }
 
     private function recordsQuery(Carbon $start, Carbon $end, string $selectedBus)
