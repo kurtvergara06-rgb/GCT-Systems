@@ -126,10 +126,6 @@
                 subtitle="Operational and administrative summaries from recorded system activity · Objective 6.1."
             />
 
-            <nav aria-label="Analytics display mode" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:8px;font-size:11px">
-                <a href="{{ request()->fullUrlWithoutQuery(['preview']) }}">Live Records</a>
-                <a href="{{ request()->fullUrlWithQuery(['preview' => 1]) }}">Illustrative Preview</a>
-            </nav>
             @if($illustrativeAnalytics)
                 <p style="font-size:10px;color:#64748b;margin-bottom:8px">Illustrative reporting figures for presentation only.</p>
             @endif
