@@ -208,6 +208,12 @@
                         'active_routes' => ['admin.users', 'admin.users.*'],
                     ],
                     [
+                        'label' => 'Pending Applications',
+                        'route' => 'admin.applications',
+                        'icon' => 'fa-user-clock',
+                        'active_routes' => ['admin.applications', 'admin.applications.*'],
+                    ],
+                    [
                         'label' => 'Roles & Permissions',
                         'route' => 'admin.roles-permissions',
                         'icon' => 'fa-user-lock',
