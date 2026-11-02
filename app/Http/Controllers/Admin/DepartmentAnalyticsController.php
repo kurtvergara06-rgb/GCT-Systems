@@ -52,6 +52,30 @@ class DepartmentAnalyticsController extends Controller
             $metrics[] = compact('label', 'total', 'statuses');
         }
 
-        return view('Admin.Analytics.department-stage', compact('department', 'stage', 'metrics'));
+        // Department-scoped descriptive trend from the same allow-listed sources.
+        // Only records with actual created_at timestamps are included.
+        $monthlyActivity = collect();
+        if ($stage === 'descriptive') {
+            $months = collect(range(5, 0))->map(fn (int $offset) => now()->startOfMonth()->subMonths($offset));
+            $monthlyActivity = $months->map(function ($month) use ($sources): array {
+                $monthStart = $month->copy()->startOfMonth();
+                $monthEnd = $month->copy()->endOfMonth();
+                $counts = [];
+                foreach ($sources as $label => $table) {
+                    if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'created_at')) {
+                        continue;
+                    }
+                    $query = DB::table($table)->whereBetween('created_at', [$monthStart, $monthEnd]);
+                    if (Schema::hasColumn($table, 'deleted_at')) {
+                        $query->whereNull('deleted_at');
+                    }
+                    $counts[$label] = $query->count();
+                }
+
+                return ['month' => $month->format('M Y'), 'counts' => $counts, 'total' => array_sum($counts)];
+            });
+        }
+
+        return view('Admin.Analytics.department-stage', compact('department', 'stage', 'metrics', 'monthlyActivity'));
     }
 }
