@@ -86,6 +86,7 @@ class PdfGpsRuleParser
                 'record_no' => $vehicle.'-'.$no,
                 'bus_no' => $vehicle,
                 'trip_type' => 'Engine Activity',
+                'grouping' => $grouping,
                 'beginning' => $start,
                 'ending' => $end,
                 'duration_minutes' => round((strtotime($end) - strtotime($start)) / 60, 2),
@@ -94,7 +95,7 @@ class PdfGpsRuleParser
                 'idling_minutes' => round($idleSeconds / 60, 2),
                 'engine_hours' => round($engineSeconds / 3600, 4),
                 'mileage_km' => (float) str_replace(',', '', $km[1]),
-                'description' => 'Engine activity interval; not a scheduled trip. Wrapped locations require review.',
+                'description' => 'Engine activity interval; not a scheduled trip. Source locations not yet reliably extracted; review before publication.',
                 'raw_data' => ['row' => $line, 'grouping_source' => $grouping, 'source' => 'Local PDF rule parser'],
             ];
         }
