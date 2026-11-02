@@ -36,24 +36,16 @@
                 <span class="department-analytics-scope">Department scope</span>
             </section>
 
+            {{-- Reuse the same KPI Blade component used by System Admin Analytics. --}}
             <section class="analytics-kpi-strip" aria-label="Department summary">
-                <article class="analytics-kpi-card">
-                    <div class="analytics-kpi-card__icon"><i class="fa-solid fa-database"></i></div>
-                    <div class="analytics-kpi-card__content">
-                        <span class="analytics-kpi-card__label">Recorded Entries</span>
-                        <strong class="analytics-kpi-card__value">{{ number_format($allCount) }}</strong>
-                        <span class="analytics-kpi-card__description">Across permitted department sources</span>
-                    </div>
-                </article>
+                <x-analytics.kpi label="Recorded Entries" :value="number_format($allCount)"
+                    description="Across permitted department sources"
+                    icon="fa-database" icon-variant="blue" />
                 @foreach($metrics as $metric)
-                    <article class="analytics-kpi-card">
-                        <div class="analytics-kpi-card__icon"><i class="fa-solid {{ $icons[$loop->index % count($icons)] }}"></i></div>
-                        <div class="analytics-kpi-card__content">
-                            <span class="analytics-kpi-card__label">{{ $metric['label'] }}</span>
-                            <strong class="analytics-kpi-card__value">{{ number_format($metric['total']) }}</strong>
-                            <span class="analytics-kpi-card__description">Recorded entries</span>
-                        </div>
-                    </article>
+                    <x-analytics.kpi :label="$metric['label']"
+                        :value="number_format($metric['total'])"
+                        description="Recorded entries" :icon="$icons[$loop->index % count($icons)]"
+                        icon-variant="blue" />
                 @endforeach
             </section>
 
