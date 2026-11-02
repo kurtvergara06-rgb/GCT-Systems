@@ -449,7 +449,7 @@ def extract_engine_hours_records(pdf_path: str) -> dict:
     record_number = re.compile(r"^\d+\.\d+$")
     datetime_format = "%m-%d-%Y %H:%M:%S"
     required_headers = [
-        "no", "grouping", "beginning", "initial location", "end",
+        "", "grouping", "beginning", "initial location", "end",
         "final location", "engine hours", "total time",
         "in motion", "idling", "mileage",
     ]
