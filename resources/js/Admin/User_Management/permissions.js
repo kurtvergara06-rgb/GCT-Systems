@@ -2,6 +2,22 @@ window.GCTPartialNavigation.registerInitializer(
     'admin-role-permissions',
     '.permissions-page',
     () => {
+        const tabs = Array.from(document.querySelectorAll('[data-permission-tab]'));
+        const roleSection = document.getElementById('permissionDepartmentRoles');
+        const additionalSection = document.getElementById('permissionAdditionalAccess');
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const showRoles = tab.dataset.permissionTab === 'roles';
+                if (roleSection) roleSection.hidden = !showRoles;
+                if (additionalSection) additionalSection.hidden = showRoles;
+                tabs.forEach((item) => {
+                    const selected = item === tab;
+                    item.classList.toggle('active', selected);
+                    item.setAttribute('aria-selected', String(selected));
+                });
+            });
+        });
+
         const search = document.getElementById('rolePermissionSearch');
         const roleForms = document.querySelectorAll('.role-select-form');
 
