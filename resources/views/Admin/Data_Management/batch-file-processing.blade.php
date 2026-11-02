@@ -131,6 +131,7 @@
     <main
         class="main batch-main batch-processing-page"
         data-auto-open-preview="{{ in_array(request('preview'), ['raw', 'clean'], true) ? request('preview') : '' }}"
+        data-gps-batch-status="{{ $selectedBatch?->status ?? '' }}"
     >
         <x-layout.topbar
             title="Batch File Processing"
