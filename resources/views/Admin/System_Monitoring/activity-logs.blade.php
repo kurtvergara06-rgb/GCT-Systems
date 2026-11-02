@@ -41,6 +41,12 @@
                     :action="route('admin.activity-logs')"
                     class="activity-toolbar"
                     search-placeholder="Search user, activity, reference..."
+                    search-label="Search Activities"
+                    filter-title="Filter Activities"
+                    :filter-count="(int) (request()->filled('module') && request('module') !== 'all') + (int) (request()->filled('event') && request('event') !== 'all') + (int) (request()->filled('date') && request('date') !== 'all')"
+                    :sort-options="['created_at' => 'Date & Time', 'user_name' => 'User', 'activity' => 'Activity', 'module' => 'Module', 'event_type' => 'Event Type']"
+                    default-sort="created_at"
+                    default-direction="desc"
                     :show-button="false"
                     id="activityFilterForm"
                     data-activity-filter-form
@@ -49,6 +55,7 @@
                     data-no-loading
                     autocomplete="off"
                 >
+                    <x-slot:filters>
                     <div class="filter-group">
                         <select id="activityModuleFilter" name="module" aria-label="Filter by module" autocomplete="off">
                             <option value="all">All Modules</option>
@@ -79,6 +86,7 @@
                             <option value="month" @selected(request('date') === 'month')>This Month</option>
                         </select>
                     </div>
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
 
                 <div id="activityTableLoading" class="activity-table-loading" hidden>
