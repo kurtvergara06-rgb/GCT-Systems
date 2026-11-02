@@ -58,13 +58,12 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertViewHas('operationsPrescriptive')
             ->assertSeeText('Prescriptive Analytics')
             ->assertSeeText('Operations Scheduling')
-            ->assertSeeText('Demo Data')
             ->assertSeeText('Trips Needing Assignment')
             ->assertSeeText('Active Driver Candidates')
             ->assertSeeText('Active Bus Candidates')
             ->assertSeeText('Scheduling Conflicts')
             ->assertSeeText('Recommended Departure & Trip Schedules')
-            ->assertSeeText('Thesis Objective 6.4 Decision Support Mandate');
+            ->assertDontSeeText('Thesis Objective 6.4 Decision Support Mandate');
 
         $opsData = $response->viewData('operationsPrescriptive');
         $this->assertTrue($opsData->is_demo);
@@ -121,8 +120,8 @@ class PrescriptiveAnalyticsTest extends TestCase
         $response->assertOk()
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
             ->assertViewHas('activePrescriptiveView', 'operations')
-            ->assertSeeText('Live Database Records')
-            ->assertSeeText('T-LIVE-2026');
+            ->assertSeeText('T-LIVE-2026')
+            ->assertDontSeeText('Live Database Records');
 
         $opsData = $response->viewData('operationsPrescriptive');
         $this->assertFalse($opsData->is_demo);
@@ -147,7 +146,6 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertViewHas('restockingPrescriptive')
             ->assertSeeText('Prescriptive Analytics')
             ->assertSeeText('Inventory Restocking')
-            ->assertSeeText('Demo Data')
             ->assertSeeText('Inventory Items Monitored')
             ->assertSeeText('Low Stock Attention')
             ->assertSeeText('Critical / Out of Stock')
@@ -185,8 +183,8 @@ class PrescriptiveAnalyticsTest extends TestCase
         $response->assertOk()
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
             ->assertViewHas('activePrescriptiveView', 'restocking')
-            ->assertSeeText('Live Database Records')
-            ->assertSeeText('LIVE-PART-01');
+            ->assertSeeText('LIVE-PART-01')
+            ->assertDontSeeText('Live Database Records');
 
         $restockData = $response->viewData('restockingPrescriptive');
         $this->assertFalse($restockData->is_demo);
@@ -219,8 +217,8 @@ class PrescriptiveAnalyticsTest extends TestCase
         ]));
 
         $response->assertOk()
-            ->assertSeeText('Live Database Records')
             ->assertSeeText('No restocking threshold gaps')
+            ->assertDontSeeText('Live Database Records')
             ->assertDontSeeText('Urgent Brake System Restock');
         $this->assertFalse($response->viewData('restockingPrescriptive')->is_demo);
     }
