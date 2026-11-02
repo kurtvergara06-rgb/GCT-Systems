@@ -30,6 +30,9 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
                         const value = updated.querySelector('[data-gps-progress-value]')?.textContent?.trim();
                         if (!/^\d{1,3}%$/.test(value || '')) return;
                         const number = Math.min(100, parseInt(value, 10));
+                        const stage = current.querySelector('[data-gps-progress-stage]');
+                        const updatedStage = updated.querySelector('[data-gps-progress-stage]')?.textContent?.trim();
+                        if (stage && updatedStage) stage.textContent = updatedStage;
                         const label = current.querySelector('[data-gps-progress-value]');
                         const bar = current.querySelector('[data-gps-progress-fill]');
                         if (label) label.textContent = number + '%';
