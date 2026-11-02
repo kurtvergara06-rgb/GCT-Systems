@@ -19,7 +19,7 @@
         'last-12-months' => 'Last 12 Months',
     ];
 
-    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $currentFilters = request()->only(['period', 'bus', 'preview']);
     $normalizedSelectedBus = strtoupper(trim((string) $selectedBus));
 
     if (! $isRestocking) {
@@ -87,13 +87,18 @@
                 :date-label="ucwords(str_replace('-', ' ', $period))"
                 period-label="Planning Period"
             />
+            <nav aria-label="Analytics data source" style="display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px;align-items:center">
+                <span style="font-size:11px;color:#64748b">Data source:</span>
+                <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeDomain])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ !request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Live Records</a>
+                <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeDomain, 'preview'=>1])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Sample Preview</a>
+            </nav>
             <!-- Unified Status, Provenance & Decision Support Mandate Bar -->
             <div class="prescriptive-status-strip">
                 <div class="status-strip-left">
                     @if($isDemo)
-                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Demo Data</span>
+                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Sample Dataset</span>
                         <span class="status-strip-text">
-                            <strong>Demonstration mode:</strong> Illustrating Thesis Objective 6.4 algorithmic guidance
+                            <strong>Sample preview (not live results):</strong> Illustrating Thesis Objective 6.4 algorithmic guidance
                             @if(! $isRestocking)
                                 (headway spacing &amp; PMS clearance). Live records: <strong>{{ $operationsData->real_count }} trip(s)</strong>.
                             @else
@@ -101,9 +106,9 @@
                             @endif
                             Live model readiness is shown separately below.
                         </span>
-                        @if(request()->boolean('demo'))
-                            <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except('demo'), ['domain' => $activeDomain])) }}" class="strip-switch-link">
-                                <span>Switch to Live</span> <i class="fa-solid fa-rotate"></i>
+                        @if(request()->boolean('preview'))
+                            <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except('preview'), ['domain' => $activeDomain, 'preview' => 0])) }}" class="strip-switch-link">
+                                <span>Return to Live</span> <i class="fa-solid fa-rotate"></i>
                             </a>
                         @endif
                     @else
