@@ -930,32 +930,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
       const checked = Array.from(modal.querySelectorAll('input[name="specializations[]"]:checked:not(:disabled)'));
       const jobPicker = modal.querySelector('select[id$="MaintenanceJob"]');
       const selectedJobs = jobPicker?.getSelectedJobs?.() || [];
-      // Explicit initial skill suggestions for known presets; these are not competency certifications.
-      const suggestedSkills = {
-        'Brake Inspection': ['Brakes'],
-        'Brake Pad Replacement': ['Brakes'],
-        'Brake Adjustment': ['Brakes'],
-        'Brake Air System Inspection': ['Brakes'],
-        'Brake Lining Replacement': ['Brakes'],
-        'Engine Tune-Up': ['Engine'],
-        'Engine Oil Leak Inspection': ['Engine'],
-        'Aircon Servicing': ['Aircon'],
-        'Aircon Refrigerant Recharge': ['Aircon'],
-        'Suspension Inspection and Repair': ['Suspension'],
-        'Wiring and Electrical Troubleshooting': ['Electrical'],
-        'Headlight and Signal Light Repair': ['Electrical'],
-        'Tire Replacement': ['Tires'],
-        'Tire Pressure and Condition Check': ['Tires'],
-        'Cooling System Inspection': ['Cooling System'],
-        'Radiator and Coolant Servicing': ['Cooling System'],
-        'Transmission and Clutch Inspection': ['Transmission'],
-        'Body Panel and Bumper Repair': ['Body Repair']
-      };
-      const unmappedJobs = selectedJobs.filter(job => job !== 'Other' && !suggestedSkills[job]);
-      const proposed = selectedJobs.flatMap(job => suggestedSkills[job] || []);
-      const required = [...new Map([...checked.map(input => input.value.trim()), ...proposed]
+      // Match the backend's saved Maintenance Catalog requirements.
+      // Never infer required skills from a separate hardcoded frontend list.
+      let catalogSkills = {};
+      try {
+        catalogSkills = JSON.parse(document.querySelector('#maintenanceJobSkillsData')?.textContent || '{}');
+      } catch (_) { /* An invalid catalog payload must not imply skill coverage. */ }
+      const unmappedJobs = selectedJobs.filter(job => job !== 'Other' && !Array.isArray(catalogSkills[job]));
+      const savedSkills = selectedJobs.flatMap(job => Array.isArray(catalogSkills[job]) ? catalogSkills[job] : []);
+      const required = [...new Map([...(selectedJobs.includes('Other') ? checked.map(input => input.value.trim()) : []), ...savedSkills]
         .filter(Boolean).map(skill => [normalize(skill), skill])).values()];
-      const provisional = proposed.length > 0;
+      const provisional = false;
       const chosen = Array.from(select.selectedOptions).filter(option => option.value);
       const skills = new Set(chosen.flatMap(option => split(option.dataset.specializations)).map(normalize));
       const matched = required.filter(skill => skills.has(normalize(skill)));
@@ -987,7 +972,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
           tags.append(badge);
         });
         count.textContent = matched.length + ' / ' + required.length + ' specializations covered';
-        const advisory = provisional ? 'Preset-job skills are suggested mappings, not verified competency requirements. ' : '';
+        const advisory = provisional ? 'Unverified skill suggestions. ' : '';
         const mappingNote = unmappedJobs.length ? ' Unmapped jobs: ' + unmappedJobs.join(', ') + '.' : '';
         note.textContent = advisory + (missing.length
           ? 'Unmatched: ' + missing.join(', ') + '. Maintenance Head should review this assignment.'
