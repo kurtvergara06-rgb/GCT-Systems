@@ -1,5 +1,10 @@
 @import './all.css';
 
+#fuel-analytics-filters { justify-content: flex-end; padding: 10px 14px; }
+#fuel-analytics-filters .analytics-stage-filters { gap: 14px !important; }
+#fuel-analytics-filters .analytics-stage-filters label { display: flex !important; gap: 7px; }
+#fuel-analytics-filters .analytics-stage-filters label > span:first-child { display: inline-block !important; }
+
 .diagnostic-domain-fuel .fuel-main-grid { display:grid; grid-template-columns:.9fr 1.45fr 1fr; gap:12px; }
 .diagnostic-domain-fuel .fuel-secondary-grid { display:grid; grid-template-columns:1.25fr .9fr 1fr; gap:12px; }
 .diagnostic-domain-fuel .fuel-matrix { position:relative; }

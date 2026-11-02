@@ -32,7 +32,7 @@
                 >
                     <x-slot:actions>
                         <span class="activity-count">
-                            {{ $logs->total() }} {{ $logs->total() === 1 ? 'Activity' : 'Activities' }}
+                            {{ number_format($logs->total()) }} {{ $logs->total() === 1 ? 'Activity' : 'Activities' }}
                         </span>
                     </x-slot:actions>
                 </x-ui.section-header>
@@ -167,6 +167,7 @@
                                                 type="button"
                                                 class="action-btn view open-log-modal"
                                                 title="View Activity Details"
+                                                aria-label="View activity details for {{ $log->user_name }}"
                                                 data-icon-only
                                                 data-user="{{ $log->user_name }}"
                                                 data-role="{{ $log->user_role }}"

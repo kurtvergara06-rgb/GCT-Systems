@@ -23,7 +23,7 @@
 
         <x-analytics.kpi
             label="Average Fuel Efficiency"
-            :value="number_format($d->fleet_average, 2) . ' km/L'"
+            :value="$d->total_fuel > 0 ? number_format($d->fleet_average, 2) . ' km/L' : '—'"
             description="Distance divided by recorded fuel consumption."
             icon="fa-gauge-high"
             icon-variant="green"
@@ -49,7 +49,7 @@
     <div class="fuel-main-grid">
         <article class="diag-card">
             <x-analytics.card-header class="diag-card-head" title="High-Risk Buses" description="Lowest-efficiency review units first." />
-            @if($review->isEmpty())<div class="diag-empty">No bus currently meets the fuel review thresholds.</div>@else<div class="diag-list">@foreach($review->sortBy('km_per_liter')->take(6) as $bus)<div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-bus"></i></span><div><strong>{{ $bus->bus_no }}</strong><small>{{ number_format($bus->fuel_liters,1) }} L · {{ number_format($bus->distance_km,1) }} km</small></div><div class="diag-list-value">{{ number_format($bus->km_per_liter,2) }} km/L<br>@if($bus->status)<x-ui.status-badge :status="$bus->status" />@endif</div></div>@endforeach</div>@endif
+            @if($review->isEmpty())<div class="diag-empty">{{ $busSummaries->isEmpty() ? 'No fuel reports are available for the selected filters.' : 'No bus currently meets the fuel review thresholds.' }}</div>@else<div class="diag-list">@foreach($review->sortBy('km_per_liter')->take(6) as $bus)<div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-bus"></i></span><div><strong>{{ $bus->bus_no }}</strong><small>{{ number_format($bus->fuel_liters,1) }} L · {{ number_format($bus->distance_km,1) }} km</small></div><div class="diag-list-value">{{ number_format($bus->km_per_liter,2) }} km/L<br>@if($bus->status)<x-ui.status-badge :status="$bus->status" />@endif</div></div>@endforeach</div>@endif
             <x-analytics.card-header class="diag-card-head" style="margin-top:14px" title="Top Diagnostic Drivers" description="Only factors supported by current fuel + trip data." />
             <div class="diag-bars">
                 <div class="diag-bar-row"><span>Below fleet efficiency baseline</span><div class="diag-bar-track"><i class="diag-bar-fill red" style="width:{{ min(100,($reviewCount/$totalBuses)*100) }}%"></i></div><b>{{ $reviewCount }}</b></div>
@@ -72,7 +72,7 @@
 
         <article class="diag-card">
             <x-analytics.card-header class="diag-card-head" title="Fuel Consumption Trend" description="Recorded liters by day in the selected fuel trend window." />
-            @if($trend->isEmpty())<div class="diag-empty">No fuel trend data is available.</div>@else<div class="diag-bars">@php $maxFuel=max(1,(float)$trend->max('fuel_liters')); @endphp @foreach($trend as $point)<div class="diag-bar-row"><span>{{ $point->label }}</span><div class="diag-bar-track"><i class="diag-bar-fill" style="width:{{ ($point->fuel_liters/$maxFuel)*100 }}%"></i></div><b>{{ number_format($point->fuel_liters,0) }} L</b></div>@endforeach</div>@endif
+            @if($d->total_fuel <= 0)<div class="diag-empty">No fuel consumption was recorded for the selected filters.</div>@else<div class="diag-bars">@php $maxFuel=max(1,(float)$trend->max('fuel_liters')); @endphp @foreach($trend as $point)<div class="diag-bar-row"><span>{{ $point->label }}</span><div class="diag-bar-track"><i class="diag-bar-fill" style="width:{{ ($point->fuel_liters/$maxFuel)*100 }}%"></i></div><b>{{ number_format($point->fuel_liters,0) }} L</b></div>@endforeach</div>@endif
             <x-analytics.card-header class="diag-card-head" style="margin-top:14px" title="Efficiency Distribution" />
             <div class="diag-list"><div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-circle-check"></i></span><div><strong>Efficient</strong><small>≥ 5% above fleet average</small></div><span class="diag-list-value">{{ $efficient }}</span></div><div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-minus"></i></span><div><strong>Normal</strong><small>Within current baseline range</small></div><span class="diag-list-value">{{ $normal }}</span></div><div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-triangle-exclamation"></i></span><div><strong>Review / Priority</strong><small>Below baseline or elevated idling</small></div><span class="diag-list-value">{{ $reviewCount }}</span></div></div>
         </article>
@@ -80,7 +80,7 @@
 
     <div class="fuel-secondary-grid">
         <article class="diag-card"><x-analytics.card-header class="diag-card-head" title="Signals Requiring Investigation" description="Recorded fuel evidence that deserves closer review." />@if($review->isEmpty())<div class="diag-empty">No current review signal.</div>@else<div class="diag-list">@foreach($review->take(5) as $bus)<div class="diag-list-row"><span class="diag-list-rank"><i class="fa-solid fa-gas-pump"></i></span><div><strong>{{ $bus->bus_no }}</strong><small>{{ $bus->signals->implode(' ') }}</small></div><span class="diag-badge {{ $bus->status === 'Priority Review' ? 'high' : 'medium' }}">{{ number_format($bus->km_per_liter,2) }} km/L</span></div>@endforeach</div>@endif</article>
-        <article class="diag-card diag-insight"><div class="diag-insight-icon"><i class="fa-regular fa-lightbulb"></i></div><div><h3>Key Insight</h3><p>@if($reviewCount > 0){{ $reviewCount }} buses show fuel-review evidence. {{ $d->high_idling_units->count() }} of those also show elevated idling intensity, making idling the strongest supported operational factor available in the current dataset.@else Current fuel records do not cross the configured fleet-relative review thresholds. @endif</p></div></article>
+        <article class="diag-card diag-insight"><div class="diag-insight-icon"><i class="fa-regular fa-lightbulb"></i></div><div><h3>Key Insight</h3><p>@if($busSummaries->isEmpty())No fuel reports are available for the selected filters.@elseif($reviewCount > 0){{ $reviewCount }} buses show fuel-review evidence. {{ $d->high_idling_units->count() }} of those also show elevated idling intensity, making idling the strongest supported operational factor available in the current dataset.@else Current fuel records do not cross the configured fleet-relative review thresholds. @endif</p></div></article>
         <article class="diag-card"><x-analytics.card-header class="diag-card-head" title="Investigation Priorities" /><ol class="diag-priority-list"><li>Review the lowest-efficiency buses against maintenance history.</li><li>Inspect units with elevated idling intensity.</li><li>Compare fuel efficiency across buses with similar operating periods.</li><li>Verify fuel-report completeness before interpreting unexplained variation.</li></ol></article>
     </div>
 

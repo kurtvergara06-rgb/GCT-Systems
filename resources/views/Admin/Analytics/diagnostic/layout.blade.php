@@ -43,7 +43,7 @@
             <x-analytics.insight-toast stage="diagnostic" :domain="$activeDomain" :insight="$analyticsAlert" />
 
             @if($activeDomain !== 'fleet-trip')
-            <section class="analytics-domain-toolbar diagnostic-toolbar">
+            <section @if($activeDomain === 'fuel') id="fuel-analytics-filters" @endif class="analytics-domain-toolbar diagnostic-toolbar">
                 <form method="GET" action="{{ $diagnosticUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
 

@@ -50,9 +50,9 @@
         icon="fa-circle-exclamation"
         label="Out of Stock"
         :value="number_format($inventoryCritical)"
-        description="Immediate procurement needed"
-        change="Critical shortfall"
-        change-type="negative"
+        description="Parts with no on-hand units"
+        :change="$inventoryCritical > 0 ? 'Critical shortfall' : 'No depleted items'"
+        :change-type="$inventoryCritical > 0 ? 'negative' : 'positive'"
         icon-variant="red"
     />
 </section>
@@ -103,7 +103,7 @@
             {{-- Fleet Stock Health Compliance Bar --}}
             <div class="inventory-health-compliance">
                 <div class="compliance-header">
-                    <span><i class="fa-solid fa-shield-heart"></i> Overall Fleet Parts Health Score</span>
+                    <span><i class="fa-solid fa-shield-heart"></i> Stock Buffer Coverage</span>
                     <strong class="{{ $healthyPct >= 80 ? 'positive' : ($healthyPct >= 60 ? 'warning' : 'negative') }}">{{ number_format($healthyPct, 1) }}%</strong>
                 </div>
                 <div class="compliance-track">
@@ -126,7 +126,7 @@
         <article class="analytics-card inventory-panel inventory-restock-panel">
             <div class="inventory-card-header">
                 <div>
-                    <h3>Restock Exposure & Procurement Readiness <i class="fa-solid fa-truck-ramp-box"></i></h3>
+                    <h3>Restock Exposure <i class="fa-solid fa-truck-ramp-box"></i></h3>
                     <p>Current replenishment urgency across warehouse inventory</p>
                 </div>
                 <span class="inventory-card-badge {{ $inventoryAttentionTotal > 0 ? 'warning' : 'safe' }}">
@@ -265,7 +265,7 @@
                                 <td>
                                     <span class="location-badge">
                                         <i class="fa-solid fa-location-dot"></i>
-                                        {{ $item->storage_location ?: ($item->location ?: 'Warehouse A') }}
+                                        {{ $item->storage_location ?: ($item->location ?: '—') }}
                                     </span>
                                 </td>
                                 <td>
@@ -294,7 +294,7 @@
                                 </td>
                                 <td>
                                     <span class="supplier-text">
-                                        {{ $item->supplier ?: 'Standard Fleet Vendor' }}
+                                        {{ $item->supplier ?: '—' }}
                                     </span>
                                 </td>
                             </tr>

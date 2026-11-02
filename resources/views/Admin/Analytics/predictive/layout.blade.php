@@ -61,6 +61,7 @@
 
             <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
+            @if($activeDomain !== 'fleet-trip')
             <section class="analytics-domain-toolbar predictive-toolbar">
                 <form method="GET" action="{{ $predictiveUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
@@ -88,6 +89,7 @@
 
                 </form>
             </section>
+            @endif
 
             @if($activeDomain === 'all')
                 <x-analytics.model-status />
