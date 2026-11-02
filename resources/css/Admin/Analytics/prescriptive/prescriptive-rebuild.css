@@ -742,3 +742,50 @@
         padding: 4px;
     }
 }
+
+
+/* Candidate tables: fit their half-width cards without sideways scrolling. */
+.prescriptive-rebuild .prescriptive-split-grid > .prescriptive-dashboard-card { min-width: 0; }
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+}
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+}
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table th,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table td {
+    padding: 10px 7px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    line-height: 1.4;
+    vertical-align: top;
+}
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(1) { width: 24%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(2) { width: 22%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(3) { width: 18%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(4) { width: 36%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(1) { width: 24%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(2) { width: 25%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(3) { width: 17%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(4) { width: 34%; }
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .badge-status,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .code-pill,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .bus-chip,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .dashboard-badge {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+@media (max-width: 1100px) {
+    .prescriptive-rebuild .prescriptive-split-grid { grid-template-columns: minmax(0, 1fr); }
+}
