@@ -40,7 +40,7 @@
             'categoryColors' => collect($restockingData->category_replenishment ?? [])->pluck('color')->toArray(),
             'coverageLabels' => $restockingData->stock_coverage->labels ?? [],
             'coverageOnHand' => $restockingData->stock_coverage->on_hand ?? [],
-            'coverageBuffer' => $restockingData->stock_coverage->safety_buffer ?? [],
+            'coverageReorderPoint' => $restockingData->stock_coverage->reorder_point ?? [],
             'coverageRestock' => $restockingData->stock_coverage->suggested_restock ?? [],
             'priorityLabels' => collect($restockingData->priority_distribution ?? [])->pluck('label')->toArray(),
             'priorityValues' => collect($restockingData->priority_distribution ?? [])->pluck('count')->toArray(),
@@ -481,8 +481,8 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-chart-line"></i> Stock Coverage vs Threshold</h3>
-                                <p class="dashboard-eyebrow">On-hand stock, configured safety stock, and threshold gap</p>
+                                <h3><i class="fa-solid fa-chart-line"></i> Available Stock vs Reorder Point</h3>
+                                <p class="dashboard-eyebrow">Available stock, reorder points, and advisory replenishment gaps</p>
                             </div>
                             <span class="dashboard-badge">Deficit Gap</span>
                         </div>
