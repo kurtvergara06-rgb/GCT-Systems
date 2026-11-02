@@ -359,7 +359,7 @@ class AnalyticsStageController extends Controller
 
         // The presentation uses a clearly identified sample dataset only when
         // there are no real incident records for this selection.
-        $isDemo = true; // Fixed illustrative dashboard dataset until live-mode integration is requested.
+        $isDemo = $demoMode; // Live diagnostics by default; screenshot preview is explicit.
         if ($isDemo) {
             return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
         }
@@ -412,9 +412,12 @@ class AnalyticsStageController extends Controller
 
         foreach ($realIncidents as $i) {
             if ($i->replacement) {
-                $mins = $i->incident_reported_at && $i->replacement->dispatched_at
-                    ? $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at)
-                    : 30;
+                // Missing timestamps must not be invented as a 30-minute response.
+                if (! $i->incident_reported_at || ! $i->replacement->dispatched_at) {
+                    $noReplacement++;
+                    continue;
+                }
+                $mins = $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at);
                 if ($mins < 30) {
                     $rapidDispatch++;
                 } elseif ($mins <= 60) {
@@ -665,7 +668,7 @@ class AnalyticsStageController extends Controller
         $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
 
         // Show an illustrative chart only if actual fuel observations are absent.
-        $isDemo = true; // Fixed illustrative fuel dataset for presentation.
+        $isDemo = $demoMode; // Live fuel diagnostics by default; screenshot preview is explicit.
         if ($isDemo) {
             return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
         }
