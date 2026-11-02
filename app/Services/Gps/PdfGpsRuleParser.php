@@ -33,7 +33,7 @@ class PdfGpsRuleParser
         }
 
         $onProgress && $onProgress(5);
-        $lines = preg_split('/\\R/u', $text);
+        $lines = preg_split('/\R/u', $text);
         $lineCount = max(1, count($lines));
         $records = [];
         $vehicle = null;
