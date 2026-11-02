@@ -361,9 +361,9 @@ function initAdministrativeCharts(data) {
     }
 
     // 2. Activity by Module
-    const moduleCanvas = document.getElementById('adminModuleDistributionChart');
+    const moduleCanvas = document.getElementById('adminActivityModuleChart');
     if (moduleCanvas && data.moduleLabels && data.moduleLabels.length > 0) {
-        destroyChart('adminModuleDistributionChart');
+        destroyChart('adminActivityModuleChart');
         const moduleColorMap = {
             'Admin': '#3b82f6',
             'Operation': '#0ea5e9',
@@ -374,7 +374,7 @@ function initAdministrativeCharts(data) {
         };
         const bgColors = data.moduleLabels.map((lbl) => moduleColorMap[lbl] || '#94a3b8');
 
-        chartInstances['adminModuleDistributionChart'] = new Chart(moduleCanvas, {
+        chartInstances['adminActivityModuleChart'] = new Chart(moduleCanvas, {
             type: 'doughnut',
             data: {
                 labels: data.moduleLabels,
