@@ -207,7 +207,7 @@
                     <div>
                         <span class="section-kicker">Module Permissions</span>
                         <h2>Department Permissions</h2>
-                        <p>Only {{ $departmentLabel }} capabilities can be granted. Other modules are locked by department isolation.</p>
+                        <p>{{ $departmentLabel }} permissions and Analytics access can be granted. Other departments remain isolated.</p>
                     </div>
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
@@ -229,7 +229,7 @@
                                 @foreach($capabilities as $capabilityKey => $capability)
                                     @php
                                         $supported = array_key_exists($capabilityKey, $module['capabilities']);
-                                        $editable = $supported && $isHomeModule;
+                                        $editable = $supported && ($isHomeModule || $moduleKey === 'analytics');
                                         $isAllowed = $supported && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
                                         $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
                                     @endphp
@@ -255,7 +255,7 @@
                     <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
                         <strong>Department access is isolated</strong>
-                        <p>Only the selected department’s permissions can be edited. Other module access stays restricted, including Administration. Effective actions also require matching route and workflow authorization.</p>
+                        <p>The selected department and Analytics permissions can be edited. Other department modules remain restricted, including Administration. Effective actions also require matching route and workflow authorization.</p>
                     </div>
                 </div>
             </section>
