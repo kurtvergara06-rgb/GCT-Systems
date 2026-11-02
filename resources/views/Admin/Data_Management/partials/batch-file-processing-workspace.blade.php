@@ -188,26 +188,31 @@
             <tbody>
                 @foreach($records as $record)
                     @php
+                        $sourceValues = $record->raw_data['source_values'] ?? [];
+                        $sourceWarnings = $record->raw_data['source_warnings'] ?? [];
+                        $missingGrouping = blank($record->grouping);
                         $missingLocation = blank($record->initial_location) || blank($record->final_location);
                         $missingMileage = $record->mileage_km === null;
-                        $needsCheck = $missingLocation || $missingMileage;
+                        $missingTime = $record->engine_hours === null || $record->total_minutes === null
+                            || $record->in_motion_minutes === null || $record->idling_minutes === null;
+                        $needsCheck = $missingGrouping || $missingLocation || $missingMileage || $missingTime || count($sourceWarnings) > 0;
                     @endphp
                     <tr class="gps-compact-record-row">
                         <td><x-ui.id-badge :value="$record->bus_no" /></td>
                         <td><x-ui.id-badge :value="$record->record_no" /></td>
                         <td>{{ $record->grouping ?? '—' }}</td>
-                        <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                        <td>{{ $record->beginning_at?->format('M d, Y h:i:s A') ?? '—' }}</td>
                         <td class="gps-location-cell" title="{{ $record->initial_location ?? 'Missing from extraction' }}">{{ $record->initial_location ?? '—' }}</td>
-                        <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
+                        <td>{{ $record->ending_at?->format('M d, Y h:i:s A') ?? '—' }}</td>
                         <td class="gps-location-cell" title="{{ $record->final_location ?? 'Missing from extraction' }}">{{ $record->final_location ?? '—' }}</td>
-                        <td>{{ $record->engine_hours !== null ? number_format((float) $record->engine_hours, 2) . ' hrs' : '—' }}</td>
-                        <td>{{ $record->total_minutes !== null ? number_format((float) $record->total_minutes, 2) . ' min' : '—' }}</td>
-                        <td>{{ $record->in_motion_minutes !== null ? number_format((float) $record->in_motion_minutes, 2) . ' min' : '—' }}</td>
-                        <td>{{ $record->idling_minutes !== null ? number_format((float) $record->idling_minutes, 2) . ' min' : '—' }}</td>
-                        <td>{{ $record->mileage_km !== null ? number_format((float) $record->mileage_km, 2) . ' km' : '—' }}</td>
+                        <td>{{ $sourceValues['engine_hours'] ?? ($record->engine_hours !== null ? number_format((float) $record->engine_hours, 2) . ' hrs' : '—') }}</td>
+                        <td>{{ $sourceValues['total_time'] ?? ($record->total_minutes !== null ? number_format((float) $record->total_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['in_motion'] ?? ($record->in_motion_minutes !== null ? number_format((float) $record->in_motion_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['idling'] ?? ($record->idling_minutes !== null ? number_format((float) $record->idling_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['mileage'] ?? ($record->mileage_km !== null ? number_format((float) $record->mileage_km, 2) . ' km' : '—') }}</td>
                         <td>
                             @if($needsCheck)
-                                <span class="gps-validation-flag" title="{{ $missingLocation ? 'Source location was not reliably extracted. ' : '' }}{{ $missingMileage ? 'Mileage is missing. ' : '' }}">Needs Review</span>
+                                <span class="gps-validation-flag" title="{{ implode(' ', $sourceWarnings) }}{{ $missingGrouping ? ' Grouping is missing.' : '' }}{{ $missingLocation ? ' Location is missing.' : '' }}{{ $missingMileage ? ' Mileage is missing.' : '' }}{{ $missingTime ? ' Duration is missing.' : '' }}">Needs Review</span>
                             @else
                                 <span class="gps-validation-ok" title="Required displayed values present; this does not certify all source calculations">Fields Present</span>
                             @endif

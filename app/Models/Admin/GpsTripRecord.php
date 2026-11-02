@@ -37,7 +37,7 @@ class GpsTripRecord extends Model
     protected $casts = [
         'beginning_at' => 'datetime',
         'ending_at' => 'datetime',
-        'engine_hours' => 'decimal:2',
+        'engine_hours' => 'decimal:6',
         'mileage_km' => 'decimal:2',
         'raw_data' => 'array',
     ];

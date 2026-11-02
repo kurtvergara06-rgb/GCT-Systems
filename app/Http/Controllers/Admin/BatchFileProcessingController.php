@@ -1109,10 +1109,10 @@ class BatchFileProcessingController extends Controller
                                 ? (string) $item['idling_minutes']
                                 : null
                         ),
-                        'mileage_km' => ! empty($item['mileage_km'])
+                        'mileage_km' => isset($item['mileage_km']) && $item['mileage_km'] !== ''
                             ? (float) $item['mileage_km']
                             : null,
-                        'engine_hours' => ! empty($item['engine_hours'])
+                        'engine_hours' => isset($item['engine_hours']) && $item['engine_hours'] !== ''
                             ? (float) $item['engine_hours']
                             : null,
                         'location' => $item['location'] ?? null,
@@ -1654,7 +1654,7 @@ class BatchFileProcessingController extends Controller
         $numeric = $this->numericValue($value);
 
         return $numeric !== null
-            ? round($numeric, 1)
+            ? round($numeric, 4)
             : null;
     }
 
@@ -1763,10 +1763,18 @@ class BatchFileProcessingController extends Controller
             }
 
             $updates = [
-                'latest_gps_km' => $latestRecord->mileage_km,
                 'latest_gps_at' => $latestRecord->beginning_at
                     ?? $latestRecord->created_at,
             ];
+
+            // Engine Hours PDF grouping is a timestamp and mileage is the
+            // distance of one activity interval, not an odometer reading.
+            // Neither value belongs in the Bus Master route/odometer fields.
+            $isEngineActivity = $latestRecord->source_format === 'GPS Engine Hours Report'
+                || $latestRecord->trip_type === 'Engine Activity';
+            if (! $isEngineActivity) {
+                $updates['latest_gps_km'] = $latestRecord->mileage_km;
+            }
 
             /*
             |------------------------------------------------------------------
@@ -1775,6 +1783,7 @@ class BatchFileProcessingController extends Controller
             |------------------------------------------------------------------
             */
             if (
+                ! $isEngineActivity &&
                 $latestRecord->grouping !== null &&
                 trim((string) $latestRecord->grouping) !== ''
             ) {

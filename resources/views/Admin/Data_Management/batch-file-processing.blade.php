@@ -27,6 +27,7 @@
         $selectedRawData = is_array($selectedRawData)
             ? $selectedRawData
             : [];
+        $selectedSourceValues = $selectedRawData['source_values'] ?? [];
 
         $rawPreview = 'Select an uploaded data file to view the original extracted values.';
 
@@ -55,26 +56,26 @@
             'Record No.' => $selectedRecord?->record_no,
             'Grouping' => $selectedRecord?->grouping,
             'Type' => $selectedRecord?->trip_type,
-            'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i A'),
+            'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i:s A'),
             'Initial Location' => $selectedRecord?->initial_location,
-            'End' => $selectedRecord?->ending_at?->format('M d, Y h:i A'),
+            'End' => $selectedRecord?->ending_at?->format('M d, Y h:i:s A'),
             'Final Location' => $selectedRecord?->final_location,
             'Duration' => $selectedRecord?->duration_minutes !== null
                 ? $selectedRecord->duration_minutes . ' mins'
                 : null,
-            'Total Time' => $selectedRecord?->total_minutes !== null
+            'Total Time' => $selectedSourceValues['total_time'] ?? ($selectedRecord?->total_minutes !== null
                 ? $selectedRecord->total_minutes . ' mins'
-                : null,
-            'In Motion' => $selectedRecord?->in_motion_minutes !== null
+                : null),
+            'In Motion' => $selectedSourceValues['in_motion'] ?? ($selectedRecord?->in_motion_minutes !== null
                 ? $selectedRecord->in_motion_minutes . ' mins'
-                : null,
-            'Idling' => $selectedRecord?->idling_minutes !== null
+                : null),
+            'Idling' => $selectedSourceValues['idling'] ?? ($selectedRecord?->idling_minutes !== null
                 ? $selectedRecord->idling_minutes . ' mins'
-                : null,
-            'Mileage' => $selectedRecord?->mileage_km !== null
+                : null),
+            'Mileage' => $selectedSourceValues['mileage'] ?? ($selectedRecord?->mileage_km !== null
                 ? $selectedRecord->mileage_km . ' km'
-                : null,
-            'Engine Hours' => $selectedRecord?->engine_hours,
+                : null),
+            'Engine Hours' => $selectedSourceValues['engine_hours'] ?? $selectedRecord?->engine_hours,
             'Recorded Location' => $selectedRecord?->location,
             'Recorded Coordinates' => $selectedRecord?->coordinates,
             'Remarks' => $selectedRecord?->description,
