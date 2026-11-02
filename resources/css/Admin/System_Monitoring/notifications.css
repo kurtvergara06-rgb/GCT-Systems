@@ -884,3 +884,30 @@
         justify-content: flex-start;
     }
 }
+
+/* Keep notification category tabs and Search / Filter / Sort on one baseline. */
+.notifications-page .notification-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin: 4px 0 14px;
+}
+.notifications-page .notification-controls-row .notification-view-tabs {
+    flex: 1 1 auto;
+    margin: 0;
+}
+.notifications-page .notification-controls-row form#notificationFilterForm {
+    width: auto;
+    flex: 0 0 auto;
+    margin: 0;
+}
+@media (max-width: 850px) {
+    .notifications-page .notification-controls-row .notification-view-tabs {
+        flex-basis: 100%;
+    }
+    .notifications-page .notification-controls-row form#notificationFilterForm {
+        margin-left: auto;
+    }
+}
