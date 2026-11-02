@@ -1919,3 +1919,20 @@
     .structured-records-card .section-header { align-items:stretch; flex-wrap:wrap; }
     .structured-records-card .table-header-actions { width:100%; justify-content:flex-end; }
 }
+
+/* Full GPS source columns: horizontal scrolling stays inside the table. */
+.structured-records-card .structured-table-wrap { overflow-x:auto; }
+.structured-records-card .gps-full-records-table { min-width:1770px; table-layout:auto; }
+.structured-records-card .gps-full-records-table th,
+.structured-records-card .gps-full-records-table td { width:auto; text-align:left; white-space:nowrap; }
+.structured-records-card .gps-full-records-table th:nth-child(1),
+.structured-records-card .gps-full-records-table td:nth-child(1) { position:sticky; left:0; z-index:3; background:#fff; min-width:90px; }
+.structured-records-card .gps-full-records-table th:nth-child(2),
+.structured-records-card .gps-full-records-table td:nth-child(2) { position:sticky; left:90px; z-index:3; background:#fff; min-width:152px; box-shadow:2px 0 5px #10274d10; }
+.structured-records-card .gps-full-records-table th:nth-child(-n+2) { z-index:7; background:#f0f5fc; }
+.structured-records-card .gps-full-records-table .gps-location-cell { max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+.structured-records-card .gps-full-records-table tbody tr:nth-child(even) td:nth-child(-n+2) { background:#fbfdff; }
+.structured-records-card .gps-full-records-table tbody tr:hover td:nth-child(-n+2) { background:#edf5ff; }
+.gps-validation-flag,.gps-validation-ok { display:inline-flex; align-items:center; font-size:10px; font-weight:700; border-radius:6px; padding:4px 7px; }
+.gps-validation-flag { color:#95600b; background:#fff4d7; }
+.gps-validation-ok { color:#247047; background:#e4f7ed; }
