@@ -135,7 +135,7 @@
         <div class="table-header-actions">
             @if($selectedBatch)
                 <button type="button" class="edit-record-btn" data-open-clean-data-modal>
-                    <i class="fa-solid fa-eye" aria-hidden="true"></i> View Clean Data
+                    <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
                 </button>
             @endif
 
