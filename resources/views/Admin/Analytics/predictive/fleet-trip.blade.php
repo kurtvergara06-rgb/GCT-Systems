@@ -28,6 +28,31 @@
     $utilizationPct = (float) ($fleetStats['utilization'] ?? 0);
     $completionForecastPct = (float) ($fleetStats['completionForecast'] ?? 0);
 
+    // Static presentation figures only: they do not write to any database,
+    // trigger actions, or claim trained-model output.
+    $isSample = $tripCount === 0 && $tripPredictionsRaw->isEmpty();
+    if ($isSample) {
+        $tripCount = 48;
+        $tripsAtRiskCount = 9;
+        $predictedDelaysCount = 6;
+        $highIdleRiskCount = 4;
+        $utilizationPct = 72.5;
+        $completionForecastPct = 91.7;
+        $tripGrowthTrend = null;
+        $fleetTrend = collect([
+            ['label'=>'Oct 26','count'=>5],['label'=>'Oct 27','count'=>7],
+            ['label'=>'Oct 28','count'=>6],['label'=>'Oct 29','count'=>8],
+            ['label'=>'Oct 30','count'=>9],['label'=>'Oct 31','count'=>7],
+            ['label'=>'Nov 1','count'=>6],
+        ]);
+        $tripPredictionsRaw = collect([
+            ['TRP-PREVIEW-001','BUS-014','Malvar – Lipa','Nov 1, 2026',82,'Possible delay','high','Scheduled','07:45 AM'],
+            ['TRP-PREVIEW-002','BUS-027','Lipa – Batangas','Nov 1, 2026',68,'Heavy route traffic','medium','Scheduled','09:20 AM'],
+            ['TRP-PREVIEW-003','BUS-009','Malvar – Tanauan','Nov 2, 2026',37,'Possible idle exposure','low','Scheduled','10:35 AM'],
+            ['TRP-PREVIEW-004','BUS-033','Malvar – Lipa','Nov 2, 2026',76,'Possible delay','high','Scheduled','01:50 PM'],
+        ]);
+    }
+
     // Baseline display values based on genuine metrics
     $displayTripsAtRisk = $tripsAtRiskCount;
     $displayPredictedDelays = $predictedDelaysCount;
@@ -192,13 +217,9 @@
 @endphp
 
 <div class="predictive-page predictive-fleet-page">
-
-    <div class="ft-dashboard-filter-row" aria-label="Fleet analytics context">
-        <div class="ft-dashboard-filter-heading">
-            <strong><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Fleet performance overview</strong>
-            <span>Recorded operations and source-labeled predictions</span>
-        </div>
-    </div>
+    @if($isSample)
+        <p style="color:#64748b;font-size:10px;margin:0 0 10px">Illustrative sample figures for layout preview; not actual trips or AI model outputs.</p>
+    @endif
 
     {{-- =========================================================
         KPI CARDS STRIP (USING <x-analytics.kpi>)
