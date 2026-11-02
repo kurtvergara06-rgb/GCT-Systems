@@ -227,7 +227,7 @@ def extract_pdf_data(
     pdf_file: UploadFile = File(...),
 ) -> dict:
     from NLP.entity_extractor import extract_entities, infer_records_from_table_rows
-    from NLP.pdf_extractor import extract_pdf_rows, extract_pdf_text
+    from NLP.pdf_extractor import extract_pdf_rows, extract_pdf_text, extract_engine_hours_records
     from NLP.text_cleaner import clean_text
 
     if not pdf_file.filename:
@@ -292,6 +292,28 @@ def extract_pdf_data(
             detected_table_type = "unknown"
 
         table_rows = table_rows or []
+
+        # Vehicle-by-vehicle Engine Hours reports use their own table profile.
+        # Never infer scheduled trips from engine activity intervals.
+        if "GPS Engine Hours Report" in raw_text[:1000]:
+            engine_result = extract_engine_hours_records(str(saved_pdf_path))
+            return {
+                "success": True,
+                "file_name": pdf_file.filename,
+                "source_format": "GPS Engine Hours Report",
+                "raw_text": raw_text,
+                "records": _stage_and_annotate(
+                    engine_result["records"], "GPS Engine Hours Report"
+                ),
+                "_debug": {
+                    "extraction_mode": "engine_hours_tables",
+                    "records_created": len(engine_result["records"]),
+                    "skipped_totals": engine_result["skipped_totals"],
+                    "skipped_invalid": engine_result["skipped_invalid"],
+                    "warnings": engine_result["warnings"],
+                },
+            }
+
 
         if not raw_text and not table_rows:
             raise HTTPException(
