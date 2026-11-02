@@ -152,13 +152,13 @@ def _select_comparable_records(
     if not same_route:
         return [], "no route history"
 
-    if len(same_weekday_hour) >= 3:
+    if len(same_weekday_hour) >= 5:
         return same_weekday_hour, "route + weekday + departure hour"
 
-    if len(same_hour) >= 3:
+    if len(same_hour) >= 5:
         return same_hour, "route + departure hour"
 
-    if len(same_route) >= 3:
+    if len(same_route) >= 5:
         return same_route, "route history fallback"
 
     return [], "insufficient route history"
@@ -178,7 +178,7 @@ def _build_eligibility(
         route_history_count=len(same_route),
         same_hour_count=len(same_hour),
         same_weekday_hour_count=len(same_weekday_hour),
-        eligible=len(comparable) >= 3,
+        eligible=len(comparable) >= 5,
         method=method,
     )
 
@@ -189,7 +189,7 @@ def _build_prediction(
 ) -> TripPrediction | None:
     comparable, method = _select_comparable_records(records, target)
 
-    if len(comparable) < 3:
+    if len(comparable) < 5:
         return None
 
     durations = [record.duration_minutes for record in comparable]
