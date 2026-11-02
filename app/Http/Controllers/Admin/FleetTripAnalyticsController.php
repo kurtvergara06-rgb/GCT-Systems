@@ -590,7 +590,7 @@ class FleetTripAnalyticsController extends Controller
             ->map(function (array $item) use ($etaTargets): object {
                 return (object) [
                     'trip_code' => $item['trip_code'] ?? 'Scheduled Trip',
-                    'bus_no' => $item['bus_no'] ?? ($etaTargets[$item['trip_code'] ?? ''] ['bus_no'] ?? null),
+                    'bus_no' => $item['bus_no'] ?? ($etaTargets[$item['trip_code'] ?? '']['bus_no'] ?? null),
                     'route' => $item['route'] ?? 'Unspecified Route',
                     'departure_at' => ! empty($item['departure_at'])
                         ? Carbon::parse($item['departure_at'])
