@@ -216,14 +216,14 @@ function initRestockingPrescriptiveCharts(data) {
                         maxBarThickness: 20,
                     },
                     {
-                        label: 'Safety Buffer Target',
-                        data: data.coverageBuffer || [],
+                        label: 'Reorder Point',
+                        data: data.coverageReorderPoint || [],
                         backgroundColor: '#f59e0b',
                         borderRadius: 4,
                         maxBarThickness: 20,
                     },
                     {
-                        label: 'Threshold Gap Estimate',
+                        label: 'Suggested Replenishment',
                         data: data.coverageRestock || [],
                         backgroundColor: '#8b5cf6',
                         borderRadius: 4,
