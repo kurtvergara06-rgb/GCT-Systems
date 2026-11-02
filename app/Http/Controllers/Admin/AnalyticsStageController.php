@@ -218,9 +218,11 @@ class AnalyticsStageController extends Controller
             ->sortByDesc('attention_score')
             ->values();
 
-        $inventoryRows = $inventoryItems->map(function (InventoryItem $item): object {
+        $thresholdCalculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $inventoryRows = $inventoryItems->map(function (InventoryItem $item) use ($thresholdCalculator): object {
             $onHand = (int) $item->on_hand;
-            $reorder = max(0, (int) $item->reorder_level);
+            $usage = $thresholdCalculator->calculate($item);
+            $reorder = $thresholdCalculator->effectiveReorderPoint($item, $usage) ?? 0;
             $state = $onHand <= 0 ? 'Out of Stock' : (($reorder > 0 && $onHand <= $reorder) ? 'Low Stock' : 'Well Stocked');
             $severity = $state === 'Out of Stock' ? 3 : ($state === 'Low Stock' ? 2 : 0);
 
@@ -230,6 +232,8 @@ class AnalyticsStageController extends Controller
                 'category' => trim((string) $item->category) ?: 'Uncategorized',
                 'on_hand' => $onHand,
                 'reorder_level' => $reorder,
+                'usage_status' => $usage['status'],
+                'monthly_demand' => $usage['status'] === 'calculated' ? $usage['average_monthly_usage'] : null,
                 'state' => $state,
                 'severity' => $severity,
                 'gap' => max(0, $reorder - $onHand),
@@ -1235,21 +1239,18 @@ class AnalyticsStageController extends Controller
                 $gap = max(0, (int) ($row->gap ?? 0));
                 $bufferPct = $reorder > 0 ? (int) min(100, max(0, round(($onHand / $reorder) * 100))) : ($onHand > 0 ? 100 : 0);
 
+                // Coverage is based on signed issuance demand, not reorder ratios.
+                $monthlyDemand = $row->monthly_demand ?? null;
                 if ($onHand <= 0) {
-                    $runout = '< 24h / Grounded';
+                    $runout = 'Out of Stock';
                     $runoutTone = 'danger';
-                } elseif ($reorder > 0 && ($onHand / $reorder) <= 0.4) {
-                    $runout = '~2–4 Days';
-                    $runoutTone = 'danger';
-                } elseif ($reorder > 0 && ($onHand / $reorder) <= 0.75) {
-                    $runout = '~5–7 Days';
-                    $runoutTone = 'warning';
-                } elseif ($reorder > 0 && $onHand <= $reorder) {
-                    $runout = '~8–14 Days';
-                    $runoutTone = 'warning';
+                } elseif ($monthlyDemand === null || $monthlyDemand <= 0) {
+                    $runout = 'Insufficient History';
+                    $runoutTone = 'neutral';
                 } else {
-                    $runout = '> 15 Days';
-                    $runoutTone = 'success';
+                    $coverageDays = (int) floor(($onHand / $monthlyDemand) * 30);
+                    $runout = $coverageDays . ' Days (Estimated)';
+                    $runoutTone = $coverageDays <= 7 ? 'danger' : ($coverageDays <= 14 ? 'warning' : 'success');
                 }
 
                 $recommendedOrder = $gap > 0 ? (int) ($gap + max(5, (int) ceil($reorder * 0.2))) : 0;
@@ -1278,6 +1279,8 @@ class AnalyticsStageController extends Controller
                     'runout' => $runout,
                     'runout_tone' => $runoutTone,
                     'recommended_order' => $recommendedOrder,
+                    'monthly_demand' => $monthlyDemand,
+                    'usage_status' => $row->usage_status ?? 'insufficient_history',
                 ];
             });
 
