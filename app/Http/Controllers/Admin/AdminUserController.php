@@ -139,8 +139,8 @@ class AdminUserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'must_change_password' => true,
-            'onboarding_completed' => false,
-            'onboarding_completed_at' => null,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
             'department' => $validated['department'],
             'role' => $validated['role'],
             'status' => $validated['status'],
@@ -148,7 +148,7 @@ class AdminUserController extends Controller
 
         return redirect()
             ->route('admin.users')
-            ->with('success', 'User account created successfully. The user must change the temporary password and complete the welcome setup at first login.');
+            ->with('success', 'User account created successfully. The user must change the temporary password at first login.');
     }
 
     private function updateRolePermissions(Request $request)

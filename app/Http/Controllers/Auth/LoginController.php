@@ -28,10 +28,6 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user !== null) {
-            if (! $user->onboarding_completed) {
-                return redirect()->route('onboarding.show');
-            }
-
             if ($user->must_change_password) {
                 return redirect()->route('account.settings');
             }
@@ -163,10 +159,6 @@ class LoginController extends Controller
         }
 
         $request->session()->forget('url.intended');
-
-        if (! $authenticatedUser->onboarding_completed) {
-            return redirect()->route('onboarding.show');
-        }
 
         if ($authenticatedUser->must_change_password) {
             return redirect()->route('account.settings');

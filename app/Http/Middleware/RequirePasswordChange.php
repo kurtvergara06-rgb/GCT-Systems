@@ -17,17 +17,12 @@ class RequirePasswordChange
         }
 
         $routeName = $request->route()?->getName();
-        $isFirstLoginOnboarding = ! $user->onboarding_completed;
 
         $allowedRoutes = [
             'account.settings',
             'account.password.update',
             'logout',
         ];
-
-        if ($isFirstLoginOnboarding) {
-            $allowedRoutes[] = 'onboarding.show';
-        }
 
         if (in_array($routeName, $allowedRoutes, true)) {
             return $next($request);
@@ -38,12 +33,6 @@ class RequirePasswordChange
                 'message' => 'You must change your temporary password before continuing.',
                 'must_change_password' => true,
             ], 423);
-        }
-
-        if ($isFirstLoginOnboarding) {
-            return redirect()
-                ->route('onboarding.show')
-                ->with('password_change_required', true);
         }
 
         return redirect()
