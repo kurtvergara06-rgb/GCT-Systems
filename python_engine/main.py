@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 import logging
+import os
 import shutil
 import uuid
 
@@ -11,9 +12,6 @@ from NLP.router import router as nlp_router
 from analytics.router import router as analytics_router
 from operation_ai.router import router as operation_ai_router
 from eta.router import router as eta_router
-from fuel.router import router as fuel_router
-from inventory.router import router as inventory_router
-from delay.router import router as delay_router
 
 
 logger = logging.getLogger(__name__)
@@ -172,23 +170,38 @@ app.include_router(
     tags=["Predictive Analytics"],
 )
 
-app.include_router(
-    fuel_router,
-    prefix="/fuel",
-    tags=["Predictive Analytics"],
-)
+# Optional legacy ML APIs are opt-out and lazily imported. Defaults preserve
+# existing integrations; set GCT_ENABLE_FUEL_ML=false only after consumers are retired.
+if os.getenv("GCT_ENABLE_FUEL_ML", "true").strip().lower() not in {"0", "false", "no", "off"}:
+    from fuel.router import router as fuel_router
 
-app.include_router(
-    inventory_router,
-    prefix="/inventory",
-    tags=["Predictive Analytics"],
-)
+    app.include_router(
+        fuel_router,
+        prefix="/fuel",
+        tags=["Predictive Analytics"],
+    )
 
-app.include_router(
-    delay_router,
-    prefix="/delay",
-    tags=["Predictive Analytics"],
-)
+# Optional legacy ML APIs are opt-out and lazily imported. Defaults preserve
+# existing integrations; set GCT_ENABLE_INVENTORY_ML=false only after consumers are retired.
+if os.getenv("GCT_ENABLE_INVENTORY_ML", "true").strip().lower() not in {"0", "false", "no", "off"}:
+    from inventory.router import router as inventory_router
+
+    app.include_router(
+        inventory_router,
+        prefix="/inventory",
+        tags=["Predictive Analytics"],
+    )
+
+# Optional legacy ML APIs are opt-out and lazily imported. Defaults preserve
+# existing integrations; set GCT_ENABLE_DELAY_ML=false only after consumers are retired.
+if os.getenv("GCT_ENABLE_DELAY_ML", "true").strip().lower() not in {"0", "false", "no", "off"}:
+    from delay.router import router as delay_router
+
+    app.include_router(
+        delay_router,
+        prefix="/delay",
+        tags=["Predictive Analytics"],
+    )
 
 # Required NLP capability/readiness and human-review endpoints. The existing
 # PDF extraction endpoint below remains at /nlp/extract-pdf.
