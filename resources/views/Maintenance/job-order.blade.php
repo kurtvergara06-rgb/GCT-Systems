@@ -712,7 +712,11 @@
                                                                                 @if($jobOrder->estimated_duration_value && $jobOrder->estimated_duration_unit)
                                                                                     <option value="accept">Accept submitted duration ({{ $jobOrder->formatted_estimated_duration }})</option>
                                                                                 @endif
-                                                                                <option value="adjust">{{ $jobOrder->estimated_duration_value ? 'Adjust duration (specify value)' : 'Set initial duration (no history)' }}</option>
+                                                                                @php($headHistoricalDuration = $durationSuggestions->get($jobOrder->id))
+                                                                                @if($headHistoricalDuration)
+                                                                                    <option value="historical">Use system historical median ({{ $headHistoricalDuration['value'] }} {{ $headHistoricalDuration['unit'] }}; {{ $headHistoricalDuration['sample_size'] }} completed JOs)</option>
+                                                                                @endif
+                                                                                <option value="adjust">{{ $jobOrder->estimated_duration_value ? 'Set Head-verified duration (specify value)' : 'Set initial Head duration (no submitted estimate)' }}</option>
                                                                             </select>
                                                                         </div>
                                                                     </div>
