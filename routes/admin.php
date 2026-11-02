@@ -67,10 +67,9 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
         [BatchFileProcessingController::class, 'index']
     )->name('admin.batch-file-processing');
 
-    Route::view(
-        '/admin/import-export',
-        'Admin.Data_Management.uploading-data'
-    )->name('admin.import-export');
+    // Legacy page URL remains valid; transfer history is preserved.
+    Route::redirect('/admin/import-export', '/admin/data-history')
+        ->name('admin.import-export');
 
     Route::get(
         '/admin/data-history',
