@@ -707,7 +707,12 @@ class BusController extends Controller
     {
         $ids = [];
         foreach ($allocation['names'] as $name) {
-            $client = OperationClient::firstOrCreate(['name' => $name]);
+            $client = OperationClient::query()->where('name', $name)->first();
+            if (! $client) {
+                throw ValidationException::withMessages([
+                    'client_name' => "Client {$name} is not registered. Select an existing client from the dropdown.",
+                ]);
+            }
             if (! $client->isActive()) {
                 throw ValidationException::withMessages([
                     'client_name' => "Client {$client->name} is inactive and cannot receive new bus allocations.",

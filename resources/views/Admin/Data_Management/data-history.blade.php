@@ -92,13 +92,6 @@
                                     };
 
                                     $moduleClass = strtolower($item->module ?: 'admin');
-                                    $statusClass = match($item->status) {
-                                        'Completed' => 'completed',
-                                        'Failed', 'Needs Correction' => 'failed',
-                                        'Deleted' => 'deleted',
-                                        default => 'processing',
-                                    };
-
                                     $processorName = $item->processor?->name ?? 'System';
                                     $activityDate = $item->created_at;
                                 @endphp
@@ -148,7 +141,7 @@
                                     <td>{{ number_format($item->total_records) }}</td>
 
                                     <td>
-                                        <x-ui.status-badge :status="$item->status" class="history-status {{ $statusClass }}" />
+                                        <x-ui.status-badge :status="$item->status" class="history-status" />
                                     </td>
 
                                     <td>

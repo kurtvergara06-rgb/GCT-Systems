@@ -305,7 +305,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     const clientEditors = new Map();
     document.querySelectorAll('[data-bus-multi-client]').forEach((editor) => {
         const hidden = editor.querySelector('input[name="client_name"]');
-        const entry = editor.querySelector('.bus-multi-client-entry input');
+        const entry = editor.querySelector('.bus-multi-client-entry select');
         const tags = editor.querySelector('[data-client-tags]');
         const addButton = editor.querySelector('[data-add-client]');
         if (!hidden || !entry || !tags || !addButton) return;
@@ -342,7 +342,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         };
         const addClient = () => {
             const name = entry.value.trim().replace(/\\s+/g, ' ');
-            if (!name) return;
+            if (!name || !Array.from(entry.options).some((option) => option.value === name)) return;
             if (clients.length >= 20) { entry.setCustomValidity('Maximum of 20 clients.'); entry.reportValidity(); return; }
             entry.setCustomValidity('');
             if (!clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
@@ -350,14 +350,86 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             render();
             entry.focus();
         };
-        entry.addEventListener('input', () => entry.setCustomValidity(''));
-        entry.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ',') {
-                event.preventDefault();
-                addClient();
+        // Render a consistent, keyboard-accessible picker instead of the OS
+        // native dropdown, while retaining the real select as form fallback.
+        const picker = document.createElement('div');
+        picker.className = 'bus-client-picker';
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'bus-client-picker-trigger';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.innerHTML = '<span class="bus-client-picker-label">Select registered client / company</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
+        const menu = document.createElement('div');
+        menu.className = 'bus-client-picker-menu';
+        menu.setAttribute('role', 'listbox');
+        menu.hidden = true;
+        const closePicker = () => {
+            menu.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+            picker.classList.remove('is-open');
+        };
+        const openPicker = () => {
+            document.querySelectorAll('.bus-client-picker.is-open').forEach((other) => {
+                if (other !== picker) {
+                    other.querySelector('.bus-client-picker-menu').hidden = true;
+                    other.querySelector('.bus-client-picker-trigger').setAttribute('aria-expanded', 'false');
+                    other.classList.remove('is-open');
+                }
+            });
+            menu.replaceChildren();
+            const available = Array.from(entry.options).filter((option) => option.value && !clients.some((name) => name.toLowerCase() === option.value.toLowerCase()));
+            if (!available.length) {
+                const empty = document.createElement('p');
+                empty.className = 'bus-client-picker-empty';
+                empty.textContent = 'No more registered clients available';
+                menu.append(empty);
+            }
+            available.forEach((option) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'bus-client-picker-option';
+                item.setAttribute('role', 'option');
+                item.setAttribute('aria-selected', 'false');
+                item.innerHTML = '<i class="fa-solid fa-building" aria-hidden="true"></i>';
+                const label = document.createElement('span');
+                label.textContent = option.textContent;
+                item.append(label);
+                item.addEventListener('click', () => {
+                    entry.value = option.value;
+                    closePicker();
+                    addClient();
+                    trigger.focus();
+                });
+                menu.append(item);
+            });
+            menu.hidden = false;
+            picker.classList.add('is-open');
+            trigger.setAttribute('aria-expanded', 'true');
+            menu.querySelector('button')?.focus();
+        };
+        trigger.addEventListener('click', () => menu.hidden ? openPicker() : closePicker());
+        picker.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') { closePicker(); trigger.focus(); }
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                if (menu.hidden) { event.preventDefault(); openPicker(); return; }
+                const items = Array.from(menu.querySelectorAll('button'));
+                const current = items.indexOf(document.activeElement);
+                if (items.length) {
+                    event.preventDefault();
+                    items[(current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+                }
             }
         });
-        addButton.addEventListener('click', addClient);
+        document.addEventListener('click', (event) => {
+            if (!picker.contains(event.target)) closePicker();
+        });
+        picker.append(trigger, menu);
+        entry.after(picker);
+        entry.classList.add('bus-client-native-select');
+        entry.tabIndex = -1;
+        entry.addEventListener('change', () => entry.setCustomValidity(''));
+        addButton.addEventListener('click', () => { addClient(); closePicker(); });
         editor.closest('form')?.addEventListener('submit', () => {
             if (entry.value.trim()) addClient();
         });

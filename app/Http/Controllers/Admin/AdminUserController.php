@@ -117,6 +117,10 @@ class AdminUserController extends Controller
 
     public function store(Request $request)
     {
+        // The Add Account UI is permission-gated, but direct POST requests
+        // must enforce the same rule before either action can mutate data.
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+
         if ($request->boolean('_permission_update')) {
             return $this->updateRolePermissions($request);
         }

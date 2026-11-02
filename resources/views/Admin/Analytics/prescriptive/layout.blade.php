@@ -43,37 +43,23 @@
     $pageAssets[] = 'resources/js/Admin/Analytics/prescriptive/charts.js';
 @endphp
 
-<x-layout.app title="FROMS - Prescriptive Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - Scheduling Insights" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page prescriptive-analytics-page prescriptive-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Prescriptive Analytics" subtitle="AI-driven action playbooks and operational optimization to maximize transit performance." />
+            <x-layout.topbar title="Scheduling Insights" subtitle="Review scheduling recommendations, dispatch readiness, and resource assignment insights." />
 
             <x-analytics.insight-toast stage="prescriptive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
+            @if($activeDomain !== 'fleet-trip')
             <section class="analytics-domain-toolbar prescriptive-toolbar">
-                <nav class="analytics-domain-tabs" aria-label="Prescriptive analytics domains">
-                    @foreach($tabs as $key => $tab)
-                        <a
-                            href="{{ $prescriptiveUrl }}?{{ http_build_query(array_filter([
-                                'domain' => $key,
-                                'period' => $period,
-                                'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null,
-                            ])) }}"
-                            class="{{ $activeDomain === $key ? 'active' : '' }}"
-                        >
-                            <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
-                        </a>
-                    @endforeach
-                </nav>
-
                 <form method="GET" action="{{ $prescriptiveUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
 
                     <label>
                         <span>Period</span>
-                        <select name="period">
+                        <select name="period" onchange="this.form.requestSubmit()">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
                             <option value="this-week" @selected($period === 'this-week')>This Week</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
@@ -84,7 +70,7 @@
 
                     <label>
                         <span>Bus</span>
-                        <select name="bus">
+                        <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
                             @foreach($busOptions as $busNo)
                                 <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
@@ -92,16 +78,16 @@
                         </select>
                     </label>
 
-                    <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
+            @endif
 
             @php
                 $activePrescriptive = $prescriptive->{$activeDomain} ?? null;
                 $prescriptiveNote = $activePrescriptive->note ?? null;
             @endphp
 
-            @if ($prescriptiveNote)
+            @if ($prescriptiveNote && $activeDomain !== 'fleet-trip')
                 <div class="prescriptive-sample-note" role="note">
                     <i class="fa-solid fa-flask"></i>
                     <span>
@@ -116,7 +102,11 @@
                 <x-analytics.model-status />
             @endif
 
-            @include($domainViews[$activeDomain])
+            @if($activeDomain === 'fleet-trip')
+                <x-analytics.availability-dashboard domain="scheduling" />
+            @else
+                @include($domainViews[$activeDomain])
+            @endif
         </main>
     </div>
 </x-layout.app>

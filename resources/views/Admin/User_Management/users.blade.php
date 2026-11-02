@@ -98,15 +98,22 @@
                     subtitle="{{ !empty($applicationsPage) ? 'Review registrations awaiting a decision and view rejected applications.' : 'Manage existing user accounts, roles, and access assignments.' }}"
                     class="users-section-header"
                 >
+                    @if(empty($applicationsPage) && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                        <x-slot:actions>
+                            <button type="button" id="openAddUserModal" class="users-add-account-btn" aria-haspopup="dialog" aria-controls="userFormModal">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Account
+                            </button>
+                        </x-slot:actions>
+                    @endif
                 </x-ui.section-header>
 
                 <div class="users-record-controls">
                 @if(!empty($applicationsPage))
                 <nav class="application-status-tabs" aria-label="Filter employee applications">
                     @foreach(['Pending Applications' => 'Pending', 'Rejected' => 'Rejected'] as $label => $statusValue)
-                        <a href="{{ route('admin.applications', ['status' => $statusValue]) }}"
-                           class="application-status-tab {{ request('status', 'Pending') === $statusValue ? 'is-active' : '' }}"
-                           @if(request('status', 'Pending') === $statusValue) aria-current="page" @endif>
+                        <a href="{{ route('admin.applications', array_merge(request()->except('status', 'page'), ['status' => $statusValue])) }}"
+                           class="application-status-tab {{ (request('status') === 'Rejected' ? 'Rejected' : 'Pending') === $statusValue ? 'is-active' : '' }}"
+                           @if((request('status') === 'Rejected' ? 'Rejected' : 'Pending') === $statusValue) aria-current="page" @endif>
                             {{ $label }}
                             @if($statusValue === 'Pending') <span class="application-status-count">{{ $pendingUsers }}</span> @endif
                         </a>
@@ -117,18 +124,23 @@
                      :action="!empty($applicationsPage) ? route('admin.applications') : route('admin.users')"
                     class="records-toolbar users-toolbar"
                     search-placeholder="Search by name, email, role, or department..."
-                    search-label="Search Accounts"
-                    :filter-count="(int) (request()->filled('department') && request('department') !== 'All Departments') + (int) (request()->filled('role') && request('role') !== 'All Roles') + (int) (request()->filled('status') && request('status') !== 'All Status')"
-                    filter-title="Filter Accounts"
+                    search-label="{{ !empty($applicationsPage) ? 'Search Applications' : 'Search Accounts' }}"
+                    :filter-count="(int) (request()->filled('department') && request('department') !== 'All Departments') + (int) (request()->filled('role') && request('role') !== 'All Roles') + (int) (empty($applicationsPage) && request()->filled('status') && request('status') !== 'All Status')"
+                    filter-title="{{ !empty($applicationsPage) ? 'Filter Applications' : 'Filter Accounts' }}"
                     :sort-options="['created_at' => 'Created Date', 'name' => 'Account Name', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status']"
                     default-sort="created_at"
                     default-direction="desc"
                     :show-button="false"
                 >
+                    @if(!empty($applicationsPage))
+                        <x-slot:hidden><input type="hidden" name="status" value="{{ request('status') === 'Rejected' ? 'Rejected' : 'Pending' }}"></x-slot:hidden>
+                    @endif
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Department" name="department" default="All Departments"><option value="All Departments">All Departments</option>@foreach($departmentOptions as $department)<option value="{{ $department }}" @selected(request('department') === $department)>{{ $department }}</option>@endforeach</x-ui.table-toolbar-field>
                         <x-ui.table-toolbar-field label="Role" name="role" default="All Roles"><option value="All Roles">All Roles</option>@foreach(($roles ?? []) as $roleValue => $roleLabel)<option value="{{ $roleValue }}" @selected(request('role') === $roleValue)>{{ $roleLabel }}</option>@endforeach</x-ui.table-toolbar-field>
-                        <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+                        @if(empty($applicationsPage))
+                            <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+                        @endif
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
@@ -202,9 +214,7 @@
                                     </td>
                                     <td>{{ $user->created_at?->format('M d, Y · g:i A') ?? 'Not recorded' }}</td>
                                     <td>
-                                        <span class="application-verification {{ $user->hasVerifiedEmail() ? 'is-verified' : 'is-unverified' }}">
-                                            {{ $user->hasVerifiedEmail() ? 'Verified' : 'Not Verified' }}
-                                        </span>
+                                        <x-ui.status-badge :status="$user->hasVerifiedEmail() ? 'Verified' : 'Not Verified'" class="application-verification" />
                                     </td>
                                     <td>
                                         @if(in_array(strtolower(trim((string) $user->department)), ['unassigned', ''], true))
@@ -213,7 +223,7 @@
                                             {{ $user->department }}
                                         @endif
                                     </td>
-                                    <td><x-ui.status-badge :status="$user->status ?? 'Pending'" type="user" /></td>
+                                    <td>@if($user->status)<x-ui.status-badge :status="$user->status" />@else — @endif</td>
                                     <td>
                                         @if($user->status === 'Pending' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
                                             <button type="button" class="application-review-button"
@@ -236,7 +246,7 @@
                                                 <button type="submit" class="application-review-button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reconsider</button>
                                             </form>
                                         @else
-                                            <span class="application-action-note">{{ $user->status === 'Rejected' ? 'Rejected' : 'Review restricted' }}</span>
+                                            <span class="application-action-note">Review restricted</span>
                                         @endif
                                         @endif
                                     </td>
@@ -270,10 +280,11 @@
                                     </td>
 
                                     <td>
-                                        <x-ui.status-badge
-                                            :status="$user->status ?? 'Inactive'"
-                                            type="user"
-                                        />
+                                        @if($user->status)
+                                            <x-ui.status-badge :status="$user->status" type="user" />
+                                        @else
+                                            —
+                                        @endif
                                     </td>
 
                                     <td>

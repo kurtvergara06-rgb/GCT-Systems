@@ -61,7 +61,7 @@
 .analytics-domain-toolbar {
     display: flex;
     align-items: end;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 18px;
     padding: 12px;
     margin-bottom: 16px;
@@ -104,6 +104,7 @@
 .analytics-stage-filters {
     display: flex;
     align-items: end;
+    flex-wrap: wrap;
     gap: 9px;
 }
 
@@ -311,23 +312,9 @@
 }
 
 @media (max-width: 760px) {
-    .analytics-domain-tabs {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .analytics-domain-tabs a:first-child {
-        grid-column: 1 / -1;
-    }
-
     .analytics-stage-filters {
         display: grid;
         grid-template-columns: 1fr 1fr;
-    }
-
-    .analytics-stage-filters button {
-        grid-column: 1 / -1;
-        justify-content: center;
     }
 
     .analytics-domain-heading {

@@ -29,7 +29,9 @@
     'resources/css/Warehouse/warehouse-status.css',
     'resources/css/Main-styles/record-action-buttons.css',
     'resources/css/Main-styles/gct-scrollbar.css',
-  ])));
+  ], request()->is('admin/*', 'analytics/*', 'batch-file-processing*')
+    ? ['resources/css/Admin/administration-standards.css']
+    : [])));
 @endphp
 
 <!DOCTYPE html>

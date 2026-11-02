@@ -521,6 +521,12 @@
     color: #475569;
 }
 
+.data-history-page .history-status[data-status-key="for-review"] {
+    --gct-status-bg: #fff5e2;
+    --gct-status-border: #f0dbac;
+    --gct-status-text: #9c6610;
+}
+
 
 /* =========================================================
    PROCESSED BY

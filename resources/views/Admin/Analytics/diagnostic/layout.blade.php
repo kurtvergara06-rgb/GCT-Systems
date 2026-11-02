@@ -33,33 +33,23 @@
     ];
 @endphp
 
-<x-layout.app title="FROMS - Diagnostic Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - {{ $activeDomain === 'fuel' ? 'Fuel Analytics' : 'Incident Analytics' }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page diagnostic-analytics-page diagnostic-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Diagnostic Analytics" subtitle="Why operational outcomes happened based on recorded data." />
+            <x-layout.topbar :title="$activeDomain === 'fuel' ? 'Fuel Analytics' : 'Incident Analytics'" :subtitle="$activeDomain === 'fuel' ? 'Monitor fuel consumption trends, efficiency, and unusual usage patterns.' : 'Review incident frequency, causes, severity, and bus replacement activity.'" />
 
             <x-analytics.insight-toast stage="diagnostic" :domain="$activeDomain" :insight="$analyticsAlert" />
 
+            @if($activeDomain !== 'fleet-trip')
             <section class="analytics-domain-toolbar diagnostic-toolbar">
-                <nav class="analytics-domain-tabs" aria-label="Diagnostic analytics domains">
-                    @foreach($tabs as $key => $tab)
-                        <a
-                            href="{{ $diagnosticUrl }}?{{ http_build_query(['domain' => $key, 'period' => $period, 'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null]) }}"
-                            class="{{ $activeDomain === $key ? 'active' : '' }}"
-                        >
-                            <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
-                        </a>
-                    @endforeach
-                </nav>
-
                 <form method="GET" action="{{ $diagnosticUrl }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
 
                     <label>
                         <span>Period</span>
-                        <select name="period">
+                        <select name="period" onchange="this.form.requestSubmit()">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
                             <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
@@ -69,7 +59,7 @@
 
                     <label>
                         <span>Bus</span>
-                        <select name="bus">
+                        <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
                             @foreach($busOptions as $busNo)
                                 <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
@@ -77,11 +67,15 @@
                         </select>
                     </label>
 
-                    <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
+            @endif
 
-            @include($domainViews[$activeDomain])
+            @if($activeDomain === 'fleet-trip')
+                <x-analytics.availability-dashboard domain="incident" />
+            @else
+                @include($domainViews[$activeDomain])
+            @endif
         </main>
     </div>
 </x-layout.app>

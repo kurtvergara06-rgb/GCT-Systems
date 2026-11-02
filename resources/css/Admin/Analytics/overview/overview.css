@@ -509,9 +509,7 @@
 .executive-main-grid {
     display: grid;
 
-    grid-template-columns:
-        minmax(0, 1.6fr)
-        minmax(360px, 0.9fr);
+    grid-template-columns: minmax(0, 1fr);
 
     gap: 16px;
 

@@ -1,6 +1,6 @@
 <x-layout.app
     :partial-navigation="false"
-    title="FROMS - Analytics Overview"
+    title="FROMS - Overview"
     :assets="[
         'resources/css/Admin/Analytics/overview/overview.css',
         'resources/css/Admin/Analytics/overview/live-data.css',
@@ -12,8 +12,8 @@
 
         <main class="main analytics-overview-page">
             <x-layout.topbar
-                title="Analytics Overview"
-                subtitle="Executive summary of descriptive, diagnostic, predictive, and prescriptive analytics across FROMS"
+                title="Overview"
+                subtitle="Monitor cross-module performance, operational summaries, and important system-wide analytics."
             />
 
             <x-analytics.insight-toast
@@ -234,64 +234,22 @@
 
                             <small>{{ $inventoryCriticalCount }} out of stock · {{ $inventoryLowCount }} low stock</small>
                         </a>
-                    </div>
-                </article>
 
-                <article class="overview-panel analytics-lens-panel">
-                    <div class="panel-header compact">
-                        <div>
-                            <span class="panel-kicker">Objective 5.1–5.4</span>
-                            <h2>Analytics Framework</h2>
-                            <p>How each analytical layer contributes to operational decision support.</p>
-                        </div>
-                    </div>
-
-                    <div class="analytics-lens-list">
-                        <a href="{{ url('/analytics/descriptive') }}" class="lens-item descriptive">
-                            <div class="lens-index">01</div>
-                            <div class="lens-icon"><i class="fa-solid fa-chart-column"></i></div>
-                            <div class="lens-content">
-                                <span>Descriptive · 5.1</span>
-                                <strong>What happened?</strong>
-                                <p>Distance, fuel used, speed, idle time, trip duration, and stock status.</p>
+                        <a href="{{ route('analytics.stage', ['stage' => 'diagnostic', 'domain' => 'fleet-trip'], false) }}" class="health-module incident">
+                            <div class="health-module-top">
+                                <div class="health-module-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                <span class="health-state">Not connected</span>
                             </div>
-                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
-                        </a>
-
-                        <a href="{{ url('/analytics/diagnostic') }}" class="lens-item diagnostic">
-                            <div class="lens-index">02</div>
-                            <div class="lens-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-                            <div class="lens-content">
-                                <span>Diagnostic · 5.2</span>
-                                <strong>Why might it be happening?</strong>
-                                <p>Delay, route-deviation, congestion, fuel-wastage, and recurring maintenance patterns.</p>
+                            <div class="health-module-content">
+                                <span>Incident Analytics</span>
+                                <strong>—</strong>
+                                <p>Incident reporting data is not connected to this Analytics view yet.</p>
                             </div>
-                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
-                        </a>
-
-                        <a href="{{ url('/analytics/predictive') }}" class="lens-item predictive">
-                            <div class="lens-index">03</div>
-                            <div class="lens-icon"><i class="fa-solid fa-chart-line"></i></div>
-                            <div class="lens-content">
-                                <span>Predictive · 5.3</span>
-                                <strong>What is likely next?</strong>
-                                <p>ETA, delay risk, peak periods, fuel use, PMS timing, and stock runway forecasts.</p>
-                            </div>
-                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
-                        </a>
-
-                        <a href="{{ url('/analytics/prescriptive') }}" class="lens-item prescriptive">
-                            <div class="lens-index">04</div>
-                            <div class="lens-icon"><i class="fa-solid fa-lightbulb"></i></div>
-                            <div class="lens-content">
-                                <span>Prescriptive · 5.4</span>
-                                <strong>What should be considered?</strong>
-                                <p>Assignment, route, schedule, PMS, maintenance-alert, and restocking actions.</p>
-                            </div>
-                            <span class="lens-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                            <small>Open incident dashboard</small>
                         </a>
                     </div>
                 </article>
+
             </section>
 
             {{-- =====================================================

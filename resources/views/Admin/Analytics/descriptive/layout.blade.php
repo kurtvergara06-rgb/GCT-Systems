@@ -122,29 +122,22 @@
     $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
 @endphp
 
-<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - {{ $activeDomain === 'inventory' ? 'Inventory Analytics' : 'Analytics Overview' }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}{{ $usesOverviewLayout ? ' descriptive-overview-domain' : '' }}">
-            <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
+            <x-layout.topbar :title="$activeDomain === 'inventory' ? 'Inventory Analytics' : 'Analytics Overview'" :subtitle="$activeDomain === 'inventory' ? 'Monitor inventory availability, stock health, and replenishment requirements using recorded warehouse data.' : 'Monitor recorded operational data and system-wide analytics.'" />
 
             {{-- Descriptive analytics does not raise alerts by itself. Threshold alerts are emitted only by live diagnostic/predictive findings. --}}
 
+            @if($activeDomain !== 'inventory')
             <section class="analytics-domain-toolbar descriptive-toolbar">
-                <nav class="analytics-domain-tabs" aria-label="Descriptive analytics domains">
-                    @foreach($tabs as $key => $tab)
-                        <a href="{{ url('/analytics/descriptive') }}?{{ http_build_query(['domain' => $key, 'period' => $period, 'bus' => $selectedBus !== 'ALL' ? $selectedBus : null]) }}" class="{{ $activeDomain === $key ? 'active' : '' }}">
-                            <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
-                        </a>
-                    @endforeach
-                </nav>
-
                 <form method="GET" action="{{ url('/analytics/descriptive') }}" class="analytics-stage-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
                     <label>
                         <span>Period</span>
-                        <select name="period">
+                        <select name="period" onchange="this.form.requestSubmit()">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
                             <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
@@ -153,16 +146,16 @@
                     </label>
                     <label>
                         <span>Bus</span>
-                        <select name="bus">
+                        <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all">All Buses</option>
                             @foreach($buses as $bus)
                                 <option value="{{ $bus->bus_no }}" @selected($selectedBus === strtoupper($bus->bus_no))>{{ $bus->bus_no }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
+            @endif
 
             @include($domainViews[$activeDomain])
         </main>

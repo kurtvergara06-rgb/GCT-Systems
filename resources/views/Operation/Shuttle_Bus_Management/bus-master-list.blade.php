@@ -442,11 +442,11 @@
         <input type="hidden" name="client_allocation_submitted" value="1">
         <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
         <div class="bus-multi-client-entry">
-            <input type="text" id="create_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <select id="create_client_name_entry" aria-label="Select registered client"><option value="">Select registered client / company</option>@foreach($companyOptions as $companyName)<option value="{{ $companyName }}">{{ $companyName }}</option>@endforeach</select>
             <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
         </div>
     </div>
-    <small>Type one client and press Enter or Add. You can add multiple clients.</small>
+    <small>Select an existing registered client and click Add. Multiple allocations are supported.</small>
 
 </div>
 </section>
@@ -583,11 +583,11 @@
         <input type="hidden" name="client_allocation_submitted" value="1">
         <div class="bus-multi-client-tags" data-client-tags aria-live="polite"></div>
         <div class="bus-multi-client-entry">
-            <input type="text" id="edit_client_name_entry" maxlength="100" placeholder="Enter a client, e.g. SM" aria-label="Client name">
+            <select id="edit_client_name_entry" aria-label="Select registered client"><option value="">Select registered client / company</option>@foreach($companyOptions as $companyName)<option value="{{ $companyName }}">{{ $companyName }}</option>@endforeach</select>
             <button type="button" data-add-client><i class="fa-solid fa-plus" aria-hidden="true"></i> Add</button>
         </div>
     </div>
-    <small>Add or remove client chips individually. Changes are blocked during an unfinished dispatched trip.</small>
+    <small>Select existing clients or remove allocations individually. Changes are blocked during an unfinished dispatched trip.</small>
     <p id="existingSharedClientNotice" class="bus-client-existing-note" hidden>Existing client allocations are shown above. Edit the list to change them.</p>
 </div>
 </section>

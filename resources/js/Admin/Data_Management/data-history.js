@@ -15,6 +15,20 @@ function initDataHistoryPage() {
         if (element) element.textContent = value || '—';
     }
 
+    function setStatus(value, button) {
+        const target = document.getElementById('historyModalStatus');
+        if (!target) return;
+        const rowBadge = button.closest('tr')?.querySelector('[data-ui-component="status-badge"]');
+        if (!value || !rowBadge) {
+            target.textContent = value || '—';
+            return;
+        }
+        const badge = rowBadge.cloneNode(true);
+        const label = badge.querySelector('.status-badge__label');
+        if (label) label.textContent = value;
+        target.replaceChildren(badge);
+    }
+
     function resetExtras() {
         if (validationContainer) validationContainer.style.display = 'none';
         if (errorsList) errorsList.innerHTML = '';
@@ -34,7 +48,7 @@ function initDataHistoryPage() {
         setText('historyModalSuccessful', button.dataset.successful);
         setText('historyModalFailed', button.dataset.failed);
         setText('historyModalSkipped', button.dataset.skipped);
-        setText('historyModalStatus', button.dataset.status);
+        setStatus(button.dataset.status, button);
         setText('historyModalUser', button.dataset.user);
         setText('historyModalDateTime', `${button.dataset.date || '—'} ${button.dataset.time || ''}`);
         setText('historyModalError', button.dataset.error);
@@ -67,7 +81,7 @@ function initDataHistoryPage() {
             setText('historyModalSuccessful', data.successful_records);
             setText('historyModalFailed', data.failed_records);
             setText('historyModalSkipped', data.skipped_records);
-            setText('historyModalStatus', data.status);
+            setStatus(data.status, button);
             setText('historyModalUser', data.processed_by);
             setText('historyModalDateTime', data.created_at);
             setText('historyModalError', data.error_message || 'None');
@@ -117,9 +131,6 @@ function initDataHistoryPage() {
 
     closeTop?.addEventListener('click', closeModal);
     closeFooter?.addEventListener('click', closeModal);
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal();
-    });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && modal.classList.contains('show')) closeModal();
