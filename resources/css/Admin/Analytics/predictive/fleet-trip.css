@@ -1123,3 +1123,39 @@
 .predictive-domain-fleet-trip .predictive-toolbar-refresh {
     display: none !important;
 }
+
+
+/* Compact, usable filters replace the empty full-width toolbar. */
+.predictive-fleet-page .ft-dashboard-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #e0e8f3;
+    border-radius: 12px;
+}
+.predictive-fleet-page .ft-dashboard-filter-heading { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.predictive-fleet-page .ft-dashboard-filter-heading strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #152c4f; }
+.predictive-fleet-page .ft-dashboard-filter-heading strong i { color: #377de2; }
+.predictive-fleet-page .ft-dashboard-filter-heading span { font-size: 10px; color: #667b98; }
+.predictive-fleet-page .ft-dashboard-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
+.predictive-fleet-page .ft-dashboard-filters label { display: flex; flex-direction: column; gap: 3px; font-size: 10px; font-weight: 700; color: #657794; }
+.predictive-fleet-page .ft-dashboard-filters select { min-width: 135px; max-width: 190px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d4dfed; border-radius: 8px; background: #f9fbff; color: #1c365f; font-size: 11px; cursor: pointer; }
+.predictive-fleet-page .ft-dashboard-filters select:focus-visible { outline: 2px solid #6b9dec; outline-offset: 1px; }
+.predictive-fleet-page .ft-dashboard-filters select:hover { border-color: #9abcea; }
+.predictive-fleet-page .ft-evidence-note { margin: 12px 0 0; display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #64748b; line-height: 1.5; }
+.predictive-fleet-page .ft-evidence-note i { margin-top: 2px; }
+.predictive-fleet-page .ft-availability-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.predictive-fleet-page .ft-availability-summary > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; border-radius: 9px; background: #f7faff; border: 1px solid #e0eaf7; }
+.predictive-fleet-page .ft-availability-summary span { color: #61738e; font-size: 10px; }
+.predictive-fleet-page .ft-availability-summary strong { color: #142e59; font-weight: 800; font-size: 19px; }
+@media (max-width: 700px) {
+    .predictive-fleet-page .ft-dashboard-filter-row { align-items: stretch; }
+    .predictive-fleet-page .ft-dashboard-filter-heading { width: 100%; }
+    .predictive-fleet-page .ft-dashboard-filters { width: 100%; }
+    .predictive-fleet-page .ft-dashboard-filters label { flex: 1 1 120px; min-width: 0; }
+    .predictive-fleet-page .ft-dashboard-filters select { min-width: 0; max-width: none; width: 100%; }
+}
