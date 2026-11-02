@@ -1826,3 +1826,10 @@
     cursor: not-allowed;
     background: #f4f7fb;
 }
+
+/* Actual PDF extraction progress (persisted by the Laravel worker). */
+.uploaded-file .gps-file-progress { width:100%; margin-top:6px; display:flex; flex-direction:column; gap:4px; }
+.uploaded-file .gps-file-progress-label { display:flex; justify-content:space-between; color:#466387; font-size:10px; font-weight:600; }
+.uploaded-file .gps-file-progress-label strong { color:#134db9; font-variant-numeric:tabular-nums; }
+.uploaded-file .gps-file-progress-track { width:100%; height:4px; overflow:hidden; border-radius:999px; background:#e1eaf6; }
+.uploaded-file .gps-file-progress-track > span { display:block; height:100%; border-radius:inherit; background:#1752bf; transition:width .35s ease; }
