@@ -160,8 +160,7 @@
                             Upload GPS Data File
                         </h2>
 
-                        <p>Upload a raw GPS Trip Record PDF file for extraction, cleaning, and review.</p>
-                        <p>Upload a GPS Trip Record file for extraction, cleaning, and review.</p>
+                        <p>Upload a GPS report for extraction, validation, and review.</p>
                     </div>
                 </div>
 
@@ -179,7 +178,6 @@
                     type="file"
                     id="gpsFileInput"
                     name="gps_file"
-                    accept=".pdf,application/pdf"
                     accept=".pdf,.csv,.json,.txt,.xls,.xlsx"
                     hidden
                     required
@@ -187,17 +185,14 @@
 
                 <div class="compact-dropzone" id="gpsDropzone">
                     <div class="dropzone-icon">
-                        <i class="fa-solid fa-file-pdf"></i>
                         <i class="fa-solid fa-file-arrow-up"></i>
                     </div>
 
                     <div class="dropzone-content">
                         <strong id="selectedFileName">
-                            Drag and drop GPS PDF file here
-                            Drag and drop GPS file here
+                            Drag and drop a GPS report here
                         </strong>
 
-                        <span>or choose a PDF file from your device</span>
                         <span>or choose a supported GPS file from your device</span>
                     </div>
 
@@ -207,7 +202,6 @@
                         id="chooseGpsFileBtn"
                     >
                         <i class="fa-solid fa-folder-open"></i>
-                        Choose PDF File
                         Choose GPS File
                     </button>
                 </div>
@@ -215,13 +209,11 @@
                 <div class="upload-details">
                     <span>
                         <i class="fa-solid fa-gears"></i>
-                        Operation — GPS Trip Records · PDF only
-                        Operation — GPS Trip Records · PDF, CSV, JSON, TXT, XLS, XLSX
+                        GPS Trip Records · PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>
 
                     <span>
                         <i class="fa-solid fa-file-pdf"></i>
-                        Only PDF files containing GPS Trip Records are supported
                         <i class="fa-solid fa-file-lines"></i>
                         Supported formats: PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>
