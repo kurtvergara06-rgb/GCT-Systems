@@ -1856,3 +1856,8 @@
 .gps-fleet-coverage-empty i { color:#7396ca; font-size:22px; }
 .gps-fleet-coverage-empty p { margin:0; max-width:330px; }
 @media (max-width:540px) { .gps-fleet-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .gps-fleet-metric { padding:10px; } }
+
+/* Six-column GPS table: rows stream in during table scrolling. */
+.structured-records-card .batch-records-table { min-width: 760px; }
+.structured-records-card .gps-infinite-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.structured-records-card .gps-load-state { font-size:11px; color:#64748b; }
