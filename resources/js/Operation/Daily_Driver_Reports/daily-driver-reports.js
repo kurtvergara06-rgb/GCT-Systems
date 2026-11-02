@@ -250,7 +250,9 @@ function initDdrDriverFirstLayout() {
     busField.classList.add('ddr-meta-bus');
     dateField.classList.add('ddr-meta-date');
     numberField.classList.add('ddr-meta-number');
-    meta.append(driverField, busField, dateField, numberField);
+    // Report date determines eligible drivers and trip assignments.
+    // Layout: Date | DDR Number, then Driver | Bus.
+    meta.append(dateField, numberField, driverField, busField);
 
     const firstTripHeading = document.createElement('div');
     firstTripHeading.className = 'ddr-trip-one-heading';
