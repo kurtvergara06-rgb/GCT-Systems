@@ -250,11 +250,6 @@ class BatchFileProcessingController extends Controller
             ]);
 
             if ($extension === 'pdf') {
-                if (config('queue.default') === 'sync') {
-                    throw new \RuntimeException(
-                        'PDF background processing requires QUEUE_CONNECTION=database and an active queue worker.'
-                    );
-                }
                 ProcessGpsPdfBatch::dispatch($batch->id);
                 return redirect()
                     ->to(route('batch-file-processing', ['batch_id' => $batch->id], false))
