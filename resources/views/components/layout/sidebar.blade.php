@@ -335,11 +335,27 @@
     if ($authUser && $componentDepartment !== 'admin'
         && $authUser->hasSystemPermission('analytics', 'view')) {
         $analyticsChildren = [
-            ['label' => 'Analytics Access',
-                'route' => 'analytics.department-access',
-                'icon' => 'fa-chart-line',
-                'active_routes' => ['analytics.department-access']],
+            ['label' => 'Descriptive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'descriptive'], false),
+                'icon' => 'fa-chart-column',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'descriptive'],
         ];
+        if ($authUser->hasSystemPermission('analytics', 'analyze')) {
+            $analyticsChildren[] = ['label' => 'Diagnostic Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'diagnostic'], false),
+                'icon' => 'fa-magnifying-glass',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'diagnostic'];
+            $analyticsChildren[] = ['label' => 'Predictive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'predictive'], false),
+                'icon' => 'fa-chart-line',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'predictive'];
+        }
+        if ($authUser->hasSystemPermission('analytics', 'recommendations')) {
+            $analyticsChildren[] = ['label' => 'Prescriptive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'prescriptive'], false),
+                'icon' => 'fa-lightbulb',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'prescriptive'];
+        }
         $items[] = ['label' => 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
     }
 
