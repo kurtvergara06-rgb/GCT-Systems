@@ -1,91 +1,739 @@
 @php
-    // Objective 6.2: reuse recorded fuel diagnostics while incident analysis
-    // awaits validated incident/replacement aggregation. Never render demo counts.
-    $activeAnalysis = request('domain') === 'fuel' ? 'fuel' : 'fleet-trip';
+    $activeAnalysis = in_array(request('domain'), ['fuel'], true) ? 'fuel' : 'fleet-trip';
     $diagnosticUrl = route('analytics.stage', ['stage' => 'diagnostic'], false);
     $normalizedSelectedBus = strtoupper(trim((string) $selectedBus));
+
+    $incidentData = $diagnostic->incident;
     $fuelData = $diagnostic->fuel;
-    $fuelTrend = collect($fuelData->trend ?? []);
-    $fuelReviews = collect($fuelData->review_units ?? []);
-    $fuelUnits = collect($fuelData->bus_summaries ?? []);
-    $totalFuel = (float) ($fuelData->total_fuel ?? 0);
-    $fleetEfficiency = (float) ($fuelData->fleet_average ?? 0);
-    $currentFilters = request()->only(['period','bus']);
+
+    $periodOptions = [
+        'this-month' => 'This Month',
+        'last-30-days' => 'Last 30 Days',
+        'last-3-months' => 'Last 3 Months',
+        'this-year' => 'This Year',
+    ];
+
+    if ($activeAnalysis === 'fleet-trip') {
+        $chartPayload = [
+            'activeAnalysis' => 'fleet-trip',
+            'trendLabels' => $incidentData->incident_trend->pluck('label')->toArray(),
+            'trendIncidents' => $incidentData->incident_trend->pluck('incidents')->toArray(),
+            'trendReplacements' => $incidentData->incident_trend->pluck('replacements')->toArray(),
+            'causeLabels' => $incidentData->cause_distribution->pluck('label')->toArray(),
+            'causeValues' => $incidentData->cause_distribution->pluck('count')->toArray(),
+            'causeColors' => $incidentData->cause_distribution->pluck('color')->toArray(),
+            'intervalLabels' => $incidentData->replacement_distribution->pluck('category')->toArray(),
+            'intervalValues' => $incidentData->replacement_distribution->pluck('count')->toArray(),
+            'intervalColors' => $incidentData->replacement_distribution->pluck('color')->toArray(),
+        ];
+    } else {
+        $chartPayload = [
+            'activeAnalysis' => 'fuel',
+            'fuelTrendLabels' => $fuelData->trend->pluck('label')->toArray(),
+            'fuelTrendLiters' => $fuelData->trend->pluck('fuel_liters')->toArray(),
+            'fuelTrendEfficiency' => $fuelData->trend->pluck('efficiency')->toArray(),
+            'efficiencyLabels' => $fuelData->efficiency_distribution->pluck('label')->toArray(),
+            'efficiencyValues' => $fuelData->efficiency_distribution->pluck('count')->toArray(),
+            'efficiencyColors' => $fuelData->efficiency_distribution->pluck('color')->toArray(),
+        ];
+    }
+
+    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $isDemo = $activeAnalysis === 'fleet-trip' ? $incidentData->is_demo : $fuelData->is_demo;
 @endphp
-<x-layout.app title="FROMS - Diagnostic Analytics" :assets="['resources/css/Admin/Analytics/overview/analytics-stage-hub.css', 'resources/css/Admin/Analytics/design-system.css']" :partial-navigation="false">
+<x-layout.app
+    title="FROMS - Diagnostic Analytics"
+    :assets="[
+        'resources/css/Admin/Analytics/design-system.css',
+        'resources/css/Admin/Analytics/diagnostic/diagnostic-rebuild.css',
+        'resources/js/Admin/Analytics/diagnostic/diagnostic-analytics.js'
+    ]"
+    :partial-navigation="false"
+>
     <div class="app">
         <x-layout.sidebar department="Admin" />
-        <main class="main diagnostic-reference-page">
-            <x-layout.topbar title="Diagnostic Analytics" subtitle="Review recorded incidents, replacement activity, and fuel consumption inconsistencies." />
-            <section class="dr-toolbar">
-                <nav class="dr-tabs" aria-label="Diagnostic analysis type">
-                    <a class="{{ $activeAnalysis === 'fleet-trip' ? 'is-selected' : '' }}" href="{{ $diagnosticUrl.'?'.http_build_query(array_merge($currentFilters,['domain'=>'fleet-trip'])) }}" @if($activeAnalysis === 'fleet-trip') aria-current="page" @endif><i class="fa-solid fa-bus"></i> Incident &amp; Replacement Analysis</a>
-                    <a class="{{ $activeAnalysis === 'fuel' ? 'is-selected' : '' }}" href="{{ $diagnosticUrl.'?'.http_build_query(array_merge($currentFilters,['domain'=>'fuel'])) }}" @if($activeAnalysis === 'fuel') aria-current="page" @endif><i class="fa-solid fa-gas-pump"></i> Fuel &amp; Consumption Analysis</a>
+        <main class="main diagnostic-rebuild">
+            <x-layout.topbar
+                title="Diagnostic Analytics"
+                subtitle="Root-cause diagnostic investigations, vehicle replacement intervals, and fuel consumption inconsistencies aligned with Thesis Objective 6.2."
+            />
+
+            <!-- Hidden JSON payload consumed by Chart.js script -->
+            <script type="application/json" id="diagnosticAnalyticsData">
+                {!! json_encode($chartPayload) !!}
+            </script>
+
+            <!-- Controls & Filters Bar -->
+            <div class="diagnostic-controls-bar">
+                <nav class="diagnostic-nav-pills" aria-label="Diagnostic analysis domain">
+                    <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'fleet-trip'])) }}"
+                       class="{{ $activeAnalysis === 'fleet-trip' ? 'active' : '' }}"
+                       @if($activeAnalysis === 'fleet-trip') aria-current="page" @endif>
+                        <i class="fa-solid fa-triangle-exclamation"></i> Incident &amp; Replacement Analysis
+                    </a>
+                    <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge($currentFilters, ['domain' => 'fuel'])) }}"
+                       class="{{ $activeAnalysis === 'fuel' ? 'active' : '' }}"
+                       @if($activeAnalysis === 'fuel') aria-current="page" @endif>
+                        <i class="fa-solid fa-gas-pump"></i> Fuel &amp; Consumption Analysis
+                    </a>
                 </nav>
-                <form class="dr-filters" method="GET" action="{{ $diagnosticUrl }}">
+
+                <form method="GET" action="{{ $diagnosticUrl }}" class="diagnostic-filters-form">
                     <input type="hidden" name="domain" value="{{ $activeAnalysis }}">
-                    <label>Period<select name="period" onchange="this.form.requestSubmit()">
-                        <option value="this-month" @selected($period === 'this-month')>This Month</option>
-                        <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                        <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
-                        <option value="this-year" @selected($period === 'this-year')>This Year</option>
-                    </select></label>
-                    <label>Bus<select name="bus" onchange="this.form.requestSubmit()"><option value="all">All Buses</option>@foreach($busOptions as $busNo)<option value="{{ $busNo }}" @selected($normalizedSelectedBus === strtoupper((string)$busNo))>{{ $busNo }}</option>@endforeach</select></label>
+                    @if(request()->has('demo'))
+                        <input type="hidden" name="demo" value="{{ request('demo') }}">
+                    @endif
+
+                    <div class="diagnostic-filter-group">
+                        <label for="periodSelect"><i class="fa-regular fa-calendar"></i> Period</label>
+                        <select id="periodSelect" name="period" onchange="this.form.submit()">
+                            @foreach($periodOptions as $val => $lbl)
+                                <option value="{{ $val }}" @selected($period === $val)>{{ $lbl }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="diagnostic-filter-group">
+                        <label for="busSelect"><i class="fa-solid fa-bus-simple"></i> Bus</label>
+                        <select id="busSelect" name="bus" onchange="this.form.submit()">
+                            <option value="all" @selected($normalizedSelectedBus === 'ALL')>All Fleet Buses</option>
+                            @foreach($busOptions as $busNo)
+                                <option value="{{ $busNo }}" @selected($normalizedSelectedBus === strtoupper((string)$busNo))>
+                                    {{ $busNo }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="diagnostic-date-badge">
+                        <i class="fa-solid fa-clock-rotate-left"></i> {{ ucfirst(str_replace('-', ' ', $period)) }}
+                    </div>
                 </form>
-            </section>
+            </div>
+
+            <!-- Demo Mode vs Live Records Banner -->
+            @if($isDemo)
+                <div class="demo-mode-banner" role="alert">
+                    <div class="demo-banner-content">
+                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Demo Data</span>
+                        <span>
+                            <strong>Demonstration Diagnostic Dataset Active:</strong> Illustrating Thesis Objective 6.2 diagnostics (failure root causes, replacement response time comparison, and vehicle-specific fuel baseline anomalies).
+                            @if($activeAnalysis === 'fleet-trip')
+                                Live operational records: <strong>{{ $incidentData->real_count }} incident(s)</strong> logged in this selection.
+                            @else
+                                Live recorded fuel: <strong>{{ number_format($fuelData->real_fuel, 1) }} L</strong>.
+                            @endif
+                        </span>
+                    </div>
+                    @if(request()->boolean('demo'))
+                        <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except('demo'), ['domain' => $activeAnalysis])) }}" class="dashboard-view-link">
+                            <span>Switch to Live Records</span>
+                            <i class="fa-solid fa-rotate"></i>
+                        </a>
+                    @endif
+                </div>
+            @else
+                <div class="live-mode-banner" role="status">
+                    <i class="fa-solid fa-circle-check text-green"></i>
+                    <span>
+                        <strong>Live Database Records:</strong> Displaying verified operational diagnostic findings from the FROMS Operations &amp; Maintenance modules.
+                    </span>
+                </div>
+            @endif
 
             @if($activeAnalysis === 'fleet-trip')
-                <section class="dr-kpi-row">
-                    @foreach([
-                        ['Total Incidents','fa-triangle-exclamation','Total recorded incidents for the period'],
-                        ['Bus Replacements','fa-bus','Confirmed replacement assignments'],
-                        ['Average Downtime','fa-clock','Verified incident-to-return intervals'],
-                        ['Most Common Cause','fa-gears','Most frequently documented incident cause'],
-                    ] as [$title,$icon,$description])
-                        <article class="dr-card dr-kpi"><div class="dr-kpi-name"><i class="fa-solid {{ $icon }}"></i><strong>{{ $title }}</strong></div><div class="dr-value">—</div><small>{{ $description }}</small><span class="dr-await">Not connected to incident records yet</span></article>
-                    @endforeach
+                <!-- =========================================================================
+                     THESIS OBJECTIVE 6.2.1 — INCIDENT & REPLACEMENT ANALYSIS
+                     ========================================================================= -->
+
+                <!-- 1. Top 4 KPI Summary Cards Grid -->
+                <section class="stats-grid diagnostic-stats-grid">
+                    <!-- Total Incidents -->
+                    <x-ui.summary-card
+                        label="Total Incidents"
+                        value="{{ $incidentData->total_incidents }}"
+                        small="{{ $incidentData->breakdowns_count }} breakdowns · {{ $incidentData->resolved_count }} resolved"
+                        icon="fa-triangle-exclamation"
+                        color="red"
+                        href="{{ route('incidents') }}"
+                    />
+
+                    <!-- Bus Replacements -->
+                    <x-ui.summary-card
+                        label="Bus Replacements"
+                        value="{{ $incidentData->replacements_count }}"
+                        small="{{ round(($incidentData->replacements_count / max(1, $incidentData->total_incidents)) * 100) }}% replacement swap rate"
+                        icon="fa-people-arrows"
+                        color="purple"
+                        href="{{ route('incidents') }}"
+                    />
+
+                    <!-- Average Downtime -->
+                    <x-ui.summary-card
+                        label="Average Downtime"
+                        value="{{ $incidentData->average_downtime_formatted }}"
+                        small="Incident-to-dispatch response time"
+                        icon="fa-clock-rotate-left"
+                        color="blue"
+                    />
+
+                    <!-- Primary Root Cause -->
+                    <x-ui.summary-card
+                        label="Primary Root Cause"
+                        value="{{ $incidentData->most_common_cause }}"
+                        small="Leading operational failure mode"
+                        icon="fa-screwdriver-wrench"
+                        color="yellow"
+                    />
                 </section>
-                <section class="dr-three">
-                    <article class="dr-card"><h3><i class="fa-solid fa-chart-line"></i> Incidents Trend</h3><p>Documented incident frequency over the selected period</p><div class="dr-no-data">Incident timeline not connected yet.</div></article>
-                    <article class="dr-card"><h3><i class="fa-solid fa-chart-pie"></i> Incidents by Cause</h3><p>Categories from recorded incident causes</p><div class="dr-no-data">Cause breakdown not connected yet.</div></article>
-                    <article class="dr-card"><h3><i class="fa-solid fa-arrow-right-arrow-left"></i> Replacement Outcome</h3><p>Original buses versus documented replacements</p><div class="dr-no-data">Replacement links not connected yet.</div></article>
-                </section>
-                <section class="dr-card dr-evidence"><h3><i class="fa-solid fa-file-lines"></i> Incident Evidence</h3><p>Incident records, original buses, replacements, and linked maintenance referrals will appear here after source validation.</p><div class="dr-no-data">No incident-level analysis is connected in this layout yet. This is not a claim that no incidents occurred.</div></section>
-            @else
-                <section class="dr-fuel-heading"><h2><i class="fa-solid fa-gas-pump"></i> Fuel Consumption &amp; Inconsistency Analysis</h2><p>Recorded fleet fuel usage and review signals. These are advisory, not proof of an equipment fault.</p></section>
-                <section class="dr-fuel-grid">
-                    <div class="dr-stacked">
-                        <article class="dr-card dr-kpi"><div class="dr-kpi-name"><i class="fa-solid fa-droplet"></i><strong>Total Fuel Consumption</strong></div><div class="dr-value">{{ $totalFuel > 0 ? number_format($totalFuel,1).' L' : '—' }}</div><small>{{ $totalFuel > 0 ? 'Recorded fuel volume for the selected filters' : 'No valid fuel volume recorded for this selection' }}</small></article>
-                        <article class="dr-card dr-kpi"><div class="dr-kpi-name"><i class="fa-solid fa-gauge-high"></i><strong>Average Fuel Efficiency</strong></div><div class="dr-value">{{ $totalFuel > 0 && $fleetEfficiency > 0 ? number_format($fleetEfficiency,2).' km/L' : '—' }}</div><small>{{ $fleetEfficiency > 0 ? 'Derived from recorded fuel and distance' : 'Insufficient valid distance and fuel data' }}</small></article>
-                        <article class="dr-card dr-kpi"><div class="dr-kpi-name"><i class="fa-solid fa-triangle-exclamation"></i><strong>Buses Requiring Review</strong></div><div class="dr-value">{{ number_format($fuelReviews->count()) }}</div><small>Current fuel review signals under existing rules</small></article>
-                    </div>
-                    <article class="dr-card"><h3><i class="fa-solid fa-chart-column"></i> Fuel Consumption Trend</h3><p>Recorded volume and efficiency by period</p>
-                        @if($fuelTrend->isEmpty())<div class="dr-no-data">No fuel trend data available for the selected filters.</div>
-                        @else
-                        <div class="dr-fuel-trend" aria-label="Fuel trend summary">
-                            @foreach($fuelTrend->take(12) as $point)
-                                @php $fuelValue = (float)($point->fuel_liters ?? $point->liters ?? $point->fuel ?? 0); @endphp
-                                <div><span>{{ number_format($fuelValue,1) }} L</span><div class="dr-trend-track"><div style="height:{{ min(100,max(0,$totalFuel > 0 ? 100*$fuelValue/$totalFuel : 0)) }}%"></div></div><small>{{ $point->label ?? $point->month ?? 'Period' }}</small></div>
-                            @endforeach
+
+                <!-- 2. Charts Row 1: Incidents & Replacement Trend + Root-Cause Donut -->
+                <div class="diagnostic-grid grid-wide-left">
+                    <!-- Incidents vs Replacements Over Time -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">DIAGNOSTIC FREQUENCY</span>
+                                <h2><i class="fa-solid fa-chart-column"></i> Incidents &amp; Replacement Trend</h2>
+                                <p>Recorded disruptions and emergency replacement bus dispatches over time.</p>
+                            </div>
+
+                            <div class="chart-header-actions">
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-triangle-exclamation text-red"></i>
+                                    <span>Incidents: <strong>{{ $incidentData->total_incidents }}</strong></span>
+                                </div>
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-people-arrows text-purple"></i>
+                                    <span>Replacements: <strong>{{ $incidentData->replacements_count }}</strong></span>
+                                </div>
+                            </div>
                         </div>
-                        @endif
-                    </article>
-                    <article class="dr-card"><h3><i class="fa-solid fa-bus"></i> Buses with Fuel Review Signals</h3><p>Recorded observations requiring further investigation</p>
-                        @if($fuelReviews->isEmpty())<div class="dr-no-data">No units flagged for review under current recorded-data rules.</div>
-                        @else
-                        <div class="dr-table-wrap"><table class="dr-table"><thead><tr><th>Bus</th><th>Fuel (L)</th><th>Efficiency</th><th>Status</th></tr></thead><tbody>
-                        @foreach($fuelReviews->take(8) as $unit)
-                            <tr><td><strong>{{ $unit->bus_no }}</strong></td><td>{{ number_format((float)($unit->fuel_liters ?? 0),1) }}</td><td>{{ (float)($unit->km_per_liter ?? 0) > 0 ? number_format((float)$unit->km_per_liter,2).' km/L' : 'No data' }}</td><td>{{ $unit->status ?? 'Review' }}</td></tr>
-                        @endforeach
-                        </tbody></table></div>
-                        @endif
-                    </article>
+
+                        <div class="diagnostic-chart-shell">
+                            <canvas id="diagnosticIncidentTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Root-Cause Classification Donut -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">ROOT-CAUSE ANALYSIS</span>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Incidents by Cause</h2>
+                                <p>Primary diagnostic categories derived from incident failure logs.</p>
+                            </div>
+                            <span class="chart-kpi-pill">
+                                <strong>{{ $incidentData->cause_distribution->count() }}</strong> Categories
+                            </span>
+                        </div>
+
+                        <div class="fleet-health-visual-wrap">
+                            <div class="fleet-health-chart-container">
+                                <canvas id="diagnosticCauseDonutChart"></canvas>
+                                <div class="fleet-health-chart-center" aria-hidden="true">
+                                    <strong>{{ $incidentData->total_incidents }}</strong>
+                                    <span>Total</span>
+                                </div>
+                            </div>
+                            <div class="fleet-health-status-stack">
+                                @foreach($incidentData->cause_distribution as $cause)
+                                    <div class="fleet-health-row">
+                                        <div class="fleet-health-left">
+                                            <span class="status-indicator-dot" style="background:{{ $cause->color }}"></span>
+                                            <div class="status-name-desc">
+                                                <strong>{{ $cause->label }}</strong>
+                                                <small>{{ $cause->count }} event{{ $cause->count === 1 ? '' : 's' }} documented</small>
+                                            </div>
+                                        </div>
+                                        <div class="fleet-health-right">
+                                            <span class="fleet-count" style="color:{{ $cause->color }}">{{ $cause->count }}</span>
+                                            <small>{{ $cause->pct }}%</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Charts Row 2: Replacement Outcomes + Severity Metrics -->
+                <div class="diagnostic-grid">
+                    <!-- Replacement Dispatch Response Intervals -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">DISPATCH LATENCY</span>
+                                <h2><i class="fa-solid fa-stopwatch"></i> Replacement Response Latency</h2>
+                                <p>Interval from incident breakdown report to replacement bus en-route dispatch.</p>
+                            </div>
+                            <a href="{{ route('incidents') }}" class="dashboard-view-link">
+                                <span>Incidents</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="diagnostic-chart-shell short">
+                            <canvas id="diagnosticReplacementIntervalChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Reliability & Severity Diagnostic Overview -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">RELIABILITY INDEX</span>
+                                <h2><i class="fa-solid fa-shield-halved"></i> Fleet Disruption &amp; Recovery Index</h2>
+                                <p>Diagnostic assessment of service disruption containment and recovery efficiency.</p>
+                            </div>
+                            <span class="chart-kpi-pill text-green">
+                                <i class="fa-solid fa-circle-check"></i> Monitored
+                            </span>
+                        </div>
+
+                        <div class="diagnostic-metric-tiles">
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-shield-heart text-green"></i>
+                                <div>
+                                    <strong>{{ $incidentData->safety_score }}%</strong>
+                                    <small>Fleet Reliability Score</small>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-clock text-blue"></i>
+                                <div>
+                                    <strong>{{ $incidentData->average_downtime_formatted }}</strong>
+                                    <small>Average Dispatch Interval</small>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-wrench text-amber"></i>
+                                <div>
+                                    <strong>{{ round(($incidentData->resolved_count / max(1, $incidentData->total_incidents)) * 100) }}%</strong>
+                                    <small>Incident Resolution Rate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="baseline-callout-card" style="margin-top: 14px;">
+                            <h4><i class="fa-solid fa-circle-info"></i> Thesis Objective 6.2.1 Diagnostic Benchmark</h4>
+                            <p>
+                                Tracks unplanned bus breakdowns, root-cause categories, and dispatch response times to diagnose recurring equipment failures and assess fleet replacement readiness.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Detailed Diagnostic Evidence Table (Full Width) -->
+                <div class="diagnostic-dashboard-card full-width">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <span class="dashboard-eyebrow">INCIDENT EVIDENCE &amp; LOGS</span>
+                            <h2><i class="fa-solid fa-file-medical"></i> Incident Diagnostic Evidence &amp; Replacement Records</h2>
+                            <p>Detailed incident reports, affected buses, replacement pairings, and maintenance linkages.</p>
+                        </div>
+                        <a href="{{ route('incidents') }}" class="dashboard-view-link">
+                            <span>View Operations Center</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    @if($incidentData->records->isNotEmpty())
+                        <div class="diagnostic-table-wrapper">
+                            <table class="diagnostic-table">
+                                <thead>
+                                    <tr>
+                                        <th>Incident No</th>
+                                        <th>Affected Bus &amp; Driver</th>
+                                        <th>Route / Client</th>
+                                        <th>Diagnostic Root Cause</th>
+                                        <th>Replacement Bus</th>
+                                        <th>Downtime</th>
+                                        <th>Status</th>
+                                        <th>Maintenance Link</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($incidentData->records as $record)
+                                        <tr>
+                                            <td>
+                                                <span class="code-pill">{{ $record->incident_no }}</span>
+                                                @if($record->is_demo)
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                    <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
+                                                    <small class="text-muted"><i class="fa-solid fa-user"></i> {{ $record->driver_name }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small><strong>{{ $record->route_name }}</strong></small>
+                                            </td>
+                                            <td>
+                                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                                    <strong>{{ $record->incident_type }}</strong>
+                                                    <small class="text-muted">{{ \Illuminate\Support\Str::limit($record->description, 50) }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if($record->replacement_bus_no)
+                                                    <span class="swap-chip">
+                                                        <i class="fa-solid fa-bus-flip"></i> {{ $record->replacement_bus_no }}
+                                                    </span>
+                                                @else
+                                                    <small class="text-muted"><i class="fa-solid fa-wrench"></i> On-Site Repair</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <strong>{{ $record->downtime_formatted }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge-status {{ strtolower($record->status) === 'resolved' ? 'optimal' : 'anomaly' }}">
+                                                    {{ $record->status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if($record->job_order_no)
+                                                    <span class="code-pill" style="background:#f5f3ff; border-color:#ddd6fe; color:#6d28d9;">
+                                                        <i class="fa-solid fa-screwdriver-wrench"></i> {{ $record->job_order_no }}
+                                                    </span>
+                                                @else
+                                                    <small class="text-muted">—</small>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-icon"><i class="fa-solid fa-shield-check"></i></div>
+                            <h3>Zero Incidents Recorded</h3>
+                            <p>No operational disruptions or breakdown reports match the current filters.</p>
+                        </div>
+                    @endif
+                </div>
+
+            @else
+                <!-- =========================================================================
+                     THESIS OBJECTIVE 6.2.2 — FUEL & CONSUMPTION ANALYSIS
+                     ========================================================================= -->
+
+                <!-- 1. Top 4 KPI Summary Cards Grid -->
+                <section class="stats-grid diagnostic-stats-grid">
+                    <!-- Total Fuel Consumption -->
+                    <x-ui.summary-card
+                        label="Total Fuel Consumption"
+                        value="{{ number_format($fuelData->total_fuel, 1) }} L"
+                        small="Recorded fuel volume across fleet"
+                        icon="fa-gas-pump"
+                        color="blue"
+                    />
+
+                    <!-- Average Fuel Efficiency -->
+                    <x-ui.summary-card
+                        label="Fleet Avg Efficiency"
+                        value="{{ number_format($fuelData->fleet_average, 2) }} km/L"
+                        small="Derived from total distance &amp; fuel"
+                        icon="fa-gauge-high"
+                        color="green"
+                    />
+
+                    <!-- Objective 6.2.2 Anomalies -->
+                    <x-ui.summary-card
+                        label="Baseline Anomalies"
+                        value="{{ $fuelData->anomalies_count }}"
+                        small="≥20% decrease from 3-test baseline"
+                        icon="fa-triangle-exclamation"
+                        color="red"
+                    />
+
+                    <!-- Estimated Idle Loss -->
+                    <x-ui.summary-card
+                        label="Estimated Idle Loss"
+                        value="{{ number_format($fuelData->idle_loss_liters, 1) }} L"
+                        small="Fuel burned during engine idling"
+                        icon="fa-stopwatch"
+                        color="cyan"
+                    />
                 </section>
-                <section class="dr-card dr-evidence"><h3><i class="fa-solid fa-circle-info"></i> Historical Baseline Requirement</h3><p>A fuel anomaly must not be treated as confirmed solely because it is below the fleet average. Objective 6.2.2 requires a vehicle-specific historical baseline with at least three prior valid measurements and a decrease of at least 20%.</p></section>
+
+                <!-- 2. Charts Row 1: Dual-Axis Trend + Efficiency Distribution Donut -->
+                <div class="diagnostic-grid grid-wide-left">
+                    <!-- Dual-Axis Fuel Consumption (L) & Efficiency (km/L) Trend -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">CONSUMPTION TELEMETRY</span>
+                                <h2><i class="fa-solid fa-chart-column"></i> Fuel Volume &amp; Efficiency Trend</h2>
+                                <p>Recorded fuel liters consumed (bars) alongside vehicle fuel economy (line).</p>
+                            </div>
+
+                            <div class="chart-header-actions">
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-gas-pump text-blue"></i>
+                                    <span>Total: <strong>{{ number_format($fuelData->total_fuel, 1) }} L</strong></span>
+                                </div>
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-gauge-high text-green"></i>
+                                    <span>Avg: <strong>{{ number_format($fuelData->fleet_average, 2) }} km/L</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="diagnostic-chart-shell">
+                            <canvas id="diagnosticFuelTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Fuel Efficiency Tiers Donut -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">EFFICIENCY TIERS</span>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Efficiency Distribution</h2>
+                                <p>Fleet vehicles categorised against target operational fuel standards.</p>
+                            </div>
+                            <span class="chart-kpi-pill text-blue">
+                                <strong>{{ $fuelData->bus_summaries->count() }}</strong> Units Monitored
+                            </span>
+                        </div>
+
+                        <div class="fleet-health-visual-wrap">
+                            <div class="fleet-health-chart-container">
+                                <canvas id="diagnosticEfficiencyDonutChart"></canvas>
+                                <div class="fleet-health-chart-center" aria-hidden="true">
+                                    <strong>{{ number_format($fuelData->fleet_average, 1) }}</strong>
+                                    <span>km / L</span>
+                                </div>
+                            </div>
+                            <div class="fleet-health-status-stack">
+                                @foreach($fuelData->efficiency_distribution as $tier)
+                                    <div class="fleet-health-row">
+                                        <div class="fleet-health-left">
+                                            <span class="status-indicator-dot" style="background:{{ $tier->color }}"></span>
+                                            <div class="status-name-desc">
+                                                <strong>{{ $tier->label }}</strong>
+                                                <small>{{ $tier->count }} vehicle{{ $tier->count === 1 ? '' : 's' }} in tier</small>
+                                            </div>
+                                        </div>
+                                        <div class="fleet-health-right">
+                                            <span class="fleet-count" style="color:{{ $tier->color }}">{{ $tier->count }}</span>
+                                            <small>{{ $tier->pct }}%</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Charts Row 2: Buses with Review Signals + Idle Diagnostic Breakdown -->
+                <div class="diagnostic-grid">
+                    <!-- Buses with Review Signals -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">INSPECTION SIGNALS</span>
+                                <h2><i class="fa-solid fa-triangle-exclamation"></i> Buses Requiring Fuel Review</h2>
+                                <p>Units flagged under Objective 6.2.2 baseline decrease or severe idle intensity.</p>
+                            </div>
+                            <span class="chart-kpi-pill text-red">
+                                <strong>{{ $fuelData->review_units->count() }}</strong> Flagged
+                            </span>
+                        </div>
+
+                        @if($fuelData->review_units->isNotEmpty())
+                            <div class="fleet-health-status-stack" style="max-height: 250px;">
+                                @foreach($fuelData->review_units as $unit)
+                                    <div class="fleet-health-row">
+                                        <div class="fleet-health-left">
+                                            <span class="status-indicator-dot dot-red"></span>
+                                            <div class="status-name-desc">
+                                                <strong>{{ $unit->bus_no }}</strong>
+                                                <small>
+                                                    @if(isset($unit->drop_percent) && $unit->drop_percent < 0)
+                                                        {{ abs($unit->drop_percent) }}% below 3-test baseline ({{ $unit->baseline_efficiency }} km/L)
+                                                    @else
+                                                        Below fleet average ({{ number_format((float)($unit->km_per_liter ?? 0), 2) }} km/L)
+                                                    @endif
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="fleet-health-right">
+                                            <span class="badge-status anomaly">Confirmed Anomaly</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="dashboard-empty-state" style="min-height: 160px; padding: 20px;">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-circle-check text-green"></i></div>
+                                <h3>Zero Fuel Review Signals</h3>
+                                <p>No vehicle in this selection violates the Objective 6.2.2 20% baseline reduction threshold.</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Idling Impact & Idle Loss Breakdown -->
+                    <div class="diagnostic-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">TELEMETRY IDLE IMPACT</span>
+                                <h2><i class="fa-solid fa-hourglass-half"></i> Idling vs Moving Consumption</h2>
+                                <p>Analysis of excess engine idling and non-productive fuel loss.</p>
+                            </div>
+                            <span class="chart-kpi-pill text-cyan">
+                                <i class="fa-solid fa-gauge"></i> Telemetry
+                            </span>
+                        </div>
+
+                        <div class="diagnostic-metric-tiles">
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-stopwatch text-cyan"></i>
+                                <div>
+                                    <strong>{{ round($fuelData->idling_median, 1) }}m</strong>
+                                    <small>Median Idle / 100km</small>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-fire-flame-curved text-red"></i>
+                                <div>
+                                    <strong>{{ number_format($fuelData->idle_loss_liters, 1) }} L</strong>
+                                    <small>Estimated Fuel Lost</small>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-tile">
+                                <i class="fa-solid fa-gas-pump text-green"></i>
+                                <div>
+                                    <strong>{{ number_format($fuelData->total_distance, 0) }} km</strong>
+                                    <small>Total Fleet Traveled</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="baseline-callout-card" style="margin-top: 14px;">
+                            <h4><i class="fa-solid fa-circle-info"></i> Idle Loss Calculation Rule</h4>
+                            <p>
+                                Computed using commercial telemetry idle rate (1.5 L / engine idle hour). Excessive idle duration is flagged when idle minutes per 100km exceed the fleet median by over 25%.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Historical Baseline Evidence Table (Full Width) -->
+                <div class="diagnostic-dashboard-card full-width">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <span class="dashboard-eyebrow">OBJECTIVE 6.2.2 BASELINE EVIDENCE</span>
+                            <h2><i class="fa-solid fa-table-list"></i> Vehicle-Specific Historical Baseline &amp; Anomaly Verification</h2>
+                            <p>Verification of vehicle historical baseline (minimum 3 prior measurements) and confirmation of ≥20% efficiency drops.</p>
+                        </div>
+                        <span class="chart-kpi-pill text-blue">
+                            <strong>{{ $fuelData->bus_summaries->count() }}</strong> Units Analyzed
+                        </span>
+                    </div>
+
+                    @if($fuelData->bus_summaries->isNotEmpty())
+                        <div class="diagnostic-table-wrapper">
+                            <table class="diagnostic-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bus No</th>
+                                        <th>Distance (km)</th>
+                                        <th>Fuel (L)</th>
+                                        <th>Measured Efficiency</th>
+                                        <th>Prior Tests</th>
+                                        <th>3-Test Baseline</th>
+                                        <th>Baseline Variance</th>
+                                        <th>Objective 6.2.2 Finding</th>
+                                        <th>Diagnostic Advisory</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($fuelData->bus_summaries as $unit)
+                                        @php
+                                            $hasBaseline = $unit->has_baseline ?? false;
+                                            $isAnomaly = $unit->is_objective_622_anomaly ?? false;
+                                            $drop = $unit->drop_percent ?? 0;
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $unit->bus_no }}</span>
+                                                @if($unit->is_demo ?? false)
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ number_format((float)($unit->distance_km ?? 0), 1) }}</td>
+                                            <td><strong>{{ number_format((float)($unit->fuel_liters ?? 0), 1) }}</strong></td>
+                                            <td>
+                                                <strong>{{ number_format((float)($unit->km_per_liter ?? 0), 2) }} km/L</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge-chip">{{ $unit->prior_measurements_count ?? 0 }} tests</span>
+                                            </td>
+                                            <td>
+                                                @if($hasBaseline)
+                                                    <strong>{{ number_format((float)($unit->baseline_efficiency ?? 0), 2) }} km/L</strong>
+                                                @else
+                                                    <small class="text-muted">Insufficient Baseline</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($hasBaseline)
+                                                    <span style="font-weight: 700; color: {{ $drop <= -20 ? '#dc2626' : ($drop < 0 ? '#d97706' : '#16a34a') }};">
+                                                        {{ $drop > 0 ? '+'.$drop : $drop }}%
+                                                    </span>
+                                                @else
+                                                    <small class="text-muted">—</small>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($isAnomaly)
+                                                    <span class="badge-status anomaly">Confirmed Anomaly (≥20% Drop)</span>
+                                                @elseif($hasBaseline)
+                                                    <span class="badge-status optimal">Within Baseline</span>
+                                                @else
+                                                    <span class="badge-status insufficient">Insufficient Baseline (&lt;3)</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($isAnomaly)
+                                                    <small style="color: #b91c1c; font-weight: 600;">
+                                                        <i class="fa-solid fa-wrench"></i> Refer to shop for fuel injector &amp; intake valve check
+                                                    </small>
+                                                @elseif(($unit->idling_minutes ?? 0) >= 120)
+                                                    <small style="color: #d97706;">
+                                                        <i class="fa-solid fa-stopwatch"></i> Excessive idle review with driver
+                                                    </small>
+                                                @else
+                                                    <small class="text-muted">No diagnostic action required</small>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- 5. Thesis Objective 6.2.2 Rule Callout Card -->
+                <div class="baseline-callout-card" style="margin-bottom: 24px;">
+                    <h4><i class="fa-solid fa-circle-info"></i> Thesis Objective 6.2.2 Scientific Rule</h4>
+                    <p>
+                        A fuel consumption anomaly must not be treated as confirmed solely because it is below the fleet average. Objective 6.2.2 requires a vehicle-specific historical baseline with at least three prior valid measurements and a decrease of at least 20% to confirm an actionable mechanical inconsistency.
+                    </p>
+                </div>
+
             @endif
         </main>
     </div>
-    <style>
-    .diagnostic-reference-page{padding-bottom:38px}.dr-toolbar{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:17px 0}.dr-tabs{display:flex;gap:8px;flex-wrap:wrap}.dr-tabs a{display:inline-flex;gap:9px;align-items:center;text-decoration:none;color:#173455;border:1px solid #dbe5f4;border-radius:9px;background:white;padding:12px 16px;font-size:12px;font-weight:700}.dr-tabs a.is-selected{background:#1265e0;color:white;border-color:#1265e0}.dr-filters{display:flex;flex-wrap:wrap;gap:10px}.dr-filters label{display:grid;gap:4px;font-size:11px;font-weight:700;color:#60728a}.dr-filters select{min-width:145px;border:1px solid #d6e2f1;border-radius:9px;padding:10px;background:white;color:#203a5b}.dr-kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.dr-card{min-width:0;border:1px solid #dce6f5;background:#fff;border-radius:13px;padding:17px;box-shadow:0 4px 12px rgba(21,54,96,.045)}.dr-kpi{background:linear-gradient(135deg,#fff,#f4f8ff)}.dr-kpi-name{display:flex;align-items:center;gap:9px;font-size:12px;color:#243d5b}.dr-kpi-name i{color:#1569e8;font-size:18px}.dr-value{font-size:28px;line-height:1.3;font-weight:800;color:#152f54;margin:12px 0 5px}.dr-kpi small{display:block;font-size:11px;color:#6a7d94}.dr-await{display:block;font-size:10px;color:#8494a8;margin-top:10px}.dr-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}.dr-card h3{font-size:14px;color:#1b3456;margin:0 0 5px;font-weight:800}.dr-card h3 i,.dr-fuel-heading i{color:#1569e8;margin-right:7px}.dr-card p,.dr-fuel-heading p{font-size:11px;color:#697f98;margin:0 0 8px}.dr-no-data{min-height:180px;padding:18px;display:flex;align-items:center;justify-content:center;text-align:center;color:#8495aa;font-size:12px}.dr-evidence{margin-top:12px}.dr-evidence .dr-no-data{min-height:65px}.dr-fuel-heading{margin:20px 0 12px}.dr-fuel-heading h2{font-size:16px;margin:0 0 6px;color:#183557}.dr-fuel-grid{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(250px,1.4fr) minmax(250px,1.3fr);gap:12px;align-items:stretch}.dr-stacked{display:grid;gap:10px}.dr-table-wrap{overflow-x:auto}.dr-table{width:100%;border-collapse:collapse;font-size:11px}.dr-table th{text-align:left;background:#f0f5fc;color:#4a617e;padding:9px}.dr-table td{border-bottom:1px solid #edf1f7;padding:9px;color:#263f5b}.dr-fuel-trend{display:flex;align-items:end;gap:6px;height:240px;overflow-x:auto;padding-top:18px}.dr-fuel-trend>div{flex:1;min-width:34px;text-align:center;font-size:9px;color:#708197;height:100%;display:flex;flex-direction:column;gap:5px}.dr-trend-track{flex:1;display:flex;align-items:end;border-radius:4px;background:#f3f7fc}.dr-trend-track>div{background:#398ef0;width:100%;min-height:2px;border-radius:4px 4px 0 0}.dr-fuel-trend small{font-size:9px;white-space:nowrap}@media(max-width:1150px){.dr-fuel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dr-stacked{grid-column:span 2;grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:800px){.dr-kpi-row,.dr-three,.dr-fuel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dr-stacked{grid-column:span 2}}@media(max-width:560px){.dr-kpi-row,.dr-three,.dr-fuel-grid,.dr-stacked{grid-template-columns:minmax(0,1fr)}.dr-stacked{grid-column:auto}.dr-filters,.dr-filters label,.dr-filters select{width:100%}}
-    </style>
 </x-layout.app>

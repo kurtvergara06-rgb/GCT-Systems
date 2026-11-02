@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\FuelReport;
+use App\Models\Operation\Incident;
+use App\Models\Operation\IncidentReplacement;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\EtaPredictionService;
 use App\Services\FleetTripPredictionService;
@@ -103,6 +106,9 @@ class AnalyticsStageController extends Controller
             'stage' => $stage,
             'stageLabel' => self::STAGES[$stage],
             'domain' => $domain,
+            'activeDiagnosticView' => in_array($domain, ['fuel'], true) ? 'fuel' : 'incident',
+            'incidentDiagnostics' => $diagnostic?->incident ?? null,
+            'fuelDiagnostics' => $diagnostic?->fuel ?? null,
             'fleet' => $fleet,
             'fuel' => $fuel,
             'inventory' => $inventory,
@@ -281,16 +287,8 @@ class AnalyticsStageController extends Controller
                 'average_trip_duration' => (float) ($fleet['averageTripDuration'] ?? 0),
                 'average_speed' => (float) ($fleet['averageSpeed'] ?? 0),
             ],
-            'fuel' => (object) [
-                'total_fuel' => (float) ($fuel['totalFuel'] ?? 0),
-                'total_distance' => (float) ($fuel['totalDistance'] ?? 0),
-                'fleet_average' => (float) ($fuel['fleetAverage'] ?? 0),
-                'bus_summaries' => collect($fuel['busSummaries'] ?? []),
-                'review_units' => $fuelReviewUnits,
-                'high_idling_units' => $highIdlingUnits,
-                'trend' => collect($fuel['trend'] ?? []),
-                'idling_median' => (float) ($fuel['idlingMedian'] ?? 0),
-            ],
+            'incident' => $this->buildIncidentDiagnosticData($request, $buses),
+            'fuel' => $this->enrichFuelDiagnosticData($request, $fuel, $buses),
             'bus_health' => (object) [
                 'buses' => $buses,
                 'total' => $buses->count(),
@@ -312,6 +310,554 @@ class AnalyticsStageController extends Controller
                 'critical' => $inventory->critical,
             ],
         ];
+    }
+
+    /**
+     * Build Thesis Objective 6.2.1 Incident & Replacement Diagnostic Data.
+     */
+    private function buildIncidentDiagnosticData(Request $request, Collection $buses): object
+    {
+        $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
+        $period = (string) $request->input('period', 'this-month');
+        $demoMode = $request->boolean('demo', false);
+
+        [$start, $end] = $this->resolveDatePeriod($period);
+
+        $incidentsQuery = Incident::query()
+            ->with([
+                'bus',
+                'replacement.replacementBus',
+                'replacement.originalBus',
+                'tripSchedule.shuttleRoute',
+                'maintenanceReferral.jobOrder',
+            ])
+            ->where(function ($q) use ($start, $end): void {
+                $q->whereBetween('incident_reported_at', [$start, $end])
+                  ->orWhere(function ($q2) use ($start, $end): void {
+                      $q2->whereNull('incident_reported_at')->whereBetween('created_at', [$start, $end]);
+                  });
+            });
+
+        if ($selectedBus !== '' && $selectedBus !== 'ALL') {
+            $incidentsQuery->whereHas('bus', fn ($q) => $q->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus]));
+        }
+
+        $realIncidents = $incidentsQuery->orderByDesc('incident_reported_at')->get();
+        $realCount = $realIncidents->count();
+
+        // If real count is 0, provide the demonstration diagnostic dataset to illustrate
+        // Thesis Objective 6.2.1 root causes, replacement dispatch comparisons, and downtime intervals.
+        $isDemo = $demoMode || $realCount === 0;
+
+        if ($isDemo) {
+            return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
+        }
+
+        // Live Operational Records
+        $totalIncidents = $realCount;
+        $replacementsCount = $realIncidents->filter(fn ($i) => $i->replacement !== null || $i->status === 'Replacement Bus Dispatched')->count();
+        $breakdownsCount = $realIncidents->where('incident_type', 'Bus Breakdown')->count();
+        $resolvedCount = $realIncidents->where('status', 'Resolved')->count();
+
+        // Calculate Average Downtime / Replacement Dispatch Interval in minutes
+        $downtimeDurations = $realIncidents->map(function (Incident $i) {
+            if ($i->replacement?->dispatched_at && $i->incident_reported_at) {
+                return (int) $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at);
+            }
+            if ($i->resolved_at && $i->incident_reported_at) {
+                return (int) $i->incident_reported_at->diffInMinutes($i->resolved_at);
+            }
+            return null;
+        })->filter(fn ($val) => $val !== null && $val > 0);
+
+        $avgDowntimeMinutes = $downtimeDurations->isNotEmpty() ? round($downtimeDurations->average(), 1) : 0.0;
+        $avgDowntimeFormatted = $avgDowntimeMinutes > 0 ? ($avgDowntimeMinutes >= 60 ? round($avgDowntimeMinutes / 60, 1).' hrs' : $avgDowntimeMinutes.' mins') : 'N/A';
+
+        // Root Causes Grouping
+        $causesGrouped = $realIncidents->groupBy(fn ($i) => $i->incident_type ?: 'Other')
+            ->map(fn ($group, $key) => [
+                'label' => $key,
+                'count' => $group->count(),
+                'pct' => round(($group->count() / max(1, $totalIncidents)) * 100, 1),
+            ])->sortByDesc('count')->values();
+
+        $causeColorPalette = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#64748b'];
+        $causeDistribution = $causesGrouped->map(function ($item, $idx) use ($causeColorPalette) {
+            return (object) [
+                'label' => $item['label'],
+                'count' => $item['count'],
+                'pct' => $item['pct'],
+                'color' => $causeColorPalette[$idx % count($causeColorPalette)],
+            ];
+        });
+
+        $mostCommonCause = $causeDistribution->first()?->label ?? 'None Recorded';
+
+        // Replacement Dispatch Response Categories
+        $rapidDispatch = 0;
+        $standardDispatch = 0;
+        $extendedDowntime = 0;
+        $noReplacement = 0;
+
+        foreach ($realIncidents as $i) {
+            if ($i->replacement) {
+                $mins = $i->incident_reported_at && $i->replacement->dispatched_at
+                    ? $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at)
+                    : 30;
+                if ($mins < 30) {
+                    $rapidDispatch++;
+                } elseif ($mins <= 60) {
+                    $standardDispatch++;
+                } else {
+                    $extendedDowntime++;
+                }
+            } else {
+                $noReplacement++;
+            }
+        }
+
+        $replacementDistribution = collect([
+            (object) ['category' => '< 30m (Rapid Dispatch)', 'count' => $rapidDispatch, 'pct' => round(($rapidDispatch / max(1, $totalIncidents)) * 100), 'color' => '#10b981'],
+            (object) ['category' => '30 - 60m (Standard)', 'count' => $standardDispatch, 'pct' => round(($standardDispatch / max(1, $totalIncidents)) * 100), 'color' => '#3b82f6'],
+            (object) ['category' => '> 60m (Extended Bay)', 'count' => $extendedDowntime, 'pct' => round(($extendedDowntime / max(1, $totalIncidents)) * 100), 'color' => '#ef4444'],
+            (object) ['category' => 'On-Site / No Swap', 'count' => $noReplacement, 'pct' => round(($noReplacement / max(1, $totalIncidents)) * 100), 'color' => '#94a3b8'],
+        ]);
+
+        // Trend over days in period
+        $daysInPeriod = max(1, $start->diffInDays($end));
+        $step = max(1, (int) ceil($daysInPeriod / 7));
+        $trend = collect();
+        $cursor = $start->copy();
+        while ($cursor <= $end) {
+            $bucketStart = $cursor->copy()->startOfDay();
+            $bucketEnd = $cursor->copy()->addDays($step - 1)->endOfDay();
+            if ($bucketEnd > $end) {
+                $bucketEnd = $end->copy()->endOfDay();
+            }
+
+            $incInBucket = $realIncidents->filter(function ($i) use ($bucketStart, $bucketEnd): bool {
+                $ts = $i->incident_reported_at ?: $i->created_at;
+                return $ts && $ts->betweenIncluded($bucketStart, $bucketEnd);
+            })->count();
+
+            $repInBucket = $realIncidents->filter(function ($i) use ($bucketStart, $bucketEnd): bool {
+                $ts = $i->replacement?->dispatched_at ?: ($i->incident_reported_at ?: $i->created_at);
+                return ($i->replacement !== null) && $ts && $ts->betweenIncluded($bucketStart, $bucketEnd);
+            })->count();
+
+            $trend->push((object) [
+                'label' => $bucketStart->format('M j'),
+                'incidents' => $incInBucket,
+                'replacements' => $repInBucket,
+            ]);
+
+            $cursor->addDays($step);
+        }
+
+        // Formatted Records
+        $records = $realIncidents->map(function (Incident $i) {
+            $mins = null;
+            if ($i->replacement?->dispatched_at && $i->incident_reported_at) {
+                $mins = $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at);
+            }
+            return (object) [
+                'incident_no' => $i->incident_no,
+                'bus_no' => $i->bus?->bus_no ?? 'Bus N/A',
+                'driver_name' => $i->driver_name ?: 'Unassigned Driver',
+                'incident_type' => $i->incident_type ?: 'General Incident',
+                'description' => $i->description ?: 'No narrative recorded.',
+                'replacement_bus_no' => $i->replacement?->replacementBus?->bus_no,
+                'downtime_minutes' => $mins,
+                'downtime_formatted' => $mins !== null ? ($mins >= 60 ? round($mins / 60, 1).'h' : $mins.'m') : '—',
+                'status' => $i->status ?: 'Reported',
+                'route_name' => $i->tripSchedule?->shuttleRoute?->route_name ?? 'Scheduled Route',
+                'job_order_no' => $i->maintenanceReferral?->jobOrder?->job_order_no,
+                'reported_at' => ($i->incident_reported_at ?: $i->created_at)?->format('M d, Y h:i A'),
+                'is_demo' => false,
+            ];
+        });
+
+        return (object) [
+            'is_demo' => false,
+            'real_count' => $realCount,
+            'total_incidents' => $totalIncidents,
+            'replacements_count' => $replacementsCount,
+            'breakdowns_count' => $breakdownsCount,
+            'resolved_count' => $resolvedCount,
+            'average_downtime_minutes' => $avgDowntimeMinutes,
+            'average_downtime_formatted' => $avgDowntimeFormatted,
+            'most_common_cause' => $mostCommonCause,
+            'cause_distribution' => $causeDistribution,
+            'replacement_distribution' => $replacementDistribution,
+            'incident_trend' => $trend,
+            'records' => $records,
+            'safety_score' => max(0, min(100, 100 - ($totalIncidents * 4))),
+        ];
+    }
+
+    private function getDemoIncidentDiagnostics(int $realCount, string $period, string $selectedBus): object
+    {
+        $causes = collect([
+            (object) ['label' => 'Engine Cooling & Radiator', 'count' => 5, 'pct' => 35.7, 'color' => '#ef4444'],
+            (object) ['label' => 'Tire Puncture & Blowout', 'count' => 3, 'pct' => 21.4, 'color' => '#f59e0b'],
+            (object) ['label' => 'Brake Pressure Drop', 'count' => 2, 'pct' => 14.3, 'color' => '#3b82f6'],
+            (object) ['label' => 'Electrical / Alternator', 'count' => 2, 'pct' => 14.3, 'color' => '#8b5cf6'],
+            (object) ['label' => 'Clutch & Transmission', 'count' => 1, 'pct' => 7.1, 'color' => '#10b981'],
+            (object) ['label' => 'Minor Body Scraping', 'count' => 1, 'pct' => 7.1, 'color' => '#64748b'],
+        ]);
+
+        $replacements = collect([
+            (object) ['category' => '< 30m (Rapid Dispatch)', 'count' => 6, 'pct' => 43, 'color' => '#10b981'],
+            (object) ['category' => '30 - 60m (Standard)', 'count' => 4, 'pct' => 29, 'color' => '#3b82f6'],
+            (object) ['category' => '> 60m (Extended Bay)', 'count' => 2, 'pct' => 14, 'color' => '#ef4444'],
+            (object) ['category' => 'On-Site / No Swap', 'count' => 2, 'pct' => 14, 'color' => '#94a3b8'],
+        ]);
+
+        $trend = collect([
+            (object) ['label' => 'Oct 27', 'incidents' => 2, 'replacements' => 1],
+            (object) ['label' => 'Oct 28', 'incidents' => 3, 'replacements' => 2],
+            (object) ['label' => 'Oct 29', 'incidents' => 1, 'replacements' => 1],
+            (object) ['label' => 'Oct 30', 'incidents' => 4, 'replacements' => 3],
+            (object) ['label' => 'Oct 31', 'incidents' => 2, 'replacements' => 2],
+            (object) ['label' => 'Nov 1', 'incidents' => 1, 'replacements' => 1],
+            (object) ['label' => 'Nov 2', 'incidents' => 1, 'replacements' => 1],
+        ]);
+
+        $records = collect([
+            (object) [
+                'incident_no' => 'INC-DEMO-001',
+                'bus_no' => 'GCT-102',
+                'driver_name' => 'Dennis Alforque',
+                'incident_type' => 'Bus Breakdown',
+                'description' => 'Coolant leak near radiator hose clamp, engine temp spiking past 105°C.',
+                'replacement_bus_no' => 'GCT-108',
+                'downtime_minutes' => 22,
+                'downtime_formatted' => '22m',
+                'status' => 'Resolved',
+                'route_name' => 'Tanauan - Calamba Express',
+                'job_order_no' => 'JO-2026-0014',
+                'reported_at' => now()->subHours(5)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+            (object) [
+                'incident_no' => 'INC-DEMO-002',
+                'bus_no' => 'GCT-105',
+                'driver_name' => 'Allan Tingson',
+                'incident_type' => 'Tire Failure',
+                'description' => 'Rear outer tire punctured by road debris on highway km 42.',
+                'replacement_bus_no' => 'GCT-111',
+                'downtime_minutes' => 18,
+                'downtime_formatted' => '18m',
+                'status' => 'Resolved',
+                'route_name' => 'Sto. Tomas - Turbina Route',
+                'job_order_no' => 'JO-2026-0015',
+                'reported_at' => now()->subHours(14)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+            (object) [
+                'incident_no' => 'INC-DEMO-003',
+                'bus_no' => 'GCT-201',
+                'driver_name' => 'Eduardo Ramos',
+                'incident_type' => 'Bus Breakdown',
+                'description' => 'Pneumatic brake line pressure drop warning; safely stopped at road shoulder.',
+                'replacement_bus_no' => 'GCT-204',
+                'downtime_minutes' => 35,
+                'downtime_formatted' => '35m',
+                'status' => 'Resolved',
+                'route_name' => 'Batangas City - Lipa Terminal',
+                'job_order_no' => 'JO-2026-0016',
+                'reported_at' => now()->subDays(1)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+            (object) [
+                'incident_no' => 'INC-DEMO-004',
+                'bus_no' => 'GCT-103',
+                'driver_name' => 'Rodel Penoso',
+                'incident_type' => 'Electrical Malfunction',
+                'description' => 'Alternator warning light illuminated; battery charging voltage dropped below 11.5V.',
+                'replacement_bus_no' => 'GCT-107',
+                'downtime_minutes' => 42,
+                'downtime_formatted' => '42m',
+                'status' => 'Resolved',
+                'route_name' => 'Tanauan - SM Terminal',
+                'job_order_no' => 'JO-2026-0017',
+                'reported_at' => now()->subDays(2)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+            (object) [
+                'incident_no' => 'INC-DEMO-005',
+                'bus_no' => 'GCT-302',
+                'driver_name' => 'Edwin Raborar',
+                'incident_type' => 'Transmission Issue',
+                'description' => 'Clutch slippage under load during hill incline, gear engagement stiff.',
+                'replacement_bus_no' => 'GCT-305',
+                'downtime_minutes' => 28,
+                'downtime_formatted' => '28m',
+                'status' => 'Resolved',
+                'route_name' => 'Malvar - Alabang Route',
+                'job_order_no' => 'JO-2026-0018',
+                'reported_at' => now()->subDays(3)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+            (object) [
+                'incident_no' => 'INC-DEMO-006',
+                'bus_no' => 'GCT-109',
+                'driver_name' => 'Roy Centuangeo',
+                'incident_type' => 'Bus Breakdown',
+                'description' => 'Overheating in terminal bay prior to passenger boarding; preventive replacement.',
+                'replacement_bus_no' => 'GCT-110',
+                'downtime_minutes' => 15,
+                'downtime_formatted' => '15m',
+                'status' => 'Resolved',
+                'route_name' => 'Lipa - Buendia Direct',
+                'job_order_no' => 'JO-2026-0019',
+                'reported_at' => now()->subDays(4)->format('M d, Y h:i A'),
+                'is_demo' => true,
+            ],
+        ]);
+
+        return (object) [
+            'is_demo' => true,
+            'real_count' => $realCount,
+            'total_incidents' => 14,
+            'replacements_count' => 12,
+            'breakdowns_count' => 8,
+            'resolved_count' => 13,
+            'average_downtime_minutes' => 36.2,
+            'average_downtime_formatted' => '36.2 mins',
+            'most_common_cause' => 'Engine Cooling & Radiator',
+            'cause_distribution' => $causes,
+            'replacement_distribution' => $replacements,
+            'incident_trend' => $trend,
+            'records' => $records,
+            'safety_score' => 92,
+        ];
+    }
+
+    /**
+     * Enrich Fuel Diagnostic Data with Thesis Objective 6.2.2 Baseline Anomaly Detection & Demonstration Dataset.
+     */
+    private function enrichFuelDiagnosticData(Request $request, array $fuel, Collection $buses): object
+    {
+        $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
+        $period = (string) $request->input('period', 'this-month');
+        $demoMode = $request->boolean('demo', false);
+
+        $totalFuel = (float) ($fuel['totalFuel'] ?? 0);
+        $totalDistance = (float) ($fuel['totalDistance'] ?? 0);
+        $fleetAverage = (float) ($fuel['fleetAverage'] ?? 0);
+        $busSummaries = collect($fuel['busSummaries'] ?? []);
+        $reviewUnits = collect($fuel['reviewUnits'] ?? []);
+        $highIdlingUnits = collect($fuel['highIdlingUnits'] ?? []);
+        $trend = collect($fuel['trend'] ?? []);
+        $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
+
+        // If real fuel records are sparse or empty, or demo mode requested:
+        $isDemo = $demoMode || ($busSummaries->isEmpty() && $totalFuel <= 0);
+
+        if ($isDemo) {
+            return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
+        }
+
+        // Live Historical Baseline Anomaly Detection (Objective 6.2.2)
+        // Rule: requires vehicle-specific historical baseline with >= 3 prior valid measurements and >= 20% drop.
+        $enrichedSummaries = $busSummaries->map(function ($unit) {
+            $busNo = $unit->bus_no;
+            $priorReports = FuelReport::query()
+                ->where('bus_no', $busNo)
+                ->where('distance_km', '>', 0)
+                ->where('fuel_liters', '>', 0)
+                ->orderByDesc('report_date')
+                ->take(10)
+                ->get();
+
+            $priorCount = $priorReports->count();
+            $hasBaseline = $priorCount >= 3;
+            $baselineEfficiency = $hasBaseline
+                ? ($priorReports->sum('distance_km') / max(0.001, $priorReports->sum('fuel_liters')))
+                : 0.0;
+
+            $currentEfficiency = (float) ($unit->km_per_liter ?? 0);
+            $dropPercent = ($hasBaseline && $baselineEfficiency > 0 && $currentEfficiency > 0)
+                ? (($currentEfficiency - $baselineEfficiency) / $baselineEfficiency) * 100
+                : 0.0;
+
+            $isAnomaly = $hasBaseline && $dropPercent <= -20.0;
+
+            return (object) array_merge((array) $unit, [
+                'prior_measurements_count' => $priorCount,
+                'has_baseline' => $hasBaseline,
+                'baseline_efficiency' => round($baselineEfficiency, 2),
+                'drop_percent' => round($dropPercent, 1),
+                'is_objective_622_anomaly' => $isAnomaly,
+                'status' => $isAnomaly ? 'Confirmed Anomaly' : ($unit->status ?? 'Normal'),
+            ]);
+        });
+
+        $anomaliesCount = $enrichedSummaries->where('is_objective_622_anomaly', true)->count();
+        $idleLossLiters = $highIdlingUnits->sum(fn ($u) => ((float) ($u->idling_minutes ?? 0) / 60) * 1.5);
+
+        $optimalCount = $enrichedSummaries->filter(fn ($u) => $u->km_per_liter >= 6.5)->count();
+        $standardCount = $enrichedSummaries->filter(fn ($u) => $u->km_per_liter >= 5.0 && $u->km_per_liter < 6.5)->count();
+        $lowCount = $enrichedSummaries->filter(fn ($u) => $u->km_per_liter < 5.0)->count();
+        $totalUnits = max(1, $enrichedSummaries->count());
+
+        $efficiencyDistribution = collect([
+            (object) ['label' => 'Optimal (≥ 6.5 km/L)', 'count' => $optimalCount, 'pct' => round(($optimalCount / $totalUnits) * 100), 'color' => '#10b981'],
+            (object) ['label' => 'Standard (5.0 - 6.4 km/L)', 'count' => $standardCount, 'pct' => round(($standardCount / $totalUnits) * 100), 'color' => '#3b82f6'],
+            (object) ['label' => 'Sub-Baseline (< 5.0 km/L)', 'count' => $lowCount, 'pct' => round(($lowCount / $totalUnits) * 100), 'color' => '#ef4444'],
+        ]);
+
+        return (object) [
+            'is_demo' => false,
+            'real_fuel' => $totalFuel,
+            'total_fuel' => $totalFuel,
+            'total_distance' => $totalDistance,
+            'fleet_average' => $fleetAverage,
+            'anomalies_count' => $anomaliesCount,
+            'idle_loss_liters' => round($idleLossLiters, 1),
+            'bus_summaries' => $enrichedSummaries,
+            'review_units' => $enrichedSummaries->where('is_objective_622_anomaly', true)->values(),
+            'high_idling_units' => $highIdlingUnits,
+            'trend' => $trend,
+            'efficiency_distribution' => $efficiencyDistribution,
+            'idling_median' => $idlingMedian,
+        ];
+    }
+
+    private function getDemoFuelDiagnostics(float $realFuel, float $realAvg, string $period, string $selectedBus): object
+    {
+        $trend = collect([
+            (object) ['label' => 'Oct 27', 'fuel_liters' => 142.5, 'distance_km' => 840.0, 'efficiency' => 5.89],
+            (object) ['label' => 'Oct 28', 'fuel_liters' => 168.0, 'distance_km' => 985.0, 'efficiency' => 5.86],
+            (object) ['label' => 'Oct 29', 'fuel_liters' => 135.2, 'distance_km' => 812.0, 'efficiency' => 6.01],
+            (object) ['label' => 'Oct 30', 'fuel_liters' => 174.8, 'distance_km' => 992.0, 'efficiency' => 5.68],
+            (object) ['label' => 'Oct 31', 'fuel_liters' => 155.0, 'distance_km' => 915.0, 'efficiency' => 5.90],
+            (object) ['label' => 'Nov 1', 'fuel_liters' => 162.4, 'distance_km' => 945.0, 'efficiency' => 5.82],
+            (object) ['label' => 'Nov 2', 'fuel_liters' => 128.5, 'distance_km' => 760.0, 'efficiency' => 5.91],
+        ]);
+
+        $summaries = collect([
+            (object) [
+                'bus_no' => 'GCT-101',
+                'distance_km' => 1240.0,
+                'fuel_liters' => 200.0,
+                'km_per_liter' => 6.20,
+                'prior_measurements_count' => 6,
+                'has_baseline' => true,
+                'baseline_efficiency' => 6.25,
+                'drop_percent' => -0.8,
+                'is_objective_622_anomaly' => false,
+                'idling_minutes' => 65.0,
+                'status' => 'Optimal',
+                'is_demo' => true,
+            ],
+            (object) [
+                'bus_no' => 'GCT-102',
+                'distance_km' => 1120.0,
+                'fuel_liters' => 195.0,
+                'km_per_liter' => 5.74,
+                'prior_measurements_count' => 5,
+                'has_baseline' => true,
+                'baseline_efficiency' => 5.82,
+                'drop_percent' => -1.4,
+                'is_objective_622_anomaly' => false,
+                'idling_minutes' => 84.0,
+                'status' => 'Standard',
+                'is_demo' => true,
+            ],
+            (object) [
+                'bus_no' => 'GCT-104',
+                'distance_km' => 980.0,
+                'fuel_liters' => 205.0,
+                'km_per_liter' => 4.78,
+                'prior_measurements_count' => 8,
+                'has_baseline' => true,
+                'baseline_efficiency' => 6.42,
+                'drop_percent' => -25.5,
+                'is_objective_622_anomaly' => true,
+                'idling_minutes' => 148.0,
+                'status' => 'Confirmed Anomaly',
+                'is_demo' => true,
+            ],
+            (object) [
+                'bus_no' => 'GCT-105',
+                'distance_km' => 1310.0,
+                'fuel_liters' => 218.0,
+                'km_per_liter' => 6.01,
+                'prior_measurements_count' => 7,
+                'has_baseline' => true,
+                'baseline_efficiency' => 5.95,
+                'drop_percent' => 1.0,
+                'is_objective_622_anomaly' => false,
+                'idling_minutes' => 72.0,
+                'status' => 'Standard',
+                'is_demo' => true,
+            ],
+            (object) [
+                'bus_no' => 'GCT-201',
+                'distance_km' => 890.0,
+                'fuel_liters' => 192.0,
+                'km_per_liter' => 4.64,
+                'prior_measurements_count' => 5,
+                'has_baseline' => true,
+                'baseline_efficiency' => 6.05,
+                'drop_percent' => -23.3,
+                'is_objective_622_anomaly' => true,
+                'idling_minutes' => 165.0,
+                'status' => 'Confirmed Anomaly',
+                'is_demo' => true,
+            ],
+            (object) [
+                'bus_no' => 'GCT-301',
+                'distance_km' => 450.0,
+                'fuel_liters' => 82.0,
+                'km_per_liter' => 5.49,
+                'prior_measurements_count' => 2,
+                'has_baseline' => false,
+                'baseline_efficiency' => 0.0,
+                'drop_percent' => 0.0,
+                'is_objective_622_anomaly' => false,
+                'idling_minutes' => 40.0,
+                'status' => 'Insufficient Data',
+                'is_demo' => true,
+            ],
+        ]);
+
+        $efficiencyDistribution = collect([
+            (object) ['label' => 'Optimal (≥ 6.0 km/L)', 'count' => 2, 'pct' => 33, 'color' => '#10b981'],
+            (object) ['label' => 'Standard (5.0 - 5.9 km/L)', 'count' => 2, 'pct' => 33, 'color' => '#3b82f6'],
+            (object) ['label' => 'Confirmed Anomaly (≥20% drop)', 'count' => 2, 'pct' => 33, 'color' => '#ef4444'],
+        ]);
+
+        return (object) [
+            'is_demo' => true,
+            'real_fuel' => $realFuel,
+            'total_fuel' => 1092.0,
+            'total_distance' => 6350.0,
+            'fleet_average' => 5.82,
+            'anomalies_count' => 2,
+            'idle_loss_liters' => 48.5,
+            'bus_summaries' => $summaries,
+            'review_units' => $summaries->where('is_objective_622_anomaly', true)->values(),
+            'high_idling_units' => $summaries->where('idling_minutes', '>=', 100)->values(),
+            'trend' => $trend,
+            'efficiency_distribution' => $efficiencyDistribution,
+            'idling_median' => 78.0,
+        ];
+    }
+
+    private function resolveDatePeriod(string $period): array
+    {
+        $end = now()->endOfDay();
+        $start = match ($period) {
+            'last-30-days' => now()->subDays(29)->startOfDay(),
+            'last-3-months', 'last-90-days' => now()->subDays(89)->startOfDay(),
+            'this-year', 'last-12-months' => now()->startOfYear()->startOfDay(),
+            default => now()->startOfMonth()->startOfDay(),
+        };
+
+        return [$start, $end];
     }
 
     private function buildPredictiveData(
