@@ -170,50 +170,19 @@
     {{-- ATTENTION GRID --}}
     <section class="predictive-inventory-attention-grid">
 
-        {{-- CATEGORY ATTENTION WITH HEALTH METERS --}}
-        <x-analytics.card class="predictive-card issues-card inventory-category-card" title="Category Exposure & Risk" description="Stock health breakdown ranked by parts needing restock.">
-            <div class="issue-list category-attention-list">
-                @forelse($inventoryPredict->categories as $category)
-                    @php
-                        $catName = $category->category ?? 'General';
-                        $catTotal = max(1, (int) ($category->total ?? 0));
-                        $catAttn = (int) ($category->attention ?? 0);
-                        $catCritical = (int) ($category->critical ?? 0);
-                        $catHealthy = max(0, $catTotal - $catAttn);
-                        $catHealthyPct = (int) round(($catHealthy / $catTotal) * 100);
-                        $catIcon = $getCategoryIcon($catName);
-                        $statusTone = $catCritical > 0 ? 'high' : ($catAttn > 0 ? 'medium' : 'low');
-                        $badgeLabel = $catCritical > 0 ? 'Critical' : ($catAttn > 0 ? 'Low Stock' : 'Optimal');
-                    @endphp
-                    <div class="issue-row category-row">
-                        <span class="issue-rank category-icon-wrap category-icon--{{ $statusTone }}">
-                            <i class="fa-solid {{ $catIcon }}"></i>
-                        </span>
-                        <div class="issue-info category-info">
-                            <div class="category-info-top">
-                                <strong>{{ $catName }}</strong>
-                                <span class="category-meta">{{ $category->total }} items · {{ $catAttn }} needing attention</span>
-                            </div>
-                            <div class="category-health-track" title="{{ $catHealthyPct }}% healthy stock">
-                                <div class="category-health-fill category-health-fill--{{ $statusTone }}" style="width: {{ $catHealthyPct }}%"></div>
-                            </div>
-                        </div>
-                        <span class="risk-badge {{ $statusTone }}">
-                            {{ $badgeLabel }}
-                        </span>
-                    </div>
-                @empty
-                    <div class="issue-row">
-                        <div class="issue-info">
-                            <strong>No categories</strong>
-                            <span>No inventory items are registered yet.</span>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
+        {{-- Category evidence: stacked counts, not predicted stockout probability. --}}
+        <x-analytics.card class="predictive-card inventory-category-card" title="Stock Status by Category" description="Recorded inventory items grouped by category and current reorder status.">
+            @if(collect($inventoryPredict->categories ?? [])->isNotEmpty())
+                <div class="inventory-category-chart-wrap">
+                    <canvas id="inventoryCategoryChart" role="img" aria-label="Stacked horizontal bar chart of well-stocked items and items needing attention by category"></canvas>
+                </div>
+                <p class="ft-evidence-note">Bar lengths represent item counts, not ML forecasts or stockout probabilities.</p>
+            @else
+                <div class="analytics-compact-empty">No inventory categories are registered yet.</div>
+            @endif
         </x-analytics.card>
 
-        {{-- REORDER PRIORITY CARD --}}
+                {{-- REORDER PRIORITY CARD --}}
         <x-analytics.card class="predictive-card reorder-priority-card" title="Replenishment Review" description="Inventory items ordered by their existing stock attention indicators.">
             <div class="inventory-priority-list">
                 @forelse($priorityRows as $row)
@@ -359,6 +328,11 @@
 
 <script>
     window.predictiveChartData = {
+        categories: {
+            labels: @json(collect($inventoryPredict->categories ?? [])->pluck('category')->values()),
+            attention: @json(collect($inventoryPredict->categories ?? [])->pluck('attention')->map(fn ($v) => (int) $v)->values()),
+            healthy: @json(collect($inventoryPredict->categories ?? [])->map(fn ($v) => max(0, (int) $v->total - (int) $v->attention))->values()),
+        },
         inventory: {
             healthy: {{ $healthyCount }},
             low: {{ $lowCount }},
