@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\ActivityLog;
 use App\Models\Admin\GpsTripRecord;
+use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
-use App\Models\Warehouse\InventoryItem;
+use App\Models\Operation\Incident;
+use App\Models\Operation\TripAssignment;
+use App\Models\Operation\TripSchedule;
+use App\Models\TopbarNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -15,125 +20,288 @@ class DescriptiveAnalyticsController extends Controller
 {
     public function index(Request $request): View
     {
+        $activeSummary = $request->input('view') === 'administrative' ? 'administrative' : 'operational';
+
         $allowedPeriods = ['this-month', 'last-30-days', 'last-3-months', 'this-year'];
         $period = in_array((string) $request->input('period'), $allowedPeriods, true)
             ? (string) $request->input('period')
             : 'this-month';
+
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
-        $domain = strtolower(trim((string) $request->input('domain', 'all')));
-        $domain = in_array($domain, ['all', 'fleet-trip', 'fuel', 'bus-health', 'inventory'], true)
-            ? $domain
-            : 'all';
+        if ($selectedBus === '') {
+            $selectedBus = 'ALL';
+        }
 
         [$start, $end, $periodLabel] = $this->periodBounds($period);
-        [$comparisonStart, $comparisonEnd, $comparisonLabel] = $this->comparisonBounds($period, $start, $end);
-
-        $records = $this->tripQuery($selectedBus, $start, $end)
-            ->orderBy('beginning_at')
-            ->get();
-        $previousRecords = $this->tripQuery($selectedBus, $comparisonStart, $comparisonEnd)
-            ->orderBy('beginning_at')
-            ->get();
-
-        $currentMetrics = $this->tripMetrics($records);
-        $previousMetrics = $this->tripMetrics($previousRecords);
-
-        $tripCount = $currentMetrics['tripCount'];
-        $totalDistance = $currentMetrics['totalDistance'];
-        $totalIdleMinutes = $currentMetrics['totalIdleMinutes'];
-        $averageTripDuration = $currentMetrics['averageTripDuration'];
-        $averageSpeed = $currentMetrics['averageSpeed'];
-
-        $comparison = [
-            'label' => $comparisonLabel,
-            'trips' => $this->percentChange($tripCount, $previousMetrics['tripCount']),
-            'distance' => $this->percentChange($totalDistance, $previousMetrics['totalDistance']),
-            'idle' => $this->percentChange($totalIdleMinutes, $previousMetrics['totalIdleMinutes']),
-            'duration' => $this->percentChange($averageTripDuration, $previousMetrics['averageTripDuration']),
-            'speed' => $this->percentChange($averageSpeed, $previousMetrics['averageSpeed']),
-            'previousTrips' => $previousMetrics['tripCount'],
-            'previousDistance' => $previousMetrics['totalDistance'],
-            'previousIdleMinutes' => $previousMetrics['totalIdleMinutes'],
-        ];
+        $dateRangeDisplay = $start->format('M j, Y') . ' — ' . $end->format('M j, Y');
 
         $buses = Bus::query()->orderBy('bus_no')->get();
         $totalBuses = $buses->count();
         $activeBuses = $buses->where('status', 'Active')->count();
         $underMaintenance = $buses->where('status', 'Under Maintenance')->count();
         $inactiveBuses = $buses->where('status', 'Inactive')->count();
-        $fleetAvailability = $totalBuses > 0 ? ($activeBuses / $totalBuses) * 100 : 0.0;
+        $fleetAvailability = $totalBuses > 0 ? round(($activeBuses / $totalBuses) * 100, 1) : 0.0;
 
-        $trend = $this->buildTrend($records, $start, $end);
-        $routes = $this->buildRoutes($records);
-        $busActivity = $this->buildBusActivity($records);
+        $dateBuckets = $this->createDateBuckets($start, $end, $period);
 
-        $inventoryTotal = InventoryItem::query()->count();
-        $inventoryLow = InventoryItem::query()
-            ->whereColumn('on_hand', '<=', 'reorder_level')
-            ->where('on_hand', '>', 0)
-            ->count();
-        $inventoryCritical = InventoryItem::query()->where('on_hand', '<=', 0)->count();
-        $inventoryHealthy = max(0, $inventoryTotal - $inventoryLow - $inventoryCritical);
+        if ($activeSummary === 'operational') {
+            $data = $this->getOperationalData($selectedBus, $start, $end, $dateBuckets);
+        } else {
+            $data = $this->getAdministrativeData($start, $end, $dateBuckets);
+        }
 
-        $inventoryAtRiskItems = InventoryItem::query()
-            ->whereColumn('on_hand', '<=', 'reorder_level')
-            ->orderBy('on_hand', 'asc')
-            ->orderBy('reorder_level', 'desc')
-            ->get();
+        return view('Admin.Analytics.descriptive.layout', array_merge([
+            'activeSummary' => $activeSummary,
+            'period' => $period,
+            'periodLabel' => $periodLabel,
+            'dateRangeDisplay' => $dateRangeDisplay,
+            'selectedBus' => $selectedBus,
+            'buses' => $buses,
+            'totalBuses' => $totalBuses,
+            'activeBuses' => $activeBuses,
+            'underMaintenance' => $underMaintenance,
+            'inactiveBuses' => $inactiveBuses,
+            'fleetAvailability' => $fleetAvailability,
+        ], $data));
+    }
 
-        $inventoryCategoryBreakdown = InventoryItem::query()
-            ->selectRaw('category, count(*) as total, sum(case when on_hand <= reorder_level then 1 else 0 end) as at_risk, sum(case when on_hand > reorder_level then 1 else 0 end) as healthy, sum(on_hand) as total_units')
-            ->groupBy('category')
-            ->orderByDesc('total')
-            ->get()
-            ->map(function ($cat) {
-                $total = (int) $cat->total;
-                $healthy = (int) $cat->healthy;
-                $atRisk = (int) $cat->at_risk;
-                $healthPct = $total > 0 ? round(($healthy / $total) * 100, 1) : 0;
-                return (object) [
-                    'category' => $cat->category ?: 'General Supplies',
-                    'total' => $total,
-                    'healthy' => $healthy,
-                    'at_risk' => $atRisk,
-                    'total_units' => (int) $cat->total_units,
-                    'health_pct' => $healthPct,
-                ];
+    /**
+     * Compute Thesis Objective 6.1.1 Operational Summary Data.
+     */
+    private function getOperationalData(string $selectedBus, Carbon $start, Carbon $end, array $dateBuckets): array
+    {
+        // 1. Scheduled Trips
+        $tripsQuery = TripSchedule::query()
+            ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()]);
+
+        if ($selectedBus !== 'ALL') {
+            $tripsQuery->whereHas('assignments.bus', function ($q) use ($selectedBus): void {
+                $q->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus]);
+            });
+        }
+
+        $allTrips = $tripsQuery->with(['assignments.bus', 'shuttleRoute'])->get();
+        $totalScheduledTrips = $allTrips->count();
+        $completedTrips = $allTrips->where('status', 'Completed')->count();
+        $scheduledOnlyTrips = $allTrips->where('status', 'Scheduled')->count();
+        $pendingDdrTrips = $allTrips->where('status', 'Pending DDR')->count();
+        $missedTrips = $allTrips->where('status', 'Missed')->count();
+        $cancelledTrips = $allTrips->where('status', 'Cancelled')->count();
+        $tripCompletionRate = $totalScheduledTrips > 0 ? round(($completedTrips / $totalScheduledTrips) * 100, 1) : 0.0;
+
+        // 2. Assignments
+        $totalRequiredBuses = (int) $allTrips->sum('required_buses');
+        $totalAssignedBuses = (int) $allTrips->sum(fn ($t) => $t->assignments->count());
+        $assignmentFulfillmentRate = $totalRequiredBuses > 0 ? round(($totalAssignedBuses / $totalRequiredBuses) * 100, 1) : 0.0;
+
+        // 3. GPS Telemetry Trips
+        $gpsRecords = $this->tripQuery($selectedBus, $start, $end)->orderBy('beginning_at')->get();
+        $gpsMetrics = $this->tripMetrics($gpsRecords);
+
+        // 4. Incidents
+        $incidentsQuery = Incident::query()
+            ->where(function ($q) use ($start, $end): void {
+                $q->whereBetween('incident_reported_at', [$start, $end])
+                  ->orWhere(function ($q2) use ($start, $end): void {
+                      $q2->whereNull('incident_reported_at')->whereBetween('created_at', [$start, $end]);
+                  });
             });
 
-        $fuel = app(FuelAnalyticsController::class)->data($request);
-        $notificationData = app(NotificationCenterController::class)->data($request);
-        $recentAlerts = collect($notificationData['notifications']->items())->take(4)->values();
+        if ($selectedBus !== 'ALL') {
+            $incidentsQuery->whereHas('bus', function ($q) use ($selectedBus): void {
+                $q->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus]);
+            });
+        }
 
-        return view('Admin.Analytics.descriptive.layout', compact(
-            'period',
-            'periodLabel',
-            'selectedBus',
-            'domain',
-            'buses',
-            'tripCount',
-            'totalDistance',
-            'totalIdleMinutes',
-            'averageTripDuration',
-            'averageSpeed',
-            'comparison',
-            'totalBuses',
-            'activeBuses',
-            'underMaintenance',
-            'inactiveBuses',
-            'fleetAvailability',
-            'trend',
-            'routes',
-            'busActivity',
-            'inventoryTotal',
-            'inventoryHealthy',
-            'inventoryLow',
-            'inventoryCritical',
-            'inventoryAtRiskItems',
-            'inventoryCategoryBreakdown',
-            'fuel',
-            'recentAlerts'
-        ));
+        $allIncidents = $incidentsQuery->with(['bus', 'replacement.replacementBus'])->get();
+        $totalIncidents = $allIncidents->count();
+        $breakdownsCount = $allIncidents->where('incident_type', 'Bus Breakdown')->count();
+        $accidentsCount = $allIncidents->filter(fn ($i) => str_contains((string) $i->incident_type, 'Accident'))->count();
+        $otherIncidentsCount = max(0, $totalIncidents - $breakdownsCount - $accidentsCount);
+        $resolvedIncidents = $allIncidents->where('status', 'Resolved')->count();
+        $replacementsDispatched = $allIncidents->filter(fn ($i) => $i->replacement !== null || $i->status === 'Replacement Bus Dispatched')->count();
+
+        // 5. Trend Over Time (Scheduled vs GPS vs Incidents)
+        $operationalTrend = collect($dateBuckets)->map(function (array $bucket) use ($allTrips, $gpsRecords, $allIncidents): array {
+            $bStart = $bucket['start'];
+            $bEnd = $bucket['end'];
+
+            $scheduledInBucket = $allTrips->filter(function (TripSchedule $t) use ($bStart, $bEnd): bool {
+                $tDate = Carbon::parse($t->trip_date)->startOfDay();
+                return $tDate->betweenIncluded($bStart->copy()->startOfDay(), $bEnd->copy()->endOfDay());
+            })->count();
+
+            $completedInBucket = $allTrips->filter(function (TripSchedule $t) use ($bStart, $bEnd): bool {
+                if ($t->status !== 'Completed') {
+                    return false;
+                }
+                $tDate = Carbon::parse($t->trip_date)->startOfDay();
+                return $tDate->betweenIncluded($bStart->copy()->startOfDay(), $bEnd->copy()->endOfDay());
+            })->count();
+
+            $gpsInBucket = $gpsRecords->filter(function (GpsTripRecord $g) use ($bStart, $bEnd): bool {
+                return $g->beginning_at && $g->beginning_at->betweenIncluded($bStart, $bEnd);
+            })->count();
+
+            $incidentsInBucket = $allIncidents->filter(function (Incident $i) use ($bStart, $bEnd): bool {
+                $ts = $i->incident_reported_at ?: $i->created_at;
+                return $ts && $ts->betweenIncluded($bStart, $bEnd);
+            })->count();
+
+            return [
+                'label' => $bucket['label'],
+                'scheduled' => $scheduledInBucket,
+                'completed' => $completedInBucket,
+                'gps' => $gpsInBucket,
+                'incidents' => $incidentsInBucket,
+            ];
+        });
+
+        // 6. Distributions for Charts
+        $tripStatusDistribution = [
+            'Completed' => $completedTrips,
+            'Scheduled' => $scheduledOnlyTrips,
+            'Pending DDR' => $pendingDdrTrips,
+            'Missed' => $missedTrips,
+        ];
+        if ($cancelledTrips > 0) {
+            $tripStatusDistribution['Cancelled'] = $cancelledTrips;
+        }
+
+        $incidentTypeDistribution = $allIncidents->groupBy(fn ($i) => $i->incident_type ?: 'Unspecified')
+            ->map(fn ($group) => $group->count())
+            ->toArray();
+
+        // 7. Recent Records
+        $recentTrips = $allTrips->sortByDesc(fn ($t) => Carbon::parse($t->trip_date)->timestamp)->take(6)->values();
+        $recentIncidents = $allIncidents->sortByDesc(fn ($i) => ($i->incident_reported_at ?: $i->created_at)->timestamp)->take(6)->values();
+
+        return [
+            'totalScheduledTrips' => $totalScheduledTrips,
+            'completedTrips' => $completedTrips,
+            'scheduledOnlyTrips' => $scheduledOnlyTrips,
+            'pendingDdrTrips' => $pendingDdrTrips,
+            'missedTrips' => $missedTrips,
+            'cancelledTrips' => $cancelledTrips,
+            'tripCompletionRate' => $tripCompletionRate,
+            'totalRequiredBuses' => $totalRequiredBuses,
+            'totalAssignedBuses' => $totalAssignedBuses,
+            'assignmentFulfillmentRate' => $assignmentFulfillmentRate,
+            'gpsTripCount' => $gpsMetrics['tripCount'],
+            'gpsTotalDistance' => $gpsMetrics['totalDistance'],
+            'gpsTotalIdleMinutes' => $gpsMetrics['totalIdleMinutes'],
+            'gpsAverageSpeed' => $gpsMetrics['averageSpeed'],
+            'gpsAverageDuration' => $gpsMetrics['averageTripDuration'],
+            'totalIncidents' => $totalIncidents,
+            'breakdownsCount' => $breakdownsCount,
+            'accidentsCount' => $accidentsCount,
+            'otherIncidentsCount' => $otherIncidentsCount,
+            'resolvedIncidents' => $resolvedIncidents,
+            'replacementsDispatched' => $replacementsDispatched,
+            'operationalTrend' => $operationalTrend,
+            'tripStatusDistribution' => $tripStatusDistribution,
+            'incidentTypeDistribution' => $incidentTypeDistribution,
+            'recentTrips' => $recentTrips,
+            'recentIncidents' => $recentIncidents,
+        ];
+    }
+
+    /**
+     * Compute Thesis Objective 6.1.2 Administrative Summary Data.
+     */
+    private function getAdministrativeData(Carbon $start, Carbon $end, array $dateBuckets): array
+    {
+        // 1. Users
+        $allUsers = User::query()->get();
+        $totalUsers = $allUsers->count();
+        $activeUsers = $allUsers->where('status', 'Active')->count();
+        $inactiveUsers = $allUsers->where('status', '!=', 'Active')->count();
+
+        $usersByDepartment = $allUsers->groupBy(fn ($u) => trim((string) $u->department) ?: 'Unassigned')
+            ->map(fn ($group) => $group->count())
+            ->toArray();
+
+        $usersByRole = $allUsers->groupBy(fn ($u) => ucfirst(trim((string) $u->role)) ?: 'Staff')
+            ->map(fn ($group) => $group->count())
+            ->toArray();
+
+        $userStatusDistribution = [
+            'Active' => $activeUsers,
+            'Pending / Inactive' => $inactiveUsers,
+        ];
+
+        // 2. User Activities (Audit Logs)
+        $activitiesQuery = ActivityLog::query()
+            ->whereBetween('created_at', [$start, $end]);
+
+        $totalActivities = $activitiesQuery->count();
+        $allActivities = $activitiesQuery->orderBy('created_at', 'desc')->get();
+
+        $activityByModule = $allActivities->groupBy(fn ($a) => trim((string) $a->module) ?: 'General')
+            ->map(fn ($group) => $group->count())
+            ->sortByDesc(fn ($cnt) => $cnt)
+            ->toArray();
+
+        $activityByEventType = $allActivities->groupBy(fn ($a) => ucfirst(strtolower(trim((string) $a->event_type))) ?: 'Action')
+            ->map(fn ($group) => $group->count())
+            ->sortByDesc(fn ($cnt) => $cnt)
+            ->take(6)
+            ->toArray();
+
+        // 3. System Notifications
+        $notificationsQuery = TopbarNotification::query()
+            ->whereBetween('created_at', [$start, $end]);
+
+        $totalNotifications = $notificationsQuery->count();
+        $allNotifications = $notificationsQuery->orderBy('created_at', 'desc')->get();
+
+        $notificationsByModule = $allNotifications->groupBy(fn ($n) => trim((string) $n->module) ?: 'General')
+            ->map(fn ($group) => $group->count())
+            ->sortByDesc(fn ($cnt) => $cnt)
+            ->toArray();
+
+        $notificationsByAction = $allNotifications->groupBy(fn ($n) => ucfirst(strtolower(str_replace('_', ' ', trim((string) $n->action)))))
+            ->map(fn ($group) => $group->count())
+            ->sortByDesc(fn ($cnt) => $cnt)
+            ->take(6)
+            ->toArray();
+
+        // 4. Trend Over Time (User Activities vs Notifications)
+        $adminTrend = collect($dateBuckets)->map(function (array $bucket) use ($allActivities, $allNotifications): array {
+            $bStart = $bucket['start'];
+            $bEnd = $bucket['end'];
+
+            $actInBucket = $allActivities->filter(fn (ActivityLog $a) => $a->created_at && $a->created_at->betweenIncluded($bStart, $bEnd))->count();
+            $notifInBucket = $allNotifications->filter(fn (TopbarNotification $n) => $n->created_at && $n->created_at->betweenIncluded($bStart, $bEnd))->count();
+
+            return [
+                'label' => $bucket['label'],
+                'activities' => $actInBucket,
+                'notifications' => $notifInBucket,
+            ];
+        });
+
+        // 5. Recent Records
+        $recentActivities = $allActivities->take(8)->values();
+        $recentNotifications = $allNotifications->take(8)->values();
+
+        return [
+            'totalUsers' => $totalUsers,
+            'activeUsers' => $activeUsers,
+            'inactiveUsers' => $inactiveUsers,
+            'userStatusDistribution' => $userStatusDistribution,
+            'usersByDepartment' => $usersByDepartment,
+            'usersByRole' => $usersByRole,
+            'totalActivities' => $totalActivities,
+            'activityByModule' => $activityByModule,
+            'activityByEventType' => $activityByEventType,
+            'totalNotifications' => $totalNotifications,
+            'notificationsByModule' => $notificationsByModule,
+            'notificationsByAction' => $notificationsByAction,
+            'adminTrend' => $adminTrend,
+            'recentActivities' => $recentActivities,
+            'recentNotifications' => $recentNotifications,
+        ];
     }
 
     private function tripQuery(string $selectedBus, Carbon $start, Carbon $end)
@@ -169,55 +337,6 @@ class DescriptiveAnalyticsController extends Controller
         );
     }
 
-    private function percentChange(float|int $current, float|int $previous): ?float
-    {
-        if ((float) $previous === 0.0) {
-            return (float) $current === 0.0 ? 0.0 : null;
-        }
-
-        return (((float) $current - (float) $previous) / abs((float) $previous)) * 100;
-    }
-
-    private function periodBounds(string $period): array
-    {
-        $now = now();
-
-        return match ($period) {
-            'last-30-days' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay(), 'Last 30 Days'],
-            'last-3-months' => [$now->copy()->subMonths(3)->startOfDay(), $now->copy()->endOfDay(), 'Last 3 Months'],
-            'this-year' => [$now->copy()->startOfYear(), $now->copy()->endOfDay(), 'This Year'],
-            default => [$now->copy()->startOfMonth(), $now->copy()->endOfDay(), 'This Month'],
-        };
-    }
-
-    private function comparisonBounds(string $period, Carbon $start, Carbon $end): array
-    {
-        if ($period === 'this-month') {
-            $previousStart = $start->copy()->subMonthNoOverflow()->startOfMonth();
-            $elapsedDays = max(0, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()));
-            $previousEnd = $previousStart->copy()->addDays($elapsedDays)->endOfDay();
-            if ($previousEnd->month !== $previousStart->month) {
-                $previousEnd = $previousStart->copy()->endOfMonth();
-            }
-
-            return [$previousStart, $previousEnd, 'vs last month'];
-        }
-
-        if ($period === 'this-year') {
-            return [
-                $start->copy()->subYear()->startOfYear(),
-                $end->copy()->subYear()->endOfDay(),
-                'vs last year',
-            ];
-        }
-
-        $days = max(1, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1);
-        $previousEnd = $start->copy()->subSecond();
-        $previousStart = $previousEnd->copy()->subDays($days - 1)->startOfDay();
-
-        return [$previousStart, $previousEnd, 'vs previous period'];
-    }
-
     private function durationMinutes(GpsTripRecord $record): float
     {
         $duration = (float) ($record->duration_minutes ?? 0);
@@ -235,98 +354,76 @@ class DescriptiveAnalyticsController extends Controller
             : 0.0;
     }
 
-    private function routeLabel(GpsTripRecord $record): string
+    private function periodBounds(string $period): array
     {
-        $initial = trim((string) $record->initial_location);
-        $final = trim((string) $record->final_location);
+        $now = now();
 
-        if ($initial !== '' && $final !== '') {
-            return $initial . ' - ' . $final;
-        }
-
-        return trim((string) $record->grouping) ?: 'Unspecified Route';
+        return match ($period) {
+            'last-30-days' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay(), 'Last 30 Days'],
+            'last-3-months' => [$now->copy()->subMonths(3)->startOfDay(), $now->copy()->endOfDay(), 'Last 3 Months'],
+            'this-year' => [$now->copy()->startOfYear(), $now->copy()->endOfDay(), 'This Year'],
+            default => [$now->copy()->startOfMonth(), $now->copy()->endOfDay(), 'This Month'],
+        };
     }
 
-    private function buildTrend(Collection $records, Carbon $start, Carbon $end): Collection
+    private function createDateBuckets(Carbon $start, Carbon $end, string $period): array
     {
-        $totalDays = max(1, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1);
-        $bucketCount = min(8, $totalDays);
-        $daysPerBucket = max(1, (int) ceil($totalDays / $bucketCount));
-        $trend = collect();
+        if ($period === 'this-year') {
+            $buckets = [];
+            $cursor = $start->copy()->startOfMonth();
+            while ($cursor->lte($end)) {
+                $bStart = $cursor->copy()->startOfMonth();
+                $bEnd = $cursor->copy()->endOfMonth();
+                if ($bEnd->gt($end)) {
+                    $bEnd = $end->copy();
+                }
+                $buckets[] = [
+                    'label' => $bStart->format('M'),
+                    'start' => $bStart,
+                    'end' => $bEnd,
+                ];
+                $cursor->addMonth();
+            }
+            return $buckets;
+        }
 
-        for ($index = 0; $index < $bucketCount; $index++) {
-            $bucketStart = $start->copy()->startOfDay()->addDays($index * $daysPerBucket);
-            if ($bucketStart->greaterThan($end)) {
+        $totalDays = max(1, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1);
+        if ($totalDays <= 7) {
+            $buckets = [];
+            $cursor = $start->copy()->startOfDay();
+            while ($cursor->lte($end)) {
+                $bStart = $cursor->copy()->startOfDay();
+                $bEnd = $cursor->copy()->endOfDay();
+                $buckets[] = [
+                    'label' => $bStart->format('M j'),
+                    'start' => $bStart,
+                    'end' => $bEnd,
+                ];
+                $cursor->addDay();
+            }
+            return $buckets;
+        }
+
+        $bucketCount = min(7, $totalDays);
+        $daysPerBucket = (int) ceil($totalDays / $bucketCount);
+        $buckets = [];
+
+        for ($i = 0; $i < $bucketCount; $i++) {
+            $bStart = $start->copy()->startOfDay()->addDays($i * $daysPerBucket);
+            if ($bStart->gt($end)) {
                 break;
             }
-
-            $bucketEnd = $bucketStart->copy()->addDays($daysPerBucket - 1)->endOfDay();
-            if ($bucketEnd->greaterThan($end)) {
-                $bucketEnd = $end->copy();
+            $bEnd = $bStart->copy()->addDays($daysPerBucket - 1)->endOfDay();
+            if ($bEnd->gt($end) || $i === $bucketCount - 1) {
+                $bEnd = $end->copy();
             }
-
-            $count = $records->filter(
-                fn (GpsTripRecord $record) => $record->beginning_at
-                    && $record->beginning_at->betweenIncluded($bucketStart, $bucketEnd)
-            )->count();
-            $trend->push((object) ['label' => $bucketStart->format('M j'), 'count' => $count]);
+            $buckets[] = [
+                'label' => $bStart->format('M j'),
+                'start' => $bStart,
+                'end' => $bEnd,
+            ];
         }
 
-        return $trend;
-    }
-
-    private function buildRoutes(Collection $records): Collection
-    {
-        $totalTrips = max(1, $records->count());
-        $routes = $records
-            ->groupBy(fn (GpsTripRecord $record) => $this->routeLabel($record))
-            ->map(function (Collection $rows, string $label) use ($totalTrips): object {
-                $durations = $rows
-                    ->map(fn (GpsTripRecord $record) => $this->durationMinutes($record))
-                    ->filter(fn (float $minutes) => $minutes > 0);
-
-                return (object) [
-                    'label' => $label,
-                    'trips' => $rows->count(),
-                    'average_duration' => $durations->isNotEmpty() ? (float) $durations->average() : 0.0,
-                    'share' => ($rows->count() / $totalTrips) * 100,
-                ];
-            })
-            ->sortByDesc('trips')
-            ->take(5)
-            ->values();
-
-        $maxTrips = max(1, (int) ($routes->max('trips') ?? 0));
-
-        return $routes->map(function ($route) use ($maxTrips) {
-            $route->progress = ($route->trips / $maxTrips) * 100;
-            return $route;
-        });
-    }
-
-    private function buildBusActivity(Collection $records): Collection
-    {
-        $totalTrips = max(1, $records->count());
-        $activity = $records
-            ->filter(fn (GpsTripRecord $record) => trim((string) $record->bus_no) !== '')
-            ->groupBy(fn (GpsTripRecord $record) => strtoupper(trim((string) $record->bus_no)))
-            ->map(function (Collection $rows, string $busNo) use ($totalTrips): object {
-                return (object) [
-                    'bus' => $busNo,
-                    'trips' => $rows->count(),
-                    'distance' => (float) $rows->sum('mileage_km'),
-                    'share' => ($rows->count() / $totalTrips) * 100,
-                ];
-            })
-            ->sortByDesc('trips')
-            ->take(5)
-            ->values();
-
-        $maxTrips = max(1, (int) ($activity->max('trips') ?? 0));
-
-        return $activity->map(function ($bus) use ($maxTrips) {
-            $bus->progress = ($bus->trips / $maxTrips) * 100;
-            return $bus;
-        });
+        return $buckets;
     }
 }

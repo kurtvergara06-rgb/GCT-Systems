@@ -100,6 +100,7 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/overview/fleet-trip-redesign.css',
                 'resources/css/Admin/Analytics/overview/fleet-trip-rankings.css',
                 'resources/css/Admin/Analytics/model-status-stage.css',
+                'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
                 'resources/css/Admin/Analytics/descriptive/all.css',
                 'resources/css/Admin/Analytics/descriptive/fleet-trip.css',
                 'resources/css/Admin/Analytics/descriptive/fuel.css',
@@ -124,6 +125,7 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/prescriptive/inventory.css',
                 'resources/css/Admin/Analytics/design-system.css',
 
+                'resources/js/Admin/Analytics/descriptive/descriptive-analytics.js',
                 'resources/js/Admin/Analytics/predictive/charts.js',
                 'resources/js/Admin/Analytics/predictive/fleet.js',
                 'resources/js/Admin/Analytics/predictive/fuel-model.js',
