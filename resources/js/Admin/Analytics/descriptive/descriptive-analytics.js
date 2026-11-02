@@ -409,9 +409,9 @@ function initAdministrativeCharts(data) {
     }
 
     // 3. Notifications by Department
-    const notifCanvas = document.getElementById('adminNotificationCategoryChart');
+    const notifCanvas = document.getElementById('adminNotificationsModuleChart');
     if (notifCanvas && data.notifModuleLabels && data.notifModuleLabels.length > 0) {
-        destroyChart('adminNotificationCategoryChart');
+        destroyChart('adminNotificationsModuleChart');
         const notifColorMap = {
             'Admin': '#3b82f6',
             'Operation': '#0ea5e9',
@@ -421,7 +421,7 @@ function initAdministrativeCharts(data) {
         };
         const bgColors = data.notifModuleLabels.map((lbl) => notifColorMap[lbl] || '#38bdf8');
 
-        chartInstances['adminNotificationCategoryChart'] = new Chart(notifCanvas, {
+        chartInstances['adminNotificationsModuleChart'] = new Chart(notifCanvas, {
             type: 'bar',
             data: {
                 labels: data.notifModuleLabels,
@@ -458,9 +458,9 @@ function initAdministrativeCharts(data) {
     }
 
     // 4. User Department & Status Distribution
-    const userCanvas = document.getElementById('adminUserDistributionChart');
+    const userCanvas = document.getElementById('adminUserDepartmentChart');
     if (userCanvas && data.userDeptLabels && data.userDeptLabels.length > 0) {
-        destroyChart('adminUserDistributionChart');
+        destroyChart('adminUserDepartmentChart');
         const deptColorMap = {
             'Admin': '#3b82f6',
             'Operation': '#0ea5e9',
@@ -471,7 +471,7 @@ function initAdministrativeCharts(data) {
         };
         const bgColors = data.userDeptLabels.map((lbl) => deptColorMap[lbl] || '#64748b');
 
-        chartInstances['adminUserDistributionChart'] = new Chart(userCanvas, {
+        chartInstances['adminUserDepartmentChart'] = new Chart(userCanvas, {
             type: 'doughnut',
             data: {
                 labels: data.userDeptLabels,
