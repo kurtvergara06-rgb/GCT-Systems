@@ -603,8 +603,8 @@
                     </div>
 
                     @if($fuelData->bus_summaries->isNotEmpty())
-                        <div class="diagnostic-table-wrapper">
-                            <table class="diagnostic-table">
+                        <div class="diagnostic-table-wrapper fuel-baseline-table-wrapper">
+                            <table class="diagnostic-table fuel-baseline-table">
                                 <thead>
                                     <tr>
                                         <th>Bus No</th>
