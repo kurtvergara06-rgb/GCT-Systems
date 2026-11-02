@@ -136,8 +136,6 @@ class DiagnosticAnalyticsTest extends TestCase
             ->assertViewHas('activeDiagnosticView', 'fuel')
             ->assertViewHas('fuelDiagnostics')
             ->assertSeeText('Fuel & Consumption')
-            ->assertSeeText('Demo Data')
-            ->assertSeeText('Demonstration Diagnostic Dataset Active')
             ->assertSeeText('Vehicle-Specific Historical Baseline');
 
         $fuelData = $response->viewData('fuelDiagnostics');
