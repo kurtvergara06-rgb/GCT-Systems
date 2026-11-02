@@ -61,62 +61,54 @@
         </div>
     </div>
 
-    <div class="record-inspection">
-        <div class="record-inspection-header">
-            <div>
-                <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Record Inspection</h3>
-                <p>Compare parsed GPS values against the original source.</p>
-            </div>
-        </div>
-        <input type="radio" class="inspection-tab-input" name="gps-inspection-view" id="gps-inspection-parsed" checked>
-        <input type="radio" class="inspection-tab-input" name="gps-inspection-view" id="gps-inspection-source">
-        <div class="record-inspection-tabs" role="group" aria-label="GPS record inspection view">
-            <label for="gps-inspection-parsed"><i class="fa-solid fa-list-check"></i> Parsed Fields</label>
-            <label for="gps-inspection-source"><i class="fa-solid fa-file-lines"></i> Original Source</label>
-        </div>
-        <div class="record-inspection-content">
-    <div class="panel-card extracted-preview-card">
+    <div class="panel-card gps-fleet-coverage">
         <div class="panel-card-header">
             <div>
-                <h3>
-                    <i class="fa-solid fa-file-waveform"></i>
-                    Extracted Text Preview
-                </h3>
-                <p>Original values from the selected uploaded record.</p>
+                <h3><i class="fa-solid fa-bus-simple"></i> GPS Fleet Coverage</h3>
+                <p>Vehicles identified in the selected GPS report.</p>
+            </div>
+            @if($selectedBatch?->status)
+                <x-ui.status-badge :status="$selectedBatch->status" />
+            @endif
+        </div>
+
+        <div class="gps-fleet-metrics">
+            <div class="gps-fleet-metric">
+                <span>Vehicles Detected</span>
+                <strong>{{ number_format($fleetVehicleCount) }}</strong>
+            </div>
+            <div class="gps-fleet-metric">
+                <span>Records Extracted</span>
+                <strong>{{ number_format($fleetRecordCount) }}</strong>
             </div>
         </div>
 
-        <div class="text-preview">
-            <pre>{{ $rawPreview }}</pre>
+        <div class="gps-fleet-list-heading">
+            <h4>Vehicle Breakdown</h4>
+            @if($fleetVehicleCount > 0)
+                <span>{{ number_format($fleetVehicleCount) }} vehicles</span>
+            @endif
         </div>
-
-        @if($selectedRecord)
-            <div class="confidence-row">
-                <span>
-                    <i class="fa-solid fa-circle-check"></i>
-                    Record Status:
-                    @if($selectedBatch?->status)
-                        <x-ui.status-badge :status="$selectedBatch->status" />
-                    @endif
-                </span>
-                <small>Source: {{ $selectedRecord->batchUpload?->file_name }}</small>
+        @if($fleetVehicleCount > 0)
+            <div class="gps-fleet-vehicle-list">
+                @foreach($fleetCoverage as $vehicle)
+                    <div class="gps-fleet-vehicle">
+                        <div class="gps-fleet-vehicle-info">
+                            <span><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $vehicle->vehicle }}</span>
+                            <small>{{ number_format($vehicle->record_count) }} records</small>
+                        </div>
+                        <div class="gps-fleet-vehicle-track" role="meter" aria-label="Records for {{ $vehicle->vehicle }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fleetCoverage->max('record_count')) }}" aria-valuenow="{{ $vehicle->record_count }}">
+                            <span style="width: {{ round(100 * $vehicle->record_count / max(1, $fleetCoverage->max('record_count')), 2) }}%"></span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="gps-fleet-coverage-empty">
+                <i class="fa-solid fa-bus-simple" aria-hidden="true"></i>
+                <p>{{ $selectedBatch?->status === 'Processing' ? 'Extracting vehicle records. Coverage will appear after processing.' : 'Select an uploaded file with extracted GPS records to view its fleet coverage.' }}</p>
             </div>
         @endif
-    </div>
-
-    <div class="panel-card parsed-fields-card">
-        <p class="inspection-helper">Cleaned structured values from the selected record.</p>
-
-        <div class="parsed-fields-list">
-            @foreach($fields as $label => $value)
-                <div class="parsed-field">
-                    <span>{{ $label }}</span>
-                    <strong>{{ $value ?? '—' }}</strong>
-                </div>
-            @endforeach
-        </div>
-    </div>
-        </div>
     </div>
 </section>
 
