@@ -279,20 +279,6 @@ def extract_pdf_data(
             str(saved_pdf_path),
         )
 
-        table_result = extract_pdf_rows(
-            str(saved_pdf_path),
-        )
-
-        if isinstance(table_result, tuple):
-            table_rows, detected_table_type = (
-                table_result
-            )
-        else:
-            table_rows = table_result or []
-            detected_table_type = "unknown"
-
-        table_rows = table_rows or []
-
         # Vehicle-by-vehicle Engine Hours reports use their own table profile.
         # Never infer scheduled trips from engine activity intervals.
         if "GPS Engine Hours Report" in raw_text[:1000]:
@@ -313,6 +299,21 @@ def extract_pdf_data(
                     "warnings": engine_result["warnings"],
                 },
             }
+
+
+        table_result = extract_pdf_rows(
+            str(saved_pdf_path),
+        )
+
+        if isinstance(table_result, tuple):
+            table_rows, detected_table_type = (
+                table_result
+            )
+        else:
+            table_rows = table_result or []
+            detected_table_type = "unknown"
+
+        table_rows = table_rows or []
 
 
         if not raw_text and not table_rows:
