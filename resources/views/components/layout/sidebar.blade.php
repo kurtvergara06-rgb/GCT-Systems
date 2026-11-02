@@ -302,12 +302,6 @@
                         'icon' => 'fa-lightbulb',
                         'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'prescriptive',
                     ],
-                    [
-                        'label' => 'NLP Processing',
-                        'route' => 'admin.batch-file-processing',
-                        'icon' => 'fa-file-circle-check',
-                        'active_routes' => ['admin.batch-file-processing'],
-                    ],
                 ],
             ],
             [
