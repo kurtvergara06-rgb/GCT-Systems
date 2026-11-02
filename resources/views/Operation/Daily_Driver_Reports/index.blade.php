@@ -441,7 +441,7 @@
                                 data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->shift . ' ' . $driver->employment_status) }}"
                             >
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }} &bull; <x-ui.status-badge :status="$driver->employment_status" /></small>
+                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }}</small>
                             </li>
                         @endforeach
                     </ul>
