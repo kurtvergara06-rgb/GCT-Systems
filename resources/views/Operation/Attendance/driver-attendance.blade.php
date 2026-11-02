@@ -126,7 +126,7 @@
 
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
-                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>Driver profile</small></span></div></td>
+                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>{{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></span></div></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
