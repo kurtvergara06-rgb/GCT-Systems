@@ -2166,3 +2166,82 @@ tr.gct-highlight-pulse td,
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =========================================================
+   ANALYTICS SHARED PAGE GUTTERS — Objective 6 stages
+   Keep page titles, filters, cards and charts inset from
+   the sidebar and viewport across every analytics stage.
+   ========================================================= */
+.app > main.main.analytics-stage-page {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 0;
+    flex: 1 1 0%;
+    padding: 28px 32px 42px !important;
+    overflow-x: clip;
+}
+
+.app > main.main.analytics-stage-page > .topbar {
+    min-width: 0;
+    margin: 0 0 22px !important;
+    gap: 20px;
+}
+
+.app > main.main.analytics-stage-page > .topbar .topbar-heading {
+    min-width: 0;
+}
+
+.app > main.main.analytics-stage-page > .topbar .topbar-heading p {
+    overflow-wrap: anywhere;
+}
+
+.app > main.main.analytics-stage-page :is(
+    .descriptive-controls,
+    .diagnostic-controls,
+    .predictive-ref-controls,
+    .prescriptive-controls,
+    .analytics-stage-controls,
+    .analytics-domain-toolbar,
+    .dr-toolbar,
+    .pr-controls
+) {
+    min-width: 0;
+}
+
+/* Prevent chart cards and tables from forcing the page outside its gutter. */
+.app > main.main.analytics-stage-page :is(
+    .descriptive-rebuild,
+    .diagnostic-rebuild,
+    .prescriptive-rebuild,
+    .analytics-card,
+    .diag-card,
+    .pr-card,
+    .dr-card,
+    .predictive-card,
+    canvas
+) {
+    max-width: 100%;
+}
+
+@media (max-width: 1100px) {
+    .app > main.main.analytics-stage-page {
+        padding: 24px 22px 36px !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .app > main.main.analytics-stage-page {
+        padding: 20px 16px 30px !important;
+    }
+    .app > main.main.analytics-stage-page > .topbar {
+        gap: 12px;
+        margin-bottom: 18px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .app > main.main.analytics-stage-page {
+        padding: 16px 12px 24px !important;
+    }
+}
