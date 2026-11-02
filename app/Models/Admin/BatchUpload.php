@@ -41,12 +41,14 @@ class BatchUpload extends Model
         'processed_records',
         'failed_records',
         'error_message',
+        'progress_percentage',
     ];
 
     protected $casts = [
         'total_records' => 'integer',
         'processed_records' => 'integer',
         'failed_records' => 'integer',
+        'progress_percentage' => 'integer',
     ];
 
     protected static function booted(): void
