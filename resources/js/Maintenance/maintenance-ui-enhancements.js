@@ -945,10 +945,23 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
       const skills = new Set(chosen.flatMap(option => split(option.dataset.specializations)).map(normalize));
       const matched = required.filter(skill => skills.has(normalize(skill)));
       const missing = required.filter(skill => !skills.has(normalize(skill)));
+      // The JO controller currently considers each job covered when at
+      // least one of its accepted specializations matches an assigned mechanic.
+      // Evaluate jobs accordingly; do not mislabel skill alternatives as mandatory AND.
+      const jobRequirements = selectedJobs.map(job => ({
+        job,
+        requirements: job === 'Other'
+          ? checked.map(input => input.value.trim()).filter(Boolean)
+          : (Array.isArray(catalogSkills[job]) ? catalogSkills[job] : []),
+      }));
+      const coveredJobs = jobRequirements.filter(({requirements}) =>
+        requirements.length && requirements.some(skill => skills.has(normalize(skill))));
+      const uncoveredJobs = jobRequirements.filter(({requirements}) =>
+        !requirements.length || !requirements.some(skill => skills.has(normalize(skill)))).map(({job}) => job);
       let state = 'not-evaluated';
       let title = 'Not Evaluated';
-      if (required.length) {
-        state = !chosen.length || !matched.length ? 'no-match' : missing.length ? 'partial' : 'full';
+      if (jobRequirements.length && jobRequirements.every(({requirements}) => requirements.length)) {
+        state = !coveredJobs.length ? 'no-match' : uncoveredJobs.length ? 'partial' : 'full';
         title = state === 'full' ? 'Full Match' : state === 'partial' ? 'Partial Match' : 'No Match';
       }
       panel.dataset.coverage = state;
@@ -971,12 +984,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
           badge.append(icon, document.createTextNode(skill));
           tags.append(badge);
         });
-        count.textContent = matched.length + ' / ' + required.length + ' specializations covered';
+        count.textContent = coveredJobs.length + ' / ' + jobRequirements.length + ' maintenance jobs covered';
         const advisory = provisional ? 'Unverified skill suggestions. ' : '';
         const mappingNote = unmappedJobs.length ? ' Unmapped jobs: ' + unmappedJobs.join(', ') + '.' : '';
-        note.textContent = advisory + (missing.length
-          ? 'Unmatched: ' + missing.join(', ') + '. Maintenance Head should review this assignment.'
-          : 'Selected mechanics cover the mapped specializations.') + mappingNote;
+        note.textContent = advisory + (uncoveredJobs.length
+          ? 'Jobs without a matching specialist: ' + uncoveredJobs.join(', ') + '. Maintenance Head should review this assignment.'
+          : 'Every selected job has at least one matching specialist. Skills shown are accepted alternatives per job, not proof of every competency.') + mappingNote;
       }
     };
     modal.addEventListener('change', event => {
