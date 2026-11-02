@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AnalyticsStageController;
+use App\Http\Controllers\Admin\DepartmentAnalyticsController;
 use App\Http\Controllers\Admin\DelayPredictionController;
 use App\Http\Controllers\Admin\DescriptiveAnalyticsController;
 use App\Http\Controllers\Admin\FuelPredictionController;
@@ -22,6 +23,11 @@ Route::middleware(['auth', 'system.permission:analytics,view'])
         ];
         return view('Admin.Analytics.department-access', compact('capabilities'));
     })->name('analytics.department-access');
+
+Route::middleware(['auth', 'system.permission:analytics,view'])
+    ->get('/analytics/department/{stage}', [DepartmentAnalyticsController::class, 'show'])
+    ->whereIn('stage', ['descriptive', 'diagnostic', 'predictive', 'prescriptive'])
+    ->name('analytics.department.stage');
 
 Route::middleware(['auth', 'role:admin:head'])->prefix('analytics')->group(function (): void {
     Route::get('/descriptive', [DescriptiveAnalyticsController::class, 'index'])
