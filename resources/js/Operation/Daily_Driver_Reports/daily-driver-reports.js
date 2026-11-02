@@ -336,6 +336,7 @@ function initScheduleContextPanel() {
             });
             const selectedId = root.querySelector('#ddrSelectedTripId');
             if (selectedId) selectedId.value = String(schedule.id);
+            root.dispatchEvent(new CustomEvent('ddr:primary-assignment-changed'));
             selectComboValue('driver', schedule.driver_id, schedule.driver_name);
             const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
             if (busInput) busInput.readOnly = true;
@@ -583,25 +584,40 @@ function initDdrAdditionalTrips() {
 
     let scheduleOptions = [];
     const refillAssignmentSelectors = () => {
-        Array.from(container.querySelectorAll('.ddr-extra-assignment')).forEach(select => {
-            const previous = select.value;
-            const initial = select.dataset.initialSchedule || previous;
-            select.replaceChildren(new Option('Select this entry’s assignment', ''));
+        const selectedPrimary = modal.querySelector('#ddrSelectedTripId')?.value || '';
+        const selectors = Array.from(container.querySelectorAll('.ddr-extra-assignment'));
+        const reserved = new Set(selectedPrimary ? [String(selectedPrimary)] : []);
+        // Retain valid earlier selections. Each physical trip needs its own schedule link.
+        selectors.forEach(select => {
+            const previous = select.dataset.initialSchedule || select.value;
             const bus = modal.querySelector('[data-combo][data-field="bus"] [data-combo-value]')?.value;
-            scheduleOptions.filter(row => !bus || String(row.bus_id) === String(bus)).forEach(row => {
+            const available = scheduleOptions.filter(row =>
+                (!bus || String(row.bus_id) === String(bus)) && !reserved.has(String(row.id))
+            );
+            select.replaceChildren(new Option('Select this entry’s assignment', ''));
+            available.forEach(row => {
                 const label = [row.trip_code, row.bus_no, row.departure_time + '–' + row.estimated_arrival_time].filter(Boolean).join(' · ');
                 select.add(new Option(label, String(row.id)));
             });
-            if (initial && Array.from(select.options).some(option => option.value === initial)) select.value = initial;
+            if (previous && available.some(row => String(row.id) === String(previous))) {
+                select.value = String(previous);
+            } else if (available.length === 1) {
+                // The sole remaining eligible assignment can be safely linked automatically.
+                select.value = String(available[0].id);
+            }
+            if (select.value) reserved.add(select.value);
             select.dataset.initialSchedule = '';
+            const group = select.closest('.ddr-extra-assignment-group');
+            if (group) group.hidden = available.length === 1 && !!select.value;
         });
     };
+    modal.addEventListener('ddr:primary-assignment-changed', refillAssignmentSelectors);
     modal.addEventListener('ddr:schedules-updated', event => {
         scheduleOptions = event.detail.schedules || [];
         refillAssignmentSelectors();
     });
     modal.addEventListener('change', event => {
-        if (event.target.matches('#ddrUnscheduledMode, [data-combo-value]')) refillAssignmentSelectors();
+        if (event.target.matches('#ddrUnscheduledMode, [data-combo-value], .ddr-extra-assignment')) refillAssignmentSelectors();
     });
     const renumber = () => {
         Array.from(container.children).forEach((row, index) => {
