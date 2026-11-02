@@ -193,6 +193,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Inventory category status: stacked actual item counts, not ML risk.
+    const inventoryCategoryChart = document.getElementById('inventoryCategoryChart');
+    if (inventoryCategoryChart) {
+        destroyExistingChart(inventoryCategoryChart);
+        const categories = data.categories || {};
+        new Chart(inventoryCategoryChart, {
+            type: 'bar',
+            data: {
+                labels: categories.labels || [],
+                datasets: [
+                    { label: 'Well Stocked', data: categories.healthy || [], backgroundColor: '#16a34a', borderRadius: 4 },
+                    { label: 'Needs Attention', data: categories.attention || [], backgroundColor: '#f59e0b', borderRadius: 4 },
+                ],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: legend(), tooltip: { mode: 'index', intersect: false } },
+                scales: {
+                    x: { stacked: true, beginAtZero: true, ticks: { precision: 0, color: AXIS_TEXT, font: { size: 10 } }, grid: { color: AXIS_GRID } },
+                    y: { stacked: true, grid: { display: false }, ticks: { color: AXIS_TEXT, font: { size: 11 } } },
+                },
+            },
+        });
+    }
+
     // ------------------------------------------------------------------
     // ALL / FLEET — Risk distribution (doughnut)
     // ------------------------------------------------------------------
