@@ -826,6 +826,95 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
     idPrefix: 'newJo',
   });
 
+  // Historical estimates are authoritative once three matching, approved,
+  // completed jobs with valid actual times exist. The backend independently
+  // re-evaluates this on submit; the UI lock is only a convenience.
+  const attachAutomaticDuration = (context) => {
+    if (!context?.form || !context.durationField) return;
+    const { form, durationField } = context;
+    const suggestion = durationField.querySelector('.jo-duration-suggestion');
+    const hint = durationField.querySelector('.jo-duration-compact-help span');
+    const { valueInput, unitSelect } = findDurationControls(durationField);
+    if (!valueInput || !unitSelect) return;
+
+    let requestNumber = 0;
+    let debounce;
+    const refresh = async () => {
+      const current = ++requestNumber;
+      const selected = context.jobField?.select?.getSelectedJobs?.()
+        || Array.from(context.jobField?.select?.selectedOptions || []).map(option => option.value).filter(Boolean);
+      const maintenanceType = String(context.maintenanceType?.value || 'Repair').trim();
+      const work = selected.length === 1
+        ? (selected[0] === 'Other'
+          ? String(form.querySelector('[name="custom_maintenance_job"]')?.value || '').trim()
+          : selected[0])
+        : '';
+
+      if (!work || !maintenanceType) {
+        setDurationReadonly(durationField, false, false);
+        if (suggestion) {
+          suggestion.dataset.status = 'unavailable';
+          suggestion.querySelector('span').textContent = 'Enter a staff estimate';
+        }
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          maintenance_type: maintenanceType,
+          maintenance_job: selected[0],
+          custom_maintenance_job: selected[0] === 'Other' ? work : '',
+        });
+        const response = await fetch('/job-orders/duration-suggestion?' + params.toString(), {
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        if (!response.ok) throw new Error('Duration lookup failed');
+        const result = await response.json();
+        if (current !== requestNumber) return;
+        const estimate = result.available ? result.suggestion : null;
+        if (estimate && Number(estimate.value) > 0) {
+          valueInput.value = estimate.value;
+          unitSelect.value = estimate.unit;
+          setDurationReadonly(durationField, true, true);
+          if (suggestion) {
+            suggestion.dataset.status = 'available';
+            suggestion.querySelector('span').textContent =
+              'Automatic historical estimate · ' + estimate.sample_size + ' completed jobs';
+          }
+          if (hint) hint.textContent = 'Historical median applied automatically. This estimate is locked.';
+        } else {
+          setDurationReadonly(durationField, false, false);
+          if (suggestion) {
+            suggestion.dataset.status = 'unavailable';
+            suggestion.querySelector('span').textContent = 'Insufficient Historical Data';
+          }
+          if (hint) hint.textContent = 'Enter a staff estimate. At least 3 matching approved, completed Job Orders with actual durations are required for automatic locking.';
+        }
+      } catch (_) {
+        if (current !== requestNumber) return;
+        setDurationReadonly(durationField, false, false);
+        if (suggestion) {
+          suggestion.dataset.status = 'unavailable';
+          suggestion.querySelector('span').textContent = 'Historical estimate unavailable';
+        }
+      }
+    };
+
+    form.addEventListener('change', (event) => {
+      if (event.target.closest('.jo-duration-control')) return;
+      clearTimeout(debounce);
+      debounce = setTimeout(refresh, 100);
+    });
+    form.addEventListener('input', (event) => {
+      if (!event.target.matches('[name="custom_maintenance_job"]')) return;
+      clearTimeout(debounce);
+      debounce = setTimeout(refresh, 250);
+    });
+    void refresh();
+  };
+
+  attachAutomaticDuration(newJo);
+
   const editJo = setupJoForm({
     formId: 'editJobForm',
     durationId: 'editJoEstimatedDuration',
