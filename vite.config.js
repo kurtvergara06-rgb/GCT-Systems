@@ -45,6 +45,7 @@ export default defineConfig({
                 // ADMIN — DASHBOARD
                 // ======================================================
 
+                'resources/css/Admin/administration-standards.css',
                 'resources/css/Admin/admin-dashboard.css',
                 'resources/js/Admin/admin-dashboard.js',
 
