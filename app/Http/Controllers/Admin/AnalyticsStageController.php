@@ -1244,7 +1244,9 @@ class AnalyticsStageController extends Controller
                     $runoutTone = $coverageDays <= 7 ? 'danger' : ($coverageDays <= 14 ? 'warning' : 'success');
                 }
 
-                $recommendedOrder = $gap > 0 ? (int) ($gap + max(5, (int) ceil($reorder * 0.2))) : 0;
+                // Advisory shortfall only. Do not invent a minimum five-unit buffer.
+                // Prescriptive replenishment separately considers reservations and incoming PO lines.
+                $recommendedOrder = $gap;
 
                 return [
                     0 => $row->item_code ?? '—',
@@ -1488,7 +1490,7 @@ class AnalyticsStageController extends Controller
                     ['label' => 'Well Stocked', 'value' => number_format($inventoryDiag->healthy), 'icon' => 'fa-circle-check', 'tone' => 'success', 'caption' => 'Above reorder level'],
                     ['label' => 'Low Stock', 'value' => number_format($inventoryDiag->low), 'icon' => 'fa-triangle-exclamation', 'tone' => 'warning', 'caption' => 'At or near reorder level'],
                     ['label' => 'Out of Stock', 'value' => number_format($inventoryDiag->critical), 'icon' => 'fa-ban', 'tone' => 'danger', 'caption' => 'No on-hand quantity'],
-                    ['label' => 'Stockout Risk', 'value' => number_format($inventoryDiag->total > 0 ? ($inventoryAttentionRows->count() / $inventoryDiag->total) * 100 : 0, 0) . '%', 'icon' => 'fa-chart-line', 'tone' => 'purple', 'caption' => 'Share requiring restock'],
+                    ['label' => 'Items Needing Restock',  'value' => number_format($inventoryDiag->total > 0 ? ($inventoryAttentionRows->count() / $inventoryDiag->total) * 100 : 0, 0) . '%', 'icon' => 'fa-chart-line', 'tone' => 'purple', 'caption' => 'Share requiring restock'],
                 ],
                 'rows' => $inventoryRowsList,
                 'categories' => $inventoryCategories->take(6)->values(),
@@ -1499,31 +1501,31 @@ class AnalyticsStageController extends Controller
                 'critical' => $inventoryDiag->critical,
                 'horizons' => [
                     'immediate' => (object) [
-                        'label' => 'Critical (< 48 Hours)',
+                        'label' => 'Out of Stock',
                         'badge' => 'CRITICAL',
                         'count' => $inventoryDiag->critical,
                         'tone' => 'danger',
-                        'description' => 'Zero stock; parts needed for scheduled bus PMS/trips',
+                        'description' => 'On-hand quantity is zero; no runout time is inferred',
                         'sample' => $inventoryRows->where('on_hand', '<=', 0)->pluck('item_code')->take(2)->implode(', '),
                     ],
                     'high' => (object) [
-                        'label' => 'Depleting (3–7 Days)',
+                        'label' => 'Below Half Reorder Point',
                         'badge' => 'HIGH RISK',
                         'count' => $inventoryRows->filter(fn ($r) => $r->on_hand > 0 && $r->reorder_level > 0 && ($r->on_hand / $r->reorder_level) <= 0.5)->count(),
                         'tone' => 'warning',
-                        'description' => 'Less than 50% safety buffer remaining',
+                        'description' => 'Current on-hand quantity is at or below half the reorder point',
                         'sample' => $inventoryRows->filter(fn ($r) => $r->on_hand > 0 && $r->reorder_level > 0 && ($r->on_hand / $r->reorder_level) <= 0.5)->pluck('item_code')->take(2)->implode(', '),
                     ],
                     'restock' => (object) [
-                        'label' => 'Reorder Buffer (8–14 Days)',
+                        'label' => 'At or Below Reorder Point',
                         'badge' => 'RESTOCK',
                         'count' => $inventoryRows->filter(fn ($r) => $r->on_hand > 0 && $r->reorder_level > 0 && ($r->on_hand / $r->reorder_level) > 0.5 && $r->on_hand <= $r->reorder_level)->count(),
                         'tone' => 'info',
-                        'description' => 'At or approaching reorder threshold; vendor lead time reorder needed',
+                        'description' => 'Current on-hand quantity is at or below the reorder point',
                         'sample' => $inventoryRows->filter(fn ($r) => $r->on_hand > 0 && $r->reorder_level > 0 && ($r->on_hand / $r->reorder_level) > 0.5 && $r->on_hand <= $r->reorder_level)->pluck('item_code')->take(2)->implode(', '),
                     ],
                     'safe' => (object) [
-                        'label' => 'Well Stocked (15+ Days)',
+                        'label' => 'Above Reorder Point',
                         'badge' => 'HEALTHY',
                         'count' => $inventoryDiag->healthy,
                         'tone' => 'success',
