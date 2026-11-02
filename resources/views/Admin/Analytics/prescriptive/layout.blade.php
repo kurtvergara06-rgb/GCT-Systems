@@ -384,30 +384,30 @@
 
                 <!-- 6. Operational Approval & Safeguards Standards Card -->
                 <div class="prescriptive-safeguard-card">
-                    <h4><i class="fa-solid fa-user-shield"></i> Operations Dispatch Safeguards &amp; Compliance Standards</h4>
+                    <h4><i class="fa-solid fa-user-shield"></i> Operations Scheduling Safeguards &amp; Review Requirements</h4>
                     <p>
-                        Prescriptive recommendations respect strict operational and labor safety boundaries. Dispatch officers must confirm compliance before approving trip assignments in Operations:
+                        These checks support Operations review. Confirm attendance, duty hours, route spacing, and bus clearance before approving assignments:
                     </p>
                     <div class="prescriptive-safeguard-grid">
                         <div class="safeguard-pill-item">
                             <i class="fa-solid fa-arrows-left-right"></i>
                             <div>
-                                <strong>15-Minute Corridor Headway</strong>
-                                <small>Enforces minimum departure gap between buses on same corridor to avoid bunching and passenger delays.</small>
+                                <strong>15-Minute Route Headway</strong>
+                                <small>Identifies departures on the same route scheduled less than 15 minutes apart for Operations review.</small>
                             </div>
                         </div>
                         <div class="safeguard-pill-item">
                             <i class="fa-solid fa-business-time"></i>
                             <div>
-                                <strong>8-Hour Maximum Duty Hours</strong>
-                                <small>Prevents driver fatigue by enforcing rest intervals and blocking overtime beyond 8 consecutive duty hours.</small>
+                                <strong>Driver Duty &amp; Rest Verification</strong>
+                                <small>Requires confirmation of driver attendance, duty hours, and rest eligibility before assignment.</small>
                             </div>
                         </div>
                         <div class="safeguard-pill-item">
                             <i class="fa-solid fa-wrench"></i>
                             <div>
-                                <strong>Strict PMS Clearance</strong>
-                                <small>Restricts buses undergoing active maintenance or exceeding next PMS mileage threshold from dispatch.</small>
+                                <strong>Maintenance &amp; PMS Verification</strong>
+                                <small>Screens active bus status and open Job Orders; final PMS and dispatch eligibility require Operations confirmation.</small>
                             </div>
                         </div>
                     </div>
