@@ -126,18 +126,20 @@ class AnalyticsModelReadinessUiTest extends TestCase
         $response->assertSee('Insufficient genuine operational history for production delay training.');
     }
 
-    public function test_prescriptive_all_separates_demo_recommendations_from_live_readiness(): void
+    public function test_prescriptive_page_keeps_decision_support_without_removed_readiness_panel(): void
     {
         $this->fakeModelStatuses();
 
         $response = $this->actingAs($this->adminUser())
             ->get(route('analytics.stage', ['stage' => 'prescriptive']));
 
-        $response->assertOk();
-        $response->assertSee('Demonstration mode:');
-        $response->assertSee('Live model readiness is shown separately below');
-        $response->assertSee('Production ML Readiness');
-        $response->assertSee('MODEL NOT READY');
-        $response->assertSee('Insufficient genuine inventory history for production forecasting.');
+        $response->assertOk()
+            ->assertViewIs('Admin.Analytics.prescriptive.layout')
+            ->assertViewHas('operationsPrescriptive')
+            ->assertSeeText('Operations Scheduling')
+            ->assertSeeText('Recommended Departure & Trip Schedules')
+            ->assertDontSeeText('Demonstration mode:')
+            ->assertDontSeeText('Live model readiness is shown separately below')
+            ->assertDontSeeText('Production ML Readiness');
     }
 }
