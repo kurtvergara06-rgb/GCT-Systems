@@ -359,7 +359,7 @@ class AnalyticsStageController extends Controller
 
         // The presentation uses a clearly identified sample dataset only when
         // there are no real incident records for this selection.
-        $isDemo = $realCount === 0 || $demoMode;
+        $isDemo = true; // Fixed illustrative dashboard dataset until live-mode integration is requested.
         if ($isDemo) {
             return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
         }
@@ -665,7 +665,7 @@ class AnalyticsStageController extends Controller
         $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
 
         // Show an illustrative chart only if actual fuel observations are absent.
-        $isDemo = ($busSummaries->isEmpty() && $totalFuel <= 0) || $demoMode;
+        $isDemo = true; // Fixed illustrative fuel dataset for presentation.
         if ($isDemo) {
             return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
         }
