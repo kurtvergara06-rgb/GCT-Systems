@@ -43,7 +43,7 @@
                     </div>
                     <div class="permission-access-grid">
                         <section class="permission-access-card permission-access-employees">
-                            <h2><span>1</span> Select Employee</h2>
+                            <h2><span>1</span> <i class="fa-solid fa-users"></i> Select Employee</h2>
                             <p>Choose an existing active employee account.</p>
                             <label for="additionalEmployeeSearch" class="sr-only">Search employees</label>
                             <input id="additionalEmployeeSearch" type="search" placeholder="Search name or department..." autocomplete="off">
@@ -58,29 +58,29 @@
                         </section>
                         <div class="permission-access-details">
                             <section class="permission-access-card permission-access-selected">
-                                <h2>Selected Employee</h2>
+                                <h2><i class="fa-solid fa-user-shield"></i> Selected Employee</h2>
                                 <strong id="additionalSelectedName">Select an employee on the left</strong>
                                 <p id="additionalSelectedRole">Primary role and department remain unchanged.</p>
                             </section>
                             <section class="permission-access-card">
-                                <h2><span>2</span> Choose Additional Department</h2>
+                                <h2><span>2</span> <i class="fa-solid fa-layer-group"></i> Choose Additional Department</h2>
                                 <div class="permission-department-picks" id="additionalDepartmentList">
                                     @foreach(['purchase' => 'Purchasing', 'warehouse' => 'Warehouse', 'operation' => 'Operations', 'maintenance' => 'Maintenance'] as $key => $label)
-                                        <button type="button" data-access-department-choice="{{ $key }}" class="permission-department-choice" disabled>{{ $label }}</button>
+                                        <button type="button" data-access-department-choice="{{ $key }}" class="permission-department-choice" disabled><i class="fa-solid {{ ['purchase' => 'fa-cart-shopping', 'warehouse' => 'fa-box', 'operation' => 'fa-bus', 'maintenance' => 'fa-screwdriver-wrench'][$key] }}"></i> {{ $label }}</button>
                                     @endforeach
                                 </div>
                             </section>
                             <section class="permission-access-card">
-                                <h2><span>3</span> Select Features / Permissions</h2>
+                                <h2><span>3</span> <i class="fa-solid fa-screwdriver-wrench"></i> Select Features / Permissions</h2>
                                 <p>Only pre-defined read-only features are listed. Approval, issuance, and creation remain unavailable.</p>
                                 <div class="permission-access-features" id="additionalFeatureList"><p>Select an employee and department to preview available features.</p></div>
                             </section>
                             <section class="permission-access-card">
-                                <h2><span>4</span> Review Selection</h2>
+                                <h2><span>4</span> <i class="fa-solid fa-clipboard-check"></i> Review Selection</h2>
                                 <div id="additionalAccessReview">No permissions selected.</div>
                                 <div class="permission-access-actions">
-                                    <button type="button" id="additionalAccessClear" class="secondary-btn">Clear Selection</button>
-                                    <button type="button" class="primary-btn" disabled title="Backend feature grants and authorization tests are not implemented">Save Additional Access (Unavailable)</button>
+                                    <button type="button" id="additionalAccessClear" class="secondary-btn"><i class="fa-solid fa-rotate-left"></i> Clear Selection</button>
+                                    <button type="button" class="primary-btn" disabled title="Backend feature grants and authorization tests are not implemented"><i class="fa-solid fa-lock"></i> Save Additional Access (Unavailable)</button>
                                 </div>
                             </section>
                         </div>
