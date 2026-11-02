@@ -194,7 +194,7 @@ class PrescriptiveAnalyticsTest extends TestCase
         $this->assertNull($restockData->restock_items->first()->monthly_demand);
         $this->assertSame(0, $restockData->restock_items->first()->incoming_supply);
         $response->assertSeeText('Not measured')
-            ->assertSeeText('Not verified')
+            ->assertSeeText('0 pending')
             ->assertDontSeeText('Urgent Brake System Restock')
             ->assertDontSeeText('PO-2026-0004');
     }
