@@ -70,19 +70,19 @@
     </section>
 
     {{-- PREDICTION TABLE --}}
-    <x-analytics.card class="predictive-card predictions-card" title="Fuel Consumption & Efficiency Predictions" description="Buses ranked by consumption deviation, efficiency against fleet baseline, and idling fuel loss.">
-        <div class="table-wrap predictive-fuel-table-wrap" tabindex="0" aria-label="Scrollable fuel consumption predictions table">
+    <x-analytics.card class="predictive-card predictions-card" title="Fuel Consumption & Efficiency Records" description="Recorded fuel usage, efficiency relative to the selected fleet, idling, and review indicators; not individual ML predictions.">
+        <div class="table-wrap predictive-fuel-table-wrap" tabindex="0" aria-label="Scrollable fuel efficiency records table">
             <table class="predictive-table">
                 <thead>
                     <tr>
                         <th style="width: 10%;">Bus</th>
                         <th style="width: 11%;">Distance</th>
                         <th style="width: 11%;">Fuel Used</th>
-                        <th style="width: 18%;">Efficiency vs Baseline</th>
+                        <th style="width: 18%;">Fuel Efficiency</th>
                         <th style="width: 14%;">Idling & Fuel Loss</th>
                         <th style="width: 12%;">Anomaly State</th>
                         <th style="width: 11%;">Risk Level</th>
-                        <th style="width: 13%;">Primary Driver</th>
+                        <th style="width: 13%;">Review Finding</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -102,7 +102,8 @@
                             $isUnderperforming = $diffPct < -5;
                             $isOverperforming = $diffPct > 5;
                             $effTone = $isUnderperforming ? 'danger' : ($isOverperforming ? 'success' : 'normal');
-                            $effPctBar = min(100, max(20, round(($kml / 5.0) * 100)));
+                            $hasFleetComparison = $fleetAvgEfficiency > 0 && (int) ($distribution->total ?? 0) > 1;
+                            $effPctBar = $hasFleetComparison ? min(100, max(0, round(($kml / $fleetAvgEfficiency) * 100))) : 0;
                         @endphp
                         <tr>
                             <td>
@@ -119,12 +120,14 @@
                                     <div class="eff-text-row">
                                         <strong class="eff-val eff-val--{{ $effTone }}">{{ number_format($kml, 2) }} km/L</strong>
                                         <span class="eff-diff eff-diff--{{ $effTone }}">
-                                            {{ $diffPct >= 0 ? '+' : '' }}{{ $diffPct }}%
+                                            {{ $hasFleetComparison ? (($diffPct >= 0 ? '+' : '') . number_format($diffPct, 1) . '% vs fleet') : 'No comparison' }}
                                         </span>
                                     </div>
-                                    <div class="eff-track" title="Efficiency: {{ number_format($kml, 2) }} km/L">
-                                        <div class="eff-fill eff-fill--{{ $effTone }}" style="width: {{ $effPctBar }}%"></div>
-                                    </div>
+                                    @if($hasFleetComparison)
+                                        <div class="eff-track" title="Relative to selected fleet average">
+                                            <div class="eff-fill eff-fill--{{ $effTone }}" style="width: {{ $effPctBar }}%"></div>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                             <td>
