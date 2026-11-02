@@ -26,8 +26,10 @@ class PredictiveInventoryModelPanelTest extends TestCase
         $this->view('Admin.Analytics.predictive.inventory-ml', [
             'predictive' => $predictive,
         ])
-            ->assertSee('Inventory Model #4')
-            ->assertSee('Next-Week Demand Forecast')
+            ->assertSee('Next-Week ML Demand Forecast')
+            ->assertSee('How to Read Inventory Estimates')
+            ->assertSee('inventory-ml-results', false)
+            ->assertSee('hidden class="inventory-ml-results"', false)
             ->assertSee('DEMO-PART-001')
             ->assertSee('Brake Pad Set')
             ->assertSee('DEMO MODEL READY', false)
