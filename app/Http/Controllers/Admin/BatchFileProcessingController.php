@@ -10,7 +10,8 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use App\Jobs\ProcessGpsPdfBatch;
+use App\Services\Gps\PdfGpsRuleParser;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -247,6 +248,18 @@ class BatchFileProcessingController extends Controller
                 'failed_records' => 0,
                 'error_message' => null,
             ]);
+
+            if ($extension === 'pdf') {
+                if (config('queue.default') === 'sync') {
+                    throw new \RuntimeException(
+                        'PDF background processing requires QUEUE_CONNECTION=database and an active queue worker.'
+                    );
+                }
+                ProcessGpsPdfBatch::dispatch($batch->id);
+                return redirect()
+                    ->to(route('batch-file-processing', ['batch_id' => $batch->id], false))
+                    ->with('success', 'GPS PDF uploaded. Processing is queued; refresh this page to check its status.');
+            }
 
             $result = match ($extension) {
                 'pdf' => $this->processPdfFile($batch),
@@ -998,100 +1011,12 @@ class BatchFileProcessingController extends Controller
         ], true);
     }
 
-    private function processPdfFile(BatchUpload $batch): array
+    public function processPdfFile(BatchUpload $batch): array
     {
-        $absolutePath = Storage::disk('public')->path($batch->file_path);
-
-        $apiUrl = rtrim(
-            config(
-                'services.nlp.api_url',
-                env('NLP_API_URL', 'http://127.0.0.1:8000')
-            ),
-            '/'
-        );
-
-        if (! file_exists($absolutePath)) {
-            throw new \RuntimeException(
-                'Unable to read the uploaded PDF report.'
-            );
-        }
-
-        try {
-            $response = Http::timeout(120)
-                ->attach(
-                    'pdf_file',
-                    file_get_contents($absolutePath),
-                    $batch->file_name,
-                    ['Content-Type' => 'application/pdf']
-                )
-                ->post($apiUrl . '/nlp/extract-pdf');
-        } catch (\Exception $exception) {
-            $errorMessage = $exception->getMessage();
-
-            if (
-                str_contains($errorMessage, 'timeout') ||
-                str_contains($errorMessage, 'Connection')
-            ) {
-                throw new \RuntimeException(
-                    'Python NLP service is unavailable. Start the Python Engine and try again.'
-                );
-            }
-
-            throw new \RuntimeException(
-                'Failed to connect to Python NLP service: ' . $errorMessage
-            );
-        }
-
-        if ($response->failed()) {
-            $statusCode = $response->status();
-            $responseBody = $response->body();
-
-            if ($statusCode === 422) {
-                $errorDetails = $response->json('detail')
-                    ?? $responseBody
-                    ?? 'Validation error from Python NLP service';
-
-                throw new \RuntimeException(
-                    'PDF processing validation error: ' . $errorDetails
-                );
-            }
-
-            throw new \RuntimeException(
-                'Python NLP service returned error '
-                . $statusCode
-                . ': '
-                . $responseBody
-            );
-        }
-
-        $payload = $response->json();
-
-        if (
-            empty($payload['success']) ||
-            ! isset($payload['records']) ||
-            ! is_array($payload['records'])
-        ) {
-            return [
-                'total' => 0,
-                'processed' => 0,
-                'failed' => 0,
-                'skipped_headers' => 0,
-                'skipped_no_bus_no' => 0,
-                'first_error' => 'No records found in PDF.',
-            ];
-        }
-
+        // Local deterministic parsing. This path does not call FastAPI, NLP,
+        // ML inference, or any externally hosted service.
+        $payload = app(PdfGpsRuleParser::class)->extract($batch->file_path);
         $records = $payload['records'];
-
-        // An unreadable or unsupported PDF layout must not become a
-        // successful, empty import. This also catches PDFs where only
-        // headings / summary text were extracted but no vehicle intervals.
-        if (count($records) === 0) {
-            throw new \RuntimeException(
-                'No valid GPS records were recognized in this PDF. '
-                . 'Review the report format before importing; no GPS records were saved.'
-            );
-        }
 
         $total = count($records);
         $processed = 0;
@@ -1164,7 +1089,7 @@ class BatchFileProcessingController extends Controller
                         'location' => $item['location'] ?? null,
                         'coordinates' => $item['coordinates'] ?? null,
                         'description' => $item['description'] ?? null,
-                        'source_format' => 'GPS Report',
+                        'source_format' => 'GPS Engine Hours Report',
                         'severity' => 'Normal',
                     ];
 
