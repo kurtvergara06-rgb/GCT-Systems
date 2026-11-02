@@ -33,6 +33,7 @@ class ProcessGpsPdfBatch implements ShouldQueue
             }
             $batch->update([
                 'status' => 'In Review',
+                'progress_percentage' => 100,
                 'total_records' => $result['total'] ?? 0,
                 'processed_records' => $result['processed'] ?? 0,
                 'failed_records' => $result['failed'] ?? 0,
