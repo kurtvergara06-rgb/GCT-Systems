@@ -18,6 +18,7 @@
 
         <main class="main jo-page">
             <script type="application/json" id="maintenanceJobCatalogData">@json($maintenanceJobCatalog)</script>
+            <script type="application/json" id="maintenanceJobSkillsData">@json($maintenanceJobSkills ?? [])</script>
             <x-layout.topbar
                 title="Job Orders"
                 subtitle="Manage repair and preventive maintenance service requests"
