@@ -53,6 +53,52 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         window.setTimeout(pollBatch, 3500);
     }
 
+    // Load successive 50-row server pages only when the table is scrolled near its bottom.
+    const recordsWrap = document.querySelector('.structured-records-card .structured-table-wrap');
+    const recordBody = recordsWrap?.querySelector('.batch-records-table tbody');
+    const infiniteFooter = document.querySelector('.structured-records-card .gps-infinite-footer');
+    if (recordsWrap && recordBody && infiniteFooter) {
+        let nextUrl = infiniteFooter.dataset.gpsNextUrl || '';
+        let loaded = Number(infiniteFooter.dataset.gpsLoaded || recordBody.rows.length);
+        const total = Number(infiniteFooter.dataset.gpsTotal || loaded);
+        let loading = false;
+        const state = infiniteFooter.querySelector('.gps-load-state');
+        const label = infiniteFooter.querySelector('[data-gps-loaded-label]');
+        const loadMore = async () => {
+            if (!nextUrl || loading || !recordsWrap.isConnected) return;
+            loading = true;
+            if (state) state.textContent = 'Loading records…';
+            try {
+                const response = await fetch(nextUrl, {
+                    headers: { Accept: 'text/html' },
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                });
+                if (!response.ok) throw new Error('Unable to fetch the next records.');
+                const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const newRows = doc.querySelectorAll('.structured-records-card .batch-records-table tbody tr');
+                const nextFooter = doc.querySelector('.structured-records-card .gps-infinite-footer');
+                if (!nextFooter || !newRows.length) throw new Error('No more records returned.');
+                const fragment = document.createDocumentFragment();
+                newRows.forEach(row => fragment.appendChild(document.importNode(row, true)));
+                recordBody.appendChild(fragment);
+                loaded += newRows.length;
+                nextUrl = nextFooter.dataset.gpsNextUrl || '';
+                infiniteFooter.dataset.gpsNextUrl = nextUrl;
+                if (label) label.textContent = 'Showing ' + loaded.toLocaleString() + ' of ' + total.toLocaleString() + ' records';
+                if (state) state.textContent = nextUrl ? 'Scroll to load more' : 'All records loaded';
+            } catch (_) {
+                if (state) state.textContent = 'Could not load more records. Scroll again to retry.';
+            } finally {
+                loading = false;
+            }
+        };
+        recordsWrap.addEventListener('scroll', () => {
+            if (recordsWrap.scrollTop + recordsWrap.clientHeight >= recordsWrap.scrollHeight - 180) loadMore();
+        }, { passive: true });
+        if (recordsWrap.scrollHeight <= recordsWrap.clientHeight && nextUrl) loadMore();
+    }
+
     const fileInput = document.getElementById('gpsFileInput');
     const dropzone = document.getElementById('gpsDropzone');
     const chooseFileBtn = document.getElementById('chooseGpsFileBtn');
@@ -62,29 +108,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
 
     const feedbackModal = document.getElementById('batchFeedbackModal');
     const closeFeedbackModal = document.getElementById('closeBatchFeedbackModal');
-
-    const gpsRecordModal = document.getElementById('gpsRecordDetailsModal');
-    let gpsRecordTrigger = null;
-    const closeGpsRecordModal = () => {
-        if (!gpsRecordModal) return;
-        gpsRecordModal.classList.remove('show');
-        gpsRecordTrigger?.focus();
-        gpsRecordTrigger = null;
-    };
-    document.querySelectorAll('[data-open-gps-record]').forEach((button) => {
-        button.addEventListener('click', () => {
-            if (!gpsRecordModal) return;
-            gpsRecordTrigger = button;
-            gpsRecordModal.querySelectorAll('[data-gps-detail]').forEach((item) => {
-                const value = button.dataset[item.dataset.gpsDetail];
-                item.textContent = value === undefined || value === null || value.trim() === '' ? '—' : value;
-            });
-            gpsRecordModal.classList.add('show');
-            document.getElementById('closeGpsRecordDetailsModal')?.focus();
-        });
-    });
-    document.getElementById('closeGpsRecordDetailsModal')?.addEventListener('click', closeGpsRecordModal);
-    document.getElementById('closeGpsRecordDetailsFooter')?.addEventListener('click', closeGpsRecordModal);
 
     const rawUploadModal = document.getElementById('rawUploadModal');
     const closeRawUploadModal = document.getElementById('closeRawUploadModal');
@@ -656,7 +679,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
 
         [
             feedbackModal,
-            gpsRecordModal,
             rawUploadModal,
             allRecordsModal,
             cleanDataModal,
