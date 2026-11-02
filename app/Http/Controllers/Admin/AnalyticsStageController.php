@@ -2077,9 +2077,36 @@ class AnalyticsStageController extends Controller
             ];
         });
 
-        $morningCount = $realTrips->filter(fn ($t) => strtolower((string)$t->shift) === 'morning')->count();
-        $afternoonCount = $realTrips->filter(fn ($t) => strtolower((string)$t->shift) === 'afternoon')->count();
-        $eveningCount = $realTrips->filter(fn ($t) => strtolower((string)$t->shift) === 'evening' || strtolower((string)$t->shift) === 'night')->count();
+        // Group by actual departure clock time; Operations does not use shifts.
+        $departureSlots = [
+            '00:00–05:59' => [0, 6],
+            '06:00–11:59' => [6, 12],
+            '12:00–17:59' => [12, 18],
+            '18:00–23:59' => [18, 24],
+        ];
+        $departureHour = static function (TripSchedule $trip): ?int {
+            $value = trim((string) $trip->departure_time);
+            if (! preg_match('/^(\\d{1,2}):[0-5]\\d/', $value, $match)) {
+                return null;
+            }
+            $hour = (int) $match[1];
+
+            return $hour >= 0 && $hour <= 23 ? $hour : null;
+        };
+        $departureCounts = collect($departureSlots)->map(
+            fn (array $range) => $realTrips->filter(function (TripSchedule $trip) use ($departureHour, $range): bool {
+                $hour = $departureHour($trip);
+
+                return $hour !== null && $hour >= $range[0] && $hour < $range[1];
+            })->count()
+        )->values()->all();
+        $unassignedDepartureCounts = collect($departureSlots)->map(
+            fn (array $range) => $unassignedTrips->filter(function (TripSchedule $trip) use ($departureHour, $range): bool {
+                $hour = $departureHour($trip);
+
+                return $hour !== null && $hour >= $range[0] && $hour < $range[1];
+            })->count()
+        )->values()->all();
 
         return (object) [
             'is_demo' => false,
@@ -2095,13 +2122,9 @@ class AnalyticsStageController extends Controller
             'bus_recommendations' => $busRecommendations,
             'conflicts' => $conflicts,
             'shift_distribution' => (object) [
-                'labels' => ['Morning', 'Afternoon', 'Evening'],
-                'scheduled' => [$morningCount, $afternoonCount, $eveningCount],
-                'recommended' => [
-                    $unassignedTrips->filter(fn ($t) => strtolower((string) $t->shift) === 'morning')->count(),
-                    $unassignedTrips->filter(fn ($t) => strtolower((string) $t->shift) === 'afternoon')->count(),
-                    $unassignedTrips->filter(fn ($t) => in_array(strtolower((string) $t->shift), ['evening', 'night'], true))->count(),
-                ],
+                'labels' => array_keys($departureSlots),
+                'scheduled' => $departureCounts,
+                'recommended' => $unassignedDepartureCounts,
             ],
             'readiness_distribution' => collect([
                 (object) ['label' => 'Active Bus Candidates', 'count' => $availableBuses->count(), 'color' => '#16a34a'],
