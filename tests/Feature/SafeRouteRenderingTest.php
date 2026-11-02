@@ -119,7 +119,8 @@ class SafeRouteRenderingTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Showing 50 of 120 records')
             ->assertSeeText('Scroll to load more')
-            ->assertDontSee('simple-page-button');
+            ->assertSee('gps-infinite-footer')
+            ->assertSee('Raw record preview pages');
 
         $this->assertSame(50, $response->viewData('records')->count());
         $this->assertSame(120, $response->viewData('records')->total());
