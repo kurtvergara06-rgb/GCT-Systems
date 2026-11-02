@@ -62,7 +62,7 @@ class DriverAttendanceController extends Controller
             $query->whereDate('attendance_date', $today);
         }
 
-        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in', 'attendance_date' => 'attendance_date'], $activeTab === 'history' ? 'attendance_date' : 'driver_name');
+        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in', 'attendance_date' => 'attendance_date'], $activeTab === 'history' ? 'attendance_date' : 'driver_name', $activeTab === 'history' ? 'desc' : 'asc');
         $driverAttendances = $query
             ->paginate(10)
             ->withQueryString();
