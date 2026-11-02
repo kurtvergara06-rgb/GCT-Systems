@@ -205,8 +205,8 @@ class SystemBackendFullAuditTest extends TestCase
         // 2.5 Batch File Processing / Data Management
         $this->get(route('batch-file-processing'))->assertOk();
 
-        // 2.6 Import / Export
-        $this->get(route('admin.import-export'))->assertOk();
+        // 2.6 Retired Import / Export page redirects to Data History
+        $this->get(route('admin.import-export'))->assertRedirect(route('admin.data-history'));
 
         // 2.7 Data History
         $this->get(route('admin.data-history'))->assertOk();
