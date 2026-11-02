@@ -39,6 +39,14 @@
         ]);
         $tripStatusDistribution = ['Completed'=>35,'Pending'=>5,'Missed'=>2];
         $incidentTypeDistribution = ['Mechanical'=>2,'Tire'=>1,'Electrical'=>1];
+        $tripStatusStats = collect($tripStatusDistribution)->map(function ($count, $label) use ($totalScheduledTrips) {
+            return (object) [
+                'label' => $label,
+                'count' => $count,
+                'pct' => $totalScheduledTrips > 0 ? round($count * 100 / $totalScheduledTrips, 1) : 0,
+                'color' => ['Completed' => '#16a34a', 'Pending' => '#f59e0b', 'Missed' => '#ef4444'][$label] ?? '#3b82f6',
+            ];
+        })->values();
     }
     if ($illustrativeAnalytics && $activeSummary === 'administrative') {
         $totalActivities = 84;
@@ -54,6 +62,14 @@
         ]);
         $activityByModule = ['Operations'=>28,'Maintenance'=>22,'Warehouse'=>14,'Purchasing'=>12,'Administration'=>8];
         $notificationsByModule = ['Operations'=>9,'Maintenance'=>8,'Warehouse'=>6,'Purchasing'=>4];
+        $moduleStats = collect($activityByModule)->map(function ($count, $label) use ($totalActivities) {
+            return (object) [
+                'label' => $label,
+                'count' => $count,
+                'pct' => $totalActivities > 0 ? round($count * 100 / $totalActivities, 1) : 0,
+                'color' => '#3b82f6',
+            ];
+        })->values();
     }
 
     if ($activeSummary === 'operational') {
