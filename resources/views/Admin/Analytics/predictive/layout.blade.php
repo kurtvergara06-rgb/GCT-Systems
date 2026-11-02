@@ -65,8 +65,6 @@
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
             <x-layout.topbar :title="$pageTitle" :subtitle="$pageSubtitle" />
 
-            <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
-
             <x-analytics.stage-controls
                 :url="$predictiveUrl"
                 :tabs="[
