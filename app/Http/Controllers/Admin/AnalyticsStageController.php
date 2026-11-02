@@ -409,12 +409,13 @@ class AnalyticsStageController extends Controller
         $standardDispatch = 0;
         $extendedDowntime = 0;
         $noReplacement = 0;
+        $unknownResponseTime = 0;
 
         foreach ($realIncidents as $i) {
             if ($i->replacement) {
                 // Missing timestamps must not be invented as a 30-minute response.
                 if (! $i->incident_reported_at || ! $i->replacement->dispatched_at) {
-                    $noReplacement++;
+                    $unknownResponseTime++;
                     continue;
                 }
                 $mins = $i->incident_reported_at->diffInMinutes($i->replacement->dispatched_at);
@@ -435,6 +436,7 @@ class AnalyticsStageController extends Controller
             (object) ['category' => '30 - 60m (Standard)', 'count' => $standardDispatch, 'pct' => round(($standardDispatch / max(1, $totalIncidents)) * 100), 'color' => '#3b82f6'],
             (object) ['category' => '> 60m (Extended Bay)', 'count' => $extendedDowntime, 'pct' => round(($extendedDowntime / max(1, $totalIncidents)) * 100), 'color' => '#ef4444'],
             (object) ['category' => 'On-Site / No Swap', 'count' => $noReplacement, 'pct' => round(($noReplacement / max(1, $totalIncidents)) * 100), 'color' => '#94a3b8'],
+            (object) ['category' => 'Dispatch Time Unrecorded', 'count' => $unknownResponseTime, 'pct' => round(($unknownResponseTime / max(1, $totalIncidents)) * 100), 'color' => '#a78bfa'],
         ]);
 
         // Trend over days in period
