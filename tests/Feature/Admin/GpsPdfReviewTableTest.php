@@ -13,6 +13,43 @@ class GpsPdfReviewTableTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_csv_export_preserves_seconds_in_pdf_timestamps(): void
+    {
+        $admin = User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $batch = BatchUpload::create([
+            'file_name' => 'engine-hours.pdf',
+            'stored_name' => 'engine-hours.pdf',
+            'file_path' => 'gps-batches/engine-hours.pdf',
+            'file_type' => 'pdf',
+            'module' => 'Operation',
+            'data_type' => 'GPS Trip Records',
+            'bus_no' => 'Multiple Buses',
+            'uploaded_by' => $admin->id,
+            'status' => 'In Review',
+        ]);
+        GpsTripRecord::create([
+            'batch_upload_id' => $batch->id,
+            'record_no' => 'NGA-6363-1.59',
+            'bus_no' => 'NGA-6363',
+            'grouping' => '09-30-2026 22:22:17',
+            'beginning_at' => '2026-09-30 22:22:17',
+            'ending_at' => '2026-09-30 22:27:01',
+        ]);
+
+        $csv = $this->actingAs($admin)
+            ->get(route('batch-file-processing.export', ['batch_id' => $batch->id]))
+            ->assertOk()
+            ->streamedContent();
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($csv))));
+
+        $this->assertSame('2026-09-30 22:22:17', $rows[1][4]);
+        $this->assertSame('2026-09-30 22:27:01', $rows[1][6]);
+    }
+
     public function test_short_pdf_interval_keeps_fractional_minutes_and_engine_hours(): void
     {
         $batch = BatchUpload::create([

@@ -564,9 +564,12 @@ class BatchFileProcessingController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        $hasSelectedBatch = $request->filled('batch_id');
         $query = GpsTripRecord::query()
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
+            ->whereHas('batchUpload', function ($query) use ($hasSelectedBatch) {
+                $query->whereIn('status', $hasSelectedBatch
+                    ? ['In Review', 'Processed']
+                    : ['Processed']);
             });
 
         if ($request->filled('batch_id')) {
@@ -624,9 +627,9 @@ class BatchFileProcessingController extends Controller
                             $record->bus_no,
                             $record->grouping,
                             $record->trip_type,
-                            $record->beginning_at?->format('Y-m-d h:i A'),
+                            $record->beginning_at?->format('Y-m-d H:i:s'),
                             $record->initial_location,
-                            $record->ending_at?->format('Y-m-d h:i A'),
+                            $record->ending_at?->format('Y-m-d H:i:s'),
                             $record->final_location,
                             $record->duration_minutes,
                             $record->total_minutes,
