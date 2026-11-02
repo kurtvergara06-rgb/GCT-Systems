@@ -1598,3 +1598,13 @@
 .permissions-page .permission-access-actions button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
 .permissions-page .permission-access-actions button:disabled { background:#94a8c3!important; color:#fff!important; opacity:.78; }
 @media(min-width:981px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(310px,.32fr) minmax(0,.68fr); } }
+
+/* Read-only feature rows: readable descriptions and non-actionable access tags. */
+.permissions-page .permission-access-card h2 > i { color:#0759ed; font-size:15px; }
+.permissions-page .permission-department-choice > i { color:#0759ed; margin-right:5px; }
+.permissions-page .permission-department-choice.active > i { color:#fff; }
+.permissions-page .permission-feature-choice > span { display:flex; flex:1; flex-direction:column; gap:3px; min-width:0; }
+.permissions-page .permission-feature-choice strong { font-size:12.5px; color:#13335d; }
+.permissions-page .permission-feature-choice small { font-size:11.5px; line-height:1.4; color:#64748b; }
+.permissions-page .permission-feature-choice em { font-size:10px; font-style:normal; font-weight:700; color:#166534; border-radius:999px; padding:5px 9px; background:#dcfce7; white-space:nowrap; }
+@media(max-width:600px) { .permissions-page .permission-feature-choice { flex-wrap:wrap; } }
