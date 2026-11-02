@@ -193,7 +193,11 @@ class JobOrderIndexController extends Controller
         $viewPartsStock = \App\Models\Warehouse\InventoryItem::query()->get()->keyBy('id');
 
         $maintenanceJobCatalog = \Illuminate\Support\Facades\DB::table('maintenance_job_catalog')
-            ->where('is_active', true)->orderBy('name')->pluck('name')->all();
+            ->where('is_active', true)->orderBy('name')->get(['name', 'specializations']);
+        $maintenanceJobSkills = $maintenanceJobCatalog->mapWithKeys(fn ($job) => [
+            $job->name => array_values(array_filter(json_decode($job->specializations ?: '[]', true) ?: [], 'is_string')),
+        ])->all();
+        $maintenanceJobCatalog = $maintenanceJobCatalog->pluck('name')->all();
 
         return view('Maintenance.job-order', compact(
             'existingIrStatuses',
@@ -213,7 +217,8 @@ class JobOrderIndexController extends Controller
             'referralCreate',
             'recordView',
             'viewPartsStock',
-            'maintenanceJobCatalog'
+            'maintenanceJobCatalog',
+            'maintenanceJobSkills'
         ));
     }
 
