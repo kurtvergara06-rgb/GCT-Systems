@@ -1095,3 +1095,33 @@ window.GCTPartialNavigation.registerInitializer('maintenance-jo-skill-coverage',
     render();
   });
 });
+
+
+/* Head duration decision: reveal the verified time and reason only for manual
+ * adjustment. Historical and submitted-duration choices keep these inputs off.
+ * Approval remains server-validated in JobOrderController. */
+window.GCTPartialNavigation.registerInitializer('maintenance-head-duration-decision', '.jo-page', () => {
+  document.querySelectorAll('select[name="duration_decision"]').forEach((select) => {
+    if (select.dataset.durationDecisionBound === '1') return;
+    const form = select.closest('form');
+    const fields = form?.querySelector('.jo-duration-adjust-fields');
+    if (!form || !fields) return;
+
+    select.dataset.durationDecisionBound = '1';
+    const inputs = fields.querySelectorAll(
+      '[name="verified_duration_value"], [name="verified_duration_unit"], [name="duration_adjustment_reason"]'
+    );
+    const sync = () => {
+      const isManual = select.value === 'adjust';
+      fields.hidden = !isManual;
+      inputs.forEach((input) => {
+        input.disabled = !isManual;
+        input.required = isManual;
+      });
+    };
+    select.addEventListener('change', sync);
+    select.addEventListener('input', sync);
+    form.addEventListener('reset', () => queueMicrotask(sync));
+    sync();
+  });
+});
