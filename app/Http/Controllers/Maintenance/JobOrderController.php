@@ -574,6 +574,22 @@ class JobOrderController extends Controller
             }
         }
 
+        // An exact, sufficiently sampled historical match is authoritative for
+        // a single selected maintenance job. Never trust a browser-supplied
+        // duration once the automated estimate is available.
+        $durationWork = count($selectedJobs) === 1
+            ? ($selectedJobs[0] === 'Other'
+                ? trim((string) ($validated['custom_maintenance_job'] ?? ''))
+                : $selectedJobs[0])
+            : '';
+        $automaticDuration = count($selectedJobs) === 1 && $durationWork !== ''
+            ? $this->durations->suggestion($validated['maintenance_type'], $durationWork)
+            : null;
+        if ($automaticDuration !== null) {
+            $validated['estimated_duration_value'] = $automaticDuration['value'];
+            $validated['estimated_duration_unit'] = $automaticDuration['unit'];
+        }
+
         // Keep the staff's proposed duration for Head review; do not overwrite it
         // with a median across unrelated repairs sharing a broad maintenance type.
         if (isset($validated['estimated_duration_value']) !== isset($validated['estimated_duration_unit'])) {
