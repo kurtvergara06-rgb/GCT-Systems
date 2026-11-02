@@ -149,13 +149,38 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
         }
     });
 
+    const modal = document.getElementById('notificationDetailsModal');
+    const modalMarkRead = document.getElementById('notificationModalMarkRead');
+    const modalError = document.getElementById('notificationModalError');
+    let currentItem = null;
+    let currentReadUrl = null;
+    let previousFocus = null;
+
+    const closeModal = () => {
+        modal?.classList.remove('show');
+        modal?.classList.remove('notification-modal-open');
+        previousFocus?.focus?.();
+        currentItem = null;
+        currentReadUrl = null;
+    };
+
+    const updateModalReadState = () => {
+        const unread = currentItem?.dataset.state === 'unread';
+        const statusText = document.getElementById('notificationModalStatusText');
+        const statusBadge = document.getElementById('notificationModalStatusBadge');
+        if (statusText) statusText.textContent = unread
+            ? 'This notification has not yet been marked as read.'
+            : 'This notification has already been marked as read.';
+        if (statusBadge) statusBadge.textContent = unread ? 'Unread' : 'Read';
+        statusBadge?.classList.toggle('is-read', !unread);
+        if (modalMarkRead) modalMarkRead.hidden = !unread;
+    };
+
     document.addEventListener('click', async (event) => {
         const readButton = event.target.closest('.notification-mark-read');
-
         if (readButton) {
             const item = readButton.closest('[data-notification-item]');
             readButton.disabled = true;
-
             try {
                 await post(readButton.dataset.readUrl);
                 if (item) markItemRead(item);
@@ -170,21 +195,58 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
 
         const viewButton = event.target.closest('.open-notification-modal');
         if (!viewButton) return;
-
+        previousFocus = viewButton;
+        currentItem = viewButton.closest('[data-notification-item]');
+        currentReadUrl = viewButton.dataset.readUrl;
+        if (modalError) modalError.hidden = true;
         document.getElementById('notificationModalTitle').textContent = viewButton.dataset.title || 'Notification Details';
         document.getElementById('notificationModalMessage').textContent = viewButton.dataset.message || '—';
         document.getElementById('notificationModalModule').textContent = viewButton.dataset.module || '—';
         document.getElementById('notificationModalType').textContent = viewButton.dataset.type || '—';
+        document.getElementById('notificationModalTypeBadge').textContent = viewButton.dataset.type || 'Update';
         document.getElementById('notificationModalReference').textContent = viewButton.dataset.reference || '—';
         document.getElementById('notificationModalDateTime').textContent = `${viewButton.dataset.date || '—'} ${viewButton.dataset.time || ''}`;
-        document.getElementById('notificationDetailsModal')?.classList.add('show');
+        updateModalReadState();
+        modal?.classList.add('show');
+        document.getElementById('closeNotificationModal')?.focus();
     });
 
-    const closeModal = () => document.getElementById('notificationDetailsModal')?.classList.remove('show');
+    modalMarkRead?.addEventListener('click', async () => {
+        if (!currentItem || !currentReadUrl || currentItem.dataset.state !== 'unread') return;
+        modalMarkRead.disabled = true;
+        if (modalError) modalError.hidden = true;
+        try {
+            await post(currentReadUrl);
+            markItemRead(currentItem);
+            updateModalReadState();
+            await refreshUnreadCount();
+            window.dispatchEvent(new CustomEvent('topbar-summary-refresh'));
+            applyFilters();
+        } catch (error) {
+            if (modalError) modalError.hidden = false;
+        } finally {
+            modalMarkRead.disabled = false;
+        }
+    });
+
     document.getElementById('closeNotificationModal')?.addEventListener('click', closeModal);
     document.getElementById('closeNotificationModalFooter')?.addEventListener('click', closeModal);
     document.addEventListener('keydown', (event) => {
+        if (!modal?.classList.contains('show')) return;
         if (event.key === 'Escape') closeModal();
+        if (event.key === 'Tab') {
+            const controls = Array.from(modal.querySelectorAll('button:not([disabled]):not([hidden])'))
+                .filter((button) => button.getClientRects().length);
+            if (!controls.length) return;
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
     });
 
     applyFilters();
