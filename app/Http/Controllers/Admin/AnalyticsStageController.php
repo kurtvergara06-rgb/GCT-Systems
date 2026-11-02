@@ -2306,13 +2306,39 @@ class AnalyticsStageController extends Controller
             return $this->getDemoRestockingPrescriptiveData($period, $totalItems);
         }
 
+        // Reservations reduce free stock but do not deduct physical inventory.
+        $reservedByItem = DB::table('job_order_part_reservations')
+            ->select('inventory_item_id', DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')
+            ->pluck('reserved', 'inventory_item_id');
+
+        // Only explicitly coded, unreceived PO lines can be credited to an item.
+        // Description-only lines are deliberately not matched by fuzzy names.
+        $incomingByCode = collect();
+        $openOrders = \App\Models\Purchase\PurchaseOrder::query()
+            ->whereIn('status', ['Ordered', 'For Delivery', 'For Pick-up'])
+            ->whereNull('inventory_posted_at')
+            ->get(['items', 'received_quantities']);
+        foreach ($openOrders as $order) {
+            foreach (($order->items ?? []) as $index => $line) {
+                $code = strtoupper(trim((string) ($line['inventory_item_code'] ?? $line['item_code'] ?? '')));
+                if ($code === '') continue;
+                $remaining = max(0, (int) ($line['quantity'] ?? 0) - (int) ($order->received_quantities[$index] ?? 0));
+                $incomingByCode->put($code, (int) $incomingByCode->get($code, 0) + $remaining);
+            }
+        }
+
         // Build live recommendation rows
-        $restockItems = $attentionItems->map(function (InventoryItem $item) use ($thresholds, $thresholdCalculator): object {
+        $restockItems = $attentionItems->map(function (InventoryItem $item) use ($thresholds, $thresholdCalculator, $reservedByItem, $incomingByCode): object {
             $onHand = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
             $reorderLevel = (int) ($thresholds->get($item->getKey()) ?? 0);
             $usage = $thresholdCalculator->calculate($item);
-            // Threshold-gap estimate only; never an automatically approved purchase quantity.
-            $suggestedQty = max(0, $reorderLevel - $onHand);
+            $reserved = max(0, (int) $reservedByItem->get($item->getKey(), 0));
+            $freeStock = max(0, $onHand - $reserved);
+            $incoming = max(0, (int) $incomingByCode->get(strtoupper(trim((string) $item->item_code)), 0));
+            // Conservative advisory estimate: unreceived, explicitly coded PO stock
+            // reduces the gap. No PR/PO is created or approved here.
+            $suggestedQty = max(0, $reorderLevel - $freeStock - $incoming);
 
             $priority = match (true) {
                 $onHand <= 0 => 'Critical',
@@ -2330,7 +2356,7 @@ class AnalyticsStageController extends Controller
 
             $action = match ($priority) {
                 'Critical' => sprintf('Review %s: no on-hand stock is recorded. Confirm demand and incoming supply before a PR.', $item->parts_name),
-                'High', 'Medium' => sprintf('Review a %d %s threshold gap; confirm reservations and incoming supply before a PR.', $suggestedQty, $item->unit_of_measurement ?: 'units'),
+                'High', 'Medium' => sprintf('Review %d %s after reservations and coded open-PO supply; confirm uncoded PO lines before a PR.', $suggestedQty, $item->unit_of_measurement ?: 'units'),
                 default => 'Review current stock and the configured reorder threshold.',
             };
 
@@ -2338,9 +2364,10 @@ class AnalyticsStageController extends Controller
                 'part_code' => $item->item_code,
                 'part_name' => $item->parts_name ?: $item->item_name,
                 'category' => $item->category ?: 'General Spares',
-                'available_stock' => $onHand,
+                'available_stock' => $freeStock,
+                'reserved_stock' => $reserved,
                 'monthly_demand' => $usage['status'] === 'calculated' ? $usage['average_monthly_usage'] : null,
-                'incoming_supply' => null,
+                'incoming_supply' => $incoming,
                 'reorder_level' => $reorderLevel,
                 'safety_buffer' => 0,
                 'suggested_qty' => $suggestedQty,
