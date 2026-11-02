@@ -17,8 +17,7 @@ class InventoryThresholdCalculator
      */
     public function calculate(InventoryItem $item, ?CarbonImmutable $asOf = null): array
     {
-        $endExclusive = ($asOf ?? CarbonImmutable::now())->startOfMonth();
-        $start = $endExclusive->subMonths(3);
+        [$start, $endExclusive] = $this->completeMonthWindow($asOf);
 
         $issued = (int) DB::table('inventory_issuance_items as lines')
             ->join('inventory_issuances as issues', 'issues.id', '=', 'lines.inventory_issuance_id')
@@ -40,6 +39,14 @@ class InventoryThresholdCalculator
             'status' => $completeHistory ? 'calculated' : 'insufficient_history',
         ];
     }
+    /** @return array{CarbonImmutable, CarbonImmutable} Start inclusive, end exclusive. */
+    public function completeMonthWindow(?CarbonImmutable $asOf = null): array
+    {
+        $endExclusive = ($asOf ?? CarbonImmutable::now())->startOfMonth();
+
+        return [$endExclusive->subMonths(3), $endExclusive];
+    }
+
     public function roundedMonthlyUsage(int $issued): int
     {
         return intdiv(max(0, $issued) + 2, 3);
