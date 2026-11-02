@@ -20,6 +20,10 @@ class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->environment('production') || DB::getDefaultConnection() === 'gct_account_target') {
+            throw new \RuntimeException('Demo data seeding is disabled for production and account-only targets.');
+        }
+
         mt_srand(20260905);
 
         $this->runAll();

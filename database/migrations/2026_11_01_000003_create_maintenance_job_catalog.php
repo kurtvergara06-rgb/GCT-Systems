@@ -14,6 +14,9 @@ return new class extends Migration {
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
+        if (DB::getDefaultConnection() === 'gct_account_target') {
+            return;
+        }
         $jobs = [
             'Change Oil' => ['Change Oil', 'Lubrication', 'Preventive Maintenance'],
             'Oil Filter Replacement' => ['Oil Filter Replacement', 'Lubrication', 'Preventive Maintenance'],

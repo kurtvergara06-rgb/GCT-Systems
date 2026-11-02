@@ -15,6 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')
+            || \Illuminate\Support\Facades\DB::getDefaultConnection() === 'gct_account_target') {
+            throw new \RuntimeException('Production and account-only target seeding is disabled.');
+        }
+
         // User::factory(10)->create();
 
         User::factory()->create([

@@ -20,6 +20,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        if (DB::getDefaultConnection() === 'gct_account_target') {
+            return;
+        }
+
         $restricted = [
             'operation' => ['view' => false, 'edit' => false, 'approve' => false],
             'maintenance' => ['view' => false, 'edit' => false, 'approve' => false],
