@@ -50,6 +50,7 @@
             title="View Details"
             class="open-notification-modal"
             data-title="{{ $notification['title'] ?? '' }}"
+            data-read-url="{{ route('admin.notifications.read', $notification['id']) }}"
             data-message="{{ $notification['message'] ?? '' }}"
             data-module="{{ $notification['module'] ?? 'System' }}"
             data-type="{{ $notification['type'] ?? 'Update' }}"
