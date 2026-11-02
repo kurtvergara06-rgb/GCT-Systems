@@ -37,8 +37,9 @@
         </div>
 
         <div class="notification-meta">
-            <x-ui.status-badge :status="$notification['module'] ?? 'System'" :class="$moduleClass" />
-            <x-ui.status-badge :status="$notification['type'] ?? 'Update'" :class="$typeClass" />
+            <span class="module-badge {{ $moduleClass }}">{{ $notification['module'] ?? 'System' }}</span>
+            <span class="type-badge {{ $typeClass }}">{{ $notification['type'] ?? 'Update' }}</span>
+            <x-ui.status-badge :status="($notification['unread'] ?? false) ? 'Unread' : 'Read'" :icon="($notification['unread'] ?? false) ? 'fa-clock' : 'fa-check'" class="notification-read-state" />
             <span class="system-id-badge system-id-badge--small">{{ $notification['reference'] ?? '—' }}</span>
         </div>
     </div>

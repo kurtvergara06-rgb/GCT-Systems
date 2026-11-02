@@ -441,7 +441,11 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     setText('viewUserEmail', viewButton.dataset.email);
     setText('viewUserRole', viewButton.dataset.role);
     setText('viewUserDepartment', viewButton.dataset.department);
-    setText('viewUserStatus', viewButton.dataset.status);
+    const viewStatus = document.getElementById('viewUserStatus');
+    const rowStatus = viewButton.closest('tr')?.querySelector('.status-pill[data-ui-component="status-badge"]');
+    if (viewStatus) {
+      viewStatus.replaceChildren(rowStatus ? rowStatus.cloneNode(true) : document.createTextNode(viewButton.dataset.status || '—'));
+    }
     setText('viewUserLastLogin', viewButton.dataset.lastLogin);
 
     openModal(viewUserModal);

@@ -72,6 +72,14 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
         item.dataset.state = 'read';
         item.querySelector('.unread-dot')?.remove();
         item.querySelector('.notification-mark-read')?.remove();
+        const stateBadge = item.querySelector('.notification-read-state');
+        if (stateBadge) {
+            stateBadge.dataset.statusKey = 'read';
+            const label = stateBadge.querySelector('.status-badge__label');
+            if (label) label.textContent = 'Read';
+            const icon = stateBadge.querySelector('.status-badge__icon');
+            if (icon) icon.className = 'fa-solid fa-check status-badge__icon';
+        }
     };
 
     const post = async (url) => {
@@ -169,9 +177,6 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
     const closeModal = () => document.getElementById('notificationDetailsModal')?.classList.remove('show');
     document.getElementById('closeNotificationModal')?.addEventListener('click', closeModal);
     document.getElementById('closeNotificationModalFooter')?.addEventListener('click', closeModal);
-    document.getElementById('notificationDetailsModal')?.addEventListener('click', (event) => {
-        if (event.target.id === 'notificationDetailsModal') closeModal();
-    });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeModal();
     });

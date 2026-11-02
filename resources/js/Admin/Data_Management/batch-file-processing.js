@@ -310,13 +310,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         });
     }
 
-    if (feedbackModal) {
-        feedbackModal.addEventListener('click', function (event) {
-            if (event.target === feedbackModal) {
-                closeModal(feedbackModal);
-            }
-        });
-    }
 
     document
         .querySelectorAll('[data-open-raw-modal]')
@@ -332,13 +325,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         });
     }
 
-    if (rawUploadModal) {
-        rawUploadModal.addEventListener('click', function (event) {
-            if (event.target === rawUploadModal) {
-                closeModal(rawUploadModal);
-            }
-        });
-    }
 
     if (rawUploadSearch) {
         rawUploadSearch.addEventListener('input', function () {
@@ -370,13 +356,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         });
     }
 
-    if (allRecordsModal) {
-        allRecordsModal.addEventListener('click', function (event) {
-            if (event.target === allRecordsModal) {
-                closeModal(allRecordsModal);
-            }
-        });
-    }
 
     if (recordsSearch) {
         recordsSearch.addEventListener('input', function () {
@@ -408,13 +387,6 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         });
     }
 
-    if (cleanDataModal) {
-        cleanDataModal.addEventListener('click', function (event) {
-            if (event.target === cleanDataModal) {
-                closeModal(cleanDataModal);
-            }
-        });
-    }
 
     if (cleanDataSearch) {
         cleanDataSearch.addEventListener('input', function () {

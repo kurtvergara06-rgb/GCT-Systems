@@ -82,7 +82,9 @@
             <span>
                 <i class="fa-solid fa-circle-check"></i>
                 Record Status:
-                <strong>{{ $genericStructuredBatch->status }}</strong>
+                @if($genericStructuredBatch->status)
+                    <x-ui.status-badge :status="$genericStructuredBatch->status" />
+                @endif
             </span>
             <small>Source: {{ $genericStructuredBatch->file_name }}</small>
         </div>

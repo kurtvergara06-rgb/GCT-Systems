@@ -1,0 +1,38 @@
+/* Administration-only presentation layer, loaded after page styles. */
+.main [data-ui-component="status-badge"]:not(.role-pill) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: max-content;
+    max-width: 100%;
+    min-height: 28px;
+    height: auto;
+    padding: 3px 8px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: 0;
+    gap: 5px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.main [data-ui-component="status-badge"]:not(.role-pill) .status-badge__icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 11px;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    line-height: 1;
+    text-align: center;
+}
+
+.main [data-ui-component="status-badge"]:not(.role-pill) .status-badge__label {
+    min-width: 0;
+    font: inherit;
+    line-height: inherit;
+}

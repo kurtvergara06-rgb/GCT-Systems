@@ -75,7 +75,9 @@
                 <span>
                     <i class="fa-solid fa-circle-check"></i>
                     Record Status:
-                    <strong>{{ $selectedBatch?->status ?? 'In Review' }}</strong>
+                    @if($selectedBatch?->status)
+                        <x-ui.status-badge :status="$selectedBatch->status" />
+                    @endif
                 </span>
                 <small>Source: {{ $selectedRecord->batchUpload?->file_name }}</small>
             </div>

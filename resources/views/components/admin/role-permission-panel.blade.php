@@ -271,7 +271,9 @@
                         <strong>{{ $account->name }}</strong>
                         <span>{{ $account->email }}</span>
                     </div>
-                    <span>{{ $account->status }}</span>
+                    @if($account->status)
+                        <x-ui.status-badge :status="$account->status" type="user" />
+                    @endif
                 </div>
             @empty
                 <p class="assigned-role-account-empty">No accounts are currently assigned to this role.</p>

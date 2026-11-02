@@ -20,11 +20,6 @@ window.GCTPartialNavigation.registerInitializer('admin-notification-settings', '
         updateEventsCounter();
     };
 
-    if (masterToggle) {
-        masterToggle.addEventListener('change', updateMasterState);
-        updateMasterState();
-    }
-
     // 2. Module Master Toggles & Event Checkboxes
     const moduleCards = document.querySelectorAll('.module-preference-card');
     const counterBadge = document.getElementById('enabledEventsCount');
@@ -55,6 +50,11 @@ window.GCTPartialNavigation.registerInitializer('admin-notification-settings', '
             counterBadge.classList.remove('zero-events');
         }
     };
+
+    if (masterToggle) {
+        masterToggle.addEventListener('change', updateMasterState);
+        updateMasterState();
+    }
 
     moduleCards.forEach(card => {
         const moduleSwitch = card.querySelector('.module-master-switch');

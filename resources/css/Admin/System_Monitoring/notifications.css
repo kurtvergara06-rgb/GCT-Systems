@@ -507,6 +507,18 @@
     margin-top: 10px;
 }
 
+.notifications-page .notification-read-state[data-status-key="unread"] {
+    --gct-status-bg: #fff5e2;
+    --gct-status-border: #f0dbac;
+    --gct-status-text: #9c6610;
+}
+
+.notifications-page .notification-read-state[data-status-key="read"] {
+    --gct-status-bg: #f3f6fa;
+    --gct-status-border: #dce5ed;
+    --gct-status-text: #63758c;
+}
+
 .module-badge,
 .type-badge {
     min-height: 25px;

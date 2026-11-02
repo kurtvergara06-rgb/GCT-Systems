@@ -525,7 +525,16 @@
   padding: 0 15px;
   white-space: nowrap;
   border-radius: 10px;
+  border: 1px solid #e6aa00;
+  background: #ffc400;
+  color: #102744;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(168, 111, 0, .1);
 }
+.users-main .users-add-account-btn:hover { background: #f4b900; }
+.users-main .users-add-account-btn:focus-visible { outline: 2px solid #1656b8; outline-offset: 2px; }
 .users-main .users-record-controls {
   display: flex;
   justify-content: space-between;
@@ -604,20 +613,14 @@
   min-height: 0;
 }
 
-/* Align Accounts search tools with its title rather than using a tall empty row. */
+/* Keep account tools in the second toolbar row below the section heading. */
 @media (min-width: 901px) {
   .users-main .users-card--accounts .users-section-header {
-    min-height: 44px;
-    padding-right: 270px;
     margin-bottom: 12px;
   }
   .users-main .users-card--accounts .users-record-controls {
     justify-content: flex-end;
-    min-height: 38px;
-    margin-top: -56px;
-    margin-bottom: 18px;
-    position: relative;
-    z-index: 3;
+    margin: 0 0 14px;
   }
 }
 
@@ -1378,4 +1381,10 @@
 .users-main .users-card--applications .application-status-tab:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
+}
+
+.users-main .users-card--applications .application-verification[data-status-key="not-verified"] {
+  --gct-status-bg: #fff5e2;
+  --gct-status-border: #f0dbac;
+  --gct-status-text: #9c6610;
 }

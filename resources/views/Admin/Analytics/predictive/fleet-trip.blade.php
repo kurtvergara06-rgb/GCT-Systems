@@ -338,7 +338,7 @@
                                     {{ ucfirst($riskClass) }}
                                 </span>
                             </td>
-                            <td>{{ $prediction[7] ?? 'Scheduled' }}</td>
+                            <td>@if(filled($prediction[7] ?? null))<x-ui.status-badge :status="$prediction[7]" />@else — @endif</td>
                             <td>
                                 <span class="ft-ml-eta" title="{{ ($prediction['eta_source'] ?? null) === 'ml' ? 'Predicted by the ETA ML model' : 'Estimated from route history (ML service offline)' }}">
                                     <i class="fa-solid fa-clock"></i>

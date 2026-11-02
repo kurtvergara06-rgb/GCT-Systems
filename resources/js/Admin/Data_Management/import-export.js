@@ -278,9 +278,6 @@ function initImportExportPage() {
             overlay.querySelector('[data-close-activity]')?.addEventListener('click', closeActivityModal);
             overlay.querySelector('[data-upload-corrected]')?.addEventListener('click', uploadCorrectedFile);
             overlay.querySelector('[data-approve-activity]')?.addEventListener('click', (event) => approveActivity(activityId, event.currentTarget));
-            overlay.addEventListener('click', (event) => {
-                if (event.target === overlay) closeActivityModal();
-            });
         } catch (error) {
             console.error('Unable to load transfer activity:', error);
             notify('Unable to load activity details. Please try again.', 'error', 'Details unavailable');
