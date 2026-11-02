@@ -254,7 +254,7 @@
                         ],
                     ],
                     [
-                        'label' => 'Data History',
+                        'label' => 'GPS Processing History',
                         'route' => 'admin.data-history',
                         'icon' => 'fa-clock-rotate-left',
                         'active_routes' => ['admin.data-history', 'admin.data-history.*'],
