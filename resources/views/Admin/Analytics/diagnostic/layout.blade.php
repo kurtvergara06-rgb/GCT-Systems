@@ -39,7 +39,7 @@
         ];
     }
 
-    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $currentFilters = request()->only(['period', 'bus', 'preview']);
     $isDemo = $activeAnalysis === 'fleet-trip' ? $incidentData->is_demo : $fuelData->is_demo;
 @endphp
 <x-layout.app
@@ -77,36 +77,6 @@
                 :selected-bus="$selectedBus"
                 :date-label="ucwords(str_replace('-', ' ', $period))"
             />
-            <!-- Demo Mode vs Live Records Banner -->
-            @if($isDemo)
-                <div class="demo-mode-banner" role="alert">
-                    <div class="demo-banner-content">
-                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Demo Data</span>
-                        <span>
-                            <strong>Demonstration Diagnostic Dataset Active:</strong> Illustrating Thesis Objective 6.2 diagnostics (failure root causes, replacement response time comparison, and vehicle-specific fuel baseline anomalies).
-                            @if($activeAnalysis === 'fleet-trip')
-                                Live operational records: <strong>{{ $incidentData->real_count }} incident(s)</strong> logged in this selection.
-                            @else
-                                Live recorded fuel: <strong>{{ number_format($fuelData->real_fuel, 1) }} L</strong>.
-                            @endif
-                        </span>
-                    </div>
-                    @if(request()->boolean('demo'))
-                        <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except('demo'), ['domain' => $activeAnalysis])) }}" class="dashboard-view-link">
-                            <span>Switch to Live Records</span>
-                            <i class="fa-solid fa-rotate"></i>
-                        </a>
-                    @endif
-                </div>
-            @else
-                <div class="live-mode-banner" role="status">
-                    <i class="fa-solid fa-circle-check text-green"></i>
-                    <span>
-                        <strong>Live Database Records:</strong> Displaying verified operational diagnostic findings from the FROMS Operations &amp; Maintenance modules.
-                    </span>
-                </div>
-            @endif
-
             @if($activeAnalysis === 'fleet-trip')
                 <!-- =========================================================================
                      THESIS OBJECTIVE 6.2.1 — INCIDENT & REPLACEMENT ANALYSIS
@@ -328,7 +298,7 @@
                                             <td>
                                                 <span class="code-pill">{{ $record->incident_no }}</span>
                                                 @if($record->is_demo)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -635,7 +605,7 @@
                                             <td>
                                                 <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $unit->bus_no }}</span>
                                                 @if($unit->is_demo ?? false)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
                                                 @endif
                                             </td>
                                             <td>{{ number_format((float)($unit->distance_km ?? 0), 1) }}</td>
