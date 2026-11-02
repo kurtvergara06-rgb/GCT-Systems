@@ -14,6 +14,12 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
     const moduleFilter = document.getElementById('notificationModuleFilter');
     const typeFilter = document.getElementById('notificationTypeFilter');
     const stateFilter = document.getElementById('notificationStateFilter');
+    // Keep controls synchronized with server-scoped category tabs.
+    const selectedParams = new URLSearchParams(window.location.search);
+    if (moduleFilter) moduleFilter.value = selectedParams.get('module') || 'all';
+    if (typeFilter) typeFilter.value = selectedParams.get('type') || 'all';
+    if (stateFilter) stateFilter.value = selectedParams.get('state') || 'all';
+
     const rows = () => Array.from(list.querySelectorAll('[data-notification-item]'));
     let timer = null;
 
