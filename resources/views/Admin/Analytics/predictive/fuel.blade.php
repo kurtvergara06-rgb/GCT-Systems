@@ -9,6 +9,7 @@
     $fuelTrendForecast = collect($fuelPredict->trend_forecast ?? [])->values();
     $fuelObservationCount = collect($fuelPredict->trend_actual ?? [])->filter(fn ($v) => $v !== null)->count();
     $canDisplayFuelProjection = $fuelTrendForecast->contains(fn ($v) => $v !== null);
+    $activeFuelFactors = collect($fuelPredict->factors ?? [])->filter(fn ($factor) => (string) ($factor->level ?? 'Low') !== 'Low')->values();
     $peakForecast = $fuelTrendForecast
         ->filter(fn ($value) => is_numeric($value))
         ->sortDesc()
@@ -164,7 +165,7 @@
     <section class="predictive-bottom-grid">
 
         {{-- FUEL RISK DISTRIBUTION --}}
-        <x-analytics.card class="predictive-card" title="Fuel Risk Distribution" description="Fleet units categorized by fuel review standing.">
+        <x-analytics.card class="predictive-card" title="Fuel Review Status" description="Recorded buses classified by their fuel review standing, not predicted risk.">
             <div class="risk-content">
                 <div class="donut-wrapper">
                     <canvas id="fuelRiskDonut"></canvas>
@@ -176,17 +177,17 @@
                 <div class="risk-legend">
                     <div>
                         <span class="legend-dot low"></span>
-                        <span>Low Risk</span>
+                        <span>Normal</span>
                         <strong>{{ number_format($distribution->low) }} ({{ $lowShare }}%)</strong>
                     </div>
                     <div>
                         <span class="legend-dot medium"></span>
-                        <span>Medium Risk</span>
+                        <span>Needs Review</span>
                         <strong>{{ number_format($distribution->medium) }} ({{ $mediumShare }}%)</strong>
                     </div>
                     <div>
                         <span class="legend-dot high"></span>
-                        <span>High Risk</span>
+                        <span>Priority Review</span>
                         <strong>{{ number_format($distribution->high) }} ({{ $highShare }}%)</strong>
                     </div>
 
@@ -203,7 +204,7 @@
                 <div class="fuel-insight" role="note">
                     <span class="fuel-insight__icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
                     <div>
-                        <strong>AI Insight</strong>
+                        <strong>Operational Insight</strong>
                         <span>{{ $consumptionFactor->description }}</span>
                     </div>
                 </div>
@@ -211,9 +212,9 @@
         </x-analytics.card>
 
         {{-- TOP RISK FACTORS --}}
-        <x-analytics.card class="predictive-card" title="Top Fuel Risk Factors" description="Primary drivers of excess consumption and loss.">
+        <x-analytics.card class="predictive-card" title="Fuel Review Findings" description="Only findings that require attention based on recorded fuel evidence.">
             <div class="issue-list">
-                @foreach($fuelPredict->factors as $index => $factor)
+                @forelse($activeFuelFactors as $index => $factor)
                     <div class="issue-row">
                         <span class="issue-rank">{{ $index + 1 }}</span>
                         <div class="issue-info">
@@ -222,7 +223,13 @@
                         </div>
                         <span class="risk-badge {{ strtolower($factor->level) }}">{{ $factor->level }}</span>
                     </div>
-                @endforeach
+                @empty
+                    <div class="fuel-review-empty" role="status">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        <strong>No fuel-review indicators detected</strong>
+                        <span>None of the recorded units crossed the current fuel or idle-review thresholds.</span>
+                    </div>
+                @endforelse
             </div>
         </x-analytics.card>
 
@@ -245,7 +252,7 @@
                     <canvas id="fuelForecastChart" role="img" aria-label="Fuel demand forecast chart"></canvas>
                 </div>
             @else
-                <div class="has-empty-chart"><p class="analytics-compact-empty">Insufficient recorded fuel history for a reliable forecast.</p></div>
+                <div class="has-empty-chart"><p class="analytics-compact-empty">Insufficient history: {{ $fuelObservationCount }} recorded day(s) in the displayed trend; at least 4 valid days are required for a trend estimate.</p></div>
             @endif
         </x-analytics.card>
 
