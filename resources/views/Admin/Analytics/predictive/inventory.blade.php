@@ -224,8 +224,8 @@
                         $reorder = (int) ($row[4] ?? $row['reorder_level'] ?? 0);
                         $gap = (int) ($row[6] ?? $row['gap'] ?? 0);
                         $riskLevel = $row[7] ?? $row['risk_level'] ?? 'Medium';
-                        $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : '~3–5 Days');
-                        $recommendedOrder = $row[10] ?? $row['recommended_order'] ?? ($gap > 0 ? $gap + 5 : 0);
+                        $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? 'Out of Stock' : 'Insufficient History');
+                        $recommendedOrder = $row[10] ?? $row['recommended_order'] ?? $gap;
                     @endphp
                     <div class="inventory-priority-item priority--{{ strtolower($riskLevel) }}">
                         <div class="inventory-priority-item__topline">
@@ -286,8 +286,8 @@
                             $gap = (int) ($row[6] ?? $row['gap'] ?? 0);
                             $riskLevel = $row[7] ?? $row['risk_level'] ?? 'Low';
                             $bufferPct = (int) ($row[8] ?? $row['buffer_pct'] ?? ($reorder > 0 ? min(100, round(($onHand / $reorder) * 100)) : 100));
-                            $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : '~5–7 Days');
-                            $recommendedOrder = (int) ($row[10] ?? $row['recommended_order'] ?? ($gap > 0 ? $gap + 5 : 0));
+                            $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : 'Insufficient History');
+                            $recommendedOrder = (int) ($row[10] ?? $row['recommended_order'] ?? $gap);
                             $bufferTone = $onHand <= 0 ? 'danger' : ($bufferPct <= 50 ? 'warning' : 'success');
                             $catIcon = $getCategoryIcon($category);
                         @endphp
