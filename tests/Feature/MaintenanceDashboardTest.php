@@ -543,4 +543,38 @@ class MaintenanceDashboardTest extends TestCase
         $response->assertSee('All PMS Schedules Up to Date');
         $response->assertSee('No breakdown referrals');
     }
+
+    public function test_dashboard_charts_use_saved_orders_and_approved_completion_dates(): void
+    {
+        $user = $this->createMaintenanceUser();
+        Bus::create(['bus_no' => 'CHART-ACTIVE', 'status' => 'Active']);
+        Bus::create(['bus_no' => 'CHART-INACTIVE', 'status' => 'Inactive']);
+
+        foreach ([
+            ['JO-CHART-1', 'Completed', 'Approved', now()],
+            ['JO-CHART-2', 'Completed', 'Rejected', now()],
+            ['JO-CHART-3', 'On Hold', 'Approved', null],
+        ] as [$number, $status, $reviewStatus, $completionDate]) {
+            JobOrder::create([
+                'job_order_no' => $number,
+                'bus_no' => 'CHART-ACTIVE',
+                'problem_issue' => 'Chart verification',
+                'maintenance_type' => 'Repair',
+                'status' => $status,
+                'review_status' => $reviewStatus,
+                'completion_date' => $completionDate,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('maintenance-dashboard'));
+
+        $response->assertOk();
+        $this->assertCount(7, $response->viewData('workloadDailyTrend'));
+        $this->assertCount(6, $response->viewData('workloadWeeklyTrend'));
+        $this->assertCount(6, $response->viewData('workloadMonthlyTrend'));
+        $this->assertSame(3, $response->viewData('workloadDailyTrend')[6]['created']);
+        $this->assertSame(1, $response->viewData('workloadDailyTrend')[6]['completed']);
+        $this->assertSame([1, 0, 1], $response->viewData('fleetHealthDistribution')['values']);
+        $this->assertSame(33, $response->viewData('overallCompletionRate'));
+    }
 }

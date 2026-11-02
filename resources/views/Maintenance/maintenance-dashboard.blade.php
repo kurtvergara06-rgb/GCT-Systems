@@ -107,7 +107,7 @@
             <div>
               <span class="dashboard-eyebrow">OPERATIONAL ANALYTICS</span>
               <h2>Repair & Work Order Activity</h2>
-              <p>Dispatched repairs, ongoing workloads, and completed maintenance tickets</p>
+              <p>Created Job Orders and approved completions with recorded completion dates</p>
             </div>
 
             <div class="chart-header-actions">
@@ -146,7 +146,7 @@
             <div id="maintenanceWorkloadEmpty" class="maintenance-chart-empty" style="display: none;">
               <i class="fa-solid fa-chart-column"></i>
               <strong>No job orders recorded in this period</strong>
-              <span>Dispatched and completed work orders will appear here automatically.</span>
+              <span>Created and completed Job Orders will appear here automatically.</span>
             </div>
           </div>
         </div>

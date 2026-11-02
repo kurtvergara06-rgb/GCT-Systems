@@ -73,7 +73,7 @@ function initializeWorkloadChart() {
             labels,
             datasets: [
                 {
-                    label: 'Dispatched',
+                    label: 'Created',
                     data: createdValues,
                     backgroundColor: 'rgba(37, 99, 235, 0.82)',
                     borderColor: '#1d4ed8',
@@ -145,12 +145,6 @@ function initializeWorkloadChart() {
                         title: (items) => {
                             const index = items[0]?.dataIndex;
                             return fullLabels[index] || items[0]?.label || '';
-                        },
-                        afterBody: (items) => {
-                            const created = items.find((i) => i.dataset.label === 'Dispatched')?.parsed.y || 0;
-                            const comp = items.find((i) => i.dataset.label === 'Completed')?.parsed.y || 0;
-                            const rate = created > 0 ? Math.round((comp / created) * 100) : (comp > 0 ? 100 : 0);
-                            return ` Resolution Rate: ${rate}%`;
                         },
                     },
                 },

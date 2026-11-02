@@ -305,6 +305,63 @@ class MaintenanceDashboardController extends Controller
             ];
         }
 
+        // The dashboard charts use the same saved JO and bus records as the KPIs.
+        // Only approved JOs with a recorded completion date enter the completed series.
+        $datedCompletions = $allJobOrders->filter(fn (JobOrder $jobOrder) =>
+            $jobOrder->status === 'Completed'
+            && $jobOrder->review_status === 'Approved'
+            && $jobOrder->completion_date !== null
+        );
+
+        $workloadTrend = function (string $grouping, int $buckets) use ($allJobOrders, $datedCompletions): array {
+            $points = [];
+            for ($offset = $buckets - 1; $offset >= 0; $offset--) {
+                $start = match ($grouping) {
+                    'weekly' => now()->startOfWeek()->subWeeks($offset),
+                    'monthly' => now()->startOfMonth()->subMonths($offset),
+                    default => now()->startOfDay()->subDays($offset),
+                };
+                $end = match ($grouping) {
+                    'weekly' => $start->copy()->endOfWeek(),
+                    'monthly' => $start->copy()->endOfMonth(),
+                    default => $start->copy()->endOfDay(),
+                };
+                $points[] = [
+                    'label' => match ($grouping) {
+                        'weekly' => 'Wk '.$start->format('W'),
+                        'monthly' => $start->format('M'),
+                        default => $start->format('D'),
+                    },
+                    'full_label' => match ($grouping) {
+                        'weekly' => $start->format('M j').' - '.$end->format('M j'),
+                        'monthly' => $start->format('M Y'),
+                        default => $start->format('M j, Y'),
+                    },
+                    'created' => $allJobOrders->filter(fn (JobOrder $jobOrder) =>
+                        $jobOrder->created_at?->betweenIncluded($start, $end) ?? false
+                    )->count(),
+                    'completed' => $datedCompletions->filter(fn (JobOrder $jobOrder) =>
+                        $jobOrder->completion_date->betweenIncluded($start, $end)
+                    )->count(),
+                ];
+            }
+
+            return $points;
+        };
+
+        $workloadDailyTrend = $workloadTrend('daily', 7);
+        $workloadWeeklyTrend = $workloadTrend('weekly', 6);
+        $workloadMonthlyTrend = $workloadTrend('monthly', 6);
+        $fleetHealthDistribution = [
+            'labels' => ['Active Ready Fleet', 'Under Maintenance', 'Inactive / Restricted'],
+            'values' => [$activeBusesCount, $underMaintenanceBusesCount, $inactiveBusesCount],
+            'colors' => ['#10b981', '#f59e0b', '#ef4444'],
+        ];
+        $totalWorkOrdersCount = $allJobOrders->count();
+        $overallCompletionRate = $totalWorkOrdersCount > 0
+            ? (int) round(($completedCount / $totalWorkOrdersCount) * 100)
+            : 0;
+
         return [
             // Top KPIs
             'totalActiveJobOrders' => $totalActiveJobOrders,
@@ -354,6 +411,14 @@ class MaintenanceDashboardController extends Controller
 
             // Fuel
             'fuelSummary' => $fuelSummary,
+
+            // Recorded chart data
+            'workloadDailyTrend' => $workloadDailyTrend,
+            'workloadWeeklyTrend' => $workloadWeeklyTrend,
+            'workloadMonthlyTrend' => $workloadMonthlyTrend,
+            'fleetHealthDistribution' => $fleetHealthDistribution,
+            'totalWorkOrdersCount' => $totalWorkOrdersCount,
+            'overallCompletionRate' => $overallCompletionRate,
         ];
     }
 }
