@@ -25,10 +25,17 @@ class MechanicAttendance extends Model
     protected static function booted(): void
     {
         static::saving(function (MechanicAttendance $attendance): void {
+            // A master-list ID is authoritative. Names are not unique and
+            // must never redirect an attendance record to another employee.
+            $mechanicId = trim((string) $attendance->mechanic_id);
             $mechanics = Mechanic::query()
-                ->whereRaw(
-                    'LOWER(TRIM(mechanic_name)) = ?',
-                    [mb_strtolower(trim((string) $attendance->mechanic_name))]
+                ->when(
+                    $mechanicId !== '',
+                    fn ($query) => $query->where('mechanic_id', $mechanicId),
+                    fn ($query) => $query->whereRaw(
+                        'LOWER(TRIM(mechanic_name)) = ?',
+                        [mb_strtolower(trim((string) $attendance->mechanic_name))]
+                    )
                 )
                 ->limit(2)
                 ->get();
