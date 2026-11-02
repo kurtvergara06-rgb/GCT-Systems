@@ -1,26 +1,29 @@
 /* =========================================================================
    GCT-SYSTEMS — DESCRIPTIVE ANALYTICS REBUILD (OBJECTIVE 6.1.1 & 6.1.2)
+   Design System Aligned with FROMS Enterprise Standards (Maintenance & Purchase)
    ========================================================================= */
 
 .descriptive-rebuild {
-    padding: 0 0 48px;
+    padding: 0 0 56px;
     background: #f8fafc;
     min-height: calc(100vh - 64px);
 }
 
-/* Controls & Toolbar */
+/* =========================================================================
+   CONTROLS & TOOLBAR
+   ========================================================================= */
 .descriptive-controls-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    margin: 18px 0 20px;
-    padding: 12px 16px;
+    margin: 18px 0 22px;
+    padding: 12px 18px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .descriptive-nav-pills {
@@ -35,10 +38,10 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 9px 18px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: #475569;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -50,19 +53,19 @@
 
 .descriptive-nav-pills a:hover {
     color: #1e293b;
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.65);
 }
 
 .descriptive-nav-pills a.active {
     background: #2563eb;
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
 }
 
 .descriptive-filters-form {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     flex-wrap: wrap;
 }
 
@@ -84,149 +87,149 @@
     font-weight: 600;
     color: #1e293b;
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.descriptive-filter-group select:hover {
+    border-color: #94a3b8;
 }
 
 .descriptive-filter-group select:focus {
     border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .descriptive-date-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 7px;
+    padding: 7px 14px;
     background: #eff6ff;
     border: 1px solid #bfdbfe;
     border-radius: 8px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: #1d4ed8;
 }
 
-/* KPI Cards Grid */
-.descriptive-kpi-grid {
+/* =========================================================================
+   TOP 5 / 4 KPI SUMMARY CARDS GRID (ALIGNED WITH MAINTENANCE & PURCHASE)
+   ========================================================================= */
+.descriptive-stats-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 22px;
 }
 
-.descriptive-kpi-grid.admin-kpis {
+.descriptive-stats-grid.admin-stats-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.d-kpi-card {
-    background: #ffffff;
+.descriptive-stats-grid .stat-card,
+.descriptive-stats-grid .stat-card-link {
+    min-height: 104px;
+    padding: 16px 18px;
     border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(12, 35, 68, 0.05);
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.descriptive-stats-grid .stat-card:hover,
+.descriptive-stats-grid .stat-card-link:hover {
+    transform: translateY(-2px);
+    border-color: #bfd0e7;
+    box-shadow: 0 10px 24px rgba(12, 35, 68, 0.10);
+}
+
+.descriptive-stats-grid .stat-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
     border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 110px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
 }
 
-.d-kpi-card:hover {
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-    transform: translateY(-1px);
+.descriptive-stats-grid .stat-icon.blue { background: #e0ecff; color: #0b40b5; }
+.descriptive-stats-grid .stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+.descriptive-stats-grid .stat-icon.green { background: #dcfce7; color: #15803d; }
+.descriptive-stats-grid .stat-icon.yellow { background: #fef3c7; color: #b45309; }
+.descriptive-stats-grid .stat-icon.red { background: #fee2e2; color: #dc2626; }
+.descriptive-stats-grid .stat-icon.cyan { background: #cffafe; color: #0891b2; }
+
+.descriptive-stats-grid .stat-card-content {
+    min-width: 0;
+    flex: 1;
 }
 
-.d-kpi-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.d-kpi-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.d-kpi-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-.d-kpi-icon.blue { background: #eff6ff; color: #2563eb; }
-.d-kpi-icon.green { background: #f0fdf4; color: #16a34a; }
-.d-kpi-icon.amber { background: #fffbeb; color: #d97706; }
-.d-kpi-icon.red { background: #fef2f2; color: #dc2626; }
-.d-kpi-icon.purple { background: #f5f3ff; color: #7c3aed; }
-.d-kpi-icon.cyan { background: #ecfeff; color: #0891b2; }
-
-.d-kpi-middle {
-    margin: 8px 0 6px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.d-kpi-value {
-    font-size: 24px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.02em;
-    line-height: 1;
-}
-
-.d-kpi-badge {
+.descriptive-stats-grid .stat-card-content p {
+    margin: 0;
     font-size: 11px;
     font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 6px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.d-kpi-badge.badge-green { background: #dcfce7; color: #15803d; }
-.d-kpi-badge.badge-blue { background: #dbeafe; color: #1e40af; }
-.d-kpi-badge.badge-amber { background: #fef3c7; color: #92400e; }
-.d-kpi-badge.badge-red { background: #fee2e2; color: #991b1b; }
+.descriptive-stats-grid .stat-card-content h2 {
+    margin: 3px 0 2px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
 
-.d-kpi-subtext {
+.descriptive-stats-grid .stat-card-content small {
+    display: block;
     font-size: 11px;
     color: #64748b;
-    line-height: 1.35;
-    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Panels & Visuals Grid */
+/* =========================================================================
+   DASHBOARD PANELS & CARDS (ALIGNED WITH MAINTENANCE DASHBOARD)
+   ========================================================================= */
 .descriptive-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 18px;
     margin-bottom: 22px;
 }
 
 .descriptive-grid.grid-wide-left {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
 }
 
-.d-panel {
+.descriptive-dashboard-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 18px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 16px rgba(12, 35, 68, 0.04);
     display: flex;
     flex-direction: column;
 }
 
-.d-panel.full-width {
-    grid-column: span 2;
+.descriptive-dashboard-card.full-width {
+    margin-bottom: 22px;
 }
 
-.d-panel-header {
+.dashboard-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -236,229 +239,602 @@
     border-bottom: 1px solid #f1f5f9;
 }
 
-.d-panel-title-area h3 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
+.dashboard-eyebrow {
+    display: block;
+    margin-bottom: 3px;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.dashboard-card-header h2 {
     margin: 0;
+    color: #0f172a;
+    font-size: 17px;
+    font-weight: 800;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.d-panel-title-area h3 i {
+.dashboard-card-header h2 i {
     color: #2563eb;
-    font-size: 13px;
+    font-size: 15px;
 }
 
-.d-panel-title-area p {
-    font-size: 11px;
+.dashboard-card-header p {
+    margin: 3px 0 0;
     color: #64748b;
-    margin: 4px 0 0;
+    font-size: 11.5px;
 }
 
-.d-panel-pill {
+.dashboard-view-link {
+    min-height: 30px;
+    padding: 0 11px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #2563eb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.dashboard-view-link:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.chart-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chart-kpi-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
     font-size: 11px;
     font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 6px;
-    background: #f1f5f9;
     color: #475569;
 }
 
-.d-chart-container {
+.chart-kpi-pill i {
+    font-size: 11px;
+}
+
+.text-blue { color: #2563eb !important; }
+.text-green { color: #16a34a !important; }
+.text-cyan { color: #0891b2 !important; }
+.text-amber { color: #d97706 !important; }
+.text-purple { color: #7c3aed !important; }
+.text-red { color: #dc2626 !important; }
+
+/* =========================================================
+   CHARTS & VISUAL CONTAINERS
+   ========================================================= */
+.descriptive-chart-shell {
     position: relative;
     height: 250px;
     width: 100%;
 }
 
-.d-chart-container.short {
+.descriptive-chart-shell.short {
     height: 220px;
 }
 
-/* Donut & Stack Layout */
-.d-donut-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 20px;
-    padding: 10px 0;
-    flex-wrap: wrap;
+/* Telemetry Summary Row (Under Activity Chart) */
+.telemetry-summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
 }
 
-.d-donut-chart-box {
-    position: relative;
-    width: 170px;
-    height: 170px;
+.telemetry-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+}
+
+.telemetry-tile:hover {
+    background: #f1f5f9;
+}
+
+.telemetry-tile i {
+    font-size: 18px;
     flex-shrink: 0;
 }
 
-.d-donut-center-stat {
+.telemetry-tile strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.telemetry-tile small {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+/* =========================================================
+   FLEET HEALTH & DONUT VISUAL WRAP (MAINTENANCE PATTERN)
+   ========================================================= */
+.fleet-health-visual-wrap {
+    display: grid;
+    grid-template-columns: minmax(140px, 160px) minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+    min-height: 220px;
+    padding: 8px 0;
+}
+
+.fleet-health-chart-container {
+    position: relative;
+    width: 100%;
+    height: 160px;
+}
+
+.fleet-health-chart-center {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    text-align: center;
-    pointer-events: none;
-}
-
-.d-donut-center-stat strong {
-    display: block;
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
-}
-
-.d-donut-center-stat small {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-}
-
-.d-donut-legend-stack {
-    flex: 1;
-    min-width: 160px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.d-legend-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 10px;
-    background: #f8fafc;
-    border-radius: 8px;
-    font-size: 12px;
-    color: #334155;
-}
-
-.d-legend-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.d-legend-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.d-legend-val {
-    font-weight: 700;
-    color: #0f172a;
-}
-
-/* Clean Tables */
-.d-table-wrapper {
-    overflow-x: auto;
-    width: 100%;
-}
-
-.d-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    text-align: left;
-}
-
-.d-table th {
-    background: #f8fafc;
-    color: #64748b;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 10px;
-    letter-spacing: 0.04em;
-    padding: 10px 12px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.d-table td {
-    padding: 11px 12px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
-    vertical-align: middle;
-}
-
-.d-table tr:hover td {
-    background: #f8fafc;
-}
-
-.d-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.d-status-pill.pill-green { background: #dcfce7; color: #166534; }
-.d-status-pill.pill-blue { background: #dbeafe; color: #1e40af; }
-.d-status-pill.pill-amber { background: #fef3c7; color: #92400e; }
-.d-status-pill.pill-red { background: #fee2e2; color: #991b1b; }
-.d-status-pill.pill-purple { background: #f3e8ff; color: #6b21a8; }
-.d-status-pill.pill-gray { background: #f1f5f9; color: #475569; }
-
-/* Empty States */
-.d-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 36px 16px;
+    pointer-events: none;
     text-align: center;
-    min-height: 180px;
 }
 
-.d-empty-icon {
+.fleet-health-chart-center strong {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.fleet-health-chart-center span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
+}
+
+.fleet-health-status-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 230px;
+    overflow-y: auto;
+}
+
+.fleet-health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 9px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    transition: all 0.15s ease;
+}
+
+.fleet-health-row:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.fleet-health-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.status-indicator-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-name-desc strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.status-name-desc small {
+    display: block;
+    font-size: 10.5px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fleet-health-right {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.fleet-count {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.fleet-health-right small {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* =========================================================
+   FLEET SAFETY & EXCELLENCE CARD (ZERO INCIDENTS STATE)
+   ========================================================= */
+.safety-excellence-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 6px 0;
+}
+
+.safety-excellence-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+}
+
+.safety-icon-box {
     width: 44px;
     height: 44px;
+    border-radius: 12px;
+    background: #dcfce7;
+    color: #16a34a;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.safety-text h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: #15803d;
+}
+
+.safety-text p {
+    margin: 2px 0 0;
+    font-size: 11.5px;
+    color: #166534;
+}
+
+.safety-metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.safety-metric-tile {
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.safety-metric-num {
+    display: block;
+    font-size: 20px;
+    font-weight: 800;
+    color: #16a34a;
+}
+
+.safety-metric-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 2px;
+}
+
+.safety-metric-tile small {
+    display: block;
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+/* =========================================================
+   RECENT ITEMS LIST (ALIGNED WITH MAINTENANCE & PURCHASE)
+   ========================================================= */
+.recent-descriptive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.recent-descriptive-item {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.recent-descriptive-item:hover {
+    background: #f8fbff;
+    border-color: #cbd5e1;
+}
+
+.recent-descriptive-item.urgent {
+    background: #fffcfc;
+    border-color: #fee2e2;
+}
+
+.item-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.item-icon-box.blue { background: #e0ecff; color: #0b40b5; }
+.item-icon-box.purple { background: #f3e8ff; color: #7c3aed; }
+.item-icon-box.green { background: #dcfce7; color: #15803d; }
+.item-icon-box.amber { background: #fef3c7; color: #b45309; }
+.item-icon-box.red { background: #fee2e2; color: #dc2626; }
+.item-icon-box.cyan { background: #cffafe; color: #0891b2; }
+
+/* Department specific notification icons */
+.item-icon-box.notif-admin { background: #e0ecff; color: #0b40b5; }
+.item-icon-box.notif-operation { background: #cffafe; color: #0284c7; }
+.item-icon-box.notif-maintenance { background: #fef3c7; color: #b45309; }
+.item-icon-box.notif-purchase { background: #f3e8ff; color: #7c3aed; }
+.item-icon-box.notif-warehouse { background: #dcfce7; color: #15803d; }
+.item-icon-box.notif-general { background: #f1f5f9; color: #64748b; }
+
+.item-avatar-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #e0e7ff;
+    color: #3730a3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.item-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-identifiers {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.item-code {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.item-user-name,
+.item-entity-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.badge-chip.bus-chip {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.badge-chip.shift-chip {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.badge-chip.dept-admin { background: #eff6ff; color: #1e40af; }
+.badge-chip.dept-operation { background: #ecfeff; color: #0e7490; }
+.badge-chip.dept-maintenance { background: #fffbeb; color: #b45309; }
+.badge-chip.dept-purchase { background: #f5f3ff; color: #6d28d9; }
+.badge-chip.dept-warehouse { background: #f0fdf4; color: #15803d; }
+
+.status-pill {
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-pill.status-completed,
+.status-pill.status-resolved { background: #dcfce7; color: #15803d; }
+.status-pill.status-scheduled,
+.status-pill.status-approved { background: #e0ecff; color: #0b40b5; }
+.status-pill.status-pending-ddr,
+.status-pill.status-pending { background: #fef3c7; color: #b45309; }
+.status-pill.status-missed,
+.status-pill.status-reported,
+.status-pill.status-rejected { background: #fee2e2; color: #dc2626; }
+.status-pill.status-cancelled,
+.status-pill.status-default { background: #f1f5f9; color: #64748b; }
+
+.item-description-text {
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-details-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: #64748b;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.item-details-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.item-time-ago {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+.dashboard-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 38px 20px;
+    text-align: center;
+    min-height: 190px;
+}
+
+.dashboard-empty-icon {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: #f1f5f9;
     color: #94a3b8;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    margin-bottom: 12px;
 }
 
-.d-empty-state strong {
-    font-size: 13px;
-    color: #334155;
-    margin-bottom: 4px;
+.dashboard-empty-state h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px;
 }
 
-.d-empty-state p {
-    font-size: 11px;
+.dashboard-empty-state p {
+    font-size: 12px;
     color: #64748b;
-    max-width: 380px;
+    max-width: 420px;
     margin: 0;
+    line-height: 1.4;
 }
 
-/* Responsive Media Queries */
+/* =========================================================
+   RESPONSIVE DESIGN (BREAKPOINTS)
+   ========================================================= */
 @media (max-width: 1200px) {
-    .descriptive-kpi-grid {
+    .descriptive-stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .descriptive-kpi-grid.admin-kpis {
+    .descriptive-stats-grid.admin-stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .descriptive-grid,
     .descriptive-grid.grid-wide-left {
         grid-template-columns: 1fr;
     }
-    .d-panel.full-width {
-        grid-column: auto;
+    .fleet-health-visual-wrap {
+        grid-template-columns: 1fr;
+    }
+    .telemetry-summary-row {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -478,15 +854,18 @@
         width: 100%;
         justify-content: space-between;
     }
-    .descriptive-kpi-grid,
-    .descriptive-kpi-grid.admin-kpis {
+    .descriptive-stats-grid,
+    .descriptive-stats-grid.admin-stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .safety-metric-row {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 480px) {
-    .descriptive-kpi-grid,
-    .descriptive-kpi-grid.admin-kpis {
+    .descriptive-stats-grid,
+    .descriptive-stats-grid.admin-stats-grid {
         grid-template-columns: 1fr;
     }
 }

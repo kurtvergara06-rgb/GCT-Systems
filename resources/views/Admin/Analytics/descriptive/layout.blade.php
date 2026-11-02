@@ -26,6 +26,7 @@
             'incidentValues' => array_values($incidentTypeDistribution),
         ];
     } else {
+        $activeUsersRate = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100) : 0;
         $chartPayload = [
             'activeSummary' => 'administrative',
             'trendLabels' => $adminTrend->pluck('label')->toArray(),
@@ -117,612 +118,764 @@
                      THESIS OBJECTIVE 6.1.1 — OPERATIONAL SUMMARY
                      ========================================================================= -->
 
-                <!-- 1. KPI Cards Row (5 Cards) -->
-                <div class="descriptive-kpi-grid">
+                <!-- 1. Top KPI Summary Cards Row (5 Cards - Aligned with Maintenance Dashboard) -->
+                <section class="stats-grid descriptive-stats-grid">
                     <!-- Scheduled Trips -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Scheduled Trips</span>
-                            <div class="d-kpi-icon blue"><i class="fa-solid fa-route"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($totalScheduledTrips) }}</span>
-                            <span class="d-kpi-badge {{ $tripCompletionRate >= 80 ? 'badge-green' : ($tripCompletionRate > 0 ? 'badge-blue' : 'badge-amber') }}">
-                                {{ $tripCompletionRate }}% Done
-                            </span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            {{ $completedTrips }} Completed · {{ $pendingDdrTrips }} Pending · {{ $missedTrips }} Missed
-                        </p>
-                    </div>
+                    <x-ui.summary-card
+                        label="Scheduled Trips"
+                        value="{{ number_format($totalScheduledTrips) }}"
+                        small="{{ $completedTrips }} Completed · {{ $pendingDdrTrips }} Pending · {{ $missedTrips }} Missed"
+                        icon="fa-route"
+                        color="blue"
+                        href="{{ route('trip-schedule') }}"
+                    />
 
-                    <!-- Assignments -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Trip Assignments</span>
-                            <div class="d-kpi-icon purple"><i class="fa-solid fa-people-arrows"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($totalAssignedBuses) }}</span>
-                            <span class="d-kpi-badge {{ $assignmentFulfillmentRate >= 80 ? 'badge-green' : ($assignmentFulfillmentRate > 0 ? 'badge-blue' : 'badge-amber') }}">
-                                {{ $assignmentFulfillmentRate }}% Filled
-                            </span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            {{ $totalAssignedBuses }} buses assigned of {{ $totalRequiredBuses }} required
-                        </p>
-                    </div>
+                    <!-- Trip Assignments -->
+                    <x-ui.summary-card
+                        label="Trip Assignments"
+                        value="{{ number_format($totalAssignedBuses) }}"
+                        small="{{ $assignmentFulfillmentRate }}% Filled · {{ $totalAssignedBuses }} of {{ $totalRequiredBuses }} req"
+                        icon="fa-people-arrows"
+                        color="purple"
+                        href="{{ route('driver-bus-assignment') }}"
+                    />
 
                     <!-- Fleet Readiness -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Fleet Readiness</span>
-                            <div class="d-kpi-icon green"><i class="fa-solid fa-bus"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ $fleetAvailability }}%</span>
-                            <span class="d-kpi-badge badge-green">{{ $activeBuses }}/{{ $totalBuses }}</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            {{ $underMaintenance }} in repair bay · {{ $inactiveBuses }} inactive
-                        </p>
-                    </div>
+                    <x-ui.summary-card
+                        label="Fleet Readiness"
+                        value="{{ $fleetAvailability }}%"
+                        small="{{ $activeBuses }}/{{ $totalBuses }} Active · {{ $underMaintenance }} in repair"
+                        icon="fa-bus"
+                        color="green"
+                        href="{{ route('bus-availability') }}"
+                    />
 
-                    <!-- GPS Telemetry -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">GPS Records</span>
-                            <div class="d-kpi-icon cyan"><i class="fa-solid fa-location-dot"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($gpsTripCount) }}</span>
-                            <span class="d-kpi-badge badge-blue">{{ number_format($gpsTotalDistance, 1) }} km</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            Avg speed: {{ round($gpsAverageSpeed, 1) }} km/h · {{ number_format($gpsTotalIdleMinutes) }}m idle
-                        </p>
-                    </div>
+                    <!-- GPS Records -->
+                    <x-ui.summary-card
+                        label="GPS Records"
+                        value="{{ number_format($gpsTripCount) }}"
+                        small="{{ number_format($gpsTotalDistance, 1) }} km · {{ round($gpsAverageSpeed, 1) }} km/h avg"
+                        icon="fa-location-dot"
+                        color="cyan"
+                    />
 
-                    <!-- Incidents -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Total Incidents</span>
-                            <div class="d-kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($totalIncidents) }}</span>
-                            <span class="d-kpi-badge {{ $totalIncidents > 0 ? 'badge-amber' : 'badge-green' }}">
-                                {{ $resolvedIncidents }} Resolved
-                            </span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            {{ $breakdownsCount }} breakdowns · {{ $replacementsDispatched }} replacements dispatched
-                        </p>
-                    </div>
-                </div>
+                    <!-- Total Incidents -->
+                    <x-ui.summary-card
+                        label="Total Incidents"
+                        value="{{ number_format($totalIncidents) }}"
+                        small="{{ $resolvedIncidents }} Resolved · {{ $breakdownsCount }} Breakdowns"
+                        icon="fa-triangle-exclamation"
+                        color="red"
+                        href="{{ route('incidents') }}"
+                    />
+                </section>
 
                 <!-- 2. Charts Row 1: Activity Trend (Wide) + Fleet Health Donut -->
                 <div class="descriptive-grid grid-wide-left">
                     <!-- Scheduled vs GPS Activity Trend -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-chart-column"></i> Operational Activity & Telemetry Trend</h3>
-                                <p>Scheduled trips, completions, processed GPS telemetry, and incident volume by date bucket.</p>
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">OPERATIONAL TELEMETRY</span>
+                                <h2><i class="fa-solid fa-chart-column"></i> Trip Scheduling & Telemetry Trend</h2>
+                                <p>Scheduled trips, completions, and processed GPS telemetry across {{ $periodLabel }}.</p>
                             </div>
-                            <span class="d-panel-pill">{{ $periodLabel }}</span>
+
+                            <div class="chart-header-actions">
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-route text-blue"></i>
+                                    <span>Trips: <strong>{{ $totalScheduledTrips }}</strong></span>
+                                </div>
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-circle-check text-green"></i>
+                                    <span>Done: <strong>{{ $completedTrips }}</strong></span>
+                                </div>
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-location-dot text-cyan"></i>
+                                    <span>GPS: <strong>{{ $gpsTripCount }}</strong></span>
+                                </div>
+                            </div>
                         </div>
+
                         @if($totalScheduledTrips > 0 || $gpsTripCount > 0 || $totalIncidents > 0)
-                            <div class="d-chart-container">
+                            <div class="descriptive-chart-shell">
                                 <canvas id="operationalActivityTrendChart"></canvas>
                             </div>
+
+                            <!-- Telemetry Summary Strip (Eliminates visual emptiness) -->
+                            <div class="telemetry-summary-row">
+                                <div class="telemetry-tile">
+                                    <i class="fa-solid fa-road text-blue"></i>
+                                    <div>
+                                        <strong>{{ number_format($gpsTotalDistance, 1) }} km</strong>
+                                        <small>Total Distance Traveled</small>
+                                    </div>
+                                </div>
+                                <div class="telemetry-tile">
+                                    <i class="fa-solid fa-gauge text-cyan"></i>
+                                    <div>
+                                        <strong>{{ round($gpsAverageSpeed, 1) }} km/h</strong>
+                                        <small>Avg Telemetry Speed</small>
+                                    </div>
+                                </div>
+                                <div class="telemetry-tile">
+                                    <i class="fa-solid fa-stopwatch text-amber"></i>
+                                    <div>
+                                        <strong>{{ number_format($gpsTotalIdleMinutes) }} mins</strong>
+                                        <small>Engine Idle Duration</small>
+                                    </div>
+                                </div>
+                            </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
-                                <strong>No Activity in Selected Period</strong>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                <h3>No Activity in Selected Period</h3>
                                 <p>No scheduled trips, GPS batch logs, or incidents match {{ $periodLabel }}. Select a broader date range.</p>
                             </div>
                         @endif
                     </div>
 
                     <!-- Fleet Health Donut -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-chart-pie"></i> Fleet Availability Distribution</h3>
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">FLEET READINESS</span>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Fleet Availability Distribution</h2>
                                 <p>Live operational status of the {{ $totalBuses }} registered fleet buses.</p>
                             </div>
-                            <span class="d-panel-pill">Current State</span>
+                            <a href="{{ route('bus-availability') }}" class="dashboard-view-link">
+                                <span>Fleet Bay</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
+
                         @if($totalBuses > 0)
-                            <div class="d-donut-row">
-                                <div class="d-donut-chart-box">
+                            <div class="fleet-health-visual-wrap">
+                                <div class="fleet-health-chart-container">
                                     <canvas id="operationalFleetDonutChart"></canvas>
-                                    <div class="d-donut-center-stat">
+                                    <div class="fleet-health-chart-center" aria-hidden="true">
                                         <strong>{{ $fleetAvailability }}%</strong>
-                                        <small>Available</small>
+                                        <span>Available</span>
                                     </div>
                                 </div>
-                                <div class="d-donut-legend-stack">
-                                    <div class="d-legend-item">
-                                        <span class="d-legend-left"><i class="d-legend-dot" style="background:#16a34a"></i> Active Fleet</span>
-                                        <span class="d-legend-val">{{ $activeBuses }}</span>
-                                    </div>
-                                    <div class="d-legend-item">
-                                        <span class="d-legend-left"><i class="d-legend-dot" style="background:#f59e0b"></i> Under Maintenance</span>
-                                        <span class="d-legend-val">{{ $underMaintenance }}</span>
-                                    </div>
-                                    <div class="d-legend-item">
-                                        <span class="d-legend-left"><i class="d-legend-dot" style="background:#94a3b8"></i> Inactive / Reserve</span>
-                                        <span class="d-legend-val">{{ $inactiveBuses }}</span>
-                                    </div>
+                                <div class="fleet-health-status-stack">
+                                    @foreach($fleetStatusStats as $item)
+                                        <div class="fleet-health-row">
+                                            <div class="fleet-health-left">
+                                                <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
+                                                <div class="status-name-desc">
+                                                    <strong>{{ $item->label }}</strong>
+                                                    <small>{{ $item->label === 'Active' ? 'Available for daily dispatch' : ($item->label === 'Under Maintenance' ? 'Under shop repair bay' : 'Standby or restricted') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="fleet-health-right">
+                                                <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
+                                                <small>{{ $item->pct }}%</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-bus"></i></div>
-                                <strong>No Buses Found</strong>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-bus"></i></div>
+                                <h3>No Buses Found</h3>
                                 <p>The Bus Master List is currently empty.</p>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- 3. Charts Row 2: Trip Status Donut + Incident Types -->
+                <!-- 3. Charts Row 2: Trip Status Donut + Incidents & Safety Overview -->
                 <div class="descriptive-grid">
                     <!-- Trip Status Distribution -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-list-check"></i> Trip Execution Status</h3>
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">DISPATCH BREAKDOWN</span>
+                                <h2><i class="fa-solid fa-list-check"></i> Trip Execution Status</h2>
                                 <p>Breakdown of {{ $totalScheduledTrips }} scheduled trips for {{ $periodLabel }}.</p>
                             </div>
+                            <a href="{{ route('trip-schedule') }}" class="dashboard-view-link">
+                                <span>All Schedules</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
+
                         @if($totalScheduledTrips > 0)
-                            <div class="d-chart-container short">
-                                <canvas id="operationalTripStatusChart"></canvas>
+                            <div class="fleet-health-visual-wrap">
+                                <div class="fleet-health-chart-container">
+                                    <canvas id="operationalTripStatusChart"></canvas>
+                                    <div class="fleet-health-chart-center" aria-hidden="true">
+                                        <strong>{{ $totalScheduledTrips }}</strong>
+                                        <span>Trips</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-health-status-stack">
+                                    @foreach($tripStatusStats as $item)
+                                        <div class="fleet-health-row">
+                                            <div class="fleet-health-left">
+                                                <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
+                                                <div class="status-name-desc">
+                                                    <strong>{{ $item->label }}</strong>
+                                                    <small>{{ $item->label === 'Completed' ? 'Successfully fulfilled' : ($item->label === 'Pending DDR' ? 'Awaiting driver report' : ($item->label === 'Scheduled' ? 'Upcoming dispatch' : 'Trip cancelled/missed')) }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="fleet-health-right">
+                                                <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
+                                                <small>{{ $item->pct }}%</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-route"></i></div>
-                                <strong>No Scheduled Trips Recorded</strong>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-route"></i></div>
+                                <h3>No Scheduled Trips Recorded</h3>
                                 <p>No scheduled trips match the selected period or bus filter.</p>
                             </div>
                         @endif
                     </div>
 
-                    <!-- Incidents Breakdown -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-triangle-exclamation"></i> Incidents by Category</h3>
-                                <p>Breakdown of reported incident causes and dispatch responses.</p>
+                    <!-- Incidents Breakdown or Fleet Safety Excellence -->
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">SAFETY & DISRUPTION</span>
+                                <h2><i class="fa-solid fa-shield-halved"></i> Incidents & Safety Overview</h2>
+                                <p>Road disruptions, breakdowns, and dispatch responses for {{ $periodLabel }}.</p>
                             </div>
-                            <span class="d-panel-pill">{{ $totalIncidents }} Total</span>
+                            <a href="{{ route('incidents') }}" class="dashboard-view-link">
+                                <span>Incidents</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
+
                         @if($totalIncidents > 0)
-                            <div class="d-chart-container short">
+                            <div class="descriptive-chart-shell short">
                                 <canvas id="operationalIncidentChart"></canvas>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-shield-heart"></i></div>
-                                <strong>Zero Incidents Recorded</strong>
-                                <p>No breakdown or road incident was logged for the selected period.</p>
+                            <!-- Executive Safety Excellence Card (eliminates gray empty void) -->
+                            <div class="safety-excellence-wrap">
+                                <div class="safety-excellence-badge">
+                                    <div class="safety-icon-box">
+                                        <i class="fa-solid fa-shield-heart"></i>
+                                    </div>
+                                    <div class="safety-text">
+                                        <h3>Zero Incidents Recorded</h3>
+                                        <p>100% Incident-Free Fleet Operations. Zero vehicle breakdowns, road collisions, or service interruptions recorded in {{ $periodLabel }}.</p>
+                                    </div>
+                                </div>
+
+                                <div class="safety-metric-row">
+                                    <div class="safety-metric-tile">
+                                        <span class="safety-metric-num">0</span>
+                                        <span class="safety-metric-label">Breakdowns</span>
+                                        <small>Zero vehicle failures</small>
+                                    </div>
+                                    <div class="safety-metric-tile">
+                                        <span class="safety-metric-num">0</span>
+                                        <span class="safety-metric-label">Dispatches</span>
+                                        <small>No emergency swaps</small>
+                                    </div>
+                                    <div class="safety-metric-tile">
+                                        <span class="safety-metric-num">100%</span>
+                                        <span class="safety-metric-label">Reliability</span>
+                                        <small>Clean road operations</small>
+                                    </div>
+                                </div>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- 4. Tables Row: Recent Scheduled Trips & Recent Incidents -->
-                <div class="descriptive-grid">
-                    <!-- Recent Scheduled Trips Table -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Scheduled Trips</h3>
-                                <p>Latest dispatch tickets and completion records from Operations.</p>
-                            </div>
+                <!-- 4. Tables Row 1: Recent Scheduled Trips (Full Width Modern Item Cards) -->
+                <div class="descriptive-dashboard-card full-width">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <span class="dashboard-eyebrow">DISPATCH LOGS</span>
+                            <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Scheduled Trips</h2>
+                            <p>Latest dispatch tickets and completion records from the Operations scheduling module.</p>
                         </div>
-                        @if($recentTrips->isNotEmpty())
-                            <div class="d-table-wrapper">
-                                <table class="d-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Trip Code</th>
-                                            <th>Date & Shift</th>
-                                            <th>Route / Client</th>
-                                            <th>Bus / Driver</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentTrips as $trip)
-                                            @php
-                                                $assignedBus = $trip->assignments->first()?->bus?->bus_no ?? 'Unassigned';
-                                                $driver = $trip->assignments->first()?->driver_name ?? '—';
-                                                $statusClass = match($trip->status) {
-                                                    'Completed' => 'pill-green',
-                                                    'Scheduled' => 'pill-blue',
-                                                    'Pending DDR' => 'pill-amber',
-                                                    'Missed' => 'pill-red',
-                                                    default => 'pill-gray',
-                                                };
-                                            @endphp
-                                            <tr>
-                                                <td><strong>{{ $trip->trip_code }}</strong></td>
-                                                <td>
-                                                    {{ \Carbon\Carbon::parse($trip->trip_date)->format('M j, Y') }}
-                                                    <br><small style="color:#64748b">{{ $trip->shift }} ({{ $trip->departure_time ? \Carbon\Carbon::parse($trip->departure_time)->format('h:i A') : '—' }})</small>
-                                                </td>
-                                                <td>
-                                                    <strong>{{ $trip->route_name_snapshot ?: ($trip->shuttleRoute?->route_name ?? 'Shuttle Service') }}</strong>
-                                                    <br><small style="color:#64748b">{{ $trip->client_name ?: 'Internal Fleet' }}</small>
-                                                </td>
-                                                <td>
-                                                    <span style="font-weight:600">{{ $assignedBus }}</span>
-                                                    <br><small style="color:#64748b">{{ $driver }}</small>
-                                                </td>
-                                                <td>
-                                                    <span class="d-status-pill {{ $statusClass }}">{{ $trip->status }}</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-route"></i></div>
-                                <strong>No Scheduled Trips Available</strong>
-                                <p>No scheduled trip tickets have been recorded for the selected filter.</p>
-                            </div>
-                        @endif
+                        <a href="{{ route('trip-schedule') }}" class="dashboard-view-link">
+                            <span>View All Trips</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
 
-                    <!-- Recent Incidents Table -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-triangle-exclamation"></i> Recent Incident Reports</h3>
-                                <p>Latest road breakdown and service disruption records.</p>
-                            </div>
+                    @if($recentTrips->isNotEmpty())
+                        <div class="recent-descriptive-list">
+                            @foreach($recentTrips as $trip)
+                                @php
+                                    $statusKey = strtolower(str_replace(' ', '-', $trip->status ?? 'scheduled'));
+                                    $assignedBusesCount = $trip->assignments->count();
+                                    $requiredBuses = (int) ($trip->required_buses ?? 1);
+                                @endphp
+                                <div class="recent-descriptive-item">
+                                    <div class="item-icon-box blue">
+                                        <i class="fa-solid fa-bus"></i>
+                                    </div>
+                                    <div class="item-main">
+                                        <div class="item-header-row">
+                                            <div class="item-identifiers">
+                                                <strong class="item-code">{{ $trip->trip_code ?: 'T-'.$trip->id }}</strong>
+                                                <span class="badge-chip shift-chip">
+                                                    <i class="fa-regular fa-clock"></i> {{ $trip->shift ?? 'Regular' }} ({{ \Carbon\Carbon::parse($trip->departure_time)->format('h:i A') }})
+                                                </span>
+                                                <span class="badge-chip">
+                                                    <i class="fa-solid fa-route"></i> {{ $trip->shuttleRoute->route_name ?? 'Standard Route' }}
+                                                </span>
+                                                @if(!empty($trip->client_name) || !empty($trip->shuttleRoute?->client_name))
+                                                    <span class="badge-chip">
+                                                        <i class="fa-solid fa-building"></i> {{ $trip->client_name ?? $trip->shuttleRoute->client_name }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <span class="status-pill status-{{ $statusKey }}">
+                                                {{ $trip->status ?? 'Scheduled' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="item-details-row">
+                                            <span>
+                                                <i class="fa-solid fa-bus-simple"></i>
+                                                {{ $assignedBusesCount }}/{{ $requiredBuses }} buses assigned
+                                            </span>
+                                            @if($trip->assignments->isNotEmpty())
+                                                <span>
+                                                    <i class="fa-solid fa-id-badge"></i>
+                                                    Fleet: {{ $trip->assignments->map(fn($a) => ($a->bus?->bus_no ?? 'Bus').($a->driver_id ? ' ['.$a->driver_id.']' : ''))->implode(', ') }}
+                                                </span>
+                                            @else
+                                                <span class="text-amber">
+                                                    <i class="fa-solid fa-triangle-exclamation"></i> No bus or driver assigned yet
+                                                </span>
+                                            @endif
+                                            <span class="text-muted">
+                                                <i class="fa-regular fa-calendar"></i> {{ \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        @if($recentIncidents->isNotEmpty())
-                            <div class="d-table-wrapper">
-                                <table class="d-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Incident #</th>
-                                            <th>Type</th>
-                                            <th>Bus & Driver</th>
-                                            <th>Reported Date</th>
-                                            <th>Status / Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentIncidents as $incident)
-                                            @php
-                                                $busNo = $incident->bus?->bus_no ?? 'Unassigned';
-                                                $repBus = $incident->replacement?->replacementBus?->bus_no;
-                                                $statusClass = match($incident->status) {
-                                                    'Resolved' => 'pill-green',
-                                                    'Replacement Bus Dispatched' => 'pill-blue',
-                                                    'Reported' => 'pill-amber',
-                                                    default => 'pill-red',
-                                                };
-                                                $reportedAt = $incident->incident_reported_at ? \Carbon\Carbon::parse($incident->incident_reported_at) : $incident->created_at;
-                                            @endphp
-                                            <tr>
-                                                <td><strong>{{ $incident->incident_no }}</strong></td>
-                                                <td>
-                                                    {{ $incident->incident_type }}
-                                                    @if($repBus)
-                                                        <br><small style="color:#2563eb"><i class="fa-solid fa-repeat"></i> Repl: {{ $repBus }}</small>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <strong>{{ $busNo }}</strong>
-                                                    <br><small style="color:#64748b">{{ $incident->driver_name ?: '—' }}</small>
-                                                </td>
-                                                <td>{{ $reportedAt ? $reportedAt->format('M j, Y h:i A') : '—' }}</td>
-                                                <td>
-                                                    <span class="d-status-pill {{ $statusClass }}">{{ $incident->status }}</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                                <strong>No Incident Reports</strong>
-                                <p>No breakdowns or vehicle incidents match the selected period.</p>
-                            </div>
-                        @endif
-                    </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-icon"><i class="fa-solid fa-route"></i></div>
+                            <h3>No Recent Trips Found</h3>
+                            <p>No dispatch records recorded for the selected filter criteria.</p>
+                        </div>
+                    @endif
                 </div>
+
+                <!-- 5. Tables Row 2: Recent Incidents (Full Width Modern Item Cards) -->
+                @if($recentIncidents->isNotEmpty())
+                    <div class="descriptive-dashboard-card full-width">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">INCIDENT AUDIT</span>
+                                <h2><i class="fa-solid fa-triangle-exclamation"></i> Recent Incident Reports</h2>
+                                <p>Latest road breakdown and service disruption logs recorded by Operations.</p>
+                            </div>
+                            <a href="{{ route('incidents') }}" class="dashboard-view-link">
+                                <span>View All Incidents</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="recent-descriptive-list">
+                            @foreach($recentIncidents as $inc)
+                                @php
+                                    $incStatusKey = strtolower(str_replace(' ', '-', $inc->status ?? 'reported'));
+                                    $isBreakdown = $inc->incident_type === 'Bus Breakdown';
+                                @endphp
+                                <div class="recent-descriptive-item {{ $isBreakdown ? 'urgent' : '' }}">
+                                    <div class="item-icon-box {{ $isBreakdown ? 'red' : 'amber' }}">
+                                        <i class="fa-solid {{ $isBreakdown ? 'fa-triangle-exclamation' : 'fa-circle-exclamation' }}"></i>
+                                    </div>
+                                    <div class="item-main">
+                                        <div class="item-header-row">
+                                            <div class="item-identifiers">
+                                                <strong class="item-code">{{ $inc->incident_no ?: 'INC-'.$inc->id }}</strong>
+                                                <span class="badge-chip bus-chip">
+                                                    <i class="fa-solid fa-bus"></i> {{ $inc->bus?->bus_no ?? 'Bus N/A' }}
+                                                </span>
+                                                <span class="badge-chip">
+                                                    {{ $inc->incident_type ?? 'General Incident' }}
+                                                </span>
+                                            </div>
+                                            <span class="status-pill status-{{ $incStatusKey }}">
+                                                {{ $inc->status ?? 'Reported' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="item-description-text">
+                                            {{ $inc->description ?: 'No narrative description provided for this incident.' }}
+                                        </div>
+
+                                        <div class="item-details-row">
+                                            @if($inc->replacement)
+                                                <span class="text-green">
+                                                    <i class="fa-solid fa-shield-check"></i> Replacement Dispatched: {{ $inc->replacement->replacementBus?->bus_no ?? 'Bus' }}
+                                                </span>
+                                            @endif
+                                            @if($inc->driver_name)
+                                                <span><i class="fa-solid fa-user"></i> Driver: {{ $inc->driver_name }}</span>
+                                            @endif
+                                            <span class="text-muted">
+                                                <i class="fa-regular fa-clock"></i> {{ ($inc->incident_reported_at ?: $inc->created_at)->format('M d, Y h:i A') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
             @else
                 <!-- =========================================================================
                      THESIS OBJECTIVE 6.1.2 — ADMINISTRATIVE SUMMARY
                      ========================================================================= -->
 
-                <!-- 1. KPI Cards Row (4 Cards) -->
-                <div class="descriptive-kpi-grid admin-kpis">
+                <!-- 1. Top KPI Summary Cards Row (4 Cards - Aligned with Purchase & Maintenance) -->
+                <section class="stats-grid descriptive-stats-grid admin-stats-grid">
                     <!-- Active Users -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Active Users</span>
-                            <div class="d-kpi-icon blue"><i class="fa-solid fa-user-check"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($activeUsers) }}</span>
-                            <span class="d-kpi-badge badge-green">{{ round(($activeUsers / max(1, $totalUsers)) * 100) }}% Active</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            {{ $totalUsers }} total registered accounts across all modules
-                        </p>
-                    </div>
+                    <x-ui.summary-card
+                        label="Active Users"
+                        value="{{ $activeUsers }}"
+                        small="{{ $activeUsersRate }}% Active · {{ $totalUsers }} total registered accounts"
+                        icon="fa-users"
+                        color="blue"
+                        href="{{ route('admin.users') }}"
+                    />
 
-                    <!-- Pending / Inactive Users -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">Pending / Inactive</span>
-                            <div class="d-kpi-icon amber"><i class="fa-solid fa-user-clock"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($inactiveUsers) }}</span>
-                            <span class="d-kpi-badge badge-amber">Awaiting</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            Accounts requiring role assignment or pending onboarding
-                        </p>
-                    </div>
+                    <!-- Pending / Inactive -->
+                    <x-ui.summary-card
+                        label="Pending / Inactive"
+                        value="{{ $inactiveUsers }}"
+                        small="{{ $inactiveUsers }} awaiting review or deactivated"
+                        icon="fa-user-clock"
+                        color="yellow"
+                        href="{{ route('admin.applications') }}"
+                    />
 
-                    <!-- User Activities (Audit Logs) -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">User Activities</span>
-                            <div class="d-kpi-icon green"><i class="fa-solid fa-clipboard-list"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($totalActivities) }}</span>
-                            <span class="d-kpi-badge badge-blue">Audit Trail</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            Documented system actions and mutations in {{ $periodLabel }}
-                        </p>
-                    </div>
+                    <!-- User Activities -->
+                    <x-ui.summary-card
+                        label="User Activities"
+                        value="{{ number_format($totalActivities) }}"
+                        small="Documented audit logs in {{ $periodLabel }}"
+                        icon="fa-file-shield"
+                        color="green"
+                        href="{{ route('admin.activity-logs') }}"
+                    />
 
                     <!-- System Notifications -->
-                    <div class="d-kpi-card">
-                        <div class="d-kpi-top">
-                            <span class="d-kpi-label">System Notifications</span>
-                            <div class="d-kpi-icon purple"><i class="fa-solid fa-bell"></i></div>
-                        </div>
-                        <div class="d-kpi-middle">
-                            <span class="d-kpi-value">{{ number_format($totalNotifications) }}</span>
-                            <span class="d-kpi-badge badge-purple">Dispatched</span>
-                        </div>
-                        <p class="d-kpi-subtext">
-                            Automated threshold alerts and workflow notifications
-                        </p>
-                    </div>
-                </div>
+                    <x-ui.summary-card
+                        label="System Notifications"
+                        value="{{ number_format($totalNotifications) }}"
+                        small="Automated threshold alerts & workflow events"
+                        icon="fa-bell"
+                        color="purple"
+                        href="{{ route('admin.notifications') }}"
+                    />
+                </section>
 
-                <!-- 2. Charts Row 1: Activity Trend & Activity by Module -->
+                <!-- 2. Charts Row 1: Activity Trend (Smooth Curve) + Activity by Module Donut -->
                 <div class="descriptive-grid grid-wide-left">
-                    <!-- User Activity Trend -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-chart-line"></i> User Activity & System Alerts Over Time</h3>
+                    <!-- Activity & Notification Volume Over Time -->
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">AUDIT & SECURITY</span>
+                                <h2><i class="fa-solid fa-chart-line"></i> User Activity & System Alerts Over Time</h2>
                                 <p>Volume of user action audit logs and system notifications across {{ $periodLabel }}.</p>
                             </div>
-                            <span class="d-panel-pill">{{ $periodLabel }}</span>
+
+                            <div class="chart-header-actions">
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-file-shield text-blue"></i>
+                                    <span>Logs: <strong>{{ number_format($totalActivities) }}</strong></span>
+                                </div>
+                                <div class="chart-kpi-pill">
+                                    <i class="fa-solid fa-bell text-amber"></i>
+                                    <span>Alerts: <strong>{{ number_format($totalNotifications) }}</strong></span>
+                                </div>
+                            </div>
                         </div>
+
                         @if($totalActivities > 0 || $totalNotifications > 0)
-                            <div class="d-chart-container">
+                            <div class="descriptive-chart-shell">
                                 <canvas id="adminActivityTrendChart"></canvas>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-                                <strong>No Activity Recorded</strong>
-                                <p>No audit trail records or notifications exist for {{ $periodLabel }}.</p>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                <h3>No System Activity Recorded</h3>
+                                <p>No audit events or notifications were logged in {{ $periodLabel }}.</p>
                             </div>
                         @endif
                     </div>
 
-                    <!-- Activity by Module -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-chart-pie"></i> Activity by Department Module</h3>
+                    <!-- Activity by Department Module Donut -->
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">CROSS-MODULE UTILIZATION</span>
+                                <h2><i class="fa-solid fa-chart-pie"></i> Activity by Module</h2>
                                 <p>Distribution of {{ number_format($totalActivities) }} actions across FROMS departments.</p>
                             </div>
+                            <a href="{{ route('admin.activity-logs') }}" class="dashboard-view-link">
+                                <span>Audit Logs</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
-                        @if(!empty($activityByModule))
-                            <div class="d-chart-container">
-                                <canvas id="adminModuleDistributionChart"></canvas>
+
+                        @if($totalActivities > 0)
+                            <div class="fleet-health-visual-wrap">
+                                <div class="fleet-health-chart-container">
+                                    <canvas id="adminActivityModuleChart"></canvas>
+                                    <div class="fleet-health-chart-center" aria-hidden="true">
+                                        <strong>{{ number_format($totalActivities) }}</strong>
+                                        <span>Logs</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-health-status-stack">
+                                    @foreach($moduleStats as $item)
+                                        <div class="fleet-health-row">
+                                            <div class="fleet-health-left">
+                                                <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
+                                                <div class="status-name-desc">
+                                                    <strong>{{ $item->label }} Module</strong>
+                                                    <small>Actions in department</small>
+                                                </div>
+                                            </div>
+                                            <div class="fleet-health-right">
+                                                <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
+                                                <small>{{ $item->pct }}%</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-cubes"></i></div>
-                                <strong>No Module Activity</strong>
-                                <p>No department interactions logged during this period.</p>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                                <h3>No Module Activity</h3>
+                                <p>No audit trail records found for {{ $periodLabel }}.</p>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- 3. Charts Row 2: Notifications by Module & User Departments -->
+                <!-- 3. Charts Row 2: Notifications by Module Bar + Users by Department Donut -->
                 <div class="descriptive-grid">
-                    <!-- Notifications by Module -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-bell"></i> Notifications by Department</h3>
+                    <!-- Notifications by Department -->
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">DISPATCHED ALERTS</span>
+                                <h2><i class="fa-solid fa-bell"></i> Notifications by Department</h2>
                                 <p>System alerts generated per operational department.</p>
                             </div>
-                            <span class="d-panel-pill">{{ $totalNotifications }} Alerts</span>
+                            <a href="{{ route('admin.notifications') }}" class="dashboard-view-link">
+                                <span>Notification Center</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
-                        @if(!empty($notificationsByModule))
-                            <div class="d-chart-container short">
-                                <canvas id="adminNotificationCategoryChart"></canvas>
+
+                        @if($totalNotifications > 0)
+                            <div class="descriptive-chart-shell short">
+                                <canvas id="adminNotificationsModuleChart"></canvas>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-bell-slash"></i></div>
-                                <strong>No Notifications Generated</strong>
-                                <p>No notification alerts were triggered in the selected period.</p>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-bell-slash"></i></div>
+                                <h3>No Notifications Generated</h3>
+                                <p>No system alerts or threshold events were triggered in {{ $periodLabel }}.</p>
                             </div>
                         @endif
                     </div>
 
-                    <!-- User Account Distribution -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-users"></i> Users by Department</h3>
-                                <p>Head and staff personnel distribution across departments.</p>
+                    <!-- Users by Department Donut -->
+                    <div class="descriptive-dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <span class="dashboard-eyebrow">WORKFORCE ROSTER</span>
+                                <h2><i class="fa-solid fa-users"></i> Users by Department</h2>
+                                <p>Head and staff personnel distribution across {{ $totalUsers }} total accounts.</p>
                             </div>
-                            <span class="d-panel-pill">{{ $totalUsers }} Total</span>
+                            <a href="{{ route('admin.users') }}" class="dashboard-view-link">
+                                <span>User Directory</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
-                        @if(!empty($usersByDepartment))
-                            <div class="d-chart-container short">
-                                <canvas id="adminUserDistributionChart"></canvas>
+
+                        @if($totalUsers > 0)
+                            <div class="fleet-health-visual-wrap">
+                                <div class="fleet-health-chart-container">
+                                    <canvas id="adminUserDepartmentChart"></canvas>
+                                    <div class="fleet-health-chart-center" aria-hidden="true">
+                                        <strong>{{ $totalUsers }}</strong>
+                                        <span>Users</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-health-status-stack">
+                                    @foreach($userDeptStats as $item)
+                                        <div class="fleet-health-row">
+                                            <div class="fleet-health-left">
+                                                <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
+                                                <div class="status-name-desc">
+                                                    <strong>{{ $item->label }}</strong>
+                                                    <small>Active personnel</small>
+                                                </div>
+                                            </div>
+                                            <div class="fleet-health-right">
+                                                <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
+                                                <small>{{ $item->pct }}%</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-users"></i></div>
-                                <strong>No Users Found</strong>
-                                <p>No user accounts recorded in the database.</p>
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-users"></i></div>
+                                <h3>No Accounts Registered</h3>
+                                <p>No user accounts exist in the system database.</p>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- 4. Tables Row: Recent System Activities & Recent Notifications -->
-                <div class="descriptive-grid">
-                    <!-- Recent Activities Table -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent System Activities (Audit Trail)</h3>
-                                <p>Latest actions, updates, and status mutations logged across FROMS.</p>
-                            </div>
+                <!-- 4. Tables Row 1: Recent System Activities (Full Width Modern Item Cards) -->
+                <div class="descriptive-dashboard-card full-width">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <span class="dashboard-eyebrow">USER AUDIT TRAIL</span>
+                            <h2><i class="fa-solid fa-shield-halved"></i> Recent System Activities (Audit Trail)</h2>
+                            <p>Latest actions, updates, and state mutations logged across FROMS.</p>
                         </div>
-                        @if($recentActivities->isNotEmpty())
-                            <div class="d-table-wrapper">
-                                <table class="d-table">
-                                    <thead>
-                                        <tr>
-                                            <th>User & Role</th>
-                                            <th>Action / Activity</th>
-                                            <th>Module</th>
-                                            <th>IP & Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentActivities as $act)
-                                            @php
-                                                $modClass = match($act->module) {
-                                                    'Admin' => 'pill-blue',
-                                                    'Operation' => 'pill-cyan',
-                                                    'Maintenance' => 'pill-amber',
-                                                    'Purchase' => 'pill-purple',
-                                                    'Warehouse' => 'pill-green',
-                                                    default => 'pill-gray',
-                                                };
-                                            @endphp
-                                            <tr>
-                                                <td>
-                                                    <strong>{{ $act->user_name ?: 'System' }}</strong>
-                                                    <br><small style="color:#64748b">{{ $act->department ?: 'General' }} ({{ $act->user_role ?: 'User' }})</small>
-                                                </td>
-                                                <td>
-                                                    {{ $act->activity }}
-                                                    @if($act->reference)
-                                                        <br><small style="color:#2563eb">Ref: {{ $act->reference }}</small>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <span class="d-status-pill {{ $modClass }}">{{ $act->module ?: 'General' }}</span>
-                                                </td>
-                                                <td>
-                                                    <span style="font-weight:600">{{ $act->created_at->format('M j, Y h:i A') }}</span>
-                                                    <br><small style="color:#64748b">{{ $act->ip_address ?: '127.0.0.1' }}</small>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-                                <strong>No Activity Records</strong>
-                                <p>No audit trail logs exist for the selected filter.</p>
-                            </div>
-                        @endif
+                        <a href="{{ route('admin.activity-logs') }}" class="dashboard-view-link">
+                            <span>View All Logs</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
 
-                    <!-- Recent Notifications Table -->
-                    <div class="d-panel">
-                        <div class="d-panel-header">
-                            <div class="d-panel-title-area">
-                                <h3><i class="fa-solid fa-bell"></i> Recent System Notifications</h3>
-                                <p>Latest dispatch alerts and threshold events.</p>
-                            </div>
+                    @if($recentActivities->isNotEmpty())
+                        <div class="recent-descriptive-list">
+                            @foreach($recentActivities as $act)
+                                @php
+                                    $actModuleKey = strtolower($act->module ?? 'admin');
+                                    $initials = strtoupper(substr($act->user->name ?? 'System', 0, 2));
+                                @endphp
+                                <div class="recent-descriptive-item">
+                                    <div class="item-avatar-box">
+                                        {{ $initials }}
+                                    </div>
+                                    <div class="item-main">
+                                        <div class="item-header-row">
+                                            <div class="item-identifiers">
+                                                <strong class="item-user-name">{{ $act->user_name ?: ($act->user?->name ?: 'System Administrator') }}</strong>
+                                                <span class="badge-chip dept-{{ $actModuleKey }}">
+                                                    {{ $act->module ?? 'Admin' }}
+                                                </span>
+                                                <span class="badge-chip">
+                                                    {{ ucfirst(strtolower($act->event_type ?? 'Action')) }}
+                                                </span>
+                                            </div>
+                                            <span class="item-time-ago">
+                                                <i class="fa-regular fa-clock"></i> {{ $act->created_at ? $act->created_at->diffForHumans() : '—' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="item-description-text">
+                                            {{ $act->activity ?: ($act->description ?: ($act->details ?: 'System action executed.')) }}
+                                        </div>
+
+                                        <div class="item-details-row">
+                                            @if(!empty($act->ip_address))
+                                                <span><i class="fa-solid fa-network-wired"></i> IP: {{ $act->ip_address }}</span>
+                                            @endif
+                                            <span class="text-muted">
+                                                <i class="fa-regular fa-calendar"></i> {{ $act->created_at ? $act->created_at->format('M d, Y h:i A') : '—' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        @if($recentNotifications->isNotEmpty())
-                            <div class="d-table-wrapper">
-                                <table class="d-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Module</th>
-                                            <th>Entity</th>
-                                            <th>Action</th>
-                                            <th>Message</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($recentNotifications as $notif)
-                                            @php
-                                                $modClass = match($notif->module) {
-                                                    'Admin' => 'pill-blue',
-                                                    'Operation' => 'pill-cyan',
-                                                    'Maintenance' => 'pill-amber',
-                                                    'Purchase' => 'pill-purple',
-                                                    'Warehouse' => 'pill-green',
-                                                    default => 'pill-gray',
-                                                };
-                                            @endphp
-                                            <tr>
-                                                <td><span class="d-status-pill {{ $modClass }}">{{ $notif->module }}</span></td>
-                                                <td><strong>{{ $notif->entity }}</strong></td>
-                                                <td>
-                                                    <span class="d-status-pill pill-gray">{{ str_replace('_', ' ', $notif->action) }}</span>
-                                                </td>
-                                                <td style="max-width:280px;line-height:1.3">{{ $notif->message }}</td>
-                                                <td>{{ $notif->created_at->format('M j, h:i A') }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="d-empty-state">
-                                <div class="d-empty-icon"><i class="fa-solid fa-bell-slash"></i></div>
-                                <strong>No Notifications</strong>
-                                <p>No system notifications have been recorded for this period.</p>
-                            </div>
-                        @endif
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                            <h3>No Activity Records</h3>
+                            <p>No user actions were logged for the selected period.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- 5. Tables Row 2: Recent System Notifications (Full Width Modern Item Cards) -->
+                <div class="descriptive-dashboard-card full-width">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <span class="dashboard-eyebrow">SYSTEM BROADCASTS</span>
+                            <h2><i class="fa-solid fa-bell"></i> Recent System Notifications</h2>
+                            <p>Latest dispatch alerts, threshold reminders, and background processing notifications.</p>
+                        </div>
+                        <a href="{{ route('admin.notifications') }}" class="dashboard-view-link">
+                            <span>View All Notifications</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
+
+                    @if($recentNotifications->isNotEmpty())
+                        <div class="recent-descriptive-list">
+                            @foreach($recentNotifications as $notif)
+                                @php
+                                    $notifModKey = strtolower($notif->module ?? 'general');
+                                @endphp
+                                <div class="recent-descriptive-item">
+                                    <div class="item-icon-box notif-{{ $notifModKey }}">
+                                        <i class="fa-solid fa-bell"></i>
+                                    </div>
+                                    <div class="item-main">
+                                        <div class="item-header-row">
+                                            <div class="item-identifiers">
+                                                <span class="badge-chip dept-{{ $notifModKey }}">
+                                                    {{ $notif->module ?? 'General' }}
+                                                </span>
+                                                <strong class="item-entity-name">{{ $notif->entity_type ?: 'System Event' }}</strong>
+                                                <span class="badge-chip">
+                                                    {{ ucfirst(strtolower(str_replace('_', ' ', $notif->action ?? 'alert'))) }}
+                                                </span>
+                                            </div>
+                                            <span class="item-time-ago">
+                                                <i class="fa-regular fa-clock"></i> {{ $notif->created_at ? $notif->created_at->diffForHumans() : '—' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="item-description-text">
+                                            {{ $notif->message ?: 'Notification triggered.' }}
+                                        </div>
+
+                                        <div class="item-details-row">
+                                            <span class="text-muted">
+                                                <i class="fa-regular fa-calendar"></i> {{ $notif->created_at ? $notif->created_at->format('M d, Y h:i A') : '—' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-icon"><i class="fa-solid fa-bell-slash"></i></div>
+                            <h3>No Notifications</h3>
+                            <p>No system alerts or threshold events were triggered in {{ $periodLabel }}.</p>
+                        </div>
+                    @endif
                 </div>
 
             @endif

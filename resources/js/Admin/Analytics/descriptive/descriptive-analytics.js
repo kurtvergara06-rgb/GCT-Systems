@@ -50,7 +50,7 @@ function initDescriptiveAnalytics() {
    ========================================================================= */
 
 function initOperationalCharts(data) {
-    // 1. Activity Trend Chart
+    // 1. Activity & Telemetry Trend Chart
     const trendCanvas = document.getElementById('operationalActivityTrendChart');
     if (trendCanvas && data.trendLabels && data.trendLabels.length > 0) {
         destroyChart('operationalActivityTrendChart');
@@ -63,33 +63,37 @@ function initOperationalCharts(data) {
                         label: 'Scheduled Trips',
                         data: data.trendScheduled || [],
                         backgroundColor: '#2563eb',
-                        borderRadius: 4,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.8,
+                        borderRadius: 6,
+                        maxBarThickness: 32,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.75,
                     },
                     {
                         label: 'Completed Trips',
                         data: data.trendCompleted || [],
                         backgroundColor: '#16a34a',
-                        borderRadius: 4,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.8,
+                        borderRadius: 6,
+                        maxBarThickness: 32,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.75,
                     },
                     {
-                        label: 'GPS Trips Processed',
+                        label: 'GPS Telemetry Records',
                         data: data.trendGps || [],
                         backgroundColor: '#0ea5e9',
-                        borderRadius: 4,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.8,
+                        borderRadius: 6,
+                        maxBarThickness: 32,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.75,
                     },
                     {
                         label: 'Incidents Reported',
                         data: data.trendIncidents || [],
                         backgroundColor: '#ef4444',
-                        borderRadius: 4,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.8,
+                        borderRadius: 6,
+                        maxBarThickness: 32,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.75,
                     },
                 ],
             },
@@ -100,17 +104,17 @@ function initOperationalCharts(data) {
                     legend: {
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            boxHeight: 12,
+                            boxWidth: 10,
+                            boxHeight: 10,
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600', family: 'Inter, system-ui, sans-serif' },
                             color: '#334155',
-                            padding: 16,
+                            padding: 14,
                         },
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                        backgroundColor: 'rgba(15, 23, 42, 0.94)',
                         padding: 10,
                         cornerRadius: 8,
                         titleFont: { size: 12, weight: '700' },
@@ -120,7 +124,7 @@ function initOperationalCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10 }, color: '#64748b' },
+                        ticks: { font: { size: 10, weight: '500' }, color: '#64748b' },
                     },
                     y: {
                         beginAtZero: true,
@@ -139,12 +143,12 @@ function initOperationalCharts(data) {
         chartInstances['operationalFleetDonutChart'] = new Chart(fleetCanvas, {
             type: 'doughnut',
             data: {
-                labels: ['Active', 'Under Maintenance', 'Inactive'],
+                labels: ['Active', 'Under Maintenance', 'Inactive / Reserve'],
                 datasets: [
                     {
                         data: [data.activeBuses || 0, data.underMaintenance || 0, data.inactiveBuses || 0],
                         backgroundColor: ['#16a34a', '#f59e0b', '#94a3b8'],
-                        borderWidth: 2,
+                        borderWidth: 3,
                         borderColor: '#ffffff',
                     },
                 ],
@@ -191,7 +195,7 @@ function initOperationalCharts(data) {
                     {
                         data: data.tripStatusValues,
                         backgroundColor: bgColors,
-                        borderWidth: 2,
+                        borderWidth: 3,
                         borderColor: '#ffffff',
                     },
                 ],
@@ -199,17 +203,17 @@ function initOperationalCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '68%',
+                cutout: '72%',
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            boxHeight: 10,
-                            usePointStyle: true,
-                            font: { size: 10, weight: '600' },
-                            color: '#334155',
-                            padding: 10,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const total = data.tripStatusValues.reduce((a, b) => a + b, 0) || 1;
+                                const val = ctx.parsed;
+                                const pct = Math.round((val / total) * 100);
+                                return ` ${ctx.label}: ${val} trips (${pct}%)`;
+                            },
                         },
                     },
                 },
@@ -230,7 +234,8 @@ function initOperationalCharts(data) {
                         label: 'Incidents',
                         data: data.incidentValues,
                         backgroundColor: '#ef4444',
-                        borderRadius: 4,
+                        borderRadius: 6,
+                        maxBarThickness: 32,
                         barPercentage: 0.6,
                     },
                 ],
@@ -270,10 +275,19 @@ function initOperationalCharts(data) {
    ========================================================================= */
 
 function initAdministrativeCharts(data) {
-    // 1. Audit Log Activity Trend
+    // 1. Audit Log Activity Trend (Smooth Area Curves)
     const activityTrendCanvas = document.getElementById('adminActivityTrendChart');
     if (activityTrendCanvas && data.trendLabels && data.trendLabels.length > 0) {
         destroyChart('adminActivityTrendChart');
+        const ctx = activityTrendCanvas.getContext('2d');
+        const gradBlue = ctx.createLinearGradient(0, 0, 0, 240);
+        gradBlue.addColorStop(0, 'rgba(37, 99, 235, 0.20)');
+        gradBlue.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+        const gradAmber = ctx.createLinearGradient(0, 0, 0, 240);
+        gradAmber.addColorStop(0, 'rgba(245, 158, 11, 0.16)');
+        gradAmber.addColorStop(1, 'rgba(245, 158, 11, 0.00)');
+
         chartInstances['adminActivityTrendChart'] = new Chart(activityTrendCanvas, {
             type: 'line',
             data: {
@@ -283,10 +297,12 @@ function initAdministrativeCharts(data) {
                         label: 'User Activities (Audit Logs)',
                         data: data.trendActivities || [],
                         borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        borderWidth: 2.5,
+                        backgroundColor: gradBlue,
                         fill: true,
                         tension: 0.35,
                         pointRadius: 4,
+                        pointHoverRadius: 6,
                         pointBackgroundColor: '#2563eb',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
@@ -295,10 +311,12 @@ function initAdministrativeCharts(data) {
                         label: 'System Notifications',
                         data: data.trendNotifications || [],
                         borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.06)',
+                        borderWidth: 2.5,
+                        backgroundColor: gradAmber,
                         fill: true,
                         tension: 0.35,
                         pointRadius: 4,
+                        pointHoverRadius: 6,
                         pointBackgroundColor: '#f59e0b',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
@@ -312,17 +330,17 @@ function initAdministrativeCharts(data) {
                     legend: {
                         position: 'top',
                         labels: {
-                            boxWidth: 12,
-                            boxHeight: 12,
+                            boxWidth: 10,
+                            boxHeight: 10,
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600' },
                             color: '#334155',
-                            padding: 16,
+                            padding: 14,
                         },
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                        backgroundColor: 'rgba(15, 23, 42, 0.94)',
                         padding: 10,
                         cornerRadius: 8,
                     },
@@ -364,7 +382,7 @@ function initAdministrativeCharts(data) {
                     {
                         data: data.moduleValues,
                         backgroundColor: bgColors,
-                        borderWidth: 2,
+                        borderWidth: 3,
                         borderColor: '#ffffff',
                     },
                 ],
@@ -372,17 +390,17 @@ function initAdministrativeCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '66%',
+                cutout: '72%',
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            boxHeight: 10,
-                            usePointStyle: true,
-                            font: { size: 10, weight: '600' },
-                            color: '#334155',
-                            padding: 10,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const total = data.moduleValues.reduce((a, b) => a + b, 0) || 1;
+                                const val = ctx.parsed;
+                                const pct = Math.round((val / total) * 100);
+                                return ` ${ctx.label}: ${val} logs (${pct}%)`;
+                            },
                         },
                     },
                 },
@@ -390,7 +408,7 @@ function initAdministrativeCharts(data) {
         });
     }
 
-    // 3. Notifications by Module
+    // 3. Notifications by Department
     const notifCanvas = document.getElementById('adminNotificationCategoryChart');
     if (notifCanvas && data.notifModuleLabels && data.notifModuleLabels.length > 0) {
         destroyChart('adminNotificationCategoryChart');
@@ -412,7 +430,8 @@ function initAdministrativeCharts(data) {
                         label: 'Notifications',
                         data: data.notifModuleValues,
                         backgroundColor: bgColors,
-                        borderRadius: 5,
+                        borderRadius: 6,
+                        maxBarThickness: 34,
                         barPercentage: 0.6,
                     },
                 ],
@@ -442,7 +461,15 @@ function initAdministrativeCharts(data) {
     const userCanvas = document.getElementById('adminUserDistributionChart');
     if (userCanvas && data.userDeptLabels && data.userDeptLabels.length > 0) {
         destroyChart('adminUserDistributionChart');
-        const deptColors = ['#2563eb', '#16a34a', '#0ea5e9', '#f59e0b', '#8b5cf6', '#64748b'];
+        const deptColorMap = {
+            'Admin': '#3b82f6',
+            'Operation': '#0ea5e9',
+            'Maintenance': '#f59e0b',
+            'Purchase': '#8b5cf6',
+            'Warehouse': '#10b981',
+            'Unassigned': '#94a3b8',
+        };
+        const bgColors = data.userDeptLabels.map((lbl) => deptColorMap[lbl] || '#64748b');
 
         chartInstances['adminUserDistributionChart'] = new Chart(userCanvas, {
             type: 'doughnut',
@@ -451,8 +478,8 @@ function initAdministrativeCharts(data) {
                 datasets: [
                     {
                         data: data.userDeptValues,
-                        backgroundColor: deptColors.slice(0, data.userDeptLabels.length),
-                        borderWidth: 2,
+                        backgroundColor: bgColors,
+                        borderWidth: 3,
                         borderColor: '#ffffff',
                     },
                 ],
@@ -460,17 +487,17 @@ function initAdministrativeCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '66%',
+                cutout: '72%',
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            boxHeight: 10,
-                            usePointStyle: true,
-                            font: { size: 10, weight: '600' },
-                            color: '#334155',
-                            padding: 8,
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                const total = data.userDeptValues.reduce((a, b) => a + b, 0) || 1;
+                                const val = ctx.parsed;
+                                const pct = Math.round((val / total) * 100);
+                                return ` ${ctx.label}: ${val} users (${pct}%)`;
+                            },
                         },
                     },
                 },

@@ -42,6 +42,27 @@ class DescriptiveAnalyticsController extends Controller
         $inactiveBuses = $buses->where('status', 'Inactive')->count();
         $fleetAvailability = $totalBuses > 0 ? round(($activeBuses / $totalBuses) * 100, 1) : 0.0;
 
+        $fleetStatusStats = [
+            (object) [
+                'label' => 'Active Fleet',
+                'count' => $activeBuses,
+                'pct' => $totalBuses > 0 ? round(($activeBuses / $totalBuses) * 100, 1) : 0,
+                'color' => '#16a34a',
+            ],
+            (object) [
+                'label' => 'Under Maintenance',
+                'count' => $underMaintenance,
+                'pct' => $totalBuses > 0 ? round(($underMaintenance / $totalBuses) * 100, 1) : 0,
+                'color' => '#f59e0b',
+            ],
+            (object) [
+                'label' => 'Inactive / Reserve',
+                'count' => $inactiveBuses,
+                'pct' => $totalBuses > 0 ? round(($inactiveBuses / $totalBuses) * 100, 1) : 0,
+                'color' => '#94a3b8',
+            ],
+        ];
+
         $dateBuckets = $this->createDateBuckets($start, $end, $period);
 
         if ($activeSummary === 'operational') {
@@ -62,6 +83,7 @@ class DescriptiveAnalyticsController extends Controller
             'underMaintenance' => $underMaintenance,
             'inactiveBuses' => $inactiveBuses,
             'fleetAvailability' => $fleetAvailability,
+            'fleetStatusStats' => $fleetStatusStats,
         ], $data));
     }
 
@@ -168,13 +190,31 @@ class DescriptiveAnalyticsController extends Controller
             $tripStatusDistribution['Cancelled'] = $cancelledTrips;
         }
 
+        $tripStatusColors = [
+            'Completed' => '#16a34a',
+            'Scheduled' => '#2563eb',
+            'Pending DDR' => '#f59e0b',
+            'Missed' => '#ef4444',
+            'Cancelled' => '#64748b',
+        ];
+
+        $tripStatusStats = collect($tripStatusDistribution)->map(function ($count, $label) use ($totalScheduledTrips, $tripStatusColors) {
+            $pct = $totalScheduledTrips > 0 ? round(($count / $totalScheduledTrips) * 100, 1) : 0;
+            return (object) [
+                'label' => $label,
+                'count' => $count,
+                'pct' => $pct,
+                'color' => $tripStatusColors[$label] ?? '#3b82f6',
+            ];
+        })->values();
+
         $incidentTypeDistribution = $allIncidents->groupBy(fn ($i) => $i->incident_type ?: 'Unspecified')
             ->map(fn ($group) => $group->count())
             ->toArray();
 
         // 7. Recent Records
-        $recentTrips = $allTrips->sortByDesc(fn ($t) => Carbon::parse($t->trip_date)->timestamp)->take(6)->values();
-        $recentIncidents = $allIncidents->sortByDesc(fn ($i) => ($i->incident_reported_at ?: $i->created_at)->timestamp)->take(6)->values();
+        $recentTrips = $allTrips->sortByDesc(fn ($t) => Carbon::parse($t->trip_date)->timestamp)->take(8)->values();
+        $recentIncidents = $allIncidents->sortByDesc(fn ($i) => ($i->incident_reported_at ?: $i->created_at)->timestamp)->take(8)->values();
 
         return [
             'totalScheduledTrips' => $totalScheduledTrips,
@@ -200,6 +240,7 @@ class DescriptiveAnalyticsController extends Controller
             'replacementsDispatched' => $replacementsDispatched,
             'operationalTrend' => $operationalTrend,
             'tripStatusDistribution' => $tripStatusDistribution,
+            'tripStatusStats' => $tripStatusStats,
             'incidentTypeDistribution' => $incidentTypeDistribution,
             'recentTrips' => $recentTrips,
             'recentIncidents' => $recentIncidents,
@@ -221,6 +262,25 @@ class DescriptiveAnalyticsController extends Controller
             ->map(fn ($group) => $group->count())
             ->toArray();
 
+        $deptColorMap = [
+            'Admin' => '#3b82f6',
+            'Operation' => '#0ea5e9',
+            'Maintenance' => '#f59e0b',
+            'Purchase' => '#8b5cf6',
+            'Warehouse' => '#10b981',
+            'Unassigned' => '#94a3b8',
+        ];
+
+        $userDeptStats = collect($usersByDepartment)->map(function ($count, $dept) use ($totalUsers, $deptColorMap) {
+            $pct = $totalUsers > 0 ? round(($count / $totalUsers) * 100, 1) : 0;
+            return (object) [
+                'label' => $dept,
+                'count' => $count,
+                'pct' => $pct,
+                'color' => $deptColorMap[$dept] ?? '#64748b',
+            ];
+        })->sortByDesc('count')->values();
+
         $usersByRole = $allUsers->groupBy(fn ($u) => ucfirst(trim((string) $u->role)) ?: 'Staff')
             ->map(fn ($group) => $group->count())
             ->toArray();
@@ -241,6 +301,25 @@ class DescriptiveAnalyticsController extends Controller
             ->map(fn ($group) => $group->count())
             ->sortByDesc(fn ($cnt) => $cnt)
             ->toArray();
+
+        $moduleColorMap = [
+            'Admin' => '#3b82f6',
+            'Operation' => '#0ea5e9',
+            'Maintenance' => '#f59e0b',
+            'Purchase' => '#8b5cf6',
+            'Warehouse' => '#10b981',
+            'Auth' => '#64748b',
+        ];
+
+        $moduleStats = collect($activityByModule)->map(function ($count, $mod) use ($totalActivities, $moduleColorMap) {
+            $pct = $totalActivities > 0 ? round(($count / $totalActivities) * 100, 1) : 0;
+            return (object) [
+                'label' => $mod,
+                'count' => $count,
+                'pct' => $pct,
+                'color' => $moduleColorMap[$mod] ?? '#64748b',
+            ];
+        })->values();
 
         $activityByEventType = $allActivities->groupBy(fn ($a) => ucfirst(strtolower(trim((string) $a->event_type))) ?: 'Action')
             ->map(fn ($group) => $group->count())
@@ -291,9 +370,11 @@ class DescriptiveAnalyticsController extends Controller
             'inactiveUsers' => $inactiveUsers,
             'userStatusDistribution' => $userStatusDistribution,
             'usersByDepartment' => $usersByDepartment,
+            'userDeptStats' => $userDeptStats,
             'usersByRole' => $usersByRole,
             'totalActivities' => $totalActivities,
             'activityByModule' => $activityByModule,
+            'moduleStats' => $moduleStats,
             'activityByEventType' => $activityByEventType,
             'totalNotifications' => $totalNotifications,
             'notificationsByModule' => $notificationsByModule,
