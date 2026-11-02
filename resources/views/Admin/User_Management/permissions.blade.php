@@ -27,6 +27,23 @@
                     </div>
                 </section>
             @else
+                <nav class="permission-page-tabs" aria-label="Permissions sections">
+                    <button type="button" class="permission-page-tab active" data-permission-tab="roles" aria-selected="true">
+                        <i class="fa-solid fa-users-gear"></i> Department Roles
+                    </button>
+                    <button type="button" class="permission-page-tab" data-permission-tab="additional" aria-selected="false">
+                        <i class="fa-solid fa-user-shield"></i> Additional Access
+                    </button>
+                </nav>
+                <section class="permission-additional-access" id="permissionAdditionalAccess" hidden>
+                    <div class="permission-additional-icon"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <h2>Employee Additional Access</h2>
+                        <p>Account-specific cross-department permissions are not yet supported. Existing department-role permissions remain enforced. No access can be granted from this screen until audited backend authorization is available.</p>
+                    </div>
+                    <span class="permission-additional-state">Not available yet</span>
+                </section>
+                <div id="permissionDepartmentRoles">
                 <section class="access-workspace">
                     <x-admin.role-directory
                         :role-permissions="$rolePermissions"
@@ -42,6 +59,7 @@
                         />
                     @endif
                 </section>
+                </div>
             @endif
         </main>
     </div>
