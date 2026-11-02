@@ -1037,7 +1037,16 @@ class BatchFileProcessingController extends Controller
     {
         // Local deterministic parsing. This path does not call FastAPI, NLP,
         // ML inference, or any externally hosted service.
-        $payload = app(PdfGpsRuleParser::class)->extract($batch->file_path);
+        $lastProgress = -1;
+        $payload = app(PdfGpsRuleParser::class)->extract(
+            $batch->file_path,
+            function (int $progress) use ($batch, &$lastProgress): void {
+                if ($progress > $lastProgress) {
+                    $batch->update(['progress_percentage' => $progress]);
+                    $lastProgress = $progress;
+                }
+            }
+        );
         $records = $payload['records'];
 
         $total = count($records);
