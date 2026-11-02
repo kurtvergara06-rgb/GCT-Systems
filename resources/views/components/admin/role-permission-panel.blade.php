@@ -13,6 +13,7 @@
 
     $visibleModules = collect($permissionModules);
 
+    // The protected System Admin is granted all capabilities by User::hasSystemPermission().
     $enabledCapabilities = $visibleModules
         ->flatMap(function ($module, $moduleKey) use ($selectedPermissions) {
             return collect($module['capabilities'])->mapWithKeys(
@@ -30,6 +31,10 @@
 
     $totalCapabilities = $visibleModules
         ->sum(fn ($module) => count($module['capabilities']));
+
+    if ($isProtectedRole) {
+        $enabledCapabilities = $totalCapabilities;
+    }
 
     $roleTypeLabel = $isProtectedRole
         ? 'Protected'
@@ -87,7 +92,7 @@
         id="rolePermissionForm"
         data-confirm-form
         data-confirm-title="Save Role Permissions?"
-        data-confirm-message="Apply these access changes to {{ $selectedRolePermission->label }}?"
+        data-confirm-message="Apply these access changes to {{ $selectedRolePermission->label }}? This will affect {{ $assignedAccounts->count() }} assigned account(s)."
         data-confirm-button="Yes, Save Permissions"
         data-confirm-type="status"
     >
@@ -201,8 +206,8 @@
                 <div class="module-access-heading">
                     <div>
                         <span class="section-kicker">Module Permissions</span>
-                        <h2>System-Wide Module Access</h2>
-                        <p>Configure supported module permissions for this role. Administration access remains protected.</p>
+                        <h2>Department Permissions</h2>
+                        <p>{{ $departmentLabel }} permissions and Analytics access can be granted. Other departments remain isolated.</p>
                     </div>
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
@@ -224,7 +229,7 @@
                                 @foreach($capabilities as $capabilityKey => $capability)
                                     @php
                                         $supported = array_key_exists($capabilityKey, $module['capabilities']);
-                                        $editable = $supported;
+                                        $editable = $supported && ($isHomeModule || $moduleKey === 'analytics');
                                         $isAllowed = $supported && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
                                         $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
                                     @endphp
@@ -237,7 +242,7 @@
                                             <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Not granted' }}</span>
                                         </label>
                                     @else
-                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'This capability is not supported.' }}">
+                                        <span class="protected-capability matrix-native-locked" title="{{ ! $isHomeModule ? 'Restricted: outside this role’s department.' : 'This capability is not supported.' }}">
                                             <i class="fa-solid fa-lock"></i> {{ $capability['label'] }}
                                         </span>
                                     @endif
@@ -249,8 +254,8 @@
                 <div class="module-restriction-note">
                     <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
-                        <strong>Cross-module permissions require route enforcement</strong>
-                        <p>Changes to supported role capabilities are saved here. Effective access to other departments still depends on route and controller authorization. Warehouse approval workflows require separate backend enforcement.</p>
+                        <strong>Department access is isolated</strong>
+                        <p>The selected department and Analytics permissions can be edited. Other department modules remain restricted, including Administration. Effective actions also require matching route and workflow authorization.</p>
                     </div>
                 </div>
             </section>
@@ -261,7 +266,7 @@
                 <div>
                     <span class="section-kicker">Registered Accounts</span>
                     <h2>Assigned Accounts</h2>
-                    <p>These accounts inherit the selected role's permissions.</p>
+                    <p>These {{ $assignedAccounts->count() }} accounts inherit changes to this role. Review the impact before saving.</p>
                 </div>
                 <span class="access-count-badge">{{ $assignedAccounts->count() }} Accounts</span>
             </div>

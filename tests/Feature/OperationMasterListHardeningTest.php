@@ -113,7 +113,11 @@ class OperationMasterListHardeningTest extends TestCase
                 route('operation.personnel.drivers.update', $driver),
                 $this->driverPayload('D-CHANGED', $driver->driver_name)
             )
-            ->assertSessionHasErrors('driver_id');
+            ->assertRedirect();
+
+        // Driver identifiers are now preserved on edit by the server, even if
+        // a client submits a replacement ID. No historical links may change.
+        $this->assertSame('D-001', $driver->fresh()->driver_id);
 
         $mechanic = $this->mechanic();
         MechanicAttendance::create([

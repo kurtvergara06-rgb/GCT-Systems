@@ -90,9 +90,10 @@ class MechanicListController extends Controller
             $mechanic->setAttribute('time_in', $attendance?->time_in);
             $mechanic->setAttribute('time_out', $attendance?->time_out);
             $mechanic->setAttribute('assigned_job', $attendance?->assigned_job);
-            $mechanic->setAttribute('status', $baseStatus);
+            $hasTimedOut = $attendance !== null && $attendance->time_out !== null;
+            $mechanic->setAttribute('status', $hasTimedOut ? 'Timed Out' : $baseStatus);
             $mechanic->setAttribute('active_job', $activeJob);
-            $isPresent = in_array($baseStatus, ['Present', 'Late', 'On Duty'], true);
+            $isPresent = ! $hasTimedOut && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true);
             $working = $activeJob && $activeJob->actual_started_at !== null
                 && (trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued');
             $mechanic->setAttribute('assignment_status', ! $isPresent || $mechanic->employment_status !== 'Active'
@@ -102,9 +103,9 @@ class MechanicListController extends Controller
                 'effective_status',
                 $activeJob && $activeJob->actual_started_at !== null
                     && ($activeJob->part_needed === null || trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued')
-                    && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true)
+                    && $isPresent
                     ? 'On Duty'
-                    : $baseStatus
+                    : ($hasTimedOut ? 'Timed Out' : $baseStatus)
             );
 
             return $mechanic;
@@ -124,7 +125,7 @@ class MechanicListController extends Controller
         $totalMechanics = $allMechanics->count();
         $assignmentCounts = $allMechanics->countBy(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeJobs): string {
             $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
-            if (! in_array($attendance?->status, ['Present', 'Late', 'On Duty'], true)) {
+            if ($attendance?->time_out !== null || ! in_array($attendance?->status, ['Present', 'Late', 'On Duty'], true)) {
                 return 'Not Available';
             }
             $job = $activeJobs->get(Str::lower(trim($mechanic->mechanic_name)));

@@ -28,6 +28,12 @@
                                 {{ $batch->created_at->format('M d, Y h:i A') }}
                                 · {{ $batch->processed_records }} record(s)
                             </span>
+                            @if($batch->status === 'Processing' && $batch->file_type === 'pdf')
+                                <div class="gps-file-progress" data-gps-progress-id="{{ $batch->id }}" aria-label="PDF extraction {{ $batch->progress_percentage }} percent">
+                                    <span class="gps-file-progress-label"><span data-gps-progress-stage>{{ $batch->progress_percentage < 1 ? 'Queued' : ($batch->progress_percentage < 5 ? 'Extracting PDF text' : 'Parsing GPS records') }}</span> <strong data-gps-progress-value>{{ $batch->progress_percentage }}%</strong></span>
+                                    <span class="gps-file-progress-track"><span data-gps-progress-fill style="width: {{ $batch->progress_percentage }}%"></span></span>
+                                </div>
+                            @endif
                         </div>
 
                         <x-ui.status-badge
@@ -55,63 +61,54 @@
         </div>
     </div>
 
-    <div class="panel-card extracted-preview-card">
+    <div class="panel-card gps-fleet-coverage">
         <div class="panel-card-header">
             <div>
-                <h3>
-                    <i class="fa-solid fa-file-waveform"></i>
-                    Extracted Text Preview
-                </h3>
-                <p>Original values from the selected uploaded record.</p>
+                <h3><i class="fa-solid fa-bus-simple"></i> GPS Fleet Coverage</h3>
+                <p>Vehicles identified in the selected GPS report.</p>
             </div>
-        </div>
-
-        <div class="text-preview">
-            <pre>{{ $rawPreview }}</pre>
-        </div>
-
-        @if($selectedRecord)
-            <div class="confidence-row">
-                <span>
-                    <i class="fa-solid fa-circle-check"></i>
-                    Record Status:
-                    @if($selectedBatch?->status)
-                        <x-ui.status-badge :status="$selectedBatch->status" />
-                    @endif
-                </span>
-                <small>Source: {{ $selectedRecord->batchUpload?->file_name }}</small>
-            </div>
-        @endif
-    </div>
-
-    <div class="panel-card parsed-fields-card">
-        <div class="panel-card-header">
-            <div>
-                <h3>
-                    <i class="fa-solid fa-code"></i>
-                    Parsed Fields
-                </h3>
-                <p>Cleaned structured values from the selected record.</p>
-            </div>
-
-            @if($selectedBatch)
-                <div class="parsed-fields-actions">
-                    <button type="button" class="edit-record-btn" data-open-clean-data-modal>
-                        <i class="fa-solid fa-eye"></i>
-                        View Clean Data
-                    </button>
-                </div>
+            @if($selectedBatch?->status)
+                <x-ui.status-badge :status="$selectedBatch->status" />
             @endif
         </div>
 
-        <div class="parsed-fields-list">
-            @foreach($fields as $label => $value)
-                <div class="parsed-field">
-                    <span>{{ $label }}</span>
-                    <strong>{{ $value ?? '—' }}</strong>
-                </div>
-            @endforeach
+        <div class="gps-fleet-metrics">
+            <div class="gps-fleet-metric">
+                <span>Vehicles Detected</span>
+                <strong>{{ number_format($fleetVehicleCount) }}</strong>
+            </div>
+            <div class="gps-fleet-metric">
+                <span>Records Extracted</span>
+                <strong>{{ number_format($fleetRecordCount) }}</strong>
+            </div>
         </div>
+
+        <div class="gps-fleet-list-heading">
+            <h4>Vehicle Breakdown</h4>
+            @if($fleetVehicleCount > 0)
+                <span>{{ number_format($fleetVehicleCount) }} vehicles</span>
+            @endif
+        </div>
+        @if($fleetVehicleCount > 0)
+            <div class="gps-fleet-vehicle-list">
+                @foreach($fleetCoverage as $vehicle)
+                    <div class="gps-fleet-vehicle">
+                        <div class="gps-fleet-vehicle-info">
+                            <span><i class="fa-solid fa-bus" aria-hidden="true"></i> {{ $vehicle->vehicle }}</span>
+                            <small>{{ number_format($vehicle->record_count) }} records</small>
+                        </div>
+                        <div class="gps-fleet-vehicle-track" role="meter" aria-label="Records for {{ $vehicle->vehicle }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fleetCoverage->max('record_count')) }}" aria-valuenow="{{ $vehicle->record_count }}">
+                            <span style="width: {{ round(100 * $vehicle->record_count / max(1, $fleetCoverage->max('record_count')), 2) }}%"></span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="gps-fleet-coverage-empty">
+                <i class="fa-solid fa-bus-simple" aria-hidden="true"></i>
+                <p>{{ $selectedBatch?->status === 'Processing' ? 'Extracting vehicle records. Coverage will appear after processing.' : 'Select an uploaded file with extracted GPS records to view its fleet coverage.' }}</p>
+            </div>
+        @endif
     </div>
 </section>
 
@@ -128,6 +125,22 @@
         </div>
 
         <div class="table-header-actions">
+            @if($selectedBatch?->status === 'In Review')
+                <form action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
+                    method="POST" id="confirmBatchForm" class="clean-data-process-form"
+                    data-confirm-form
+                    data-confirm-title="Confirm GPS Batch?"
+                    data-confirm-message="Publish the extracted records after verifying the batch. Invalid or missing rows will not be included."
+                    data-confirm-button="Confirm Processing"
+                    data-confirm-type="approve">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="confirm-batch-btn" id="markBatchProcessedBtn">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Confirm Processing
+                    </button>
+                </form>
+            @endif
+
             <form method="GET" action="{{ route('batch-file-processing', [], false) }}" class="batch-search-form">
                 @if($selectedBatch)
                     <input type="hidden" name="batch_id" value="{{ $selectedBatch->id }}">
@@ -140,6 +153,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search record, group, or location..."
+                        @if(!$selectedBatch || $records->isEmpty()) disabled aria-disabled="true" @endif
                     >
                 </div>
             </form>
@@ -159,84 +173,79 @@
         </div>
     </div>
 
+    @if($records->isNotEmpty())
     <div class="table-wrap structured-table-wrap">
-        <table class="batch-records-table">
+        <table class="batch-records-table gps-full-records-table">
             <thead>
                 <tr>
-                    <th>Bus No.</th>
-                    <th>Record No.</th>
-                    <th>Grouping</th>
-                    <th>Type</th>
-                    <th>Beginning</th>
-                    <th>Initial Location</th>
-                    <th>End</th>
-                    <th>Final Location</th>
-                    <th>Duration</th>
-                    <th>Total Time</th>
-                    <th>In Motion</th>
-                    <th>Idling</th>
-                    <th>Mileage</th>
-                    <th>Engine Hours</th>
+                    <th>Bus No.</th><th>Record No.</th><th>Grouping</th>
+                    <th>Beginning</th><th>Initial Location</th>
+                    <th>End</th><th>Final Location</th>
+                    <th>Engine Hours</th><th>Total Time</th>
+                    <th>In Motion</th><th>Idling</th><th>Mileage</th><th>Validation</th>
                 </tr>
             </thead>
-
             <tbody>
-                @forelse($records as $record)
-                    <tr>
+                @foreach($records as $record)
+                    @php
+                        $sourceValues = $record->raw_data['source_values'] ?? [];
+                        $sourceWarnings = $record->raw_data['source_warnings'] ?? [];
+                        $missingGrouping = blank($record->grouping);
+                        $missingLocation = blank($record->initial_location) || blank($record->final_location);
+                        $missingMileage = $record->mileage_km === null;
+                        $missingTime = $record->engine_hours === null || $record->total_minutes === null
+                            || $record->in_motion_minutes === null || $record->idling_minutes === null;
+                        $needsCheck = $missingGrouping || $missingLocation || $missingMileage || $missingTime || count($sourceWarnings) > 0;
+                    @endphp
+                    <tr class="gps-compact-record-row">
                         <td><x-ui.id-badge :value="$record->bus_no" /></td>
                         <td><x-ui.id-badge :value="$record->record_no" /></td>
                         <td>{{ $record->grouping ?? '—' }}</td>
-                        <td>{{ $record->trip_type ?? '—' }}</td>
-                        <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                        <td>{{ $record->initial_location ?? '—' }}</td>
-                        <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                        <td>{{ $record->final_location ?? '—' }}</td>
-                        <td>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</td>
-                        <td>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</td>
-                        <td>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</td>
-                        <td>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</td>
-                        <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
-                        <td>{{ $record->engine_hours ?? '—' }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="14" class="empty-users">
-                            @if($selectedBatch && $selectedBatch->status !== 'Processed')
-                                This selected file is still {{ $selectedBatch->status }}. Mark it as Processed first.
+                        <td>{{ $record->beginning_at?->format('M d, Y h:i:s A') ?? '—' }}</td>
+                        <td class="gps-location-cell" title="{{ $record->initial_location ?? 'Missing from extraction' }}">{{ $record->initial_location ?? '—' }}</td>
+                        <td>{{ $record->ending_at?->format('M d, Y h:i:s A') ?? '—' }}</td>
+                        <td class="gps-location-cell" title="{{ $record->final_location ?? 'Missing from extraction' }}">{{ $record->final_location ?? '—' }}</td>
+                        <td>{{ $sourceValues['engine_hours'] ?? ($record->engine_hours !== null ? number_format((float) $record->engine_hours, 2) . ' hrs' : '—') }}</td>
+                        <td>{{ $sourceValues['total_time'] ?? ($record->total_minutes !== null ? number_format((float) $record->total_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['in_motion'] ?? ($record->in_motion_minutes !== null ? number_format((float) $record->in_motion_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['idling'] ?? ($record->idling_minutes !== null ? number_format((float) $record->idling_minutes, 2) . ' min' : '—') }}</td>
+                        <td>{{ $sourceValues['mileage'] ?? ($record->mileage_km !== null ? number_format((float) $record->mileage_km, 2) . ' km' : '—') }}</td>
+                        <td>
+                            @if($needsCheck)
+                                <span class="gps-validation-flag" title="{{ implode(' ', $sourceWarnings) }}{{ $missingGrouping ? ' Grouping is missing.' : '' }}{{ $missingLocation ? ' Location is missing.' : '' }}{{ $missingMileage ? ' Mileage is missing.' : '' }}{{ $missingTime ? ' Duration is missing.' : '' }}">Needs Review</span>
                             @else
-                                Select a processed uploaded file to view its structured records here.
+                                <span class="gps-validation-ok" title="Required displayed values present; this does not certify all source calculations">Fields Present</span>
                             @endif
                         </td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
 
-    <div class="batch-table-footer">
-        @if($records->hasPages())
+    @else
+        <div class="gps-records-empty" role="status">
+            <div class="gps-records-empty-icon"><i class="fa-solid fa-file-circle-question" aria-hidden="true"></i></div>
+            <h3>{{ !$selectedBatch ? 'No GPS records selected' : ($selectedBatch->status === 'Processing' ? 'GPS extraction in progress' : 'No matching GPS records') }}</h3>
             <p>
-                Showing {{ number_format($records->firstItem()) }}–{{ number_format($records->lastItem()) }}
-                of {{ number_format($records->total()) }} records
+                @if(!$selectedBatch)
+                    Choose a GPS file from Uploaded Files to view its extracted records.
+                @elseif($selectedBatch->status === 'Processing')
+                    Records will appear here automatically when PDF extraction finishes.
+                @else
+                    No records match the selected file and search. Try another search or select a different batch.
+                @endif
             </p>
+        </div>
+    @endif
 
-            <nav class="batch-simple-pagination" aria-label="Structured record pages">
-                <a
-                    class="simple-page-button {{ $records->onFirstPage() ? 'disabled' : '' }}"
-                    href="{{ $records->previousPageUrl() ?? '#' }}"
-                    @if($records->onFirstPage()) aria-disabled="true" tabindex="-1" @endif
-                >Previous</a>
-                <span class="simple-page-info">Page {{ $records->currentPage() }} of {{ $records->lastPage() }}</span>
-                <a
-                    class="simple-page-button {{ $records->hasMorePages() ? '' : 'disabled' }}"
-                    href="{{ $records->nextPageUrl() ?? '#' }}"
-                    @unless($records->hasMorePages()) aria-disabled="true" tabindex="-1" @endunless
-                >Next</a>
-            </nav>
-        @else
-            <p>
-                Showing {{ number_format($records->count()) }} {{ \Illuminate\Support\Str::plural('record', $records->count()) }}
-            </p>
+    <div class="batch-table-footer gps-infinite-footer"
+        data-gps-next-url="{{ $records->nextPageUrl() ?? '' }}"
+        data-gps-total="{{ $records->total() }}"
+        data-gps-loaded="{{ $records->count() }}">
+        <p data-gps-loaded-label>Showing {{ number_format($records->count()) }} of {{ number_format($records->total()) }} records</p>
+        @if($records->hasMorePages())
+            <span class="gps-load-state" role="status" aria-live="polite">Scroll to load more</span>
         @endif
     </div>
 </section>
@@ -324,139 +333,6 @@
     </div>
 @endif
 
-@if($selectedBatch && $allSelectedRecords->isNotEmpty())
-    <div class="records-modal-overlay" id="cleanDataModal">
-        <div class="records-modal clean-data-modal">
-            <div class="records-modal-header">
-                <div>
-                    <h2>Clean Data Preview</h2>
-                    <p>
-                        {{ $selectedBatch->file_name }}
-                        · GPS Trip Records
-                    </p>
-                </div>
-
-                <button type="button" class="records-modal-close" id="closeCleanDataModal">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="records-modal-tools clean-data-tools">
-                <div class="modal-search">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="cleanDataSearch" placeholder="Search clean records...">
-                </div>
-
-                <div class="batch-editor-actions">
-                    <span class="unsaved-changes-label">
-                        {{ number_format($allSelectedRecords->total()) }} records
-                    </span>
-
-                    <x-ui.status-badge
-                        :status="$selectedBatch->status"
-                        class="{{ $selectedBatch->status === 'Processed' ? 'processed-badge' : 'review-badge' }}"
-                    />
-
-                    @if($selectedBatch->status === 'In Review')
-                        <form
-                            action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
-                            method="POST"
-                            id="confirmBatchForm"
-                            class="clean-data-process-form"
-                            data-confirm-form
-                            data-confirm-title="Process Batch Records?"
-                            data-confirm-message="Are you sure you want to process these reviewed GPS records?"
-                            data-confirm-button="Yes, Process Records"
-                            data-confirm-type="approve"
-                        >
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="confirm-batch-btn" id="markBatchProcessedBtn">
-                                <i class="fa-solid fa-gears"></i>
-                                Process Records
-                            </button>
-                        </form>
-                    @endif
-                </div>
-            </div>
-
-            <div class="records-modal-table-wrap">
-                <table class="records-modal-table clean-data-table">
-                    <thead>
-                        <tr>
-                            <th>Bus No.</th>
-                            <th>Record No.</th>
-                            <th>Grouping / Route</th>
-                            <th>Trip Type</th>
-                            <th>Beginning</th>
-                            <th>Initial Location</th>
-                            <th>End</th>
-                            <th>Final Location</th>
-                            <th>Duration</th>
-                            <th>Total</th>
-                            <th>In Motion</th>
-                            <th>Idling</th>
-                            <th>Mileage</th>
-                            <th>Engine Hours</th>
-                            <th>Location</th>
-                            <th>Coordinates</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="cleanDataTableBody">
-                        @foreach($allSelectedRecords as $record)
-                            <tr
-                                data-clean-search="{{ strtolower(
-                                    ($record->record_no ?? '') . ' ' .
-                                    ($record->bus_no ?? '') . ' ' .
-                                    ($record->grouping ?? '') . ' ' .
-                                    ($record->trip_type ?? '') . ' ' .
-                                    ($record->initial_location ?? '') . ' ' .
-                                    ($record->final_location ?? '')
-                                ) }}"
-                            >
-                                <td><x-ui.id-badge :value="$record->bus_no" /></td>
-                                <td><x-ui.id-badge :value="$record->record_no" /></td>
-                                <td>{{ $record->grouping ?? '—' }}</td>
-                                <td>{{ $record->trip_type ?? '—' }}</td>
-                                <td>{{ $record->beginning_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                                <td>{{ $record->initial_location ?? '—' }}</td>
-                                <td>{{ $record->ending_at?->format('M d, Y h:i A') ?? '—' }}</td>
-                                <td>{{ $record->final_location ?? '—' }}</td>
-                                <td>{{ $record->duration_minutes ?? '—' }}</td>
-                                <td>{{ $record->total_minutes ?? '—' }}</td>
-                                <td>{{ $record->in_motion_minutes ?? '—' }}</td>
-                                <td>{{ $record->idling_minutes ?? '—' }}</td>
-                                <td>{{ $record->mileage_km ?? '—' }}</td>
-                                <td>{{ $record->engine_hours ?? '—' }}</td>
-                                <td>{{ $record->location ?? '—' }}</td>
-                                <td>{{ $record->coordinates ?? '—' }}</td>
-                                <td>{{ $record->description ?? '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            @if($allSelectedRecords->hasPages())
-                <nav class="batch-simple-pagination" aria-label="Clean record preview pages">
-                    <a
-                        class="simple-page-button {{ $allSelectedRecords->onFirstPage() ? 'disabled' : '' }}"
-                        href="{{ $allSelectedRecords->onFirstPage() ? '#' : route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() - 1, 'preview' => 'clean']), false) }}"
-                        @if($allSelectedRecords->onFirstPage()) aria-disabled="true" tabindex="-1" @endif
-                    >Previous</a>
-                    <span class="simple-page-info">Page {{ $allSelectedRecords->currentPage() }} of {{ $allSelectedRecords->lastPage() }}</span>
-                    <a
-                        class="simple-page-button {{ $allSelectedRecords->hasMorePages() ? '' : 'disabled' }}"
-                        href="{{ $allSelectedRecords->hasMorePages() ? route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() + 1, 'preview' => 'clean']), false) : '#' }}"
-                        @unless($allSelectedRecords->hasMorePages()) aria-disabled="true" tabindex="-1" @endunless
-                    >Next</a>
-                </nav>
-            @endif
-        </div>
-    </div>
-@endif
 
 <div class="batch-delete-modal-overlay" id="batchDeleteModal">
     <div class="batch-delete-modal">

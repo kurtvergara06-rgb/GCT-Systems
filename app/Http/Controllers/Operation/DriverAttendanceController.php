@@ -27,6 +27,19 @@ class DriverAttendanceController extends Controller
             'tripAssignments.tripSchedule.shuttleRoute',
         ]);
 
+        // Only attendance supported by an actual saved DDR belongs on this page.
+        // Match the driver and service date; avoid duplicates when several DDRs
+        // exist for one driver on the same day.
+        $ddrConfirmed = static function ($builder): void {
+            $builder->whereExists(function ($subquery): void {
+                $subquery->selectRaw('1')
+                    ->from('daily_driver_reports')
+                    ->whereColumn('daily_driver_reports.driver_id', 'driver_attendances.driver_id')
+                    ->whereColumn('daily_driver_reports.report_date', 'driver_attendances.attendance_date');
+            });
+        };
+        $ddrConfirmed($query);
+
         if ($request->filled('search')) {
             $search = trim($request->search);
 
@@ -53,50 +66,55 @@ class DriverAttendanceController extends Controller
         ]);
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $activeTab = $request->input('tab') === 'history' ? 'history' : 'today';
-        $summaryDate = $activeTab === 'today'
-            ? $today
-            : ($request->input('attendance_date')
-                ?: now(config('app.business_timezone', 'Asia/Manila'))->subDay()->toDateString());
-        if ($activeTab === 'history' && $summaryDate >= $today) {
-            $summaryDate = now(config('app.business_timezone', 'Asia/Manila'))->subDay()->toDateString();
+        // History shows every prior date unless the operator explicitly filters it.
+        $summaryDate = $activeTab === 'today' ? $today : $request->input('attendance_date');
+        if ($activeTab === 'history') {
+            $query->whereDate('attendance_date', '<', $today);
+            if ($summaryDate) $query->whereDate('attendance_date', $summaryDate);
+        } else {
+            $query->whereDate('attendance_date', $today);
         }
-        $query->whereDate('attendance_date', $summaryDate);
 
-        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in'], 'driver_name');
+        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in', 'attendance_date' => 'attendance_date'], $activeTab === 'history' ? 'attendance_date' : 'driver_name', $activeTab === 'history' ? 'desc' : 'asc');
         $driverAttendances = $query
             ->paginate(10)
             ->withQueryString();
 
-        // Assignment display follows the actual driver ID and selected service
-        // date. Older scheduling records may not carry driver_attendance_id.
-        $assignmentsByDriver = TripAssignment::query()
+        // Match assignments to each attendance record's own date, not a global
+        // history date. This also supports multi-day history pages.
+        $pageAttendances = $driverAttendances->getCollection();
+        $dates = $pageAttendances->map(fn ($a) => $a->attendance_date?->toDateString())->filter()->unique();
+        $assignmentsByDriverDate = TripAssignment::query()
             ->with(['bus', 'tripSchedule.shuttleRoute'])
-            ->whereIn('driver_id', $driverAttendances->getCollection()->pluck('driver_id'))
-            ->whereHas('tripSchedule', fn ($trip) => $trip
-                ->whereDate('trip_date', $summaryDate)
+            ->whereIn('driver_id', $pageAttendances->pluck('driver_id'))
+            ->whereHas('tripSchedule', fn ($q) => $q->whereIn('trip_date', $dates)
                 ->whereNotIn('status', ['Cancelled', 'Missed', 'Completed']))
-            ->get()
-            ->groupBy('driver_id');
+            ->get()->groupBy(fn ($a) => $a->driver_id.'|'.$a->tripSchedule?->trip_date?->format('Y-m-d'));
 
-        $driverAttendances->getCollection()->each(function (DriverAttendance $attendance) use ($assignmentsByDriver): void {
-            $attendance->setRelation('displayTripAssignments', $assignmentsByDriver->get($attendance->driver_id, collect()));
+        $pageAttendances->each(function (DriverAttendance $attendance) use ($assignmentsByDriverDate): void {
+            $key = $attendance->driver_id.'|'.$attendance->attendance_date?->toDateString();
+            $attendance->setRelation('displayTripAssignments', $assignmentsByDriverDate->get($key, collect()));
         });
 
-        $summaryQuery = DriverAttendance::query()
-            ->whereDate('attendance_date', $summaryDate);
+        $summaryQuery = DriverAttendance::query();
+        $ddrConfirmed($summaryQuery);
+        if ($activeTab === 'today') {
+            $summaryQuery->whereDate('attendance_date', $today);
+        } else {
+            $summaryQuery->whereDate('attendance_date', '<', $today);
+            if ($summaryDate) $summaryQuery->whereDate('attendance_date', $summaryDate);
+        }
 
         $present = (clone $summaryQuery)->where('status', 'Present')->count();
-        // These KPIs describe DDR-confirmed Present drivers only, not all
-        // Active drivers who remain eligible for scheduling without a DDR.
-        $assignedPresent = TripAssignment::query()
-            ->whereIn('driver_id', (clone $summaryQuery)
-                ->where('status', 'Present')
-                ->select('driver_id'))
-            ->whereHas('tripSchedule', fn ($trip) => $trip
-                ->whereDate('trip_date', $summaryDate)
-                ->whereNotIn('status', ['Cancelled', 'Missed', 'Completed']))
-            ->distinct()
-            ->count('driver_id');
+        $assignedPresent = (clone $summaryQuery)->where('status', 'Present')
+            ->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('trip_assignments')
+                    ->join('trip_schedules', 'trip_schedules.id', '=', 'trip_assignments.trip_schedule_id')
+                    ->whereColumn('trip_assignments.driver_id', 'driver_attendances.driver_id')
+                    ->whereColumn('trip_schedules.trip_date', 'driver_attendances.attendance_date')
+                    ->whereNotIn('trip_schedules.status', ['Cancelled', 'Missed', 'Completed']);
+            })->count();
         $unassignedPresent = max(0, $present - $assignedPresent);
         $attendanceRecords = (clone $summaryQuery)->count();
         $absent = (clone $summaryQuery)->where('status', 'Absent')->count();

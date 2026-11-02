@@ -110,7 +110,8 @@ class PredictiveEtaColumnTest extends TestCase
             ->get(route('analytics.stage', ['stage' => 'predictive', 'domain' => 'fleet-trip']))
             ->assertOk()
             ->assertSee('ML ETA')
-            ->assertSee('No trip predictions available for the selected filters.');
+            ->assertSee('No eligible future trip forecasts available.')
+            ->assertSee('No eligible trip-level forecasts were returned.');
     }
 
     private function tripCodes(): array

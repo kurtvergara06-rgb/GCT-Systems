@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Models\Admin\ActivityLog;
+use Illuminate\Support\Facades\Cache;
 use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,10 +30,6 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user !== null) {
-            if (! $user->onboarding_completed) {
-                return redirect()->route('onboarding.show');
-            }
-
             if ($user->must_change_password) {
                 return redirect()->route('account.settings');
             }
@@ -103,6 +101,13 @@ class LoginController extends Controller
         }
 
         if (RateLimiter::tooManyAttempts($loginKey, self::MAX_LOGIN_ATTEMPTS)) {
+            // At most one additional audit record per email/IP cooldown window.
+            $auditKey = 'login-lockout-audit:'.hash('sha256', $loginKey);
+            if (Cache::add($auditKey, true, self::LOGIN_COOLDOWN_SECONDS)) {
+                $this->auditLoginSecurity($request, $user, 'Login blocked during cooldown',
+                    'Login request denied while the five-minute cooldown is active.');
+            }
+
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->with('login_lockout_seconds', RateLimiter::availableIn($loginKey))
@@ -116,6 +121,16 @@ class LoginController extends Controller
 
         if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($loginKey, self::LOGIN_COOLDOWN_SECONDS);
+            $attempts = RateLimiter::attempts($loginKey);
+            $locked = $attempts >= self::MAX_LOGIN_ATTEMPTS;
+            $this->auditLoginSecurity(
+                $request,
+                $user,
+                $locked ? 'Login temporarily locked' : 'Failed login attempt',
+                $locked
+                    ? 'Five unsuccessful login attempts; five-minute cooldown started.'
+                    : sprintf('Unsuccessful authentication attempt %d of %d.', $attempts, self::MAX_LOGIN_ATTEMPTS)
+            );
 
             return back()
                 ->withInput($request->only('email', 'remember'))
@@ -164,10 +179,6 @@ class LoginController extends Controller
 
         $request->session()->forget('url.intended');
 
-        if (! $authenticatedUser->onboarding_completed) {
-            return redirect()->route('onboarding.show');
-        }
-
         if ($authenticatedUser->must_change_password) {
             return redirect()->route('account.settings');
         }
@@ -208,6 +219,37 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    /**
+     * Record failed authentication without writing attempted credentials or
+     * unrecognized email addresses. Audit failure must not break login.
+     */
+    private function auditLoginSecurity(
+        Request $request,
+        ?User $user,
+        string $activity,
+        string $details
+    ): void {
+        try {
+            ActivityLog::query()->create([
+                'user_id' => $user?->id,
+                'user_name' => $user?->name ?? 'Unrecognized account',
+                'user_role' => $user
+                    ? ucfirst((string) $user->department).' '.ucfirst((string) $user->role)
+                    : 'Unauthenticated',
+                'department' => $user?->department ?? 'System',
+                'activity' => $activity,
+                'module' => 'Admin',
+                'reference' => null,
+                'event_type' => 'Security',
+                'details' => $details,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 
     private function redirectByDepartmentAndRole(?string $department, ?string $role): string

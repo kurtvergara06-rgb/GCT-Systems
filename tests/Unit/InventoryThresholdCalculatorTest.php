@@ -9,6 +9,17 @@ use PHPUnit\Framework\TestCase;
 
 class InventoryThresholdCalculatorTest extends TestCase
 {
+    public function test_complete_month_window_excludes_current_partial_month(): void
+    {
+        $calculator = new InventoryThresholdCalculator();
+        [$start, $endExclusive] = $calculator->completeMonthWindow(
+            CarbonImmutable::parse('2026-11-03 15:45:00')
+        );
+
+        $this->assertSame('2026-08-01 00:00:00', $start->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-11-01 00:00:00', $endExclusive->format('Y-m-d H:i:s'));
+    }
+
     public function test_rounded_monthly_usage_uses_three_months_and_rounds_up(): void
     {
         $calculator = new InventoryThresholdCalculator();

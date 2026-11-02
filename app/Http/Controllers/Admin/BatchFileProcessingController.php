@@ -10,7 +10,8 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use App\Jobs\ProcessGpsPdfBatch;
+use App\Services\Gps\PdfGpsRuleParser;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -39,32 +40,12 @@ class BatchFileProcessingController extends Controller
             ? BatchUpload::withCount('tripRecords')->find($selectedBatchId)
             : null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Main Structured Trip Records Table
-        |--------------------------------------------------------------------------
-        | Only Processed records are shown here.
-        | In Review records remain inside View Cleaned Records for editing.
-        |--------------------------------------------------------------------------
-        */
-        $recordsQuery = GpsTripRecord::query()
-            ->with('batchUpload')
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
-            });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Structured Trip Records Table
-        |--------------------------------------------------------------------------
-        | Show records only for the Uploaded File selected by the user.
-        | Records are available here only after that selected batch is Processed.
-        |--------------------------------------------------------------------------
-        */
-        if ($selectedBatch && $selectedBatch->status === 'Processed') {
+        // Preview validated extracted records in the main table immediately,
+        // including In Review batches. Publication still requires confirmation.
+        $recordsQuery = GpsTripRecord::query()->with('batchUpload');
+        if ($selectedBatch && in_array($selectedBatch->status, ['In Review', 'Processed'], true)) {
             $recordsQuery->where('batch_upload_id', $selectedBatch->id);
         } else {
-            // Keep the table empty for In Review, Failed, or no selected batch.
             $recordsQuery->whereRaw('1 = 0');
         }
 
@@ -111,6 +92,21 @@ class BatchFileProcessingController extends Controller
                 ->withQueryString()
             : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 50);
 
+        // Coverage uses only records belonging to the selected upload.
+        // Aggregate in SQL to avoid loading thousands of GPS intervals.
+        $fleetCoverage = $selectedBatch
+            ? $selectedBatch->tripRecords()
+                ->selectRaw('UPPER(TRIM(bus_no)) as vehicle, COUNT(*) as record_count')
+                ->whereNotNull('bus_no')
+                ->whereRaw("TRIM(bus_no) <> ''")
+                ->groupByRaw('UPPER(TRIM(bus_no))')
+                ->orderByDesc('record_count')
+                ->get()
+            : collect();
+
+        $fleetVehicleCount = $fleetCoverage->count();
+        $fleetRecordCount = $fleetCoverage->sum('record_count');
+
         $filesUploaded = BatchUpload::count();
 
         $processedBatches = BatchUpload::query()
@@ -133,7 +129,10 @@ class BatchFileProcessingController extends Controller
             'filesUploaded',
             'processedBatches',
             'inReviewBatches',
-            'recordsExtracted'
+            'recordsExtracted',
+            'fleetCoverage',
+            'fleetVehicleCount',
+            'fleetRecordCount'
         ));
     }
 
@@ -194,6 +193,23 @@ class BatchFileProcessingController extends Controller
             ]);
         }
 
+        // Compare file contents, not filenames. Failed batches remain retryable.
+        $incomingHash = hash_file('sha256', $file->getRealPath());
+        $incomingSize = $file->getSize();
+        foreach (BatchUpload::query()->whereIn('status', ['Processing', 'In Review', 'Processed'])->cursor() as $existingBatch) {
+            if (! $existingBatch->file_path || ! Storage::disk('public')->exists($existingBatch->file_path)) {
+                continue;
+            }
+            if (Storage::disk('public')->size($existingBatch->file_path) !== $incomingSize) {
+                continue;
+            }
+            if (hash_file('sha256', Storage::disk('public')->path($existingBatch->file_path)) === $incomingHash) {
+                return redirect()->to(route('batch-file-processing', [
+                    'batch_id' => $existingBatch->id,
+                ], false))->with('error', 'This exact GPS file was already uploaded as batch #'.$existingBatch->id.'. Open the existing batch instead.');
+            }
+        }
+
         $batch = null;
         $filePath = null;
 
@@ -247,6 +263,13 @@ class BatchFileProcessingController extends Controller
                 'failed_records' => 0,
                 'error_message' => null,
             ]);
+
+            if ($extension === 'pdf') {
+                ProcessGpsPdfBatch::dispatch($batch->id);
+                return redirect()
+                    ->to(route('batch-file-processing', ['batch_id' => $batch->id], false))
+                    ->with('success', 'GPS PDF uploaded. Processing is queued; refresh this page to check its status.');
+            }
 
             $result = match ($extension) {
                 'pdf' => $this->processPdfFile($batch),
@@ -471,6 +494,16 @@ class BatchFileProcessingController extends Controller
                 );
         }
 
+        // A previously imported batch may have been uploaded before
+        // duplicate protection existed. Block publication of overlapping data.
+        foreach ($batchUpload->tripRecords()->cursor() as $record) {
+            if ($this->hasGpsRecordConflict($record, $batchUpload->id, ['Processed'])) {
+                return redirect()->to(route('batch-file-processing', [
+                    'batch_id' => $batchUpload->id,
+                ], false))->with('error', 'Cannot approve: GPS record '.$record->record_no.' overlaps a previously processed batch for bus '.$record->bus_no.'. Review the duplicate before approval.');
+            }
+        }
+
         $batchUpload->update([
             'status' => 'Processed',
         ]);
@@ -531,9 +564,12 @@ class BatchFileProcessingController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        $hasSelectedBatch = $request->filled('batch_id');
         $query = GpsTripRecord::query()
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
+            ->whereHas('batchUpload', function ($query) use ($hasSelectedBatch) {
+                $query->whereIn('status', $hasSelectedBatch
+                    ? ['In Review', 'Processed']
+                    : ['Processed']);
             });
 
         if ($request->filled('batch_id')) {
@@ -591,9 +627,9 @@ class BatchFileProcessingController extends Controller
                             $record->bus_no,
                             $record->grouping,
                             $record->trip_type,
-                            $record->beginning_at?->format('Y-m-d h:i A'),
+                            $record->beginning_at?->format('Y-m-d H:i:s'),
                             $record->initial_location,
-                            $record->ending_at?->format('Y-m-d h:i A'),
+                            $record->ending_at?->format('Y-m-d H:i:s'),
                             $record->final_location,
                             $record->duration_minutes,
                             $record->total_minutes,
@@ -998,90 +1034,22 @@ class BatchFileProcessingController extends Controller
         ], true);
     }
 
-    private function processPdfFile(BatchUpload $batch): array
+    public function processPdfFile(BatchUpload $batch): array
     {
-        $absolutePath = Storage::disk('public')->path($batch->file_path);
-
-        $apiUrl = rtrim(
-            config(
-                'services.nlp.api_url',
-                env('NLP_API_URL', 'http://127.0.0.1:8000')
-            ),
-            '/'
+        // Local deterministic parsing. This path does not call FastAPI, NLP,
+        // ML inference, or any externally hosted service.
+        $lastProgress = -1;
+        $payload = app(PdfGpsRuleParser::class)->extract(
+            $batch->file_path,
+            function (int $progress) use ($batch, &$lastProgress): void {
+                if ($progress > $lastProgress) {
+                    $batch->update(['progress_percentage' => $progress]);
+                    $lastProgress = $progress;
+                }
+            }
         );
-
-        if (! file_exists($absolutePath)) {
-            throw new \RuntimeException(
-                'Unable to read the uploaded PDF report.'
-            );
-        }
-
-        try {
-            $response = Http::timeout(120)
-                ->attach(
-                    'pdf_file',
-                    file_get_contents($absolutePath),
-                    $batch->file_name,
-                    ['Content-Type' => 'application/pdf']
-                )
-                ->post($apiUrl . '/nlp/extract-pdf');
-        } catch (\Exception $exception) {
-            $errorMessage = $exception->getMessage();
-
-            if (
-                str_contains($errorMessage, 'timeout') ||
-                str_contains($errorMessage, 'Connection')
-            ) {
-                throw new \RuntimeException(
-                    'Python NLP service is unavailable. Start the Python Engine and try again.'
-                );
-            }
-
-            throw new \RuntimeException(
-                'Failed to connect to Python NLP service: ' . $errorMessage
-            );
-        }
-
-        if ($response->failed()) {
-            $statusCode = $response->status();
-            $responseBody = $response->body();
-
-            if ($statusCode === 422) {
-                $errorDetails = $response->json('detail')
-                    ?? $responseBody
-                    ?? 'Validation error from Python NLP service';
-
-                throw new \RuntimeException(
-                    'PDF processing validation error: ' . $errorDetails
-                );
-            }
-
-            throw new \RuntimeException(
-                'Python NLP service returned error '
-                . $statusCode
-                . ': '
-                . $responseBody
-            );
-        }
-
-        $payload = $response->json();
-
-        if (
-            empty($payload['success']) ||
-            ! isset($payload['records']) ||
-            ! is_array($payload['records'])
-        ) {
-            return [
-                'total' => 0,
-                'processed' => 0,
-                'failed' => 0,
-                'skipped_headers' => 0,
-                'skipped_no_bus_no' => 0,
-                'first_error' => 'No records found in PDF.',
-            ];
-        }
-
         $records = $payload['records'];
+
         $total = count($records);
         $processed = 0;
         $failed = 0;
@@ -1144,16 +1112,16 @@ class BatchFileProcessingController extends Controller
                                 ? (string) $item['idling_minutes']
                                 : null
                         ),
-                        'mileage_km' => ! empty($item['mileage_km'])
+                        'mileage_km' => isset($item['mileage_km']) && $item['mileage_km'] !== ''
                             ? (float) $item['mileage_km']
                             : null,
-                        'engine_hours' => ! empty($item['engine_hours'])
+                        'engine_hours' => isset($item['engine_hours']) && $item['engine_hours'] !== ''
                             ? (float) $item['engine_hours']
                             : null,
                         'location' => $item['location'] ?? null,
                         'coordinates' => $item['coordinates'] ?? null,
                         'description' => $item['description'] ?? null,
-                        'source_format' => 'GPS Report',
+                        'source_format' => 'GPS Engine Hours Report',
                         'severity' => 'Normal',
                     ];
 
@@ -1191,13 +1159,31 @@ class BatchFileProcessingController extends Controller
         });
 
         return [
-            'total' => $total,
+            'total' => $total + ($payload['skipped_invalid'] ?? 0),
             'processed' => $processed,
-            'failed' => $failed,
+            'failed' => $failed + ($payload['skipped_invalid'] ?? 0),
             'skipped_headers' => 0,
             'skipped_no_bus_no' => $skippedNoBusNo,
-            'first_error' => $firstFailureMessage,
+            'first_error' => $firstFailureMessage
+                ?? (($payload['skipped_invalid'] ?? 0) > 0
+                    ? $payload['skipped_invalid'].' PDF rows require review and were not imported.'
+                    : null),
         ];
+    }
+
+    private function hasGpsRecordConflict(GpsTripRecord $record, int $excludeBatchId, array $statuses): bool
+    {
+        if (! $record->bus_no || ! $record->beginning_at || ! $record->ending_at) {
+            return false;
+        }
+
+        return GpsTripRecord::query()
+            ->where('batch_upload_id', '!=', $excludeBatchId)
+            ->whereRaw('UPPER(TRIM(bus_no)) = ?', [strtoupper(trim($record->bus_no))])
+            ->where('beginning_at', $record->beginning_at)
+            ->where('ending_at', $record->ending_at)
+            ->whereHas('batchUpload', fn ($query) => $query->whereIn('status', $statuses))
+            ->exists();
     }
 
     private function saveRecord(
@@ -1205,6 +1191,18 @@ class BatchFileProcessingController extends Controller
         array $payload,
         array $rawData
     ): void {
+        // Prevent importing the same bus activity interval from another file.
+        if (! empty($payload['bus_no']) && ! empty($payload['beginning_at']) && ! empty($payload['ending_at'])) {
+            $candidate = new GpsTripRecord([
+                'bus_no' => $payload['bus_no'],
+                'beginning_at' => $payload['beginning_at'],
+                'ending_at' => $payload['ending_at'],
+            ]);
+            if ($this->hasGpsRecordConflict($candidate, $batch->id, ['Processing', 'In Review', 'Processed'])) {
+                throw new \RuntimeException('Duplicate GPS activity interval already exists in another batch for '.$payload['bus_no'].'.');
+            }
+        }
+
         $duration = $payload['duration_minutes'] ?? null;
         $total    = $payload['total_minutes'] ?? null;
 
@@ -1659,7 +1657,7 @@ class BatchFileProcessingController extends Controller
         $numeric = $this->numericValue($value);
 
         return $numeric !== null
-            ? round($numeric, 1)
+            ? round($numeric, 4)
             : null;
     }
 
@@ -1768,10 +1766,18 @@ class BatchFileProcessingController extends Controller
             }
 
             $updates = [
-                'latest_gps_km' => $latestRecord->mileage_km,
                 'latest_gps_at' => $latestRecord->beginning_at
                     ?? $latestRecord->created_at,
             ];
+
+            // Engine Hours PDF grouping is a timestamp and mileage is the
+            // distance of one activity interval, not an odometer reading.
+            // Neither value belongs in the Bus Master route/odometer fields.
+            $isEngineActivity = $latestRecord->source_format === 'GPS Engine Hours Report'
+                || $latestRecord->trip_type === 'Engine Activity';
+            if (! $isEngineActivity) {
+                $updates['latest_gps_km'] = $latestRecord->mileage_km;
+            }
 
             /*
             |------------------------------------------------------------------
@@ -1780,6 +1786,7 @@ class BatchFileProcessingController extends Controller
             |------------------------------------------------------------------
             */
             if (
+                ! $isEngineActivity &&
                 $latestRecord->grouping !== null &&
                 trim((string) $latestRecord->grouping) !== ''
             ) {

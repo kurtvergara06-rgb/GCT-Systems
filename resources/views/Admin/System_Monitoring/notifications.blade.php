@@ -74,15 +74,45 @@
                     </x-slot:actions>
                 </x-ui.section-header>
 
+                @php
+                    $activeNotificationView = request('state') === 'unread' ? 'unread'
+                        : (request('state') === 'read' ? 'history'
+                        : (request('type') === 'Critical' ? 'critical' : 'all'));
+                    $notificationViews = [
+                        'all' => ['label' => 'All Notifications', 'query' => [], 'icon' => 'fa-inbox'],
+                        'critical' => ['label' => 'Critical Alerts', 'query' => ['type' => 'Critical'], 'icon' => 'fa-triangle-exclamation'],
+                        'unread' => ['label' => 'Unread', 'query' => ['state' => 'unread'], 'icon' => 'fa-envelope'],
+                        'history' => ['label' => 'History', 'query' => ['state' => 'read'], 'icon' => 'fa-clock-rotate-left'],
+                    ];
+                @endphp
+                <div class="notification-controls-row">
+                <nav class="notification-view-tabs" aria-label="Notification categories">
+                    @foreach($notificationViews as $viewKey => $view)
+                        <a href="{{ route('admin.notifications', array_merge(request()->except('type', 'state', 'page'), $view['query'])) }}"
+                            class="notification-view-tab {{ $activeNotificationView === $viewKey ? 'is-active' : '' }}"
+                            @if($activeNotificationView === $viewKey) aria-current="page" @endif>
+                            <i class="fa-solid {{ $view['icon'] }}" aria-hidden="true"></i>
+                            {{ $view['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
+
                 <x-ui.table-toolbar
                     :action="route('admin.notifications')"
                     class="notification-toolbar records-toolbar"
                     search-placeholder="Search notifications..."
+                    search-label="Search Notifications"
+                    filter-title="Filter Notifications"
+                    :sort-options="['created_at' => 'Date & Time', 'module' => 'Module', 'action' => 'Action']"
+                    default-sort="created_at"
+                    default-direction="desc"
+                    :filter-count="(int) (request()->filled('module') && request('module') !== 'all') + (int) (request()->filled('type') && request('type') !== 'all') + (int) (request()->filled('state') && request('state') !== 'all')"
                     :show-button="false"
                     id="notificationFilterForm"
                     data-client-filter="true"
                     data-no-loading
                 >
+                    <x-slot:filters>
                     <div class="filter-group">
                         <select id="notificationModuleFilter" name="module" aria-label="Filter by module">
                             <option value="all">All Modules</option>
@@ -109,7 +139,9 @@
                             <option value="read">Read</option>
                         </select>
                     </div>
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
 
                 <div id="notificationListLoading" class="notification-list-loading" hidden>
                     <x-ui.spinner size="sm" label="Filtering notifications" />
@@ -151,35 +183,41 @@
         </main>
     </div>
 
-    <div class="activity-modal-overlay" id="notificationDetailsModal">
-        <div class="activity-modal notification-details-modal">
+    <div class="activity-modal-overlay" id="notificationDetailsModal" role="presentation">
+        <div class="activity-modal notification-details-modal" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle" aria-describedby="notificationModalMessage">
             <div class="activity-modal-header">
                 <div class="modal-heading">
-                    <div class="modal-icon"><i class="fa-solid fa-bell"></i></div>
+                    <div class="modal-icon"><i class="fa-solid fa-bell" aria-hidden="true"></i></div>
                     <div>
                         <h2 id="notificationModalTitle">Notification Details</h2>
-                        <p>Complete information about the selected notification.</p>
+                        <p>Notification details and related information</p>
                     </div>
                 </div>
-                <button type="button" id="closeNotificationModal" class="modal-close-btn">&times;</button>
+                <span class="notification-modal-type" id="notificationModalTypeBadge">Update</span>
+                <button type="button" id="closeNotificationModal" class="modal-close-btn" aria-label="Close notification details"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="activity-modal-body">
+                <h3 class="notification-modal-section"><i class="fa-solid fa-file-lines"></i> Notification Message</h3>
+                <div class="notification-modal-message" id="notificationModalMessage">—</div>
+                <h3 class="notification-modal-section"><i class="fa-solid fa-circle-info"></i> Notification Information</h3>
                 <div class="modal-info-grid">
-                    <div class="modal-info-item"><span>Module</span><strong id="notificationModalModule">—</strong></div>
-                    <div class="modal-info-item"><span>Type</span><strong id="notificationModalType">—</strong></div>
+                    <div class="modal-info-item"><span>Department / Module</span><strong id="notificationModalModule">—</strong></div>
+                    <div class="modal-info-item"><span>Notification Type</span><strong id="notificationModalType">—</strong></div>
                     <div class="modal-info-item"><span>Reference</span><strong id="notificationModalReference">—</strong></div>
-                    <div class="modal-info-item"><span>Date & Time</span><strong id="notificationModalDateTime">—</strong></div>
+                    <div class="modal-info-item"><span>Date &amp; Time</span><strong id="notificationModalDateTime">—</strong></div>
                 </div>
-
-                <div class="modal-detail-block">
-                    <span>Message</span>
-                    <p id="notificationModalMessage">—</p>
+                <h3 class="notification-modal-section"><i class="fa-solid fa-circle-check"></i> Read Status</h3>
+                <div class="notification-modal-status">
+                    <span id="notificationModalStatusText">—</span>
+                    <span id="notificationModalStatusBadge" class="notification-modal-read-badge">—</span>
                 </div>
+                <p id="notificationModalError" class="notification-modal-error" role="alert" hidden>Could not mark the notification as read. Please try again.</p>
             </div>
 
             <div class="activity-modal-footer">
-                <button type="button" id="closeNotificationModalFooter" class="modal-done-btn">Close</button>
+                <button type="button" id="closeNotificationModalFooter" class="notification-modal-secondary-btn">Close</button>
+                <button type="button" id="notificationModalMarkRead" class="modal-done-btn" hidden><i class="fa-solid fa-check"></i> Mark as Read</button>
             </div>
         </div>
     </div>

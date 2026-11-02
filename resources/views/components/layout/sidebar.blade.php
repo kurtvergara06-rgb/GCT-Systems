@@ -208,6 +208,12 @@
                         'active_routes' => ['admin.users', 'admin.users.*'],
                     ],
                     [
+                        'label' => 'Pending Applications',
+                        'route' => 'admin.applications',
+                        'icon' => 'fa-user-clock',
+                        'active_routes' => ['admin.applications', 'admin.applications.*'],
+                    ],
+                    [
                         'label' => 'Roles & Permissions',
                         'route' => 'admin.roles-permissions',
                         'icon' => 'fa-user-lock',
@@ -248,13 +254,7 @@
                         ],
                     ],
                     [
-                        'label' => 'Import / Export',
-                        'route' => 'admin.import-export',
-                        'icon' => 'fa-right-left',
-                        'active_routes' => ['admin.import-export', 'admin.import-export.*'],
-                    ],
-                    [
-                        'label' => 'Data History',
+                        'label' => 'GPS Processing History',
                         'route' => 'admin.data-history',
                         'icon' => 'fa-clock-rotate-left',
                         'active_routes' => ['admin.data-history', 'admin.data-history.*'],
@@ -267,46 +267,28 @@
                 'active_routes' => ['analytics', 'analytics.*'],
                 'children' => [
                     [
-                        'label' => 'Overview',
-                        'route' => 'analytics.overview',
-                        'icon' => 'fa-chart-pie',
-                        'active_routes' => ['analytics.overview', 'analytics.overview.*'],
+                        'label' => 'Descriptive Analytics',
+                        'route' => 'analytics.descriptive',
+                        'icon' => 'fa-chart-column',
+                        'active_routes' => ['analytics.descriptive'],
                     ],
                     [
-                        'label' => 'Fleet & Trip Analytics',
-                        'url' => route('analytics.stage', ['stage' => 'predictive', 'domain' => 'fleet-trip'], false),
-                        'icon' => 'fa-bus',
-                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'predictive' && request()->query('domain') === 'fleet-trip',
+                        'label' => 'Diagnostic Analytics',
+                        'url' => route('analytics.stage', ['stage' => 'diagnostic'], false),
+                        'icon' => 'fa-magnifying-glass',
+                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'diagnostic',
                     ],
                     [
-                        'label' => 'Incident Analytics',
-                        'url' => route('analytics.stage', ['stage' => 'diagnostic', 'domain' => 'fleet-trip'], false),
-                        'icon' => 'fa-triangle-exclamation',
-                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'diagnostic' && request()->query('domain') === 'fleet-trip',
+                        'label' => 'Predictive Analytics',
+                        'url' => route('analytics.stage', ['stage' => 'predictive'], false),
+                        'icon' => 'fa-chart-line',
+                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'predictive',
                     ],
                     [
-                        'label' => 'Fuel Analytics',
-                        'url' => route('analytics.stage', ['stage' => 'diagnostic', 'domain' => 'fuel'], false),
-                        'icon' => 'fa-gas-pump',
-                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'diagnostic' && request()->query('domain') === 'fuel',
-                    ],
-                    [
-                        'label' => 'Inventory Analytics',
-                        'url' => route('analytics.descriptive', ['domain' => 'inventory'], false),
-                        'icon' => 'fa-boxes-stacked',
-                        'active' => request()->routeIs('analytics.descriptive') && request()->query('domain') === 'inventory',
-                    ],
-                    [
-                        'label' => 'Scheduling Insights',
-                        'url' => route('analytics.stage', ['stage' => 'prescriptive', 'domain' => 'fleet-trip'], false),
-                        'icon' => 'fa-calendar-check',
-                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'prescriptive' && request()->query('domain') === 'fleet-trip',
-                    ],
-                    [
-                        'label' => 'System Activity',
-                        'route' => 'admin.activity-logs',
-                        'icon' => 'fa-shield-halved',
-                        'active_routes' => ['admin.activity-logs', 'admin.activity-logs.*'],
+                        'label' => 'Prescriptive Analytics',
+                        'url' => route('analytics.stage', ['stage' => 'prescriptive'], false),
+                        'icon' => 'fa-lightbulb',
+                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'prescriptive',
                     ],
                 ],
             ],
@@ -335,6 +317,34 @@
                 ],
             ],
         ];
+    }
+
+    // Authorized users receive the shared Analytics menu in their own department shell.
+    if ($authUser && $componentDepartment !== 'admin'
+        && $authUser->hasSystemPermission('analytics', 'view')) {
+        $analyticsChildren = [
+            ['label' => 'Descriptive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'descriptive'], false),
+                'icon' => 'fa-chart-column',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'descriptive'],
+        ];
+        if ($authUser->hasSystemPermission('analytics', 'analyze')) {
+            $analyticsChildren[] = ['label' => 'Diagnostic Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'diagnostic'], false),
+                'icon' => 'fa-magnifying-glass',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'diagnostic'];
+            $analyticsChildren[] = ['label' => 'Predictive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'predictive'], false),
+                'icon' => 'fa-chart-line',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'predictive'];
+        }
+        if ($authUser->hasSystemPermission('analytics', 'recommendations')) {
+            $analyticsChildren[] = ['label' => 'Prescriptive Analytics',
+                'url' => route('analytics.department.stage', ['stage' => 'prescriptive'], false),
+                'icon' => 'fa-lightbulb',
+                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'prescriptive'];
+        }
+        $items[] = ['label' => 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
     }
 
     if ($authUser) {

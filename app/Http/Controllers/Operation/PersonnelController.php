@@ -8,6 +8,7 @@ use App\Models\Operation\Driver;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\TripAssignment;
+use App\Services\Operation\OperationNumberSequenceService;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -179,6 +180,13 @@ class PersonnelController extends Controller
         unset($validated['bus_ids']);
         $driver = DB::transaction(function () use ($validated, $busIds): Driver {
             $this->assertBusesAvailableForDriver($busIds);
+            // Allocate the external driver identifier server-side; do not trust form input.
+            // Keep existing historical IDs unchanged and reserve new IDs atomically.
+            $existingMaximum = Driver::query()->pluck('driver_id')
+                ->map(fn ($id) => preg_match('/^DRV-(\\d+)$/', (string) $id, $matches) ? (int) $matches[1] : 0)
+                ->max() ?? 0;
+            $validated['driver_id'] = 'DRV-'.app(OperationNumberSequenceService::class)
+                ->next('driver_id', max(3120, $existingMaximum));
             $driver = Driver::create($validated);
             $driver->authorizedBuses()->sync($busIds);
             return $driver;
@@ -389,7 +397,8 @@ class PersonnelController extends Controller
     private function validateDriver(Request $request, ?Driver $driver = null): array
     {
         $request->merge([
-            'driver_id' => trim((string) $request->input('driver_id')),
+            // Existing driver IDs are permanent history keys. New IDs are generated on store.
+            'driver_id' => $driver?->driver_id ?? '',
             'driver_name' => trim((string) $request->input('driver_name')),
             // Preserve the existing shift on edit; use legacy Morning default only
             // for newly created drivers until the scheduling/attendance phase is migrated.
@@ -399,7 +408,7 @@ class PersonnelController extends Controller
         if ($request->boolean('bus_ids_present')) $request->merge(['bus_ids' => $request->input('bus_ids', [])]);
 
         $validated = $request->validate([
-            'driver_id' => ['required', 'string', 'max:100', Rule::unique('drivers', 'driver_id')->ignore($driver?->id)],
+            'driver_id' => [$driver ? 'required' : 'nullable', 'string', 'max:100', Rule::unique('drivers', 'driver_id')->ignore($driver?->id)],
             'driver_name' => ['required', 'string', 'max:255', Rule::unique('drivers', 'driver_name')->ignore($driver?->id)],
             'shift' => ['required', Rule::in(['Morning', 'Afternoon'])],
             'contact_number' => ['nullable', 'string', 'max:50'],

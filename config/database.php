@@ -64,6 +64,54 @@ return [
             ]) : [],
         ],
 
+        // Used only by the explicit account-only cutover command. These do not
+        // inherit DB_* so a missing value cannot silently select the app DB.
+        'gct_account_source' => [
+            'driver' => 'mysql',
+            'host' => env('GCT_ACCOUNT_SOURCE_HOST'),
+            'port' => env('GCT_ACCOUNT_SOURCE_PORT', '3306'),
+            'database' => env('GCT_ACCOUNT_SOURCE_DATABASE'),
+            'username' => env('GCT_ACCOUNT_SOURCE_USERNAME'),
+            'password' => env('GCT_ACCOUNT_SOURCE_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('GCT_ACCOUNT_SOURCE_SSL_CA'),
+            ]) : [],
+        ],
+        'gct_account_target' => [
+            'driver' => 'mysql',
+            'host' => env('GCT_ACCOUNT_TARGET_HOST'),
+            'port' => env('GCT_ACCOUNT_TARGET_PORT', '3306'),
+            'database' => env('GCT_ACCOUNT_TARGET_DATABASE'),
+            'username' => env('GCT_ACCOUNT_TARGET_USERNAME'),
+            'password' => env('GCT_ACCOUNT_TARGET_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('GCT_ACCOUNT_TARGET_SSL_CA'),
+            ]) : [],
+        ],
+        'gct_account_restore' => [
+            'driver' => 'mysql',
+            'host' => env('GCT_ACCOUNT_RESTORE_HOST'),
+            'port' => env('GCT_ACCOUNT_RESTORE_PORT', '3306'),
+            'database' => env('GCT_ACCOUNT_RESTORE_DATABASE'),
+            'username' => env('GCT_ACCOUNT_RESTORE_USERNAME'),
+            'password' => env('GCT_ACCOUNT_RESTORE_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('GCT_ACCOUNT_RESTORE_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

@@ -47,6 +47,10 @@ class RealisticSampleDataSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->environment('production') || DB::getDefaultConnection() === 'gct_account_target') {
+            throw new \RuntimeException('Sample data seeding is disabled for production and account-only targets.');
+        }
+
         mt_srand(20260924);
 
         DB::transaction(function (): void {

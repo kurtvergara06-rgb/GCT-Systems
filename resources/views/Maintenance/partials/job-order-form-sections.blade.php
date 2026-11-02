@@ -123,7 +123,7 @@
                 <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
                 <span>Insufficient Historical Data</span>
             </small>
-            <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <span><strong>Staff estimate.</strong> Historical suggestions appear when at least 3 approved, completed Job Orders exist for the same maintenance work. Subject to Maintenance Head verification.</span></p>
+            <p class="jo-duration-compact-help"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <span><strong>Duration policy.</strong> Enter a staff estimate when fewer than 3 matching approved, completed Job Orders have verified actual durations. With sufficient history, the median fills automatically and cannot be edited.</span></p>
         </div>
     </div>
 </section>

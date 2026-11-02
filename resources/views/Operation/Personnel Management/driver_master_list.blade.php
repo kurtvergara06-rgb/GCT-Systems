@@ -173,10 +173,10 @@
             </div>
 
             <label class="driver-input-field">
-                <span>Driver ID <span class="personnel-required">*</span></span>
+                <span>Driver ID <small>(System-generated)</small></span>
                 <span class="driver-input-shell">
                     <i class="fa-solid fa-hashtag" aria-hidden="true"></i>
-                    <input name="driver_id" value="{{ old('driver_id') }}" placeholder="e.g. DRV-001" autocomplete="off" required>
+                    <input name="driver_id" value="{{ old('driver_id') }}" placeholder="Auto-generated (e.g. DRV-3121)" autocomplete="off" readonly>
                 </span>
             </label>
             <label class="driver-input-field">

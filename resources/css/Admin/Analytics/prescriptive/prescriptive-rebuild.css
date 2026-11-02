@@ -1,0 +1,791 @@
+/* =========================================================================
+   GCT-SYSTEMS — PRESCRIPTIVE ANALYTICS REBUILD (THESIS OBJECTIVES 6.4.1 & 6.4.2)
+   Enterprise Design Language Aligned with FROMS Theme & Objective 6.4 Rules
+   ========================================================================= */
+
+.prescriptive-rebuild {
+    padding: 0 0 56px;
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+}
+
+/* =========================================================================
+   CONTROLS & NAVIGATION TOOLBAR
+   ========================================================================= */
+/* =========================================================================
+   UNIFIED STATUS & MANDATE STRIP
+   ========================================================================= */
+.prescriptive-status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    flex-wrap: wrap;
+}
+
+.status-strip-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #334155;
+}
+
+.status-strip-text {
+    line-height: 1.45;
+}
+
+.status-strip-text strong {
+    color: #0f172a;
+}
+
+.demo-banner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #f59e0b;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 9999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.live-banner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 9999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.strip-switch-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.strip-switch-link:hover {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-strip-mandate {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 14px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.4;
+    max-width: 580px;
+}
+
+.status-strip-mandate i {
+    color: #2563eb;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.status-strip-mandate strong {
+    color: #1e3a8a;
+}
+
+/* =========================================================================
+   TOP 4 KPI SUMMARY CARDS GRID
+   ========================================================================= */
+.prescriptive-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+/* =========================================================================
+   ANALYTICAL DASHBOARD CARDS & GRIDS
+   ========================================================================= */
+.prescriptive-dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.prescriptive-three-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.prescriptive-split-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.prescriptive-dashboard-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dashboard-card-header h3 {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.dashboard-card-header h3 i {
+    color: #2563eb;
+    font-size: 15px;
+}
+
+.dashboard-eyebrow {
+    margin: 3px 0 0;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.dashboard-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* =========================================================================
+   CHART CONTAINERS
+   ========================================================================= */
+.prescriptive-chart-wrap {
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+    flex: 1;
+}
+
+.fleet-health-visual-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 240px;
+    flex: 1;
+}
+
+.fleet-health-chart-center {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+}
+
+.chart-center-metric {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.chart-center-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* =========================================================================
+   DATA TABLES
+   ========================================================================= */
+.prescriptive-table-container {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+}
+
+.prescriptive-table-container.scrollable-body {
+    max-height: 380px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.prescriptive-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+
+.prescriptive-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+    box-shadow: 0 1px 0 #e2e8f0;
+}
+
+.prescriptive-table th {
+    padding: 11px 13px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.prescriptive-table td {
+    padding: 12px 13px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.prescriptive-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.prescriptive-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =========================================================================
+   CHIPS, PILLS & STATUS BADGES
+   ========================================================================= */
+.code-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.bus-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #1d4ed8;
+    white-space: nowrap;
+}
+
+.driver-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #15803d;
+    white-space: nowrap;
+}
+
+.headway-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.restock-qty-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #6d28d9;
+    white-space: nowrap;
+}
+
+.stock-depleted-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #dc2626;
+    white-space: nowrap;
+}
+
+.action-cell-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.45;
+}
+
+.action-cell-card i {
+    margin-top: 2px;
+    color: #2563eb;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.badge-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.badge-priority.danger,
+.badge-priority.critical {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.badge-priority.warning,
+.badge-priority.high {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #d97706;
+}
+
+.badge-priority.info,
+.badge-priority.medium {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #2563eb;
+}
+
+.badge-priority.neutral,
+.badge-priority.normal {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-status.optimal,
+.badge-status.success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-status.warning {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.badge-status.danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+/* =========================================================================
+   SAFEGUARDS & COMPLIANCE CALLOUT CARDS
+   ========================================================================= */
+.prescriptive-safeguard-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 14px;
+}
+
+.prescriptive-safeguard-card h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a8a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prescriptive-safeguard-card p {
+    margin: 0;
+    font-size: 11.5px;
+    color: #334155;
+    line-height: 1.55;
+}
+
+.prescriptive-safeguard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.safeguard-pill-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.safeguard-pill-item i {
+    color: #2563eb;
+    font-size: 14px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.safeguard-pill-item strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.safeguard-pill-item small {
+    display: block;
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* =========================================================================
+   KEY RECOMMENDATIONS PLAYBOOK CARDS
+   ========================================================================= */
+.playbook-list {
+    display: grid;
+    gap: 12px;
+}
+
+.playbook-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.playbook-card:hover {
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    border-color: #cbd5e1;
+}
+
+.playbook-card.danger {
+    border-left-color: #dc2626;
+}
+
+.playbook-card.warning {
+    border-left-color: #ea580c;
+}
+
+.playbook-card.info {
+    border-left-color: #2563eb;
+}
+
+.playbook-card.neutral {
+    border-left-color: #16a34a;
+}
+
+.playbook-info h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.playbook-info p {
+    margin: 0;
+    font-size: 11.5px;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.action-btn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.action-btn-pill:hover {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+/* =========================================================================
+   RESTOCKING TIMELINE STEPPER
+   ========================================================================= */
+.timeline-stepper {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    position: relative;
+    margin-top: 10px;
+}
+
+.timeline-step-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    position: relative;
+}
+
+.timeline-step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #1d4ed8;
+    margin-bottom: 8px;
+}
+
+.timeline-step-item h5 {
+    margin: 0 0 5px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.timeline-step-item p {
+    margin: 0;
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================= */
+@media (max-width: 1200px) {
+    .prescriptive-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .prescriptive-three-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .timeline-stepper {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .prescriptive-dashboard-grid,
+    .prescriptive-split-grid,
+    .prescriptive-three-grid,
+    .prescriptive-safeguard-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .prescriptive-status-strip {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .status-strip-mandate {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .prescriptive-stats-grid,
+    .timeline-stepper {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .prescriptive-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .prescriptive-filters-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+
+/* Balanced dashboard chart canvases; actual counts stay unchanged. */
+.prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap {
+    height: 230px;
+    min-height: 230px;
+    flex: none;
+    padding: 4px 10px 6px;
+}
+.prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+@media (max-width: 700px) {
+    .prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap {
+        height: 210px;
+        min-height: 210px;
+        padding: 4px;
+    }
+}
+
+
+/* Candidate tables: fit their half-width cards without sideways scrolling. */
+.prescriptive-rebuild .prescriptive-split-grid > .prescriptive-dashboard-card { min-width: 0; }
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+}
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+}
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table th,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table td {
+    padding: 10px 7px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    line-height: 1.4;
+    vertical-align: top;
+}
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(1) { width: 24%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(2) { width: 22%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(3) { width: 18%; }
+.prescriptive-rebuild .candidate-table--drivers th:nth-child(4) { width: 36%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(1) { width: 24%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(2) { width: 25%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(3) { width: 17%; }
+.prescriptive-rebuild .candidate-table--buses th:nth-child(4) { width: 34%; }
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .badge-status,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .code-pill,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .bus-chip,
+.prescriptive-rebuild .prescriptive-split-grid .candidate-table .dashboard-badge {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+@media (max-width: 1100px) {
+    .prescriptive-rebuild .prescriptive-split-grid { grid-template-columns: minmax(0, 1fr); }
+}

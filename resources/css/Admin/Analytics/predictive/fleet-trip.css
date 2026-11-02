@@ -108,13 +108,10 @@
 
 .predictive-fleet-page .analytics-kpi-card__label,
 .predictive-fleet-page .ft-kpi-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #475569;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.25;
+    line-height: 1.35;
 }
 
 .predictive-fleet-page .analytics-kpi-card__value,
@@ -129,8 +126,8 @@
 
 .predictive-fleet-page .analytics-kpi-card__description,
 .predictive-fleet-page .ft-kpi-desc {
-    font-size: 10px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.5;
     color: var(--ft-muted);
     margin: 8px 0 0;
     min-height: 28px;
@@ -141,7 +138,7 @@
     margin-top: 10px;
     padding-top: 8px;
     border-top: 1px dashed #f1f5f9;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -1125,7 +1122,7 @@
 }
 
 
-/* Compact, usable filters replace the empty full-width toolbar. */
+/* Context heading sits below the shared stage controls. */
 .predictive-fleet-page .ft-dashboard-filter-row {
     display: flex;
     align-items: center;
@@ -1141,11 +1138,6 @@
 .predictive-fleet-page .ft-dashboard-filter-heading strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #152c4f; }
 .predictive-fleet-page .ft-dashboard-filter-heading strong i { color: #377de2; }
 .predictive-fleet-page .ft-dashboard-filter-heading span { font-size: 10px; color: #667b98; }
-.predictive-fleet-page .ft-dashboard-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
-.predictive-fleet-page .ft-dashboard-filters label { display: flex; flex-direction: column; gap: 3px; font-size: 10px; font-weight: 700; color: #657794; }
-.predictive-fleet-page .ft-dashboard-filters select { min-width: 135px; max-width: 190px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d4dfed; border-radius: 8px; background: #f9fbff; color: #1c365f; font-size: 11px; cursor: pointer; }
-.predictive-fleet-page .ft-dashboard-filters select:focus-visible { outline: 2px solid #6b9dec; outline-offset: 1px; }
-.predictive-fleet-page .ft-dashboard-filters select:hover { border-color: #9abcea; }
 .predictive-fleet-page .ft-data-empty {
     min-height: 164px;
     display: flex;
@@ -1183,7 +1175,62 @@
 @media (max-width: 700px) {
     .predictive-fleet-page .ft-dashboard-filter-row { align-items: stretch; }
     .predictive-fleet-page .ft-dashboard-filter-heading { width: 100%; }
-    .predictive-fleet-page .ft-dashboard-filters { width: 100%; }
-    .predictive-fleet-page .ft-dashboard-filters label { flex: 1 1 120px; min-width: 0; }
-    .predictive-fleet-page .ft-dashboard-filters select { min-width: 0; max-width: none; width: 100%; }
 }
+
+
+/* Fleet status overview: master-data breakdown, not dispatch utilization. */
+.predictive-fleet-page .ft-availability-detail {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    color: #52647f;
+    font-size: 11px;
+}
+.predictive-fleet-page .ft-availability-detail strong { color: #142e59; }
+.predictive-fleet-page .ft-availability-progress {
+    height: 9px;
+    border-radius: 999px;
+    background: #e8eef7;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.predictive-fleet-page .ft-availability-progress > span {
+    display: block;
+    height: 100%;
+    background: #16a34a;
+    border-radius: inherit;
+}
+
+
+/* Server health and ETA model readiness are separate signals. */
+.predictive-fleet-page .ft-dashboard-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.predictive-fleet-page .ft-python-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+}
+.predictive-fleet-page .ft-python-status__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 1px solid #dbe5f2;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.predictive-fleet-page .ft-python-status__item i { font-size: 8px; }
+.predictive-fleet-page .ft-python-status__item.is-online { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+.predictive-fleet-page .ft-python-status__item.is-offline { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.predictive-fleet-page .ft-python-status__item.is-muted { background: #f8fafc; color: #64748b; }
+.predictive-fleet-page .ft-python-status > small { color: #64748b; font-size: 10px; }

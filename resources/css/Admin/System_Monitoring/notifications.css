@@ -222,25 +222,40 @@
    TOOLBAR
 ========================================================= */
 
-.notifications-page .notification-toolbar {
-    display: grid;
-
-    grid-template-columns:
-        minmax(300px, 1fr)
-        150px
-        140px
-        160px;
-
-    gap: 10px;
-
-    margin-bottom: 14px;
-
-    padding: 10px 12px;
-
-    border: 1px solid var(--not-border);
-    border-radius: 12px;
-
-    background: #ffffff;
+.notifications-page .notification-view-tabs {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    margin:3px 0 12px;
+}
+.notifications-page .notification-view-tab {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    min-height:34px;
+    padding:7px 11px;
+    background:#fff;
+    border:1px solid #dce5f2;
+    border-radius:8px;
+    color:#334766;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:700;
+}
+.notifications-page .notification-view-tab:hover {
+    color:#0b40b5;
+    border-color:#b6d0ff;
+    background:#f5f9ff;
+}
+.notifications-page .notification-view-tab.is-active {
+    color:#0b40b5;
+    background:#eaf2ff;
+    border-color:#a8c8ff;
+}
+.notifications-page .notification-view-tab:focus-visible {
+    outline:2px solid #0b40b5;
+    outline-offset:2px;
 }
 
 .notifications-page .search-box {
@@ -778,17 +793,7 @@
    RESPONSIVE
 ========================================================= */
 
-@media (max-width: 1200px) {
 
-    .notifications-page .notification-toolbar {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .notifications-page .search-box {
-        grid-column: 1 / -1;
-    }
-
-}
 
 
 @media (max-width: 800px) {
@@ -797,13 +802,7 @@
         grid-template-columns: 1fr;
     }
 
-    .notifications-page .notification-toolbar {
-        grid-template-columns: 1fr;
-    }
 
-    .notifications-page .search-box {
-        grid-column: auto;
-    }
 
     .notifications-page .section-header {
         flex-direction: column;
@@ -840,4 +839,57 @@
 
 .reference-code {
     font-weight: 600;
+}
+
+/* Notification navigation and shared toolbar use one row on desktop.
+   Remove competing full-width form declarations rather than override them. */
+.notifications-page .notification-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0 14px;
+}
+.notifications-page .notification-controls-row .notification-view-tabs {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    min-width: 0;
+    margin: 0;
+}
+.notifications-page .notification-controls-row #notificationFilterForm {
+    display: flex;
+    flex: 0 0 auto;
+    width: max-content;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0 0 0 auto;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+.notifications-page .notification-controls-row #notificationFilterForm .gct-table-tool {
+    flex: 0 0 auto;
+}
+@media (max-width: 900px) {
+    .notifications-page .notification-controls-row {
+        flex-wrap: wrap;
+    }
+    .notifications-page .notification-controls-row #notificationFilterForm {
+        margin-left: auto;
+    }
+}
+@media (max-width: 540px) {
+    .notifications-page .notification-controls-row #notificationFilterForm {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+        flex-wrap: wrap;
+    }
 }

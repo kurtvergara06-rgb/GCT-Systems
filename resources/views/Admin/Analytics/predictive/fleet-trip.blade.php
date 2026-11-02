@@ -15,11 +15,22 @@
     $tripGrowth = (float) $tripGrowthTrend;
 
     $predictionAvailable = (bool) ($fleet['prediction']->available ?? false);
+    $predictionStatus = $fleet['prediction'] ?? null;
+    $forecastTargetCount = (int) ($predictionStatus->target_count ?? 0);
+    $forecastHistoryCount = (int) ($predictionStatus->historical_records ?? 0);
+    $forecastEmptyReason = ! $predictionAvailable
+        ? 'The Python forecasting service is unavailable. Historical GPS diagnostics are still shown separately.'
+        : ($forecastTargetCount === 0
+            ? 'No future Scheduled or Ready trips with active routes were found in the next seven days.'
+            : 'No eligible trip-level forecasts were returned. Comparable route history or prediction eligibility may be insufficient.');
 
     $tripCount = (int) ($fleet['tripCount'] ?? 0);
     $totalBuses = (int) ($fleet['totalBuses'] ?? 0);
     $activeBuses = (int) ($fleet['activeBuses'] ?? 0);
     $unavailableBuses = max(0, $totalBuses - $activeBuses);
+    $maintenanceBuses = (int) ($fleet['underMaintenance'] ?? 0);
+    $inactiveBuses = (int) ($fleet['inactiveBuses'] ?? 0);
+    $otherStatusBuses = max(0, $unavailableBuses - $maintenanceBuses - $inactiveBuses);
     $averageTripDuration = (float) ($fleet['averageTripDuration'] ?? 0);
 
     $tripsAtRiskCount = (int) ($fleetStats['tripsAtRisk'] ?? 0);
@@ -95,18 +106,18 @@
             'change_type' => $growthChangeType,
         ],
         [
-            'label' => 'Trips at Risk',
+            'label' => 'GPS Records Flagged', 
             'value' => $tripCount > 0 ? (string) $displayTripsAtRisk : '—',
-            'description' => 'Trips predicted to experience delays or operational issues.',
+            'description' => 'Historical GPS records flagged by diagnostic thresholds; not future trip predictions.',
             'icon' => 'fa-triangle-exclamation',
             'variant' => 'red',
             'change' => $tripCount === 0 ? null : ($displayTripsAtRisk > 0 ? $displayTripsAtRisk . ' flagged for review' : 'No trips flagged'),
             'change_type' => $displayTripsAtRisk > 0 ? 'negative' : 'positive',
         ],
         [
-            'label' => 'Predicted Delays',
+            'label' => 'Delay Indicators',
             'value' => $tripCount > 0 ? (string) $displayPredictedDelays : '—',
-            'description' => 'Trips likely to exceed their expected schedule.',
+            'description' => 'Historical delay and slow-movement indicators; not validated future delays.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
             'change' => $tripCount === 0 ? null : ($displayPredictedDelays > 0 ? $displayPredictedDelays . ' variance alerts' : 'No delays flagged'),
@@ -122,18 +133,18 @@
             'change_type' => 'positive',
         ],
         [
-            'label' => 'High Idle Risk',
+            'label' => 'High-Idle Records',
             'value' => $tripCount > 0 ? (string) $displayHighIdleRisk : '—',
-            'description' => 'Buses predicted to experience excessive idle time.',
+            'description' => 'GPS records with elevated idle indicators; not a count of distinct buses.',
             'icon' => 'fa-clock',
             'variant' => 'yellow',
             'change' => $tripCount === 0 ? null : ($displayHighIdleRisk > 0 ? $displayHighIdleRisk . ' elevated units' : 'No high-idle risk flagged'),
             'change_type' => $displayHighIdleRisk > 0 ? 'warning' : 'positive',
         ],
         [
-            'label' => 'Trip Completion Forecast',
+            'label' => 'Unflagged GPS Share',
             'value' => $displayCompletionForecast,
-            'description' => 'Predicted successful trip completion rate.',
+            'description' => 'Share of GPS records not flagged for review; not a trip completion prediction.',
             'icon' => 'fa-circle-check',
             'variant' => 'purple',
             'change' => $tripCount > 0 ? $growthChangeText : null,
@@ -168,8 +179,8 @@
     }
     if ($topDelayedRoute) {
         $insights->push([
-            'title' => 'Route delay pattern',
-            'text' => sprintf('Route "%s" has the highest delay risk among the available route records.', $delayedRouteName),
+            'title' => 'Historical route activity',
+            'text' => sprintf('Route "%s" has the highest relative GPS activity and duration score among the available route records. This is not a predicted delay probability.', $delayedRouteName),
             'icon' => 'fa-clock',
             'tone' => 'orange',
         ]);
@@ -177,7 +188,7 @@
     if ($displayHighIdleRisk > 0 && $tripCount > 0) {
         $insights->push([
             'title' => 'Idle behavior telemetry',
-            'text' => sprintf('%d units have a recorded high-idle risk signal.', $displayHighIdleRisk),
+            'text' => sprintf('%d historical GPS records have elevated idle indicators; these are not distinct bus counts.', $displayHighIdleRisk),
             'icon' => 'fa-gas-pump',
             'tone' => 'yellow',
         ]);
@@ -193,31 +204,25 @@
 
 <div class="predictive-page predictive-fleet-page">
 
-    <div class="ft-dashboard-filter-row" aria-label="Fleet analytics filters">
+    <div class="ft-dashboard-filter-row" aria-label="Fleet analytics context">
         <div class="ft-dashboard-filter-heading">
             <strong><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Fleet performance overview</strong>
             <span>Recorded operations and source-labeled predictions</span>
         </div>
-        <form method="GET" action="{{ $predictiveUrl }}" class="ft-dashboard-filters">
-            <input type="hidden" name="domain" value="fleet-trip">
-            <label for="ft-dashboard-period">Period
-                <select id="ft-dashboard-period" name="period" onchange="this.form.requestSubmit()">
-                    <option value="this-month" @selected($period === 'this-month')>This Month</option>
-                    <option value="this-week" @selected($period === 'this-week')>This Week</option>
-                    <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                    <option value="last-90-days" @selected($period === 'last-90-days')>Last 90 Days</option>
-                    <option value="last-12-months" @selected($period === 'last-12-months')>Last 12 Months</option>
-                </select>
-            </label>
-            <label for="ft-dashboard-bus">Bus
-                <select id="ft-dashboard-bus" name="bus" onchange="this.form.requestSubmit()">
-                    <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
-                    @foreach($busOptions as $busNo)
-                        <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
-                    @endforeach
-                </select>
-            </label>
-        </form>
+        @php
+            $pythonStatus = $fleet['pythonServiceStatus'] ?? ['online' => false, 'eta_ready' => false];
+        @endphp
+        <div class="ft-python-status" role="status" aria-label="Python service and ETA model status">
+            <span class="ft-python-status__item {{ $pythonStatus['online'] ? 'is-online' : 'is-offline' }}">
+                <i class="fa-solid fa-circle" aria-hidden="true"></i>
+                Python API {{ $pythonStatus['online'] ? 'Online' : 'Offline' }}
+            </span>
+            <span class="ft-python-status__item {{ $pythonStatus['eta_ready'] ? 'is-online' : 'is-muted' }}">
+                <i class="fa-solid {{ $pythonStatus['eta_ready'] ? 'fa-circle-check' : 'fa-circle-info' }}" aria-hidden="true"></i>
+                ETA ML {{ $pythonStatus['eta_ready'] ? 'Ready' : 'Not Ready' }}
+            </span>
+            <small>Checked on page load</small>
+        </div>
     </div>
 
     {{-- =========================================================
@@ -268,13 +273,13 @@
         <x-analytics.card
             class="ft-card ft-risk-card"
             title="Fleet & Trip Risk Level"
-            description="Distribution of predicted operational risk."
+            description="Distribution of available future trip-level forecast risks."
         >
             @if ($fleetRiskTotal === 0)
                 <div class="ft-data-empty" role="status">
                     <span class="ft-data-empty__icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
                     <strong>No risk distribution available</strong>
-                    <span>Risk levels appear when trip predictions are available for the selected filters.</span>
+                    <span>{{ $forecastEmptyReason }}</span>
                 </div>
             @else
             <div class="ft-risk-body">
@@ -417,8 +422,8 @@
         @if ($tripPredictions->isEmpty())
             <div class="ft-data-empty ft-data-empty--table" role="status">
                 <span class="ft-data-empty__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
-                <strong>No trip predictions available for the selected filters.</strong>
-                <span>Try another period or bus. Trip-level risk rows appear when prediction results are available.</span>
+                <strong>No eligible future trip forecasts available.</strong>
+                <span>{{ $forecastEmptyReason }} Historical GPS records: {{ number_format($forecastHistoryCount) }}; upcoming eligible targets: {{ number_format($forecastTargetCount) }}.</span>
             </div>
         @endif
     </x-analytics.card>
@@ -430,23 +435,30 @@
 
         <x-analytics.card
             class="ft-card ft-performance-card"
-            title="Fleet Availability & Utilization"
-            description="Actual bus master status snapshot, separate from predicted idle risk."
+            title="Fleet Availability Overview"
+            description="Actual registered bus statuses; not dispatch eligibility or time-based utilization."
         >
             <div class="ft-availability-summary">
-                <div><span>Active buses</span><strong>{{ number_format($activeBuses) }}</strong></div>
-                <div><span>Other bus statuses</span><strong>{{ number_format($unavailableBuses) }}</strong></div>
-                <div><span>Total registered</span><strong>{{ number_format($totalBuses) }}</strong></div>
-                <div><span>Active fleet share</span><strong>{{ $totalBuses > 0 ? number_format($activeBuses / $totalBuses * 100, 1) . '%' : '—' }}</strong></div>
+                <div><span>Active</span><strong>{{ number_format($activeBuses) }}</strong></div>
+                <div><span>Under Maintenance</span><strong>{{ number_format($maintenanceBuses) }}</strong></div>
+                <div><span>Inactive</span><strong>{{ number_format($inactiveBuses) }}</strong></div>
+                <div><span>Other statuses</span><strong>{{ number_format($otherStatusBuses) }}</strong></div>
             </div>
-            <p class="ft-evidence-note">Active share measures registered bus status, not time-based bus utilization.</p>
+            <div class="ft-availability-detail">
+                <div><strong>{{ number_format($totalBuses) }}</strong> registered buses</div>
+                <div><strong>{{ $totalBuses > 0 ? number_format($activeBuses / $totalBuses * 100, 1) . '%' : '—' }}</strong> Active share</div>
+            </div>
+            <div class="ft-availability-progress" role="img" aria-label="Active buses: {{ $activeBuses }} of {{ $totalBuses }}">
+                <span style="width: {{ $totalBuses > 0 ? ($activeBuses / $totalBuses) * 100 : 0 }}%"></span>
+            </div>
+            <p class="ft-evidence-note">Based on bus master status only. Dispatch eligibility requires separate Operations and Maintenance checks.</p>
         </x-analytics.card>
 
-        {{-- 2. Route Risk Analysis --}}
+        {{-- Historical route activity score (not a predicted delay probability). --}}
         <x-analytics.card
             class="ft-card ft-route-card"
-            title="Route Risk Analysis"
-            description="Routes ranked by predicted operational risk."
+            title="Historical Route Indicators"
+            description="Relative GPS activity and duration score (0–100), not a delay probability or ML forecast."
         >
             <div class="ft-route-list">
                 @forelse ($routePredictions as $route)
@@ -465,19 +477,13 @@
                                 <strong class="ft-route-name" title="{{ $route[0] ?? '—' }}">
                                     {{ $route[0] ?? '—' }}
                                 </strong>
-                                @if($delayPct >= 75)
-                                    <span class="ft-route-tag danger"><i class="fa-solid fa-triangle-exclamation"></i> Bottleneck</span>
-                                @elseif($delayPct >= 60)
-                                    <span class="ft-route-tag warning"><i class="fa-solid fa-clock"></i> Idle Zone</span>
-                                @else
-                                    <span class="ft-route-tag success"><i class="fa-solid fa-circle-check"></i> Optimal</span>
-                                @endif
+                                <span class="ft-route-tag {{ $routeClass === 'high' ? 'warning' : 'success' }}"><i class="fa-solid fa-chart-column"></i> GPS History</span>
                             </div>
                             <div class="ft-route-meta">
                                 <span><i class="fa-solid fa-bus"></i> {{ number_format((float) ($route[1] ?? 0)) }} trips</span>
                                 <span><i class="fa-regular fa-clock"></i> {{ number_format((float) ($route[2] ?? 0)) }}m avg</span>
                                 <span class="ft-route-variance {{ $delayPct >= 70 ? 'danger' : 'safe' }}">
-                                    <i class="fa-solid fa-chart-line"></i> {{ number_format($delayPct, 1) }}% delay risk
+                                    <i class="fa-solid fa-chart-line"></i> {{ number_format($delayPct, 0) }}/100 historical score
                                 </span>
                             </div>
                             <div class="ft-route-meter-wrap">
@@ -488,19 +494,19 @@
                         </div>
                         <div class="ft-route-risk-col">
                             <div class="ft-route-score-wrap">
-                                <span class="ft-route-score ft-route-score--{{ $routeClass }}">{{ number_format($delayPct, 0) }}%</span>
-                                <span class="ft-route-score-label">Delay Risk</span>
+                                <span class="ft-route-score ft-route-score--{{ $routeClass }}">{{ number_format($delayPct, 0) }}/100</span>
+                                <span class="ft-route-score-label">Activity Score</span>
                             </div>
                             <span class="ft-badge {{ $routeClass }}">
-                                {{ ucfirst($routeClass) }}
+                                {{ $routeClass === 'high' ? 'Higher' : ($routeClass === 'medium' ? 'Moderate' : 'Lower') }}
                             </span>
                         </div>
                     </div>
                 @empty
                     <div class="ft-data-empty ft-data-empty--compact" role="status">
                         <span class="ft-data-empty__icon"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span>
-                        <strong>No route risk data available</strong>
-                        <span>Route rankings appear when trip predictions include route evidence.</span>
+                        <strong>No historical route records available</strong>
+                        <span>Historical route indicators appear when processed GPS records are available for the selected filters.</span>
                     </div>
                 @endforelse
             </div>
@@ -509,9 +515,16 @@
         {{-- 3. Fleet & Trip Predictive Insights --}}
         <x-analytics.card
             class="ft-card ft-insights-card"
-            title="Operational Insights & Model Readiness"
+            title="Operational Insights"
         >
             <div class="ft-insights-grid">
+                <div class="ft-insight-tile ft-insight-tile--blue">
+                    <div class="ft-insight-icon blue"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="ft-insight-body">
+                        <h6>Future forecast availability</h6>
+                        <p>{{ $forecastTargetCount }} upcoming eligible targets; {{ $tripPredictionsRaw->count() }} forecasts available. {{ $predictionAvailable ? 'Forecast service responded.' : 'Python forecasting unavailable; Laravel statistical estimates require at least five matching route records.' }}</p>
+                    </div>
+                </div>
                 @forelse ($insights as $insight)
                     <div class="ft-insight-tile ft-insight-tile--{{ $insight['tone'] }}">
                         <div class="ft-insight-icon {{ $insight['tone'] }}">

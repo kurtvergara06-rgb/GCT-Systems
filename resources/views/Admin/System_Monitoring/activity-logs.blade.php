@@ -41,6 +41,12 @@
                     :action="route('admin.activity-logs')"
                     class="activity-toolbar"
                     search-placeholder="Search user, activity, reference..."
+                    search-label="Search Activities"
+                    filter-title="Filter Activities"
+                    :filter-count="(int) (request()->filled('module') && request('module') !== 'all') + (int) (request()->filled('event') && request('event') !== 'all') + (int) (request()->filled('date') && request('date') !== 'all')"
+                    :sort-options="['created_at' => 'Date & Time', 'user_name' => 'User', 'activity' => 'Activity', 'module' => 'Module', 'event_type' => 'Event Type']"
+                    default-sort="created_at"
+                    default-direction="desc"
                     :show-button="false"
                     id="activityFilterForm"
                     data-activity-filter-form
@@ -49,6 +55,7 @@
                     data-no-loading
                     autocomplete="off"
                 >
+                    <x-slot:filters>
                     <div class="filter-group">
                         <select id="activityModuleFilter" name="module" aria-label="Filter by module" autocomplete="off">
                             <option value="all">All Modules</option>
@@ -79,6 +86,7 @@
                             <option value="month" @selected(request('date') === 'month')>This Month</option>
                         </select>
                     </div>
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
 
                 <div id="activityTableLoading" class="activity-table-loading" hidden>
@@ -203,14 +211,14 @@
         </main>
     </div>
 
-    <div id="activityDetailsModal" class="activity-modal-overlay">
-        <div class="activity-modal">
+    <div id="activityDetailsModal" class="activity-modal-overlay" role="presentation">
+        <div class="activity-modal" role="dialog" aria-modal="true" aria-labelledby="activityDetailsTitle" aria-describedby="activityDetailsDescription">
             <div class="activity-modal-header">
                 <div class="modal-heading">
                     <div class="modal-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <div>
-                        <h2>Activity Details</h2>
-                        <p>Complete information about the selected system activity.</p>
+                        <h2 id="activityDetailsTitle">Activity Details</h2>
+                        <p id="activityDetailsDescription">Recorded system activity and security information.</p>
                     </div>
                 </div>
                 <button type="button" id="closeActivityModal" class="modal-close-btn" data-icon-only aria-label="Close activity details">
@@ -219,6 +227,7 @@
             </div>
 
             <div class="activity-modal-body">
+                <div class="activity-modal-section-heading"><i class="fa-solid fa-clipboard-list"></i><span>Activity Information</span></div>
                 <div class="modal-info-grid">
                     <div class="modal-info-item"><span>User</span><strong id="modalUser">—</strong></div>
                     <div class="modal-info-item"><span>Role</span><strong id="modalRole">—</strong></div>
@@ -228,9 +237,11 @@
                     <div class="modal-info-item"><span>Date & Time</span><strong id="modalDateTime">—</strong></div>
                 </div>
 
+                <div class="activity-modal-section-heading activity-modal-section-heading--spaced"><i class="fa-solid fa-file-lines"></i><span>Recorded Action</span></div>
                 <div class="modal-detail-block"><span>Activity</span><strong id="modalActivity">—</strong></div>
                 <div class="modal-detail-block"><span>Details</span><p id="modalDetails">—</p></div>
 
+                <div class="activity-modal-section-heading activity-modal-section-heading--spaced"><i class="fa-solid fa-shield-halved"></i><span>Security & Device</span></div>
                 <div class="security-info-grid">
                     <div class="security-info-item">
                         <div class="security-icon"><i class="fa-solid fa-network-wired"></i></div>
@@ -244,7 +255,7 @@
             </div>
 
             <div class="activity-modal-footer">
-                <button type="button" id="closeActivityModalFooter" class="modal-done-btn">Close</button>
+                <button type="button" id="closeActivityModalFooter" class="modal-done-btn"><i class="fa-solid fa-check" aria-hidden="true"></i> Done</button>
             </div>
         </div>
     </div>

@@ -7,6 +7,9 @@
     $highShare = round(($distribution->high / $totalRecords) * 100, 1);
     $fuelTrendLabels = collect($fuelPredict->trend_labels ?? [])->values();
     $fuelTrendForecast = collect($fuelPredict->trend_forecast ?? [])->values();
+    $fuelObservationCount = collect($fuelPredict->trend_actual ?? [])->filter(fn ($v) => $v !== null)->count();
+    $canDisplayFuelProjection = $fuelTrendForecast->contains(fn ($v) => $v !== null);
+    $activeFuelFactors = collect($fuelPredict->factors ?? [])->filter(fn ($factor) => (string) ($factor->level ?? 'Low') !== 'Low')->values();
     $peakForecast = $fuelTrendForecast
         ->filter(fn ($value) => is_numeric($value))
         ->sortDesc()
@@ -47,20 +50,20 @@
     {{-- CHART GRID --}}
     <section class="predictive-main-grid">
 
-        <x-analytics.card class="predictive-card forecast-card" title="Fuel Consumption Trend" description="Recorded daily liters vs smooth ML forecast projection across the full period.">
+        <x-analytics.card class="predictive-card forecast-card" title="Fuel Consumption Trend" description="Actual liters on days with fuel reports. Unreported days are shown as missing, not zero.">
             <div class="chart-header-badges">
-                <span class="telemetry-badge"><i class="fa-solid fa-droplet"></i> Target: ≤ 15.0 L/day</span>
-                <span class="telemetry-badge telemetry-badge--blue"><i class="fa-solid fa-chart-line"></i> Smooth 7-day projection</span>
+                <span class="telemetry-badge"><i class="fa-solid fa-droplet"></i> {{ $fuelObservationCount }} recorded days</span>
+                <span class="telemetry-badge telemetry-badge--blue"><i class="fa-solid fa-chart-line"></i> {{ $canDisplayFuelProjection ? 'Recorded-trend estimate' : 'Insufficient history for forecast' }}</span>
             </div>
             <div class="chart-container large-chart">
                 <canvas id="consumptionChart" role="img" aria-label="Fuel consumption trend chart"></canvas>
             </div>
         </x-analytics.card>
 
-        <x-analytics.card class="predictive-card" title="Fuel Efficiency Trend" description="Fleet km/L telemetry vs 3.59 km/L baseline trajectory.">
+        <x-analytics.card class="predictive-card" title="Fuel Efficiency Trend" description="Measured efficiency on recorded fuel-report days. Missing days are not interpreted as 0 km/L.">
             <div class="chart-header-badges">
                 <span class="telemetry-badge telemetry-badge--green"><i class="fa-solid fa-gauge-high"></i> Baseline: {{ number_format($fleetAvgEfficiency, 2) }} km/L</span>
-                <span class="telemetry-badge"><i class="fa-solid fa-bullseye"></i> Goal: ≥ 4.00 km/L</span>
+                <span class="telemetry-badge"><i class="fa-solid fa-circle-info"></i> Historical measurements only</span>
             </div>
             <div class="chart-container large-chart">
                 <canvas id="efficiencyChart" role="img" aria-label="Fuel efficiency trend chart"></canvas>
@@ -70,19 +73,19 @@
     </section>
 
     {{-- PREDICTION TABLE --}}
-    <x-analytics.card class="predictive-card predictions-card" title="Fuel Consumption & Efficiency Predictions" description="Buses ranked by consumption deviation, efficiency against fleet baseline, and idling fuel loss.">
-        <div class="table-wrap predictive-fuel-table-wrap" tabindex="0" aria-label="Scrollable fuel consumption predictions table">
+    <x-analytics.card class="predictive-card predictions-card" title="Fuel Consumption & Efficiency Records" description="Recorded fuel usage, efficiency relative to the selected fleet, idling, and review indicators; not individual ML predictions.">
+        <div class="table-wrap predictive-fuel-table-wrap" tabindex="0" aria-label="Scrollable fuel efficiency records table">
             <table class="predictive-table">
                 <thead>
                     <tr>
                         <th style="width: 10%;">Bus</th>
                         <th style="width: 11%;">Distance</th>
                         <th style="width: 11%;">Fuel Used</th>
-                        <th style="width: 18%;">Efficiency vs Baseline</th>
+                        <th style="width: 18%;">Fuel Efficiency</th>
                         <th style="width: 14%;">Idling & Fuel Loss</th>
                         <th style="width: 12%;">Anomaly State</th>
                         <th style="width: 11%;">Risk Level</th>
-                        <th style="width: 13%;">Primary Driver</th>
+                        <th style="width: 13%;">Review Finding</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -102,7 +105,8 @@
                             $isUnderperforming = $diffPct < -5;
                             $isOverperforming = $diffPct > 5;
                             $effTone = $isUnderperforming ? 'danger' : ($isOverperforming ? 'success' : 'normal');
-                            $effPctBar = min(100, max(20, round(($kml / 5.0) * 100)));
+                            $hasFleetComparison = $fleetAvgEfficiency > 0 && (int) ($distribution->total ?? 0) > 1;
+                            $effPctBar = $hasFleetComparison ? min(100, max(0, round(($kml / $fleetAvgEfficiency) * 100))) : 0;
                         @endphp
                         <tr>
                             <td>
@@ -119,12 +123,14 @@
                                     <div class="eff-text-row">
                                         <strong class="eff-val eff-val--{{ $effTone }}">{{ number_format($kml, 2) }} km/L</strong>
                                         <span class="eff-diff eff-diff--{{ $effTone }}">
-                                            {{ $diffPct >= 0 ? '+' : '' }}{{ $diffPct }}%
+                                            {{ $hasFleetComparison ? (($diffPct >= 0 ? '+' : '') . number_format($diffPct, 1) . '% vs fleet') : 'No comparison' }}
                                         </span>
                                     </div>
-                                    <div class="eff-track" title="Efficiency: {{ number_format($kml, 2) }} km/L">
-                                        <div class="eff-fill eff-fill--{{ $effTone }}" style="width: {{ $effPctBar }}%"></div>
-                                    </div>
+                                    @if($hasFleetComparison)
+                                        <div class="eff-track" title="Relative to selected fleet average">
+                                            <div class="eff-fill eff-fill--{{ $effTone }}" style="width: {{ $effPctBar }}%"></div>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                             <td>
@@ -159,7 +165,7 @@
     <section class="predictive-bottom-grid">
 
         {{-- FUEL RISK DISTRIBUTION --}}
-        <x-analytics.card class="predictive-card" title="Fuel Risk Distribution" description="Fleet units categorized by fuel review standing.">
+        <x-analytics.card class="predictive-card" title="Fuel Review Status" description="Recorded buses classified by their fuel review standing, not predicted risk.">
             <div class="risk-content">
                 <div class="donut-wrapper">
                     <canvas id="fuelRiskDonut"></canvas>
@@ -171,17 +177,17 @@
                 <div class="risk-legend">
                     <div>
                         <span class="legend-dot low"></span>
-                        <span>Low Risk</span>
+                        <span>Normal</span>
                         <strong>{{ number_format($distribution->low) }} ({{ $lowShare }}%)</strong>
                     </div>
                     <div>
                         <span class="legend-dot medium"></span>
-                        <span>Medium Risk</span>
+                        <span>Needs Review</span>
                         <strong>{{ number_format($distribution->medium) }} ({{ $mediumShare }}%)</strong>
                     </div>
                     <div>
                         <span class="legend-dot high"></span>
-                        <span>High Risk</span>
+                        <span>Priority Review</span>
                         <strong>{{ number_format($distribution->high) }} ({{ $highShare }}%)</strong>
                     </div>
 
@@ -198,7 +204,7 @@
                 <div class="fuel-insight" role="note">
                     <span class="fuel-insight__icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
                     <div>
-                        <strong>AI Insight</strong>
+                        <strong>Operational Insight</strong>
                         <span>{{ $consumptionFactor->description }}</span>
                     </div>
                 </div>
@@ -206,9 +212,9 @@
         </x-analytics.card>
 
         {{-- TOP RISK FACTORS --}}
-        <x-analytics.card class="predictive-card" title="Top Fuel Risk Factors" description="Primary drivers of excess consumption and loss.">
+        <x-analytics.card class="predictive-card" title="Fuel Review Findings" description="Only findings that require attention based on recorded fuel evidence.">
             <div class="issue-list">
-                @foreach($fuelPredict->factors as $index => $factor)
+                @forelse($activeFuelFactors as $index => $factor)
                     <div class="issue-row">
                         <span class="issue-rank">{{ $index + 1 }}</span>
                         <div class="issue-info">
@@ -217,13 +223,19 @@
                         </div>
                         <span class="risk-badge {{ strtolower($factor->level) }}">{{ $factor->level }}</span>
                     </div>
-                @endforeach
+                @empty
+                    <div class="fuel-review-empty" role="status">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        <strong>No fuel-review indicators detected</strong>
+                        <span>None of the recorded units crossed the current fuel or idle-review thresholds.</span>
+                    </div>
+                @endforelse
             </div>
         </x-analytics.card>
 
         {{-- FUEL DEMAND FORECAST --}}
-        <x-analytics.card class="predictive-card" title="Fuel Demand Forecast" description="Projected daily consumption from trend models.">
-            @if($peakForecastLabel !== null && is_numeric($peakForecastValue))
+        <x-analytics.card class="predictive-card" title="Fuel Demand Outlook" description="Projected volumes appear only when sufficient valid historical reports exist.">
+            @if($canDisplayFuelProjection && $peakForecastLabel !== null && is_numeric($peakForecastValue))
                 <div class="fuel-forecast-summary" aria-label="Fuel forecast summary">
                     <div>
                         <span><i class="fa-regular fa-calendar"></i> Peak Projected Day</span>
@@ -235,15 +247,19 @@
                     </div>
                 </div>
             @endif
-            <div class="chart-container">
-                <canvas id="fuelForecastChart" role="img" aria-label="Fuel demand forecast chart"></canvas>
-            </div>
+            @if($canDisplayFuelProjection)
+                <div class="chart-container">
+                    <canvas id="fuelForecastChart" role="img" aria-label="Fuel demand forecast chart"></canvas>
+                </div>
+            @else
+                <div class="has-empty-chart"><p class="analytics-compact-empty">Insufficient history: {{ $fuelObservationCount }} recorded day(s) in the displayed trend; at least 4 valid days are required for a trend estimate.</p></div>
+            @endif
         </x-analytics.card>
 
     </section>
 
     <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Fuel projections are calculated from recorded telemetry, engine idle duration, and historical route baselines.
+        <i class="fa-solid fa-circle-info"></i> Fuel trends use actual reports. Missing observations remain blank; estimates require sufficient recorded history and are not ML forecasts.
     </p>
 
 </div>

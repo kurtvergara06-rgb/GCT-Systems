@@ -12,6 +12,10 @@ return new class extends Migration
             return;
         }
 
+        if (DB::getDefaultConnection() === 'gct_account_target') {
+            return;
+        }
+
         $defaultNames = [
             'Aircon', 'Bodyworks', 'Brakes', 'Diagnostics', 'Electrical', 'Engine',
             'Fuel System', 'Lubrication', 'Preventive Maintenance', 'Suspension',

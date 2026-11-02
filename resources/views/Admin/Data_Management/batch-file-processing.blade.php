@@ -27,6 +27,7 @@
         $selectedRawData = is_array($selectedRawData)
             ? $selectedRawData
             : [];
+        $selectedSourceValues = $selectedRawData['source_values'] ?? [];
 
         $rawPreview = 'Select an uploaded data file to view the original extracted values.';
 
@@ -55,26 +56,26 @@
             'Record No.' => $selectedRecord?->record_no,
             'Grouping' => $selectedRecord?->grouping,
             'Type' => $selectedRecord?->trip_type,
-            'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i A'),
+            'Beginning' => $selectedRecord?->beginning_at?->format('M d, Y h:i:s A'),
             'Initial Location' => $selectedRecord?->initial_location,
-            'End' => $selectedRecord?->ending_at?->format('M d, Y h:i A'),
+            'End' => $selectedRecord?->ending_at?->format('M d, Y h:i:s A'),
             'Final Location' => $selectedRecord?->final_location,
             'Duration' => $selectedRecord?->duration_minutes !== null
                 ? $selectedRecord->duration_minutes . ' mins'
                 : null,
-            'Total Time' => $selectedRecord?->total_minutes !== null
+            'Total Time' => $selectedSourceValues['total_time'] ?? ($selectedRecord?->total_minutes !== null
                 ? $selectedRecord->total_minutes . ' mins'
-                : null,
-            'In Motion' => $selectedRecord?->in_motion_minutes !== null
+                : null),
+            'In Motion' => $selectedSourceValues['in_motion'] ?? ($selectedRecord?->in_motion_minutes !== null
                 ? $selectedRecord->in_motion_minutes . ' mins'
-                : null,
-            'Idling' => $selectedRecord?->idling_minutes !== null
+                : null),
+            'Idling' => $selectedSourceValues['idling'] ?? ($selectedRecord?->idling_minutes !== null
                 ? $selectedRecord->idling_minutes . ' mins'
-                : null,
-            'Mileage' => $selectedRecord?->mileage_km !== null
+                : null),
+            'Mileage' => $selectedSourceValues['mileage'] ?? ($selectedRecord?->mileage_km !== null
                 ? $selectedRecord->mileage_km . ' km'
-                : null,
-            'Engine Hours' => $selectedRecord?->engine_hours,
+                : null),
+            'Engine Hours' => $selectedSourceValues['engine_hours'] ?? $selectedRecord?->engine_hours,
             'Recorded Location' => $selectedRecord?->location,
             'Recorded Coordinates' => $selectedRecord?->coordinates,
             'Remarks' => $selectedRecord?->description,
@@ -107,9 +108,9 @@
             ? (
                 $selectedBatch->status === 'Processed'
                     ? 'Showing processed structured records from: ' . $selectedBatch->file_name
-                    : 'Review the selected upload, then mark it as Processed to publish its structured records.'
+                    : 'Showing extracted records from the selected batch. Confirm processing only after checking the results.'
             )
-            : 'Select a processed uploaded file to view its structured records.';
+            : 'Select an uploaded GPS file to view extracted records.';
 
         $latestBatch = $batches->first();
         $latestActivity = $latestBatch?->dataActivity;
@@ -131,6 +132,7 @@
     <main
         class="main batch-main batch-processing-page"
         data-auto-open-preview="{{ in_array(request('preview'), ['raw', 'clean'], true) ? request('preview') : '' }}"
+        data-gps-batch-status="{{ $selectedBatch?->status ?? '' }}"
     >
         <x-layout.topbar
             title="Batch File Processing"
@@ -160,8 +162,7 @@
                             Upload GPS Data File
                         </h2>
 
-                        <p>Upload a raw GPS Trip Record PDF file for extraction, cleaning, and review.</p>
-                        <p>Upload a GPS Trip Record file for extraction, cleaning, and review.</p>
+                        <p>Upload a GPS report for extraction, validation, and review.</p>
                     </div>
                 </div>
 
@@ -179,7 +180,6 @@
                     type="file"
                     id="gpsFileInput"
                     name="gps_file"
-                    accept=".pdf,application/pdf"
                     accept=".pdf,.csv,.json,.txt,.xls,.xlsx"
                     hidden
                     required
@@ -187,17 +187,14 @@
 
                 <div class="compact-dropzone" id="gpsDropzone">
                     <div class="dropzone-icon">
-                        <i class="fa-solid fa-file-pdf"></i>
                         <i class="fa-solid fa-file-arrow-up"></i>
                     </div>
 
                     <div class="dropzone-content">
                         <strong id="selectedFileName">
-                            Drag and drop GPS PDF file here
-                            Drag and drop GPS file here
+                            Drag and drop a GPS report here
                         </strong>
 
-                        <span>or choose a PDF file from your device</span>
                         <span>or choose a supported GPS file from your device</span>
                     </div>
 
@@ -207,7 +204,6 @@
                         id="chooseGpsFileBtn"
                     >
                         <i class="fa-solid fa-folder-open"></i>
-                        Choose PDF File
                         Choose GPS File
                     </button>
                 </div>
@@ -215,13 +211,11 @@
                 <div class="upload-details">
                     <span>
                         <i class="fa-solid fa-gears"></i>
-                        Operation — GPS Trip Records · PDF only
-                        Operation — GPS Trip Records · PDF, CSV, JSON, TXT, XLS, XLSX
+                        GPS Trip Records · PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>
 
                     <span>
                         <i class="fa-solid fa-file-pdf"></i>
-                        Only PDF files containing GPS Trip Records are supported
                         <i class="fa-solid fa-file-lines"></i>
                         Supported formats: PDF, CSV, JSON, TXT, XLS, XLSX
                     </span>

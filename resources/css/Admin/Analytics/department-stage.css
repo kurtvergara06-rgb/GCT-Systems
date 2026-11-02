@@ -1,0 +1,95 @@
+/* Department Analytics shares the central Analytics design-system KPI components. */
+.department-analytics-page { min-width:0; }
+.department-analytics-intro { display:flex; align-items:center; gap:13px; padding:15px 18px; margin-bottom:16px; border:1px solid #c9dcf8; border-radius:13px; background:#f2f7ff; }
+.department-analytics-intro-icon { width:40px; height:40px; flex:0 0 40px; display:grid; place-items:center; background:#e0ecff; color:#1557d5; border-radius:11px; }
+.department-analytics-intro > div:nth-child(2) { min-width:0; flex:1; }
+.department-analytics-intro strong { font-size:14px; font-weight:700; color:#0b2344; }
+.department-analytics-intro p { margin-top:4px; font-size:12px; line-height:1.55; color:#64748b; }
+.department-analytics-scope { flex-shrink:0; border:1px solid #cbdcf5; background:#fff; color:#1557d5; font-size:11px; font-weight:700; padding:5px 9px; border-radius:6px; }
+.department-analytics-notice { display:flex; gap:11px; padding:13px 16px; margin:0 0 16px; border:1px solid #f5dc98; border-radius:12px; background:#fffbeb; color:#92400e; }
+.department-analytics-notice > i { margin-top:2px; }
+.department-analytics-notice strong { font-size:13px; }
+.department-analytics-notice p { margin-top:4px; font-size:12px; line-height:1.5; }
+.department-analytics-panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:14px; }
+.department-analytics-panel { min-width:0; border:1px solid var(--ds-border,#e4eaf2); border-radius:14px; background:#fff; box-shadow:var(--ds-shadow-card,0 2px 8px rgba(11,31,68,.04)); padding:18px; }
+.department-analytics-panel-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding-bottom:12px; border-bottom:1px solid #e4eaf2; margin-bottom:12px; }
+.department-analytics-panel-heading h2 { font-size:15px; font-weight:800; color:#0b1f44; }
+.department-analytics-panel-heading p { font-size:12px; color:#64748b; margin-top:4px; }
+.department-analytics-panel-heading > span { white-space:nowrap; font-size:11px; color:#334155; padding:5px 8px; border-radius:6px; background:#f1f5f9; }
+.department-analytics-statuses { display:grid; gap:14px; }
+.department-analytics-status-label { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; color:#334155; margin-bottom:6px; }
+.department-analytics-status-label strong { white-space:nowrap; color:#0b1f44; }
+.department-analytics-status-label small { color:#64748b; font-size:11px; font-weight:500; }
+.department-analytics-track { width:100%; height:8px; overflow:hidden; background:#ecf1f8; border-radius:6px; }
+.department-analytics-track > span { display:block; height:100%; background:#2563eb; border-radius:6px; }
+.department-analytics-empty { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:9px; padding:25px 12px; color:#64748b; font-size:12px; text-align:center; }
+.department-analytics-empty i { font-size:22px; color:#a8bad1; }
+@media(max-width:700px) { .department-analytics-intro { flex-wrap:wrap; } .department-analytics-scope { margin-left:53px; } }
+
+
+/* Reuse Admin Analytics stage navigation visuals, but keep department routes. */
+.department-analytics-page .department-analytics-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    box-shadow: 0 2px 8px rgba(11, 31, 68, .04);
+}
+.department-analytics-page .department-analytics-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+}
+.department-analytics-page .department-analytics-tabs a:hover {
+    background: #e0eaff;
+    color: #1d4ed8;
+}
+.department-analytics-page .department-analytics-tabs a.is-current {
+    background: #2563eb;
+    color: #fff;
+}
+.department-analytics-page .department-analytics-panels {
+    align-items: stretch;
+}
+.department-analytics-page .department-analytics-panel {
+    min-width: 0;
+}
+@media(max-width:700px) {
+    .department-analytics-page .department-analytics-tabs a { flex: 1 1 auto; justify-content: center; }
+}
+
+
+.department-analytics-page .department-analytics-chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.department-analytics-page .department-analytics-chart-grid > * { min-width: 0; }
+.department-analytics-page .department-analytics-chart-area {
+    position: relative;
+    height: 245px;
+    width: 100%;
+    margin-top: 10px;
+}
+.department-analytics-page .department-analytics-chart-area canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+@media (max-width: 900px) {
+    .department-analytics-page .department-analytics-chart-grid { grid-template-columns: minmax(0, 1fr); }
+}

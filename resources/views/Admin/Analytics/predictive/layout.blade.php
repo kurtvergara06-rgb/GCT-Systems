@@ -23,10 +23,16 @@
         'inventory' => 'resources/css/Admin/Analytics/predictive/inventory.css',
     ];
 
-    $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
+    $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'fleet-trip';
     $predictiveUrl = route('analytics.stage', ['stage' => 'predictive'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
-
+    $pageTitle = 'Predictive Analytics';
+    $pageSubtitle = 'Trip delay and ETA outlooks, plus spare parts demand forecasts · Objective 6.3.';
+    $periodOptions = [
+        'this-month' => 'This Month', 'this-week' => 'This Week',
+        'last-30-days' => 'Last 30 Days', 'last-90-days' => 'Last 90 Days',
+        'last-12-months' => 'Last 12 Months',
+    ];
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
         'resources/css/Admin/Analytics/overview/live-data.css',
@@ -52,54 +58,33 @@
     }
 @endphp
 
-<x-layout.app title="FROMS - Fleet & Trip Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - {{ $pageTitle }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Fleet & Trip Analytics" subtitle="Analyze trip performance, delays, estimated arrival times, GPS records, and fleet utilization." />
+            <x-layout.topbar :title="$pageTitle" :subtitle="$pageSubtitle" />
 
-            <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
-
-            @if($activeDomain !== 'fleet-trip')
-            <section class="analytics-domain-toolbar predictive-toolbar">
-                <form method="GET" action="{{ $predictiveUrl }}" class="analytics-stage-filters">
-                    <input type="hidden" name="domain" value="{{ $activeDomain }}">
-
-                    <label>
-                        <span>Period</span>
-                        <select name="period" onchange="this.form.requestSubmit()">
-                            <option value="this-month" @selected($period === 'this-month')>This Month</option>
-                            <option value="this-week" @selected($period === 'this-week')>This Week</option>
-                            <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                            <option value="last-90-days" @selected($period === 'last-90-days')>Last 90 Days</option>
-                            <option value="last-12-months" @selected($period === 'last-12-months')>Last 12 Months</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>Bus</span>
-                        <select name="bus" onchange="this.form.requestSubmit()">
-                            <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
-                            @foreach($busOptions as $busNo)
-                                <option value="{{ $busNo }}" @selected(strtoupper((string) $selectedBus) === strtoupper((string) $busNo))>{{ $busNo }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-
-                </form>
-            </section>
-            @endif
-
-            @if($activeDomain === 'all')
-                <x-analytics.model-status />
-            @endif
-
+            <x-analytics.stage-controls
+                :url="$predictiveUrl"
+                :tabs="[
+                    'fleet-trip' => ['Trip Delay & ETA', 'fa-route'],
+                    'fuel' => ['Fuel Analysis', 'fa-gas-pump'],
+                    'inventory' => ['Spare Parts Demand', 'fa-boxes-stacked'],
+                ]"
+                :active="$activeDomain"
+                :period="$period"
+                :period-options="$periodOptions"
+                :bus-options="$busOptions"
+                :selected-bus="$selectedBus"
+                :date-label="$periodOptions[$period] ?? ucwords(str_replace('-', ' ', $period))"
+            />
             @include($domainViews[$activeDomain])
 
             @if($activeDomain === 'inventory')
                 @include('Admin.Analytics.predictive.inventory-ml')
             @endif
+
         </main>
     </div>
 </x-layout.app>

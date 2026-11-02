@@ -50,7 +50,7 @@
     <section class="predictive-main-grid-two">
 
         {{-- STOCK LEVEL DISTRIBUTION CARD --}}
-        <x-analytics.card class="predictive-card forecast-card inventory-distribution-card" title="Stock Level Distribution" description="Proportion of on-hand inventory relative to safety reorder thresholds.">
+        <x-analytics.card class="predictive-card forecast-card inventory-distribution-card" title="Stock Level Distribution" description="Inventory items grouped by current stock level and reorder points.">
             <div class="risk-content inventory-donut-content">
                 <div class="donut-wrapper">
                     <canvas id="inventoryDonut"></canvas>
@@ -94,7 +94,7 @@
 
                     {{-- Distribution Visual Ratio Bar --}}
                     <div class="inventory-ratio-bar-wrap">
-                        <span class="ratio-label">Safety Coverage Ratio</span>
+                        <span class="ratio-label">Stock Status Breakdown</span>
                         <div class="inventory-ratio-bar" title="{{ $healthyCount }} Well Stocked, {{ $lowCount }} Low, {{ $criticalCount }} Out">
                             <div class="ratio-segment ratio-healthy" style="width: {{ $healthyPct }}%"></div>
                             <div class="ratio-segment ratio-low" style="width: {{ $lowPct }}%"></div>
@@ -106,7 +106,7 @@
         </x-analytics.card>
 
         {{-- RUNOUT HORIZON TIMELINE CARD --}}
-        <x-analytics.card class="predictive-card health-issues-card inventory-horizon-card" title="Projected Stockout Horizon" description="Forecasted depletion timeline based on consumption velocity and reorder thresholds.">
+        <x-analytics.card class="predictive-card health-issues-card inventory-horizon-card" title="Stock Replenishment Status" description="Current stock categories based on available quantities and reorder points; not time-to-stockout forecasts.">
             <div class="inventory-horizon-list">
                 @php
                     $horizons = $inventoryPredict->horizons ?? [
@@ -170,51 +170,20 @@
     {{-- ATTENTION GRID --}}
     <section class="predictive-inventory-attention-grid">
 
-        {{-- CATEGORY ATTENTION WITH HEALTH METERS --}}
-        <x-analytics.card class="predictive-card issues-card inventory-category-card" title="Category Exposure & Risk" description="Stock health breakdown ranked by parts needing restock.">
-            <div class="issue-list category-attention-list">
-                @forelse($inventoryPredict->categories as $category)
-                    @php
-                        $catName = $category->category ?? 'General';
-                        $catTotal = max(1, (int) ($category->total ?? 0));
-                        $catAttn = (int) ($category->attention ?? 0);
-                        $catCritical = (int) ($category->critical ?? 0);
-                        $catHealthy = max(0, $catTotal - $catAttn);
-                        $catHealthyPct = (int) round(($catHealthy / $catTotal) * 100);
-                        $catIcon = $getCategoryIcon($catName);
-                        $statusTone = $catCritical > 0 ? 'high' : ($catAttn > 0 ? 'medium' : 'low');
-                        $badgeLabel = $catCritical > 0 ? 'Critical' : ($catAttn > 0 ? 'Low Stock' : 'Optimal');
-                    @endphp
-                    <div class="issue-row category-row">
-                        <span class="issue-rank category-icon-wrap category-icon--{{ $statusTone }}">
-                            <i class="fa-solid {{ $catIcon }}"></i>
-                        </span>
-                        <div class="issue-info category-info">
-                            <div class="category-info-top">
-                                <strong>{{ $catName }}</strong>
-                                <span class="category-meta">{{ $category->total }} items · {{ $catAttn }} needing attention</span>
-                            </div>
-                            <div class="category-health-track" title="{{ $catHealthyPct }}% healthy stock">
-                                <div class="category-health-fill category-health-fill--{{ $statusTone }}" style="width: {{ $catHealthyPct }}%"></div>
-                            </div>
-                        </div>
-                        <span class="risk-badge {{ $statusTone }}">
-                            {{ $badgeLabel }}
-                        </span>
-                    </div>
-                @empty
-                    <div class="issue-row">
-                        <div class="issue-info">
-                            <strong>No categories</strong>
-                            <span>No inventory items are registered yet.</span>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
+        {{-- Category evidence: stacked counts, not predicted stockout probability. --}}
+        <x-analytics.card class="predictive-card inventory-category-card" title="Stock Status by Category" description="Recorded inventory items grouped by category and current reorder status.">
+            @if(collect($inventoryPredict->categories ?? [])->isNotEmpty())
+                <div class="inventory-category-chart-wrap">
+                    <canvas id="inventoryCategoryChart" role="img" aria-label="Stacked horizontal bar chart of well-stocked items and items needing attention by category"></canvas>
+                </div>
+                <p class="ft-evidence-note">Bar lengths represent item counts, not ML forecasts or stockout probabilities.</p>
+            @else
+                <div class="analytics-compact-empty">No inventory categories are registered yet.</div>
+            @endif
         </x-analytics.card>
 
-        {{-- REORDER PRIORITY CARD --}}
-        <x-analytics.card class="predictive-card reorder-priority-card" title="Immediate Reorder Priority" description="Items requiring the most urgent replenishment.">
+                {{-- REORDER PRIORITY CARD --}}
+        <x-analytics.card class="predictive-card reorder-priority-card" title="Replenishment Review" description="Inventory items ordered by their existing stock attention indicators.">
             <div class="inventory-priority-list">
                 @forelse($priorityRows as $row)
                     @php
@@ -224,8 +193,8 @@
                         $reorder = (int) ($row[4] ?? $row['reorder_level'] ?? 0);
                         $gap = (int) ($row[6] ?? $row['gap'] ?? 0);
                         $riskLevel = $row[7] ?? $row['risk_level'] ?? 'Medium';
-                        $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : '~3–5 Days');
-                        $recommendedOrder = $row[10] ?? $row['recommended_order'] ?? ($gap > 0 ? $gap + 5 : 0);
+                        $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? 'Out of Stock' : 'Insufficient History');
+                        $recommendedOrder = $row[10] ?? $row['recommended_order'] ?? $gap;
                     @endphp
                     <div class="inventory-priority-item priority--{{ strtolower($riskLevel) }}">
                         <div class="inventory-priority-item__topline">
@@ -237,15 +206,15 @@
                         </div>
                         <div class="inventory-priority-metrics">
                             <div class="metric-chip">
-                                <span class="metric-label">On Hand:</span>
+                                <span class="metric-label">On Hand / Reorder:</span>
                                 <strong class="{{ $onHand <= 0 ? 'color-danger' : 'color-warning' }}">{{ number_format($onHand) }} / {{ number_format($reorder) }}</strong>
                             </div>
                             <div class="metric-chip">
-                                <span class="metric-label">Runout:</span>
+                                <span class="metric-label">Coverage:</span>
                                 <strong class="metric-runout">{{ $runout }}</strong>
                             </div>
                             <div class="metric-chip highlight">
-                                <span class="metric-label">Suggest PO:</span>
+                                <span class="metric-label">Suggested Qty:</span>
                                 <strong>+{{ number_format($recommendedOrder) }} pcs</strong>
                             </div>
                         </div>
@@ -259,7 +228,7 @@
     </section>
 
     {{-- PREDICTION TABLE --}}
-    <x-analytics.card class="predictive-card predictions-card" title="Inventory Reorder Forecast" description="Parts ranked by stockout risk, depletion horizon, and recommended purchase quantities.">
+    <x-analytics.card class="predictive-card predictions-card" title="Inventory Replenishment Overview" description="Current inventory levels, reorder thresholds, available history, and advisory purchase quantities.">
         <div class="table-wrap predictive-inventory-table-wrap" tabindex="0" aria-label="Scrollable inventory reorder forecast table">
             <table class="predictive-table predictive-inventory-table">
                 <thead>
@@ -267,10 +236,10 @@
                         <th style="width: 11%;">Item Code</th>
                         <th style="width: 17%;">Item & Description</th>
                         <th style="width: 13%;">Category</th>
-                        <th style="width: 17%;">Stock Buffer & Level</th>
-                        <th style="width: 13%;">Runout Horizon</th>
+                        <th style="width: 17%;">On Hand / Reorder Point</th>
+                        <th style="width: 13%;">Coverage History</th>
                         <th style="width: 7%;">Gap</th>
-                        <th style="width: 11%;">Suggested PO</th>
+                        <th style="width: 11%;">Suggested Qty</th>
                         <th style="width: 11%;">Risk State</th>
                     </tr>
                 </thead>
@@ -286,8 +255,8 @@
                             $gap = (int) ($row[6] ?? $row['gap'] ?? 0);
                             $riskLevel = $row[7] ?? $row['risk_level'] ?? 'Low';
                             $bufferPct = (int) ($row[8] ?? $row['buffer_pct'] ?? ($reorder > 0 ? min(100, round(($onHand / $reorder) * 100)) : 100));
-                            $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : '~5–7 Days');
-                            $recommendedOrder = (int) ($row[10] ?? $row['recommended_order'] ?? ($gap > 0 ? $gap + 5 : 0));
+                            $runout = $row[9] ?? $row['runout'] ?? ($onHand <= 0 ? '< 24h / Grounded' : 'Insufficient History');
+                            $recommendedOrder = (int) ($row[10] ?? $row['recommended_order'] ?? $gap);
                             $bufferTone = $onHand <= 0 ? 'danger' : ($bufferPct <= 50 ? 'warning' : 'success');
                             $catIcon = $getCategoryIcon($category);
                         @endphp
@@ -309,15 +278,15 @@
                                     <div class="buffer-text">
                                         <span class="buffer-onhand {{ $onHand <= 0 ? 'buffer-zero' : '' }}">{{ number_format($onHand) }}</span>
                                         <span class="buffer-sep">/</span>
-                                        <span class="buffer-reorder">{{ number_format($reorder) }} min</span>
+                                        <span class="buffer-reorder">{{ number_format($reorder) }} reorder</span>
                                     </div>
-                                    <div class="buffer-track" title="{{ $bufferPct }}% safety stock">
+                                    <div class="buffer-track" title="On-hand quantity compared with reorder point">
                                         <div class="buffer-fill buffer-fill--{{ $bufferTone }}" style="width: {{ $bufferPct }}%"></div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="runout-pill runout-pill--{{ $bufferTone }}">
+                                <span class="runout-pill runout-pill--neutral">
                                     <i class="fa-regular fa-clock"></i>
                                     {{ $runout }}
                                 </span>
@@ -352,13 +321,18 @@
     </x-analytics.card>
 
     <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Stock forecasts are derived from on-hand quantity, safety reorder thresholds, and active maintenance consumption patterns.
+        <i class="fa-solid fa-circle-info"></i> Stock-level indicators use recorded quantities and reorder points. A time-to-stockout estimate requires sufficient actual issuance history.
     </p>
 
 </div>
 
 <script>
     window.predictiveChartData = {
+        categories: {
+            labels: @json(collect($inventoryPredict->categories ?? [])->pluck('category')->values()),
+            attention: @json(collect($inventoryPredict->categories ?? [])->pluck('attention')->map(fn ($v) => (int) $v)->values()),
+            healthy: @json(collect($inventoryPredict->categories ?? [])->map(fn ($v) => max(0, (int) $v->total - (int) $v->attention))->values()),
+        },
         inventory: {
             healthy: {{ $healthyCount }},
             low: {{ $lowCount }},

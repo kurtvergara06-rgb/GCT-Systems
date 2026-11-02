@@ -8,8 +8,10 @@ use App\Models\Maintenance\Bus;
 use App\Models\Operation\TripSchedule;
 use App\Services\EtaPredictionService;
 use App\Services\FleetTripPredictionService;
+use App\Services\StatisticalTripForecastService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -127,7 +129,32 @@ class FleetTripAnalyticsController extends Controller
             'busActivity' => $busActivity,
             'diagnostics' => $diagnostics,
             'prediction' => $prediction,
+            'pythonServiceStatus' => $this->pythonServiceStatus(),
         ];
+    }
+
+    /** Read-only probe; distinguish API reachability from a trained ETA model. */
+    private function pythonServiceStatus(): array
+    {
+        $url = rtrim((string) config('services.nlp.api_url', 'http://127.0.0.1:8000'), '/');
+
+        try {
+            $health = Http::connectTimeout(1)->timeout(2)->get($url.'/health');
+            if (! $health->successful()) {
+                return ['online' => false, 'eta_ready' => false];
+            }
+
+            $eta = Http::connectTimeout(1)->timeout(2)->get($url.'/eta/status');
+
+            return [
+                'online' => true,
+                'eta_ready' => $eta->successful()
+                    && $eta->json('model_ready') === true
+                    && $eta->json('is_production_model') === true,
+            ];
+        } catch (\Throwable $exception) {
+            return ['online' => false, 'eta_ready' => false];
+        }
     }
 
     private function recordsQuery(Carbon $start, Carbon $end, string $selectedBus)
@@ -573,26 +600,23 @@ class FleetTripAnalyticsController extends Controller
             'targets' => $targets->all(),
         ];
 
-        $response = $predictionService->predict($payload);
+        // Avoid calling the remote model when there are no future trip targets.
+        // This also avoids an unnecessary HTTP timeout on historical-only pages.
+        $response = $targets->isNotEmpty() ? $predictionService->predict($payload) : null;
+        $usingStatisticalFallback = $response === null;
 
-        if ($response === null) {
-            return (object) [
-                'available' => false,
-                'model' => null,
-                'historical_records' => $historicalRecords->count(),
-                'target_count' => $targets->count(),
-                'predicted_target_count' => 0,
-                'predictions' => collect(),
-                'eligibility' => collect(),
-                'peak_periods' => collect(),
-                'message' => 'Python prediction service is currently unavailable.',
-            ];
+        if ($usingStatisticalFallback) {
+            $response = app(StatisticalTripForecastService::class)->forecast(
+                $payload['records'],
+                $payload['targets']
+            );
         }
 
         $predictions = collect($response['predictions'] ?? [])
-            ->map(function (array $item): object {
+            ->map(function (array $item) use ($etaTargets): object {
                 return (object) [
                     'trip_code' => $item['trip_code'] ?? 'Scheduled Trip',
+                    'bus_no' => $item['bus_no'] ?? ($etaTargets[$item['trip_code'] ?? '']['bus_no'] ?? null),
                     'route' => $item['route'] ?? 'Unspecified Route',
                     'departure_at' => ! empty($item['departure_at'])
                         ? Carbon::parse($item['departure_at'])
@@ -650,6 +674,7 @@ class FleetTripAnalyticsController extends Controller
 
         return (object) [
             'available' => true,
+            'source' => $usingStatisticalFallback ? 'statistical' : 'python',
             'model' => $response['model'] ?? 'historical-statistical-v1',
             'historical_records' => (int) ($response['historical_records'] ?? $historicalRecords->count()),
             'target_count' => (int) ($response['target_count'] ?? $targets->count()),
@@ -658,10 +683,14 @@ class FleetTripAnalyticsController extends Controller
             'eligibility' => $eligibility,
             'peak_periods' => $peakPeriods,
             'message' => $predictions->isNotEmpty()
-                ? 'Python historical forecasting is live.'
-                : ($eligibilityMessage !== ''
-                    ? 'Forecast eligibility: ' . $eligibilityMessage
-                    : 'Python is online, but no upcoming scheduled or ready trip has enough comparable route history yet.'),
+                ? ($usingStatisticalFallback
+                    ? 'Laravel route-median statistical estimates (not ML).'
+                    : 'Python historical forecasting is live.')
+                : ($targets->isEmpty()
+                    ? 'No upcoming Scheduled or Ready trips with active routes in the next seven days.'
+                    : ($eligibilityMessage !== ''
+                        ? 'Forecast eligibility: ' . $eligibilityMessage
+                        : 'No eligible trip has sufficient comparable route history.')),
         ];
     }
 

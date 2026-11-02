@@ -202,27 +202,6 @@
    TOOLBAR
 ========================================================= */
 
-.history-toolbar {
-    display: grid;
-
-    grid-template-columns:
-        minmax(300px, 1fr)
-        160px
-        150px
-        140px;
-
-    gap: 10px;
-
-    margin-bottom: 14px;
-
-    padding: 10px 12px;
-
-    border: 1px solid var(--dh-border);
-    border-radius: 12px;
-
-    background: #ffffff;
-}
-
 .history-toolbar .search-box {
     position: relative;
 
@@ -285,6 +264,23 @@
     outline: none;
 }
 
+
+/* Consistent button spacing with Account Management, using the shared toolbar. */
+.data-history-page .data-history-card .gps-history-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+.data-history-page .gps-history-toolbar > .gct-table-tool {
+    flex: 0 0 auto;
+}
 
 /* =========================================================
    TABLE
@@ -916,10 +912,6 @@
 
 @media (max-width: 1200px) {
 
-    .history-toolbar {
-        grid-template-columns: 1fr 1fr;
-    }
-
     .history-toolbar .search-box {
         grid-column: 1 / -1;
     }
@@ -930,10 +922,6 @@
 @media (max-width: 768px) {
 
     .data-history-page .history-stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .history-toolbar {
         grid-template-columns: 1fr;
     }
 

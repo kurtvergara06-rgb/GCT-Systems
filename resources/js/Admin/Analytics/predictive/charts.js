@@ -193,6 +193,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Inventory category status: stacked actual item counts, not ML risk.
+    const inventoryCategoryChart = document.getElementById('inventoryCategoryChart');
+    if (inventoryCategoryChart) {
+        destroyExistingChart(inventoryCategoryChart);
+        const categories = data.categories || {};
+        new Chart(inventoryCategoryChart, {
+            type: 'bar',
+            data: {
+                labels: categories.labels || [],
+                datasets: [
+                    { label: 'Well Stocked', data: categories.healthy || [], backgroundColor: '#16a34a', borderRadius: 4 },
+                    { label: 'Needs Attention', data: categories.attention || [], backgroundColor: '#f59e0b', borderRadius: 4 },
+                ],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: legend(), tooltip: { mode: 'index', intersect: false } },
+                scales: {
+                    x: { stacked: true, beginAtZero: true, ticks: { precision: 0, color: AXIS_TEXT, font: { size: 10 } }, grid: { color: AXIS_GRID } },
+                    y: { stacked: true, grid: { display: false }, ticks: { color: AXIS_TEXT, font: { size: 11 } } },
+                },
+            },
+        });
+    }
+
     // ------------------------------------------------------------------
     // ALL / FLEET — Risk distribution (doughnut)
     // ------------------------------------------------------------------
@@ -204,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new Chart(riskDonut, {
             type: 'doughnut',
             data: {
-                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                labels: ['Normal', 'Needs Review', 'Priority Review'],
                 datasets: [{
                     data: [risk.low || 0, risk.medium || 0, risk.high || 0],
                     backgroundColor: ['#16a34a', '#fbbf24', '#ef4444'],
@@ -363,19 +390,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             pointRadius: 4,
                             borderWidth: 2.5,
                             fill: true,
-                            spanGaps: true,
+                            spanGaps: false,
                             backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.height, 'rgba(37, 99, 235, .18)'),
                         },
                         {
                             label: 'Forecast',
                             data: forecast,
+                            hidden: !hasNumericValues(forecast),
                             borderColor: '#16a34a',
                             backgroundColor: '#16a34a',
                             borderDash: [6, 4],
                             tension: 0.4,
                             pointRadius: 3,
                             borderWidth: 2,
-                            spanGaps: true,
+                            spanGaps: false,
                         },
                     ],
                 },
@@ -418,18 +446,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             tension: 0.4,
                             pointRadius: 4,
                             borderWidth: 2.5,
-                            spanGaps: true,
+                            spanGaps: false,
                         },
                         {
                             label: 'Forecast',
                             data: forecast,
+                            hidden: !hasNumericValues(forecast),
                             borderColor: '#16a34a',
                             backgroundColor: '#16a34a',
                             borderDash: [6, 4],
                             tension: 0.4,
                             pointRadius: 3,
                             borderWidth: 2,
-                            spanGaps: true,
+                            spanGaps: false,
                         },
                     ],
                 },

@@ -763,7 +763,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
         fields.forEach((field) => {
             field.disabled = false;
-            field.readOnly = false;
+            field.readOnly = entity === 'Driver' && field.name === 'driver_id';
         });
 
         if (specializationSearch) {
@@ -843,8 +843,12 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             }
             refreshBusAuthorizationOptions();
             // Preserve identifiers referenced by historical attendance and trips.
+            if (entity === 'Driver') {
+                const idInput = form.querySelector('[name="driver_id"]');
+                if (idInput) idInput.readOnly = true;
+            }
             if (entity === 'Driver' && record.identity_locked) {
-                for (const name of ['driver_id', 'driver_name']) {
+                for (const name of ['driver_name']) {
                     const input = form.querySelector(`[name="${name}"]`);
                     if (input) {
                         input.readOnly = true;

@@ -42,8 +42,8 @@ class RegistrationController extends Controller
             'role' => 'unassigned',
             'status' => 'Pending',
             'must_change_password' => false,
-            'onboarding_completed' => false,
-            'onboarding_completed_at' => null,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
         ]));
 
         $deliveryFailed = false;

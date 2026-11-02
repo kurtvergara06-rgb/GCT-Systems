@@ -1,4 +1,104 @@
 window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batch-processing-page', function () {
+    // Automatically update the selected batch after the PDF queue finishes.
+    // Poll only while Processing; never interfere with review form edits.
+    const processingPage = document.querySelector('.batch-processing-page');
+    if (processingPage?.dataset.gpsBatchStatus === 'Processing') {
+        let attempts = 0;
+        const pollBatch = async () => {
+            if (!processingPage.isConnected || attempts >= 120) return;
+            if (document.visibilityState === 'hidden') {
+                window.setTimeout(pollBatch, 5000);
+                return;
+            }
+            attempts++;
+            try {
+                const response = await fetch(window.location.href, {
+                    headers: { Accept: 'text/html' },
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                });
+                if (response.ok) {
+                    const html = await response.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    // Copy measured values from the fresh server response without
+                    // replacing DOM nodes that hold event listeners.
+                    doc.querySelectorAll('[data-gps-progress-id]').forEach((updated) => {
+                        const id = updated.dataset.gpsProgressId;
+                        const current = [...processingPage.querySelectorAll('[data-gps-progress-id]')]
+                            .find((node) => node.dataset.gpsProgressId === id);
+                        if (!current) return;
+                        const value = updated.querySelector('[data-gps-progress-value]')?.textContent?.trim();
+                        if (!/^\d{1,3}%$/.test(value || '')) return;
+                        const number = Math.min(100, parseInt(value, 10));
+                        const stage = current.querySelector('[data-gps-progress-stage]');
+                        const updatedStage = updated.querySelector('[data-gps-progress-stage]')?.textContent?.trim();
+                        if (stage && updatedStage) stage.textContent = updatedStage;
+                        const label = current.querySelector('[data-gps-progress-value]');
+                        const bar = current.querySelector('[data-gps-progress-fill]');
+                        if (label) label.textContent = number + '%';
+                        if (bar) bar.style.width = number + '%';
+                        current.setAttribute('aria-label', 'PDF extraction ' + number + ' percent');
+                    });
+                    const updatedStatus = doc.querySelector('.batch-processing-page')?.dataset.gpsBatchStatus;
+                    if (updatedStatus && updatedStatus !== 'Processing') {
+                        if (processingPage.isConnected) window.location.reload();
+                        return;
+                    }
+                }
+            } catch (_) {
+                // Transient network error: retry without changing the page.
+            }
+            if (processingPage.isConnected) window.setTimeout(pollBatch, 5000);
+        };
+        window.setTimeout(pollBatch, 3500);
+    }
+
+    // Load successive 50-row server pages only when the table is scrolled near its bottom.
+    const recordsWrap = document.querySelector('.structured-records-card .structured-table-wrap');
+    const recordBody = recordsWrap?.querySelector('.batch-records-table tbody');
+    const infiniteFooter = document.querySelector('.structured-records-card .gps-infinite-footer');
+    if (recordsWrap && recordBody && infiniteFooter) {
+        let nextUrl = infiniteFooter.dataset.gpsNextUrl || '';
+        let loaded = Number(infiniteFooter.dataset.gpsLoaded || recordBody.rows.length);
+        const total = Number(infiniteFooter.dataset.gpsTotal || loaded);
+        let loading = false;
+        const state = infiniteFooter.querySelector('.gps-load-state');
+        const label = infiniteFooter.querySelector('[data-gps-loaded-label]');
+        const loadMore = async () => {
+            if (!nextUrl || loading || !recordsWrap.isConnected) return;
+            loading = true;
+            if (state) state.textContent = 'Loading records…';
+            try {
+                const response = await fetch(nextUrl, {
+                    headers: { Accept: 'text/html' },
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                });
+                if (!response.ok) throw new Error('Unable to fetch the next records.');
+                const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const newRows = doc.querySelectorAll('.structured-records-card .batch-records-table tbody tr');
+                const nextFooter = doc.querySelector('.structured-records-card .gps-infinite-footer');
+                if (!nextFooter || !newRows.length) throw new Error('No more records returned.');
+                const fragment = document.createDocumentFragment();
+                newRows.forEach(row => fragment.appendChild(document.importNode(row, true)));
+                recordBody.appendChild(fragment);
+                loaded += newRows.length;
+                nextUrl = nextFooter.dataset.gpsNextUrl || '';
+                infiniteFooter.dataset.gpsNextUrl = nextUrl;
+                if (label) label.textContent = 'Showing ' + loaded.toLocaleString() + ' of ' + total.toLocaleString() + ' records';
+                if (state) state.textContent = nextUrl ? 'Scroll to load more' : 'All records loaded';
+            } catch (_) {
+                if (state) state.textContent = 'Could not load more records. Scroll again to retry.';
+            } finally {
+                loading = false;
+            }
+        };
+        recordsWrap.addEventListener('scroll', () => {
+            if (recordsWrap.scrollTop + recordsWrap.clientHeight >= recordsWrap.scrollHeight - 180) loadMore();
+        }, { passive: true });
+        if (recordsWrap.scrollHeight <= recordsWrap.clientHeight && nextUrl) loadMore();
+    }
+
     const fileInput = document.getElementById('gpsFileInput');
     const dropzone = document.getElementById('gpsDropzone');
     const chooseFileBtn = document.getElementById('chooseGpsFileBtn');

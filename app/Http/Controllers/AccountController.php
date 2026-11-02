@@ -115,7 +115,6 @@ class AccountController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $wasTemporary = (bool) $user->must_change_password;
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
@@ -138,12 +137,6 @@ class AccountController extends Controller
             'password' => Hash::make($validated['password']),
             'must_change_password' => false,
         ]);
-
-        if ($wasTemporary && ! $user->fresh()->onboarding_completed) {
-            return redirect()
-                ->route('onboarding.show', ['step' => 1])
-                ->with('success', 'Password secured. Continue by confirming your profile.');
-        }
 
         return redirect()
             ->route('account.settings')

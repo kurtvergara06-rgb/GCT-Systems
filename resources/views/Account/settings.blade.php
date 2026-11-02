@@ -78,7 +78,7 @@
                 @if ($user->must_change_password)
                     <div class="account-alert account-alert-success">
                         <i class="fa-solid fa-route"></i>
-                        <span><strong>First login — Step 1 of 2:</strong> Change your temporary password. After a successful update, you will continue automatically to <strong>Welcome to GCT</strong> for your profile confirmation and department tutorial.</span>
+                        <span><strong>Security requirement:</strong> Change your temporary password before accessing your account.</span>
                     </div>
                 @endif
 

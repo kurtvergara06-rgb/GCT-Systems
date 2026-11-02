@@ -137,11 +137,16 @@ class IsolatedRolePermissionsTest extends TestCase
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.edit'));
         $this->assertTrue((bool) data_get($role->permissions, 'warehouse.approve'));
 
-        foreach (['operation', 'maintenance', 'purchase', 'analytics', 'administration'] as $module) {
+        foreach (['operation', 'maintenance', 'purchase', 'administration'] as $module) {
             foreach ((array) data_get($role->permissions, $module, []) as $allowed) {
                 $this->assertFalse((bool) $allowed);
             }
         }
+
+        // Analytics is explicitly shareable while operational modules remain isolated.
+        $this->assertTrue((bool) data_get($role->permissions, 'analytics.view'));
+        $this->assertTrue((bool) data_get($role->permissions, 'analytics.analyze'));
+        $this->assertTrue((bool) data_get($role->permissions, 'analytics.recommendations'));
 
         Event::assertDispatched(
             SystemDataUpdated::class,
@@ -227,10 +232,10 @@ class IsolatedRolePermissionsTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'warehouse_head']))
             ->assertOk()
-            ->assertSee('System-Wide Module Access')
-            ->assertSee('Cross-module permissions require route enforcement')
-            ->assertSee('2 of 18 Allowed')
-            ->assertSee('Changes to supported role capabilities are saved here');
+            ->assertSee('Department Permissions')
+            ->assertSee('Other departments remain isolated')
+            ->assertSee('permissions[warehouse][view]', false)
+            ->assertSee('permissions[analytics][view]', false);
 
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'admin_head']))

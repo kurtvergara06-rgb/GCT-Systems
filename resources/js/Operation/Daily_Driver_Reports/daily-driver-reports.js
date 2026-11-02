@@ -30,6 +30,8 @@ function initSearchableCombos() {
         };
 
         const open = () => {
+            // Scheduled DDR bus is derived from its assignment, not manually selected.
+            if (combo.dataset.field === 'bus' && input.readOnly) return;
             if (options.length > 0) {
                 combo.classList.add('open');
                 filter(input.value);
@@ -96,6 +98,7 @@ function initSearchableCombos() {
         input.addEventListener('focus', open);
 
         input.addEventListener('input', () => {
+            if (combo.dataset.field === 'bus' && input.readOnly) return;
             clear();
             open();
         });
@@ -197,6 +200,7 @@ function initDdrExceptionMode() {
         if (busField) busField.hidden = false;
         const busInput = modal?.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
         if (busInput) busInput.readOnly = !checkbox.checked;
+        if (!checkbox.checked) modal?.querySelector('[data-combo][data-field="bus"]')?.classList.remove('open');
         for (const name of ['from_location', 'to_location']) {
             const input = modal?.querySelector('[name="' + name + '"]');
             if (input) input.readOnly = false;
@@ -246,7 +250,9 @@ function initDdrDriverFirstLayout() {
     busField.classList.add('ddr-meta-bus');
     dateField.classList.add('ddr-meta-date');
     numberField.classList.add('ddr-meta-number');
-    meta.append(driverField, busField, dateField, numberField);
+    // Report date determines eligible drivers and trip assignments.
+    // Layout: Date | DDR Number, then Driver | Bus.
+    meta.append(dateField, numberField, driverField, busField);
 
     const firstTripHeading = document.createElement('div');
     firstTripHeading.className = 'ddr-trip-one-heading';
@@ -330,6 +336,7 @@ function initScheduleContextPanel() {
             });
             const selectedId = root.querySelector('#ddrSelectedTripId');
             if (selectedId) selectedId.value = String(schedule.id);
+            root.dispatchEvent(new CustomEvent('ddr:primary-assignment-changed'));
             selectComboValue('driver', schedule.driver_id, schedule.driver_name);
             const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
             if (busInput) busInput.readOnly = true;
@@ -365,7 +372,17 @@ function initScheduleContextPanel() {
             list.appendChild(empty);
         }
         listEl.appendChild(list);
-        if (schedules.length === 1) choose(schedules[0], list.querySelector('.ddr-ready-trip-card'));
+        if (schedules.length === 1) {
+            // One eligible assignment: select the trip and fill its actual assigned bus.
+            choose(schedules[0], list.querySelector('.ddr-ready-trip-card'));
+        } else if (schedules.length > 1) {
+            // Multiple trips can be associated with a driver. Never guess the trip.
+            // If all eligible assignments use the same bus, it is safe to prefill it.
+            const busIds = [...new Set(schedules.map(schedule => String(schedule.bus_id || '')))];
+            if (busIds.length === 1 && busIds[0]) {
+                selectComboValue('bus', busIds[0], schedules[0].bus_no);
+            }
+        }
         listEl.classList.toggle('has-items', schedules.length > 0);
     };
 
@@ -379,6 +396,7 @@ function initScheduleContextPanel() {
         const busInput = busCombo?.querySelector('[data-combo-input]');
         const busValue = busCombo?.querySelector('[data-combo-value]');
         if (busInput) { busInput.readOnly = !root.querySelector('#ddrUnscheduledMode')?.checked; busInput.value = ''; }
+        if (busInput?.readOnly) busCombo?.classList.remove('open');
         if (busValue) busValue.value = '';
         busCombo?.classList.remove('has-value');
         for (const name of ['from_location', 'to_location']) {
@@ -443,7 +461,7 @@ function initScheduleContextPanel() {
         const hidden = bus?.querySelector('[data-combo-value]');
         const input = bus?.querySelector('[data-combo-input]');
         if (hidden) hidden.value = '';
-        if (input) { input.value = ''; input.readOnly = false; }
+        if (input) { input.value = ''; input.readOnly = !root.querySelector('#ddrUnscheduledMode')?.checked; }
         bus?.classList.remove('has-value');
         lookup();
     });
@@ -566,25 +584,40 @@ function initDdrAdditionalTrips() {
 
     let scheduleOptions = [];
     const refillAssignmentSelectors = () => {
-        Array.from(container.querySelectorAll('.ddr-extra-assignment')).forEach(select => {
-            const previous = select.value;
-            const initial = select.dataset.initialSchedule || previous;
-            select.replaceChildren(new Option('Select this entry’s assignment', ''));
+        const selectedPrimary = modal.querySelector('#ddrSelectedTripId')?.value || '';
+        const selectors = Array.from(container.querySelectorAll('.ddr-extra-assignment'));
+        const reserved = new Set(selectedPrimary ? [String(selectedPrimary)] : []);
+        // Retain valid earlier selections. Each physical trip needs its own schedule link.
+        selectors.forEach(select => {
+            const previous = select.dataset.initialSchedule || select.value;
             const bus = modal.querySelector('[data-combo][data-field="bus"] [data-combo-value]')?.value;
-            scheduleOptions.filter(row => !bus || String(row.bus_id) === String(bus)).forEach(row => {
+            const available = scheduleOptions.filter(row =>
+                (!bus || String(row.bus_id) === String(bus)) && !reserved.has(String(row.id))
+            );
+            select.replaceChildren(new Option('Select this entry’s assignment', ''));
+            available.forEach(row => {
                 const label = [row.trip_code, row.bus_no, row.departure_time + '–' + row.estimated_arrival_time].filter(Boolean).join(' · ');
                 select.add(new Option(label, String(row.id)));
             });
-            if (initial && Array.from(select.options).some(option => option.value === initial)) select.value = initial;
+            if (previous && available.some(row => String(row.id) === String(previous))) {
+                select.value = String(previous);
+            } else if (available.length === 1) {
+                // The sole remaining eligible assignment can be safely linked automatically.
+                select.value = String(available[0].id);
+            }
+            if (select.value) reserved.add(select.value);
             select.dataset.initialSchedule = '';
+            const group = select.closest('.ddr-extra-assignment-group');
+            if (group) group.hidden = available.length === 1 && !!select.value;
         });
     };
+    modal.addEventListener('ddr:primary-assignment-changed', refillAssignmentSelectors);
     modal.addEventListener('ddr:schedules-updated', event => {
         scheduleOptions = event.detail.schedules || [];
         refillAssignmentSelectors();
     });
     modal.addEventListener('change', event => {
-        if (event.target.matches('#ddrUnscheduledMode, [data-combo-value]')) refillAssignmentSelectors();
+        if (event.target.matches('#ddrUnscheduledMode, [data-combo-value], .ddr-extra-assignment')) refillAssignmentSelectors();
     });
     const renumber = () => {
         Array.from(container.children).forEach((row, index) => {

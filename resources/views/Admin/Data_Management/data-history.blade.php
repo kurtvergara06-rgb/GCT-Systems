@@ -1,5 +1,5 @@
 <x-layout.app
-    title="FROMS - Data History"
+    title="FROMS - GPS Processing History"
     :assets="[
         'resources/css/Admin/Data_Management/data-history.css',
     ]"
@@ -9,40 +9,40 @@
 
         <main class="main data-history-page">
             <x-layout.topbar
-                title="Data History"
-                subtitle="Review batch processing, imports, exports, and their recorded results"
+                title="GPS Processing History"
+                subtitle="Monitor GPS batch processing and review historical data transfers"
                 notification-count="6"
             />
 
             <section data-ajax-region="summary" class="stats-grid history-stats-grid">
                 <x-ui.summary-card
-                    label="Total Data Activities"
+                    label="Total Processing Activities"
                     :value="$stats['total'] ?? 0"
-                    small="Recorded batch, import, and export activities"
+                    small="Recorded GPS batch activities"
                     icon="fa-database"
                     color="blue"
                 />
 
                 <x-ui.summary-card
-                    label="Successful"
+                    label="Successful Batches"
                     :value="$stats['successful'] ?? 0"
-                    small="Completed operations"
+                    small="Completed GPS processing"
                     icon="fa-circle-check"
                     color="green"
                 />
 
                 <x-ui.summary-card
-                    label="Processed Files"
+                    label="Successfully Processed Files"
                     :value="$stats['processed_files'] ?? 0"
-                    small="Batch processed or imported files"
+                    small="Completed GPS batch files"
                     icon="fa-file-circle-check"
                     color="yellow"
                 />
 
                 <x-ui.summary-card
-                    label="Failed"
+                    label="Failed Batches"
                     :value="$stats['failed'] ?? 0"
-                    small="Operations requiring review"
+                    small="Failed or correction-required GPS batches"
                     icon="fa-triangle-exclamation"
                     color="red"
                 />
@@ -51,14 +51,14 @@
             <section data-ajax-region="records" class="table-card data-history-card">
                 <div class="section-header">
                     <div>
-                        <h2>Data Activity History</h2>
-                        <p>One audit trail for Batch Processing, Import, and Export activities.</p>
+                        <h2>GPS Batch History</h2>
+                        <p>GPS processing is the primary workflow. Earlier Import and Export activities remain available here for historical auditing; Deleted indicates file state, not necessarily processing failure.</p>
                     </div>
 
                     <x-ui.id-badge :value="number_format($history->total()) . ' Records'" />
                 </div>
 
-                <x-ui.table-toolbar action="{{ route('admin.data-history') }}" search-label="Search Data History" search-placeholder="Search file, module, data type, or source..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('module') && request('module') !== 'All Modules') + (int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter Data History" :sort-options="['created_at' => 'Date and Time', 'file_name' => 'File Name', 'activity_type' => 'Type', 'module' => 'Module', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+                <x-ui.table-toolbar class="gps-history-toolbar" action="{{ route('admin.data-history') }}" search-label="Search GPS Processing History" search-placeholder="Search file, module, data type, or source..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('module') && request('module') !== 'All Modules') + (int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter GPS Processing History" :sort-options="['created_at' => 'Date and Time', 'file_name' => 'File Name', 'activity_type' => 'Type', 'module' => 'Module', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Type" name="type" default="All Types">@foreach(['All Types', 'Batch Processing', 'Import', 'Export'] as $type)<option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>@endforeach</x-ui.table-toolbar-field>
                         <x-ui.table-toolbar-field label="Module" name="module" default="All Modules">@foreach(['All Modules', 'Admin', 'Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $module)<option value="{{ $module }}" @selected(request('module', 'All Modules') === $module)>{{ $module }}</option>@endforeach</x-ui.table-toolbar-field>

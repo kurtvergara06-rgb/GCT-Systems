@@ -9,14 +9,14 @@
 <section class="predictive-main-grid-two" id="inventory-model4-section">
     <x-analytics.card
         class="predictive-card"
-        title="Inventory Model #4 — Next-Week Demand Forecast"
-        description="Live Random Forest forecasts for the same inventory records shown in the Warehouse frontend. Demo-mode results remain synthetic/development-only."
+        title="Next-Week ML Demand Forecast"
+        description="Optional ML results are shown only when the genuine inventory prediction model is ready."
     >
         <div id="inventory-model4-status" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
             <span style="font-size:12px;font-weight:700;">Checking Model #4…</span>
         </div>
 
-        <div id="inventory-model4-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div id="inventory-model4-grid" hidden class="inventory-ml-results">
             @foreach($inventoryMlRows as $row)
                 @php
                     $code = $row['item_code'] ?? $row[0] ?? '—';
@@ -42,13 +42,13 @@
 
     <x-analytics.card
         class="predictive-card"
-        title="How to Read This Forecast"
-        description="Model #4 predicts expected quantity issued for the next week; reorder advice remains an explainable business-rule layer."
+        title="How to Read Inventory Estimates"
+        description="Understand the difference between observed stock conditions and future ML demand forecasts."
     >
         <div style="display:grid;gap:10px;font-size:12px;line-height:1.5;">
-            <div><strong>Forecast:</strong> ML estimate of next-week part demand.</div>
-            <div><strong>Stockout risk:</strong> Current stock is below predicted demand.</div>
-            <div><strong>Suggested order:</strong> Rule-based replenishment quantity using forecast, on-hand stock, and reorder level.</div>
+            <div><strong>ML forecast:</strong> Next-week demand estimate only when a trained model is ready.</div>
+            <div><strong>Stock status:</strong> Current on-hand quantity relative to its reorder point; not a time-to-stockout prediction.</div>
+            <div><strong>Suggested quantity:</strong> Advisory replenishment amount; not an approved Purchase Order.</div>
             <div><strong>Demo policy:</strong> Synthetic client-demo data may be shown in development, but production still requires genuine GCT stock history.</div>
         </div>
     </x-analytics.card>
@@ -110,10 +110,11 @@
             const ready = data.model_ready === true;
             const dataset = data.dataset_type || data.data_source || 'Source not reported';
 
+            section.querySelector('#inventory-model4-grid').hidden = !ready;
             if (ready) {
                 setStatus(production ? 'PRODUCTION MODEL READY' : 'DEMO MODEL READY', dataset);
             } else {
-                setStatus('MODEL NOT READY', data.message || dataset);
+                setStatus('MODEL NOT READY', 'Stock-level monitoring remains available. ' + (data.message || dataset));
             }
 
             disclaimerEl.textContent = data.disclaimer || '';
@@ -154,8 +155,9 @@
             });
         })
         .catch(error => {
-            setStatus('MODEL SERVICE UNAVAILABLE', error.message);
-            disclaimerEl.textContent = 'Start the local Python engine with demo mode enabled to display Model #4 forecasts.';
+            section.querySelector('#inventory-model4-grid').hidden = true;
+            setStatus('MODEL SERVICE UNAVAILABLE', 'Stock-level monitoring remains available without ML.');
+            disclaimerEl.textContent = 'No ML demand estimates are shown while the genuine model is unavailable.';
         });
 })();
 </script>
