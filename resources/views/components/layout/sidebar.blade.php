@@ -254,12 +254,6 @@
                         ],
                     ],
                     [
-                        'label' => 'Import / Export',
-                        'route' => 'admin.import-export',
-                        'icon' => 'fa-right-left',
-                        'active_routes' => ['admin.import-export', 'admin.import-export.*'],
-                    ],
-                    [
                         'label' => 'Data History',
                         'route' => 'admin.data-history',
                         'icon' => 'fa-clock-rotate-left',
