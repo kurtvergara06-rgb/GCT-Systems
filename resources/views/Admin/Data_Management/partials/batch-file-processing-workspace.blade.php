@@ -28,6 +28,12 @@
                                 {{ $batch->created_at->format('M d, Y h:i A') }}
                                 · {{ $batch->processed_records }} record(s)
                             </span>
+                            @if($batch->status === 'Processing' && $batch->file_type === 'pdf')
+                                <div class="gps-file-progress" data-gps-progress-id="{{ $batch->id }}" aria-label="PDF extraction {{ $batch->progress_percentage }} percent">
+                                    <span class="gps-file-progress-label">Processing <strong data-gps-progress-value>{{ $batch->progress_percentage }}%</strong></span>
+                                    <span class="gps-file-progress-track"><span data-gps-progress-fill style="width: {{ $batch->progress_percentage }}%"></span></span>
+                                </div>
+                            @endif
                         </div>
 
                         <x-ui.status-badge
