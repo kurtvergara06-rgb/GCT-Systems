@@ -85,6 +85,7 @@
                         'history' => ['label' => 'History', 'query' => ['state' => 'read'], 'icon' => 'fa-clock-rotate-left'],
                     ];
                 @endphp
+                <div class="notification-controls-row">
                 <nav class="notification-view-tabs" aria-label="Notification categories">
                     @foreach($notificationViews as $viewKey => $view)
                         <a href="{{ route('admin.notifications', array_merge(request()->except('type', 'state', 'page'), $view['query'])) }}"
@@ -140,6 +141,7 @@
                     </div>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
 
                 <div id="notificationListLoading" class="notification-list-loading" hidden>
                     <x-ui.spinner size="sm" label="Filtering notifications" />
