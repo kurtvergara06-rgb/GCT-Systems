@@ -49,103 +49,95 @@ function initPrescriptiveAnalytics() {
    THESIS OBJECTIVE 6.4.1 — OPERATIONS PRESCRIPTIVE CHARTS
    ========================================================================= */
 function initOperationsPrescriptiveCharts(data) {
-    // 1. Shift & Schedule Recommendation Distribution Chart
+    // Both charts display independent observed counts; unassigned trips are a
+    // subset of scheduled trips and must never be stacked onto them.
+    const valueLabels = {
+        id: 'prescriptiveCountLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            ctx.fillStyle = '#334155';
+            ctx.font = '600 11px Poppins, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                meta.data.forEach((bar, index) => {
+                    const value = Number(dataset.data[index] || 0);
+                    if (value <= 0) return;
+                    ctx.fillText(String(value), bar.x + 7, bar.y);
+                });
+            });
+            ctx.restore();
+        },
+    };
+
     const shiftCanvas = document.getElementById('prescriptiveShiftChart');
-    if (shiftCanvas && data.shiftLabels && data.shiftLabels.length > 0) {
+    if (shiftCanvas) {
         destroyPrescriptiveChart('prescriptiveShiftChart');
-        prescriptiveChartInstances['prescriptiveShiftChart'] = new Chart(shiftCanvas, {
+        const labels = data.shiftLabels || [];
+        const scheduled = data.scheduledByShift || [];
+        const unassigned = data.recommendedByShift || [];
+        const active = labels.map((label, i) => ({ label, scheduled: Number(scheduled[i] || 0), unassigned: Number(unassigned[i] || 0) }))
+            .filter((row) => row.scheduled > 0 || row.unassigned > 0);
+        const rows = active.length ? active : [{ label: 'No scheduled trips', scheduled: 0, unassigned: 0 }];
+
+        prescriptiveChartInstances.prescriptiveShiftChart = new Chart(shiftCanvas, {
             type: 'bar',
             data: {
-                labels: data.shiftLabels,
+                labels: rows.map((row) => row.label),
                 datasets: [
-                    {
-                        label: 'Scheduled Trips',
-                        data: data.scheduledByShift || [],
-                        backgroundColor: '#94a3b8',
-                        borderRadius: 6,
-                        maxBarThickness: 34,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.75,
-                    },
-                    {
-                        label: 'Unassigned Trips',
-                        data: data.recommendedByShift || [],
-                        backgroundColor: '#2563eb',
-                        borderRadius: 6,
-                        maxBarThickness: 34,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.75,
-                    },
+                    { label: 'Scheduled Trips', data: rows.map((row) => row.scheduled), backgroundColor: '#93a6c4', borderRadius: 5, maxBarThickness: 23, categoryPercentage: 0.56 },
+                    { label: 'Unassigned Trips', data: rows.map((row) => row.unassigned), backgroundColor: '#2563eb', borderRadius: 5, maxBarThickness: 23, categoryPercentage: 0.56 },
                 ],
             },
+            plugins: [valueLabels],
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: { padding: { right: 26, left: 8, top: 4, bottom: 4 } },
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            boxWidth: 12,
-                            font: { family: 'Poppins', size: 11, weight: '600' },
-                            color: '#475569',
-                        },
-                    },
-                    tooltip: {
-                        padding: 10,
-                        backgroundColor: '#0f172a',
-                        titleFont: { family: 'Poppins', size: 12, weight: '700' },
-                        bodyFont: { family: 'Poppins', size: 11 },
-                    },
+                    legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, padding: 16, color: '#475569', font: { family: 'Poppins', size: 10, weight: '600' } } },
+                    tooltip: { backgroundColor: '#0f172a', padding: 10 },
                 },
                 scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { family: 'Poppins', size: 11 }, color: '#64748b' },
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { precision: 0, font: { family: 'Poppins', size: 11 }, color: '#64748b' },
-                        grid: { color: '#f1f5f9' },
-                    },
+                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...rows.map((row) => Math.max(row.scheduled, row.unassigned))) + 0.5, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef2f8' }, border: { display: false } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { color: '#334155', font: { family: 'Poppins', size: 11, weight: '600' } } },
                 },
             },
         });
     }
 
-    // Independent resource and dispatch signals can overlap; use bars, not a pie of a whole.
-    const donutCanvas = document.getElementById('prescriptiveReadinessDonutChart');
-    if (donutCanvas && data.readinessLabels && data.readinessLabels.length > 0) {
+    const signalsCanvas = document.getElementById('prescriptiveReadinessDonutChart');
+    if (signalsCanvas) {
         destroyPrescriptiveChart('prescriptiveReadinessDonutChart');
-        prescriptiveChartInstances['prescriptiveReadinessDonutChart'] = new Chart(donutCanvas, {
+        const labels = data.readinessLabels || [];
+        const values = data.readinessValues || [];
+        const colors = data.readinessColors || [];
+        prescriptiveChartInstances.prescriptiveReadinessDonutChart = new Chart(signalsCanvas, {
             type: 'bar',
             data: {
-                labels: data.readinessLabels,
-                datasets: [
-                    {
-                        data: data.readinessValues || [],
-                        backgroundColor: data.readinessColors || ['#16a34a', '#2563eb', '#ea580c', '#dc2626'],
-                        borderRadius: 6,
-                        maxBarThickness: 24,
-                    },
-                ],
+                labels,
+                datasets: [{
+                    label: 'Recorded Count',
+                    data: values,
+                    backgroundColor: labels.map((_, i) => colors[i] || '#2563eb'),
+                    borderRadius: 5,
+                    maxBarThickness: 22,
+                    categoryPercentage: 0.7,
+                }],
             },
+            plugins: [valueLabels],
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        padding: 10,
-                        backgroundColor: '#0f172a',
-                        titleFont: { family: 'Poppins', size: 12, weight: '700' },
-                        bodyFont: { family: 'Poppins', size: 11 },
-                    },
-                },
+                layout: { padding: { right: 27, left: 4, top: 4, bottom: 4 } },
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', padding: 10 } },
                 scales: {
-                    x: { beginAtZero: true, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#f1f5f9' } },
-                    y: { ticks: { color: '#334155', font: { family: 'Poppins', size: 10 } }, grid: { display: false } },
+                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...values.map((v) => Number(v) || 0)) + 0.5, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef2f8' }, border: { display: false } },
+                    y: { ticks: { color: '#334155', font: { family: 'Poppins', size: 10, weight: '600' }, autoSkip: false }, grid: { display: false }, border: { display: false } },
                 },
             },
         });
