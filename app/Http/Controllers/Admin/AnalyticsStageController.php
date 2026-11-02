@@ -330,8 +330,7 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = $request->boolean('demo', false);
 
         [$start, $end] = $this->resolveDatePeriod($period);
 
@@ -357,9 +356,10 @@ class AnalyticsStageController extends Controller
         $realIncidents = $incidentsQuery->orderByDesc('incident_reported_at')->get();
         $realCount = $realIncidents->count();
 
-        // The presentation uses a clearly identified sample dataset only when
-        // there are no real incident records for this selection.
-        $isDemo = true; // Fixed illustrative dashboard dataset until live-mode integration is requested.
+        // If real count is 0, provide the demonstration diagnostic dataset to illustrate
+        // Thesis Objective 6.2.1 root causes, replacement dispatch comparisons, and downtime intervals.
+        $isDemo = $demoMode || $realCount === 0;
+
         if ($isDemo) {
             return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
         }
@@ -652,8 +652,7 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = $request->boolean('demo', false);
 
         $totalFuel = (float) ($fuel['totalFuel'] ?? 0);
         $totalDistance = (float) ($fuel['totalDistance'] ?? 0);
@@ -664,8 +663,9 @@ class AnalyticsStageController extends Controller
         $trend = collect($fuel['trend'] ?? []);
         $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
 
-        // Show an illustrative chart only if actual fuel observations are absent.
-        $isDemo = true; // Fixed illustrative fuel dataset for presentation.
+        // If real fuel records are sparse or empty, or demo mode requested:
+        $isDemo = $demoMode || ($busSummaries->isEmpty() && $totalFuel <= 0);
+
         if ($isDemo) {
             return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
         }
@@ -1911,8 +1911,7 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = $request->boolean('demo', false);
 
         [$start, $end] = $this->resolveDatePeriod($period);
 
@@ -2243,8 +2242,7 @@ class AnalyticsStageController extends Controller
     private function buildRestockingPrescriptiveData(Request $request, Collection $inventoryItems): object
     {
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = $request->boolean('demo', false);
 
         $totalItems = $inventoryItems->count();
         $lowStockItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand > 0 && $i->on_hand <= (int) $i->reorder_level)->values();

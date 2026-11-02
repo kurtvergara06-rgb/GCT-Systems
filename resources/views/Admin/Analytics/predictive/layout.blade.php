@@ -81,6 +81,11 @@
                 :selected-bus="$selectedBus"
                 :date-label="$periodOptions[$period] ?? ucwords(str_replace('-', ' ', $period))"
             />
+            <details class="analytics-model-disclosure">
+                <summary><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Model readiness &amp; data provenance <span>Check whether trained models are available</span></summary>
+                <x-analytics.model-status />
+                <p>Fallback calculations and historical trends are not trained-model predictions. Missing model services must never be presented as deployed AI.</p>
+            </details>
             @include($domainViews[$activeDomain])
 
             @if($activeDomain === 'inventory')

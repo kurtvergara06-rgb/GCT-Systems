@@ -7,53 +7,6 @@
         'this-year' => 'This Year',
     ];
 
-    // Presentation-only fallback for an entirely empty reporting window.
-    // These local Blade variables never write to the database.
-    $illustrativeAnalytics = $activeSummary === 'operational'
-        ? ((int) $totalScheduledTrips === 0 && (int) $gpsTripCount === 0 && (int) $totalIncidents === 0)
-        : ((int) $totalActivities === 0 && (int) $totalNotifications === 0);
-    if ($illustrativeAnalytics && $activeSummary === 'operational') {
-        $totalScheduledTrips = 42;
-        $completedTrips = 35;
-        $pendingDdrTrips = 5;
-        $missedTrips = 2;
-        $totalAssignedBuses = 38;
-        $totalRequiredBuses = 42;
-        $assignmentFulfillmentRate = 90.5;
-        $gpsTripCount = 39;
-        $gpsTotalDistance = 1268.5;
-        $gpsAverageSpeed = 41.7;
-        $totalIncidents = 4;
-        $resolvedIncidents = 3;
-        $breakdownsCount = 2;
-        $operationalTrend = collect([
-            (object)['label'=>'Oct 26','scheduled'=>5,'completed'=>4,'gps'=>5,'incidents'=>0],
-            (object)['label'=>'Oct 27','scheduled'=>6,'completed'=>5,'gps'=>5,'incidents'=>1],
-            (object)['label'=>'Oct 28','scheduled'=>7,'completed'=>6,'gps'=>7,'incidents'=>0],
-            (object)['label'=>'Oct 29','scheduled'=>5,'completed'=>4,'gps'=>5,'incidents'=>1],
-            (object)['label'=>'Oct 30','scheduled'=>8,'completed'=>7,'gps'=>7,'incidents'=>1],
-            (object)['label'=>'Oct 31','scheduled'=>6,'completed'=>5,'gps'=>5,'incidents'=>0],
-            (object)['label'=>'Nov 1','scheduled'=>5,'completed'=>4,'gps'=>5,'incidents'=>1],
-        ]);
-        $tripStatusDistribution = ['Completed'=>35,'Pending'=>5,'Missed'=>2];
-        $incidentTypeDistribution = ['Mechanical'=>2,'Tire'=>1,'Electrical'=>1];
-    }
-    if ($illustrativeAnalytics && $activeSummary === 'administrative') {
-        $totalActivities = 84;
-        $totalNotifications = 27;
-        $adminTrend = collect([
-            (object)['label'=>'Oct 26','activities'=>10,'notifications'=>3],
-            (object)['label'=>'Oct 27','activities'=>13,'notifications'=>5],
-            (object)['label'=>'Oct 28','activities'=>8,'notifications'=>2],
-            (object)['label'=>'Oct 29','activities'=>16,'notifications'=>5],
-            (object)['label'=>'Oct 30','activities'=>11,'notifications'=>4],
-            (object)['label'=>'Oct 31','activities'=>14,'notifications'=>4],
-            (object)['label'=>'Nov 1','activities'=>12,'notifications'=>4],
-        ]);
-        $activityByModule = ['Operations'=>28,'Maintenance'=>22,'Warehouse'=>14,'Purchasing'=>12,'Administration'=>8];
-        $notificationsByModule = ['Operations'=>9,'Maintenance'=>8,'Warehouse'=>6,'Purchasing'=>4];
-    }
-
     if ($activeSummary === 'operational') {
         $chartPayload = [
             'activeSummary' => 'operational',
@@ -107,10 +60,6 @@
                 title="Descriptive Analytics"
                 subtitle="Operational and administrative summaries from recorded system activity · Objective 6.1."
             />
-
-            @if($illustrativeAnalytics)
-                <p style="font-size:10px;color:#64748b;margin-bottom:8px">Illustrative reporting figures for presentation only.</p>
-            @endif
 
             <!-- Hidden JSON payload consumed by Chart.js script -->
             <script type="application/json" id="descriptiveAnalyticsData">
