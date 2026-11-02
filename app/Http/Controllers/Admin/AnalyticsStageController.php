@@ -55,6 +55,12 @@ class AnalyticsStageController extends Controller
             $domain = 'all';
         }
 
+        // The predictive landing page begins with Trip Delay & ETA.
+        // Retired combined-overview URLs continue to show the fleet-trip page.
+        if ($stage === 'predictive' && $domain === 'all') {
+            $domain = 'fleet-trip';
+        }
+
         $fleet = app(FleetTripAnalyticsController::class)->data($request, $predictionService, $etaService);
         $fuel = app(FuelAnalyticsController::class)->data($request);
 
