@@ -430,11 +430,11 @@
             <p class="ft-evidence-note">Active share measures registered bus status, not time-based bus utilization.</p>
         </x-analytics.card>
 
-        {{-- 2. Route Risk Analysis --}}
+        {{-- Historical route activity score (not a predicted delay probability). --}}
         <x-analytics.card
             class="ft-card ft-route-card"
-            title="Route Risk Analysis"
-            description="Routes ranked by predicted operational risk."
+            title="Historical Route Indicators"
+            description="Relative GPS activity and duration score (0–100), not a delay probability or ML forecast."
         >
             <div class="ft-route-list">
                 @forelse ($routePredictions as $route)
@@ -453,19 +453,13 @@
                                 <strong class="ft-route-name" title="{{ $route[0] ?? '—' }}">
                                     {{ $route[0] ?? '—' }}
                                 </strong>
-                                @if($delayPct >= 75)
-                                    <span class="ft-route-tag danger"><i class="fa-solid fa-triangle-exclamation"></i> Bottleneck</span>
-                                @elseif($delayPct >= 60)
-                                    <span class="ft-route-tag warning"><i class="fa-solid fa-clock"></i> Idle Zone</span>
-                                @else
-                                    <span class="ft-route-tag success"><i class="fa-solid fa-circle-check"></i> Optimal</span>
-                                @endif
+                                <span class="ft-route-tag {{ $routeClass === 'high' ? 'warning' : 'success' }}"><i class="fa-solid fa-chart-column"></i> GPS History</span>
                             </div>
                             <div class="ft-route-meta">
                                 <span><i class="fa-solid fa-bus"></i> {{ number_format((float) ($route[1] ?? 0)) }} trips</span>
                                 <span><i class="fa-regular fa-clock"></i> {{ number_format((float) ($route[2] ?? 0)) }}m avg</span>
                                 <span class="ft-route-variance {{ $delayPct >= 70 ? 'danger' : 'safe' }}">
-                                    <i class="fa-solid fa-chart-line"></i> {{ number_format($delayPct, 1) }}% delay risk
+                                    <i class="fa-solid fa-chart-line"></i> {{ number_format($delayPct, 0) }}/100 historical score
                                 </span>
                             </div>
                             <div class="ft-route-meter-wrap">
@@ -476,19 +470,19 @@
                         </div>
                         <div class="ft-route-risk-col">
                             <div class="ft-route-score-wrap">
-                                <span class="ft-route-score ft-route-score--{{ $routeClass }}">{{ number_format($delayPct, 0) }}%</span>
-                                <span class="ft-route-score-label">Delay Risk</span>
+                                <span class="ft-route-score ft-route-score--{{ $routeClass }}">{{ number_format($delayPct, 0) }}/100</span>
+                                <span class="ft-route-score-label">Activity Score</span>
                             </div>
                             <span class="ft-badge {{ $routeClass }}">
-                                {{ ucfirst($routeClass) }}
+                                {{ $routeClass === 'high' ? 'Higher' : ($routeClass === 'medium' ? 'Moderate' : 'Lower') }}
                             </span>
                         </div>
                     </div>
                 @empty
                     <div class="ft-data-empty ft-data-empty--compact" role="status">
                         <span class="ft-data-empty__icon"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span>
-                        <strong>No route risk data available</strong>
-                        <span>Route rankings appear when trip predictions include route evidence.</span>
+                        <strong>No historical route records available</strong>
+                        <span>Historical route indicators appear when processed GPS records are available for the selected filters.</span>
                     </div>
                 @endforelse
             </div>
