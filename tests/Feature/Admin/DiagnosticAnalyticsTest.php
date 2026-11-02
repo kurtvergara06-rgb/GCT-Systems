@@ -42,7 +42,7 @@ class DiagnosticAnalyticsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_incident_diagnostic_view_renders_demo_fallback_when_no_records(): void
+    public function test_incident_diagnostic_view_renders_empty_live_data_when_no_records(): void
     {
         $admin = $this->createAdmin();
 
@@ -56,14 +56,12 @@ class DiagnosticAnalyticsTest extends TestCase
             ->assertViewHas('activeDiagnosticView', 'incident')
             ->assertViewHas('incidentDiagnostics')
             ->assertSeeText('Incident & Replacement')
-            ->assertSeeText('Demo Data')
-            ->assertSeeText('Demonstration Diagnostic Dataset Active')
             ->assertSeeText('Primary Root Cause')
             ->assertSeeText('Average Downtime');
 
         $incidentData = $response->viewData('incidentDiagnostics');
-        $this->assertTrue($incidentData->is_demo);
-        $this->assertGreaterThan(0, $incidentData->total_incidents);
+        $this->assertFalse($incidentData->is_demo);
+        $this->assertSame(0, $incidentData->total_incidents);
     }
 
     public function test_incident_diagnostic_view_renders_live_database_records(): void
@@ -113,7 +111,6 @@ class DiagnosticAnalyticsTest extends TestCase
         $response->assertOk()
             ->assertViewIs('Admin.Analytics.diagnostic.layout')
             ->assertViewHas('activeDiagnosticView', 'incident')
-            ->assertSeeText('Live Database Records')
             ->assertSeeText('INC-LIVE-001')
             ->assertSeeText('GCT-101')
             ->assertSeeText('GCT-102');
@@ -125,7 +122,7 @@ class DiagnosticAnalyticsTest extends TestCase
         $this->assertEquals(1, $incidentData->replacements_count);
     }
 
-    public function test_fuel_diagnostic_view_renders_demo_fallback_when_no_records(): void
+    public function test_fuel_diagnostic_view_renders_empty_live_data_when_no_records(): void
     {
         $admin = $this->createAdmin();
 
@@ -141,11 +138,11 @@ class DiagnosticAnalyticsTest extends TestCase
             ->assertSeeText('Fuel & Consumption')
             ->assertSeeText('Demo Data')
             ->assertSeeText('Demonstration Diagnostic Dataset Active')
-            ->assertSeeText('Thesis Objective 6.2.2 Scientific Rule');
+            ->assertSeeText('Vehicle-Specific Historical Baseline');
 
         $fuelData = $response->viewData('fuelDiagnostics');
-        $this->assertTrue($fuelData->is_demo);
-        $this->assertGreaterThan(0, $fuelData->total_fuel);
+        $this->assertFalse($fuelData->is_demo);
+        $this->assertEquals(0.0, $fuelData->total_fuel);
     }
 
     public function test_fuel_diagnostic_view_calculates_objective_6_2_2_baseline_and_anomalies(): void
@@ -209,6 +206,6 @@ class DiagnosticAnalyticsTest extends TestCase
         $this->assertFalse($fuelData->is_demo);
         $this->assertEquals(50.0, $fuelData->total_fuel);
         $this->assertGreaterThanOrEqual(1, $fuelData->anomalies_count);
-        $response->assertSeeText('Live Database Records');
+        $response->assertSeeText('Vehicle-Specific Historical Baseline');
     }
 }
