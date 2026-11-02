@@ -1861,3 +1861,61 @@
 .structured-records-card .batch-records-table { min-width: 760px; }
 .structured-records-card .gps-infinite-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .structured-records-card .gps-load-state { font-size:11px; color:#64748b; }
+
+/* Structured GPS records: six-column compact layout, stable sticky header. */
+.structured-records-card { min-width:0; }
+.structured-records-card .section-header { align-items:center; gap:14px; }
+.structured-records-card .section-header > div:first-child { min-width:0; flex:1; }
+.structured-records-card .section-header h2 { overflow-wrap:anywhere; line-height:1.4; }
+.structured-records-card .table-header-actions { flex-shrink:0; }
+.structured-records-card .structured-table-wrap {
+    max-height:480px;
+    overflow-y:auto;
+    overflow-x:auto;
+    overscroll-behavior:contain;
+    scrollbar-gutter:stable;
+}
+.structured-records-card .batch-records-table {
+    width:100%;
+    min-width:720px;
+    table-layout:fixed;
+}
+.structured-records-card .batch-records-table th,
+.structured-records-card .batch-records-table td {
+    box-sizing:border-box;
+    padding:9px 12px;
+    text-align:left;
+    line-height:1.35;
+    vertical-align:middle;
+}
+.structured-records-card .batch-records-table th {
+    height:40px;
+    top:0;
+    background:#f0f5fc;
+    font-size:10px;
+}
+.structured-records-card .batch-records-table td {
+    height:40px;
+    font-size:11px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.structured-records-card .batch-records-table th:nth-child(1),
+.structured-records-card .batch-records-table td:nth-child(1) { width:13%; }
+.structured-records-card .batch-records-table th:nth-child(2),
+.structured-records-card .batch-records-table td:nth-child(2) { width:20%; }
+.structured-records-card .batch-records-table th:nth-child(3),
+.structured-records-card .batch-records-table td:nth-child(3) { width:22%; }
+.structured-records-card .batch-records-table th:nth-child(4),
+.structured-records-card .batch-records-table td:nth-child(4) { width:22%; }
+.structured-records-card .batch-records-table th:nth-child(5),
+.structured-records-card .batch-records-table td:nth-child(5) { width:12%; text-align:right; }
+.structured-records-card .batch-records-table th:nth-child(6),
+.structured-records-card .batch-records-table td:nth-child(6) { width:11%; text-align:right; }
+.structured-records-card .batch-records-table tbody tr:nth-child(even) { background:#fbfdff; }
+.structured-records-card .batch-records-table tbody tr:hover { background:#edf5ff; }
+.structured-records-card .gps-infinite-footer { margin-top:10px; }
+@media(max-width:1100px) {
+    .structured-records-card .section-header { align-items:stretch; flex-wrap:wrap; }
+    .structured-records-card .table-header-actions { width:100%; justify-content:flex-end; }
+}
