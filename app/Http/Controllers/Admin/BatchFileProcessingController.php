@@ -112,6 +112,21 @@ class BatchFileProcessingController extends Controller
                 ->withQueryString()
             : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 50);
 
+        // Coverage uses only records belonging to the selected upload.
+        // Aggregate in SQL to avoid loading thousands of GPS intervals.
+        $fleetCoverage = $selectedBatch
+            ? $selectedBatch->tripRecords()
+                ->selectRaw('UPPER(TRIM(bus_no)) as vehicle, COUNT(*) as record_count')
+                ->whereNotNull('bus_no')
+                ->whereRaw("TRIM(bus_no) <> ''")
+                ->groupByRaw('UPPER(TRIM(bus_no))')
+                ->orderByDesc('record_count')
+                ->get()
+            : collect();
+
+        $fleetVehicleCount = $fleetCoverage->count();
+        $fleetRecordCount = $fleetCoverage->sum('record_count');
+
         $filesUploaded = BatchUpload::count();
 
         $processedBatches = BatchUpload::query()
@@ -134,7 +149,10 @@ class BatchFileProcessingController extends Controller
             'filesUploaded',
             'processedBatches',
             'inReviewBatches',
-            'recordsExtracted'
+            'recordsExtracted',
+            'fleetCoverage',
+            'fleetVehicleCount',
+            'fleetRecordCount'
         ));
     }
 
