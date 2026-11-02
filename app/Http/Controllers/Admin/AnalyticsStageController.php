@@ -1989,7 +1989,7 @@ class AnalyticsStageController extends Controller
         }
 
         // Check if demo simulation should be displayed
-        $isDemo = $demoMode;
+        $isDemo = $demoMode || ($unassignedTrips->isEmpty() && $realCount === 0);
         if ($isDemo) {
             return $this->getDemoOperationsPrescriptiveData($period, $selectedBus, $realCount);
         }
@@ -2252,7 +2252,7 @@ class AnalyticsStageController extends Controller
         $attentionItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand <= (int) $i->reorder_level)->values();
 
         // Check if demo simulation should be active
-        $isDemo = $demoMode;
+        $isDemo = $demoMode || $totalItems === 0;
         if ($isDemo) {
             return $this->getDemoRestockingPrescriptiveData($period, $totalItems);
         }
