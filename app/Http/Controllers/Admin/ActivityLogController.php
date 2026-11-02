@@ -54,8 +54,17 @@ class ActivityLogController extends Controller
                 ->whereMonth('created_at', now()->month);
         }
 
+        // Allow-list sortable columns to prevent untrusted query parameters from
+        // being used as SQL identifiers. Preserve stable pagination for ties.
+        $allowedSorts = ['created_at', 'user_name', 'activity', 'module', 'event_type'];
+        $sort = in_array((string) $request->input('sort'), $allowedSorts, true)
+            ? (string) $request->input('sort')
+            : 'created_at';
+        $direction = $request->input('sort_direction', 'desc') === 'asc' ? 'asc' : 'desc';
+
         $logs = $query
-            ->latest('created_at')
+            ->orderBy($sort, $direction)
+            ->orderBy('id', 'desc')
             ->paginate(20)
             ->withQueryString();
 
