@@ -331,6 +331,29 @@
         ];
     }
 
+    // Authorized users receive the shared Analytics menu in their own department shell.
+    if ($authUser && $componentDepartment !== 'admin'
+        && $authUser->hasSystemPermission('analytics', 'view')) {
+        $analyticsChildren = [
+            ['label' => 'Descriptive Analytics', 'url' => route('analytics.descriptive', [], false), 'icon' => 'fa-chart-column',
+                'active_routes' => ['analytics.descriptive']],
+        ];
+        if ($authUser->hasSystemPermission('analytics', 'analyze')) {
+            $analyticsChildren[] = ['label' => 'Diagnostic Analytics',
+                'url' => route('analytics.stage', ['stage' => 'diagnostic'], false),
+                'icon' => 'fa-magnifying-glass'];
+            $analyticsChildren[] = ['label' => 'Predictive Analytics',
+                'url' => route('analytics.stage', ['stage' => 'predictive'], false),
+                'icon' => 'fa-chart-line'];
+        }
+        if ($authUser->hasSystemPermission('analytics', 'recommendations')) {
+            $analyticsChildren[] = ['label' => 'Prescriptive Analytics',
+                'url' => route('analytics.stage', ['stage' => 'prescriptive'], false),
+                'icon' => 'fa-lightbulb'];
+        }
+        $items[] = ['label' => 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
+    }
+
     if ($authUser) {
         if ($normalizedDepartment === 'admin' && $normalizedRole === 'head') {
             $displayRole = 'System Admin';
