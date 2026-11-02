@@ -104,26 +104,20 @@ class AnalyticsModelReadinessUiTest extends TestCase
         ]);
     }
 
-    public function test_predictive_all_exposes_production_model_readiness(): void
+    public function test_predictive_landing_page_uses_trip_eta_without_removed_model_readiness_panel(): void
     {
         $this->fakeModelStatuses();
 
         $response = $this->actingAs($this->adminUser())
             ->get(route('analytics.stage', ['stage' => 'predictive']));
 
-        $response->assertOk();
-        $response->assertSee('Production ML Readiness');
-        $response->assertSee('ETA Model');
-        $response->assertSee('Fuel Model');
-        $response->assertSee('Delay Model');
-        $response->assertSee('Inventory Model');
-        $response->assertSee('ETA Model Comparison');
-        $response->assertSee('Operator Route Baseline');
-        $response->assertSee('Random Forest');
-        $response->assertSee('chronological 80 20 holdout');
-        $response->assertSee('8.10');
-        $response->assertSee('MODEL NOT READY');
-        $response->assertSee('Insufficient genuine operational history for production delay training.');
+        $response->assertOk()
+            ->assertViewIs('Admin.Analytics.predictive.layout')
+            ->assertSeeText('Predictive Analytics')
+            ->assertSeeText('Trip Delay & ETA')
+            ->assertSeeText('Recorded Trips')
+            ->assertDontSeeText('Production ML Readiness')
+            ->assertDontSeeText('ETA Model Comparison');
     }
 
     public function test_prescriptive_page_keeps_decision_support_without_removed_readiness_panel(): void
