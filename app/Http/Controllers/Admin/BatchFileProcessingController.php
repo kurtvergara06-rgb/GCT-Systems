@@ -40,32 +40,12 @@ class BatchFileProcessingController extends Controller
             ? BatchUpload::withCount('tripRecords')->find($selectedBatchId)
             : null;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Main Structured Trip Records Table
-        |--------------------------------------------------------------------------
-        | Only Processed records are shown here.
-        | In Review records remain inside View Cleaned Records for editing.
-        |--------------------------------------------------------------------------
-        */
-        $recordsQuery = GpsTripRecord::query()
-            ->with('batchUpload')
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
-            });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Structured Trip Records Table
-        |--------------------------------------------------------------------------
-        | Show records only for the Uploaded File selected by the user.
-        | Records are available here only after that selected batch is Processed.
-        |--------------------------------------------------------------------------
-        */
-        if ($selectedBatch && $selectedBatch->status === 'Processed') {
+        // Preview validated extracted records in the main table immediately,
+        // including In Review batches. Publication still requires confirmation.
+        $recordsQuery = GpsTripRecord::query()->with('batchUpload');
+        if ($selectedBatch && in_array($selectedBatch->status, ['In Review', 'Processed'], true)) {
             $recordsQuery->where('batch_upload_id', $selectedBatch->id);
         } else {
-            // Keep the table empty for In Review, Failed, or no selected batch.
             $recordsQuery->whereRaw('1 = 0');
         }
 
