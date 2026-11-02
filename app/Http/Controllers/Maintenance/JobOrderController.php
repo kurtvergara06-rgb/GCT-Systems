@@ -1017,6 +1017,21 @@ class JobOrderController extends Controller
                 : null;
         }
 
+        // Enforce the historical median on edit as well. A crafted request
+        // must not override an available automatic estimate.
+        $durationWork = count($selectedJobs) === 1
+            ? ($selectedJobs[0] === 'Other'
+                ? trim((string) ($validated['custom_maintenance_job'] ?? ''))
+                : $selectedJobs[0])
+            : (count($selectedJobs) === 0 ? trim((string) ($jobOrder->work_to_perform ?? '')) : '');
+        $automaticDuration = $durationWork !== ''
+            ? $this->durations->suggestion($validated['maintenance_type'], $durationWork)
+            : null;
+        if ($automaticDuration !== null) {
+            $validated['estimated_duration_value'] = $automaticDuration['value'];
+            $validated['estimated_duration_unit'] = $automaticDuration['unit'];
+        }
+
         if (array_key_exists('estimated_duration_value', $validated)) {
             $updates['estimated_duration_value'] = $validated['estimated_duration_value'];
         }
