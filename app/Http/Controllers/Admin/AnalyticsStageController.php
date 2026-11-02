@@ -358,7 +358,7 @@ class AnalyticsStageController extends Controller
 
         // If real count is 0, provide the demonstration diagnostic dataset to illustrate
         // Thesis Objective 6.2.1 root causes, replacement dispatch comparisons, and downtime intervals.
-        $isDemo = $demoMode || $realCount === 0;
+        $isDemo = $demoMode;
 
         if ($isDemo) {
             return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
@@ -664,7 +664,7 @@ class AnalyticsStageController extends Controller
         $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
 
         // If real fuel records are sparse or empty, or demo mode requested:
-        $isDemo = $demoMode || ($busSummaries->isEmpty() && $totalFuel <= 0);
+        $isDemo = $demoMode;
 
         if ($isDemo) {
             return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
@@ -1988,7 +1988,7 @@ class AnalyticsStageController extends Controller
         }
 
         // Check if demo simulation should be displayed
-        $isDemo = $demoMode || ($unassignedTrips->isEmpty() && $realCount === 0);
+        $isDemo = $demoMode;
         if ($isDemo) {
             return $this->getDemoOperationsPrescriptiveData($period, $selectedBus, $realCount);
         }
