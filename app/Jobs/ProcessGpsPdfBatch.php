@@ -17,7 +17,7 @@ class ProcessGpsPdfBatch implements ShouldQueue
 
     public function __construct(public int $batchId)
     {
-        $this->onQueue('default');
+        $this->onConnection('gps_pdf')->onQueue('gps-pdf');
     }
 
     public function handle(BatchFileProcessingController $controller): void
@@ -28,6 +28,9 @@ class ProcessGpsPdfBatch implements ShouldQueue
         }
         try {
             $result = $controller->processPdfFile($batch);
+            if (($result['processed'] ?? 0) < 1) {
+                throw new \RuntimeException('PDF extraction completed without saving valid GPS records.');
+            }
             $batch->update([
                 'status' => 'In Review',
                 'total_records' => $result['total'] ?? 0,
