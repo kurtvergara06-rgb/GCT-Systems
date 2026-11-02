@@ -105,7 +105,7 @@ class MechanicListController extends Controller
                     && ($activeJob->part_needed === null || trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued')
                     && $isPresent
                     ? 'On Duty'
-                    : $baseStatus
+                    : ($hasTimedOut ? 'Timed Out' : $baseStatus)
             );
 
             return $mechanic;
