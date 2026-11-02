@@ -305,7 +305,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     const clientEditors = new Map();
     document.querySelectorAll('[data-bus-multi-client]').forEach((editor) => {
         const hidden = editor.querySelector('input[name="client_name"]');
-        const entry = editor.querySelector('.bus-multi-client-entry input');
+        const entry = editor.querySelector('.bus-multi-client-entry select');
         const tags = editor.querySelector('[data-client-tags]');
         const addButton = editor.querySelector('[data-add-client]');
         if (!hidden || !entry || !tags || !addButton) return;
@@ -342,7 +342,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         };
         const addClient = () => {
             const name = entry.value.trim().replace(/\\s+/g, ' ');
-            if (!name) return;
+            if (!name || !Array.from(entry.options).some((option) => option.value === name)) return;
             if (clients.length >= 20) { entry.setCustomValidity('Maximum of 20 clients.'); entry.reportValidity(); return; }
             entry.setCustomValidity('');
             if (!clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
@@ -350,13 +350,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             render();
             entry.focus();
         };
-        entry.addEventListener('input', () => entry.setCustomValidity(''));
-        entry.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ',') {
-                event.preventDefault();
-                addClient();
-            }
-        });
+        entry.addEventListener('change', () => entry.setCustomValidity(''));
         addButton.addEventListener('click', addClient);
         editor.closest('form')?.addEventListener('submit', () => {
             if (entry.value.trim()) addClient();
