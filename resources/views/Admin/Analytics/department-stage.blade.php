@@ -25,7 +25,8 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/Analytics/design-system.css',
-        'resources/css/Admin/Analytics/department-stage.css'
+        'resources/css/Admin/Analytics/department-stage.css',
+        'resources/js/Admin/Analytics/department-stage.js'
     ]"
 >
     <div class="app">
@@ -49,15 +50,6 @@
                 @endforeach
             </nav>
 
-            <section class="department-analytics-intro" aria-label="Scope and methodology">
-                <div class="department-analytics-intro-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <div>
-                    <strong>{{ ucfirst($department) }} Department Data</strong>
-                    <p>Only authorized departmental records appear here. Counts and status distributions describe recorded activity; they are not predictions, anomaly diagnoses, or recommended actions.</p>
-                </div>
-                <span class="department-analytics-scope">Department scope</span>
-            </section>
-
             {{-- Reuse the same KPI Blade component used by System Admin Analytics. --}}
             <section class="analytics-kpi-strip" aria-label="Department summary">
                 <x-analytics.kpi label="Recorded Entries" :value="number_format($allCount)"
@@ -70,6 +62,27 @@
                         icon-variant="blue" />
                 @endforeach
             </section>
+
+            @if($stage === 'descriptive')
+                <section class="department-analytics-chart-grid" aria-label="Department historical charts">
+                    <x-analytics.card title="Monthly Department Activity" description="Recorded entries created in the last six calendar months; not a forecast.">
+                        <div class="department-analytics-chart-area">
+                            <canvas id="departmentActivityChart" role="img" aria-label="Monthly recorded department activity"></canvas>
+                        </div>
+                    </x-analytics.card>
+                    <x-analytics.card title="Recorded Source Distribution" description="Composition of departmental records from authorized sources.">
+                        <div class="department-analytics-chart-area">
+                            <canvas id="departmentSourcesChart" role="img" aria-label="Distribution of department records by source"></canvas>
+                        </div>
+                    </x-analytics.card>
+                </section>
+                <script type="application/json" id="departmentAnalyticsChartData">{!! json_encode([
+                    'months' => collect($monthlyActivity ?? [])->pluck('month')->values(),
+                    'monthly' => collect($monthlyActivity ?? [])->pluck('total')->values(),
+                    'sources' => collect($metrics)->pluck('label')->values(),
+                    'counts' => collect($metrics)->pluck('total')->values(),
+                ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+            @endif
 
             @if($stage !== 'descriptive')
                 <section class="department-analytics-notice">
