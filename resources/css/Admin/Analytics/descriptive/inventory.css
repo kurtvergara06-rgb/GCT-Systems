@@ -462,7 +462,16 @@
 
 /* Category Subsystem Health Card */
 .descriptive-domain-inventory .inventory-category-card {
-    min-height: 520px;
+    min-height: 0;
+}
+
+@media (min-width: 1201px) {
+    .descriptive-domain-inventory .inventory-dashboard-col { display: contents; }
+    .descriptive-domain-inventory .inventory-distribution-card { grid-column: 1; grid-row: 1; }
+    .descriptive-domain-inventory .inventory-category-card { grid-column: 2; grid-row: 1; }
+    .descriptive-domain-inventory .inventory-restock-panel { grid-column: 1 / -1; grid-row: 2; }
+    .descriptive-domain-inventory .inventory-restock-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .descriptive-domain-inventory .inventory-restock-actions { max-width: 600px; }
 }
 
 .descriptive-domain-inventory .inventory-category-list {

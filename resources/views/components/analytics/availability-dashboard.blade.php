@@ -2,19 +2,6 @@
 
 @php
     $incident = $domain === 'incident';
-    $metrics = $incident
-        ? [
-            ['Total Incidents', 'fa-clipboard-list'],
-            ['Active Incidents', 'fa-triangle-exclamation'],
-            ['Resolved Incidents', 'fa-circle-check'],
-            ['Bus Breakdowns', 'fa-bus'],
-        ]
-        : [
-            ['Scheduling Readiness', 'fa-calendar-check'],
-            ['Resource Availability', 'fa-bus-simple'],
-            ['Assignment Conflicts', 'fa-triangle-exclamation'],
-            ['Recommendation Status', 'fa-list-check'],
-        ];
     $panels = $incident
         ? [
             ['Incident Trend', 'fa-chart-line', 'Incident counts by reporting period will appear when incident records are connected.'],
@@ -31,33 +18,23 @@
 @endphp
 
 <div class="analytics-availability-dashboard">
-    <section class="analytics-kpi-strip" aria-label="{{ $incident ? 'Incident' : 'Scheduling' }} summary">
-        @foreach($metrics as [$label, $icon])
-            <x-analytics.kpi :label="$label" value="—" description="Data source not connected" :icon="$icon" icon-variant="blue" />
-        @endforeach
-    </section>
-
     <div class="analytics-availability-intro" role="status">
         <span class="analytics-availability-intro__icon"><i class="fa-solid {{ $incident ? 'fa-triangle-exclamation' : 'fa-calendar-check' }}" aria-hidden="true"></i></span>
         <div>
             <span class="analytics-availability-intro__eyebrow">Data availability</span>
             <h2>{{ $incident ? 'Incident analytics data is not yet connected' : 'Live scheduling insights are not yet connected' }}</h2>
-            <p>{{ $incident ? 'The current diagnostic dataset measures trip delays and idling. This page will show incident analysis only when verified incident records are available.' : 'The existing scheduling scenario is illustrative. This page will show operational recommendations only when verified dispatch records support them.' }}</p>
+            <p>{{ $incident ? 'The current diagnostic dataset measures trip delays and idling. Incident analysis requires a verified incident reporting feed connected to this page.' : 'The existing scheduling scenario is illustrative. Operational recommendations require a verified dispatch reporting feed connected to this page.' }}</p>
         </div>
     </div>
 
-    <section class="analytics-availability-grid" aria-label="Planned analytics sections">
+    <section class="analytics-availability-grid" aria-label="{{ $incident ? 'Incident' : 'Scheduling' }} reporting sections awaiting data">
         @foreach($panels as [$title, $icon, $description])
             <article class="analytics-card analytics-availability-panel">
                 <div class="analytics-availability-panel__heading">
                     <span><i class="fa-solid {{ $icon }}" aria-hidden="true"></i></span>
                     <h3>{{ $title }}</h3>
                 </div>
-                <div class="analytics-availability-panel__empty">
-                    <i class="fa-regular fa-chart-bar" aria-hidden="true"></i>
-                    <strong>No data available</strong>
-                    <p>{{ $description }}</p>
-                </div>
+                <p class="analytics-availability-panel__description">{{ $description }}</p>
             </article>
         @endforeach
     </section>
