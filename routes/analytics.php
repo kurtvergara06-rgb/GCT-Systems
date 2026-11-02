@@ -14,15 +14,8 @@ use Illuminate\Support\Facades\Route;
  * until domain-scoped queries and views have been security-reviewed.
  */
 Route::middleware(['auth', 'system.permission:analytics,view'])
-    ->get('/analytics/department-access', function (\Illuminate\Http\Request $request) {
-        $user = $request->user();
-        $capabilities = [
-            'view' => $user->hasSystemPermission('analytics', 'view'),
-            'analyze' => $user->hasSystemPermission('analytics', 'analyze'),
-            'recommendations' => $user->hasSystemPermission('analytics', 'recommendations'),
-        ];
-        return view('Admin.Analytics.department-access', compact('capabilities'));
-    })->name('analytics.department-access');
+    ->get('/analytics/department-access', fn () => redirect()->route('analytics.department.stage', ['stage' => 'descriptive']))
+    ->name('analytics.department-access');
 
 Route::middleware(['auth', 'system.permission:analytics,view'])
     ->get('/analytics/department/{stage}', [DepartmentAnalyticsController::class, 'show'])
