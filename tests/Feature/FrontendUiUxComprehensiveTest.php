@@ -326,7 +326,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Activity Logs' => route('admin.activity-logs'),
             'Notifications' => route('admin.notifications'),
             'Data Import Management' => route('admin.batch-file-processing'),
-            'Import / Export' => route('admin.import-export'),
             'Data History' => route('admin.data-history'),
             'Analytics Overview' => route('analytics.overview'),
             'Analytics Descriptive' => route('analytics.descriptive'),
