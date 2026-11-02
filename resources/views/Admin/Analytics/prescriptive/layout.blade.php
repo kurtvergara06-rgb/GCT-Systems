@@ -290,8 +290,8 @@
                             <span class="dashboard-badge">{{ collect($operationsData->driver_recommendations)->count() }} Candidates</span>
                         </div>
 
-                        <div class="prescriptive-table-container scrollable-body">
-                            <table class="prescriptive-table">
+                        <div class="prescriptive-table-container scrollable-body candidate-table-wrap">
+                            <table class="prescriptive-table candidate-table candidate-table--drivers">
                                 <thead>
                                     <tr>
                                         <th>Driver &amp; Authorization</th>
@@ -342,7 +342,7 @@
                         </div>
 
                         <div class="prescriptive-table-container scrollable-body">
-                            <table class="prescriptive-table">
+                            <table class="prescriptive-table candidate-table candidate-table--buses">
                                 <thead>
                                     <tr>
                                         <th>Bus / Plate</th>
