@@ -234,7 +234,8 @@ class IsolatedRolePermissionsTest extends TestCase
             ->assertOk()
             ->assertSee('Department Permissions')
             ->assertSee('Other departments remain isolated')
-            ->assertSee('Changes to supported role capabilities are saved here');
+            ->assertSee('permissions[warehouse][view]', false)
+            ->assertSee('permissions[analytics][view]', false);
 
         $this->actingAs($admin)
             ->get(route('admin.roles-permissions', ['role' => 'admin_head']))
