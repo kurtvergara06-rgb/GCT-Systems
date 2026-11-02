@@ -335,22 +335,11 @@
     if ($authUser && $componentDepartment !== 'admin'
         && $authUser->hasSystemPermission('analytics', 'view')) {
         $analyticsChildren = [
-            ['label' => 'Descriptive Analytics', 'url' => route('analytics.descriptive', [], false), 'icon' => 'fa-chart-column',
-                'active_routes' => ['analytics.descriptive']],
+            ['label' => 'Analytics Access',
+                'route' => 'analytics.department-access',
+                'icon' => 'fa-chart-line',
+                'active_routes' => ['analytics.department-access']],
         ];
-        if ($authUser->hasSystemPermission('analytics', 'analyze')) {
-            $analyticsChildren[] = ['label' => 'Diagnostic Analytics',
-                'url' => route('analytics.stage', ['stage' => 'diagnostic'], false),
-                'icon' => 'fa-magnifying-glass'];
-            $analyticsChildren[] = ['label' => 'Predictive Analytics',
-                'url' => route('analytics.stage', ['stage' => 'predictive'], false),
-                'icon' => 'fa-chart-line'];
-        }
-        if ($authUser->hasSystemPermission('analytics', 'recommendations')) {
-            $analyticsChildren[] = ['label' => 'Prescriptive Analytics',
-                'url' => route('analytics.stage', ['stage' => 'prescriptive'], false),
-                'icon' => 'fa-lightbulb'];
-        }
         $items[] = ['label' => 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
     }
 
