@@ -24,6 +24,17 @@ window.GCTPartialNavigation.registerInitializer(
         const employeeSearch = document.getElementById('additionalEmployeeSearch');
         const departmentChoices = Array.from(document.querySelectorAll('[data-access-department-choice]'));
         const featureList = document.getElementById('additionalFeatureList');
+        const featureDescriptions = {
+            'View Purchase Request Status': 'Track requisition progress without editing requests.',
+            'View Purchase Order Status': 'Review purchase orders and their current status.',
+            'View Delivery Status': 'Monitor supplier deliveries and receiving progress.',
+            'View Stock Availability': 'Check inventory quantities, reservations, and available stock.',
+            'View Incoming Delivery Status': 'Review incoming deliveries and received quantities.',
+            'View Trip Schedules': 'Review planned trip departure schedules.',
+            'View Bus Availability': 'Check availability without changing assignments.',
+            'View Job Order Status': 'Track maintenance progress and job status.',
+            'View PMS Schedule Status': 'Review preventive maintenance schedule status.'
+        };
         const review = document.getElementById('additionalAccessReview');
         const empty = document.getElementById('additionalEmployeeEmpty');
         const selectedName = document.getElementById('additionalSelectedName');
@@ -63,11 +74,18 @@ window.GCTPartialNavigation.registerInitializer(
                     checkbox.addEventListener('change', () => {
                         if (checkbox.checked) selectedFeatures.add(feature);
                         else selectedFeatures.delete(feature);
+                        label.classList.toggle('selected', checkbox.checked);
                         updateReview();
                     });
                     const span = document.createElement('span');
-                    span.textContent = feature;
-                    label.append(checkbox, span);
+                    const title = document.createElement('strong');
+                    title.textContent = feature;
+                    const description = document.createElement('small');
+                    description.textContent = featureDescriptions[feature] || '';
+                    span.append(title, description);
+                    const viewTag = document.createElement('em');
+                    viewTag.textContent = 'View only';
+                    label.append(checkbox, span, viewTag);
                     featureList.appendChild(label);
                 }
             }
