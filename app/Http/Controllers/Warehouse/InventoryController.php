@@ -96,8 +96,7 @@ class InventoryController extends Controller
         $lowStockAlerts = 0;
         $criticalItems = 0;
         $itemsAtRisk = 0;
-        $periodEnd = \Carbon\CarbonImmutable::now()->startOfMonth();
-        $periodStart = $periodEnd->subMonths(3);
+        [$periodStart, $periodEnd] = $calculator->completeMonthWindow();
         $signedUsage = DB::table('inventory_issuance_items as lines')
             ->join('inventory_issuances as issues', 'issues.id', '=', 'lines.inventory_issuance_id')
             ->whereNotNull('issues.handover_confirmed_at')
