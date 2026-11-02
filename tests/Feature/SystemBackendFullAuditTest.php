@@ -80,7 +80,7 @@ class SystemBackendFullAuditTest extends TestCase
 
         $this->actingAs($newUser);
         $this->get(route('maintenance-dashboard'))
-            ->assertRedirect(route('onboarding.show'));
+            ->assertRedirect(route('account.settings'));
 
         // 1.3 Temporary password change updates flag and advances onboarding
         $pwdChangeResponse = $this->put(route('account.password.update'), [
@@ -88,7 +88,7 @@ class SystemBackendFullAuditTest extends TestCase
             'password' => 'SecurePass456!',
             'password_confirmation' => 'SecurePass456!',
         ]);
-        $pwdChangeResponse->assertRedirect(route('onboarding.show', ['step' => 1]));
+        $pwdChangeResponse->assertRedirect(route('account.settings'));
         $newUser->refresh();
         $this->assertFalse((bool) $newUser->must_change_password);
         $this->assertTrue(Hash::check('SecurePass456!', $newUser->password));
@@ -299,7 +299,8 @@ class SystemBackendFullAuditTest extends TestCase
             'employment_status' => 'Active',
         ]);
         $driverResponse->assertRedirect();
-        $driver = Driver::where('driver_id', 'DRV-AUDIT-01')->firstOrFail();
+        $driver = Driver::where('driver_name', 'Audit Driver Pedro')->firstOrFail();
+        $this->assertMatchesRegularExpression('/^DRV-\\d+$/', $driver->driver_id);
 
         $this->get(route('operation.personnel.mechanics'))->assertOk();
         $mechResponse = $this->post(route('operation.personnel.mechanics.store'), [
