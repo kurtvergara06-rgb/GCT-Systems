@@ -2256,9 +2256,16 @@ class AnalyticsStageController extends Controller
         $demoMode = $request->boolean('preview', false);
 
         $totalItems = $inventoryItems->count();
-        $lowStockItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand > 0 && $i->on_hand <= (int) $i->reorder_level)->values();
-        $outOfStockItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand <= 0)->values();
-        $attentionItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand <= (int) $i->reorder_level)->values();
+        $thresholdCalculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $thresholds = $inventoryItems->mapWithKeys(fn (InventoryItem $item) => [
+            $item->getKey() => $thresholdCalculator->effectiveReorderPoint($item),
+        ]);
+        $needsReorder = fn (InventoryItem $item): bool =>
+            ($thresholds->get($item->getKey()) !== null)
+            && $item->on_hand <= $thresholds->get($item->getKey());
+        $lowStockItems = $inventoryItems->filter(fn (InventoryItem $item) => $item->on_hand > 0 && $needsReorder($item))->values();
+        $outOfStockItems = $inventoryItems->filter(fn (InventoryItem $item) => $item->on_hand <= 0)->values();
+        $attentionItems = $inventoryItems->filter($needsReorder)->values();
 
         // Check if demo simulation should be active
         $isDemo = $demoMode || $totalItems === 0;
@@ -2267,16 +2274,16 @@ class AnalyticsStageController extends Controller
         }
 
         // Build live recommendation rows
-        $restockItems = $attentionItems->map(function (InventoryItem $item): object {
+        $restockItems = $attentionItems->map(function (InventoryItem $item) use ($thresholds, $thresholdCalculator): object {
             $onHand = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
-            $reorderLevel = max(0, (int) $item->reorder_level);
-            $safetyBuffer = max(0, (int) $item->safety_stock);
-            // This is a threshold gap, not a demand forecast or a verified purchase quantity.
-            $suggestedQty = max(0, max($reorderLevel, $safetyBuffer) - $onHand);
+            $reorderLevel = (int) ($thresholds->get($item->getKey()) ?? 0);
+            $usage = $thresholdCalculator->calculate($item);
+            // Threshold-gap estimate only; never an automatically approved purchase quantity.
+            $suggestedQty = max(0, $reorderLevel - $onHand);
 
             $priority = match (true) {
                 $onHand <= 0 => 'Critical',
-                $onHand <= $safetyBuffer => 'High',
+                $onHand > 0 && $reorderLevel > 0 && $onHand <= ($reorderLevel / 2) => 'High',
                 $onHand <= $reorderLevel => 'Medium',
                 default => 'Normal',
             };
@@ -2299,10 +2306,10 @@ class AnalyticsStageController extends Controller
                 'part_name' => $item->parts_name ?: $item->item_name,
                 'category' => $item->category ?: 'General Spares',
                 'available_stock' => $onHand,
-                'monthly_demand' => null,
+                'monthly_demand' => $usage['status'] === 'calculated' ? $usage['average_monthly_usage'] : null,
                 'incoming_supply' => null,
                 'reorder_level' => $reorderLevel,
-                'safety_buffer' => $safetyBuffer,
+                'safety_buffer' => 0,
                 'suggested_qty' => $suggestedQty,
                 'priority' => $priority,
                 'priority_badge' => $priorityBadge,
