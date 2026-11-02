@@ -2004,9 +2004,42 @@ class AnalyticsStageController extends Controller
         }
 
         // Build recommendation records from real live records
-        $scheduleRecommendations = $unassignedTrips->map(function (TripSchedule $trip, int $index) use ($availableBuses, $eligibleDrivers): object {
-            $assignedBus = $availableBuses->get($index)?->bus_no ?? 'Needs selection';
-            $assignedDriver = $eligibleDrivers->get($index)?->driver_name ?? 'Needs selection';
+        // Suggestions are advisory. Do not propose an already-assigned resource or
+        // a driver without confirmed attendance for the target trip date.
+        $reservedByDay = TripAssignment::query()
+            ->with('tripSchedule')
+            ->whereHas('tripSchedule', fn ($query) => $query
+                ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
+                ->whereNotIn('status', ['Cancelled']))
+            ->get()
+            ->groupBy(fn (TripAssignment $assignment) => $assignment->tripSchedule?->trip_date?->toDateString() ?? '');
+
+        $attendanceByDay = DriverAttendance::query()
+            ->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])
+            ->whereNotNull('time_in')
+            ->whereNull('time_out')
+            ->get()
+            ->groupBy(fn (DriverAttendance $attendance) => $attendance->attendance_date?->toDateString() ?? '');
+
+        $suggestedBusIds = [];
+        $suggestedDriverIds = [];
+        $scheduleRecommendations = $unassignedTrips->map(function (TripSchedule $trip) use ($availableBuses, $eligibleDrivers, $reservedByDay, $attendanceByDay, &$suggestedBusIds, &$suggestedDriverIds): object {
+            $day = $trip->trip_date?->toDateString() ?? '';
+            $existing = $reservedByDay->get($day, collect());
+            $bus = $availableBuses->first(fn (Bus $candidate) =>
+                ! in_array($day . ':' . $candidate->id, $suggestedBusIds, true)
+                && ! $existing->contains(fn (TripAssignment $a) => (int) $a->bus_id === (int) $candidate->id)
+            );
+            $driver = $eligibleDrivers->first(fn (Driver $candidate) =>
+                ! in_array($day . ':' . $candidate->driver_id, $suggestedDriverIds, true)
+                && $attendanceByDay->get($day, collect())->contains('driver_id', $candidate->driver_id)
+                && ! $existing->contains(fn (TripAssignment $a) => (string) $a->driver_id === (string) $candidate->driver_id
+                    || (int) $a->driver_master_id === (int) $candidate->id)
+            );
+            if ($bus) $suggestedBusIds[] = $day . ':' . $bus->id;
+            if ($driver) $suggestedDriverIds[] = $day . ':' . $driver->driver_id;
+            $assignedBus = $bus?->bus_no ?? 'Needs selection';
+            $assignedDriver = $driver?->driver_name ?? 'Needs selection';
             $duration = (int) ($trip->planned_duration_minutes ?: 0);
             $depTime = $trip->departure_time ? Carbon::parse($trip->departure_time) : null;
 
