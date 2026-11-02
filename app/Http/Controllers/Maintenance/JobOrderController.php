@@ -1310,7 +1310,7 @@ class JobOrderController extends Controller
                     'staff_proposed_unit' => $originalDurationUnit,
                     'approved_value' => $finalDurationValue,
                     'approved_unit' => $finalDurationUnit,
-                    'adjustment_reason' => $adjustDuration ? trim($validated['duration_adjustment_reason']) : null,
+                    'adjustment_reason' => $durationDecision === 'adjust' ? trim((string) $validated['duration_adjustment_reason']) : null,
                     'verified_by' => $user->id,
                     'verified_at' => $approvedAt->toISOString(),
                 ],
