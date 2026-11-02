@@ -192,7 +192,7 @@ class PrescriptiveAnalyticsTest extends TestCase
         $this->assertFalse($restockData->is_demo);
         $this->assertSame(9, $restockData->recommended_restock_qty);
         $this->assertNull($restockData->restock_items->first()->monthly_demand);
-        $this->assertNull($restockData->restock_items->first()->incoming_supply);
+        $this->assertSame(0, $restockData->restock_items->first()->incoming_supply);
         $response->assertSeeText('Not measured')
             ->assertSeeText('Not verified')
             ->assertDontSeeText('Urgent Brake System Restock')
