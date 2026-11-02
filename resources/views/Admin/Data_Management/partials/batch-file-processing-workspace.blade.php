@@ -145,6 +145,7 @@
                         name="search"
                         value="{{ request('search') }}"
                         placeholder="Search record, group, or location..."
+                        @if(!$selectedBatch || $records->isEmpty()) disabled aria-disabled="true" @endif
                     >
                 </div>
             </form>
@@ -164,6 +165,7 @@
         </div>
     </div>
 
+    @if($records->isNotEmpty())
     <div class="table-wrap structured-table-wrap">
         <table class="batch-records-table">
             <thead>
@@ -209,19 +211,26 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="7" class="empty-users">
-                            @if($selectedBatch && $selectedBatch->status !== 'Processed')
-                                This selected file is still {{ $selectedBatch->status }}. Mark it as Processed first.
-                            @else
-                                Select a processed uploaded file to view its structured records here.
-                            @endif
-                        </td>
-                    </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    @else
+        <div class="gps-records-empty" role="status">
+            <div class="gps-records-empty-icon"><i class="fa-solid fa-file-circle-question" aria-hidden="true"></i></div>
+            <h3>{{ !$selectedBatch ? 'No GPS records selected' : ($selectedBatch->status !== 'Processed' ? 'Batch not yet processed' : 'No matching GPS records') }}</h3>
+            <p>
+                @if(!$selectedBatch)
+                    Choose a processed file from Uploaded Files to view its structured records.
+                @elseif($selectedBatch->status !== 'Processed')
+                    This file is currently {{ $selectedBatch->status }}. Complete its review and processing before viewing the records.
+                @else
+                    No records match the selected file and search. Try another search or select a different batch.
+                @endif
+            </p>
+        </div>
+    @endif
 
     <div class="batch-table-footer">
         @if($records->hasPages())
