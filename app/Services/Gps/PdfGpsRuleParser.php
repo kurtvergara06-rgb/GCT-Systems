@@ -7,7 +7,7 @@ use Symfony\Component\Process\Process;
 
 class PdfGpsRuleParser
 {
-    public function extract(string $storedPath): array
+    public function extract(string $storedPath, ?callable $onProgress = null): array
     {
         $path = Storage::disk('public')->path($storedPath);
         if (! is_file($path)) {
@@ -32,6 +32,9 @@ class PdfGpsRuleParser
             throw new \RuntimeException('Unsupported PDF: expected a GPS Engine Hours table.');
         }
 
+        $onProgress && $onProgress(5);
+        $lines = preg_split('/\\R/u', $text);
+        $lineCount = max(1, count($lines));
         $records = [];
         $vehicle = null;
         $skipped = 0;
@@ -43,7 +46,10 @@ class PdfGpsRuleParser
         $datePattern = '\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}:\d{2}';
         $durationPattern = '(?:\d+\s+days?\s+)?\d+:\d{2}:\d{2}';
         $rowPattern = '/^\s*(\d+\.\d+)\s+('.$datePattern.')\s+('.$datePattern.')\s+('.$datePattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+([\d,.]+\s*km|-----)\s*$/iu';
-        foreach (preg_split('/\R/u', $text) as $line) {
+        foreach ($lines as $index => $line) {
+            if ($onProgress && $index % 500 === 0) {
+                $onProgress(min(90, 5 + (int) floor(85 * $index / $lineCount)));
+            }
             if (preg_match('/GPS Engine Hours Report\s*[-–]\s*\d+_([A-Z0-9-]+)/i', $line, $header)) {
                 $vehicle = strtoupper($header[1]);
                 continue;
@@ -92,6 +98,7 @@ class PdfGpsRuleParser
                 'raw_data' => ['row' => $line, 'grouping_source' => $grouping, 'source' => 'Local PDF rule parser'],
             ];
         }
+        $onProgress && $onProgress(90);
         if ($records === []) {
             throw new \RuntimeException(
                 'No validated GPS activity records found. The PDF table layout may require a dedicated format mapping.'
