@@ -39,7 +39,7 @@
         ];
     }
 
-    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $currentFilters = request()->only(['period', 'bus', 'preview']);
     $isDemo = $activeAnalysis === 'fleet-trip' ? $incidentData->is_demo : $fuelData->is_demo;
 @endphp
 <x-layout.app
@@ -77,13 +77,18 @@
                 :selected-bus="$selectedBus"
                 :date-label="ucwords(str_replace('-', ' ', $period))"
             />
+            <nav aria-label="Analytics data source" style="display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px;align-items:center">
+                <span style="font-size:11px;color:#64748b">Data source:</span>
+                <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeAnalysis])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ !request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Live Records</a>
+                <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeAnalysis, 'preview'=>1])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Sample Preview</a>
+            </nav>
             <!-- Demo Mode vs Live Records Banner -->
             @if($isDemo)
                 <div class="demo-mode-banner" role="alert">
                     <div class="demo-banner-content">
-                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Demo Data</span>
+                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Sample Dataset</span>
                         <span>
-                            <strong>Demonstration Diagnostic Dataset Active:</strong> Illustrating Thesis Objective 6.2 diagnostics (failure root causes, replacement response time comparison, and vehicle-specific fuel baseline anomalies).
+                            <strong>Illustrative dataset (not live records):</strong> Illustrating Thesis Objective 6.2 diagnostics (failure root causes, replacement response time comparison, and vehicle-specific fuel baseline anomalies).
                             @if($activeAnalysis === 'fleet-trip')
                                 Live operational records: <strong>{{ $incidentData->real_count }} incident(s)</strong> logged in this selection.
                             @else
@@ -91,9 +96,9 @@
                             @endif
                         </span>
                     </div>
-                    @if(request()->boolean('demo'))
-                        <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except('demo'), ['domain' => $activeAnalysis])) }}" class="dashboard-view-link">
-                            <span>Switch to Live Records</span>
+                    @if(request()->boolean('preview'))
+                        <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except('preview'), ['domain' => $activeAnalysis, 'preview' => 0])) }}" class="dashboard-view-link">
+                            <span>Return to Live Records</span>
                             <i class="fa-solid fa-rotate"></i>
                         </a>
                     @endif
@@ -328,7 +333,7 @@
                                             <td>
                                                 <span class="code-pill">{{ $record->incident_no }}</span>
                                                 @if($record->is_demo)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -635,7 +640,7 @@
                                             <td>
                                                 <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $unit->bus_no }}</span>
                                                 @if($unit->is_demo ?? false)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">DEMO</span>
+                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
                                                 @endif
                                             </td>
                                             <td>{{ number_format((float)($unit->distance_km ?? 0), 1) }}</td>
