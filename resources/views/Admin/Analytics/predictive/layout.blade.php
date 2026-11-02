@@ -23,10 +23,27 @@
         'inventory' => 'resources/css/Admin/Analytics/predictive/inventory.css',
     ];
 
-    $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
+    $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'fleet-trip';
     $predictiveUrl = route('analytics.stage', ['stage' => 'predictive'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
-
+    $pageTitle = match ($activeDomain) {
+        'inventory' => 'Predictive Analytics — Spare Parts',
+        'fuel' => 'Predictive Analytics — Fuel',
+        'fleet-trip' => 'Predictive Analytics — Fleet & Trip',
+        'bus-health' => 'Predictive Analytics — Bus Health',
+        default => 'Predictive Analytics',
+    };
+    $pageSubtitle = match ($activeDomain) {
+        'inventory' => 'Review historical spare parts issuance and supported demand forecasts.',
+        'fuel' => 'Review recorded fuel patterns and available forecast evidence.',
+        'fleet-trip' => 'Analyze trip delay risk, estimated arrival times, and historical fleet activity.',
+        default => 'Review prediction readiness, historical evidence, and forecast availability.',
+    };
+    $periodOptions = [
+        'this-month' => 'This Month', 'this-week' => 'This Week',
+        'last-30-days' => 'Last 30 Days', 'last-90-days' => 'Last 90 Days',
+        'last-12-months' => 'Last 12 Months',
+    ];
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
         'resources/css/Admin/Analytics/overview/live-data.css',
@@ -52,33 +69,35 @@
     }
 @endphp
 
-<x-layout.app title="FROMS - Fleet & Trip Analytics" :assets="$pageAssets" :partial-navigation="false">
+<x-layout.app title="FROMS - {{ $pageTitle }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Fleet & Trip Analytics" subtitle="Analyze trip performance, delays, estimated arrival times, GPS records, and fleet utilization." />
+            <x-layout.topbar :title="$pageTitle" :subtitle="$pageSubtitle" />
 
             <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
-            @if($activeDomain !== 'fleet-trip')
-            <section class="analytics-domain-toolbar predictive-toolbar">
-                <form method="GET" action="{{ $predictiveUrl }}" class="analytics-stage-filters">
+            <div class="predictive-ref-controls">
+                <nav class="predictive-ref-tabs" aria-label="Predictive analytics areas">
+                    @foreach(['fleet-trip' => ['Fleet & Trip', 'fa-bus'], 'fuel' => ['Fuel Analysis', 'fa-gas-pump'], 'inventory' => ['Spare Parts Forecast', 'fa-boxes-stacked']] as $tabKey => [$tabLabel, $tabIcon])
+                        <a class="{{ $activeDomain === $tabKey ? 'is-current' : '' }}"
+                           href="{{ $predictiveUrl.'?'.http_build_query(array_merge(request()->only(['period', 'bus']), ['domain' => $tabKey])) }}"
+                           @if($activeDomain === $tabKey) aria-current="page" @endif>
+                           <i class="fa-solid {{ $tabIcon }}" aria-hidden="true"></i> {{ $tabLabel }}
+                        </a>
+                    @endforeach
+                </nav>
+                <form method="GET" action="{{ $predictiveUrl }}" class="predictive-ref-filters">
                     <input type="hidden" name="domain" value="{{ $activeDomain }}">
-
-                    <label>
-                        <span>Period</span>
+                    <label>Period
                         <select name="period" onchange="this.form.requestSubmit()">
-                            <option value="this-month" @selected($period === 'this-month')>This Month</option>
-                            <option value="this-week" @selected($period === 'this-week')>This Week</option>
-                            <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                            <option value="last-90-days" @selected($period === 'last-90-days')>Last 90 Days</option>
-                            <option value="last-12-months" @selected($period === 'last-12-months')>Last 12 Months</option>
+                            @foreach($periodOptions as $periodValue => $periodLabel)
+                                <option value="{{ $periodValue }}" @selected($period === $periodValue)>{{ $periodLabel }}</option>
+                            @endforeach
                         </select>
                     </label>
-
-                    <label>
-                        <span>Bus</span>
+                    <label>Bus
                         <select name="bus" onchange="this.form.requestSubmit()">
                             <option value="all" @selected($normalizedSelectedBus === 'all')>All Buses</option>
                             @foreach($busOptions as $busNo)
@@ -86,20 +105,32 @@
                             @endforeach
                         </select>
                     </label>
-
                 </form>
-            </section>
-            @endif
-
-            @if($activeDomain === 'all')
+            </div>
+            <details class="predictive-model-disclosure">
+                <summary><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Model readiness &amp; data provenance <span>Check whether trained models are available</span></summary>
                 <x-analytics.model-status />
-            @endif
-
+                <p>Fallback calculations and historical trends are not trained-model predictions. Missing model services must never be presented as deployed AI.</p>
+            </details>
             @include($domainViews[$activeDomain])
 
             @if($activeDomain === 'inventory')
                 @include('Admin.Analytics.predictive.inventory-ml')
             @endif
+            <style>
+            .predictive-ref-controls{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:end;margin:16px 0}
+            .predictive-ref-tabs{display:flex;flex-wrap:wrap;gap:8px}
+            .predictive-ref-tabs a{display:inline-flex;gap:8px;align-items:center;padding:11px 15px;border:1px solid #dce5f4;border-radius:10px;background:white;color:#173b65;text-decoration:none;font-size:12px;font-weight:700}
+            .predictive-ref-tabs a.is-current{background:#1265e0;border-color:#1265e0;color:white}
+            .predictive-ref-filters{display:flex;gap:9px;flex-wrap:wrap}
+            .predictive-ref-filters label{display:grid;gap:4px;font-size:11px;font-weight:700;color:#55718f}
+            .predictive-ref-filters select{min-width:145px;border:1px solid #d8e3f1;border-radius:9px;padding:10px;background:white;color:#223c60}
+            .predictive-model-disclosure{background:#fff;border:1px solid #dce6f5;border-radius:12px;margin:10px 0 16px;padding:12px 14px}
+            .predictive-model-disclosure summary{cursor:pointer;color:#173b67;font-size:12px;font-weight:750}
+            .predictive-model-disclosure summary span{font-size:10px;font-weight:400;color:#7b8da2;margin-left:7px}
+            .predictive-model-disclosure>p{font-size:11px;color:#5b718c;margin:12px 0 0}
+            @media(max-width:560px){.predictive-ref-filters,.predictive-ref-filters label,.predictive-ref-filters select{width:100%}}
+            </style>
         </main>
     </div>
 </x-layout.app>
