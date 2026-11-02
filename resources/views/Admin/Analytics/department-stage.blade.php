@@ -61,14 +61,7 @@
 
             <section class="department-analytics-panels" aria-label="Department records breakdown">
                 @forelse($metrics as $metric)
-                    <article class="department-analytics-panel">
-                        <div class="department-analytics-panel-heading">
-                            <div>
-                                <h2>{{ $metric['label'] }}</h2>
-                                <p>Recorded status distribution</p>
-                            </div>
-                            <span>{{ number_format($metric['total']) }} records</span>
-                        </div>
+                    <x-analytics.card class="department-analytics-panel" :title="$metric['label']" description="Recorded status distribution" :badge="number_format($metric['total']).' records'">
                         @if($metric['statuses']->isNotEmpty())
                             <div class="department-analytics-statuses">
                                 @foreach($metric['statuses'] as $status)
@@ -94,7 +87,7 @@
                                 <p>No status breakdown is available for this data source.</p>
                             </div>
                         @endif
-                    </article>
+                    </x-analytics.card>
                 @empty
                     <div class="department-analytics-panel department-analytics-empty">
                         <i class="fa-solid fa-database" aria-hidden="true"></i>
