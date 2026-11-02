@@ -27,6 +27,19 @@ class DriverAttendanceController extends Controller
             'tripAssignments.tripSchedule.shuttleRoute',
         ]);
 
+        // Only attendance supported by an actual saved DDR belongs on this page.
+        // Match the driver and service date; avoid duplicates when several DDRs
+        // exist for one driver on the same day.
+        $ddrConfirmed = static function ($builder): void {
+            $builder->whereExists(function ($subquery): void {
+                $subquery->selectRaw('1')
+                    ->from('daily_driver_reports')
+                    ->whereColumn('daily_driver_reports.driver_id', 'driver_attendances.driver_id')
+                    ->whereColumn('daily_driver_reports.report_date', 'driver_attendances.attendance_date');
+            });
+        };
+        $ddrConfirmed($query);
+
         if ($request->filled('search')) {
             $search = trim($request->search);
 
@@ -84,6 +97,7 @@ class DriverAttendanceController extends Controller
         });
 
         $summaryQuery = DriverAttendance::query();
+        $ddrConfirmed($summaryQuery);
         if ($activeTab === 'today') {
             $summaryQuery->whereDate('attendance_date', $today);
         } else {
