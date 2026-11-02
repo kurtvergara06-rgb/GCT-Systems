@@ -1581,3 +1581,20 @@
 @media (min-width:981px) {
     .permissions-page .permission-access-grid { grid-template-columns:minmax(310px, .32fr) minmax(0, .68fr); }
 }
+
+/* Approved Additional Access mockup: visual polish only, no permission changes. */
+.permissions-page .permission-access-intro { position:relative; overflow:hidden; background:linear-gradient(110deg,#eef6ff 55%,#d5e8ff); border-color:#accfff; }
+.permissions-page .permission-access-intro > i { display:grid; place-items:center; width:36px; height:36px; flex:0 0 36px; border-radius:50%; color:#fff; background:#2086f7; }
+.permissions-page .permission-access-intro strong { font-size:16px; }
+.permissions-page .permission-access-selected { background:linear-gradient(110deg,#fff,#e8f3ff); border-color:#bcd8ff; }
+.permissions-page .permission-access-card h2 { gap:10px; font-size:16px; }
+.permissions-page .permission-employee-choice.active { background:#dcecff; border-color:#0759ed; }
+.permissions-page .permission-employee-choice > i:last-child { color:#99aec9; }
+.permissions-page .permission-employee-choice.active > i:last-child { color:#0759ed; }
+.permissions-page .permission-department-choice { min-height:55px; font-weight:800; border-radius:10px; }
+.permissions-page .permission-department-choice.active { background:linear-gradient(180deg,#178efb,#0759ed); border-color:#0759ed; color:#fff; box-shadow:0 3px 8px rgba(7,89,237,.15); }
+.permissions-page .permission-feature-choice { min-height:48px; }
+.permissions-page .permission-feature-choice:has(input:checked) { background:#e8f2ff; border-color:#75adf6; }
+.permissions-page .permission-access-actions button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+.permissions-page .permission-access-actions button:disabled { background:#94a8c3!important; color:#fff!important; opacity:.78; }
+@media(min-width:981px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(310px,.32fr) minmax(0,.68fr); } }
