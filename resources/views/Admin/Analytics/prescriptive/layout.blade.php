@@ -140,10 +140,10 @@
                     <article class="prescriptive-dashboard-card">
                         <div class="dashboard-card-header">
                             <div>
-                                <h3><i class="fa-solid fa-chart-column"></i> Shift &amp; Departure Distribution</h3>
-                                <p class="dashboard-eyebrow">Recorded scheduled trips and unassigned trips by shift</p>
+                                <h3><i class="fa-solid fa-clock"></i> Departure Time Distribution</h3>
+                                <p class="dashboard-eyebrow">Scheduled and unassigned trips grouped by actual departure time</p>
                             </div>
-                            <span class="dashboard-badge">Shift Allocation</span>
+                            <span class="dashboard-badge">Departure Times</span>
                         </div>
                         <div class="prescriptive-chart-wrap">
                             <canvas id="prescriptiveShiftChart"></canvas>
