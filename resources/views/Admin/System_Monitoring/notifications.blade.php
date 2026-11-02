@@ -74,15 +74,41 @@
                     </x-slot:actions>
                 </x-ui.section-header>
 
+                @php
+                    $activeNotificationView = request('state') === 'unread' ? 'unread'
+                        : (request('state') === 'read' ? 'history'
+                        : (request('type') === 'Critical' ? 'critical' : 'all'));
+                    $notificationViews = [
+                        'all' => ['label' => 'All Notifications', 'query' => [], 'icon' => 'fa-inbox'],
+                        'critical' => ['label' => 'Critical Alerts', 'query' => ['type' => 'Critical'], 'icon' => 'fa-triangle-exclamation'],
+                        'unread' => ['label' => 'Unread', 'query' => ['state' => 'unread'], 'icon' => 'fa-envelope'],
+                        'history' => ['label' => 'History', 'query' => ['state' => 'read'], 'icon' => 'fa-clock-rotate-left'],
+                    ];
+                @endphp
+                <nav class="notification-view-tabs" aria-label="Notification categories">
+                    @foreach($notificationViews as $viewKey => $view)
+                        <a href="{{ route('admin.notifications', array_merge(request()->except('type', 'state', 'page'), $view['query'])) }}"
+                            class="notification-view-tab {{ $activeNotificationView === $viewKey ? 'is-active' : '' }}"
+                            @if($activeNotificationView === $viewKey) aria-current="page" @endif>
+                            <i class="fa-solid {{ $view['icon'] }}" aria-hidden="true"></i>
+                            {{ $view['label'] }}
+                        </a>
+                    @endforeach
+                </nav>
+
                 <x-ui.table-toolbar
                     :action="route('admin.notifications')"
                     class="notification-toolbar records-toolbar"
                     search-placeholder="Search notifications..."
+                    search-label="Search Notifications"
+                    filter-title="Filter Notifications"
+                    :filter-count="(int) (request()->filled('module') && request('module') !== 'all') + (int) (request()->filled('type') && request('type') !== 'all') + (int) (request()->filled('state') && request('state') !== 'all')"
                     :show-button="false"
                     id="notificationFilterForm"
                     data-client-filter="true"
                     data-no-loading
                 >
+                    <x-slot:filters>
                     <div class="filter-group">
                         <select id="notificationModuleFilter" name="module" aria-label="Filter by module">
                             <option value="all">All Modules</option>
@@ -109,6 +135,7 @@
                             <option value="read">Read</option>
                         </select>
                     </div>
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
 
                 <div id="notificationListLoading" class="notification-list-loading" hidden>
