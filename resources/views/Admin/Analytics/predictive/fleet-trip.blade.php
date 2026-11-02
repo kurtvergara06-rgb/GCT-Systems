@@ -28,6 +28,9 @@
     $totalBuses = (int) ($fleet['totalBuses'] ?? 0);
     $activeBuses = (int) ($fleet['activeBuses'] ?? 0);
     $unavailableBuses = max(0, $totalBuses - $activeBuses);
+    $maintenanceBuses = (int) ($fleet['underMaintenance'] ?? 0);
+    $inactiveBuses = (int) ($fleet['inactiveBuses'] ?? 0);
+    $otherStatusBuses = max(0, $unavailableBuses - $maintenanceBuses - $inactiveBuses);
     $averageTripDuration = (float) ($fleet['averageTripDuration'] ?? 0);
 
     $tripsAtRiskCount = (int) ($fleetStats['tripsAtRisk'] ?? 0);
@@ -176,8 +179,8 @@
     }
     if ($topDelayedRoute) {
         $insights->push([
-            'title' => 'Route delay pattern',
-            'text' => sprintf('Route "%s" has the highest delay risk among the available route records.', $delayedRouteName),
+            'title' => 'Historical route activity',
+            'text' => sprintf('Route "%s" has the highest relative GPS activity and duration score among the available route records. This is not a predicted delay probability.', $delayedRouteName),
             'icon' => 'fa-clock',
             'tone' => 'orange',
         ]);
@@ -185,7 +188,7 @@
     if ($displayHighIdleRisk > 0 && $tripCount > 0) {
         $insights->push([
             'title' => 'Idle behavior telemetry',
-            'text' => sprintf('%d units have a recorded high-idle risk signal.', $displayHighIdleRisk),
+            'text' => sprintf('%d historical GPS records have elevated idle indicators; these are not distinct bus counts.', $displayHighIdleRisk),
             'icon' => 'fa-gas-pump',
             'tone' => 'yellow',
         ]);
@@ -418,16 +421,23 @@
 
         <x-analytics.card
             class="ft-card ft-performance-card"
-            title="Fleet Availability & Utilization"
-            description="Actual bus master status snapshot, separate from predicted idle risk."
+            title="Fleet Availability Overview"
+            description="Actual registered bus statuses; not dispatch eligibility or time-based utilization."
         >
             <div class="ft-availability-summary">
-                <div><span>Active buses</span><strong>{{ number_format($activeBuses) }}</strong></div>
-                <div><span>Other bus statuses</span><strong>{{ number_format($unavailableBuses) }}</strong></div>
-                <div><span>Total registered</span><strong>{{ number_format($totalBuses) }}</strong></div>
-                <div><span>Active fleet share</span><strong>{{ $totalBuses > 0 ? number_format($activeBuses / $totalBuses * 100, 1) . '%' : '—' }}</strong></div>
+                <div><span>Active</span><strong>{{ number_format($activeBuses) }}</strong></div>
+                <div><span>Under Maintenance</span><strong>{{ number_format($maintenanceBuses) }}</strong></div>
+                <div><span>Inactive</span><strong>{{ number_format($inactiveBuses) }}</strong></div>
+                <div><span>Other statuses</span><strong>{{ number_format($otherStatusBuses) }}</strong></div>
             </div>
-            <p class="ft-evidence-note">Active share measures registered bus status, not time-based bus utilization.</p>
+            <div class="ft-availability-detail">
+                <div><strong>{{ number_format($totalBuses) }}</strong> registered buses</div>
+                <div><strong>{{ $totalBuses > 0 ? number_format($activeBuses / $totalBuses * 100, 1) . '%' : '—' }}</strong> Active share</div>
+            </div>
+            <div class="ft-availability-progress" role="img" aria-label="Active buses: {{ $activeBuses }} of {{ $totalBuses }}">
+                <span style="width: {{ $totalBuses > 0 ? ($activeBuses / $totalBuses) * 100 : 0 }}%"></span>
+            </div>
+            <p class="ft-evidence-note">Based on bus master status only. Dispatch eligibility requires separate Operations and Maintenance checks.</p>
         </x-analytics.card>
 
         {{-- Historical route activity score (not a predicted delay probability). --}}
@@ -491,9 +501,16 @@
         {{-- 3. Fleet & Trip Predictive Insights --}}
         <x-analytics.card
             class="ft-card ft-insights-card"
-            title="Operational Insights & Model Readiness"
+            title="Operational Insights"
         >
             <div class="ft-insights-grid">
+                <div class="ft-insight-tile ft-insight-tile--blue">
+                    <div class="ft-insight-icon blue"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="ft-insight-body">
+                        <h6>Future forecast availability</h6>
+                        <p>{{ $forecastTargetCount }} upcoming eligible targets; {{ $tripPredictionsRaw->count() }} forecasts available. {{ $predictionAvailable ? 'Forecast service responded.' : 'Python forecasting unavailable; Laravel statistical estimates require at least five matching route records.' }}</p>
+                    </div>
+                </div>
                 @forelse ($insights as $insight)
                     <div class="ft-insight-tile ft-insight-tile--{{ $insight['tone'] }}">
                         <div class="ft-insight-icon {{ $insight['tone'] }}">
