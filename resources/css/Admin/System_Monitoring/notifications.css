@@ -857,26 +857,30 @@
     font-weight: 600;
 }
 
-/* Match Account Management: bare right-aligned Search / Filter / Sort controls. */
-.notifications-page form.gct-table-toolbar.notification-toolbar {
+/* Shared FROMS toolbar: action controls only, no surrounding rectangle.
+   Explicitly override global toolbar border declarations while preserving
+   the existing Search / Filter / Sort popover components. */
+.notifications-page form#notificationFilterForm.gct-table-toolbar.notification-toolbar {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
     gap: 8px;
     width: 100%;
-    padding: 0;
+    min-height: 0;
+    padding: 0 !important;
     margin: 0 0 14px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
+    border: none !important;
+    outline: none;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
 }
-.notifications-page .notification-toolbar .gct-table-tool {
+.notifications-page #notificationFilterForm .gct-table-tool {
     flex: 0 0 auto;
 }
 @media (max-width: 600px) {
-    .notifications-page form.gct-table-toolbar.notification-toolbar {
+    .notifications-page #notificationFilterForm {
         justify-content: flex-start;
     }
 }
