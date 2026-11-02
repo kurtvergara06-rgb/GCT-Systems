@@ -1179,7 +1179,7 @@ class JobOrderController extends Controller
         $validated = $request->validate([
             'electronic_signature' => 'required|string|max:255',
             'signature_image' => 'required|string|max:550000',
-            'duration_decision' => 'required|in:accept,adjust',
+            'duration_decision' => 'required|in:accept,historical,adjust',
             'parts_issue_strategy' => ['nullable', Rule::in(['complete_before_issuance', 'issue_available_only'])],
             'verified_duration_value' => 'required_if:duration_decision,adjust|nullable|numeric|gt:0',
             'verified_duration_unit' => 'required_if:duration_decision,adjust|nullable|in:Minutes,Hours,Days',
@@ -1231,22 +1231,33 @@ class JobOrderController extends Controller
 
             $originalDurationValue = $locked->estimated_duration_value;
             $originalDurationUnit = $locked->estimated_duration_unit;
-            $adjustDuration = $validated['duration_decision'] === 'adjust';
-            // With insufficient history, only the Head may establish a duration.
-            if (! $originalDurationValue && ! $adjustDuration) {
+            $durationDecision = $validated['duration_decision'];
+            $historicalDuration = $durationDecision === 'historical'
+                ? $this->durations->suggestion(
+                    (string) $locked->maintenance_type,
+                    (string) ($locked->work_to_perform ?? '')
+                )
+                : null;
+            if ($durationDecision === 'historical' && $historicalDuration === null) {
                 throw ValidationException::withMessages([
-                    'duration_decision' => 'No historical median is available. Select Adjust and provide a verified duration and reason.',
+                    'duration_decision' => 'A historical estimate is not currently available for this exact work. Select the submitted duration or set a Head-verified duration.',
                 ]);
             }
-            if (! $adjustDuration && (! $originalDurationValue || ! $originalDurationUnit)) {
+            if ($durationDecision === 'accept' && (! $originalDurationValue || ! $originalDurationUnit)) {
                 throw ValidationException::withMessages([
-                    'duration_decision' => 'A proposed estimated duration is required before accepting it.',
+                    'duration_decision' => 'This Job Order has no submitted duration to accept. Set a Head-verified duration instead.',
                 ]);
             }
-            $finalDurationValue = $adjustDuration
-                ? $validated['verified_duration_value'] : $originalDurationValue;
-            $finalDurationUnit = $adjustDuration
-                ? $validated['verified_duration_unit'] : $originalDurationUnit;
+            $finalDurationValue = match ($durationDecision) {
+                'historical' => $historicalDuration['value'],
+                'adjust' => $validated['verified_duration_value'],
+                default => $originalDurationValue,
+            };
+            $finalDurationUnit = match ($durationDecision) {
+                'historical' => $historicalDuration['unit'],
+                'adjust' => $validated['verified_duration_unit'],
+                default => $originalDurationUnit,
+            };
 
             $signaturePath = 'maintenance/job-order-signatures/'. $locked->id .'/'. \Illuminate\Support\Str::uuid() .'.png';
             if (! \Illuminate\Support\Facades\Storage::disk('local')->put($signaturePath, $signatureBytes)) {
