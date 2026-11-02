@@ -901,9 +901,10 @@ class AnalyticsStageController extends Controller
         $averageDelayRiskPct = $predictedRecords->isNotEmpty()
             ? (float) $predictedRecords->avg('delay_risk_percent')
             : 0.0;
+        // No trip observations means no defensible completion-rate forecast.
         $completionForecast = $tripCount > 0
             ? max(0.0, min(100.0, 100.0 - (($tripsAtRisk / $tripCount) * 100)))
-            : ($tripsAtRisk === 0 ? 100.0 : 50.0);
+            : null;
 
         $fuelSummaries = $fuelDiag->bus_summaries;
         $fuelReviewUnits = $fuelDiag->review_units;
