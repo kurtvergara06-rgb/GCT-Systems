@@ -117,8 +117,9 @@ class SafeRouteRenderingTest extends TestCase
             ->get(route('batch-file-processing', ['batch_id' => $batch->id]));
 
         $response->assertOk();
-        $response->assertSeeText('Showing 1–50 of 120 records');
-        $response->assertSee('simple-page-button');
+        $response->assertSeeText('Showing 50 of 120 records')
+            ->assertSeeText('Scroll to load more')
+            ->assertDontSee('simple-page-button');
 
         $this->assertSame(50, $response->viewData('records')->count());
         $this->assertSame(120, $response->viewData('records')->total());
