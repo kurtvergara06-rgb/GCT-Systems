@@ -244,8 +244,12 @@
             title="Trip Performance Trend"
             description="Recorded GPS trip volume for the selected reporting period; not a forecast."
         >
-            @if ($fleetTrend->isEmpty())
-                <div class="analytics-compact-empty">No processed GPS trip records for this period.</div>
+            @if ($tripCount === 0)
+                <div class="ft-data-empty" role="status">
+                    <span class="ft-data-empty__icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                    <strong>No trips recorded for {{ strtolower($periodText) }}</strong>
+                    <span>Try a wider period or another bus to view recorded GPS activity.</span>
+                </div>
             @else
                 <div class="analytics-trip-bars" role="img" aria-label="Recorded GPS trips by reporting interval">
                     @foreach ($fleetTrend as $bucket)
@@ -266,6 +270,13 @@
             title="Fleet & Trip Risk Level"
             description="Distribution of predicted operational risk."
         >
+            @if ($fleetRiskTotal === 0)
+                <div class="ft-data-empty" role="status">
+                    <span class="ft-data-empty__icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                    <strong>No risk distribution available</strong>
+                    <span>Risk levels appear when trip predictions are available for the selected filters.</span>
+                </div>
+            @else
             <div class="ft-risk-body">
                 <div class="ft-risk-ring">
                     <canvas id="riskDonut" role="img" aria-label="Fleet and trip risk distribution donut"></canvas>
@@ -302,6 +313,7 @@
                     </li>
                 </ul>
             </div>
+            @endif
 
         </x-analytics.card>
 
@@ -340,7 +352,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($tripPredictions as $prediction)
+                    @foreach ($tripPredictions as $prediction)
                         @php
                             $delayRisk = (float) ($prediction[4] ?? 0);
                             $predictionLevel = $riskBadge((string) ($prediction[6] ?? 'low'));
@@ -398,12 +410,17 @@
                                 </a>
                             </td>
                         </tr>
-                    @empty
-                        <x-ui.empty-row colspan="10" message="No trip predictions available for the selected filters." />
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
+        @if ($tripPredictions->isEmpty())
+            <div class="ft-data-empty ft-data-empty--table" role="status">
+                <span class="ft-data-empty__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+                <strong>No trip predictions available for the selected filters.</strong>
+                <span>Try another period or bus. Trip-level risk rows appear when prediction results are available.</span>
+            </div>
+        @endif
     </x-analytics.card>
 
     {{-- =========================================================
@@ -480,9 +497,10 @@
                         </div>
                     </div>
                 @empty
-                    <div class="analytics-compact-empty">
-                        <i class="fa-regular fa-folder-open"></i>
-                        <span>No route risk data available.</span>
+                    <div class="ft-data-empty ft-data-empty--compact" role="status">
+                        <span class="ft-data-empty__icon"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span>
+                        <strong>No route risk data available</strong>
+                        <span>Route rankings appear when trip predictions include route evidence.</span>
                     </div>
                 @endforelse
             </div>
@@ -505,7 +523,11 @@
                         </div>
                     </div>
                 @empty
-                    <div class="analytics-empty-state">No insight signals are available for the selected period.</div>
+                    <div class="ft-data-empty ft-data-empty--compact" role="status">
+                        <span class="ft-data-empty__icon"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></span>
+                        <strong>No operational insights yet</strong>
+                        <span>Insights appear when the selected period has trip or route signals.</span>
+                    </div>
                 @endforelse
             </div>
         </x-analytics.card>

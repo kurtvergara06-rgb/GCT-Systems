@@ -1146,6 +1146,34 @@
 .predictive-fleet-page .ft-dashboard-filters select { min-width: 135px; max-width: 190px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d4dfed; border-radius: 8px; background: #f9fbff; color: #1c365f; font-size: 11px; cursor: pointer; }
 .predictive-fleet-page .ft-dashboard-filters select:focus-visible { outline: 2px solid #6b9dec; outline-offset: 1px; }
 .predictive-fleet-page .ft-dashboard-filters select:hover { border-color: #9abcea; }
+.predictive-fleet-page .ft-data-empty {
+    min-height: 164px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    border: 1px dashed #d6e3f3;
+    border-radius: 10px;
+    background: #f8fbff;
+    text-align: center;
+}
+.predictive-fleet-page .ft-data-empty--compact { min-height: 154px; }
+.predictive-fleet-page .ft-data-empty--table { min-height: 180px; margin-top: 12px; }
+.predictive-fleet-page .ft-data-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #eaf2ff;
+    color: #3574cf;
+    font-size: 15px;
+}
+.predictive-fleet-page .ft-data-empty strong { color: #183457; font-size: 12px; line-height: 1.35; }
+.predictive-fleet-page .ft-data-empty > span:last-child { max-width: 300px; color: #627591; font-size: 10.5px; line-height: 1.5; }
+.predictive-fleet-page .ft-insights-grid > .ft-data-empty { grid-column: 1 / -1; }
 .predictive-fleet-page .ft-evidence-note { margin: 12px 0 0; display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #64748b; line-height: 1.5; }
 .predictive-fleet-page .ft-evidence-note i { margin-top: 2px; }
 .predictive-fleet-page .ft-availability-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
