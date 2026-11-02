@@ -267,12 +267,6 @@
                 'active_routes' => ['analytics', 'analytics.*'],
                 'children' => [
                     [
-                        'label' => 'Overview',
-                        'route' => 'analytics.overview',
-                        'icon' => 'fa-chart-pie',
-                        'active_routes' => ['analytics.overview', 'analytics.overview.*'],
-                    ],
-                    [
                         'label' => 'Descriptive Analytics',
                         'route' => 'analytics.descriptive',
                         'icon' => 'fa-chart-column',
