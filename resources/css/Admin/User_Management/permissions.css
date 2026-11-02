@@ -1544,9 +1544,9 @@
    This consolidated block replaces the incremental override stack. */
 .permissions-page .permission-access-grid { display:grid; grid-template-columns:minmax(290px, 32fr) minmax(0, 68fr); align-items:start; gap:12px; }
 .permissions-page .permission-access-details { display:grid; gap:12px; min-width:0; }
-.permissions-page .permission-access-card { min-width:0; padding:16px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); }
+.permissions-page .permission-access-card { min-width:0; padding:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:0 4px 16px rgba(6,31,61,.07); }
 .permissions-page .permission-access-employees { padding:14px; }
-.permissions-page .permission-access-card h2 { display:flex; align-items:center; gap:9px; margin:0 0 7px; font-size:15px; line-height:1.4; font-weight:700; color:var(--text); }
+.permissions-page .permission-access-card h2 { display:flex; align-items:center; gap:9px; margin:0 0 7px; font-size:15px; line-height:1.4; font-weight:800; color:var(--text); }
 .permissions-page .permission-access-card h2 > i { color:var(--blue); font-size:14px; }
 .permissions-page .permission-access-card > p, .permissions-page .permission-access-intro p { font-size:12px; line-height:1.55; color:var(--muted); }
 .permissions-page .permission-access-card h2 > span { flex:0 0 24px; width:24px; height:24px; font-size:12px; font-weight:700; }
@@ -1559,10 +1559,10 @@
 .permissions-page .permission-employee-choice { display:flex; align-items:center; gap:10px; width:100%; min-height:48px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text); text-align:left; transition:background-color .15s,border-color .15s; }
 .permissions-page .permission-employee-choice > i:first-child { display:grid; place-items:center; width:28px; height:28px; flex:0 0 28px; border-radius:7px; background:#eaf2ff; color:var(--blue); }
 .permissions-page .permission-employee-choice > span { display:grid; gap:2px; flex:1; min-width:0; }
-.permissions-page .permission-employee-choice strong { font-size:12px; font-weight:700; line-height:1.4; overflow-wrap:anywhere; }
+.permissions-page .permission-employee-choice strong { font-size:12px; font-weight:800; line-height:1.4; overflow-wrap:anywhere; }
 .permissions-page .permission-employee-choice small { font-size:11px; font-weight:400; color:var(--muted); }
 .permissions-page .permission-employee-choice:hover { background:#f6f9ff; border-color:#a9c5f5; }
-.permissions-page .permission-employee-choice.active { border-color:var(--blue); background:#eaf2ff; box-shadow:inset 3px 0 0 var(--blue); }
+.permissions-page .permission-employee-choice.active { border-color:var(--blue); background:#edf5ff; box-shadow:inset 3px 0 0 var(--blue); }
 .permissions-page .permission-employee-choice > i:last-child { color:#98abc9; }
 .permissions-page .permission-employee-choice.active > i:last-child { color:var(--blue); }
 .permissions-page .permission-employee-choice[hidden] { display:none; }
@@ -1570,7 +1570,7 @@
 .permissions-page .permission-access-selected > strong { display:block; margin-top:6px; font-size:15px; font-weight:700; color:var(--text); }
 .permissions-page .permission-access-selected > p { margin-top:3px; text-transform:capitalize; }
 .permissions-page .permission-department-picks { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
-.permissions-page .permission-department-choice { display:flex; align-items:center; justify-content:center; gap:7px; min-width:0; min-height:42px; padding:8px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text); font-family:inherit; font-size:12px; font-weight:600; }
+.permissions-page .permission-department-choice { display:flex; align-items:center; justify-content:center; gap:7px; min-width:0; min-height:42px; padding:8px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text); font-family:inherit; font-size:12px; font-weight:700; }
 .permissions-page .permission-department-choice > i { color:var(--blue); }
 .permissions-page .permission-department-choice:not(:disabled):hover { background:#eef5ff; border-color:#adcaff; }
 .permissions-page .permission-department-choice.active { border-color:var(--blue); background:var(--blue); color:#fff; box-shadow:none; }
@@ -1579,12 +1579,12 @@
 .permissions-page .permission-access-features { display:grid; gap:7px; margin-top:10px; }
 .permissions-page .permission-feature-choice { display:flex; align-items:center; gap:10px; min-height:53px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; }
 .permissions-page .permission-feature-choice:hover { border-color:#b1caf5; }
-.permissions-page .permission-feature-choice.selected, .permissions-page .permission-feature-choice:has(input:checked) { background:#edf5ff; border-color:#94baff; }
+.permissions-page .permission-feature-choice.selected, .permissions-page .permission-feature-choice:has(input:checked) { background:#ecfdf3; border-color:#a7efc5; }
 .permissions-page .permission-feature-choice > input { accent-color:var(--blue); }
 .permissions-page .permission-feature-choice > span { display:flex; flex:1; flex-direction:column; gap:3px; min-width:0; }
 .permissions-page .permission-feature-choice strong { font-size:12px; font-weight:700; color:var(--text); }
 .permissions-page .permission-feature-choice small { font-size:11px; line-height:1.45; font-weight:400; color:var(--muted); }
-.permissions-page .permission-feature-choice em { font-style:normal; font-size:10px; font-weight:600; white-space:nowrap; border-radius:6px; background:#eaf6ee; color:#16743a; padding:4px 8px; }
+.permissions-page .permission-feature-choice em { font-style:normal; font-size:10px; font-weight:600; white-space:nowrap; border-radius:6px; background:#dcfce7; color:#166534; padding:4px 8px; }
 .permissions-page #additionalAccessReview { min-height:27px; font-size:12px; line-height:1.5; color:#334766; }
 .permissions-page .permission-access-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:11px; padding-top:11px; border-top:1px solid var(--border); }
 .permissions-page .permission-access-actions button { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:9px 12px; min-height:36px; border-radius:8px; font:inherit; font-size:12px; font-weight:600; }
@@ -1593,3 +1593,17 @@
 @media(max-width:1180px) and (min-width:981px) { .permissions-page .permission-department-picks { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:980px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:620px) { .permissions-page .permission-access-intro { flex-wrap:wrap; } .permissions-page .permission-access-intro > span { margin-left:0; } .permissions-page .permission-department-picks { grid-template-columns:repeat(2,minmax(0,1fr)); } .permissions-page .permission-feature-choice { flex-wrap:wrap; } }
+
+/* Parity with the Department Roles directory and permission panel. */
+.permissions-page .permission-access-card { border-color:var(--rp-border); background:#fff; box-shadow:0 4px 16px rgba(6,31,61,.07); }
+.permissions-page .permission-access-card h2 { color:var(--rp-navy); }
+.permissions-page .permission-employee-choice { border-color:var(--rp-border); }
+.permissions-page .permission-employee-choice.active { border:2px solid #0862ef; padding:6px 9px; }
+.permissions-page .permission-access-selected { border-color:var(--rp-border); background:#fff; }
+.permissions-page .permission-department-choice { border-color:var(--rp-border); }
+.permissions-page .permission-department-choice.active { background:#edf5ff; border:2px solid #0862ef; color:var(--rp-navy); padding:7px; }
+.permissions-page .permission-department-choice.active > i { color:#0862ef; }
+.permissions-page .permission-feature-choice.selected { background:#f0fdf4; border-color:#a7efc5; }
+.permissions-page .permission-access-intro { background:#eff6ff; border-color:#bfd7ff; }
+.permissions-page .permission-access-actions .secondary-btn { background:#fff; color:var(--rp-blue); border:1px solid #cbdcf2; }
+.permissions-page .permission-access-actions .secondary-btn:hover { background:#f0f6ff; border-color:#a9c5f5; }
