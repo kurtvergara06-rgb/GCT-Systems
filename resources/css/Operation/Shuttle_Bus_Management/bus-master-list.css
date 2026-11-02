@@ -2926,3 +2926,42 @@
 .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
   height: 32px;
 }
+
+
+/* Registered client picker: tailored to the bus modal, not the browser's OS menu. */
+.bus-master-list-page .bus-modal-client-panel .bus-client-native-select { display: none !important; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker { position: relative; flex: 1 1 auto; min-width: 0; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger {
+  display: flex; width: 100%; min-width: 0; height: 39px; align-items: center;
+  justify-content: space-between; gap: 10px; padding: 0 11px;
+  border: 1px solid #cad9ed; border-radius: 8px; background: #fff;
+  color: #3c5272; font: inherit; font-size: 12px; text-align: left;
+  cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger:hover { border-color: #8bb3ec; background: #fafdff; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger:focus-visible,
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker.is-open .bus-client-picker-trigger {
+  outline: none; border-color: #548cea; box-shadow: 0 0 0 3px rgba(65,128,224,.13);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-label { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger .fa-chevron-down { font-size: 10px; color: #6885ae; transition: transform .15s ease; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker.is-open .fa-chevron-down { transform: rotate(180deg); }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu {
+  position: absolute; z-index: 60; left: 0; right: 0; bottom: calc(100% + 6px);
+  max-height: 185px; overflow-y: auto; padding: 5px;
+  border: 1px solid #d3e0f3; border-radius: 10px; background: #fff;
+  box-shadow: 0 14px 35px rgba(24,55,100,.18);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu[hidden] { display: none !important; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 10px 11px; border: 0; border-radius: 7px;
+  background: transparent; color: #19365d; text-align: left;
+  font: inherit; font-size: 12px; cursor: pointer;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option i { color: #598fe3; font-size: 12px; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option:hover,
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option:focus-visible {
+  outline: none; background: #eaf3ff; color: #1559ac;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-empty { margin: 0; padding: 12px; color: #6c7f99; font-size: 12px; }
