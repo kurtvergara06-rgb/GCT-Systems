@@ -365,7 +365,17 @@ function initScheduleContextPanel() {
             list.appendChild(empty);
         }
         listEl.appendChild(list);
-        if (schedules.length === 1) choose(schedules[0], list.querySelector('.ddr-ready-trip-card'));
+        if (schedules.length === 1) {
+            // One eligible assignment: select the trip and fill its actual assigned bus.
+            choose(schedules[0], list.querySelector('.ddr-ready-trip-card'));
+        } else if (schedules.length > 1) {
+            // Multiple trips can be associated with a driver. Never guess the trip.
+            // If all eligible assignments use the same bus, it is safe to prefill it.
+            const busIds = [...new Set(schedules.map(schedule => String(schedule.bus_id || '')))];
+            if (busIds.length === 1 && busIds[0]) {
+                selectComboValue('bus', busIds[0], schedules[0].bus_no);
+            }
+        }
         listEl.classList.toggle('has-items', schedules.length > 0);
     };
 
