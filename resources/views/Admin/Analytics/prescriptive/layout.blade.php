@@ -88,49 +88,6 @@
                 period-label="Planning Period"
             />
             @if(! $isRestocking)
-                                (headway spacing &amp; PMS clearance). Live records: <strong>{{ $operationsData->real_count }} trip(s)</strong>.
-                            @else
-                                (reorder thresholds &amp; buffer deficits). Live catalog: <strong>{{ $restockingData->real_count }} item(s)</strong>.
-                            @endif
-                            Live model readiness is shown separately below.
-                        </span>
-                        @if(request()->boolean('preview'))
-                            <a href="{{ $prescriptiveUrl . '?' . http_build_query(array_merge(request()->except('preview'), ['domain' => $activeDomain, 'preview' => 0])) }}" class="strip-switch-link">
-                                <span>Return to Live</span> <i class="fa-solid fa-rotate"></i>
-                            </a>
-                        @endif
-                    @else
-                        <span class="live-banner-pill"><i class="fa-solid fa-circle-check"></i> Live Database Records</span>
-                        <span class="status-strip-text">
-                            @if($isRestocking)
-                                Recorded warehouse stock and thresholds inform planning estimates. Demand, open requests, and incoming supply need separate review.
-                            @else
-                                Recorded trips, active drivers, and bus status inform candidate suggestions. Attendance, rest, and dispatch clearance need manual review.
-                            @endif
-                        </span>
-                    @endif
-                </div>
-
-                <div class="status-strip-mandate" role="note">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>
-                        <strong>Thesis Objective 6.4 Decision Support Mandate:</strong>
-                        @if(! $isRestocking)
-                            Prescriptive suggestions require review &amp; manual confirmation by the <strong>Operations Head</strong>. No automated vehicle dispatch executed.
-                        @else
-                            Replenishment volumes require review &amp; electronic signature by the <strong>Warehouse Head</strong> before PR creation. No automated PR/PO issued.
-                        @endif
-                    </span>
-                </div>
-            </div>
-
-            <details class="analytics-model-disclosure">
-                <summary><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Model readiness &amp; data provenance <span>Review production model evidence</span></summary>
-                <x-analytics.model-status />
-                <p>Recommendations remain decision support. Department heads approve scheduling and replenishment actions.</p>
-            </details>
-
-            @if(! $isRestocking)
                 <!-- =========================================================================
                      THESIS OBJECTIVE 6.4.1 — OPERATIONS PRESCRIPTIVE RECOMMENDATIONS
                      ========================================================================= -->
