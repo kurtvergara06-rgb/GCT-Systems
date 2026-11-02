@@ -107,9 +107,9 @@
             ? (
                 $selectedBatch->status === 'Processed'
                     ? 'Showing processed structured records from: ' . $selectedBatch->file_name
-                    : 'Review the selected upload, then mark it as Processed to publish its structured records.'
+                    : 'Showing extracted records from the selected batch. Confirm processing only after checking the results.'
             )
-            : 'Select a processed uploaded file to view its structured records.';
+            : 'Select an uploaded GPS file to view extracted records.';
 
         $latestBatch = $batches->first();
         $latestActivity = $latestBatch?->dataActivity;
