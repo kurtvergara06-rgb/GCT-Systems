@@ -99,24 +99,7 @@
     </div>
 
     <div class="panel-card parsed-fields-card">
-        <div class="panel-card-header">
-            <div>
-                <h3>
-                    <i class="fa-solid fa-code"></i>
-                    Parsed Fields
-                </h3>
-                <p>Cleaned structured values from the selected record.</p>
-            </div>
-
-            @if($selectedBatch)
-                <div class="parsed-fields-actions">
-                    <button type="button" class="edit-record-btn" data-open-clean-data-modal>
-                        <i class="fa-solid fa-eye"></i>
-                        View Clean Data
-                    </button>
-                </div>
-            @endif
-        </div>
+        <p class="inspection-helper">Cleaned structured values from the selected record.</p>
 
         <div class="parsed-fields-list">
             @foreach($fields as $label => $value)
@@ -126,7 +109,8 @@
                 </div>
             @endforeach
         </div>
-    </div>        </div>
+    </div>
+        </div>
     </div>
 </section>
 
@@ -143,6 +127,12 @@
         </div>
 
         <div class="table-header-actions">
+            @if($selectedBatch)
+                <button type="button" class="edit-record-btn" data-open-clean-data-modal>
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i> View Clean Data
+                </button>
+            @endif
+
             <form method="GET" action="{{ route('batch-file-processing', [], false) }}" class="batch-search-form">
                 @if($selectedBatch)
                     <input type="hidden" name="batch_id" value="{{ $selectedBatch->id }}">
@@ -198,21 +188,24 @@
                         <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
                         <td>{{ $record->engine_hours ?? '—' }}</td>
                         <td>
-                            <details class="gps-record-details">
-                                <summary aria-label="View more fields for {{ $record->record_no }}">View Details</summary>
-                                <div class="gps-record-details-popover">
-                                    <dl>
-                                        <dt>Grouping</dt><dd>{{ $record->grouping ?? '—' }}</dd>
-                                        <dt>Type</dt><dd>{{ $record->trip_type ?? '—' }}</dd>
-                                        <dt>Initial Location</dt><dd>{{ $record->initial_location ?? '—' }}</dd>
-                                        <dt>Final Location</dt><dd>{{ $record->final_location ?? '—' }}</dd>
-                                        <dt>Duration</dt><dd>{{ $record->duration_minutes !== null ? $record->duration_minutes . ' mins' : '—' }}</dd>
-                                        <dt>Total Time</dt><dd>{{ $record->total_minutes !== null ? $record->total_minutes . ' mins' : '—' }}</dd>
-                                        <dt>In Motion</dt><dd>{{ $record->in_motion_minutes !== null ? $record->in_motion_minutes . ' mins' : '—' }}</dd>
-                                        <dt>Idling</dt><dd>{{ $record->idling_minutes !== null ? $record->idling_minutes . ' mins' : '—' }}</dd>
-                                    </dl>
-                                </div>
-                            </details>
+                            <button type="button" class="gps-view-details-btn"
+                                data-open-gps-record
+                                data-bus="{{ $record->bus_no }}"
+                                data-record="{{ $record->record_no }}"
+                                data-grouping="{{ $record->grouping }}"
+                                data-type="{{ $record->trip_type }}"
+                                data-beginning="{{ $record->beginning_at?->format('M d, Y h:i A') }}"
+                                data-end="{{ $record->ending_at?->format('M d, Y h:i A') }}"
+                                data-initial="{{ $record->initial_location }}"
+                                data-final="{{ $record->final_location }}"
+                                data-duration="{{ $record->duration_minutes }}"
+                                data-total="{{ $record->total_minutes }}"
+                                data-motion="{{ $record->in_motion_minutes }}"
+                                data-idling="{{ $record->idling_minutes }}"
+                                data-mileage="{{ $record->mileage_km }}"
+                                data-engine="{{ $record->engine_hours }}">
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i> View Details
+                            </button>
                         </td>
                     </tr>
                 @empty
@@ -257,6 +250,31 @@
         @endif
     </div>
 </section>
+
+<div class="records-modal-overlay" id="gpsRecordDetailsModal" role="presentation">
+    <div class="records-modal gps-record-modal" role="dialog" aria-modal="true" aria-labelledby="gpsRecordDetailsTitle">
+        <div class="records-modal-header">
+            <div>
+                <h2 id="gpsRecordDetailsTitle">GPS Record Details</h2>
+                <p>Complete information for the selected structured GPS record.</p>
+            </div>
+            <button type="button" class="records-modal-close" id="closeGpsRecordDetailsModal" aria-label="Close GPS record details">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="gps-record-modal-body">
+            @foreach(['bus' => 'Bus No.', 'record' => 'Record No.', 'grouping' => 'Grouping', 'type' => 'Type', 'beginning' => 'Beginning', 'end' => 'End', 'initial' => 'Initial Location', 'final' => 'Final Location', 'duration' => 'Duration (minutes)', 'total' => 'Total Time (minutes)', 'motion' => 'In Motion (minutes)', 'idling' => 'Idling (minutes)', 'mileage' => 'Mileage (km)', 'engine' => 'Engine Hours'] as $field => $label)
+                <div class="gps-record-modal-field">
+                    <span>{{ $label }}</span>
+                    <strong data-gps-detail="{{ $field }}">—</strong>
+                </div>
+            @endforeach
+        </div>
+        <div class="gps-record-modal-footer">
+            <button type="button" id="closeGpsRecordDetailsFooter" class="batch-delete-cancel-btn">Close</button>
+        </div>
+    </div>
+</div>
 
 @if($selectedBatch && count($rawHeaders) > 0)
     <div class="records-modal-overlay" id="rawUploadModal">
