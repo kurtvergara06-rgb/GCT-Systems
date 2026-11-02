@@ -320,24 +320,24 @@
                                     @foreach($incidentData->records as $record)
                                         <tr>
                                             <td>
-                                                <span class="code-pill">{{ $record->incident_no }}</span>
+                                                <span class="code-pill" title="{{ $record->incident_no }}">{{ $record->incident_no }}</span>
                                                 @if($record->is_demo)
                                                     <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                                                    <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
-                                                    <small class="text-muted"><i class="fa-solid fa-user"></i> {{ $record->driver_name }}</small>
+                                                    <span class="bus-chip" title="{{ $record->bus_no }}"><i class="fa-solid fa-bus"></i> {{ $record->bus_no }}</span>
+                                                    <small class="text-muted diagnostic-table-secondary" title="{{ $record->driver_name }}"><i class="fa-solid fa-user"></i> {{ $record->driver_name }}</small>
                                                 </div>
                                             </td>
                                             <td>
-                                                <small><strong>{{ $record->route_name }}</strong></small>
+                                                <small class="diagnostic-table-secondary" title="{{ $record->route_name }}"><strong>{{ $record->route_name }}</strong></small>
                                             </td>
                                             <td>
                                                 <div style="display: flex; flex-direction: column; gap: 2px;">
                                                     <strong>{{ $record->incident_type }}</strong>
-                                                    <small class="text-muted">{{ \Illuminate\Support\Str::limit($record->description, 50) }}</small>
+                                                    <small class="text-muted diagnostic-table-secondary" title="{{ $record->description }}">{{ \Illuminate\Support\Str::limit($record->description, 65) }}</small>
                                                 </div>
                                             </td>
                                             <td>
@@ -350,10 +350,10 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <strong>{{ $record->downtime_formatted }}</strong>
+                                                <strong>{{ $record->downtime_minutes !== null ? ($record->downtime_minutes >= 60 ? number_format($record->downtime_minutes / 60, 1) . ' h' : number_format($record->downtime_minutes, 0) . ' min') : '—' }}</strong>
                                             </td>
                                             <td>
-                                                <span class="badge-status {{ strtolower($record->status) === 'resolved' ? 'optimal' : 'anomaly' }}">
+                                                <span class="badge-status {{ strtolower($record->status) === 'resolved' ? 'optimal' : (strtolower($record->status) === 'replacement bus dispatched' ? 'standard' : 'anomaly') }}">
                                                     {{ $record->status }}
                                                 </span>
                                             </td>
