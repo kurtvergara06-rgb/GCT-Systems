@@ -211,9 +211,11 @@ class FuelAnalyticsController extends Controller
             return (object) [
                 'key' => $key,
                 'label' => $date->format('M j'),
-                'fuel_liters' => (float) ($summary?->fuel_liters ?? 0),
-                'distance_km' => (float) ($summary?->distance_km ?? 0),
-                'efficiency' => (float) ($summary?->efficiency ?? 0),
+                'fuel_liters' => $summary !== null ? (float) $summary->fuel_liters : null,
+                'distance_km' => $summary !== null ? (float) $summary->distance_km : null,
+                'efficiency' => $summary !== null && $summary->fuel_liters > 0
+                    ? (float) $summary->efficiency
+                    : null,
             ];
         });
     }
