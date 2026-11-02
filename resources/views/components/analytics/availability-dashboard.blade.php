@@ -35,6 +35,7 @@
                     <h3>{{ $title }}</h3>
                 </div>
                 <p class="analytics-availability-panel__description">{{ $description }}</p>
+                <span class="analytics-availability-panel__state"><i class="fa-solid fa-link-slash" aria-hidden="true"></i> Reporting source not connected</span>
             </article>
         @endforeach
     </section>

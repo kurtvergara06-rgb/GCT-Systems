@@ -60,7 +60,7 @@
 .activity-logs-page .activity-stats-grid .stat-card-link p {
     margin: 0;
     color: var(--al-muted);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -75,7 +75,7 @@
 
 .activity-logs-page .activity-stats-grid small {
     color: var(--al-muted);
-    font-size: 11px;
+    font-size: 12px;
 }
 
 /* Records card */
@@ -106,7 +106,7 @@
 .activity-logs-page .section-header p {
     margin: 3px 0 0;
     color: var(--al-muted);
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .activity-logs-page .activity-count {
@@ -242,7 +242,7 @@
     padding: 13px 14px;
     border-bottom: 1px solid var(--al-border);
     color: #475569;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.055em;
     text-transform: uppercase;

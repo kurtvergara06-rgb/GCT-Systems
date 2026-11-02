@@ -108,13 +108,10 @@
 
 .predictive-fleet-page .analytics-kpi-card__label,
 .predictive-fleet-page .ft-kpi-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #475569;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.25;
+    line-height: 1.35;
 }
 
 .predictive-fleet-page .analytics-kpi-card__value,
@@ -129,8 +126,8 @@
 
 .predictive-fleet-page .analytics-kpi-card__description,
 .predictive-fleet-page .ft-kpi-desc {
-    font-size: 10px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.5;
     color: var(--ft-muted);
     margin: 8px 0 0;
     min-height: 28px;
@@ -141,7 +138,7 @@
     margin-top: 10px;
     padding-top: 8px;
     border-top: 1px dashed #f1f5f9;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     display: flex;
     align-items: center;

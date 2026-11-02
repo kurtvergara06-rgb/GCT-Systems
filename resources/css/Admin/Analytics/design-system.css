@@ -69,7 +69,7 @@
 
 .analytics-kpi-card {
     min-width: 0;
-    min-height: 104px;
+    min-height: 116px;
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
     gap: 12px;
@@ -116,7 +116,7 @@
 .analytics-kpi-card__label {
     display: block;
     color: var(--ds-muted);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.25;
 }
@@ -136,7 +136,7 @@
     display: block;
     margin-top: 4px;
     color: var(--ds-muted);
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1.3;
     overflow-wrap: anywhere;
@@ -148,7 +148,7 @@
     padding-top: 6px;
     border-top: 1px dashed var(--ds-border);
     min-height: 12px;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--change-color, var(--ds-muted));
 }
@@ -278,7 +278,7 @@
 .diagnostic-analytics-page .analytics-kpi .analytics-kpi-label {
     display: block;
     color: var(--ds-muted);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.25;
 }
@@ -311,7 +311,7 @@
     display: block;
     margin-top: 4px;
     color: var(--ds-muted);
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1.3;
     overflow-wrap: anywhere;
@@ -326,7 +326,7 @@
     padding-top: 6px;
     border-top: 1px dashed var(--ds-border);
     min-height: 12px;
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .analytics-overview-page .analytics-kpi .analytics-kpi-status.positive,
@@ -445,7 +445,7 @@
 .analytics-stage-page .ft-kpi-label {
     display: block;
     color: var(--ds-muted);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     margin: 0;
 }
@@ -468,7 +468,7 @@
     display: block;
     margin-top: 4px;
     color: var(--ds-muted);
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 500;
     line-height: 1.3;
 }
@@ -506,7 +506,7 @@
 .analytics-card__title {
     margin: 0;
     color: var(--ds-navy);
-    font-size: 13.5px;
+    font-size: 15px;
     font-weight: 800;
     line-height: 1.3;
 }
@@ -514,7 +514,7 @@
 .analytics-card__description {
     margin: 4px 0 0;
     color: var(--ds-muted);
-    font-size: 10.5px;
+    font-size: 12px;
     line-height: 1.45;
 }
 
@@ -565,7 +565,7 @@
 .ft-card-head h4 {
     margin: 0;
     color: var(--ds-navy);
-    font-size: 13.5px;
+    font-size: 15px;
     font-weight: 800;
     line-height: 1.3;
 }
@@ -576,7 +576,7 @@
 .ft-card-head p {
     margin: 4px 0 0;
     color: var(--ds-muted);
-    font-size: 10.5px;
+    font-size: 12px;
     line-height: 1.45;
 }
 
@@ -1439,14 +1439,14 @@
 
 .analytics-stage-page .analytics-kpi-card,
 .analytics-overview-page .analytics-kpi-card {
-    min-height: 112px;
+    min-height: 116px;
     border-color: #e2e9f3;
     box-shadow: 0 4px 18px rgba(11, 31, 68, .045);
 }
 
 .analytics-stage-page .analytics-kpi-card__label,
 .analytics-overview-page .analytics-kpi-card__label {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.35;
 }
 
@@ -1480,7 +1480,7 @@
     padding: 22px 24px;
     border: 1px solid #cdddf4;
     border-radius: 16px;
-    background: linear-gradient(115deg, #fff 0%, #f2f7ff 100%);
+    background: #f7faff;
     box-shadow: 0 5px 20px rgba(11, 31, 68, .045);
 }
 
@@ -1496,7 +1496,7 @@
 .analytics-availability-intro__icon { width: 54px; height: 54px; font-size: 20px; }
 .analytics-availability-intro__eyebrow { color: #1d4ed8; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .analytics-availability-intro h2 { margin: 4px 0 5px; color: #0b1f44; font-size: clamp(17px, 2vw, 22px); line-height: 1.3; }
-.analytics-availability-intro p { max-width: 75ch; margin: 0; color: #52657d; font-size: 12px; line-height: 1.65; }
+.analytics-availability-intro p { max-width: 75ch; margin: 0; color: #52657d; font-size: 13px; line-height: 1.6; }
 
 .analytics-availability-grid {
     display: grid;
@@ -1504,11 +1504,13 @@
     gap: 16px;
 }
 
-.analytics-availability-panel { min-height: 140px; }
+.analytics-availability-panel { min-height: 156px; display: flex; flex-direction: column; }
 .analytics-availability-panel__heading { display: flex; align-items: center; gap: 11px; }
 .analytics-availability-panel__heading > span { width: 36px; height: 36px; flex: 0 0 36px; font-size: 14px; }
-.analytics-availability-panel__heading h3 { margin: 0; color: #0b1f44; font-size: 13px; line-height: 1.4; }
-.analytics-availability-panel__description { max-width: 54ch; margin: 16px 0 0 47px; color: #52657d; font-size: 11.5px; line-height: 1.6; }
+.analytics-availability-panel__heading h3 { margin: 0; color: #0b1f44; font-size: 15px; line-height: 1.4; }
+.analytics-availability-panel__description { max-width: 60ch; margin: 12px 0 0 47px; color: #52657d; font-size: 12.5px; line-height: 1.6; }
+.analytics-availability-panel__state { display: inline-flex; align-items: center; gap: 7px; align-self: flex-start; margin: auto 0 0 47px; padding-top: 14px; color: #64748b; font-size: 11px; font-weight: 700; }
+.analytics-availability-panel__state i { color: #64748b; }
 
 .analytics-signal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .analytics-signal-grid > div { display: grid; align-content: center; min-height: 88px; padding: 14px; border: 1px solid #e5ecf5; border-radius: 12px; background: #f8fbff; }
