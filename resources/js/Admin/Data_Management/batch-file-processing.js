@@ -20,6 +20,22 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
                 if (response.ok) {
                     const html = await response.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
+                    // Copy measured values from the fresh server response without
+                    // replacing DOM nodes that hold event listeners.
+                    doc.querySelectorAll('[data-gps-progress-id]').forEach((updated) => {
+                        const id = updated.dataset.gpsProgressId;
+                        const current = [...processingPage.querySelectorAll('[data-gps-progress-id]')]
+                            .find((node) => node.dataset.gpsProgressId === id);
+                        if (!current) return;
+                        const value = updated.querySelector('[data-gps-progress-value]')?.textContent?.trim();
+                        if (!/^\\d{1,3}%$/.test(value || '')) return;
+                        const number = Math.min(100, parseInt(value, 10));
+                        const label = current.querySelector('[data-gps-progress-value]');
+                        const bar = current.querySelector('[data-gps-progress-fill]');
+                        if (label) label.textContent = number + '%';
+                        if (bar) bar.style.width = number + '%';
+                        current.setAttribute('aria-label', 'PDF extraction ' + number + ' percent');
+                    });
                     const updatedStatus = doc.querySelector('.batch-processing-page')?.dataset.gpsBatchStatus;
                     if (updatedStatus && updatedStatus !== 'Processing') {
                         if (processingPage.isConnected) window.location.reload();
