@@ -721,3 +721,24 @@
         align-items: stretch;
     }
 }
+
+
+/* Balanced dashboard chart canvases; actual counts stay unchanged. */
+.prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap {
+    height: 230px;
+    min-height: 230px;
+    flex: none;
+    padding: 4px 10px 6px;
+}
+.prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+@media (max-width: 700px) {
+    .prescriptive-rebuild .prescriptive-dashboard-grid .prescriptive-chart-wrap {
+        height: 210px;
+        min-height: 210px;
+        padding: 4px;
+    }
+}
