@@ -36,30 +36,34 @@ class PdfGpsRuleParser
         $vehicle = null;
         $skipped = 0;
         $seen = [];
+        // Source report layout: row number, start/grouping date,
+        // beginning date, end date, then four duration columns and mileage.
+        // Address text wraps across separate lines and is deliberately not
+        // guessed into the wrong vehicle's location fields.
+        $datePattern = '\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}:\d{2}';
+        $durationPattern = '(?:\d+\s+days?\s+)?\d+:\d{2}:\d{2}';
+        $rowPattern = '/^\s*(\d+\.\d+)\s+('.$datePattern.')\s+('.$datePattern.')\s+('.$datePattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+('.$durationPattern.')\s+([\d,.]+\s*km|-----)\s*$/iu';
         foreach (preg_split('/\R/u', $text) as $line) {
             if (preg_match('/GPS Engine Hours Report\s*[-–]\s*\d+_([A-Z0-9-]+)/i', $line, $header)) {
                 $vehicle = strtoupper($header[1]);
                 continue;
             }
-            if (! $vehicle || preg_match('/^\s*(?:Total|No\.|Grouping)\b/i', $line)) {
+            if (! $vehicle || ! preg_match('/^\s*\d+\.\d+\s+/', $line)) {
                 continue;
             }
-
-            // Table columns in -layout output are aligned with two or more spaces.
-            $cells = preg_split('/\s{2,}/u', trim($line));
-            if (count($cells) < 11 || ! preg_match('/^\d+(?:\.\d+)?$/', $cells[0])) {
-                continue;
-            }
-            [$no, $grouping, $start, $origin, $end, $destination, $engine, $total, $motion, $idle, $mileage] = array_slice($cells, 0, 11);
-            if (! $this->date($start) || ! $this->date($end)) {
+            if (! preg_match($rowPattern, $line, $m)) {
                 $skipped++;
                 continue;
             }
+            [, $no, $grouping, $start, $end, $engine, $total, $motion, $idle, $mileage] = $m;
+            $start = $this->date($start);
+            $end = $this->date($end);
             $engineSeconds = $this->duration($engine);
             $totalSeconds = $this->duration($total);
             $motionSeconds = $this->duration($motion);
             $idleSeconds = $this->duration($idle);
-            if (! preg_match('/^(\d+(?:\.\d+)?)\s*(?:km)?$/i', $mileage, $km)
+            if (! $start || ! $end
+                || ! preg_match('/^([\d,.]+)\s*km$/i', $mileage, $km)
                 || in_array(null, [$engineSeconds, $totalSeconds, $motionSeconds, $idleSeconds], true)
                 || abs($totalSeconds - $motionSeconds - $idleSeconds) > 60
                 || abs($engineSeconds - $totalSeconds) > 60
@@ -76,18 +80,16 @@ class PdfGpsRuleParser
                 'record_no' => $vehicle.'-'.$no,
                 'bus_no' => $vehicle,
                 'trip_type' => 'Engine Activity',
-                'beginning' => $this->date($start),
-                'ending' => $this->date($end),
-                'initial_location' => $origin,
-                'final_location' => $destination,
+                'beginning' => $start,
+                'ending' => $end,
                 'duration_minutes' => round((strtotime($end) - strtotime($start)) / 60, 2),
                 'total_minutes' => round($totalSeconds / 60, 2),
                 'in_motion_minutes' => round($motionSeconds / 60, 2),
                 'idling_minutes' => round($idleSeconds / 60, 2),
                 'engine_hours' => round($engineSeconds / 3600, 4),
-                'mileage_km' => (float) $km[1],
-                'description' => 'Engine activity interval; not a scheduled trip',
-                'raw_data' => ['row' => $line, 'source' => 'Local PDF rule parser'],
+                'mileage_km' => (float) str_replace(',', '', $km[1]),
+                'description' => 'Engine activity interval; not a scheduled trip. Wrapped locations require review.',
+                'raw_data' => ['row' => $line, 'grouping_source' => $grouping, 'source' => 'Local PDF rule parser'],
             ];
         }
         if ($records === []) {
