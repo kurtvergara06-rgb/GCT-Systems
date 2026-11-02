@@ -152,7 +152,7 @@ class FleetTripAnalyticsController extends Controller
                     && $eta->json('model_ready') === true
                     && $eta->json('is_production_model') === true,
             ];
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ['online' => false, 'eta_ready' => false];
         }
     }
