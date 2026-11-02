@@ -521,7 +521,7 @@
                     <div class="dashboard-card-header">
                         <div>
                             <h3><i class="fa-solid fa-list-check"></i> Spare-Parts Replenishment Recommendations</h3>
-                            <p class="dashboard-eyebrow">Planning estimates from recorded on-hand stock and configured thresholds; reservations and incoming supply are not included</p>
+                            <p class="dashboard-eyebrow">Advisory quantities use reorder points, available stock after JO reservations, and explicitly coded pending PO quantities; confirm uncoded PO lines before ordering</p>
                         </div>
                         <span class="dashboard-badge">{{ collect($restockingData->restock_items)->count() }} Parts</span>
                     </div>
@@ -532,10 +532,10 @@
                                 <tr>
                                     <th>Part Code</th>
                                     <th>Part Name &amp; Category</th>
-                                    <th>Available Stock</th>
+                                    <th>Available After Reservations</th>
                                     <th>Monthly Demand</th>
                                     <th>Incoming Supply</th>
-                                    <th>Threshold Gap</th>
+                                    <th>Suggested Qty</th>
                                     <th>Priority</th>
                                     <th>Recorded Stock State</th>
                                     <th>Suggested Action &amp; Rationale</th>
@@ -573,7 +573,7 @@
                                                     <i class="fa-solid fa-truck"></i> +{{ $item->incoming_supply }} in transit
                                                 </span>
                                             @else
-                                                <span style="color:#94a3b8; font-size:11px;">0 pending</span>
+                                                <span style="color:#94a3b8; font-size:11px;">0 coded pending</span>
                                             @endif
                                         </td>
                                         <td>
