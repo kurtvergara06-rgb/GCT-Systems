@@ -8,6 +8,15 @@
     ];
     $icons = ['fa-screwdriver-wrench', 'fa-chart-column', 'fa-database', 'fa-chart-simple'];
     $allCount = collect($metrics)->sum('total');
+    $stageTabs = [
+        'descriptive' => ['Descriptive Analytics', 'fa-chart-column', 'view'],
+        'diagnostic' => ['Diagnostic Analytics', 'fa-magnifying-glass-chart', 'analyze'],
+        'predictive' => ['Predictive Analytics', 'fa-chart-line', 'analyze'],
+        'prescriptive' => ['Prescriptive Analytics', 'fa-lightbulb', 'recommendations'],
+    ];
+    $allowedStageTabs = collect($stageTabs)->filter(
+        fn ($tab) => auth()->user()->hasSystemPermission('analytics', $tab[2])
+    );
 @endphp
 
 <x-layout.app
@@ -26,6 +35,19 @@
                 :title="$stageLabel.' Analytics'"
                 :subtitle="ucfirst($department).' Department · '.$stageDescriptions[$stage]"
             />
+
+            {{-- Shared analytics navigation pattern; each link stays on the
+                 permission-checked department route, never the Admin route. --}}
+            <nav class="department-analytics-tabs" aria-label="Department analytics stages">
+                @foreach($allowedStageTabs as $tabStage => $tab)
+                    <a href="{{ route('analytics.department.stage', ['stage' => $tabStage]) }}"
+                       class="{{ $stage === $tabStage ? 'is-current' : '' }}"
+                       @if($stage === $tabStage) aria-current="page" @endif>
+                        <i class="fa-solid {{ $tab[1] }}" aria-hidden="true"></i>
+                        {{ $tab[0] }}
+                    </a>
+                @endforeach
+            </nav>
 
             <section class="department-analytics-intro" aria-label="Scope and methodology">
                 <div class="department-analytics-intro-icon"><i class="fa-solid fa-shield-halved"></i></div>
