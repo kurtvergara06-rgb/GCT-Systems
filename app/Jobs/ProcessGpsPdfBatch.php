@@ -27,6 +27,7 @@ class ProcessGpsPdfBatch implements ShouldQueue
             return;
         }
         try {
+            $batch->update(['progress_percentage' => 1]);
             $result = $controller->processPdfFile($batch);
             if (($result['processed'] ?? 0) < 1) {
                 throw new \RuntimeException('PDF extraction completed without saving valid GPS records.');
