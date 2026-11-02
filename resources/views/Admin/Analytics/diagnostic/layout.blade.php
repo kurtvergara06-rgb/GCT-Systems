@@ -147,9 +147,17 @@
                             </div>
                         </div>
 
-                        <div class="diagnostic-chart-shell">
-                            <canvas id="diagnosticIncidentTrendChart"></canvas>
-                        </div>
+                        @if($incidentData->total_incidents > 0)
+                            <div class="diagnostic-chart-shell">
+                                <canvas id="diagnosticIncidentTrendChart"></canvas>
+                            </div>
+                        @else
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                <h3>No Incident Trends to Display</h3>
+                                <p>No incidents or replacement dispatches were recorded for the selected period.</p>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Root-Cause Classification Donut -->
@@ -165,6 +173,7 @@
                             </span>
                         </div>
 
+                        @if($incidentData->cause_distribution->isNotEmpty())
                         <div class="fleet-health-visual-wrap">
                             <div class="fleet-health-chart-container">
                                 <canvas id="diagnosticCauseDonutChart"></canvas>
@@ -191,6 +200,13 @@
                                 @endforeach
                             </div>
                         </div>
+                        @else
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                                <h3>No Root-Cause Data</h3>
+                                <p>Incident causes will appear after incident records are available.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -210,9 +226,17 @@
                             </a>
                         </div>
 
-                        <div class="diagnostic-chart-shell short">
-                            <canvas id="diagnosticReplacementIntervalChart"></canvas>
-                        </div>
+                        @if($incidentData->replacements_count > 0)
+                            <div class="diagnostic-chart-shell short">
+                                <canvas id="diagnosticReplacementIntervalChart"></canvas>
+                            </div>
+                        @else
+                            <div class="dashboard-empty-state">
+                                <div class="dashboard-empty-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                                <h3>No Replacement Response Data</h3>
+                                <p>No replacement bus dispatches were recorded for this period.</p>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Fleet Reliability & Severity Diagnostic Overview -->
@@ -232,7 +256,7 @@
                             <div class="diagnostic-tile">
                                 <i class="fa-solid fa-shield-heart text-green"></i>
                                 <div>
-                                    <strong>{{ $incidentData->safety_score }}%</strong>
+                                    <strong>{{ $incidentData->total_incidents > 0 ? $incidentData->safety_score . '%' : 'N/A' }}</strong>
                                     <small>Fleet Reliability Score</small>
                                 </div>
                             </div>
@@ -248,7 +272,7 @@
                             <div class="diagnostic-tile">
                                 <i class="fa-solid fa-wrench text-amber"></i>
                                 <div>
-                                    <strong>{{ round(($incidentData->resolved_count / max(1, $incidentData->total_incidents)) * 100) }}%</strong>
+                                    <strong>{{ $incidentData->total_incidents > 0 ? round(($incidentData->resolved_count / $incidentData->total_incidents) * 100) . '%' : 'N/A' }}</strong>
                                     <small>Incident Resolution Rate</small>
                                 </div>
                             </div>
