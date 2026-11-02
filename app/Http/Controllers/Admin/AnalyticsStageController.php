@@ -330,8 +330,8 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Production analytics use verified source records exclusively.
-        $demoMode = false;
+        // Explicit, read-only sample preview. Never activate by missing-data fallback.
+        $demoMode = $request->boolean('preview', false);
 
         [$start, $end] = $this->resolveDatePeriod($period);
 
@@ -653,8 +653,8 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Production analytics use verified source records exclusively.
-        $demoMode = false;
+        // Explicit, read-only sample preview. Never activate by missing-data fallback.
+        $demoMode = $request->boolean('preview', false);
 
         $totalFuel = (float) ($fuel['totalFuel'] ?? 0);
         $totalDistance = (float) ($fuel['totalDistance'] ?? 0);
@@ -1913,8 +1913,8 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Production analytics use verified source records exclusively.
-        $demoMode = false;
+        // Explicit, read-only sample preview. Never activate by missing-data fallback.
+        $demoMode = $request->boolean('preview', false);
 
         [$start, $end] = $this->resolveDatePeriod($period);
 
@@ -2245,8 +2245,8 @@ class AnalyticsStageController extends Controller
     private function buildRestockingPrescriptiveData(Request $request, Collection $inventoryItems): object
     {
         $period = (string) $request->input('period', 'this-month');
-        // Production analytics use verified source records exclusively.
-        $demoMode = false;
+        // Explicit, read-only sample preview. Never activate by missing-data fallback.
+        $demoMode = $request->boolean('preview', false);
 
         $totalItems = $inventoryItems->count();
         $lowStockItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand > 0 && $i->on_hand <= (int) $i->reorder_level)->values();
@@ -2254,7 +2254,7 @@ class AnalyticsStageController extends Controller
         $attentionItems = $inventoryItems->filter(fn (InventoryItem $i) => $i->on_hand <= (int) $i->reorder_level)->values();
 
         // Check if demo simulation should be active
-        $isDemo = false;
+        $isDemo = $demoMode;
         if ($isDemo) {
             return $this->getDemoRestockingPrescriptiveData($period, $totalItems);
         }
