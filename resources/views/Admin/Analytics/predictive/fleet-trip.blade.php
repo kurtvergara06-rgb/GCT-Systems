@@ -209,6 +209,20 @@
             <strong><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Fleet performance overview</strong>
             <span>Recorded operations and source-labeled predictions</span>
         </div>
+        @php
+            $pythonStatus = $fleet['pythonServiceStatus'] ?? ['online' => false, 'eta_ready' => false];
+        @endphp
+        <div class="ft-python-status" role="status" aria-label="Python service and ETA model status">
+            <span class="ft-python-status__item {{ $pythonStatus['online'] ? 'is-online' : 'is-offline' }}">
+                <i class="fa-solid fa-circle" aria-hidden="true"></i>
+                Python API {{ $pythonStatus['online'] ? 'Online' : 'Offline' }}
+            </span>
+            <span class="ft-python-status__item {{ $pythonStatus['eta_ready'] ? 'is-online' : 'is-muted' }}">
+                <i class="fa-solid {{ $pythonStatus['eta_ready'] ? 'fa-circle-check' : 'fa-circle-info' }}" aria-hidden="true"></i>
+                ETA ML {{ $pythonStatus['eta_ready'] ? 'Ready' : 'Not Ready' }}
+            </span>
+            <small>Checked on page load</small>
+        </div>
     </div>
 
     {{-- =========================================================
