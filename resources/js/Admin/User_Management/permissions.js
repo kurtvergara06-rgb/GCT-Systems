@@ -18,6 +18,94 @@ window.GCTPartialNavigation.registerInitializer(
             });
         });
 
+
+        // Read-only access planner. Never submit grants until the backend authorizes each feature.
+        const employeeChoices = Array.from(document.querySelectorAll('[data-access-employee]'));
+        const employeeSearch = document.getElementById('additionalEmployeeSearch');
+        const departmentChoices = Array.from(document.querySelectorAll('[data-access-department-choice]'));
+        const featureList = document.getElementById('additionalFeatureList');
+        const review = document.getElementById('additionalAccessReview');
+        const empty = document.getElementById('additionalEmployeeEmpty');
+        const selectedName = document.getElementById('additionalSelectedName');
+        const selectedRole = document.getElementById('additionalSelectedRole');
+        const featureCatalog = {
+            purchase: ['View Purchase Request Status', 'View Purchase Order Status', 'View Delivery Status'],
+            warehouse: ['View Stock Availability', 'View Incoming Delivery Status'],
+            operation: ['View Trip Schedules', 'View Bus Availability'],
+            maintenance: ['View Job Order Status', 'View PMS Schedule Status']
+        };
+        let accessEmployee = null;
+        let accessDepartment = null;
+        const selectedFeatures = new Set();
+        const updateReview = () => {
+            if (!review) return;
+            review.replaceChildren();
+            const paragraph = document.createElement('p');
+            paragraph.textContent = !accessEmployee ? 'Select an employee to begin.' : selectedFeatures.size === 0
+                ? 'No features selected. This preview will not change access.'
+                : accessEmployee.dataset.accessName + ': ' + [...selectedFeatures].join(', ') + '. Preview only — not saved.';
+            review.appendChild(paragraph);
+        };
+        const updateFeatures = () => {
+            if (!featureList) return;
+            featureList.replaceChildren();
+            selectedFeatures.clear();
+            if (!accessDepartment) {
+                const p = document.createElement('p');
+                p.textContent = 'Choose a department to preview available features.';
+                featureList.appendChild(p);
+            } else {
+                for (const feature of featureCatalog[accessDepartment] || []) {
+                    const label = document.createElement('label');
+                    label.className = 'permission-feature-choice';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) selectedFeatures.add(feature);
+                        else selectedFeatures.delete(feature);
+                        updateReview();
+                    });
+                    const span = document.createElement('span');
+                    span.textContent = feature;
+                    label.append(checkbox, span);
+                    featureList.appendChild(label);
+                }
+            }
+            updateReview();
+        };
+        employeeChoices.forEach((choice) => choice.addEventListener('click', () => {
+            accessEmployee = choice;
+            accessDepartment = null;
+            employeeChoices.forEach((c) => c.classList.toggle('active', c === choice));
+            if (selectedName) selectedName.textContent = choice.dataset.accessName;
+            if (selectedRole) selectedRole.textContent = choice.dataset.accessDepartment + ' · ' + choice.dataset.accessRole;
+            departmentChoices.forEach((c) => {
+                c.disabled = c.dataset.accessDepartmentChoice === choice.dataset.accessDepartment;
+                c.classList.remove('active');
+            });
+            updateFeatures();
+        }));
+        employeeSearch?.addEventListener('input', () => {
+            const searchText = employeeSearch.value.toLowerCase().trim();
+            let shown = 0;
+            employeeChoices.forEach((c) => {
+                c.hidden = !((c.dataset.accessName + ' ' + c.dataset.accessDepartment).toLowerCase().includes(searchText));
+                if (!c.hidden) shown++;
+            });
+            if (empty) empty.hidden = shown > 0;
+        });
+        departmentChoices.forEach((choice) => choice.addEventListener('click', () => {
+            if (!accessEmployee || choice.disabled) return;
+            accessDepartment = choice.dataset.accessDepartmentChoice;
+            departmentChoices.forEach((c) => c.classList.toggle('active', c === choice));
+            updateFeatures();
+        }));
+        document.getElementById('additionalAccessClear')?.addEventListener('click', () => {
+            accessDepartment = null;
+            departmentChoices.forEach((c) => c.classList.remove('active'));
+            updateFeatures();
+        });
+
         const search = document.getElementById('rolePermissionSearch');
         const roleForms = document.querySelectorAll('.role-select-form');
 
