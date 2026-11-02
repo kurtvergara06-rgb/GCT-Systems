@@ -9,6 +9,29 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
     const feedbackModal = document.getElementById('batchFeedbackModal');
     const closeFeedbackModal = document.getElementById('closeBatchFeedbackModal');
 
+    const gpsRecordModal = document.getElementById('gpsRecordDetailsModal');
+    let gpsRecordTrigger = null;
+    const closeGpsRecordModal = () => {
+        if (!gpsRecordModal) return;
+        gpsRecordModal.classList.remove('show');
+        gpsRecordTrigger?.focus();
+        gpsRecordTrigger = null;
+    };
+    document.querySelectorAll('[data-open-gps-record]').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!gpsRecordModal) return;
+            gpsRecordTrigger = button;
+            gpsRecordModal.querySelectorAll('[data-gps-detail]').forEach((item) => {
+                const value = button.dataset[item.dataset.gpsDetail];
+                item.textContent = value === undefined || value === null || value.trim() === '' ? '—' : value;
+            });
+            gpsRecordModal.classList.add('show');
+            document.getElementById('closeGpsRecordDetailsModal')?.focus();
+        });
+    });
+    document.getElementById('closeGpsRecordDetailsModal')?.addEventListener('click', closeGpsRecordModal);
+    document.getElementById('closeGpsRecordDetailsFooter')?.addEventListener('click', closeGpsRecordModal);
+
     const rawUploadModal = document.getElementById('rawUploadModal');
     const closeRawUploadModal = document.getElementById('closeRawUploadModal');
     const rawUploadSearch = document.getElementById('rawUploadSearch');
@@ -579,6 +602,7 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
 
         [
             feedbackModal,
+            gpsRecordModal,
             rawUploadModal,
             allRecordsModal,
             cleanDataModal,
