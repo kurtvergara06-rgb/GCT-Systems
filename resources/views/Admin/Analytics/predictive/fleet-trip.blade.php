@@ -86,6 +86,15 @@
 
     $kpiCards = [
         [
+            'label' => 'Recorded Trips',
+            'value' => number_format($tripCount),
+            'description' => 'Actual GPS trip records during the selected period.',
+            'icon' => 'fa-route',
+            'variant' => 'blue',
+            'change' => $tripGrowthTrend !== null ? $growthChangeText : 'Historical GPS records',
+            'change_type' => $growthChangeType,
+        ],
+        [
             'label' => 'Trips at Risk',
             'value' => $tripCount > 0 ? (string) $displayTripsAtRisk : '—',
             'description' => 'Trips predicted to experience delays or operational issues.',
@@ -201,21 +210,27 @@
         @endforeach
     </section>
 
-    {{-- Aggregate trip signals and risk distribution. --}}
+    {{-- Actual recorded activity and model-dependent risk, together on one page. --}}
     <section class="ft-top-grid">
-
-        {{-- Aggregate signals only; the source has no per-period prediction series. --}}
         <x-analytics.card
             class="ft-card ft-chart-card"
-            title="Trip Review Signals"
-            description="Current aggregate signals from available trip records; a time-series forecast is not connected."
+            title="Trip Performance Trend"
+            description="Recorded GPS trip volume for the selected reporting period; not a forecast."
         >
-            <div class="analytics-signal-grid">
-                <div><span>Trips at Risk</span><strong>{{ number_format($tripsAtRiskCount) }}</strong></div>
-                <div><span>Predicted Delays</span><strong>{{ number_format($predictedDelaysCount) }}</strong></div>
-                <div><span>High Idle Risk</span><strong>{{ number_format($highIdleRiskCount) }}</strong></div>
-                <div><span>Selected Period</span><strong>{{ $periodText }}</strong></div>
-            </div>
+            @if ($fleetTrend->isEmpty())
+                <div class="analytics-compact-empty">No processed GPS trip records for this period.</div>
+            @else
+                <div class="analytics-trip-bars" role="img" aria-label="Recorded GPS trips by reporting interval">
+                    @foreach ($fleetTrend as $bucket)
+                        <div class="analytics-trip-bars__item">
+                            <span>{{ data_get($bucket, 'label') }}</span>
+                            <div><i style="width: {{ ((int) data_get($bucket, 'count', 0) / $tripTrendMax) * 100 }}%"></i></div>
+                            <strong>{{ number_format((int) data_get($bucket, 'count', 0)) }}</strong>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            <p class="ft-evidence-note"><i class="fa-solid fa-circle-info"></i> On-time rate and actual delays require linked schedule and actual arrival records; unavailable results are not estimated.</p>
         </x-analytics.card>
 
         {{-- 2. Fleet & Trip Risk Level (Donut Chart) --}}
@@ -271,8 +286,8 @@
     <x-analytics.card
         id="tripPredictionsTable"
         class="ft-card ft-table-card"
-        title="Trip Predictions"
-        description="Trips identified as having potential operational risk."
+        title="Trip Records & Risk Monitoring"
+        description="Trip-level risk signals where model results or supported operational evidence are available."
     >
         <x-slot:headerActions>
             <a href="{{ route('trip-schedule') }}" class="ft-view-link">
@@ -369,25 +384,18 @@
     ========================================================== --}}
     <section class="ft-lower-grid">
 
-        {{-- Recorded trip volume only; no synthetic active-bus or duration series. --}}
         <x-analytics.card
             class="ft-card ft-performance-card"
-            title="Recorded Trip Activity"
-            description="Trip counts from the available fleet trend records."
+            title="Fleet Availability & Utilization"
+            description="Actual bus master status snapshot, separate from predicted idle risk."
         >
-            @if($fleetTrend->isEmpty())
-                <div class="analytics-compact-empty">No processed trip records available for this period.</div>
-            @else
-                <div class="analytics-trip-bars" role="img" aria-label="Recorded trip counts by period">
-                    @foreach($fleetTrend as $bucket)
-                        <div class="analytics-trip-bars__item">
-                            <span>{{ data_get($bucket, 'label') }}</span>
-                            <div><i style="width: {{ ((int) data_get($bucket, 'count', 0) / $tripTrendMax) * 100 }}%"></i></div>
-                            <strong>{{ number_format((int) data_get($bucket, 'count', 0)) }}</strong>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+            <div class="ft-availability-summary">
+                <div><span>Active buses</span><strong>{{ number_format($activeBuses) }}</strong></div>
+                <div><span>Other bus statuses</span><strong>{{ number_format($unavailableBuses) }}</strong></div>
+                <div><span>Total registered</span><strong>{{ number_format($totalBuses) }}</strong></div>
+                <div><span>Active fleet share</span><strong>{{ $totalBuses > 0 ? number_format($activeBuses / $totalBuses * 100, 1) . '%' : '—' }}</strong></div>
+            </div>
+            <p class="ft-evidence-note">Active share measures registered bus status, not time-based bus utilization.</p>
         </x-analytics.card>
 
         {{-- 2. Route Risk Analysis --}}
@@ -456,7 +464,7 @@
         {{-- 3. Fleet & Trip Predictive Insights --}}
         <x-analytics.card
             class="ft-card ft-insights-card"
-            title="Fleet & Trip Predictive Insights"
+            title="Operational Insights & Model Readiness"
         >
             <div class="ft-insights-grid">
                 @forelse ($insights as $insight)
@@ -482,7 +490,7 @@
     ========================================================== --}}
     <div class="predictive-footer">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Predictions are generated based on historical data and current trends. Results may vary.</span>
+        <span>GPS activity and fleet status are recorded data. Risk and ETA values are displayed only when their source is available; statistical fallbacks are labeled.</span>
     </div>
 
 </div>
