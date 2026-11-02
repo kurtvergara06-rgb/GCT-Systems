@@ -30,6 +30,8 @@ function initSearchableCombos() {
         };
 
         const open = () => {
+            // Scheduled DDR bus is derived from its assignment, not manually selected.
+            if (combo.dataset.field === 'bus' && input.readOnly) return;
             if (options.length > 0) {
                 combo.classList.add('open');
                 filter(input.value);
@@ -96,6 +98,7 @@ function initSearchableCombos() {
         input.addEventListener('focus', open);
 
         input.addEventListener('input', () => {
+            if (combo.dataset.field === 'bus' && input.readOnly) return;
             clear();
             open();
         });
@@ -197,6 +200,7 @@ function initDdrExceptionMode() {
         if (busField) busField.hidden = false;
         const busInput = modal?.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
         if (busInput) busInput.readOnly = !checkbox.checked;
+        if (!checkbox.checked) modal?.querySelector('[data-combo][data-field="bus"]')?.classList.remove('open');
         for (const name of ['from_location', 'to_location']) {
             const input = modal?.querySelector('[name="' + name + '"]');
             if (input) input.readOnly = false;
@@ -389,6 +393,7 @@ function initScheduleContextPanel() {
         const busInput = busCombo?.querySelector('[data-combo-input]');
         const busValue = busCombo?.querySelector('[data-combo-value]');
         if (busInput) { busInput.readOnly = !root.querySelector('#ddrUnscheduledMode')?.checked; busInput.value = ''; }
+        if (busInput?.readOnly) busCombo?.classList.remove('open');
         if (busValue) busValue.value = '';
         busCombo?.classList.remove('has-value');
         for (const name of ['from_location', 'to_location']) {
@@ -453,7 +458,7 @@ function initScheduleContextPanel() {
         const hidden = bus?.querySelector('[data-combo-value]');
         const input = bus?.querySelector('[data-combo-input]');
         if (hidden) hidden.value = '';
-        if (input) { input.value = ''; input.readOnly = false; }
+        if (input) { input.value = ''; input.readOnly = !root.querySelector('#ddrUnscheduledMode')?.checked; }
         bus?.classList.remove('has-value');
         lookup();
     });
