@@ -881,3 +881,117 @@
         justify-content: space-between;
     }
 }
+
+
+/* Objective 6.3 inventory: align summary cards and keep labels readable. */
+.predictive-inventory-page .predictive-main-grid-two,
+.predictive-inventory-page .predictive-inventory-attention-grid {
+    align-items: stretch;
+}
+.predictive-inventory-page .predictive-main-grid-two > *,
+.predictive-inventory-page .predictive-inventory-attention-grid > * {
+    min-width: 0;
+}
+.predictive-inventory-page .inventory-donut-content {
+    justify-content: flex-start;
+    gap: 24px;
+    min-width: 0;
+}
+.predictive-inventory-page .inventory-legend-enhanced {
+    min-width: 0;
+    gap: 8px;
+}
+.predictive-inventory-page .inventory-legend-enhanced .legend-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.predictive-inventory-page .inventory-legend-enhanced .legend-header {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+}
+.predictive-inventory-page .inventory-legend-enhanced .legend-numbers {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+.predictive-inventory-page .inventory-ratio-bar-wrap {
+    margin-top: 8px;
+    min-width: 0;
+}
+.predictive-inventory-page .inventory-ratio-bar-wrap .ratio-label {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+    font-size: 10px;
+    line-height: 1.4;
+}
+.predictive-inventory-page .inventory-ratio-bar {
+    flex: 0 0 auto;
+}
+.predictive-inventory-page .horizon-row {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+}
+.predictive-inventory-page .horizon-headline {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 5px 10px;
+}
+.predictive-inventory-page .horizon-headline strong {
+    flex: 1;
+    min-width: 150px;
+    line-height: 1.35;
+}
+.predictive-inventory-page .horizon-sample-tag {
+    max-width: min(100%, 230px);
+}
+.predictive-inventory-page .category-info-top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.predictive-inventory-page .category-meta {
+    white-space: normal;
+    line-height: 1.3;
+}
+.predictive-inventory-page .item-title-group {
+    flex: 1;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.predictive-inventory-page .item-name {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+}
+.predictive-inventory-page .inventory-priority-metrics {
+    gap: 6px;
+}
+.predictive-inventory-page .metric-chip {
+    max-width: 100%;
+    flex-wrap: wrap;
+    line-height: 1.35;
+}
+.predictive-inventory-page .inventory-priority-item__topline .risk-badge {
+    flex: 0 0 auto;
+}
+@media (max-width: 650px) {
+    .predictive-inventory-page .horizon-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .predictive-inventory-page .horizon-indicator {
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    .predictive-inventory-page .horizon-pill { width: auto; }
+}
