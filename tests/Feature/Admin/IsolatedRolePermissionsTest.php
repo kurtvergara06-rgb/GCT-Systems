@@ -69,6 +69,38 @@ class IsolatedRolePermissionsTest extends TestCase
         }
     }
 
+    public function test_account_creation_requires_administration_full_control(): void
+    {
+        $payload = [
+            'name' => 'Unauthorized Created User',
+            'email' => 'unauthorized-create@gct.test',
+            'password' => 'TemporaryPass123!',
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+        ];
+
+        $staff = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->actingAs($staff)
+            ->post(route('admin.users.store'), $payload)
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('users', ['email' => $payload['email']]);
+
+        $this->actingAs($this->systemAdmin())
+            ->post(route('admin.users.store'), $payload)
+            ->assertRedirect(route('admin.users'));
+
+        $this->assertDatabaseHas('users', ['email' => $payload['email']]);
+    }
+
     public function test_permission_update_cannot_grant_cross_module_access(): void
     {
         Event::fake([SystemDataUpdated::class]);

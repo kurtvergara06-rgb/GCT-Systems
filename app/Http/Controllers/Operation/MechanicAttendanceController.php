@@ -165,9 +165,26 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $mechanic = Mechanic::query()
-            ->where('mechanic_name', $validated['mechanic_name'])
-            ->first();
+        // Prefer the stable master-list ID when supplied. A name-only request
+        // is accepted only when it uniquely identifies one mechanic.
+        $mechanicId = trim((string) $request->input('mechanic_id', ''));
+        $matches = Mechanic::query()
+            ->when(
+                $mechanicId !== '',
+                fn ($query) => $query->where('mechanic_id', $mechanicId),
+                fn ($query) => $query->whereRaw(
+                    'LOWER(TRIM(mechanic_name)) = ?',
+                    [mb_strtolower(trim((string) $validated['mechanic_name']))]
+                )
+            )
+            ->limit(2)
+            ->get();
+        if ($matches->count() > 1) {
+            throw ValidationException::withMessages([
+                'mechanic_name' => 'Multiple mechanics have this name. Select the mechanic using their unique ID.',
+            ]);
+        }
+        $mechanic = $matches->first();
 
         if (! $mechanic) {
             if ($request->ajax() || $request->expectsJson()) {
@@ -402,7 +419,13 @@ class MechanicAttendanceController extends Controller
                     continue;
                 }
 
-                $mechanic = Mechanic::query()->where('mechanic_name', $name)->first();
+                // Legacy CSV rows have no stable ID: never guess among
+                // multiple employees who happen to share a name.
+                $matches = Mechanic::query()
+                    ->whereRaw('LOWER(TRIM(mechanic_name)) = ?', [mb_strtolower($name)])
+                    ->limit(2)
+                    ->get();
+                $mechanic = $matches->count() === 1 ? $matches->first() : null;
 
                 if (! $mechanic) {
                     $skipped++;
