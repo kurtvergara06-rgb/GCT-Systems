@@ -76,9 +76,9 @@ class SafeRouteRenderingTest extends TestCase
             ->get(route('batch-file-processing', ['batch_id' => $batch->id]));
 
         $response->assertOk();
-        $response->assertSeeText('Showing 2 records');
-        $response->assertDontSeeText('Page 1 of');
-        $response->assertDontSee('simple-page-button');
+        $response->assertSeeText('Showing 2 of 2 records')
+            ->assertSee('gps-infinite-footer')
+            ->assertDontSeeText('Scroll to load more');
     }
 
     public function test_batch_file_processing_bounds_large_batch_rendering_with_server_pagination(): void
