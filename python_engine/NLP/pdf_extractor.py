@@ -430,3 +430,141 @@ def extract_pdf_rows(
         table_type = None
 
     return extracted_rows, table_type
+
+
+def extract_engine_hours_records(pdf_path: str) -> dict:
+    """Read the vehicle-grouped GPS Engine Hours PDF format.
+
+    Keep interval records only. Vehicle totals, repeated headings, and
+    inconsistent/missing numeric records are excluded and counted for review.
+    The PDF is processed deterministically using PyMuPDF table extraction,
+    within the existing FastAPI NLP workflow.
+    """
+    from datetime import datetime
+
+    vehicle_title = re.compile(
+        r"GPS Engine Hours Report\s*[-–]\s*(\d+)_([A-Z0-9-]+)",
+        re.IGNORECASE,
+    )
+    record_number = re.compile(r"^\d+\.\d+$")
+    datetime_format = "%m-%d-%Y %H:%M:%S"
+    required_headers = [
+        "no", "grouping", "beginning", "initial location", "end",
+        "final location", "engine hours", "total time",
+        "in motion", "idling", "mileage",
+    ]
+    records = []
+    warnings = []
+    seen = set()
+    current_vehicle = None
+    skipped_totals = 0
+    skipped_invalid = 0
+
+    def seconds(value):
+        value = clean_cell(value).lower()
+        if not value or value in {"-----", "-", "n/a"}:
+            return None
+        days = 0
+        match = re.match(r"^(\d+)\s+days?\s+", value)
+        if match:
+            days = int(match.group(1))
+            value = value[match.end():]
+        clock = re.fullmatch(r"(\d+):(\d{2}):(\d{2})", value)
+        if not clock:
+            return None
+        hours, minutes, secs = (int(chunk) for chunk in clock.groups())
+        if minutes >= 60 or secs >= 60:
+            return None
+        return days * 86400 + hours * 3600 + minutes * 60 + secs
+
+    document = _open_pdf(pdf_path)
+    try:
+        for page_number, page in enumerate(document, 1):
+            header_text = page.get_text("text")[:350]
+            title = vehicle_title.search(header_text)
+            if title:
+                current_vehicle = title.group(2).upper()
+
+            # Continuation pages inherit their vehicle identifier.
+            if not current_vehicle:
+                continue
+
+            for table in page.find_tables().tables:
+                rows = table.extract() or []
+                if not rows:
+                    continue
+                headings = [normalize_label(c) for c in rows[0]]
+                if len(headings) != 11 or headings != required_headers:
+                    continue
+
+                for row in rows[1:]:
+                    if len(row) != 11:
+                        skipped_invalid += 1
+                        continue
+                    cells = [clean_cell(c) for c in row]
+                    no, grouping, start, origin, end, destination, engine, total, motion, idle, mileage = cells
+                    if grouping.lower() == "total" or no.lower() == "total" or not record_number.fullmatch(no):
+                        skipped_totals += 1
+                        continue
+                    try:
+                        beginning_at = datetime.strptime(start, datetime_format)
+                        ending_at = datetime.strptime(end, datetime_format)
+                    except ValueError:
+                        skipped_invalid += 1
+                        continue
+                    engine_seconds = seconds(engine)
+                    total_seconds = seconds(total)
+                    motion_seconds = seconds(motion)
+                    idle_seconds = seconds(idle)
+                    mileage_value = re.fullmatch(r"(\d+(?:\.\d+)?)\s*km", mileage, re.IGNORECASE)
+                    if (
+                        ending_at < beginning_at
+                        or any(v is None for v in (engine_seconds, total_seconds, motion_seconds, idle_seconds))
+                        or mileage_value is None
+                        or abs(motion_seconds + idle_seconds - total_seconds) > 60
+                        or abs(engine_seconds - total_seconds) > 60
+                    ):
+                        skipped_invalid += 1
+                        if len(warnings) < 25:
+                            warnings.append({"page": page_number, "vehicle": current_vehicle, "row": no, "reason": "Missing or inconsistent source values"})
+                        continue
+                    key = (current_vehicle, beginning_at, ending_at, no)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    records.append({
+                        "bus_no": current_vehicle,
+                        "record_no": f"{current_vehicle}-{no}",
+                        "grouping": None,
+                        "trip_type": "Engine Activity",
+                        "beginning": beginning_at.strftime("%Y-%m-%d %H:%M:%S"),
+                        "ending": ending_at.strftime("%Y-%m-%d %H:%M:%S"),
+                        "initial_location": origin or None,
+                        "final_location": destination or None,
+                        "duration_minutes": round((ending_at - beginning_at).total_seconds() / 60, 2),
+                        "total_minutes": round(total_seconds / 60, 2),
+                        "in_motion_minutes": round(motion_seconds / 60, 2),
+                        "idling_minutes": round(idle_seconds / 60, 2),
+                        "mileage_km": float(mileage_value.group(1)),
+                        "engine_hours": round(engine_seconds / 3600, 4),
+                        "description": "GPS engine activity interval; not a scheduled trip",
+                        "raw_data": {
+                            "pdf_page": page_number,
+                            "vehicle": current_vehicle,
+                            "source_row": no,
+                            "engine_hours_source": engine,
+                            "total_time_source": total,
+                            "in_motion_source": motion,
+                            "idling_source": idle,
+                            "mileage_source": mileage,
+                        },
+                    })
+    finally:
+        document.close()
+
+    return {
+        "records": records,
+        "skipped_totals": skipped_totals,
+        "skipped_invalid": skipped_invalid,
+        "warnings": warnings,
+    }
