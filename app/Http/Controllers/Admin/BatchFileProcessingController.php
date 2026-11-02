@@ -195,6 +195,23 @@ class BatchFileProcessingController extends Controller
             ]);
         }
 
+        // Compare file contents, not filenames. Failed batches remain retryable.
+        $incomingHash = hash_file('sha256', $file->getRealPath());
+        $incomingSize = $file->getSize();
+        foreach (BatchUpload::query()->whereIn('status', ['Processing', 'In Review', 'Processed'])->cursor() as $existingBatch) {
+            if (! $existingBatch->file_path || ! Storage::disk('public')->exists($existingBatch->file_path)) {
+                continue;
+            }
+            if (Storage::disk('public')->size($existingBatch->file_path) !== $incomingSize) {
+                continue;
+            }
+            if (hash_file('sha256', Storage::disk('public')->path($existingBatch->file_path)) === $incomingHash) {
+                return redirect()->to(route('batch-file-processing', [
+                    'batch_id' => $existingBatch->id,
+                ], false))->with('error', 'This exact GPS file was already uploaded as batch #'.$existingBatch->id.'. Open the existing batch instead.');
+            }
+        }
+
         $batch = null;
         $filePath = null;
 
@@ -477,6 +494,16 @@ class BatchFileProcessingController extends Controller
                     'error',
                     'This batch has no valid trip records to process.'
                 );
+        }
+
+        // A previously imported batch may have been uploaded before
+        // duplicate protection existed. Block publication of overlapping data.
+        foreach ($batchUpload->tripRecords()->cursor() as $record) {
+            if ($this->hasGpsRecordConflict($record, $batchUpload->id, ['Processed'])) {
+                return redirect()->to(route('batch-file-processing', [
+                    'batch_id' => $batchUpload->id,
+                ], false))->with('error', 'Cannot approve: GPS record '.$record->record_no.' overlaps a previously processed batch for bus '.$record->bus_no.'. Review the duplicate before approval.');
+            }
         }
 
         $batchUpload->update([
@@ -1134,11 +1161,38 @@ class BatchFileProcessingController extends Controller
         ];
     }
 
+    private function hasGpsRecordConflict(GpsTripRecord $record, int $excludeBatchId, array $statuses): bool
+    {
+        if (! $record->bus_no || ! $record->beginning_at || ! $record->ending_at) {
+            return false;
+        }
+
+        return GpsTripRecord::query()
+            ->where('batch_upload_id', '!=', $excludeBatchId)
+            ->whereRaw('UPPER(TRIM(bus_no)) = ?', [strtoupper(trim($record->bus_no))])
+            ->where('beginning_at', $record->beginning_at)
+            ->where('ending_at', $record->ending_at)
+            ->whereHas('batchUpload', fn ($query) => $query->whereIn('status', $statuses))
+            ->exists();
+    }
+
     private function saveRecord(
         BatchUpload $batch,
         array $payload,
         array $rawData
     ): void {
+        // Prevent importing the same bus activity interval from another file.
+        if (! empty($payload['bus_no']) && ! empty($payload['beginning_at']) && ! empty($payload['ending_at'])) {
+            $candidate = new GpsTripRecord([
+                'bus_no' => $payload['bus_no'],
+                'beginning_at' => $payload['beginning_at'],
+                'ending_at' => $payload['ending_at'],
+            ]);
+            if ($this->hasGpsRecordConflict($candidate, $batch->id, ['Processing', 'In Review', 'Processed'])) {
+                throw new \RuntimeException('Duplicate GPS activity interval already exists in another batch for '.$payload['bus_no'].'.');
+            }
+        }
+
         $duration = $payload['duration_minutes'] ?? null;
         $total    = $payload['total_minutes'] ?? null;
 
