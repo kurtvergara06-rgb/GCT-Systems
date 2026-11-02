@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new Chart(riskDonut, {
             type: 'doughnut',
             data: {
-                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                labels: ['Normal', 'Needs Review', 'Priority Review'],
                 datasets: [{
                     data: [risk.low || 0, risk.medium || 0, risk.high || 0],
                     backgroundColor: ['#16a34a', '#fbbf24', '#ef4444'],
@@ -369,6 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Forecast',
                             data: forecast,
+                            hidden: !hasNumericValues(forecast),
                             borderColor: '#16a34a',
                             backgroundColor: '#16a34a',
                             borderDash: [6, 4],
@@ -423,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Forecast',
                             data: forecast,
+                            hidden: !hasNumericValues(forecast),
                             borderColor: '#16a34a',
                             backgroundColor: '#16a34a',
                             borderDash: [6, 4],
