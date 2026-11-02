@@ -77,12 +77,6 @@
                 :selected-bus="$selectedBus"
                 :date-label="ucwords(str_replace('-', ' ', $period))"
             />
-            @if($isDemo)
-                <div class="diagnostic-sample-note" role="note" style="display:flex;justify-content:flex-end;margin:8px 0 12px;color:#7b5c14;font-size:10px;font-weight:700;">
-                    <span style="background:#fff7df;border:1px solid #eedda6;padding:5px 9px;border-radius:7px;"><i class="fa-solid fa-flask" aria-hidden="true"></i> Sample Data · Illustrative, not verified records</span>
-                </div>
-            @endif
-
             @if($activeAnalysis === 'fleet-trip')
                 <!-- =========================================================================
                      THESIS OBJECTIVE 6.2.1 — INCIDENT & REPLACEMENT ANALYSIS
