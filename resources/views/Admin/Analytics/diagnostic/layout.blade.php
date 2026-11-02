@@ -77,38 +77,9 @@
                 :selected-bus="$selectedBus"
                 :date-label="ucwords(str_replace('-', ' ', $period))"
             />
-            <nav aria-label="Analytics data source" style="display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px;align-items:center">
-                <span style="font-size:11px;color:#64748b">Data source:</span>
-                <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeAnalysis])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ !request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Live Records</a>
-                <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except(['preview','demo']), ['domain' => $activeAnalysis, 'preview'=>1])) }}" style="padding:7px 12px;border-radius:8px;border:1px solid #d8e4f5;font-size:11px;font-weight:700;{{ request()->boolean('preview') ? 'background:#1557d5;color:white' : 'background:white;color:#1557d5' }}">Sample Preview</a>
-            </nav>
-            <!-- Demo Mode vs Live Records Banner -->
             @if($isDemo)
-                <div class="demo-mode-banner" role="alert">
-                    <div class="demo-banner-content">
-                        <span class="demo-banner-pill"><i class="fa-solid fa-flask"></i> Sample Dataset</span>
-                        <span>
-                            <strong>Illustrative dataset (not live records):</strong> Illustrating Thesis Objective 6.2 diagnostics (failure root causes, replacement response time comparison, and vehicle-specific fuel baseline anomalies).
-                            @if($activeAnalysis === 'fleet-trip')
-                                Live operational records: <strong>{{ $incidentData->real_count }} incident(s)</strong> logged in this selection.
-                            @else
-                                Live recorded fuel: <strong>{{ number_format($fuelData->real_fuel, 1) }} L</strong>.
-                            @endif
-                        </span>
-                    </div>
-                    @if(request()->boolean('preview'))
-                        <a href="{{ $diagnosticUrl . '?' . http_build_query(array_merge(request()->except('preview'), ['domain' => $activeAnalysis, 'preview' => 0])) }}" class="dashboard-view-link">
-                            <span>Return to Live Records</span>
-                            <i class="fa-solid fa-rotate"></i>
-                        </a>
-                    @endif
-                </div>
-            @else
-                <div class="live-mode-banner" role="status">
-                    <i class="fa-solid fa-circle-check text-green"></i>
-                    <span>
-                        <strong>Live Database Records:</strong> Displaying verified operational diagnostic findings from the FROMS Operations &amp; Maintenance modules.
-                    </span>
+                <div class="diagnostic-sample-note" role="note" style="display:flex;justify-content:flex-end;margin:8px 0 12px;color:#7b5c14;font-size:10px;font-weight:700;">
+                    <span style="background:#fff7df;border:1px solid #eedda6;padding:5px 9px;border-radius:7px;"><i class="fa-solid fa-flask" aria-hidden="true"></i> Sample Data · Illustrative, not verified records</span>
                 </div>
             @endif
 
