@@ -222,22 +222,6 @@
    TOOLBAR
 ========================================================= */
 
-/* Shared Account Management toolbar without a decorative outer box. */
-.notifications-page .notification-toolbar {
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    gap:8px;
-    width:100%;
-    margin:0 0 14px;
-    padding:0;
-    border:0;
-    border-radius:0;
-    background:transparent;
-    box-shadow:none;
-}
-
 .notifications-page .notification-view-tabs {
     display:flex;
     align-items:center;
@@ -857,57 +841,55 @@
     font-weight: 600;
 }
 
-/* Shared FROMS toolbar: action controls only, no surrounding rectangle.
-   Explicitly override global toolbar border declarations while preserving
-   the existing Search / Filter / Sort popover components. */
-.notifications-page form#notificationFilterForm.gct-table-toolbar.notification-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-    min-height: 0;
-    padding: 0 !important;
-    margin: 0 0 14px;
-    border: none !important;
-    outline: none;
-    border-radius: 0 !important;
-    background: none !important;
-    box-shadow: none !important;
-}
-.notifications-page #notificationFilterForm .gct-table-tool {
-    flex: 0 0 auto;
-}
-@media (max-width: 600px) {
-    .notifications-page #notificationFilterForm {
-        justify-content: flex-start;
-    }
-}
-
-/* Keep notification category tabs and Search / Filter / Sort on one baseline. */
+/* Notification navigation and shared toolbar use one row on desktop.
+   Remove competing full-width form declarations rather than override them. */
 .notifications-page .notification-controls-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px 16px;
+    gap: 12px;
     margin: 4px 0 14px;
 }
 .notifications-page .notification-controls-row .notification-view-tabs {
-    flex: 1 1 auto;
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    min-width: 0;
     margin: 0;
 }
-.notifications-page .notification-controls-row form#notificationFilterForm {
-    width: auto;
+.notifications-page .notification-controls-row #notificationFilterForm {
+    display: flex;
     flex: 0 0 auto;
-    margin: 0;
+    width: max-content;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    box-shadow: none;
 }
-@media (max-width: 850px) {
-    .notifications-page .notification-controls-row .notification-view-tabs {
-        flex-basis: 100%;
+.notifications-page .notification-controls-row #notificationFilterForm .gct-table-tool {
+    flex: 0 0 auto;
+}
+@media (max-width: 900px) {
+    .notifications-page .notification-controls-row {
+        flex-wrap: wrap;
     }
-    .notifications-page .notification-controls-row form#notificationFilterForm {
+    .notifications-page .notification-controls-row #notificationFilterForm {
         margin-left: auto;
+    }
+}
+@media (max-width: 540px) {
+    .notifications-page .notification-controls-row #notificationFilterForm {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+        flex-wrap: wrap;
     }
 }
