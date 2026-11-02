@@ -1118,47 +1118,32 @@ class AnalyticsStageController extends Controller
         $fuelTrendLabels = $fuelTrend->map(function ($bucket): string {
             return is_array($bucket) ? (string) ($bucket['label'] ?? '') : (string) ($bucket->label ?? '');
         })->values();
-        $fuelTrendActual = $fuelTrend
-            ->map(function ($bucket): float {
-                return is_array($bucket) ? (float) ($bucket['fuel_liters'] ?? 0) : (float) ($bucket->fuel_liters ?? 0);
-            })
-            ->values();
+        // Missing reporting days are unknown, not zero-consumption observations.
+        // Trend data is report-date anchored by FuelAnalyticsController.
+        $fuelTrendActual = $fuelTrend->map(function ($bucket): ?float {
+            $value = data_get($bucket, 'fuel_liters');
 
-        $activeActuals = $fuelTrendActual->filter(fn (float $v) => $v > 0);
-        $avgDailyFuel = $activeActuals->isNotEmpty() ? $activeActuals->avg() : 12.8;
+            return $value === null ? null : round((float) $value, 2);
+        })->values();
 
-        $fuelTrendForecast = $fuelTrend
-            ->map(function ($bucket, $index) use ($fuelChange, $avgDailyFuel): float {
-                $value = is_array($bucket) ? (float) ($bucket['fuel_liters'] ?? 0) : (float) ($bucket->fuel_liters ?? 0);
-                if ($value > 0) {
-                    $adjustment = max(-0.25, min(0.25, $fuelChange / 100));
-                    return round($value * (1 + $adjustment), 1);
-                }
-                $variance = 1 + (sin($index + 1) * 0.08);
-                return round($avgDailyFuel * $variance, 1);
-            })
-            ->values();
+        $fuelTrendEfficiency = $fuelTrend->map(function ($bucket): ?float {
+            $value = data_get($bucket, 'efficiency');
 
-        $fuelTrendEfficiency = $fuelTrend
-            ->map(function ($bucket): float {
-                $value = is_array($bucket) ? (float) ($bucket['efficiency'] ?? 0) : (float) ($bucket->efficiency ?? 0);
-                return round($value, 2);
-            })
-            ->values();
-        $fuelBaselineEfficiency = $fuelTrendEfficiency
-            ->filter(fn (float $value) => $value > 0)
-            ->avg();
+            return $value === null ? null : round((float) $value, 2);
+        })->values();
 
-        $fuelTrendEfficiencyForecast = $fuelTrendEfficiency
-            ->map(function (float $value, $index) use ($fuelBaselineEfficiency, $fuelAverage): float {
-                if ((float) $value > 0) {
-                    return $value;
-                }
-                $base = $fuelBaselineEfficiency > 0 ? $fuelBaselineEfficiency : ($fuelAverage > 0 ? $fuelAverage : 3.59);
-                $variance = 1 + (cos($index + 2) * 0.04);
-                return round($base * $variance, 2);
-            })
-            ->values();
+        // A valid consumption projection requires at least four recorded days
+        // in the observed window. Never synthesize points using sine/cosine.
+        $validFuelObservations = $fuelTrendActual->filter(fn ($value) => $value !== null && $value > 0);
+        $hasFuelTrendForecast = $validFuelObservations->count() >= 4;
+        $fuelTrendForecast = $fuelTrendActual->map(
+            fn ($value) => $hasFuelTrendForecast && $value !== null
+                ? round((float) $value * (1 + max(-0.25, min(0.25, $fuelChange / 100))), 2)
+                : null
+        )->values();
+
+        // Do not present a manufactured efficiency trend as an ML forecast.
+        $fuelTrendEfficiencyForecast = $fuelTrendEfficiency->map(fn ($value) => null)->values();
 
         $busRiskRow = [];
         $components = [
@@ -1422,8 +1407,8 @@ class AnalyticsStageController extends Controller
             ],
             'fuel' => (object) [
                 'kpis' => [
-                    ['label' => 'Consumption Forecast', 'value' => number_format($projectedLiters, 0) . ' L', 'icon' => 'fa-gas-pump', 'tone' => 'blue', 'caption' => ($fuelChange <= -90 || $fuelChange >= 200) ? 'Fleet baseline projection' : sprintf('%+.1f%% projected change', $fuelChange)],
-                    ['label' => 'Efficiency Forecast', 'value' => $fuelAverage > 0 ? number_format($fuelAverage, 2) . ' km/L' : '—', 'icon' => 'fa-chart-line', 'tone' => 'green', 'caption' => 'Fleet baseline'],
+                    ['label' => 'Recorded Fuel Used', 'value' => number_format((float) ($fuel['totalFuel'] ?? 0), 1) . ' L', 'icon' => 'fa-gas-pump', 'tone' => 'blue', 'caption' => 'Actual consumption in selected period'],
+                    ['label' => 'Recorded Fuel Efficiency', 'value' => $fuelAverage > 0 ? number_format($fuelAverage, 2) . ' km/L' : '—', 'icon' => 'fa-chart-line', 'tone' => 'green', 'caption' => 'Distance divided by reported fuel'],
                     ['label' => 'Below Fleet Average', 'value' => number_format($belowFleetAverage) . ' buses', 'icon' => 'fa-arrow-down', 'tone' => 'purple', 'caption' => sprintf('of %d recorded units', $fuelSummaries->count())],
                     ['label' => 'Review Units', 'value' => number_format($fuelReviewUnits->count()) . ' buses', 'icon' => 'fa-triangle-exclamation', 'tone' => 'warning', 'caption' => 'Fuel review signal'],
                     ['label' => 'High Idle Units', 'value' => number_format($fuelHighIdlingUnits->count()) . ' buses', 'icon' => 'fa-hourglass-half', 'tone' => 'warning', 'caption' => 'Idling intensity signal'],
