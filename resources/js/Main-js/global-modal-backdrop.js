@@ -129,7 +129,7 @@ function hasFixedPositionContainingBlock(overlay) {
       style.transform !== 'none' ||
       style.perspective !== 'none' ||
       style.filter !== 'none' ||
-      style.backdropFilter !== 'none' ||
+      (style.backdropFilter && style.backdropFilter !== 'none') ||
       style.contain.includes('paint') ||
       style.contain.includes('layout') ||
       willChange.some((value) => ['transform', 'perspective', 'filter'].includes(value))
