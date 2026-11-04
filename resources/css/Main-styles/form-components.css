@@ -48,6 +48,7 @@
     box-sizing: border-box;
 
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
 
     background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
@@ -69,6 +70,9 @@
 
 .ui-form-modal {
     box-sizing: border-box;
+    /* Center when there is room; allow top/bottom scrolling on short laptops. */
+    margin: auto;
+    flex-shrink: 0;
 
     width: 100%;
 
