@@ -977,6 +977,9 @@ tbody tr:last-child td {
 
   padding: 20px;
   box-sizing: border-box;
+  /* Permit short laptop viewports to reach the entire dialog. */
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
 }
 
@@ -991,6 +994,9 @@ tbody tr:last-child td {
 
 .modal-box,
 .wide-modal {
+  /* Auto margins center a fitting dialog while keeping oversized dialogs scrollable. */
+  margin: auto;
+  flex-shrink: 0;
   width: 760px;
   max-width: 95vw;
   max-height: 90vh;
