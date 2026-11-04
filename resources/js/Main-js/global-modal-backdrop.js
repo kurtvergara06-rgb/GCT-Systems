@@ -145,6 +145,14 @@ function syncViewportPortals() {
     const portal = viewportPortals.get(overlay);
     const visible = isOverlayVisible(overlay);
 
+    // Partial navigation can destroy a page while its dialog is still open.
+    // Never leave that detached page's modal orphaned above the next page.
+    if (portal && !portal.placeholder.isConnected) {
+      overlay.remove();
+      viewportPortals.delete(overlay);
+      continue;
+    }
+
     if (!visible && portal) {
       if (portal.placeholder.isConnected) {
         portal.placeholder.replaceWith(overlay);
