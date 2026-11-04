@@ -116,6 +116,62 @@ function getVisibleOverlays() {
   return allOverlays.filter(isOverlayVisible);
 }
 
+// A transformed/filtered page wrapper changes the containing block of a
+// fixed-position overlay. Move only affected open overlays to the viewport
+// layer; leave ordinary overlays in their original DOM positions.
+const viewportPortals = new Map();
+
+function hasFixedPositionContainingBlock(overlay) {
+  for (let ancestor = overlay.parentElement; ancestor && ancestor !== document.body; ancestor = ancestor.parentElement) {
+    const style = getComputedStyle(ancestor);
+    const willChange = style.willChange.split(',').map((value) => value.trim());
+    if (
+      style.transform !== 'none' ||
+      style.perspective !== 'none' ||
+      style.filter !== 'none' ||
+      style.backdropFilter !== 'none' ||
+      style.contain.includes('paint') ||
+      style.contain.includes('layout') ||
+      willChange.some((value) => ['transform', 'perspective', 'filter'].includes(value))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function syncViewportPortals() {
+  for (const overlay of document.querySelectorAll(OVERLAY_QUERY)) {
+    const portal = viewportPortals.get(overlay);
+    const visible = isOverlayVisible(overlay);
+
+    if (!visible && portal) {
+      if (portal.placeholder.isConnected) {
+        portal.placeholder.replaceWith(overlay);
+      } else {
+        overlay.remove();
+      }
+      viewportPortals.delete(overlay);
+      continue;
+    }
+
+    // Do not detach a dialog from an ancestor form: native form ownership
+    // would change. Existing internal forms move together with the overlay.
+    if (
+      visible &&
+      !portal &&
+      overlay.parentElement !== document.body &&
+      !overlay.closest('form') &&
+      hasFixedPositionContainingBlock(overlay)
+    ) {
+      const placeholder = document.createComment('gct-modal-viewport-anchor');
+      overlay.before(placeholder);
+      document.body.appendChild(overlay);
+      viewportPortals.set(overlay, { placeholder });
+    }
+  }
+}
+
 let syncQueued = false;
 let isSyncing = false;
 let scrollLockActive = false;
@@ -165,6 +221,7 @@ function syncState() {
   isSyncing = true;
 
   try {
+    syncViewportPortals();
     const visibleOverlays = getVisibleOverlays();
     const count = visibleOverlays.length;
 
