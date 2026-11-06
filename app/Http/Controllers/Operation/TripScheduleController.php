@@ -597,7 +597,7 @@ class TripScheduleController extends Controller
                 'required',
                 'date_format:H:i',
             ],
-            'client_name' => [$tripSchedule === null ? 'required' : 'nullable', 'string', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
             'direction' => [$tripSchedule === null ? 'required' : 'nullable', Rule::in(['Incoming', 'Outgoing'])],
             'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
@@ -636,22 +636,6 @@ class TripScheduleController extends Controller
         $effectiveClientName = filled($validated['client_name'] ?? null)
             ? $validated['client_name']
             : $tripSchedule?->client_name;
-
-        // Manual trip creation must reference a registered, active client.
-        // Historical edits intentionally remain backwards compatible.
-        if ($tripSchedule === null) {
-            $registeredActiveClient = OperationClient::query()
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($validated['client_name']))])
-                ->where('status', 'Active')
-                ->exists();
-
-            if (! $registeredActiveClient) {
-                throw ValidationException::withMessages([
-                    'client_name' => 'Select an active client registered in Client Master List.',
-                ]);
-            }
-        }
-
 
         $effectiveDirection = $validated['direction']
             ?? $tripSchedule?->direction;
