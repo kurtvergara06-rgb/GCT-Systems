@@ -206,17 +206,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="client-master-form-section">
-                        <h3><span>03</span> Service Information</h3>
-                        <div class="client-master-form-grid">
-                            <div class="ui-form-group">
-                                <label for="clientMasterStartDate">Service Start Date</label>
-                                <input id="clientMasterStartDate" type="date" name="service_start_date" value="{{ old('service_start_date') }}">
-                                @error('service_start_date')<small class="client-master-field-error">{{ $message }}</small>@enderror
-                            </div>
-                            <p class="client-master-form-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Client ID and Active status are assigned automatically. Trip times are managed separately.</p>
-                        </div>
-                    </div>
                 </x-ui.form-modal>
             @endif
         </main>
