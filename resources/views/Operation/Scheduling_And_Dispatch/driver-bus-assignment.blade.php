@@ -132,7 +132,7 @@
                         <div class="assignment-direction-title"><h3>{{ $directionGroup['title'] }}</h3><p>{{ $directionGroup['description'] }}</p></div>
                         <span class="assignment-direction-count">{{ $directionTrips->count() }} {{ \Illuminate\Support\Str::plural('trip', $directionTrips->count()) }}</span>
                     </div>
-                <div class="assignment-table-wrap">
+                <div class="assignment-table-wrap gct-responsive-records gct-sticky-actions">
                     <table class="assignment-table">
                         <thead>
                             <tr>
