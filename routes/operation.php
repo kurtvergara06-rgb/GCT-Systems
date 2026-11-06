@@ -182,8 +182,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
         Route::get('/assigned-drivers', 'assignedDrivers')->middleware('throttle:60,1')->name('daily-driver-reports.assigned-drivers');
-        Route::put('/{dailyDriverReport}', 'update')->middleware('system.permission:operation,edit')->name('daily-driver-reports.update');
-        Route::delete('/{dailyDriverReport}', 'destroy')->middleware('system.permission:operation,edit')->name('daily-driver-reports.destroy');
+        // Saved DDRs are immutable; corrections require a separate audited process.
     });
 
     Route::post('/operation/incidents/{incident}/maintenance-referral', [MaintenanceReferralController::class, 'store'])
