@@ -147,6 +147,7 @@ function initSearchableCombos() {
         options.forEach((option) => {
             option.addEventListener('mousedown', (e) => {
                 e.preventDefault();
+                if (option.hidden) return;
                 select(option.dataset.value, option.querySelector('strong').textContent);
             });
         });
@@ -187,10 +188,13 @@ function initDdrAssignedDrivers() {
             return;
         }
         if (!date.value) {
-            // Keep the driver search usable before a date is selected.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            // The scheduled DDR driver list is date-scoped; do not show unrelated drivers.
+            options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+            driverCombo.classList.remove('open');
             return;
         }
+        options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+        driverCombo.classList.remove('open');
         try {
             const response = await fetch(window.ddrAssignedDriversUrl + '?' + new URLSearchParams({report_date: date.value}), {
                 headers: {'Accept': 'application/json'}
@@ -212,8 +216,10 @@ function initDdrAssignedDrivers() {
                 driverCombo.classList.remove('has-value');
             }
         } catch (error) {
-            // A failed lookup must not make the driver's input appear broken.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            if (token !== requestToken) return;
+            // Fail closed: an unsuccessful availability lookup must not display every driver.
+            options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+            driverCombo.classList.remove('open');
         }
     };
     date.addEventListener('change', update);
@@ -421,6 +427,9 @@ function initScheduleContextPanel() {
             const busIds = [...new Set(schedules.map(schedule => String(schedule.bus_id || '')))];
             if (busIds.length === 1 && busIds[0]) {
                 selectComboValue('bus', busIds[0], schedules[0].bus_no);
+            } else {
+                showStatus('matched', 'fa-circle-info',
+                    'This driver has trips on different buses. Select the correct trip to fill its bus.');
             }
         }
         listEl.classList.toggle('has-items', schedules.length > 0);
@@ -461,6 +470,8 @@ function initScheduleContextPanel() {
                 report_date: date,
             });
             query.set('driver_id', driverId);
+            // Scheduled DDR encoding shows only trips that are awaiting a DDR.
+            query.set('pending_only', '1');
 
             const response = await fetch(
                 window.ddrScheduleLookupUrl + '?' + query.toString(),
