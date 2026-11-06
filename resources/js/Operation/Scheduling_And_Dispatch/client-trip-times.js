@@ -607,34 +607,6 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     clientSearch?.addEventListener('input', applyClientSearch);
     applyClientSearch();
     updateToggleAllButton();
-    // Create a client without leaving the Client Trip Times workspace.
-    const createClientButton = document.getElementById('cttAddClientButton');
-    const createClientModal = document.getElementById('cttCreateClientModal');
-    if (createClientButton && createClientModal) {
-        const openClientModal = () => {
-            createClientModal.classList.add('show', 'active');
-            document.body.classList.add('modal-open');
-            createClientModal.querySelector('input[name="name"]')?.focus();
-        };
-        const closeClientModal = () => {
-            createClientModal.classList.remove('show', 'active');
-            if (!document.querySelector('.ui-form-overlay.show, .ui-form-overlay.active')) {
-                document.body.classList.remove('modal-open');
-            }
-            createClientButton.focus();
-        };
-        createClientButton.addEventListener('click', openClientModal);
-        createClientModal.querySelectorAll('[data-ui-modal-close]').forEach((button) => {
-            button.addEventListener('click', closeClientModal);
-        });
-        createClientModal.addEventListener('click', (event) => {
-            if (event.target === createClientModal) closeClientModal();
-        });
-        if (createClientModal.querySelector('[role="alert"]')) openClientModal();
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && createClientModal.classList.contains('show')) closeClientModal();
-        });
-    }
 
 
 });
