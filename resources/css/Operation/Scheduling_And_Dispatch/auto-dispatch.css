@@ -5308,3 +5308,88 @@ body.ai-modal-open {
     -webkit-user-select: none;
   }
 }
+
+
+/* Compact Scheduling Setup: no tall, stretched resource card or stacked CTA. */
+@media screen {
+  .auto-scheduling-page .auto-main-grid {
+    align-items: start;
+  }
+  .auto-scheduling-page .auto-main-grid > .schedule-configuration-card,
+  .auto-scheduling-page .auto-main-grid > .resource-card {
+    min-width: 0;
+    height: auto;
+    align-self: start;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header {
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header > div:first-child {
+    min-width: 0;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-header-side-actions {
+    flex: 0 0 auto;
+    align-items: center;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-client-trip-times-link {
+    min-height: 38px;
+    padding: 7px 11px;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-scheduling-assurance {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: none;
+    margin: 0 0 15px;
+    padding: 9px 11px;
+    border: 1px solid #dce9ff;
+    border-radius: 9px;
+    background: #f4f8ff;
+    color: #2155a0;
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-scheduling-assurance i {
+    flex: 0 0 auto;
+    font-size: 14px;
+    margin: 0;
+  }
+  .auto-scheduling-page .schedule-configuration-card .generation-summary {
+    margin-top: 13px;
+    padding: 10px 13px;
+    gap: 12px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status {
+    min-height: 0;
+    margin-top: 12px;
+    padding: 9px 12px;
+    gap: 8px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status .ai-status-label {
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status .ai-status-badge {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .generate-schedule-btn {
+    margin-top: 13px;
+    height: 47px;
+  }
+  .auto-scheduling-page .auto-main-grid > .resource-card .resource-item {
+    padding: 11px 0;
+  }
+}
+@media screen and (max-width: 700px) {
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header {
+    flex-wrap: wrap;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-header-side-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
