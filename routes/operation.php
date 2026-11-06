@@ -97,6 +97,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
             Route::put('/{tripSchedule}', 'update')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.update');
+            Route::patch('/{tripSchedule}/cancel', 'cancel')
+                ->middleware(['system.permission:operation,edit', 'system.permission:operation,approve'])
+                ->name('trip-schedule.cancel');
             Route::delete('/{tripSchedule}', 'destroy')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.destroy');
