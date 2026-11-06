@@ -550,7 +550,7 @@ class TripAssignmentController extends Controller
                 $isReadyReplacement = $trip->status === 'Ready';
                 $replacementReason = trim((string) $request->input('replacement_reason', ''));
                 if ($isReadyReplacement) {
-                    if (! (auth()->user()?->hasSystemPermission('operation', 'approve') ?? false)) {
+                    if (! (auth()->user()?->canApproveReadyTripChanges() ?? false)) {
                         throw ValidationException::withMessages([
                             'trip_schedule_id' => 'Only the Operations Head may approve a Ready-trip replacement.',
                         ]);
