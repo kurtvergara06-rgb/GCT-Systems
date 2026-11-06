@@ -84,7 +84,7 @@ function initSearchableCombos() {
             close();
 
             window.dispatchEvent(new CustomEvent('combo:select', {
-                detail: { field: combo.dataset.field || '', value },
+                detail: { field: combo.dataset.field || '', value, source: combo },
             }));
         };
 
@@ -97,21 +97,51 @@ function initSearchableCombos() {
             // Clearing a driver must also clear its selected trip and assigned bus.
             if (hadSelection && combo.dataset.field === 'driver') {
                 window.dispatchEvent(new CustomEvent('combo:select', {
-                    detail: { field: 'driver', value: '' },
+                    detail: { field: 'driver', value: '', source: combo },
                 }));
             }
         };
 
         input.addEventListener('focus', open);
 
+        // Preserve the user's search text. The old clear() call emptied it on every keystroke.
         input.addEventListener('input', () => {
             if (combo.dataset.field === 'bus' && input.readOnly) return;
-            clear();
+            const hadSelection = Boolean(hidden.value);
+            hidden.value = '';
+            combo.classList.remove('has-value');
+            if (hadSelection && combo.dataset.field === 'driver') {
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '', source: combo },
+                }));
+            }
             open();
         });
 
+        // Accept an unambiguous exact driver name/ID, including keyboard entry.
+        const selectExactMatch = () => {
+            if (combo.dataset.field !== 'driver' || hidden.value || !input.value.trim()) return false;
+            const search = input.value.trim().toLocaleLowerCase();
+            const matches = options.filter(option => !option.hidden && (
+                option.querySelector('strong')?.textContent.trim().toLocaleLowerCase() === search
+                || String(option.dataset.value).toLocaleLowerCase() === search
+            ));
+            if (matches.length !== 1) return false;
+            const option = matches[0];
+            select(option.dataset.value, option.querySelector('strong').textContent);
+            return true;
+        };
+
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') close();
+            if (e.key === 'Escape') {
+                close();
+            } else if (e.key === 'Enter' && combo.dataset.field === 'driver' && selectExactMatch()) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('blur', () => {
+            // Let suggestion mousedown commit first; do not choose ambiguous partial names.
+            selectExactMatch();
         });
 
         options.forEach((option) => {
@@ -465,11 +495,7 @@ function initScheduleContextPanel() {
     }
 
     window.addEventListener('combo:select', (event) => {
-        if (!root.contains(event.target) && event.target !== window) {
-            // Combo events are dispatched globally; only this DDR modal owns this lookup.
-            return;
-        }
-        if (event.detail?.field !== 'driver') return;
+        if (event.detail?.field !== 'driver' || !event.detail.source || !root.contains(event.detail.source)) return;
         const bus = root.querySelector('[data-combo][data-field="bus"]');
         const hidden = bus?.querySelector('[data-combo-value]');
         const input = bus?.querySelector('[data-combo-input]');
