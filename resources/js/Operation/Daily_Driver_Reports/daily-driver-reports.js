@@ -444,11 +444,14 @@ function initScheduleContextPanel() {
             const rows = payload.schedules || [];
 
             renderSchedules(rows);
-            showStatus(
-                rows.length > 0 ? 'matched' : 'unmatched',
-                rows.length > 0 ? 'fa-circle-check' : 'fa-triangle-exclamation',
-                payload.message || 'Schedule match unavailable.'
-            );
+            // A single trip is selected automatically; keep its assigned-bus confirmation visible.
+            if (rows.length !== 1) {
+                showStatus(
+                    rows.length > 0 ? 'matched' : 'unmatched',
+                    rows.length > 0 ? 'fa-circle-check' : 'fa-triangle-exclamation',
+                    payload.message || 'Schedule match unavailable.'
+                );
+            }
         } catch (error) {
             if (sequence === lookupSequence) {
                 showStatus('unmatched', 'fa-triangle-exclamation', 'Unable to retrieve assignments. Please try again.');
