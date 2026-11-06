@@ -2740,12 +2740,12 @@
 }
 .trip-schedule-page .service-col-expand{width:3%}
 .trip-schedule-page .service-col-time{width:8%}
-.trip-schedule-page .service-col-route{width:17%}
-.trip-schedule-page .service-col-point{width:20%}
-.trip-schedule-page .service-col-required{width:11%}
-.trip-schedule-page .service-col-assigned{width:12%}
-.trip-schedule-page .service-col-status{width:15%}
-.trip-schedule-page .service-col-actions{width:14%}
+.trip-schedule-page .service-col-route{width:24%}
+.trip-schedule-page .service-col-point{width:19%}
+.trip-schedule-page .service-col-required{width:10%}
+.trip-schedule-page .service-col-assigned{width:11%}
+.trip-schedule-page .service-col-status{width:13%}
+.trip-schedule-page .service-col-actions{width:12%}
 .trip-schedule-page .service-table th,
 .trip-schedule-page .service-table td{box-sizing:border-box;padding:10px 8px;vertical-align:middle}
 .trip-schedule-page .service-table td:nth-child(3),
@@ -3558,8 +3558,8 @@
     position: sticky;
     right: 0;
     box-sizing: border-box;
-    min-width: 140px;
-    width: 14%;
+    min-width: 145px;
+    width: 12%;
     text-align: center;
     white-space: nowrap;
     z-index: 4;
@@ -3865,3 +3865,45 @@
     min-width: 0;
     max-width: 100%;
 }
+
+/* Incoming/Outgoing table: give route names readable space while aligning
+   quantities, statuses and actions across both service directions. */
+.trip-schedule-page .service-table td.service-route,
+.trip-schedule-page .service-table td.service-pickup {
+    min-width: 0;
+}
+.trip-schedule-page .service-table .service-route-cell {
+    max-width: none;
+    min-width: 0;
+    width: 100%;
+    gap: 8px;
+}
+.trip-schedule-page .service-table .service-route-cell > .service-route-title {
+    min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+}
+.trip-schedule-page .service-table .service-route-cell > :first-child:not(.service-route-title) {
+    flex: 0 0 auto;
+}
+.trip-schedule-page .service-table td.service-assigned-col .service-assigned-wrap {
+    min-width: 0;
+    width: min(100%, 120px);
+    margin-inline: auto;
+}
+.trip-schedule-page .service-table th:nth-child(6),
+.trip-schedule-page .service-table td:nth-child(6),
+.trip-schedule-page .service-table th:nth-child(7),
+.trip-schedule-page .service-table td:nth-child(7) {
+    text-align: center;
+}
+.trip-schedule-page .service-table .service-buses-badge {
+    justify-content: center;
+}
+.trip-schedule-page .service-table tbody tr:not(.service-client-route-heading, .service-details-row) > td {
+    vertical-align: middle;
+}
+
