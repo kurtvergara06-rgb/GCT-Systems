@@ -1,4 +1,33 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
+    // Keep the date indicator synchronized with the filter popup, including
+    // the shared calendar picker (which dispatches input/change events).
+    const scheduleToolbar = document.querySelector('.trip-record-controls .gct-table-toolbar');
+    const dateFilterInput = scheduleToolbar?.querySelector('[name="trip_date"]');
+    const dateIndicator = document.querySelector('.trip-selected-date');
+    const dateIndicatorValue = dateIndicator?.querySelector('[data-trip-selected-date-value]');
+    const dateIndicatorLabel = dateIndicator?.querySelector('[data-trip-selected-date-label]');
+    const appliedDate = dateFilterInput?.value || '';
+    const formatSelectedDate = (value) => {
+        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value || '')) return 'All dates';
+        const [year, month, day] = value.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return 'All dates';
+        return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    };
+    const syncSelectedDate = () => {
+        if (!dateFilterInput || !dateIndicatorValue) return;
+        const current = dateFilterInput.value;
+        const pending = current !== appliedDate;
+        dateIndicatorValue.textContent = formatSelectedDate(current);
+        if (dateIndicatorLabel) {
+            dateIndicatorLabel.textContent = pending ? 'Selected date · Apply to view' : 'Showing schedules for';
+        }
+        dateIndicator?.classList.toggle('is-pending', pending);
+    };
+    dateFilterInput?.addEventListener('input', syncSelectedDate);
+    dateFilterInput?.addEventListener('change', syncSelectedDate);
+    syncSelectedDate();
+
     const tripModal = document.getElementById('tripModal');
     const viewTripModal = document.getElementById('viewTripModal');
     const deleteTripModal = document.getElementById('deleteTripModal');
