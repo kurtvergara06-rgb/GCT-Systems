@@ -365,7 +365,7 @@
                                                     'previousBus' => $audit->previous_bus_label ?: $audit->previous_bus_id ?: 'Unknown',
                                                     'newBus' => $audit->new_bus_label ?: $audit->new_bus_id ?: 'Unknown',
                                                     'reason' => $audit->reason,
-                                                    'approvedBy' => $audit->performed_by,
+                                                    'approvedBy' => $audit->approved_by_name ?: 'Account '.$audit->performed_by,
                                                 ])->values()->all(),
                                             ];
                                         @endphp
