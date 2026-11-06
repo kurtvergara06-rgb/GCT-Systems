@@ -740,6 +740,7 @@
             data-driver-id="{{ old('driver_id', old('driver_attendance_id')) }}"
             data-bus-id="{{ old('bus_id') }}"
             data-method="{{ old('_method') }}"
+            data-replacement-reason="{{ old('replacement_reason') }}"
         ></span>
 
         <div class="assignment-form-grid" id="companyAssignmentFields">
