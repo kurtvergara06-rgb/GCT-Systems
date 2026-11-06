@@ -449,7 +449,7 @@
             id="tripModal"
             title="New Trip"
             title-id="tripModalTitle"
-            description="Select a client, route, schedule, and other trip details."
+            description="Set the trip type, route, schedule, and other trip details."
             icon="fa-calendar-plus"
             size="large"
             form-id="tripForm"
@@ -468,130 +468,127 @@
             <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
 
 
-            <div class="trip-editor-layout">
-                <div class="trip-editor-section" aria-labelledby="tripInfoHeading">
-                    <div class="trip-editor-section-heading">
-                        <span class="trip-editor-section-number">01</span>
-                        <h3 id="tripInfoHeading">Trip Information</h3>
-                        <span class="trip-id-compact">Trip ID <strong id="tripCodeLabel">Auto-generated</strong></span>
-                    </div>
-                    <div class="trip-guided-grid">
-                        <div class="ui-form-group ui-form-full">
-                            <label for="tripServiceMode">Trip Type <span class="ui-required">*</span></label>
-                            <div class="ui-input-wrap has-icon">
-                                <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
-                                <select id="tripServiceMode" name="trip_service_mode" required>
-                                    <option value="">Select Client or No Client</option>
-                                    <option value="client" @selected(old('trip_service_mode') === 'client')>Client — Client-Allocated Routes</option>
-                                    <option value="general" @selected(old('trip_service_mode') === 'general')>No Client — General Routes</option>
-                                </select>
-                            </div>
-                            @error('trip_service_mode')<span class="ui-field-error">{{ $message }}</span>@enderror
+            <div class="trip-editor-layout trip-editor-reference-layout">
+                <div class="trip-guided-grid trip-reference-grid">
+                    <fieldset class="trip-type-field ui-form-full" aria-labelledby="tripTypeLabel">
+                        <legend id="tripTypeLabel">Trip Type <span class="ui-required">*</span></legend>
+                        <select id="tripServiceMode" name="trip_service_mode" class="trip-service-mode-source" tabindex="-1" aria-hidden="true">
+                            <option value="client" @selected(old('trip_service_mode', 'client') === 'client')>Client</option>
+                            <option value="general" @selected(old('trip_service_mode') === 'general')>No Client</option>
+                        </select>
+                        <div class="trip-mode-choices" role="radiogroup" aria-labelledby="tripTypeLabel">
+                            <label class="trip-mode-choice">
+                                <input type="radio" name="trip_mode_choice" value="client" @checked(old('trip_service_mode', 'client') === 'client')>
+                                <span class="trip-mode-radio" aria-hidden="true"></span>
+                                <span class="trip-mode-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                                <span class="trip-mode-copy"><strong>Has Client</strong><small>Trip for an assigned client / company</small></span>
+                            </label>
+                            <label class="trip-mode-choice">
+                                <input type="radio" name="trip_mode_choice" value="general" @checked(old('trip_service_mode') === 'general')>
+                                <span class="trip-mode-radio" aria-hidden="true"></span>
+                                <span class="trip-mode-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
+                                <span class="trip-mode-copy"><strong>No Client</strong><small>General or unallocated service</small></span>
+                            </label>
                         </div>
-                        <div class="ui-form-group ui-form-full" id="tripClientField" hidden>
-                            <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
-                            <div class="ui-input-wrap has-icon">
-                                <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                                <select id="tripClientName" name="client_name" disabled>
-                                    <option value="">Select active client</option>
-                                    @foreach($operationClientNames as $clientName)
-                                        <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
-                                    @endforeach
-                                    @if(old('client_name') && !$operationClientNames->contains(old('client_name')))
-                                        <option value="{{ old('client_name') }}" selected data-legacy-client>{{ old('client_name') }} (existing allocation)</option>
-                                    @endif
-                                </select>
-                            </div>
-                            @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="ui-form-group ui-form-full">
-                            <label for="tripRoute" id="tripRouteLabel">Route <span class="ui-required">*</span></label>
-                            <div class="ui-input-wrap has-icon">
-                                <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
-                                <select name="shuttle_route_id" id="tripRoute" required disabled>
-                                    <option value="">Select trip type first</option>
-                                    @foreach($activeRoutes as $route)
-                                        <option value="{{ $route->id }}" data-client-id="{{ $route->operation_client_id }}" data-client-name="{{ $route->client?->name }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
-                                            {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
-                        </div>
-                    </div>
-                </div>
+                        @error('trip_service_mode')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </fieldset>
 
-                <div class="trip-editor-section" aria-labelledby="tripScheduleHeading">
-                    <div class="trip-editor-section-heading">
-                        <span class="trip-editor-section-number">02</span>
-                        <h3 id="tripScheduleHeading">Schedule Details</h3>
-                    </div>
-                    <div class="trip-guided-grid">
-                        <div class="ui-form-group">
-                            <label for="tripDate">Trip Date <span class="ui-required">*</span></label>
-                            <div class="ui-input-wrap has-icon">
-                                <span class="ui-input-icon"><i class="fa-solid fa-calendar-day"></i></span>
-                                <input name="trip_date" id="tripDate" type="date" value="{{ old('trip_date', now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d')) }}" min="{{ now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d') }}" required>
-                            </div>
-                            @error('trip_date')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    <div class="ui-form-group">
+                        <label for="tripCodeDisplay">Trip ID</label>
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon"><i class="fa-solid fa-hashtag"></i></span>
+                            <input id="tripCodeDisplay" type="text" value="Auto-generated" readonly tabindex="-1" aria-readonly="true">
                         </div>
-                        <div class="ui-form-group">
-                            <label for="tripDirection">Service Direction <span class="ui-required">*</span></label>
-                            <select name="direction" id="tripDirection" required>
-                                <option value="" disabled @selected(!old('direction'))>Select service direction</option>
-                                <option value="Incoming" @selected(old('direction') === 'Incoming')>Incoming — Employees going to work</option>
-                                <option value="Outgoing" @selected(old('direction') === 'Outgoing')>Outgoing — Employees going home</option>
+                    </div>
+                    <div class="ui-form-group">
+                        <label for="tripDate">Trip Date <span class="ui-required">*</span></label>
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon"><i class="fa-solid fa-calendar-day"></i></span>
+                            <input name="trip_date" id="tripDate" type="date" value="{{ old('trip_date', now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d')) }}" min="{{ now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d') }}" required>
+                        </div>
+                        @error('trip_date')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
+
+                    <div class="ui-form-group ui-form-full" id="tripClientField">
+                        <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
+                            <select id="tripClientName" name="client_name">
+                                <option value="">Select active client</option>
+                                @foreach($operationClientNames as $clientName)
+                                    <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
+                                @endforeach
+                                @if(old('client_name') && !$operationClientNames->contains(old('client_name')))
+                                    <option value="{{ old('client_name') }}" selected data-legacy-client>{{ old('client_name') }} (existing allocation)</option>
+                                @endif
                             </select>
-                            @error('direction')<span class="ui-field-error">{{ $message }}</span>@enderror
                         </div>
-                        <div class="ui-form-group trip-departure-time-group">
-                            <label for="departureTime">Departure Time <span class="ui-required">*</span></label>
-                            <div class="ui-input-wrap has-icon" id="departureTimeInputWrap">
-                                <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
-                                <input type="time" name="departure_time" id="departureTime" value="{{ old('departure_time') }}" required>
-                                <select id="departureTimeSlot" disabled hidden>
-                                    <option value="">Select configured time</option>
-                                </select>
-                            </div>
-                            <div id="tripTimeConfigNotice" class="trip-time-config-notice" hidden></div>
-                            @error('departure_time')<span class="ui-field-error">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="ui-form-group">
-                            <label for="arrivalTime">Estimated Arrival <span class="trip-label-auto">Automatically calculated</span></label>
-                            <div class="ui-input-wrap has-icon">
-                                <span class="ui-input-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                                <input type="time" id="arrivalTime" name="estimated_arrival_time_display" value="{{ old('estimated_arrival_time_display') }}" readonly aria-readonly="true">
-                            </div>
-                        </div>
-                        <div class="ui-form-group ui-form-full trip-buses-group">
-                            <label for="tripRequiredBuses">Required Buses</label>
-                            <input name="required_buses" id="tripRequiredBuses" type="number" min="1" max="30" step="1" value="{{ old('required_buses', 1) }}" required>
-                            @error('required_buses')<span class="ui-field-error">{{ $message }}</span>@enderror
-                        </div>
+                        @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
-                </div>
+                    <div class="ui-form-group ui-form-full">
+                        <label for="tripRoute" id="tripRouteLabel">Client Route <span class="ui-required">*</span></label>
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
+                            <select name="shuttle_route_id" id="tripRoute" required disabled>
+                                <option value="">Select client first</option>
+                                @foreach($activeRoutes as $route)
+                                    <option value="{{ $route->id }}" data-client-id="{{ $route->operation_client_id }}" data-client-name="{{ $route->client?->name }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
+                                        {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
 
-                <div class="trip-editor-section" aria-labelledby="tripAdditionalHeading">
-                    <div class="trip-editor-section-heading">
-                        <span class="trip-editor-section-number">03</span>
-                        <h3 id="tripAdditionalHeading">Additional Details</h3>
-                        <span class="trip-editor-optional">Optional</span>
+                    <div class="ui-form-group">
+                        <label for="tripDirection">Service Direction <span class="ui-required">*</span></label>
+                        <select name="direction" id="tripDirection" required>
+                            <option value="" disabled @selected(!old('direction'))>Select service direction</option>
+                            <option value="Incoming" @selected(old('direction') === 'Incoming')>Incoming — Employees going to work</option>
+                            <option value="Outgoing" @selected(old('direction') === 'Outgoing')>Outgoing — Employees going home</option>
+                        </select>
+                        @error('direction')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
-                    <div class="ui-form-group trip-notes-group">
+                    <div class="ui-form-group trip-buses-group">
+                        <label for="tripRequiredBuses">Required Buses</label>
+                        <input name="required_buses" id="tripRequiredBuses" type="number" min="1" max="30" step="1" value="{{ old('required_buses', 1) }}" required>
+                        @error('required_buses')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
+
+                    <div class="ui-form-group trip-departure-time-group">
+                        <label for="departureTime">Departure Time <span class="ui-required">*</span></label>
+                        <div class="ui-input-wrap has-icon" id="departureTimeInputWrap">
+                            <span class="ui-input-icon"><i class="fa-solid fa-clock"></i></span>
+                            <input type="time" name="departure_time" id="departureTime" value="{{ old('departure_time') }}" required>
+                            <select id="departureTimeSlot" disabled hidden>
+                                <option value="">Select configured time</option>
+                            </select>
+                        </div>
+                        <div id="tripTimeConfigNotice" class="trip-time-config-notice" hidden></div>
+                        @error('departure_time')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="ui-form-group">
+                        <label for="arrivalTime">Estimated Arrival <span class="trip-label-auto">(Auto)</span></label>
+                        <div class="ui-input-wrap has-icon">
+                            <span class="ui-input-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                            <input type="time" id="arrivalTime" name="estimated_arrival_time_display" value="{{ old('estimated_arrival_time_display') }}" readonly aria-readonly="true">
+                        </div>
+                    </div>
+
+                    <div class="ui-form-group ui-form-full trip-notes-group">
                         <label for="tripNotes">Notes</label>
                         <div class="ui-input-wrap trip-textarea-wrap">
                             <span class="trip-textarea-icon"><i class="fa-solid fa-pen"></i></span>
                             <textarea name="notes" id="tripNotes" rows="2" maxlength="2000" placeholder="Optional trip remarks...">{{ old('notes') }}</textarea>
                         </div>
                         <div class="trip-notes-meta">
-                            <span>Operational remarks</span>
+                            <span>Optional operational remarks</span>
                             <span id="tripNotesCount">0 / 2000</span>
                         </div>
                         @error('notes')<span class="ui-field-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
-
                 <input type="hidden" id="tripCode" value="Auto-generated">
                 <input type="hidden" name="status" id="tripStatus" value="{{ old('status', 'Scheduled') }}">
             </div>
