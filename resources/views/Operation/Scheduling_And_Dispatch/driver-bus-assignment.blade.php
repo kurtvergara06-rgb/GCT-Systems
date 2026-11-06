@@ -358,6 +358,15 @@
                                                 'bus' => $bus?->plate_no ?: $bus?->bus_no,
                                                 'status' => $trip->status,
                                                 'assignmentStatus' => $trip->assignment_status,
+                                                'replacementHistory' => ($replacementHistoryByAssignment->get($assignment->id) ?? collect())->map(fn ($audit) => [
+                                                    'date' => \Illuminate\Support\Carbon::parse($audit->created_at)->format('M d, Y g:i A'),
+                                                    'previousDriver' => $audit->previous_driver_name ?: $audit->previous_driver_id ?: 'Unknown',
+                                                    'newDriver' => $audit->new_driver_name ?: $audit->new_driver_id ?: 'Unknown',
+                                                    'previousBus' => $audit->previous_bus_label ?: $audit->previous_bus_id ?: 'Unknown',
+                                                    'newBus' => $audit->new_bus_label ?: $audit->new_bus_id ?: 'Unknown',
+                                                    'reason' => $audit->reason,
+                                                    'approvedBy' => $audit->performed_by,
+                                                ])->values()->all(),
                                             ];
                                         @endphp
                                         <tr>
