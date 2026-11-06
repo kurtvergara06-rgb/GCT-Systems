@@ -2599,3 +2599,31 @@
 .personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody tr:hover td:nth-child(6) {
   background: #f8fbff;
 }
+
+
+/* Driver Records header: the generic <=1380px toolbar rule expands
+   .personnel-add-btn to width:100%, breaking the header on laptops.
+   Restore an intrinsic button width without changing other modules. */
+.personnel-master-page .personnel-master-panel > .personnel-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.personnel-master-page .personnel-master-panel > .personnel-section-header > div {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.personnel-master-page .personnel-master-panel > .personnel-section-header > .personnel-add-btn {
+  flex: 0 0 auto;
+  width: auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .personnel-master-page .personnel-master-panel > .personnel-section-header > .personnel-add-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}
