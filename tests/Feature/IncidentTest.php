@@ -79,7 +79,7 @@ class IncidentTest extends TestCase
             'estimated_arrival_time' => '06:00:00',
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Ready',
+            'status' => 'Dispatched',
             'created_by' => $this->user->id,
         ]);
 
@@ -91,6 +91,30 @@ class IncidentTest extends TestCase
             'bus_id' => $this->bus->id,
             'assigned_by' => $this->user->id,
         ]);
+    }
+
+    public function test_bus_dropdown_only_offers_in_progress_trip_assignments(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('data-bus-id="'.$this->bus->id.'"', false)
+            ->assertSee('Select a bus on an In Progress trip today.');
+
+        $this->tripSchedule->update(['status' => 'Ready']);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertDontSee('data-bus-id="'.$this->bus->id.'"', false);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Test location',
+            ])
+            ->assertSessionHasErrors('bus_id');
     }
 
     public function test_driver_can_submit_an_incident(): void
