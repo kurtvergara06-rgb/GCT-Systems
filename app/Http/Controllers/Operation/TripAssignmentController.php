@@ -529,9 +529,12 @@ class TripAssignmentController extends Controller
             $request,
             $tripAssignment
         );
+        $request->validate([
+            'replacement_reason' => ['nullable', 'string', 'min:10', 'max:1000'],
+        ]);
 
         $trip = DB::transaction(
-            function () use ($validated, $tripAssignment): TripSchedule {
+            function () use ($validated, $tripAssignment, $request): TripSchedule {
                 $lockedAssignment = TripAssignment::query()
                     ->whereKey($tripAssignment->id)
                     ->lockForUpdate()
@@ -544,6 +547,20 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
+                $isReadyReplacement = $trip->status === 'Ready';
+                $replacementReason = trim((string) $request->input('replacement_reason', ''));
+                if ($isReadyReplacement) {
+                    if (! (auth()->user()?->hasSystemPermission('operation', 'approve') ?? false)) {
+                        throw ValidationException::withMessages([
+                            'trip_schedule_id' => 'Only the Operations Head may approve a Ready-trip replacement.',
+                        ]);
+                    }
+                    if (mb_strlen($replacementReason) < 10 || mb_strlen($replacementReason) > 1000) {
+                        throw ValidationException::withMessages([
+                            'replacement_reason' => 'Provide a replacement reason between 10 and 1000 characters.',
+                        ]);
+                    }
+                }
                 $this->assertRouteIsActive($trip);
 
                 $driver = $this->lockEligibleDriver(
@@ -575,6 +592,30 @@ class TripAssignmentController extends Controller
                     $lockedAssignment->id
                 );
 
+                if ($isReadyReplacement) {
+                    if ((int) $lockedAssignment->driver_id === (int) $driver->driver_id
+                        && (int) $lockedAssignment->bus_id === (int) $bus->id) {
+                        throw ValidationException::withMessages([
+                            'trip_schedule_id' => 'Select a different driver or bus for the replacement.',
+                        ]);
+                    }
+                    DB::table('operation_trip_change_audits')->insert([
+                        'trip_schedule_id' => $trip->id,
+                        'trip_assignment_id' => $lockedAssignment->id,
+                        'performed_by' => auth()->id(),
+                        'action' => 'ready_replacement',
+                        'previous_status' => $trip->status,
+                        'new_status' => 'Ready',
+                        'previous_driver_id' => $lockedAssignment->driver_id,
+                        'new_driver_id' => $driver->driver_id,
+                        'previous_bus_id' => $lockedAssignment->bus_id,
+                        'new_bus_id' => $bus->id,
+                        'reason' => $replacementReason,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 $lockedAssignment->update([
                     'driver_attendance_id' => $driver->id ?: null,
                     'driver_id' => $driver->driver_id,
@@ -599,7 +640,9 @@ class TripAssignmentController extends Controller
 
         session()->flash(
             'success',
-            'Assignment updated successfully.'
+            $trip->status === 'Ready'
+                ? 'Ready-trip replacement approved and recorded successfully.'
+                : 'Assignment updated successfully.'
         );
 
         return $this->redirectToIndex($request);
