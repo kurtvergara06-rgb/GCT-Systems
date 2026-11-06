@@ -3907,3 +3907,12 @@
     vertical-align: middle;
 }
 
+/* Trip type controls allocation: hide Client / Company for general service
+   regardless of generic .ui-form-group display rules. */
+#tripModal #tripClientField[hidden] {
+    display: none !important;
+}
+#tripModal #tripClientField:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+}
