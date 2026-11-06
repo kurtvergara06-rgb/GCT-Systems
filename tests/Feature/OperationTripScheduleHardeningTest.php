@@ -36,16 +36,40 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
     }
 
-    public function test_new_trip_modal_uses_client_selection_without_clientless_mode(): void
+    public function test_new_trip_modal_supports_no_client_general_service(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
 
         $this->assertStringContainsString('id="tripClientName"', $view);
-        $this->assertStringContainsString('name="client_name" required', $view);
-        $this->assertStringNotContainsString('id="tripServiceMode"', $view);
-        $this->assertStringNotContainsString('value="general"', $view);
-        $this->assertStringContainsString('const available = Boolean(client && ownerId && ownerName === client);', $script);
+        $this->assertStringContainsString('No Client (General Service)', $view);
+        $this->assertStringContainsString('const available = client ? Boolean(ownerId && ownerName === client) : !ownerId;', $script);
+        $this->assertStringContainsString('tripClientName.required = false;', $script);
+    }
+
+    public function test_general_service_trip_can_be_created_on_unallocated_route(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route('R-GENERAL');
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
+
+        $this->actingAs($user)
+            ->post(route('trip-schedule.store'), [
+                'trip_date' => $date,
+                'shuttle_route_id' => $route->id,
+                'client_name' => '',
+                'departure_time' => '08:00',
+                'direction' => 'Incoming',
+                'required_buses' => 1,
+            ])
+            ->assertRedirect('/operation/trip-schedule')
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('trip_schedules', [
+            'shuttle_route_id' => $route->id,
+            'client_name' => null,
+            'direction' => 'Incoming',
+        ]);
     }
 
     private function route(string $code = 'R-TEST', int $minutes = 30): ShuttleRoute
