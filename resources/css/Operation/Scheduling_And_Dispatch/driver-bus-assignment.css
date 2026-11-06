@@ -1240,6 +1240,48 @@
     color: #ffffff;
 }
 
+/* Cancel an entire scheduled service, not an individual driver/bus assignment. */
+.assignment-page .assignment-action.cancel-assignment-trip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.assignment-page .assignment-action.cancel-assignment-trip:hover {
+    background: #be123c;
+    color: #ffffff;
+}
+.assignment-page .assignment-action.cancel-assignment-trip:focus-visible {
+    outline: 2px solid #be123c;
+    outline-offset: 2px;
+}
+.assignment-page .assignment-cancel-trip-summary {
+    margin: 0 0 14px;
+    padding: 12px;
+    border: 1px solid #fecdd3;
+    border-radius: 9px;
+    background: #fff7f8;
+    color: #881337;
+    font-size: 13px;
+    line-height: 1.5;
+}
+#cancelAssignmentTripModal .ui-form-group textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 105px;
+    padding: 10px 12px;
+    resize: vertical;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font: inherit;
+}
+
 .resource-empty {
     margin: 14px 0 0;
     color: var(--assign-muted);
