@@ -344,7 +344,7 @@ function initIncidentBusLookup() {
             showTripOptions(bus);
             if (!matchingTrips(confirmedBus).length) showDetails(null);
         };
-        const search = () => {
+        const search = (showAll = false) => {
             const typed = input.value.trim().toLowerCase();
             if (busSelect.value !== confirmedBus || !buses.some(bus => bus.dataset.busId === confirmedBus &&
                 [bus.dataset.busNo, bus.dataset.plateNo].some(s => (s || '').toLowerCase() === typed))) {
@@ -355,11 +355,11 @@ function initIncidentBusLookup() {
             }
             results.replaceChildren();
             // Opening an empty Bus ID field lists all buses currently on In Progress trips.
-            const matches = buses.filter(bus => !typed || [bus.dataset.busNo, bus.dataset.plateNo]
+            const matches = buses.filter(bus => showAll || !typed || [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase().includes(typed))).slice(0, 30);
             const exact = matches.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase() === typed));
-            if (exact.length === 1) { selectBus(exact[0]); return; }
+            if (!showAll && exact.length === 1) { selectBus(exact[0]); return; }
             if (!matches.length) {
                 const notice = document.createElement('p');
                 notice.textContent = typed
@@ -378,7 +378,7 @@ function initIncidentBusLookup() {
             }
             results.hidden = false;
         };
-        input.addEventListener('input', search);
+        input.addEventListener('input', () => search());
         input.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 results.hidden = true;
@@ -389,12 +389,9 @@ function initIncidentBusLookup() {
             if (!lookup.contains(event.target)) results.hidden = true;
         });
         input.addEventListener('focus', () => {
-            // Always reveal the available in-progress buses, even before typing.
-            if (!confirmedBus) search();
-            else {
-                input.select();
-                search();
-            }
+            // Clicking the field displays the full active bus list without
+            // discarding a previously confirmed assignment.
+            search(true);
         });
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];
