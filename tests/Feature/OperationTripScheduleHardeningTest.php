@@ -42,12 +42,14 @@ class OperationTripScheduleHardeningTest extends TestCase
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
 
         $this->assertStringContainsString('id="tripServiceMode"', $view);
-        $this->assertStringContainsString('value="client"', $view);
-        $this->assertStringContainsString('value="general"', $view);
-        $this->assertStringContainsString('id="tripClientField" hidden', $view);
+        $this->assertStringContainsString('name="trip_mode_choice" value="client"', $view);
+        $this->assertStringContainsString('name="trip_mode_choice" value="general"', $view);
+        $this->assertStringContainsString('id="tripClientField"', $view);
+        $this->assertStringContainsString('id="tripCodeDisplay"', $view);
         $this->assertStringContainsString("mode === 'general'", $script);
         $this->assertStringContainsString("Boolean(client && ownerId && ownerName === client)", $script);
         $this->assertStringContainsString('tripClientName.required = requiresClient && creating;', $script);
+        $this->assertStringContainsString("tripModeChoices.forEach((choice) =>", $script);
     }
 
     public function test_general_service_trip_can_be_created_on_unallocated_route(): void
