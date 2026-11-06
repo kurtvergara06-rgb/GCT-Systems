@@ -1893,11 +1893,11 @@
 /* Simplified resource tables — three aligned data columns, no action buttons. */
 .assignment-page .assignment-table { min-width: 0; }
 .assignment-page .assignment-table th:nth-child(1) { width: 9%; }
-.assignment-page .assignment-table th:nth-child(2) { width: 14%; }
-.assignment-page .assignment-table th:nth-child(3) { width: 19%; }
-.assignment-page .assignment-table th:nth-child(4) { width: 22%; }
-.assignment-page .assignment-table th:nth-child(5) { width: 13%; }
-.assignment-page .assignment-table th:nth-child(6) { width: 11%; }
+.assignment-page .assignment-table th:nth-child(2) { width: 13%; }
+.assignment-page .assignment-table th:nth-child(3) { width: 18%; }
+.assignment-page .assignment-table th:nth-child(4) { width: 20%; }
+.assignment-page .assignment-table th:nth-child(5) { width: 12%; }
+.assignment-page .assignment-table th:nth-child(6) { width: 16%; }
 .assignment-page .assignment-table th:nth-child(7) { width: 12%; }
 .assignment-page .resource-card .resource-list-head--drivers,
 .assignment-page .resource-card .resource-list-head--buses {
@@ -1943,7 +1943,7 @@
 /* Seven-column Trip Assignments table: header and body use matching alignment. */
 .assignment-page .assignment-table {
     width: 100%;
-    min-width: 980px;
+    min-width: 1120px;
     table-layout: fixed;
     border-collapse: collapse;
 }
@@ -1979,7 +1979,28 @@
 .assignment-page .assignment-table tbody td:nth-child(7) .assignment-actions {
     justify-content: center;
 }
-.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status { margin-inline: auto; }
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 30px;
+    padding: 6px 10px;
+    margin-inline: auto;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status .status-badge__icon {
+    flex: 0 0 auto;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status .status-badge__label {
+    min-width: 0;
+}
 
 /* Match Driver Master List: light segmented tabs beside the search/filter/sort toolbar. */
 .assignment-page .assignment-record-controls {
