@@ -41,10 +41,13 @@ class OperationTripScheduleHardeningTest extends TestCase
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
 
-        $this->assertStringContainsString('id="tripClientName"', $view);
-        $this->assertStringContainsString('No Client (General Service)', $view);
-        $this->assertStringContainsString('const available = client ? Boolean(ownerId && ownerName === client) : !ownerId;', $script);
-        $this->assertStringContainsString('tripClientName.required = false;', $script);
+        $this->assertStringContainsString('id="tripServiceMode"', $view);
+        $this->assertStringContainsString('value="client"', $view);
+        $this->assertStringContainsString('value="general"', $view);
+        $this->assertStringContainsString('id="tripClientField" hidden', $view);
+        $this->assertStringContainsString("mode === 'general'", $script);
+        $this->assertStringContainsString("Boolean(client && ownerId && ownerName === client)", $script);
+        $this->assertStringContainsString('tripClientName.required = requiresClient && creating;', $script);
     }
 
     public function test_general_service_trip_can_be_created_on_unallocated_route(): void
@@ -58,6 +61,7 @@ class OperationTripScheduleHardeningTest extends TestCase
                 'trip_date' => $date,
                 'shuttle_route_id' => $route->id,
                 'client_name' => '',
+                'trip_service_mode' => 'general',
                 'departure_time' => '08:00',
                 'direction' => 'Incoming',
                 'required_buses' => 1,
@@ -70,6 +74,72 @@ class OperationTripScheduleHardeningTest extends TestCase
             'client_name' => null,
             'direction' => 'Incoming',
         ]);
+    }
+
+    public function test_client_mode_only_accepts_its_allocated_routes(): void
+    {
+        $user = $this->operationUser();
+        $client = OperationClient::create(['name' => 'Trip Client One', 'status' => 'Active']);
+        $otherClient = OperationClient::create(['name' => 'Trip Client Two', 'status' => 'Active']);
+        $allocated = $this->route('R-CLIENT-ONE');
+        $allocated->update(['operation_client_id' => $client->id]);
+        $otherRoute = $this->route('R-CLIENT-TWO');
+        $otherRoute->update(['operation_client_id' => $otherClient->id]);
+        $general = $this->route('R-NO-CLIENT');
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
+        $payload = [
+            'trip_date' => $date,
+            'trip_service_mode' => 'client',
+            'client_name' => $client->name,
+            'departure_time' => '08:00',
+            'direction' => 'Incoming',
+            'required_buses' => 1,
+        ];
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            $payload + ['shuttle_route_id' => $general->id])
+            ->assertSessionHasErrors('shuttle_route_id');
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            $payload + ['shuttle_route_id' => $otherRoute->id])
+            ->assertSessionHasErrors('shuttle_route_id');
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            $payload + ['shuttle_route_id' => $allocated->id])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('trip_schedules', [
+            'shuttle_route_id' => $allocated->id,
+            'client_name' => $client->name,
+        ]);
+    }
+
+    public function test_no_client_mode_rejects_client_allocated_routes_and_mismatched_name(): void
+    {
+        $user = $this->operationUser();
+        $client = OperationClient::create(['name' => 'Only Client', 'status' => 'Active']);
+        $allocated = $this->route('R-ALLOCATED');
+        $allocated->update(['operation_client_id' => $client->id]);
+        $general = $this->route('R-GENERAL-ONLY');
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
+        $payload = [
+            'trip_date' => $date,
+            'trip_service_mode' => 'general',
+            'client_name' => '',
+            'departure_time' => '08:00',
+            'direction' => 'Incoming',
+        ];
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            $payload + ['shuttle_route_id' => $allocated->id])
+            ->assertSessionHasErrors('shuttle_route_id');
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            array_merge($payload, ['client_name' => $client->name, 'shuttle_route_id' => $general->id]))
+            ->assertSessionHasErrors('client_name');
+
+        $this->actingAs($user)->post(route('trip-schedule.store'),
+            $payload + ['shuttle_route_id' => $general->id])
+            ->assertSessionHasNoErrors();
     }
 
     private function route(string $code = 'R-TEST', int $minutes = 30): ShuttleRoute
