@@ -2965,3 +2965,49 @@
   outline: none; background: #eaf3ff; color: #1559ac;
 }
 .bus-master-list-page .bus-modal-client-panel .bus-client-picker-empty { margin: 0; padding: 12px; color: #6c7f99; font-size: 12px; }
+
+
+/* Operations / Bus Master List responsive records.
+   Keep one horizontal scrollbar and avoid the inherited 480/520px
+   nested vertical viewport. Reserve uses five columns, Regular seven. */
+.bus-master-list-page .table-wrap.gct-responsive-records {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  max-height: none !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: auto;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table {
+  width: 100%;
+  min-width: 1250px;
+  table-layout: fixed;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(1) { width: 15%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(2) { width: 12%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(3) { width: 15%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(4) { width: 12%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(5) { width: 14%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(6) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(7) { width: 12%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve {
+  min-width: 940px;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(1) { width: 25%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(2) { width: 18%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(3) { width: 23%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(4) { width: 19%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(5) { width: 15%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > thead > tr > th:last-child,
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr > td.bus-actions-cell {
+  min-width: 150px;
+  width: auto;
+  white-space: nowrap;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr > td.bus-actions-cell {
+  background: #fff;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr:hover > td.bus-actions-cell {
+  background: #f8fbff;
+}
