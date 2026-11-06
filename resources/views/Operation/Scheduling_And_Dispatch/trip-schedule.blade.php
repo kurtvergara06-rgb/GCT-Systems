@@ -11,7 +11,7 @@
 >
     @php
         $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
-        $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
+        $canApproveOperation = auth()->user()?->canApproveReadyTripChanges() ?? false;
         $tripValidationMode = session('trip_validation_mode');
         $tripValidationId = session('trip_validation_id');
         $tripValidationCode = session('trip_validation_code');
