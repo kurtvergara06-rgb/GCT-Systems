@@ -25,7 +25,7 @@
             <x-ui.summary-card label="Authorized Drivers" value="{{ $stats['authorized'] }}" small="Active drivers with assigned buses" icon="fa-bus" color="yellow" />
         </section>
 
-        <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel">
+        <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel driver-master-panel">
             <div class="section-header personnel-section-header">
                 <div>
                     <h2>Driver Records</h2>
