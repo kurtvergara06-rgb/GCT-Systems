@@ -11,7 +11,7 @@
 >
     @php
         $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
-        $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
+        $canApproveOperation = auth()->user()?->canApproveReadyTripChanges() ?? false;
     @endphp
 
     <div class="app">
