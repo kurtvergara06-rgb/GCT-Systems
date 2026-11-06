@@ -7440,3 +7440,41 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   #joReadonlyOverlay .jo-view-release-policy { align-items:flex-start; padding:12px; gap:10px; }
   #joReadonlyOverlay .jo-view-release-policy-icon { flex-basis:38px; width:38px; height:38px; font-size:16px; }
 }
+
+
+
+/* Phase 1 responsive Job Orders pilot.
+   Keep this opt-in: other departments and modal tables use different layouts.
+   Avoid the shared 480px auto-height rule that creates a second scrolling axis. */
+.jo-page .table-wrap.jo-responsive-table-wrap {
+  width: 100%;
+  max-height: none !important;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.jo-page .jo-responsive-table-wrap > .job-orders-table {
+  width: 100%;
+  min-width: 1250px;
+}
+.jo-page .jo-responsive-table-wrap .job-orders-table th:last-child,
+.jo-page .jo-responsive-table-wrap .job-orders-table td.jo-actions-cell {
+  min-width: 150px;
+  white-space: nowrap;
+}
+@media (max-width: 1279px) {
+  .jo-page .jo-responsive-table-wrap .job-orders-table th:last-child,
+  .jo-page .jo-responsive-table-wrap .job-orders-table td.jo-actions-cell {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 4;
+    box-shadow: -1px 0 0 #e2e8f0, -8px 0 12px -12px rgba(15, 23, 42, .38);
+  }
+  .jo-page .jo-responsive-table-wrap .job-orders-table th:last-child {
+    z-index: 7;
+    background: var(--jo-table-head, #f8fafc);
+  }
+  .jo-page .jo-responsive-table-wrap .job-orders-table tbody tr:hover td.jo-actions-cell {
+    background: #f8fbff;
+  }
+}
