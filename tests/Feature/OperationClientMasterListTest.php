@@ -128,10 +128,62 @@ class OperationClientMasterListTest extends TestCase
     {
         $user = $this->operationUser(true);
         $this->actingAs($user)
-            ->post(route('operation.clients.store'), ['name' => 'New Shuttle Client', 'return_to' => 'client-master-list'])
+            ->post(route('operation.clients.store'), [
+                'name' => 'New Shuttle Client',
+                'company_address' => 'Malvar, Batangas',
+                'contact_person' => 'Test Coordinator',
+                'contact_position' => 'HR Officer',
+                'contact_number' => '09123456789',
+                'contact_email' => 'coordinator@example.test',
+                'service_start_date' => '2026-11-01',
+                'return_to' => 'client-master-list',
+            ])
             ->assertRedirect(route('operation.clients.index'));
 
-        $this->assertDatabaseHas('operation_clients', ['name' => 'New Shuttle Client']);
+        $this->assertDatabaseHas('operation_clients', [
+            'name' => 'New Shuttle Client',
+            'contact_person' => 'Test Coordinator',
+            'contact_number' => '09123456789',
+            'contact_email' => 'coordinator@example.test',
+        ]);
+    }
+
+    public function test_master_list_requires_primary_contact_details(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), [
+                'name' => 'Missing Contact Company',
+                'return_to' => 'client-master-list',
+            ])
+            ->assertSessionHasErrors(['contact_person', 'contact_number']);
+
+        $this->assertDatabaseMissing('operation_clients', ['name' => 'Missing Contact Company']);
+    }
+
+    public function test_client_master_list_shows_existing_contact_details(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create([
+            'name' => 'Contact Enabled',
+            'contact_person' => 'Operations Coordinator',
+            'contact_number' => '09123456789',
+        ]);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('Operations Coordinator')
+            ->assertSee('09123456789');
+    }
+
+    public function test_trip_times_client_creation_remains_backwards_compatible(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), ['name' => 'Legacy Style Client'])
+            ->assertRedirect(route('client-trip-times'));
+
+        $this->assertDatabaseHas('operation_clients', ['name' => 'Legacy Style Client']);
     }
 
     public function test_client_status_changed_from_master_list_preserves_record(): void
