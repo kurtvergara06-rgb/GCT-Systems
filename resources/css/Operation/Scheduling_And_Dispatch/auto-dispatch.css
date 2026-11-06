@@ -5393,3 +5393,137 @@ body.ai-modal-open {
     justify-content: flex-start;
   }
 }
+
+
+/* AI Conflict Review: keep the queue readable and the side report compact.
+   Presentation-only; conflict sorting, calculations and actions are unchanged. */
+@media screen and (min-width: 1251px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-single-conflict):not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1.75fr) minmax(380px, .95fr);
+    gap: 14px;
+  }
+}
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-list,
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-panel {
+    min-width: 0;
+    align-self: start;
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgba(15, 42, 76, .04);
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px 12px;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-tabs {
+    gap: 3px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-tabs button {
+    padding: 9px 8px;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace [data-gct-conflict-search] {
+    flex: 0 1 250px;
+    min-width: 155px;
+    max-width: 250px;
+    height: 37px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th {
+    padding: 10px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table td {
+    height: auto;
+    min-height: 62px;
+    padding: 12px 7px;
+    line-height: 1.45;
+    font-size: 11px;
+    vertical-align: middle;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(1) { width: 22%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(2) { width: 15%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(3) { width: 11%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(4) { width: 26%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(5) { width: 11%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(6) { width: 15%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table .gct-conflict-issue {
+    font-size: 11px;
+    color: #344760;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-count {
+    padding: 9px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-header {
+    min-height: 48px;
+    padding: 10px 13px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-trip {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta {
+    gap: 7px;
+    padding: 10px 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta > div {
+    min-height: 0;
+    padding: 9px 7px;
+    gap: 6px;
+    align-items: center;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta > div i {
+    flex: 0 0 auto;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-alert {
+    min-height: 0;
+    margin: 0 11px 10px;
+    padding: 11px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs button {
+    min-height: 40px;
+    padding: 9px 5px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-recommendations {
+    padding: 9px 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-actions {
+    padding: 9px 11px 11px;
+    gap: 7px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-actions .ai-resolution-btn {
+    min-height: 38px;
+    padding: 9px 7px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
+@media screen and (max-width: 1250px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-panel {
+    position: static;
+  }
+}
+@media screen and (max-width: 670px) {
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .auto-scheduling-page .gct-conflict-workspace [data-gct-conflict-search] {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+  }
+}
