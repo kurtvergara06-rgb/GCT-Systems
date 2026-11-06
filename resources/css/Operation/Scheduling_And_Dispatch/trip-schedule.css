@@ -3352,3 +3352,163 @@
         margin-left: 0;
     }
 }
+
+
+/* Trip editor: explicit task-based sections supersede brittle nth-child grid rules. */
+#tripModal .trip-editor-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+#tripModal .trip-editor-section {
+    min-width: 0;
+}
+#tripModal .trip-editor-section + .trip-editor-section {
+    padding-top: 14px;
+    border-top: 1px solid #e5edf7;
+}
+#tripModal .trip-editor-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+#tripModal .trip-editor-section-number {
+    display: inline-grid;
+    place-items: center;
+    height: 27px;
+    min-width: 30px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: #eaf2ff;
+    color: #1854b0;
+    font-size: 11px;
+    font-weight: 800;
+}
+#tripModal .trip-editor-section-heading h3 {
+    margin: 0;
+    color: #142e50;
+    font-size: 13px;
+    font-weight: 800;
+}
+#tripModal .trip-id-compact {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #63758f;
+    white-space: nowrap;
+}
+#tripModal .trip-id-compact strong {
+    padding: 5px 9px;
+    border: 1px solid #dce6f4;
+    border-radius: 8px;
+    background: #f5f8fc;
+    color: #274465;
+    font-size: 11px;
+    font-weight: 750;
+}
+#tripModal .trip-editor-optional {
+    margin-left: auto;
+    color: #71839c;
+    font-size: 11px;
+}
+#tripModal .trip-guided-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 16px;
+}
+#tripModal .trip-guided-grid > .ui-form-full {
+    grid-column: 1 / -1;
+}
+#tripModal .trip-guided-grid .ui-form-group {
+    min-width: 0;
+}
+#tripModal .trip-guided-grid .ui-form-group > label,
+#tripModal .trip-notes-group > label {
+    display: block;
+    margin-bottom: 6px;
+    color: #203957;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+#tripModal .trip-guided-grid .ui-input-wrap,
+#tripModal .trip-guided-grid .ui-form-group > select,
+#tripModal .trip-guided-grid .ui-form-group > input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+#tripModal .trip-guided-grid .ui-input-wrap input,
+#tripModal .trip-guided-grid .ui-input-wrap select,
+#tripModal .trip-guided-grid .ui-form-group > select,
+#tripModal .trip-guided-grid .ui-form-group > input {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    border-radius: 9px;
+}
+#tripModal .trip-guided-grid #arrivalTime[readonly] {
+    background: #f5f8fc;
+    color: #526b87;
+}
+#tripModal .trip-label-auto {
+    color: #7389a0;
+    font-size: 10px;
+    font-weight: 500;
+}
+#tripModal .trip-buses-group > input {
+    padding: 0 12px;
+    border: 1px solid #d8e2ef;
+    background: #fff;
+    color: #173354;
+}
+#tripModal .trip-notes-group .trip-textarea-wrap {
+    min-height: 70px;
+}
+#tripModal .trip-notes-group textarea {
+    width: 100%;
+    min-height: 70px;
+    height: 70px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+#tripModal .trip-form-note {
+    margin-top: 13px;
+    padding: 10px 12px;
+}
+#tripModal .trip-form-note strong {
+    font-size: 11px;
+}
+#tripModal .trip-form-note span {
+    font-size: 10.5px;
+}
+#tripModal .trip-editor-section .trip-inline-error {
+    display: block;
+    margin-top: 5px;
+    color: #b91c1c;
+    font-size: 11px;
+    font-weight: 650;
+}
+#tripModal .trip-editor-section [aria-invalid="true"] {
+    border-color: #dc2626 !important;
+}
+@media (max-width: 580px) {
+    #tripModal .trip-guided-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    #tripModal .trip-guided-grid > .ui-form-full {
+        grid-column: auto;
+    }
+    #tripModal .trip-id-compact {
+        gap: 5px;
+        font-size: 10px;
+    }
+    #tripModal .trip-id-compact strong {
+        max-width: 115px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
