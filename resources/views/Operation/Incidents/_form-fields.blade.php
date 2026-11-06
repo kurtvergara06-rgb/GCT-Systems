@@ -12,7 +12,7 @@
         </div>
         <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
     </div>
-    <p class="inc-bus-search-help">Select a bus assigned to a Ready trip today.</p>
+    <p class="inc-bus-search-help">Select a bus on an In Progress trip today. Click to see available buses.</p>
     <div class="inc-bus-trip-summary" data-incident-trip-summary>
         <div class="inc-bus-trip-summary-head">
             <strong>Matched Trip <small>(Auto-filled)</small></strong>
