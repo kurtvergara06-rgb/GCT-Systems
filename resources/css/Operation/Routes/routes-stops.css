@@ -3817,3 +3817,15 @@
     #routeDetailsModal .route-view-card { min-width: 0; margin: 0; }
     #routeDetailsModal .route-view-map { height: clamp(430px, 53vh, 620px); min-height: 430px; }
 }
+
+
+/* Sticky Actions separation is only visible when the Routes table overflows
+   horizontally; full-width tables should have no unnecessary divider. */
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child,
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none;
+}
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+}
