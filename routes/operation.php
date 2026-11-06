@@ -75,6 +75,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.reverse-location');
     Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.calculate');
 
+    Route::get('/operation/clients', [ClientMasterListController::class, 'index'])
+        ->middleware('system.permission:operation,view')
+        ->name('operation.clients.index');
     Route::post('/operation/clients', [ClientMasterListController::class, 'store'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.store');
