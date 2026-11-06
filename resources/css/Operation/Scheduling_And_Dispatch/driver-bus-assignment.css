@@ -2383,3 +2383,21 @@
         justify-self: end;
     }
 }
+
+/* Responsive assignment records: preserve the rightmost Actions column as
+   the table scrolls. Scoped to the two direction tables, not resource cards. */
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions {
+    overflow-x: auto;
+    scrollbar-gutter: auto;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > thead > tr > th:last-child,
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr > td:last-child:not([colspan]) {
+    min-width: 132px;
+    width: 132px;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr > td:last-child:not([colspan]) {
+    background: #fff;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: #f8fbff;
+}
