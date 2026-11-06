@@ -79,6 +79,9 @@
                         <h2>Client Configurations</h2>
                         <p>Manage the allowed time slots for incoming and outgoing trips by client.</p>
                     </div>
+                    <span class="ctt-client-count" id="cttClientCount" aria-live="polite">
+                        {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
+                    </span>
                 </div>
 
                 <div class="ctt-toolbar" aria-label="Client search, filter and sorting tools">
@@ -111,9 +114,6 @@
                                 <span>Expand all</span>
                             </button>
                         @endif
-                        <span class="ctt-client-count" id="cttClientCount">
-                            {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
-                        </span>
                     </div>
                 </div>
 
