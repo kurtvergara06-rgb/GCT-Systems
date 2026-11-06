@@ -9,13 +9,48 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class ClientMasterListController extends Controller
 {
+    public function index(Request $request): View
+    {
+        $search = trim((string) $request->query('search', ''));
+        $status = in_array($request->query('status'), ['Active', 'Inactive'], true)
+            ? $request->query('status')
+            : 'all';
+        $sort = in_array($request->query('sort'), ['name', 'newest', 'oldest'], true)
+            ? $request->query('sort')
+            : 'name';
+
+        $clients = OperationClient::query()
+            ->withCount(['buses', 'tripTimeConfigurations'])
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.addcslashes($search, '%_\\\\').'%'))
+            ->when($status !== 'all', fn ($query) => $query->where('status', $status));
+
+        match ($sort) {
+            'newest' => $clients->orderByDesc('created_at')->orderByDesc('id'),
+            'oldest' => $clients->orderBy('created_at')->orderBy('id'),
+            default => $clients->orderBy('name')->orderBy('id'),
+        };
+
+        return view('Operation.Clients.index', [
+            'clients' => $clients->paginate(15)->withQueryString(),
+            'totalClients' => OperationClient::count(),
+            'activeClients' => OperationClient::where('status', 'Active')->count(),
+            'configuredClients' => OperationClient::has('tripTimeConfigurations', '>=', 4)->count(),
+            'canEditOperation' => auth()->user()?->hasSystemPermission('operation', 'edit') ?? false,
+            'selectedStatus' => $status,
+            'selectedSort' => $sort,
+            'search' => $search,
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:150'],
+            'return_to' => ['sometimes', 'in:client-master-list'],
         ]);
 
         $name = trim($validated['name']);
@@ -28,13 +63,14 @@ class ClientMasterListController extends Controller
 
         OperationClient::create(['name' => $name]);
 
-        return redirect()->route('client-trip-times')
-            ->with('success', 'Client created successfully. Configure the new client’s departure times below.');
+        return redirect()->route(($validated['return_to'] ?? '') === 'client-master-list' ? 'operation.clients.index' : 'client-trip-times')
+            ->with('success', 'Client created successfully.');
     }
     public function updateStatus(Request $request, OperationClient $operationClient): RedirectResponse
     {
         $validated = $request->validate([
             'status' => ['required', 'in:Active,Inactive'],
+            'return_to' => ['sometimes', 'in:client-master-list'],
         ]);
 
         DB::transaction(function () use ($operationClient, $validated): void {
@@ -61,7 +97,7 @@ class ClientMasterListController extends Controller
             $client->update(['status' => $validated['status']]);
         }, 5);
 
-        return redirect()->route('client-trip-times')
+        return redirect()->route(($validated['return_to'] ?? '') === 'client-master-list' ? 'operation.clients.index' : 'client-trip-times')
             ->with('success', 'Client status updated successfully.');
     }
 
