@@ -152,6 +152,13 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
+        $replacementHistoryByAssignment = DB::table('operation_trip_change_audits')
+            ->whereIn('trip_schedule_id', $trips->getCollection()->pluck('id'))
+            ->where('action', 'ready_replacement')
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy('trip_assignment_id');
+
         $scheduledTripsForDate = TripSchedule::query()
             ->whereDate('trip_date', $selectedTripDate)
             ->whereIn('status', ['Scheduled', 'Ready'])
@@ -214,6 +221,7 @@ class TripAssignmentController extends Controller
             'Operation.Scheduling_And_Dispatch.driver-bus-assignment',
             compact(
                 'trips',
+                'replacementHistoryByAssignment',
                 'scheduledTripsForDate',
                 'pendingAssignments',
                 'availableDrivers',
