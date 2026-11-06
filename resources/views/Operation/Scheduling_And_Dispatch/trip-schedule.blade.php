@@ -216,7 +216,9 @@
                                             $canManageSchedule = $trip->canBeManagedFromSchedule();
                                             $canEdit = $canEditOperation && $canManageSchedule && request('tab') !== 'history';
                                             $canDelete = $canEdit;
-                                            $canCancel = $canEditOperation && $canApproveOperation && ! $isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true);
+                                            $canCancel = $canEditOperation && $canApproveOperation && ! $isHistorical
+                                                && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                && ($trip->status === 'Ready' || ! $canDelete);
                                             $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime) ? $arrivalDateTime->format('g:i A') : $arrivalDateTime->format('M d · g:i A');
                                             $assignmentLabel = in_array($trip->status, ['Missed', 'Cancelled', 'Completed'], true) ? $trip->status : ($assignedCount === 0 ? 'Pending' : ($assignedCount >= $requiredCount ? 'Fully Assigned' : 'Partially Assigned'));
                                             $viewTripData = [
