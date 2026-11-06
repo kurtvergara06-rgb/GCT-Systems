@@ -303,6 +303,19 @@
                                                         Assign
                                                     </button>
                                                 @endif
+                                                @if($canEditOperation && $canApproveOperation
+                                                    && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                    && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                    && ($trip->incidents_count ?? 0) === 0)
+                                                    <button type="button"
+                                                        class="assignment-action cancel cancel-assignment-trip"
+                                                        title="Cancel entire trip (Head approval required)"
+                                                        aria-label="Cancel entire trip {{ $trip->trip_code }}"
+                                                        data-trip-code="{{ $trip->trip_code }}"
+                                                        data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
+                                                        <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -522,6 +535,19 @@
                                                             title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
                                                         >
                                                             <i class="fa-solid fa-link-slash"></i>
+                                                        </button>
+                                                    @endif
+                                                    @if($canEditOperation && $canApproveOperation
+                                                        && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                        && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                        && ($trip->incidents_count ?? 0) === 0)
+                                                        <button type="button"
+                                                            class="assignment-action cancel cancel-assignment-trip"
+                                                            title="Cancel entire trip (Head approval required)"
+                                                            aria-label="Cancel entire trip {{ $trip->trip_code }}"
+                                                            data-trip-code="{{ $trip->trip_code }}"
+                                                            data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
+                                                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
                                                         </button>
                                                     @endif
                                                 </div>
@@ -958,6 +984,34 @@
             </button>
         </div>
     </x-ui.form-modal>
+
+    @if($canEditOperation && $canApproveOperation)
+    <x-ui.form-modal
+        id="cancelAssignmentTripModal"
+        title="Cancel Entire Trip?"
+        description="The scheduled service will be cancelled. Existing driver and bus assignments remain in audit history."
+        icon="fa-ban"
+        size="small"
+        form-id="cancelAssignmentTripForm"
+        action="#"
+        method="POST"
+        submit-text="Confirm Cancellation"
+        submit-icon="fa-ban"
+        cancel-text="Keep Trip"
+        cancel-id="keepAssignmentTrip"
+        close-id="closeCancelAssignmentTrip"
+    >
+        <input type="hidden" name="_method" value="PATCH">
+        <input type="hidden" name="return_to_assignment" value="1">
+        <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+        <p class="assignment-cancel-trip-summary">Trip <strong id="cancelAssignmentTripCode"></strong> will be marked as Cancelled. This affects every assigned bus slot.</p>
+        <div class="ui-form-group ui-form-full">
+            <label for="assignmentCancellationReason">Cancellation reason <span class="ui-required">*</span></label>
+            <textarea id="assignmentCancellationReason" name="cancellation_reason" rows="4" minlength="10" maxlength="1000" required placeholder="Explain why the entire scheduled trip must be cancelled..."></textarea>
+            <small>At least 10 characters. Your reason and approval will be recorded in the trip audit history.</small>
+        </div>
+    </x-ui.form-modal>
+    @endif
 
     @if($canEditOperation)
     <x-ui.action-buttom-modal
