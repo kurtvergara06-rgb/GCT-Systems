@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <div class="table-wrap">
+        <div class="table-wrap gct-responsive-records gct-sticky-actions">
           <table class="incoming-delivery-table">
             <thead>
               <tr>
