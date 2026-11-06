@@ -2211,7 +2211,10 @@ button.ddr-new-btn {
     border-radius: 11px; background: #f8fafc;
 }
 #ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
-#ddrEncodeModal .ddr-report-meta-grid > :nth-child(3) { grid-column: 1 / -1; }
+#ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
+#ddrEncodeModal .ddr-report-meta-grid .ui-form-group,
+#ddrEncodeModal .ddr-report-meta-grid .ddr-form-group,
+#ddrEncodeModal .ddr-report-meta-grid .ddr-combo { width: 100%; min-width: 0; }
 #ddrEncodeModal .ddr-trip-one-heading { margin-top: 4px; }
 #ddrEncodeModal .ddr-route-note { grid-column: 1 / -1; }
 #ddrEncodeModal .ddr-extra-assignment-group { grid-column: 1 / -1; }
@@ -2241,10 +2244,11 @@ button.ddr-new-btn {
     border-radius: 12px;
     background: #f8fafc;
 }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver { grid-column: 1 / -1; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 1; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date { grid-column: 2; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number { grid-column: 1 / -1; }
+/* Match the DOM order: Date | DDR Number, then Driver | Bus. */
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date { grid-column: 1; grid-row: 1; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number { grid-column: 2; grid-row: 1; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver { grid-column: 1; grid-row: 2; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 2; grid-row: 2; }
 #ddrEncodeModal .ddr-report-meta-grid > [hidden] { display: none; }
 #ddrEncodeModal .ddr-number-preview {
     display: flex;
@@ -2426,6 +2430,10 @@ button.ddr-new-btn {
 
 @media (max-width: 700px) {
     #ddrEncodeModal .ddr-report-meta-grid { grid-template-columns: minmax(0, 1fr); }
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 1; grid-row: auto; }
     #ddrEncodeModal .ddr-primary-trip { padding: 11px; }
     #ddrEncodeModal .ddr-multi-header { align-items: center; }
 }
