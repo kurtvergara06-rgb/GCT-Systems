@@ -120,7 +120,7 @@
                     Updating bus records...
                 </div>
 
-                <div class="table-wrap">
+                <div class="table-wrap gct-responsive-records gct-sticky-actions">
                     <table class="bus-table {{ request('fleet_purpose') === 'Reserve' ? 'bus-table--reserve' : '' }}">
                         <thead>
                             <tr>
