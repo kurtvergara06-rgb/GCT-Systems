@@ -244,8 +244,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             const available = mode === 'general'
                 ? !ownerId
                 : requiresClient && Boolean(client && ownerId && ownerName === client);
-            option.hidden = creating && !available;
-            option.disabled = creating && !available;
+            // Preserve an existing legacy route without offering unrelated
+            // routes as alternatives when editing a historical schedule.
+            const legacyCurrent = !creating && option.value === tripRoute.dataset.originalRouteId;
+            option.hidden = !available && !legacyCurrent;
+            option.disabled = !available && !legacyCurrent;
         }
 
         const stillAllowed = Array.from(tripRoute.options).some(option =>
@@ -699,6 +702,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             setTripClientValue('');
             if (tripServiceMode) tripServiceMode.value = '';
         }
+        if (tripRoute) tripRoute.dataset.originalRouteId = '';
 
         tripForm.setAttribute('action', createAction);
 
@@ -800,6 +804,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
             if (tripRoute) {
                 tripRoute.value = button.dataset.routeId || '';
+                tripRoute.dataset.originalRouteId = tripRoute.value;
             }
             if (tripDirection) {
                 tripDirection.value = button.dataset.direction || '';
