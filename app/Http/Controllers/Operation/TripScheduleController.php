@@ -385,9 +385,11 @@ class TripScheduleController extends Controller
                         $validated['departure_time']
                     );
 
-                    $effectiveClientName = filled($validated['client_name'] ?? null)
-                        ? $validated['client_name']
-                        : $lockedTrip->client_name;
+                    $effectiveClientName = ($validated['trip_service_mode'] ?? null) === 'general'
+                        ? null
+                        : (filled($validated['client_name'] ?? null)
+                            ? $validated['client_name']
+                            : $lockedTrip->client_name);
 
                     // Recheck client status while holding the client row lock.
                     // Client deactivation takes the same lock.
@@ -424,9 +426,7 @@ class TripScheduleController extends Controller
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
-                        'client_name' => filled($validated['client_name'] ?? null)
-                            ? $validated['client_name']
-                            : $lockedTrip->client_name,
+                        'client_name' => $effectiveClientName,
                         'direction' => $validated['direction'] ?? $lockedTrip->direction,
                         'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
@@ -699,6 +699,7 @@ class TripScheduleController extends Controller
                 'date_format:H:i',
             ],
             'client_name' => ['nullable', 'string', 'max:255'],
+            'trip_service_mode' => ['sometimes', 'required', Rule::in(['client', 'general'])],
             'direction' => [$tripSchedule === null ? 'required' : 'nullable', Rule::in(['Incoming', 'Outgoing'])],
             'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
@@ -720,6 +721,21 @@ class TripScheduleController extends Controller
 
         $validated = $request->validate($rules);
 
+        // The explicit UI choice is authoritative; older API callers that do
+        // not send trip_service_mode remain backward compatible.
+        if (($validated['trip_service_mode'] ?? null) === 'client'
+            && blank($validated['client_name'] ?? null)) {
+            throw ValidationException::withMessages([
+                'client_name' => 'Select a client before choosing a client-allocated route.',
+            ]);
+        }
+        if (($validated['trip_service_mode'] ?? null) === 'general'
+            && filled($validated['client_name'] ?? null)) {
+            throw ValidationException::withMessages([
+                'client_name' => 'No Client trips cannot use a client allocation.',
+            ]);
+        }
+
         $requestedDeparture = $this->departureDateTime(
             $validated['trip_date'],
             $validated['departure_time']
@@ -734,9 +750,11 @@ class TripScheduleController extends Controller
             ]);
         }
 
-        $effectiveClientName = filled($validated['client_name'] ?? null)
-            ? $validated['client_name']
-            : $tripSchedule?->client_name;
+        $effectiveClientName = ($validated['trip_service_mode'] ?? null) === 'general'
+            ? null
+            : (filled($validated['client_name'] ?? null)
+                ? $validated['client_name']
+                : $tripSchedule?->client_name);
 
         $effectiveDirection = $validated['direction']
             ?? $tripSchedule?->direction;
