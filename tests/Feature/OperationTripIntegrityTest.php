@@ -385,6 +385,7 @@ class OperationTripIntegrityTest extends TestCase
         $healthyDriver = Driver::create([
             'driver_id' => 'D-INTEGRITY-HEALTHY',
             'driver_name' => 'Healthy Bus Driver',
+            'shift' => 'Morning',
             'employment_status' => 'Active',
         ]);
         $healthy = TripAssignment::create([
