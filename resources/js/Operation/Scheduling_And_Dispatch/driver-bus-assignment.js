@@ -1348,7 +1348,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                         <div><span>Driver</span> ${escapeHtml(entry.previousDriver || 'Unknown')} → ${escapeHtml(entry.newDriver || 'Unknown')}</div>
                         <div><span>Bus</span> ${escapeHtml(String(entry.previousBus || 'Unknown'))} → ${escapeHtml(String(entry.newBus || 'Unknown'))}</div>
                         <p><span>Reason:</span> ${escapeHtml(entry.reason || 'Not specified')}</p>
-                        <small>Approved by account ID ${escapeHtml(String(entry.approvedBy || '—'))}</small>
+                        <small>Approved by ${escapeHtml(String(entry.approvedBy || '—'))}</small>
                     </article>`).join('')}
             `;
             viewAssignmentContent.appendChild(section);
