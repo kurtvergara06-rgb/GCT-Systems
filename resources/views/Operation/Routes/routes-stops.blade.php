@@ -137,7 +137,7 @@
                 {{-- =================================================
                     TABLE
                 ================================================== --}}
-                <div class="table-wrap routes-table-wrap">
+                <div class="table-wrap routes-table-wrap gct-responsive-records gct-sticky-actions">
 
                     <table class="routes-table">
 
