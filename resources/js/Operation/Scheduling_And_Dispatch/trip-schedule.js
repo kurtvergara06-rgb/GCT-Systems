@@ -161,6 +161,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripCodeLabel = document.getElementById('tripCodeLabel');
     const syncTripCodeLabel = () => {
         if (tripCodeLabel) tripCodeLabel.textContent = tripCode?.value || 'Auto-generated';
+        const display = document.getElementById('tripCodeDisplay');
+        if (display) display.value = tripCode?.value || 'Auto-generated';
     };
     // Show accessible inline messages rather than transient browser tooltips.
     // Native constraint validation still prevents submitting incomplete trips.
@@ -215,6 +217,18 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripDirection = document.getElementById('tripDirection');
     const tripClientName = document.getElementById('tripClientName');
     const tripServiceMode = document.getElementById('tripServiceMode');
+    const tripModeChoices = Array.from(tripForm?.querySelectorAll('input[name="trip_mode_choice"]') || []);
+    const syncTripModeChoices = () => {
+        tripModeChoices.forEach((choice) => { choice.checked = choice.value === tripServiceMode?.value; });
+    };
+    tripModeChoices.forEach((choice) => {
+        choice.addEventListener('change', () => {
+            if (!choice.checked || !tripServiceMode) return;
+            tripServiceMode.value = choice.value;
+            tripServiceMode.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+    const tripCodeDisplay = document.getElementById('tripCodeDisplay');
     const tripClientField = document.getElementById('tripClientField');
     const tripRouteLabel = document.getElementById('tripRouteLabel');
 
@@ -227,6 +241,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         const previous = tripRoute.value;
         const requiresClient = mode === 'client';
 
+        syncTripModeChoices();
         if (tripClientField) tripClientField.hidden = !requiresClient;
         tripClientName.disabled = !requiresClient;
         tripClientName.required = requiresClient && creating;
@@ -700,7 +715,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         if (!preserveValues) {
             tripForm.reset();
             setTripClientValue('');
-            if (tripServiceMode) tripServiceMode.value = '';
+            if (tripServiceMode) tripServiceMode.value = 'client';
         }
         if (tripRoute) tripRoute.dataset.originalRouteId = '';
 
@@ -723,6 +738,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         }
 
         syncTripRouteOptions({ preserveRoute: preserveValues });
+        syncTripCodeLabel();
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
         if (tripClientName) tripClientName.required = tripServiceMode?.value === 'client';
