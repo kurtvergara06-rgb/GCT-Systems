@@ -207,6 +207,42 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const replaceServerFilteredTable = (toolbar, parsedToolbar, parsed) => {
+    // Driver & Bus Assignment has two separate direction tables and a
+    // date-specific print button. Updating only the first tbody mixes dates
+    // (e.g. Nov 6 filters alongside Nov 7 outgoing trips). Replace the full
+    // records region and its summary together when filtering this page.
+    if (toolbar.dataset.serverFilterNavigation === 'true'
+        && toolbar.closest('.assignment-page')) {
+      const currentRecords = toolbar.closest('[data-ajax-region="records"]');
+      const nextRecords = parsed.querySelector('.assignment-page [data-ajax-region="records"]');
+      if (!currentRecords || !nextRecords) return false;
+
+      const activeSearch = document.activeElement === toolbar.querySelector('input[name="search"]');
+      const cursor = activeSearch ? document.activeElement.selectionStart : null;
+      const currentSummary = document.querySelector('.assignment-page [data-ajax-region="summary"]');
+      const nextSummary = parsed.querySelector('.assignment-page [data-ajax-region="summary"]');
+
+      if (currentSummary && nextSummary) {
+        currentSummary.replaceWith(document.importNode(nextSummary, true));
+      }
+      const replacement = document.importNode(nextRecords, true);
+      currentRecords.replaceWith(replacement);
+
+      // Preserve typing through instant server search while updating all
+      // direction panels, counts, print date and filter state atomically.
+      if (activeSearch) {
+        const newSearch = replacement.querySelector('input[name="search"]');
+        newSearch?.focus({ preventScroll: true });
+        if (newSearch && cursor !== null) {
+          newSearch.setSelectionRange(cursor, cursor);
+        }
+      }
+      document.dispatchEvent(new CustomEvent('ajax:content-updated', {
+        detail: { source: 'server-filter', toolbar: replacement.querySelector('form[data-table-toolbar]') },
+      }));
+      return true;
+    }
+
     const currentContext = findTableContext(toolbar);
     const parsedContext = findTableContext(parsedToolbar, parsed);
 
