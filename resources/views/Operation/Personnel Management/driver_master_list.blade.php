@@ -63,7 +63,7 @@
                 Updating driver records...
             </div>
 
-            <div class="table-wrap personnel-master-table-wrap">
+            <div class="table-wrap personnel-master-table-wrap driver-master-table-scroll" role="region" aria-label="Driver records table, horizontally scrollable" tabindex="0">
                 <table class="attendance-table personnel-master-table driver-master-records-table">
                     <colgroup>
                         <col class="driver-col-id"><col class="driver-col-name"><col class="driver-col-contact">
