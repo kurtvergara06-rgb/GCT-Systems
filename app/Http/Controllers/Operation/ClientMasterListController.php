@@ -16,23 +16,26 @@ class ClientMasterListController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search', ''));
-        $status = in_array($request->query('status'), ['Active', 'Inactive'], true)
-            ? $request->query('status')
-            : 'all';
-        $sort = in_array($request->query('sort'), ['name', 'newest', 'oldest'], true)
+        $tab = $request->query('tab') === 'history' || $request->query('status') === 'Inactive'
+            ? 'history'
+            : 'active';
+        $status = $tab === 'history' ? 'Inactive' : 'Active';
+        $setup = in_array($request->query('setup'), ['complete', 'needs-setup'], true)
+            ? $request->query('setup')
+            : '';
+        $sort = in_array($request->query('sort'), ['name', 'created_at'], true)
             ? $request->query('sort')
             : 'name';
+        $direction = $request->query('sort_direction') === 'desc' ? 'desc' : 'asc';
 
         $clients = OperationClient::query()
             ->withCount(['buses', 'tripTimeConfigurations'])
+            ->where('status', $status)
             ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.addcslashes($search, '%_\\\\').'%'))
-            ->when($status !== 'all', fn ($query) => $query->where('status', $status));
-
-        match ($sort) {
-            'newest' => $clients->orderByDesc('created_at')->orderByDesc('id'),
-            'oldest' => $clients->orderBy('created_at')->orderBy('id'),
-            default => $clients->orderBy('name')->orderBy('id'),
-        };
+            ->when($setup === 'complete', fn ($query) => $query->has('tripTimeConfigurations', '>=', 4))
+            ->when($setup === 'needs-setup', fn ($query) => $query->has('tripTimeConfigurations', '<', 4))
+            ->orderBy($sort, $direction)
+            ->orderBy('id');
 
         return view('Operation.Clients.index', [
             'clients' => $clients->paginate(15)->withQueryString(),
@@ -40,8 +43,8 @@ class ClientMasterListController extends Controller
             'activeClients' => OperationClient::where('status', 'Active')->count(),
             'configuredClients' => OperationClient::has('tripTimeConfigurations', '>=', 4)->count(),
             'canEditOperation' => auth()->user()?->hasSystemPermission('operation', 'edit') ?? false,
-            'selectedStatus' => $status,
-            'selectedSort' => $sort,
+            'selectedTab' => $tab,
+            'selectedSetup' => $setup,
             'search' => $search,
         ]);
     }
