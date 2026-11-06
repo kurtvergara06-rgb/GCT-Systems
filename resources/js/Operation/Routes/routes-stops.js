@@ -8,26 +8,6 @@ window.GCTPartialNavigation.registerInitializer('operation-routes', '.routes-pag
     const $ = (id) => document.getElementById(id);
     const body = document.body;
 
-    const routesTableWrap = document.querySelector('.routes-table-wrap.gct-sticky-actions');
-    if (routesTableWrap) {
-        const routesTable = routesTableWrap.querySelector('table');
-        const syncRoutesOverflow = () => {
-            // Allow a 2px tolerance for fractional zoom/layout rounding.
-            const overflows = routesTableWrap.scrollWidth - routesTableWrap.clientWidth > 2;
-            routesTableWrap.classList.toggle('has-horizontal-overflow', overflows);
-        };
-        const routesResizeObserver = new ResizeObserver(syncRoutesOverflow);
-        routesResizeObserver.observe(routesTableWrap);
-        if (routesTable) routesResizeObserver.observe(routesTable);
-        syncRoutesOverflow();
-        // Navigation swaps the page container; release its observers.
-        window.addEventListener('gct:navigation-before', () => {
-            routesResizeObserver.disconnect();
-        }, { once: true });
-    }
-
-
-
     const routeModal = $('routeModal');
     const routeDetailsModal = $('routeDetailsModal');
     const deleteRouteModal = $('deleteRouteModal');
