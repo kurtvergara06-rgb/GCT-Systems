@@ -598,12 +598,22 @@ class DailyDriverReportController extends Controller
     public function assignedDrivers(Request $request): JsonResponse
     {
         $validated = $request->validate(['report_date' => ['required', 'date_format:Y-m-d']]);
+        // Only drivers with an ended, unreported Pending DDR assignment
+        // should appear in the scheduled report's driver dropdown.
         $driverIds = \App\Models\Operation\TripAssignment::query()
+            ->with('tripSchedule')
             ->whereHas('tripSchedule', fn ($query) => $query
                 ->whereDate('trip_date', $validated['report_date'])
-                ->whereNotIn('status', ['Cancelled', 'Missed']))
-            ->distinct()
+                ->where('status', 'Pending DDR'))
+            ->whereNotIn('id', DailyDriverReport::query()
+                ->whereNotNull('trip_assignment_id')->select('trip_assignment_id'))
+            ->whereNotIn('id', DailyDriverReportTripEntry::query()
+                ->whereNotNull('trip_assignment_id')->select('trip_assignment_id'))
+            ->get()
+            ->filter(fn ($assignment) => $assignment->tripSchedule
+                && ! $assignment->tripSchedule->estimatedArrivalDateTime()->isFuture())
             ->pluck('driver_id')
+            ->unique()
             ->values();
 
         return response()->json(['driver_ids' => $driverIds]);
@@ -615,6 +625,7 @@ class DailyDriverReportController extends Controller
             'report_date' => ['required', 'date_format:Y-m-d'],
             'driver_id' => ['nullable', 'string', Rule::exists('drivers', 'driver_id')],
             'bus_id' => ['nullable', 'integer', Rule::exists('buses', 'id')],
+            'pending_only' => ['sometimes', 'boolean'],
         ]);
 
         if (empty($validated['driver_id']) && empty($validated['bus_id'])) {
@@ -630,7 +641,9 @@ class DailyDriverReportController extends Controller
                     ->with('bus'),
             ])
             ->whereDate('trip_date', $validated['report_date'])
-            ->whereNotIn('status', ['Cancelled', 'Missed'])
+            ->when((bool) ($validated['pending_only'] ?? false),
+                fn ($query) => $query->where('status', 'Pending DDR'),
+                fn ($query) => $query->whereNotIn('status', ['Cancelled', 'Missed']))
             ->whereHas('assignments', function ($query) use ($validated): void {
                 if (! empty($validated['driver_id'])) {
                     $query->where('driver_id', $validated['driver_id']);
