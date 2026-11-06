@@ -1015,7 +1015,7 @@ class RouteController extends Controller
         if ($routeWasAlreadyUsed) {
             $validatedStatus = $request->validate([
                 'status' => ['required', Rule::in(['Active', 'Inactive'])],
-                'operation_client_id' => ['required', 'integer', Rule::exists('operation_clients', 'id')->where('status', 'Active')],
+                'operation_client_id' => ['nullable', 'integer', Rule::exists('operation_clients', 'id')->where('status', 'Active')],
             ]);
 
             DB::transaction(
@@ -1042,7 +1042,7 @@ class RouteController extends Controller
                     }
 
                     if ($lockedRoute->operation_client_id !== null
-                        && (int) $lockedRoute->operation_client_id !== (int) $validatedStatus['operation_client_id']) {
+                        && (int) $lockedRoute->operation_client_id !== (int) ($validatedStatus['operation_client_id'] ?? 0)) {
                         throw ValidationException::withMessages([
                             'operation_client_id' => 'A route with trip history cannot be reassigned to another client.',
                         ]);
@@ -1050,7 +1050,7 @@ class RouteController extends Controller
 
                     $lockedRoute->update([
                         'status' => $validatedStatus['status'],
-                        'operation_client_id' => $validatedStatus['operation_client_id'],
+                        'operation_client_id' => $validatedStatus['operation_client_id'] ?? null,
                     ]);
                 }
             );
@@ -1073,7 +1073,7 @@ class RouteController extends Controller
         // Staff can make initial allocations; status changes remain Head-only.
         if ($shuttleRoute->status !== $validated['status']
             || ($shuttleRoute->operation_client_id !== null
-                && (int) $shuttleRoute->operation_client_id !== (int) $validated['operation_client_id'])) {
+                && (int) $shuttleRoute->operation_client_id !== (int) ($validated['operation_client_id'] ?? 0))) {
             $this->assertCanApproveRouteChanges();
         }
 
@@ -1109,7 +1109,7 @@ class RouteController extends Controller
                     }
 
                     if ($lockedRoute->operation_client_id !== null
-                        && (int) $lockedRoute->operation_client_id !== (int) $validated['operation_client_id']) {
+                        && (int) $lockedRoute->operation_client_id !== (int) ($validated['operation_client_id'] ?? 0)) {
                         throw ValidationException::withMessages([
                             'operation_client_id' => 'A route with trip history cannot be reassigned to another client.',
                         ]);
@@ -1117,7 +1117,7 @@ class RouteController extends Controller
 
                     $lockedRoute->update([
                         'status' => $validated['status'],
-                        'operation_client_id' => $validated['operation_client_id'],
+                        'operation_client_id' => $validated['operation_client_id'] ?? null,
                     ]);
 
                     return;
@@ -1221,7 +1221,7 @@ class RouteController extends Controller
         $validated = $request->validate(
             [
                 'operation_client_id' => [
-                    'required',
+                    'nullable',
                     'integer',
                     Rule::exists('operation_clients', 'id')->where('status', 'Active'),
                 ],
@@ -1781,7 +1781,7 @@ class RouteController extends Controller
         }
 
         $payload = [
-            'operation_client_id' => $validated['operation_client_id'],
+            'operation_client_id' => $validated['operation_client_id'] ?? null,
             'route_name' => trim(
                 $validated['route_name']
             ),
