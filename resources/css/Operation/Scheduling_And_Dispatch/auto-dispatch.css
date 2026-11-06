@@ -5232,7 +5232,7 @@ body.ai-modal-open {
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
     width: 100%;
-    min-width: 1500px;
+    min-width: 1120px;
     table-layout: fixed;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar {
@@ -5268,5 +5268,20 @@ body.ai-modal-open {
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
     background: #f8fafc;
+  }
+}
+
+/* Preserve the compact preview components; mouse drag only scrolls when the
+   table is genuinely wider than its wrapper. Touch remains native. */
+@media screen and (pointer: fine) {
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready {
+    cursor: grab;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready.is-drag-scrolling {
+    cursor: grabbing;
+    user-select: none;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready :is(button, a, input, select, textarea, summary, [role="button"]) {
+    cursor: pointer;
   }
 }
