@@ -5195,3 +5195,22 @@ body.ai-modal-open {
 /* Two active scheduling filters: date and route (Shift was retired). */
 .auto-scheduling-page .schedule-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 660px) { .auto-scheduling-page .schedule-form-grid { grid-template-columns: 1fr; } }
+
+/* Preview actions stay accessible when the eight-column timetable overflows.
+   Leave full-width client group rows and empty states unpinned. */
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions {
+    overflow-x: auto;
+    scrollbar-gutter: auto;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+    min-width: 190px;
+    width: 190px;
+    text-align: center;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+    background: #fff;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: #f8fbff;
+}
