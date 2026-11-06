@@ -438,10 +438,10 @@
                             <li
                                 data-combo-option
                                 data-value="{{ $driver->driver_id }}"
-                                data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->shift . ' ' . $driver->employment_status) }}"
+                                data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->employment_status) }}"
                             >
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }}</small>
+                                <small>{{ $driver->driver_id }}</small>
                             </li>
                         @endforeach
                     </ul>
