@@ -1334,6 +1334,25 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                     `;
                 })
                 .join('');
+
+        const history = Array.isArray(details.replacementHistory)
+            ? details.replacementHistory : [];
+        if (history.length) {
+            const section = document.createElement('section');
+            section.className = 'assignment-replacement-history';
+            section.innerHTML = `
+                <h3>Approved Replacement History</h3>
+                ${history.map((entry) => `
+                    <article class="assignment-replacement-event">
+                        <strong>${escapeHtml(entry.date || 'Recorded replacement')}</strong>
+                        <div><span>Driver</span> ${escapeHtml(entry.previousDriver || 'Unknown')} → ${escapeHtml(entry.newDriver || 'Unknown')}</div>
+                        <div><span>Bus</span> ${escapeHtml(String(entry.previousBus || 'Unknown'))} → ${escapeHtml(String(entry.newBus || 'Unknown'))}</div>
+                        <p><span>Reason:</span> ${escapeHtml(entry.reason || 'Not specified')}</p>
+                        <small>Approved by account ID ${escapeHtml(String(entry.approvedBy || '—'))}</small>
+                    </article>`).join('')}
+            `;
+            viewAssignmentContent.appendChild(section);
+        }
     }
 
 
