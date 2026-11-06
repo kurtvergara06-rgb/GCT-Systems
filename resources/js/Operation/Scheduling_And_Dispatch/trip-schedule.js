@@ -12,30 +12,21 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
     const tripClientName = document.getElementById('tripClientName');
-    const tripServiceMode = document.getElementById('tripServiceMode');
-    const tripGeneralServiceNotice = document.getElementById('tripGeneralServiceNotice');
-    const serviceModeInputs = Array.from(document.querySelectorAll('input[name="trip_service_mode"]'));
 
     function syncTripRouteOptions({ preserveRoute = false } = {}) {
         if (!tripRoute || !tripClientName) return;
 
         const creating = Boolean(tripFormMethod?.disabled);
-        const mode = serviceModeInputs.find(input => input.checked)?.value || 'client';
         const client = tripClientName.value.trim().toLowerCase();
         const previous = tripRoute.value;
 
-        tripClientName.closest('.ui-form-group')?.toggleAttribute('hidden', creating && mode === 'general');
-        if (tripGeneralServiceNotice) {
-            tripGeneralServiceNotice.hidden = !creating || mode !== 'general';
-        }
-
+        // New trips must use an active client's allocated route. Existing
+        // historical trips retain their original route for safe editing.
         for (const option of tripRoute.options) {
             if (!option.value) continue;
             const ownerId = String(option.dataset.clientId || '').trim();
             const ownerName = String(option.dataset.clientName || '').trim().toLowerCase();
-            const available = mode === 'general'
-                ? ownerId === ''
-                : Boolean(client && ownerId && ownerName === client);
+            const available = Boolean(client && ownerId && ownerName === client);
             option.hidden = creating && !available;
             option.disabled = creating && !available;
         }
@@ -44,31 +35,17 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             option.value === previous && !option.disabled && !option.hidden
         );
         tripRoute.value = preserveRoute && stillAllowed ? previous : '';
-        tripRoute.disabled = creating && mode === 'client' && !client;
+        tripRoute.disabled = creating && !client;
 
-        if (!creating) {
-            tripRoute.disabled = false;
-        }
+        if (!creating) tripRoute.disabled = false;
+        tripClientName.required = creating;
 
-        tripClientName.required = creating && mode === 'client';
-        if (creating && mode === 'general') {
-            tripClientName.value = '';
-        }
-
-        if (creating && !tripRoute.value && arrivalTime) {
-            arrivalTime.value = '';
-        }
+        if (creating && !tripRoute.value && arrivalTime) arrivalTime.value = '';
 
         const submit = tripForm?.querySelector('[type="submit"]');
         if (submit) submit.disabled = false;
         if (creating && tripSubmitText) tripSubmitText.textContent = 'Create Trip';
     }
-
-    serviceModeInputs.forEach(input => input.addEventListener('change', () => {
-        if (tripClientName) tripClientName.value = '';
-        syncTripRouteOptions();
-        updateTripTimeOptions({ preserveValue: false });
-    }));
 
     const tripRequiredBuses = document.getElementById('tripRequiredBuses');
     const departureTime = document.getElementById('departureTime');
@@ -513,8 +490,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             }
         }
 
-        if (tripServiceMode) tripServiceMode.hidden = false;
-        if (serviceModeInputs[0]) serviceModeInputs[0].checked = true;
         syncTripRouteOptions({ preserveRoute: preserveValues });
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
@@ -567,7 +542,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripFormMethod.value = 'PUT';
         }
 
-        if (tripServiceMode) tripServiceMode.hidden = true;
         setStatusEditMode();
 
         if (tripDate) {
