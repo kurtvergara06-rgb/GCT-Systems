@@ -62,7 +62,7 @@
                 </div>
             </div>
             @if($view === 'pending')
-            <div class="ir-table-wrap"><table class="ir-table ir-pending-table ir-split-table">
+            <div class="ir-table-wrap gct-responsive-records gct-sticky-actions"><table class="ir-table ir-pending-table ir-split-table">
                 <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS SPLIT</th><th>STOCK STATUS</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                 <tbody>
                 @forelse($pendingJobs as $jo)
@@ -132,7 +132,7 @@
                 </tbody>
             </table></div>
             @else
-            <div class="ir-table-wrap">
+            <div class="ir-table-wrap gct-responsive-records gct-sticky-actions">
                 <table class="ir-table ir-records-table ir-split-table ir-lifecycle-table">
                     <thead><tr><th>IR / JOB ORDER</th><th>SUBMITTED AT</th><th>REQUESTED PARTS</th><th>FULFILLMENT</th><th>IR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                     <tbody>
