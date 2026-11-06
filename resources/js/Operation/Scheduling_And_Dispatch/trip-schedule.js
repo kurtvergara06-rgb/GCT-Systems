@@ -263,6 +263,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const closeViewTripModal = document.getElementById('closeViewTripModal');
     const closeViewTripButton = document.getElementById('closeViewTripButton');
 
+    const cancelServiceTripModal = document.getElementById('cancelServiceTripModal');
+    const cancelServiceTripForm = document.getElementById('cancelServiceTripForm');
+    const cancelServiceTripCode = document.getElementById('cancelServiceTripCode');
+    const cancelServiceTripBack = document.getElementById('cancelServiceTripBack');
+    const cancelServiceTripClose = document.getElementById('cancelServiceTripClose');
+
     const deleteTripName = document.getElementById('deleteTripName');
     const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
     const confirmDeleteTrip = document.getElementById('confirmDeleteTrip');
@@ -1028,6 +1034,16 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return;
         }
 
+        const cancellationButton = event.target.closest('.cancel-service-trip');
+        if (cancellationButton && cancelServiceTripForm && cancelServiceTripModal) {
+            cancelServiceTripForm.action = cancellationButton.dataset.cancelUrl || '#';
+            cancelServiceTripForm.querySelector('#cancellationReason').value = '';
+            if (cancelServiceTripCode) cancelServiceTripCode.textContent = cancellationButton.dataset.tripCode || 'this trip';
+            openModal(cancelServiceTripModal);
+            cancelServiceTripForm.querySelector('#cancellationReason')?.focus();
+            return;
+        }
+
         const deleteButton = event.target.closest('.delete-trip');
 
         if (deleteButton) {
@@ -1042,6 +1058,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
             openModal(deleteTripModal);
         }
+    });
+
+    [cancelServiceTripBack, cancelServiceTripClose].filter(Boolean).forEach((button) => {
+        button.addEventListener('click', () => closeModal(cancelServiceTripModal));
     });
 
     cancelDeleteTrip?.addEventListener('click', () => {
