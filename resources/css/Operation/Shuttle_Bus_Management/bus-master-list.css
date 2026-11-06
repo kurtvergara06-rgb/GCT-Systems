@@ -3011,3 +3011,25 @@
 .bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr:hover > td.bus-actions-cell {
   background: #f8fbff;
 }
+
+
+/* Four fixed KPI columns become unreadable beside the expanded sidebar.
+   Let card count respond to the actual Bus Master List content width. */
+.bus-master-list-page .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.bus-master-list-page .stats-grid .stat-card,
+.bus-master-list-page .stats-grid .stat-card-link {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.bus-master-list-page .stats-grid .stat-card small,
+.bus-master-list-page .stats-grid .stat-card-link small {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+.bus-master-list-page .table-card,
+.bus-master-list-page .table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
