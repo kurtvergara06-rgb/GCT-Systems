@@ -647,7 +647,28 @@ function initDdrAdditionalTrips() {
             if (select.value) reserved.add(select.value);
             select.dataset.initialSchedule = '';
             const group = select.closest('.ddr-extra-assignment-group');
-            if (group) group.hidden = available.length === 1 && !!select.value;
+            if (!group) return;
+            const unscheduled = Boolean(modal.querySelector('#ddrUnscheduledMode')?.checked);
+            const autoLinked = !unscheduled && available.length === 1 && !!select.value;
+            group.hidden = unscheduled || autoLinked || available.length === 0;
+            let feedback = group.parentElement.querySelector('.ddr-assignment-feedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'ddr-assignment-feedback';
+                group.after(feedback);
+            }
+            const match = available.find(row => String(row.id) === String(select.value));
+            feedback.hidden = !autoLinked && (unscheduled || available.length > 0);
+            feedback.classList.toggle('is-warning', !autoLinked);
+            if (autoLinked && match) {
+                feedback.textContent = 'Automatically linked to ' +
+                    [match.trip_code, match.bus_no && 'Bus ' + match.bus_no].filter(Boolean).join(' · ') +
+                    '. Enter the actual journey details below.';
+            } else if (!unscheduled && available.length === 0) {
+                feedback.textContent = 'No other eligible assigned trip is available for this driver and bus. Remove this extra entry, or choose the correct trip above.';
+            } else {
+                feedback.textContent = '';
+            }
         });
     };
     modal.addEventListener('ddr:primary-assignment-changed', refillAssignmentSelectors);
