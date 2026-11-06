@@ -256,6 +256,28 @@ class OperationRouteManagementTest extends TestCase
         );
     }
 
+    public function test_route_can_be_created_without_client_allocation(): void
+    {
+        $head = $this->operationUser('head');
+        $this->fakeOsrm(distanceMeters: 5000, durationSeconds: 300);
+
+        $payload = $this->validRoutePayload([
+            'route_name' => 'General Service Route',
+            'operation_client_id' => '',
+        ]);
+
+        $this->actingAs($head)
+            ->post(route('operation.routes.store'), $payload)
+            ->assertRedirect('/operation/routes')
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('shuttle_routes', [
+            'route_name' => 'General Service Route',
+            'operation_client_id' => null,
+            'status' => 'Active',
+        ]);
+    }
+
     public function test_route_store_uses_server_verified_distance_eta_and_stop_dwell_time(): void
     {
         $head = $this->operationUser('head');
