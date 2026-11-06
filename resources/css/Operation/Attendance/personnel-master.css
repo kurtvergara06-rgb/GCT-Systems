@@ -2606,6 +2606,7 @@
    Restore an intrinsic button width without changing other modules. */
 .personnel-master-page .personnel-master-panel > .personnel-section-header {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
   flex-wrap: wrap;
