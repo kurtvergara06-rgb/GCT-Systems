@@ -330,6 +330,59 @@ class DailyDriverReportTest extends TestCase
             ->assertSee('Schedule match unavailable');
     }
 
+    public function test_ddr_driver_dropdown_only_lists_pending_unreported_assignments(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('06:15:00', '07:10:00');
+        $schedule->update(['status' => 'Pending DDR']);
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonPath('driver_ids.0', $this->driver->driver_id);
+
+        $schedule->update(['status' => 'Completed']);
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonCount(0, 'driver_ids');
+
+        $schedule->update(['status' => 'Pending DDR']);
+        $report = DailyDriverReport::create(array_merge($this->validPayload(), [
+            'ddr_no' => 'DDR-2026-0099',
+            'driver_name' => $this->driver->driver_name,
+            'trip_schedule_id' => $schedule->id,
+            'trip_assignment_id' => $schedule->assignments()->firstOrFail()->id,
+            'encoded_by' => $this->user->id,
+        ]));
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonCount(0, 'driver_ids');
+    }
+
+    public function test_pending_only_schedule_lookup_includes_assigned_bus_and_excludes_completed_trips(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('06:15:00', '07:10:00');
+        $schedule->update(['status' => 'Pending DDR']);
+
+        $url = route('daily-driver-reports.schedule-lookup', [
+            'report_date' => '2026-09-15',
+            'driver_id' => $this->driver->driver_id,
+            'pending_only' => 1,
+        ]);
+        $this->actingAs($this->user)->get($url)
+            ->assertOk()
+            ->assertJsonPath('schedules.0.bus_id', $this->bus->id)
+            ->assertJsonPath('schedules.0.bus_no', $this->bus->bus_no)
+            ->assertJsonPath('schedules.0.status', 'Pending DDR');
+
+        $schedule->update(['status' => 'Completed']);
+        $this->actingAs($this->user)->get($url)
+            ->assertOk()
+            ->assertJsonCount(0, 'schedules');
+    }
+
     public function test_schedule_lookup_returns_matching_trips_for_driver_and_bus(): void
     {
         $this->createAssignedSchedule('06:15:00', '07:10:00');
