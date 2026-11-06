@@ -146,7 +146,7 @@ class OperationTripScheduleHardeningTest extends TestCase
     {
         return ShuttleRoute::create([
             'route_code' => $code,
-            'route_name' => 'Test Route',
+            'route_name' => 'Test Route '.$code,
             'origin' => 'Terminal A',
             'origin_latitude' => 14.1000000,
             'origin_longitude' => 121.1000000,
