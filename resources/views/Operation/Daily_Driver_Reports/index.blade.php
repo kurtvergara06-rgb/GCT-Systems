@@ -98,7 +98,7 @@
                 </x-ui.table-toolbar>
 
                 <!-- DDR Table Container with Contained Scroll -->
-                <div class="table-wrap ddr-table-wrap" style="margin-top: 16px;">
+                <div class="table-wrap ddr-table-wrap gct-responsive-records gct-sticky-actions" style="margin-top: 16px;">
                     <table class="ddr-table">
                         <thead>
                             <tr>
