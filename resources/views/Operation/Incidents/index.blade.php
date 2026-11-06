@@ -85,7 +85,7 @@
                     </x-slot:filters>
                 </x-ui.table-toolbar></div>
 
-                <div class="table-wrap inc-table-wrap">
+                <div class="table-wrap inc-table-wrap gct-responsive-records gct-sticky-actions">
                     <table class="inc-table">
                         <thead>
                             <tr>
