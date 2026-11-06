@@ -2581,21 +2581,21 @@
 .personnel-master-page .driver-master-records-table td:nth-child(6) .actions {
   flex-wrap: nowrap;
 }
-/* Sticky Actions is useful only while this table exceeds the viewport. */
-@media (max-width: 1279px) {
-  .personnel-master-page .driver-master-table-scroll .driver-master-records-table th:last-child,
-  .personnel-master-page .driver-master-table-scroll .driver-master-records-table td:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 3;
-    background: #fff;
-    box-shadow: -1px 0 #dbe5f0, -8px 0 14px -13px rgba(15, 23, 42, .36);
-  }
-  .personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:last-child {
-    z-index: 7;
-    background: #f3f7fc;
-  }
-  .personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody tr:hover td:last-child {
-    background: #f8fbff;
-  }
+/* The sidebar makes the table's available width smaller than the viewport.
+   Always pin Actions inside its scroll container; this is inert when no
+   horizontal overflow exists. Apply only to the real six-column data rows. */
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:nth-child(6),
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody td:nth-child(6) {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: #fff;
+  box-shadow: -1px 0 #dbe5f0, -8px 0 14px -13px rgba(15, 23, 42, .36);
+}
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:nth-child(6) {
+  z-index: 7;
+  background: #f3f7fc;
+}
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody tr:hover td:nth-child(6) {
+  background: #f8fbff;
 }
