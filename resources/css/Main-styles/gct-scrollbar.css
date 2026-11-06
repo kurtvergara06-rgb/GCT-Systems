@@ -148,7 +148,7 @@ html:has(body.modal-open) {
   min-width: 132px;
   white-space: nowrap;
   background: var(--gct-sticky-actions-background, #fff);
-  box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+  box-shadow: none;
   z-index: 4;
 }
 .gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child {
@@ -164,4 +164,68 @@ html:has(body.modal-open) {
   justify-content: center;
   flex-wrap: nowrap;
   gap: 6px;
+}
+
+
+/* Shared horizontal table behavior. Compact and unobtrusive on all normal
+   record-table scrollports; no modal/pivot/analytics scrollbars are changed. */
+@media screen {
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap
+  ):has(> table) {
+    scrollbar-width: thin;
+    scrollbar-color: #a8b7c9 transparent;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap
+  ):has(> table)::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap
+  ):has(> table)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap
+  ):has(> table)::-webkit-scrollbar-thumb {
+    background: #a8b7c9;
+    border: 0;
+    border-radius: 3px;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap
+  ):has(> table)::-webkit-scrollbar-thumb:hover {
+    background: #7188a4;
+  }
+
+  /* Never draw the sticky-column divider on a table that fits. The stronger
+     no-overflow rule also clears old page-local shadows (e.g. Auto Scheduling). */
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none !important;
+  }
+  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+  }
+
+  main .gct-drag-scroll-ready { cursor: grab; }
+  main .gct-drag-scroll-ready.is-drag-scrolling { cursor: grabbing; user-select: none; }
+  main .gct-drag-scroll-ready :is(button, a, input, select, textarea, summary, [role="button"]) { cursor: pointer; }
+  main .gct-drag-scroll-ready :is(td, th, span, strong, small) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
