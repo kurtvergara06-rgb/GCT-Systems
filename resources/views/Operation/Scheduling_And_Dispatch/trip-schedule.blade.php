@@ -403,7 +403,7 @@
             id="tripModal"
             title="New Trip"
             title-id="tripModalTitle"
-            description="Set the trip type, route, schedule, and other trip details."
+            description="Select a client, route, schedule, and other trip details."
             icon="fa-calendar-plus"
             size="large"
             form-id="tripForm"
@@ -420,25 +420,6 @@
             <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
             <input type="hidden" name="return_search" value="{{ request('search') }}">
             <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
-
-            <fieldset class="trip-service-mode" id="tripServiceMode">
-                <legend>Trip Type <span class="ui-required">*</span></legend>
-                <div class="trip-service-mode-options">
-                    <label class="trip-service-mode-choice">
-                        <input type="radio" name="trip_service_mode" value="client" checked>
-                        <i class="fa-solid fa-building" aria-hidden="true"></i>
-                        <span><strong>Has Client</strong><small>Trip for an assigned client / company</small></span>
-                    </label>
-                    <label class="trip-service-mode-choice">
-                        <input type="radio" name="trip_service_mode" value="general">
-                        <i class="fa-solid fa-bus" aria-hidden="true"></i>
-                        <span><strong>No Client</strong><small>General or unallocated service</small></span>
-                    </label>
-                </div>
-                <p class="trip-general-service-notice" id="tripGeneralServiceNotice" hidden>
-                    Choose an active route without a client allocation. Routes assigned to companies are unavailable for No Client trips.
-                </p>
-            </fieldset>
 
             <div class="ui-form-grid trip-ui-form-grid trip-editor-grid">
                 <x-ui.form-field label="Trip ID" name="trip_code_display" id="tripCode" value="Auto-generated" icon="fa-hashtag" :readonly="true" />
