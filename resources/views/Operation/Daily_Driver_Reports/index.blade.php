@@ -568,11 +568,11 @@
                     </summary>
                     <div class="ddr-extra-trip-body">
                         <div class="ddr-extra-trip-actions">
-                            <p>Enter the actual journey details recorded on the physical DDR.</p>
+                            <p>Record each journey segment, boarding, or drop-off under this driver's selected bus and route.</p>
                             <button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash" aria-hidden="true"></i><span>Remove</span></button>
                         </div>
                         <div class="ddr-extra-trip-grid">
-                        <div class="ui-form-group ddr-extra-assignment-group"><label>Assigned Trip <span class="ui-required">*</span></label><small class="ddr-extra-trip-hint">Choose the correct scheduled trip for this entry.</small><select class="ddr-extra-assignment" data-trip-field="selected_trip_schedule_id"><option value="">Select an assigned trip...</option></select></div>
+                        {{-- Additional rows are journey logs under this physical DDR, not separate assignments. --}}
                         <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
                         <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
                         <x-ui.form-field label="To Location" name="ddr_trip_template_to" required placeholder="Destination terminal / stop" maxlength="150" data-trip-field="to_location" />
