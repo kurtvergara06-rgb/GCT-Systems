@@ -124,6 +124,9 @@ window.GCTPartialNavigation.registerInitializer('shared-shell-enhancements', 'ma
     'main .service-table-scroll',
     'main .assignment-table-wrap',
     'main .auto-table-wrap',
+    'main .attendance-table-wrap',
+    'main .personnel-master-table-wrap',
+    'main .bus-table-wrap',
   ].join(', ');
   const excluded = [
     '.ui-form-overlay', '.modal-overlay', '[role="dialog"]',
