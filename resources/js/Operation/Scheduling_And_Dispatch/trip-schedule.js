@@ -172,6 +172,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         if (!group) return;
         const message = field.id === 'tripDirection'
             ? 'Select Incoming or Outgoing to continue.'
+            : field.id === 'tripServiceMode'
+                ? 'Choose Client or No Client to continue.'
             : field.id === 'tripClientName'
                 ? 'Select a client to continue.'
                 : field.id === 'tripRoute'
@@ -212,21 +214,36 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
     const tripClientName = document.getElementById('tripClientName');
+    const tripServiceMode = document.getElementById('tripServiceMode');
+    const tripClientField = document.getElementById('tripClientField');
+    const tripRouteLabel = document.getElementById('tripRouteLabel');
 
     function syncTripRouteOptions({ preserveRoute = false } = {}) {
-        if (!tripRoute || !tripClientName) return;
+        if (!tripRoute || !tripClientName || !tripServiceMode) return;
 
         const creating = Boolean(tripFormMethod?.disabled);
+        const mode = tripServiceMode.value;
         const client = tripClientName.value.trim().toLowerCase();
         const previous = tripRoute.value;
+        const requiresClient = mode === 'client';
 
-        // Clientless general service uses active, unallocated routes only.
-        // Named clients may use only their allocated active routes.
+        if (tripClientField) tripClientField.hidden = !requiresClient;
+        tripClientName.disabled = !requiresClient;
+        tripClientName.required = requiresClient && creating;
+        if (tripRouteLabel) {
+            tripRouteLabel.innerHTML = (requiresClient ? 'Client Route' : mode === 'general' ? 'General Route' : 'Route')
+                + ' <span class="ui-required">*</span>';
+        }
+
+        // Never offer a route belonging to another client (or a general route
+        // to a client trip), even when the select contains all active routes.
         for (const option of tripRoute.options) {
             if (!option.value) continue;
             const ownerId = String(option.dataset.clientId || '').trim();
             const ownerName = String(option.dataset.clientName || '').trim().toLowerCase();
-            const available = client ? Boolean(ownerId && ownerName === client) : !ownerId;
+            const available = mode === 'general'
+                ? !ownerId
+                : requiresClient && Boolean(client && ownerId && ownerName === client);
             option.hidden = creating && !available;
             option.disabled = creating && !available;
         }
@@ -235,10 +252,14 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             option.value === previous && !option.disabled && !option.hidden
         );
         tripRoute.value = preserveRoute && stillAllowed ? previous : '';
-        tripRoute.disabled = false;
-
-        if (!creating) tripRoute.disabled = false;
-        tripClientName.required = false;
+        // Editing historical trips preserves their existing route selection.
+        tripRoute.disabled = creating && (!mode || (requiresClient && !client));
+        const placeholder = tripRoute.options[0];
+        if (placeholder) {
+            placeholder.textContent = !mode ? 'Select trip type first'
+                : requiresClient && !client ? 'Select client first'
+                : 'Select a ' + (mode === 'general' ? 'general route' : 'client route');
+        }
 
         if (creating && !tripRoute.value && arrivalTime) arrivalTime.value = '';
 
@@ -676,6 +697,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         if (!preserveValues) {
             tripForm.reset();
             setTripClientValue('');
+            if (tripServiceMode) tripServiceMode.value = '';
         }
 
         tripForm.setAttribute('action', createAction);
@@ -699,7 +721,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         syncTripRouteOptions({ preserveRoute: preserveValues });
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
-        if (tripClientName) tripClientName.required = false;
+        if (tripClientName) tripClientName.required = tripServiceMode?.value === 'client';
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
@@ -785,6 +807,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             }
             if (tripClientName) {
                 setTripClientValue(button.dataset.clientName || '');
+                if (tripServiceMode) tripServiceMode.value = tripClientName.value ? 'client' : 'general';
                 tripClientName.required = false; // Allow editing pre-migration trips.
             }
             if (tripRequiredBuses) tripRequiredBuses.value = button.dataset.requiredBuses || '1';
@@ -832,10 +855,19 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     departureTime?.addEventListener('change', calculateArrival);
     tripRoute?.addEventListener('change', calculateArrival);
 
-    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
-    tripClientName?.addEventListener('change', () => {
+    tripServiceMode?.addEventListener('change', () => {
+        setTripClientValue('');
+        if (tripRoute) tripRoute.value = '';
         syncTripRouteOptions();
         updateTripTimeOptions({ preserveValue: false });
+        calculateArrival();
+    });
+    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
+    tripClientName?.addEventListener('change', () => {
+        if (tripRoute) tripRoute.value = '';
+        syncTripRouteOptions();
+        updateTripTimeOptions({ preserveValue: false });
+        calculateArrival();
     });
     tripDirection?.addEventListener('change', () => updateTripTimeOptions());
     departureTimeSlot?.addEventListener('change', () => {
