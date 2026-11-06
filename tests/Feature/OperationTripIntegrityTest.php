@@ -331,6 +331,82 @@ class OperationTripIntegrityTest extends TestCase
         $this->assertSame('Cancelled', $this->schedule->fresh()->status);
     }
 
+    public function test_breakdown_keeps_trip_on_hold_after_eta_until_verified_continued(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 05:30:00', 'Asia/Manila'));
+        $this->schedule->update(['status' => 'Dispatched']);
+        $incident = $this->createIncident();
+
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 06:05:00', 'Asia/Manila'));
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Dispatched', $this->schedule->fresh()->status);
+        $this->assertTrue(app(\App\Services\Operation\TripDdrLifecycleService::class)
+            ->isAssignmentOnIncidentHold($this->assignment));
+
+        $incident->update([
+            'status' => 'Resolved',
+            'resolution_notes' => '[Trip outcome: Continued] Operations verified service continued.',
+        ]);
+        app(\App\Services\Operation\TripDdrLifecycleService::class)
+            ->releaseAfterIncident($this->schedule->id);
+
+        $this->assertSame('Pending DDR', $this->schedule->fresh()->status);
+        $this->assertFalse(app(\App\Services\Operation\TripDdrLifecycleService::class)
+            ->isAssignmentOnIncidentHold($this->assignment));
+    }
+
+    public function test_interrupted_breakdown_does_not_release_after_eta(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 06:05:00', 'Asia/Manila'));
+        $this->schedule->update(['status' => 'Dispatched']);
+        $incident = $this->createIncident();
+        $incident->update([
+            'status' => 'Resolved',
+            'resolution_notes' => '[Trip outcome: Interrupted] Service was unable to continue.',
+        ]);
+        app(\App\Services\Operation\TripDdrLifecycleService::class)
+            ->releaseAfterIncident($this->schedule->id);
+
+        $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+        $this->assertSame('Dispatched', $this->schedule->fresh()->status);
+        $this->assertTrue(app(\App\Services\Operation\TripDdrLifecycleService::class)
+            ->isAssignmentOnIncidentHold($this->assignment));
+    }
+
+    public function test_only_breakdown_affected_bus_slot_is_held(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-22 06:05:00', 'Asia/Manila'));
+        $this->schedule->update(['status' => 'Dispatched', 'required_buses' => 2]);
+        $healthyBus = Bus::create([
+            'bus_no' => 'BUS-INTEGRITY-HEALTHY',
+            'plate_no' => 'INT-6006',
+            'status' => 'Active',
+        ]);
+        $healthy = TripAssignment::create([
+            'trip_schedule_id' => $this->schedule->id,
+            'driver_attendance_id' => $this->attendance->id,
+            'driver_id' => $this->driver->driver_id,
+            'driver_name' => $this->driver->driver_name,
+            'bus_id' => $healthyBus->id,
+            'slot_number' => 2,
+            'assigned_by' => $this->user->id,
+        ]);
+        $incident = $this->createIncident();
+        $lifecycle = app(\App\Services\Operation\TripDdrLifecycleService::class);
+        $this->assertTrue($lifecycle->isAssignmentOnIncidentHold($this->assignment));
+        $this->assertFalse($lifecycle->isAssignmentOnIncidentHold($healthy));
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.schedule-lookup', [
+                'report_date' => '2026-09-22',
+                'driver_id' => $this->driver->driver_id,
+                'pending_only' => 1,
+            ]))
+            ->assertOk()
+            ->assertJsonCount(1, 'schedules')
+            ->assertJsonPath('schedules.0.bus_id', $healthyBus->id);
+    }
+
     private function createIncident(): Incident
     {
         return Incident::create([
