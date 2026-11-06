@@ -149,6 +149,37 @@ class IncidentTest extends TestCase
         ]);
     }
 
+    public function test_predeparture_ready_trip_accepts_breakdown_but_not_ordinary_road_incident(): void
+    {
+        $this->tripSchedule->update(['status' => 'Ready']);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Ready trip terminal',
+            ])
+            ->assertSessionHasErrors('bus_id');
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Bus Breakdown',
+                'location' => 'Ready trip terminal',
+                'description' => 'Bus cannot depart.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'incident_type' => 'Bus Breakdown',
+            'bus_id' => $this->bus->id,
+        ]);
+        $this->assertSame('Under Maintenance', $this->bus->fresh()->status);
+    }
+
     public function test_driver_can_submit_an_incident(): void
     {
         $payload = [
