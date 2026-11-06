@@ -92,12 +92,14 @@ class IncidentController extends Controller
             ->withQueryString();
 
         $totalIncidents = Incident::query()->count();
+        // Match the Active tab: Replacement Bus Dispatched remains active
+        // until the incident is actually Resolved or Cancelled.
         $activeIncidents = Incident::query()
-            ->whereIn('status', ['Reported', 'Monitoring', 'Responding'])
+            ->whereNotIn('status', ['Resolved', 'Cancelled'])
             ->count();
         $breakdownIncidents = Incident::query()
             ->where('incident_type', 'Bus Breakdown')
-            ->whereIn('status', ['Reported', 'Monitoring', 'Responding'])
+            ->whereNotIn('status', ['Resolved', 'Cancelled'])
             ->count();
         $resolvedToday = Incident::query()
             ->whereDate('resolved_at', now()->toDateString())
