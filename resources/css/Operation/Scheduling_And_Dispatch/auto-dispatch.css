@@ -5226,8 +5226,8 @@ body.ai-modal-open {
     overflow-x: auto;
     overflow-y: auto;
     scrollbar-gutter: auto;
-    scrollbar-width: auto;
-    scrollbar-color: #819bb9 #e8eef6;
+    scrollbar-width: thin;
+    scrollbar-color: #a8b7c9 transparent;
     -webkit-overflow-scrolling: touch;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
@@ -5236,20 +5236,20 @@ body.ai-modal-open {
     table-layout: fixed;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar {
-    width: 7px;
-    height: 10px;
+    width: 4px;
+    height: 4px;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-track {
-    background: #e8eef6;
-    border-radius: 6px;
+    background: transparent;
+    border-radius: 3px;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-thumb {
-    background: #819bb9;
-    border: 2px solid #e8eef6;
-    border-radius: 6px;
+    background: #a8b7c9;
+    border: 0;
+    border-radius: 3px;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-thumb:hover {
-    background: #55789f;
+    background: #7188a4;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
