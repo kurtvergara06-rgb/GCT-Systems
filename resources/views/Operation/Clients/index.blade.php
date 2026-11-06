@@ -25,7 +25,7 @@
                         <p>Maintain client records here. Trip-time configurations remain in Trip Planning &amp; Scheduling.</p>
                     </div>
                     @if($canEditOperation)
-                        <button class="client-master-add" type="button" data-client-create-open>
+                        <button class="client-master-add" type="button" data-client-create-open @if($errors->has('name')) data-open-on-error="true" @endif>
                             <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Client
                         </button>
                     @endif
@@ -124,7 +124,21 @@
                 </div>
                 <footer class="client-master-footer">
                     <span>Showing {{ $clients->firstItem() ?? 0 }} to {{ $clients->lastItem() ?? 0 }} of {{ $clients->total() }} clients</span>
-                    {{ $clients->links() }}
+                    @if($clients->hasPages())
+                        <nav class="client-master-pagination" aria-label="Client pages">
+                            @if($clients->onFirstPage())
+                                <span aria-disabled="true">Previous</span>
+                            @else
+                                <a href="{{ $clients->previousPageUrl() }}">Previous</a>
+                            @endif
+                            <span>Page {{ $clients->currentPage() }} of {{ $clients->lastPage() }}</span>
+                            @if($clients->hasMorePages())
+                                <a href="{{ $clients->nextPageUrl() }}">Next</a>
+                            @else
+                                <span aria-disabled="true">Next</span>
+                            @endif
+                        </nav>
+                    @endif
                 </footer>
             </section>
 
