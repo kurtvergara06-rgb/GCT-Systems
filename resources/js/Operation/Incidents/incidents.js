@@ -263,7 +263,7 @@ function initIncidentBusLookup() {
             const emptyNote = lookup.querySelector('[data-trip-empty-note]');
             if (emptyNote) {
                 emptyNote.textContent = bus
-                    ? 'No Ready trip assignment matches this bus today.'
+                    ? 'No In Progress trip assignment matches this bus today.'
                     : 'Enter a Bus ID to see matching trip and driver details.';
                 emptyNote.hidden = Boolean(option?.value);
             }
@@ -330,7 +330,7 @@ function initIncidentBusLookup() {
                 results.hidden = false;
             } else {
                 const notice = document.createElement('p');
-                notice.textContent = 'No Ready trip assignment matches this bus today.';
+                notice.textContent = 'No In Progress trip assignment matches this bus today.';
                 results.appendChild(notice);
                 results.hidden = false;
             }
@@ -354,15 +354,17 @@ function initIncidentBusLookup() {
                 input.setCustomValidity('Select a Bus ID from the suggestions.');
             }
             results.replaceChildren();
-            if (!typed) { results.hidden = true; return; }
-            const matches = buses.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
+            // Opening an empty Bus ID field lists all buses currently on In Progress trips.
+            const matches = buses.filter(bus => !typed || [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase().includes(typed))).slice(0, 30);
             const exact = matches.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase() === typed));
             if (exact.length === 1) { selectBus(exact[0]); return; }
             if (!matches.length) {
                 const notice = document.createElement('p');
-                notice.textContent = 'No bus assigned to a Ready trip matches this search.';
+                notice.textContent = typed
+                    ? 'No bus on an In Progress trip matches this search.'
+                    : 'No In Progress trip buses are available today.';
                 results.appendChild(notice);
             } else {
                 matches.forEach(bus => {
@@ -387,7 +389,12 @@ function initIncidentBusLookup() {
             if (!lookup.contains(event.target)) results.hidden = true;
         });
         input.addEventListener('focus', () => {
-            if (input.value && !confirmedBus) search();
+            // Always reveal the available in-progress buses, even before typing.
+            if (!confirmedBus) search();
+            else {
+                input.select();
+                search();
+            }
         });
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];
