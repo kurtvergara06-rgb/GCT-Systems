@@ -2333,3 +2333,53 @@
     border: 1px solid #bfd4ff;
     color: #1d4ed8;
 }
+
+
+/* Direction tables: don't reserve an empty vertical scrollbar gutter.
+   Native scrollbars still appear when the content actually overflows. */
+.assignment-page .assignment-direction-section .assignment-table-wrap {
+    scrollbar-gutter: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+.assignment-page .assignment-direction-section .assignment-table {
+    width: 100%;
+}
+
+/* Driver and bus availability are compact rectangular status boxes.
+   Keep the existing labels and availability semantics unchanged. */
+.assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned,
+.assignment-page .resource-card .resource-record > .availability.available {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 29px;
+    padding: 5px 9px;
+    box-sizing: border-box;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+}
+.assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned {
+    background: #fff7df;
+    border: 1px solid #f2cf78;
+    color: #935a00;
+}
+.assignment-page .resource-card .resource-record > .availability.available {
+    background: #ddfae8;
+    border: 1px solid #a8edc2;
+    color: #137647;
+}
+@media (max-width: 900px) {
+    .assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned,
+    .assignment-page .resource-card .resource-record > .availability.available {
+        justify-self: end;
+    }
+}
