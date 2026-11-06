@@ -141,7 +141,7 @@
           </div>
         </div>
 
-        <div class="table-wrap records-table-wrap">
+        <div class="table-wrap records-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="records-table">
             <thead>
               <tr>
