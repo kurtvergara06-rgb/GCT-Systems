@@ -11,6 +11,7 @@
 >
     @php
         $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+        $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
         $tripValidationMode = session('trip_validation_mode');
         $tripValidationId = session('trip_validation_id');
         $tripValidationCode = session('trip_validation_code');
@@ -215,6 +216,7 @@
                                             $canManageSchedule = $trip->canBeManagedFromSchedule();
                                             $canEdit = $canEditOperation && $canManageSchedule && request('tab') !== 'history';
                                             $canDelete = $canEdit;
+                                            $canCancel = $canEditOperation && $canApproveOperation && ! $isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true);
                                             $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime) ? $arrivalDateTime->format('g:i A') : $arrivalDateTime->format('M d · g:i A');
                                             $assignmentLabel = in_array($trip->status, ['Missed', 'Cancelled', 'Completed'], true) ? $trip->status : ($assignedCount === 0 ? 'Pending' : ($assignedCount >= $requiredCount ? 'Fully Assigned' : 'Partially Assigned'));
                                             $viewTripData = [
@@ -317,6 +319,16 @@
                                                                 data-update-url="{{ route('trip-schedule.update', $trip->id, false) }}"
                                                                 data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
                                                             />
+                                                            @if($canCancel)
+                                                                <button
+                                                                    type="button"
+                                                                    class="trip-action cancel-service-trip"
+                                                                    title="Cancel Trip (Head approval and reason required)"
+                                                                    aria-label="Cancel trip {{ $trip->trip_code }}"
+                                                                    data-trip-code="{{ $trip->trip_code }}"
+                                                                    data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}"
+                                                                ><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
+                                                            @else
                                                             <form
                                                                 id="deleteTripForm-{{ $trip->id }}"
                                                                 method="POST"
@@ -337,6 +349,7 @@
                                                                     data-trip-code="{{ $trip->trip_code }}"
                                                                 />
                                                             </form>
+                                                            @endif
                                                     </div>
                                                 </div>
                                             </td>
@@ -575,6 +588,35 @@
                     <strong>Maintain a 15-minute gap between active departures on the same route.</strong>
                     <span>Cancelled trips free their departure slot. Driver and bus assignments happen afterward.</span>
                 </div>
+            </div>
+        </x-ui.form-modal>
+    @endif
+
+    @if($canEditOperation && $canApproveOperation)
+        <x-ui.form-modal
+            id="cancelServiceTripModal"
+            title="Cancel Scheduled Trip"
+            description="Cancellation is permanent and requires an operational reason. Existing assignments remain in the audit history."
+            icon="fa-ban"
+            size="medium"
+            form-id="cancelServiceTripForm"
+            action="#"
+            method="POST"
+            submit-text="Confirm Cancellation"
+            submit-icon="fa-ban"
+            cancel-text="Keep Trip"
+            cancel-id="cancelServiceTripBack"
+            close-id="cancelServiceTripClose"
+        >
+            @method('PATCH')
+            <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+            <input type="hidden" name="return_search" value="{{ request('search') }}">
+            <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
+            <p class="trip-cancellation-context">Trip: <strong id="cancelServiceTripCode">—</strong></p>
+            <div class="ui-form-group">
+                <label for="cancellationReason">Reason for cancellation <span class="ui-required">*</span></label>
+                <textarea id="cancellationReason" name="cancellation_reason" rows="3" minlength="10" maxlength="1000" required placeholder="Explain why the trip cannot proceed (at least 10 characters)"></textarea>
+                @error('cancellation_reason')<span class="ui-field-error">{{ $message }}</span>@enderror
             </div>
         </x-ui.form-modal>
     @endif
