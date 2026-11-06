@@ -362,9 +362,12 @@
                                             if ($slotBreakdown && $isScheduleEnded
                                                 && ($slotBreakdown->status !== 'Resolved'
                                                     || ! str_contains((string) $slotBreakdown->resolution_notes, '[Trip outcome: Continued]'))) {
-                                                $slotDisplayStatus = 'Incident Hold';
+                                                $slotDisplayStatus = $slotBreakdown->status === 'Resolved'
+                                                    ? (str_contains((string) $slotBreakdown->resolution_notes, '[Trip outcome: Interrupted]')
+                                                        ? 'Interrupted · Review' : 'Outcome Review')
+                                                    : 'Incident Hold';
                                                 $slotStatusTooltip = $slotBreakdown->status === 'Resolved'
-                                                    ? 'Incident resolved, but trip continuation was not verified — Interrupted / For Review.'
+                                                    ? 'Incident resolved without a verified Continued outcome. Operations review is required.'
                                                     : 'Breakdown remains active after ETA. Awaiting verified trip outcome.';
                                             }
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
