@@ -1,5 +1,82 @@
 window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.auto-scheduling-page', () => {
     const pageRoot = document.querySelector('.auto-scheduling-page');
+
+    // Desktop convenience: drag the preview's noninteractive area sideways.
+    // Native wheel/trackpad, scrollbar, keyboard, and touch scrolling remain.
+    pageRoot?.querySelectorAll('.auto-table-wrap.gct-responsive-records').forEach((wrap) => {
+        let startX = 0;
+        let startY = 0;
+        let originalScrollLeft = 0;
+        let tracking = false;
+        let dragging = false;
+        let suppressClick = false;
+        let suppressClickTimer = null;
+        const interactiveSelector = 'button, a, input, select, textarea, label, summary, [role="button"], [contenteditable="true"]';
+
+        const syncOverflow = () => {
+            wrap.classList.toggle('gct-drag-scroll-ready', wrap.scrollWidth > wrap.clientWidth + 2);
+        };
+        const observer = typeof ResizeObserver !== 'undefined'
+            ? new ResizeObserver(syncOverflow)
+            : null;
+        observer?.observe(wrap);
+        const previewTable = wrap.querySelector('table');
+        if (previewTable) observer?.observe(previewTable);
+        syncOverflow();
+
+        wrap.addEventListener('pointerdown', (event) => {
+            if (event.button !== 0 || event.pointerType !== 'mouse'
+                || wrap.scrollWidth <= wrap.clientWidth + 2
+                || event.target.closest(interactiveSelector)) return;
+            tracking = true;
+            dragging = false;
+            startX = event.clientX;
+            startY = event.clientY;
+            originalScrollLeft = wrap.scrollLeft;
+        });
+        wrap.addEventListener('pointermove', (event) => {
+            if (!tracking) return;
+            const deltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+            if (!dragging) {
+                if (Math.abs(deltaX) < 7 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+                dragging = true;
+                wrap.classList.add('is-drag-scrolling');
+                wrap.setPointerCapture(event.pointerId);
+            }
+            wrap.scrollLeft = originalScrollLeft - deltaX;
+            event.preventDefault();
+        });
+        const finishDrag = (event) => {
+            if (!tracking && !dragging) return;
+            tracking = false;
+            if (dragging) {
+                suppressClick = true;
+                window.clearTimeout(suppressClickTimer);
+                suppressClickTimer = window.setTimeout(() => { suppressClick = false; }, 100);
+            }
+            dragging = false;
+            wrap.classList.remove('is-drag-scrolling');
+            if (wrap.hasPointerCapture(event.pointerId)) wrap.releasePointerCapture(event.pointerId);
+        };
+        wrap.addEventListener('pointerup', finishDrag);
+        wrap.addEventListener('pointercancel', finishDrag);
+        wrap.addEventListener('pointerleave', (event) => {
+            if (!dragging) finishDrag(event);
+        });
+        wrap.addEventListener('click', (event) => {
+            if (!suppressClick) return;
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClick = false;
+        }, true);
+        window.addEventListener('gct:navigation-before', () => {
+            observer?.disconnect();
+            window.clearTimeout(suppressClickTimer);
+        }, { once: true });
+    });
+
+
     const canEditOperation =
         pageRoot?.dataset.operationEdit === 'true';
     const canApproveOperation =
