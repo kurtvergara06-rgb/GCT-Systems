@@ -14,6 +14,7 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -193,13 +194,26 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'driver_page')
             ->withQueryString();
 
-        $availableBuses = Bus::query()
+        // Body numbers must be ordered naturally (2, 9, 10, 20), not
+        // lexicographically (10, 2, 20, 9). Sort before paginating so a
+        // smaller body number never appears on a later page.
+        $orderedEligibleBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
-            ->orderBy('bus_no')
-            ->paginate(10, ['*'], 'bus_page')
-            ->withQueryString();
+            ->get()
+            ->sort(fn (Bus $a, Bus $b): int =>
+                strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                ?: ($a->id <=> $b->id))
+            ->values();
+        $busPage = LengthAwarePaginator::resolveCurrentPage('bus_page');
+        $availableBuses = (new LengthAwarePaginator(
+            $orderedEligibleBuses->forPage($busPage, 10)->values(),
+            $orderedEligibleBuses->count(),
+            10,
+            $busPage,
+            ['pageName' => 'bus_page', 'path' => $request->url()]
+        ))->withQueryString();
 
         $unassignedTrips = TripSchedule::query()
             ->with(['shuttleRoute', 'assignments.bus', 'assignments.driverAttendance'])
@@ -357,7 +371,6 @@ class TripAssignmentController extends Controller
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
             )
-            ->orderBy('bus_no')
             ->get()
             ->filter(function (Bus $bus) use ($tripClient): bool {
                 $allocations = $bus->operationClients
@@ -368,6 +381,9 @@ class TripAssignmentController extends Controller
                     ? $allocations->isEmpty()
                     : $allocations->contains($tripClient);
             })
+            ->sort(fn (Bus $a, Bus $b): int =>
+                strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                ?: ($a->id <=> $b->id))
             ->values()
             ->map(fn (Bus $bus) => [
                 'id' => $bus->id,
