@@ -80,6 +80,16 @@
                     </x-ui.section-header>
 
                     <div class="trip-record-controls">
+                        <div class="trip-selected-date" aria-label="Currently selected trip schedule date">
+                            <span class="trip-selected-date-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
+                            <span class="trip-selected-date-copy">
+                                <span class="trip-selected-date-label">Showing schedules for</span>
+                                <strong>{{ \Illuminate\Support\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
+                            </span>
+                            @if(in_array(request('direction'), ['Incoming', 'Outgoing'], true))
+                                <span class="trip-selected-direction">{{ request('direction') }}</span>
+                            @endif
+                        </div>
                     <x-ui.table-toolbar action="{{ route('trip-schedule', [], false) }}" data-server-filter="true" search-label="Search Trip Schedules" search-placeholder="Search trip, route, or status..." :filter-count="(int) request()->filled('trip_date') + (int) (request()->filled('direction') && request('direction') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Trip Schedules" :show-filter-count="false" filter-view="Operation.Scheduling_And_Dispatch.partials.trip-schedule-filters" :filter-data="compact('selectedTripDate', 'activeRoutes')" :sort-options="['departure_time' => 'Departure Time', 'trip_code' => 'Trip ID', 'trip_date' => 'Trip Date', 'required_buses' => 'Required Buses', 'status' => 'Status']" default-sort="departure_time">
                         <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
                     </x-ui.table-toolbar>
