@@ -1,32 +1,153 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
-    // Keep the date indicator synchronized with the filter popup, including
-    // the shared calendar picker (which dispatches input/change events).
-    const scheduleToolbar = document.querySelector('.trip-record-controls .gct-table-toolbar');
-    const dateFilterInput = scheduleToolbar?.querySelector('[name="trip_date"]');
-    const dateIndicator = document.querySelector('.trip-selected-date');
-    const dateIndicatorValue = dateIndicator?.querySelector('[data-trip-selected-date-value]');
-    const dateIndicatorLabel = dateIndicator?.querySelector('[data-trip-selected-date-label]');
-    const appliedDate = dateFilterInput?.value || '';
-    const formatSelectedDate = (value) => {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return 'All dates';
-        const [year, month, day] = value.split('-').map(Number);
-        const date = new Date(year, month - 1, day);
-        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return 'All dates';
-        return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    // Trip Date belongs to its own calendar dropdown, not the Filter popup.
+    // Monthly markers are fetched from the authorized schedule counts endpoint.
+    const datePickerRoot = document.querySelector('[data-trip-calendar]');
+    const dateTrigger = datePickerRoot?.querySelector('[data-trip-calendar-trigger]');
+    const calendarPanel = datePickerRoot?.querySelector('[data-trip-calendar-panel]');
+    const calendarTitle = datePickerRoot?.querySelector('[data-trip-calendar-month]');
+    const calendarGrid = datePickerRoot?.querySelector('[data-trip-calendar-days]');
+    const calendarFeedback = datePickerRoot?.querySelector('[data-trip-calendar-feedback]');
+    const selectedDateValue = datePickerRoot?.dataset.selectedDate || '';
+    const selectedParts = selectedDateValue.split('-').map(Number);
+    const calendarView = new Date(selectedParts[0] || new Date().getFullYear(), (selectedParts[1] || 1) - 1, 1);
+    const calendarCounts = new Map();
+    const calendarEvents = new AbortController();
+    let calendarFetch = null;
+
+    const isoCalendarDate = (year, month, day) =>
+        `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const calendarMonthKey = () =>
+        `${calendarView.getFullYear()}-${String(calendarView.getMonth() + 1).padStart(2, '0')}`;
+    const operationalToday = () => {
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+        }).formatToParts(new Date());
+        const value = (key) => parts.find((part) => part.type === key)?.value;
+        return isoCalendarDate(value('year'), value('month'), value('day'));
     };
-    const syncSelectedDate = () => {
-        if (!dateFilterInput || !dateIndicatorValue) return;
-        const current = dateFilterInput.value;
-        const pending = current !== appliedDate;
-        dateIndicatorValue.textContent = formatSelectedDate(current);
-        if (dateIndicatorLabel) {
-            dateIndicatorLabel.textContent = pending ? 'Selected date · Apply to view' : 'Showing schedules for';
+    const goToScheduleDate = (date) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set('trip_date', date);
+        url.searchParams.delete('page');
+        url.searchParams.delete('history_page');
+        window.location.assign(url.toString());
+    };
+    const renderCalendar = () => {
+        if (!calendarGrid || !calendarTitle) return;
+        const year = calendarView.getFullYear();
+        const month = calendarView.getMonth();
+        const monthKey = calendarMonthKey();
+        calendarTitle.textContent = new Intl.DateTimeFormat('en-US', {
+            month: 'long', year: 'numeric',
+        }).format(calendarView);
+        calendarGrid.replaceChildren();
+        const counts = calendarCounts.get(monthKey) || {};
+        const firstWeekday = new Date(year, month, 1).getDay();
+        for (let index = 0; index < firstWeekday; index += 1) {
+            const spacer = document.createElement('span');
+            spacer.className = 'trip-calendar-empty';
+            spacer.setAttribute('aria-hidden', 'true');
+            calendarGrid.appendChild(spacer);
         }
-        dateIndicator?.classList.toggle('is-pending', pending);
+        const maxDay = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= maxDay; day += 1) {
+            const key = isoCalendarDate(year, month + 1, day);
+            const count = Number(counts[key]) || 0;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'trip-calendar-day';
+            button.textContent = String(day);
+            if (count > 0) {
+                button.classList.add('has-trips');
+                const dot = document.createElement('span');
+                dot.className = 'trip-calendar-day-dot';
+                dot.setAttribute('aria-hidden', 'true');
+                button.appendChild(dot);
+            }
+            if (key === selectedDateValue) {
+                button.classList.add('is-selected');
+                button.setAttribute('aria-current', 'date');
+            }
+            if (key === operationalToday()) button.classList.add('is-today');
+            button.setAttribute('aria-label', `${key}, ${count} scheduled ${count === 1 ? 'trip' : 'trips'}`);
+            button.addEventListener('click', () => goToScheduleDate(key));
+            calendarGrid.appendChild(button);
+        }
     };
-    dateFilterInput?.addEventListener('input', syncSelectedDate);
-    dateFilterInput?.addEventListener('change', syncSelectedDate);
-    syncSelectedDate();
+    const loadCalendarMonth = async () => {
+        if (!datePickerRoot || !calendarPanel) return;
+        const key = calendarMonthKey();
+        if (calendarCounts.has(key)) {
+            calendarFeedback.textContent = '';
+            renderCalendar();
+            return;
+        }
+        calendarFetch?.abort();
+        calendarFetch = new AbortController();
+        const currentFetch = calendarFetch;
+        calendarFeedback.textContent = 'Loading available trip dates...';
+        try {
+            const url = new URL(datePickerRoot.dataset.availabilityUrl, window.location.origin);
+            url.searchParams.set('month', key);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: currentFetch.signal,
+            });
+            if (!response.ok) throw new Error('Unable to retrieve trip dates');
+            const data = await response.json();
+            if (data.month !== key) return;
+            calendarCounts.set(key, data.dates || {});
+            if (calendarMonthKey() === key) {
+                calendarFeedback.textContent = '';
+                renderCalendar();
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError' && calendarMonthKey() === key) {
+                calendarFeedback.textContent = 'Trip indicators unavailable. You can still select a date.';
+            }
+        }
+    };
+    const closeCalendar = () => {
+        if (!calendarPanel) return;
+        calendarPanel.hidden = true;
+        dateTrigger?.setAttribute('aria-expanded', 'false');
+    };
+    dateTrigger?.addEventListener('click', () => {
+        const open = calendarPanel.hidden;
+        calendarPanel.hidden = !open;
+        dateTrigger.setAttribute('aria-expanded', String(open));
+        if (open) {
+            renderCalendar();
+            void loadCalendarMonth();
+        }
+    });
+    datePickerRoot?.querySelector('[data-trip-calendar-close]')?.addEventListener('click', () => {
+        closeCalendar();
+        dateTrigger?.focus();
+    });
+    for (const [selector, delta] of [['[data-trip-calendar-prev]', -1], ['[data-trip-calendar-next]', 1]]) {
+        datePickerRoot?.querySelector(selector)?.addEventListener('click', () => {
+            calendarView.setMonth(calendarView.getMonth() + delta, 1);
+            calendarFeedback.textContent = '';
+            renderCalendar();
+            void loadCalendarMonth();
+        });
+    }
+    datePickerRoot?.querySelector('[data-trip-calendar-today]')?.addEventListener('click', () => goToScheduleDate(operationalToday()));
+    document.addEventListener('click', (event) => {
+        if (datePickerRoot && !datePickerRoot.contains(event.target)) closeCalendar();
+    }, { signal: calendarEvents.signal });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && calendarPanel && !calendarPanel.hidden) {
+            closeCalendar();
+            dateTrigger?.focus();
+        }
+    }, { signal: calendarEvents.signal });
+    window.addEventListener('gct:navigation-before', () => {
+        calendarEvents.abort();
+        calendarFetch?.abort();
+    }, { once: true });
 
     const tripModal = document.getElementById('tripModal');
     const viewTripModal = document.getElementById('viewTripModal');
