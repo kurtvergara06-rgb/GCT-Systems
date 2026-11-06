@@ -47,7 +47,7 @@
                     </x-ui.table-toolbar>
                 </div>
             </div>
-            <div class="ir-table-wrap">
+            <div class="ir-table-wrap gct-responsive-records gct-sticky-actions">
                 <table class="ir-table">
                     <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>FULFILLMENT</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
