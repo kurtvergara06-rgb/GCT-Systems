@@ -1,4 +1,3 @@
-<x-ui.table-toolbar-field label="Trip Date" name="trip_date" type="date" :value="$selectedTripDate" />
 <x-ui.table-toolbar-field label="Direction" name="direction" default="all">
     <option value="all">All Directions</option>
     <option value="Incoming" @selected(request('direction') === 'Incoming')>Incoming</option>
