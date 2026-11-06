@@ -3265,13 +3265,22 @@
     padding-top: 13px;
 }
 
-#routeDetailsModal .horizontal-route-node:not(:last-child) .horizontal-route-marker::before {
+#routeDetailsModal .horizontal-route-node {
+    position: relative;
+}
+
+#routeDetailsModal .horizontal-route-node:not(:last-child)::before {
     content: "";
     position: absolute;
-    top: 24px;
     left: 10px;
-    height: calc(100% + 1px);
-    border-left: 2px solid #d7e2f0;
+    top: 27px;
+    bottom: -13px;
+    width: 2px;
+    background: #d7e2f0;
+}
+
+#routeDetailsModal .horizontal-route-node.stop .horizontal-route-marker::before {
+    content: none;
 }
 
 #routeDetailsModal .horizontal-route-marker {
