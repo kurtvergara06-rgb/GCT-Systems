@@ -603,7 +603,7 @@ class TripAssignmentController extends Controller
                 );
 
                 if ($isReadyReplacement) {
-                    if ((int) $lockedAssignment->driver_id === (int) $driver->driver_id
+                    if ((string) $lockedAssignment->driver_id === (string) $driver->driver_id
                         && (int) $lockedAssignment->bus_id === (int) $bus->id) {
                         throw ValidationException::withMessages([
                             'trip_schedule_id' => 'Select a different driver or bus for the replacement.',
