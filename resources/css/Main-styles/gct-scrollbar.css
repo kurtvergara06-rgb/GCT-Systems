@@ -121,3 +121,47 @@ body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar-button {
 html:has(body.modal-open) {
   overflow: hidden;
 }
+
+
+/* GCT responsive records contract (opt-in).
+   Add gct-responsive-records on a normal table scroll wrapper.
+   Add gct-sticky-actions ONLY when the last column is Actions/Action.
+   Do not apply to modals, pivot tables, embedded details, or tables whose
+   final cell is not an action. Existing page-specific min-widths remain. */
+.gct-responsive-records {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.gct-responsive-records > table {
+  min-width: max(100%, 980px);
+}
+/* Sticky is harmless on a wide screen where there is no overflow.
+   Do not pin empty-row colspan cells or nested details. */
+.gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child,
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  min-width: 132px;
+  white-space: nowrap;
+  background: var(--gct-sticky-actions-background, #fff);
+  box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+  z-index: 4;
+}
+.gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child {
+  z-index: 9;
+  background: var(--gct-sticky-actions-heading, #f3f7fc);
+}
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr:hover > td:last-child:not([colspan]) {
+  background: var(--gct-sticky-actions-hover, #f8fbff);
+}
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) :is(.actions, .table-actions, .action-buttons) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
