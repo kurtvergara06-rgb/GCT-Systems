@@ -70,7 +70,7 @@
           </x-ui.table-toolbar>
         </div>
 
-        <div class="table-wrap records-table-wrap purchase-history-table-wrap">
+        <div class="table-wrap records-table-wrap purchase-history-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="requested-purchase-table records-table purchase-history-reference-table">
             <colgroup>
               <col style="width:12%"><col style="width:15%"><col style="width:11%">
