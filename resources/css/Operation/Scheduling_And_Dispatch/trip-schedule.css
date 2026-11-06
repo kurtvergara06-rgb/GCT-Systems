@@ -3767,3 +3767,43 @@
     .trip-schedule-page .trip-date-selector { flex: 1 1 auto; }
     .trip-schedule-page .trip-availability-calendar { width: min(325px, calc(100vw - 28px)); }
 }
+
+
+/* A Ready trip may be cancelled (not deleted) only through Head approval. */
+.trip-schedule-page .trip-actions .cancel-service-trip {
+    flex: 0 0 32px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #f7c9a4;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #c2410c;
+    cursor: pointer;
+}
+.trip-schedule-page .trip-actions .cancel-service-trip:hover {
+    background: #ffedd5;
+    border-color: #fb923c;
+}
+.trip-schedule-page .trip-actions .cancel-service-trip:focus-visible {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+}
+#cancelServiceTripModal .trip-cancellation-context {
+    margin: 0 0 12px;
+    color: #334155;
+    font-size: 13px;
+}
+#cancelServiceTripModal #cancellationReason {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 90px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font: inherit;
+    resize: vertical;
+}
