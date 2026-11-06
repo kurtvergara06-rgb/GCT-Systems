@@ -3829,3 +3829,29 @@
 .routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
     box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
 }
+
+
+/* Fit Route KPI cards to the actual workspace (not the window width).
+   Keeps four cards where space allows; reflows when sidebar is expanded. */
+.routes-page .route-summary-grid,
+.routes-page .routes-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.routes-page .route-summary-grid .stat-card,
+.routes-page .routes-summary-grid .stat-card,
+.routes-page .route-summary-grid .stat-card-link,
+.routes-page .routes-summary-grid .stat-card-link {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.routes-page .route-summary-grid .stat-card-content small,
+.routes-page .routes-summary-grid .stat-card-content small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+}
+.routes-page .table-card,
+.routes-page .routes-card {
+    min-width: 0;
+    max-width: 100%;
+}
