@@ -40,7 +40,69 @@ class OperationClientMasterListTest extends TestCase
             ->assertOk()
             ->assertSee('id="cttCreateClientModal"', false)
             ->assertSee('id="cttAddClientButton"', false)
-            ->assertDontSee('Client Master List');
+            ->assertSee('Client Configurations');
+    }
+
+    public function test_client_master_list_shows_database_records_and_status_counts(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        OperationClient::create(['name' => 'Archived Client', 'status' => 'Inactive']);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('Client Master List')
+            ->assertSee('EPSON')
+            ->assertSee('Archived Client')
+            ->assertSee('data-client-create-open', false);
+    }
+
+    public function test_client_master_list_search_and_status_filter(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        OperationClient::create(['name' => 'Inactive Client', 'status' => 'Inactive']);
+
+        $this->actingAs($user)
+            ->get(route('operation.clients.index', ['search' => 'EPSON', 'status' => 'Active']))
+            ->assertOk()
+            ->assertSee('EPSON')
+            ->assertDontSee('Inactive Client</strong>', false);
+    }
+
+    public function test_view_only_user_can_view_client_master_list_but_not_create(): void
+    {
+        $user = $this->operationUser(false);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertDontSee('data-client-create-open', false);
+
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), ['name' => 'Unauthorized Client', 'return_to' => 'client-master-list'])
+            ->assertForbidden();
+    }
+
+    public function test_client_created_from_master_list_returns_to_master_list(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), ['name' => 'New Shuttle Client', 'return_to' => 'client-master-list'])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->assertDatabaseHas('operation_clients', ['name' => 'New Shuttle Client']);
+    }
+
+    public function test_client_status_changed_from_master_list_preserves_record(): void
+    {
+        $user = $this->operationUser(true);
+        $client = OperationClient::create(['name' => 'Paused Service']);
+
+        $this->actingAs($user)
+            ->patch(route('operation.clients.status', $client), ['status' => 'Inactive', 'return_to' => 'client-master-list'])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->assertDatabaseHas('operation_clients', ['id' => $client->id, 'status' => 'Inactive']);
     }
 
     public function test_authorized_operations_user_can_create_client_from_trip_times(): void
