@@ -665,6 +665,11 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
+                if ($trip->status === 'Ready') {
+                    throw ValidationException::withMessages([
+                        'trip_schedule_id' => 'Ready-trip assignments cannot be removed directly. Use an approved replacement or cancel the trip before departure.',
+                    ]);
+                }
 
                 DB::table('auto_schedule_slot_decisions')
                     ->where('fulfilled_by_assignment_id', $lockedAssignment->id)
