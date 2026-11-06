@@ -598,6 +598,12 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
             filterCount.hidden = count === 0;
         }
     });
+    // Client Master List links use ?search=<client> to open the matching
+    // configurations without creating a second scheduling interface.
+    if (clientSearch) {
+        const linkedClientName = new URLSearchParams(window.location.search).get('search');
+        if (linkedClientName) clientSearch.value = linkedClientName;
+    }
     clientSearch?.addEventListener('input', applyClientSearch);
     applyClientSearch();
     updateToggleAllButton();
