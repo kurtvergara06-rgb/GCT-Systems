@@ -371,6 +371,15 @@ class TripScheduleController extends Controller
 
                     $this->assertEditableTripState($lockedTrip);
 
+                    // Cancellation is a separate, Head-approved action with
+                    // a mandatory reason and permanent audit history.
+                    if (($validated['status'] ?? $lockedTrip->status) === 'Cancelled'
+                        && $lockedTrip->status !== 'Cancelled') {
+                        throw ValidationException::withMessages([
+                            'trip_schedule' => 'Use Cancel Trip with Operations Head approval and a reason.',
+                        ]);
+                    }
+
                     $departure = $this->departureDateTime(
                         $validated['trip_date'],
                         $validated['departure_time']
