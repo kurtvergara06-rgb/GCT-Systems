@@ -285,11 +285,9 @@ class DailyDriverReportController extends Controller
                     "additional_trips.{$index}.selected_trip_schedule_id" => 'Unscheduled reports cannot select assigned trips.',
                 ]);
             }
-            if (! $unscheduled && ! $scheduleId) {
-                throw ValidationException::withMessages([
-                    "additional_trips.{$index}.selected_trip_schedule_id" => 'Choose the assigned trip for this entry.',
-                ]);
-            }
+            // Extra rows on one physical DDR may be journey segments of the
+            // primary assignment rather than separate scheduled trips.
+            // An explicit second assignment is still validated when supplied.
             if (! $scheduleId) {
                 continue;
             }
