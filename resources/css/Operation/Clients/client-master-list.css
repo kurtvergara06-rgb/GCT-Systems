@@ -53,3 +53,7 @@
 .client-master-field-error { display:block;color:#b91c1c;font-size:11px;margin-top:5px; }
 @media(max-width:1100px) { .client-master-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:640px) { .client-master-panel { padding:14px; } .client-master-stats { gap:9px; } .client-master-header > div { flex-basis:100%; } .client-master-add { margin-left:0;width:100%; } .client-master-filters label,.client-master-filter-btn,.client-master-clear { flex:1 1 100%; } }
+
+.client-master-pagination { display:flex;align-items:center;flex-wrap:wrap;gap:8px; }
+.client-master-pagination a,.client-master-pagination span { display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border:1px solid #d8e5f4;border-radius:7px;color:#2a568b;text-decoration:none;font-size:11px; }
+.client-master-pagination span[aria-disabled] { opacity:.48; }
