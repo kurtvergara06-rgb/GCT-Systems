@@ -136,8 +136,9 @@ class IncidentController extends Controller
 
         $activeTripScope = function ($tripQuery) use ($today): void {
             $tripQuery
-                ->whereDate('trip_date', $today)
-                // In Progress is stored as Dispatched in the trip schedule.
+                // An overnight journey can remain In Progress after midnight.
+                // Eligibility is determined by Dispatched, not today's date alone.
+                ->whereDate('trip_date', '<=', $today)
                 ->where('status', 'Dispatched');
         };
 
@@ -256,7 +257,7 @@ class IncidentController extends Controller
         $reportDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $reportTripScope = function ($tripQuery) use ($reportDate): void {
             $tripQuery
-                ->whereDate('trip_date', $reportDate)
+                ->whereDate('trip_date', '<=', $reportDate)
                 ->where('status', 'Dispatched');
         };
 
@@ -266,7 +267,7 @@ class IncidentController extends Controller
             ->whereHas('tripSchedule', $reportTripScope);
         if (! $eligibleAssignment->exists()) {
             throw ValidationException::withMessages([
-                'bus_id' => 'Choose a bus assigned to an In Progress trip today.',
+                'bus_id' => 'Choose a bus assigned to an In Progress trip.',
             ]);
         }
 
