@@ -149,6 +149,7 @@
                     ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
                     ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
                     ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
+                    ['label' => 'Client Master List', 'route' => 'operation.clients.index', 'icon' => 'fa-building'],
                 ],
             ],
             [
@@ -162,6 +163,7 @@
                 'label' => 'Trip Planning & Scheduling',
                 'icon' => 'fa-calendar-days',
                 'children' => [
+                    ['label' => 'Client Trip Times', 'route' => 'client-trip-times', 'icon' => 'fa-clock'],
                     ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
                     ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
                     ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
