@@ -261,6 +261,11 @@ class DailyDriverReportController extends Controller
                 ->where('driver_id', $validated['driver_id'])
                 ->where('bus_id', $validated['bus_id'])
                 ->first();
+            if ($selectedAssignment && app(TripDdrLifecycleService::class)->isAssignmentOnIncidentHold($selectedAssignment)) {
+                throw ValidationException::withMessages([
+                    'selected_trip_schedule_id' => 'This bus assignment has a breakdown awaiting a verified Continued outcome. DDR submission is on hold.',
+                ]);
+            }
             if (! $selectedSchedule || ! $selectedAssignment || $selectedSchedule->estimatedArrivalDateTime()->isFuture()) {
                 throw ValidationException::withMessages([
                     'selected_trip_schedule_id' => 'The selected trip does not match the report date, driver, and bus. Re-select the assigned trip.',
@@ -301,6 +306,7 @@ class DailyDriverReportController extends Controller
                 ->where('bus_id', $validated['bus_id'])
                 ->first();
             if (! $schedule || ! $assignment || $schedule->estimatedArrivalDateTime()->isFuture()
+                || app(TripDdrLifecycleService::class)->isAssignmentOnIncidentHold($assignment)
                 || in_array($assignment->id, $claimedAssignmentIds, true)
                 || DailyDriverReport::query()->where('trip_assignment_id', $assignment->id)->exists()
                 || DailyDriverReportTripEntry::query()->where('trip_assignment_id', $assignment->id)->exists()) {
@@ -504,14 +510,15 @@ class DailyDriverReportController extends Controller
             ->with('tripSchedule')
             ->whereHas('tripSchedule', fn ($query) => $query
                 ->whereDate('trip_date', $validated['report_date'])
-                ->where('status', 'Pending DDR'))
+                ->whereIn('status', ['Pending DDR', 'Dispatched']))
             ->whereNotIn('id', DailyDriverReport::query()
                 ->whereNotNull('trip_assignment_id')->select('trip_assignment_id'))
             ->whereNotIn('id', DailyDriverReportTripEntry::query()
                 ->whereNotNull('trip_assignment_id')->select('trip_assignment_id'))
             ->get()
             ->filter(fn ($assignment) => $assignment->tripSchedule
-                && ! $assignment->tripSchedule->estimatedArrivalDateTime()->isFuture())
+                && ! $assignment->tripSchedule->estimatedArrivalDateTime()->isFuture()
+                && ! app(TripDdrLifecycleService::class)->isAssignmentOnIncidentHold($assignment))
             ->pluck('driver_id')
             ->unique()
             ->values();
@@ -542,7 +549,7 @@ class DailyDriverReportController extends Controller
             ])
             ->whereDate('trip_date', $validated['report_date'])
             ->when((bool) ($validated['pending_only'] ?? false),
-                fn ($query) => $query->where('status', 'Pending DDR'),
+                fn ($query) => $query->whereIn('status', ['Pending DDR', 'Dispatched']),
                 fn ($query) => $query->whereNotIn('status', ['Cancelled', 'Missed']))
             ->whereHas('assignments', function ($query) use ($validated): void {
                 if (! empty($validated['driver_id'])) {
@@ -563,6 +570,7 @@ class DailyDriverReportController extends Controller
             return $schedule->assignments
                 ->filter(fn ($assignment) => empty($validated['bus_id'])
                     || (int) $assignment->bus_id === (int) $validated['bus_id'])
+                ->filter(fn ($assignment) => ! app(TripDdrLifecycleService::class)->isAssignmentOnIncidentHold($assignment))
                 ->filter(fn ($assignment) => ! DailyDriverReport::query()
                     ->where('trip_assignment_id', $assignment->id)->exists()
                     && ! DailyDriverReportTripEntry::query()
@@ -582,7 +590,7 @@ class DailyDriverReportController extends Controller
                     'shift' => $schedule->shift,
                     'departure_time' => substr((string) $schedule->departure_time, 0, 5),
                     'estimated_arrival_time' => substr((string) $schedule->estimated_arrival_time, 0, 5),
-                    'status' => $schedule->status,
+                    'status' => $schedule->status === 'Dispatched' ? 'Pending DDR' : $schedule->status,
                 ]);
         })->values();
 
