@@ -152,10 +152,12 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
-        $replacementHistoryByAssignment = DB::table('operation_trip_change_audits')
-            ->whereIn('trip_schedule_id', $trips->getCollection()->pluck('id'))
-            ->where('action', 'ready_replacement')
-            ->orderByDesc('created_at')
+        $replacementHistoryByAssignment = DB::table('operation_trip_change_audits as audit')
+            ->leftJoin('users as approver', 'approver.id', '=', 'audit.performed_by')
+            ->whereIn('audit.trip_schedule_id', $trips->getCollection()->pluck('id'))
+            ->where('audit.action', 'ready_replacement')
+            ->select('audit.*', 'approver.name as approved_by_name')
+            ->orderByDesc('audit.created_at')
             ->get()
             ->groupBy('trip_assignment_id');
 
