@@ -496,6 +496,8 @@ class DailyDriverReportController extends Controller
 
     public function update(Request $request, DailyDriverReport $dailyDriverReport): RedirectResponse
     {
+        // All saved DDRs are immutable, including previously unlinked records.
+        abort(403, 'Saved Daily Driver Reports are view-only.');
         $data = $request->validate([
             'from_location' => ['required', 'string', 'max:150'],
             'to_location' => ['required', 'string', 'max:150'],
@@ -553,6 +555,8 @@ class DailyDriverReportController extends Controller
 
     public function destroy(DailyDriverReport $dailyDriverReport): RedirectResponse
     {
+        // Do not permit permanent deletion through direct HTTP requests.
+        abort(403, 'Saved Daily Driver Reports are view-only.');
         DB::transaction(function () use ($dailyDriverReport): void {
             $report = DailyDriverReport::query()
                 ->whereKey($dailyDriverReport->id)->lockForUpdate()->firstOrFail();
