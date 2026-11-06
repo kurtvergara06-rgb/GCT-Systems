@@ -28,11 +28,15 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
             if (event.button !== 0 || event.pointerType !== 'mouse'
                 || wrap.scrollWidth <= wrap.clientWidth + 2
                 || event.target.closest(interactiveSelector)) return;
+            // Prevent native text selection at drag start. Waiting until the
+            // pointer moves is too late: browsers already start highlighting.
+            event.preventDefault();
             tracking = true;
             dragging = false;
             startX = event.clientX;
             startY = event.clientY;
             originalScrollLeft = wrap.scrollLeft;
+            wrap.setPointerCapture(event.pointerId);
         });
         wrap.addEventListener('pointermove', (event) => {
             if (!tracking) return;
@@ -42,7 +46,6 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 if (Math.abs(deltaX) < 7 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
                 dragging = true;
                 wrap.classList.add('is-drag-scrolling');
-                wrap.setPointerCapture(event.pointerId);
             }
             wrap.scrollLeft = originalScrollLeft - deltaX;
             event.preventDefault();
@@ -61,9 +64,8 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         };
         wrap.addEventListener('pointerup', finishDrag);
         wrap.addEventListener('pointercancel', finishDrag);
-        wrap.addEventListener('pointerleave', (event) => {
-            if (!dragging) finishDrag(event);
-        });
+        // Pointer capture keeps drag active even if the cursor leaves the
+        // scrollport. Releasing it on pointerup/cancel prevents stuck dragging.
         wrap.addEventListener('click', (event) => {
             if (!suppressClick) return;
             event.preventDefault();
