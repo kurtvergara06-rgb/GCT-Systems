@@ -382,6 +382,39 @@ class DailyDriverReportTest extends TestCase
         $this->assertNull($report->fresh()->trip_assignment_id);
     }
 
+    public function test_scheduled_ddr_allows_multiple_journey_segments_under_one_assignment(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('05:00:00', '06:00:00');
+
+        $payload = $this->validPayload();
+        unset($payload['unscheduled_mode'], $payload['unscheduled_reason']);
+        $payload['selected_trip_schedule_id'] = $schedule->id;
+        $payload['additional_trips'] = [[
+            'trip_ticket' => 'SEGMENT-2',
+            'from_location' => 'Tanauan',
+            'to_location' => 'Malvar',
+            'departure_time' => '07:00',
+            'arrival_time' => '07:30',
+            'passengers' => 12,
+            'km' => 8.5,
+        ]];
+
+        $this->actingAs($this->user)
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('daily-driver-reports'));
+
+        $report = DailyDriverReport::firstOrFail();
+        $this->assertSame($schedule->id, $report->trip_schedule_id);
+        $this->assertNotNull($report->trip_assignment_id);
+        $entry = $report->additionalTrips()->firstOrFail();
+        $this->assertNull($entry->trip_schedule_id);
+        $this->assertNull($entry->trip_assignment_id);
+        $this->assertSame('Tanauan', $entry->from_location);
+        $this->assertSame('Malvar', $entry->to_location);
+        $this->assertSame(8.5, (float) $entry->km);
+    }
+
     public function test_additional_trip_persists_its_exact_schedule_relationship(): void
     {
         [$primary, $attendance] = $this->createAssignedSchedule('05:00:00', '06:00:00');
