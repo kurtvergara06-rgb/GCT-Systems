@@ -4089,3 +4089,50 @@
 .operation-dashboard-page .operation-live-badge {
   animation: none;
 }
+
+
+/* Operation analytics empty-chart states.
+   Keep messages inside their canvas shells; don't let them expand or overlap
+   the adjacent dashboard cards when a newly provisioned database has no data. */
+.operation-dashboard-page .operation-chart-shell,
+.operation-dashboard-page .operation-incident-chart-shell {
+  position: relative;
+  min-width: 0;
+}
+.operation-dashboard-page :is(.operation-chart-shell[data-chart-empty="true"], .operation-incident-chart-shell[data-incident-chart-empty="true"]) > canvas {
+  visibility: hidden;
+}
+.operation-dashboard-page :is(.operation-chart-shell, .operation-incident-chart-shell) > .operation-chart-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 18px;
+  box-sizing: border-box;
+  text-align: center;
+  color: #627690;
+  line-height: 1.5;
+  pointer-events: none;
+}
+.operation-dashboard-page .operation-chart-empty[hidden] {
+  display: none !important;
+}
+.operation-dashboard-page .operation-chart-empty > i {
+  color: #b7c7da;
+  font-size: 27px;
+  line-height: 1;
+}
+.operation-dashboard-page .operation-chart-empty > strong {
+  color: #193454;
+  font-size: 13px;
+  font-weight: 800;
+}
+.operation-dashboard-page .operation-chart-empty > span {
+  max-width: 280px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
