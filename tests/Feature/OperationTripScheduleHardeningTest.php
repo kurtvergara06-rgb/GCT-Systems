@@ -36,6 +36,18 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
     }
 
+    public function test_new_trip_modal_uses_client_selection_without_clientless_mode(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
+
+        $this->assertStringContainsString('id="tripClientName"', $view);
+        $this->assertStringContainsString('name="client_name" required', $view);
+        $this->assertStringNotContainsString('id="tripServiceMode"', $view);
+        $this->assertStringNotContainsString('value="general"', $view);
+        $this->assertStringContainsString('const available = Boolean(client && ownerId && ownerName === client);', $script);
+    }
+
     private function route(string $code = 'R-TEST', int $minutes = 30): ShuttleRoute
     {
         return ShuttleRoute::create([
