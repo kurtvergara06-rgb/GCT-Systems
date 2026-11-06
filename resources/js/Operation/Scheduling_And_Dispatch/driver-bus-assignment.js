@@ -70,6 +70,16 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     const assignmentRestoreState =
         document.getElementById('assignmentRestoreState');
+    const replacementReasonGroup = document.getElementById('readyReplacementReasonGroup');
+    const replacementReason = document.getElementById('readyReplacementReason');
+    const setReplacementReasonMode = (required) => {
+        if (replacementReasonGroup) replacementReasonGroup.hidden = !required;
+        if (replacementReason) {
+            replacementReason.required = required;
+            if (!required) replacementReason.value = '';
+        }
+    };
+
 
 
     /*
@@ -870,6 +880,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         assignmentForm.reset();
+        setReplacementReasonMode(false);
         document.getElementById('companyAssignmentFields')?.classList.remove('pending-slot-trip-locked');
         document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
         if (pairPicker) pairPicker.hidden = false;
@@ -1011,12 +1022,17 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             selectDriverById(editButton.dataset.driverId || '');
             selectBusById(editButton.dataset.busId || '');
 
+            const readyReplacement = editButton.dataset.readyReplacement === 'true';
+            setReplacementReasonMode(readyReplacement);
+            if (readyReplacement && assignmentRestoreState?.dataset.hasErrors === 'true') {
+                if (replacementReason) replacementReason.value = assignmentRestoreState.dataset.replacementReason || '';
+            }
             if (assignmentModalTitle) {
-                assignmentModalTitle.textContent = 'Edit Assignment';
+                assignmentModalTitle.textContent = readyReplacement ? 'Replace Driver / Bus' : 'Edit Assignment';
             }
 
             if (assignmentSubmitText) {
-                assignmentSubmitText.textContent = 'Update Assignment';
+                assignmentSubmitText.textContent = readyReplacement ? 'Approve Replacement' : 'Update Assignment';
             }
 
             openModal(assignmentModal);
