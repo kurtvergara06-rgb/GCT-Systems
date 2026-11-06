@@ -468,6 +468,8 @@ class TripScheduleController extends Controller
      */
     public function cancel(Request $request, TripSchedule $tripSchedule): RedirectResponse
     {
+        abort_unless(auth()->user()?->canApproveReadyTripChanges() ?? false, 403);
+
         $validated = $request->validate([
             'cancellation_reason' => ['required', 'string', 'min:10', 'max:1000'],
             'return_trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
