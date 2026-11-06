@@ -26,7 +26,7 @@ class OperationAutoSchedulingTest extends TestCase
         $user = User::factory()->create();
         [$trip, $attendance, $bus, $route] = $this->makeScheduleResources();
 
-        $trip->update(['client_name' => null]);
+        $trip->update(['client_name' => null, 'direction' => 'Incoming']);
         $route->update(['operation_client_id' => null]);
         $bus->operationClients()->detach();
 
