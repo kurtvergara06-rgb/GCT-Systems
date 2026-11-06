@@ -577,13 +577,28 @@ class DailyDriverReportTest extends TestCase
         $this->assertSame($secondAssignment->id, $report->fresh()->trip_assignment_id);
     }
 
-    public function test_deleting_last_unlinked_ddr_clears_only_unlinked_automatic_attendance(): void
+    public function test_saved_ddr_is_view_only_even_when_unlinked(): void
     {
         $this->actingAs($this->user)
             ->post(route('daily-driver-reports.store'), $this->validPayload())
             ->assertSessionHasNoErrors();
 
         $report = DailyDriverReport::query()->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->put(route('daily-driver-reports.update', $report), [
+                'from_location' => 'Changed',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->delete(route('daily-driver-reports.destroy', $report))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('daily_driver_reports', [
+            'id' => $report->id,
+            'from_location' => 'Batangas',
+        ]);
         $this->assertDatabaseHas('driver_attendances', [
             'driver_id' => $this->driver->driver_id,
             'attendance_date' => '2026-09-15',
@@ -591,37 +606,12 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->delete(route('daily-driver-reports.destroy', $report))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseCount('daily_driver_reports', 0);
-        $this->assertDatabaseMissing('driver_attendances', [
-            'driver_id' => $this->driver->driver_id,
-            'attendance_date' => '2026-09-15',
-        ]);
-    }
-
-    public function test_deleting_one_ddr_preserves_attendance_when_another_ddr_exists(): void
-    {
-        $this->actingAs($this->user)
-            ->post(route('daily-driver-reports.store'), $this->validPayload())
-            ->assertSessionHasNoErrors();
-
-        $second = array_merge($this->validPayload(), ['trip_ticket' => 'TT-10002']);
-        $this->actingAs($this->user)
-            ->post(route('daily-driver-reports.store'), $second)
-            ->assertSessionHasNoErrors();
-
-        $report = DailyDriverReport::query()->where('trip_ticket', 'TT-10001')->firstOrFail();
-        $this->actingAs($this->user)
-            ->delete(route('daily-driver-reports.destroy', $report))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('driver_attendances', [
-            'driver_id' => $this->driver->driver_id,
-            'attendance_date' => '2026-09-15',
-            'status' => 'Present',
-        ]);
+            ->get(route('daily-driver-reports'))
+            ->assertOk()
+            ->assertSee('ddr-view-action')
+            ->assertDontSee('ddr-edit-action')
+            ->assertDontSee('ddr-delete-trigger')
+            ->assertDontSee('id="ddrEdit-', false);
     }
 
     private function validPayload(): array
