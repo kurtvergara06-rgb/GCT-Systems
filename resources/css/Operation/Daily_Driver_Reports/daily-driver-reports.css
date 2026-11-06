@@ -2450,6 +2450,26 @@ button.ddr-new-btn {
     gap: 10px;
 }
 #ddrEncodeModal .ddr-extra-trip-grid > * { min-width: 0; }
+/* Keep auto-linked assignment selectors hidden despite the grid's flex rule. */
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group[hidden] {
+    display: none !important;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-assignment-feedback {
+    grid-column: 1 / -1;
+    padding: 10px 12px;
+    border: 1px solid #c8e6d2;
+    border-radius: 9px;
+    background: #effaf3;
+    color: #17623c;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-assignment-feedback.is-warning {
+    border-color: #f1d5a5;
+    background: #fffbeb;
+    color: #92400e;
+}
 #ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group {
     grid-column: 1 / -1;
     display: flex;
