@@ -138,7 +138,10 @@ class AutoSchedulingController extends Controller
         );
 
         $activeRoutes = ShuttleRoute::query()
-            ->whereHas('client', fn ($query) => $query->where('status', 'Active'))
+            ->where(function ($query): void {
+                $query->whereNull('operation_client_id')
+                    ->orWhereHas('client', fn ($client) => $client->where('status', 'Active'));
+            })
             ->where(
                 'status',
                 'Active'
@@ -2532,8 +2535,14 @@ class AutoSchedulingController extends Controller
     private function routeMatchesTripClient(TripSchedule $trip): bool
     {
         $route = $trip->shuttleRoute;
-        if (! $route || $route->status !== 'Active' || ! $route->operation_client_id) {
+        if (! $route || $route->status !== 'Active') {
             return false;
+        }
+
+        // General services must use a route with no client allocation.
+        // Dedicated services require the selected client's active route.
+        if (! $route->operation_client_id) {
+            return blank($trip->client_name);
         }
 
         $client = $route->client ?? $route->client()->first();
