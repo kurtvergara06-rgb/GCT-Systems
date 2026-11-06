@@ -3276,3 +3276,79 @@
     font-size: 11px;
     font-weight: 650;
 }
+
+
+/* Compact Trip Schedules heading and applied-date context (page scoped). */
+.trip-schedule-page .service-controls-card .section-header.service-schedule-toolbar {
+    padding-bottom: 0;
+    margin-bottom: 16px;
+    border-bottom: 0;
+}
+.trip-schedule-page .service-controls-card .trip-record-controls {
+    align-items: center;
+    gap: 12px 18px;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: #173251;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-icon {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #d8e5f4;
+    border-radius: 10px;
+    background: #f0f6ff;
+    color: #215bb1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.2;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-copy strong {
+    font-size: 13px;
+    color: #112b50;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.trip-schedule-page .service-controls-card .trip-selected-direction {
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 3px 9px;
+    margin-left: 4px;
+    border-radius: 999px;
+    border: 1px solid #dce7f6;
+    background: #f3f7fc;
+    color: #365675;
+    font-size: 11px;
+    font-weight: 700;
+}
+@media (max-width: 600px) {
+    .trip-schedule-page .service-controls-card .trip-record-controls > form.gct-table-toolbar {
+        margin-left: auto;
+    }
+    .trip-schedule-page .service-controls-card .trip-selected-date {
+        flex: 1 1 auto;
+    }
+}
+@media (max-width: 420px) {
+    .trip-schedule-page .service-controls-card .trip-record-controls > form.gct-table-toolbar {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+    }
+}
