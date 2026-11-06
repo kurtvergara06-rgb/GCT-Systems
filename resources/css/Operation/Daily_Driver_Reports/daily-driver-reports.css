@@ -560,9 +560,8 @@
 
 .ddr-table {
     width: 100%;
-
-    min-width: 1100px;
-
+    min-width: 1240px;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -634,50 +633,43 @@
 }
 
 
-.ddr-table th:nth-child(1) {
-    width: 11%;
+/* Balanced widths for the nine-column DDR table (total: 100%). */
+.ddr-table th:nth-child(1) { width: 10%; }
+.ddr-table th:nth-child(2) { width: 10%; }
+.ddr-table th:nth-child(3) { width: 16%; }
+.ddr-table th:nth-child(4) { width: 8%; }
+.ddr-table th:nth-child(5) { width: 8%; }
+.ddr-table th:nth-child(6) { width: 15%; }
+.ddr-table th:nth-child(7) { width: 12%; }
+.ddr-table th:nth-child(8) { width: 11%; }
+.ddr-table th:nth-child(9) { width: 10%; }
+
+
+/* Keep short quantities and action controls legible at laptop widths. */
+.ddr-card .ddr-table-wrap {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
 }
-
-
-.ddr-table th:nth-child(2) {
-    width: 11%;
+.ddr-card .ddr-table td:nth-child(5) .ddr-passenger-pill,
+.ddr-card .ddr-table td:nth-child(8) .ddr-passenger-pill {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    min-width: max-content;
 }
-
-
-.ddr-table th:nth-child(3) {
-    width: 12%;
+.ddr-card .ddr-table td:nth-child(9) .ddr-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
-
-
-.ddr-table th:nth-child(4) {
-    width: 9%;
+.ddr-card .ddr-table td:nth-child(3) {
+    overflow-wrap: normal;
+    word-break: normal;
 }
-
-
-.ddr-table th:nth-child(5) {
-    width: 13%;
-}
-
-
-.ddr-table th:nth-child(6) {
-    width: 19%;
-}
-
-
-.ddr-table th:nth-child(7) {
-    width: 12%;
-}
-
-
-.ddr-table th:nth-child(8) {
-    width: 9%;
-}
-
-
-.ddr-table th:nth-child(9) {
-    width: 6%;
-}
-
 
 .ddr-table th:nth-child(4),
 .ddr-table td:nth-child(4),
