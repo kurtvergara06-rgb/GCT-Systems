@@ -477,11 +477,23 @@
                     </div>
                     <div class="trip-guided-grid">
                         <div class="ui-form-group ui-form-full">
-                            <label for="tripClientName">Client / Company</label>
+                            <label for="tripServiceMode">Trip Type <span class="ui-required">*</span></label>
+                            <div class="ui-input-wrap has-icon">
+                                <span class="ui-input-icon"><i class="fa-solid fa-layer-group"></i></span>
+                                <select id="tripServiceMode" name="trip_service_mode" required>
+                                    <option value="">Select Client or No Client</option>
+                                    <option value="client" @selected(old('trip_service_mode') === 'client')>Client — Client-Allocated Routes</option>
+                                    <option value="general" @selected(old('trip_service_mode') === 'general')>No Client — General Routes</option>
+                                </select>
+                            </div>
+                            @error('trip_service_mode')<span class="ui-field-error">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="ui-form-group ui-form-full" id="tripClientField" hidden>
+                            <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
                             <div class="ui-input-wrap has-icon">
                                 <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                                <select id="tripClientName" name="client_name">
-                                    <option value="">No Client (General Service)</option>
+                                <select id="tripClientName" name="client_name" disabled>
+                                    <option value="">Select active client</option>
                                     @foreach($operationClientNames as $clientName)
                                         <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
                                     @endforeach
@@ -493,11 +505,11 @@
                             @error('client_name')<span class="ui-field-error">{{ $message }}</span>@enderror
                         </div>
                         <div class="ui-form-group ui-form-full">
-                            <label for="tripRoute">Client Route <span class="ui-required">*</span></label>
+                            <label for="tripRoute" id="tripRouteLabel">Route <span class="ui-required">*</span></label>
                             <div class="ui-input-wrap has-icon">
                                 <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
-                                <select name="shuttle_route_id" id="tripRoute" required>
-                                    <option value="">Select a route</option>
+                                <select name="shuttle_route_id" id="tripRoute" required disabled>
+                                    <option value="">Select trip type first</option>
                                     @foreach($activeRoutes as $route)
                                         <option value="{{ $route->id }}" data-client-id="{{ $route->operation_client_id }}" data-client-name="{{ $route->client?->name }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
                                             {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
