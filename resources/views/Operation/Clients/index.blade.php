@@ -25,7 +25,7 @@
                         <p>Maintain client records here. Trip-time configurations remain in Trip Planning &amp; Scheduling.</p>
                     </div>
                     @if($canEditOperation)
-                        <button class="client-master-add" type="button" data-client-create-open @if($errors->has('name')) data-open-on-error="true" @endif>
+                        <button class="client-master-add" type="button" data-client-create-open @if($errors->any()) data-open-on-error="true" @endif>
                             <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Client
                         </button>
                     @endif
@@ -96,7 +96,10 @@
                                     <td>
                                         <span class="client-master-name">
                                             <span class="client-master-avatar"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
-                                            <span class="client-master-name-text"><strong title="{{ $client->name }}">{{ $client->name }}</strong><small>Shuttle service client</small></span>
+                                            <span class="client-master-name-text">
+                                                <strong title="{{ $client->name }}">{{ $client->name }}</strong>
+                                                <small>{{ $client->contact_person ?: 'No contact person yet' }}@if($client->contact_number) · {{ $client->contact_number }}@endif</small>
+                                            </span>
                                         </span>
                                     </td>
                                     <td><span class="client-master-count">{{ $client->buses_count }} {{ \Illuminate\Support\Str::plural('bus', $client->buses_count) }}</span></td>
@@ -159,14 +162,60 @@
                 <x-ui.form-modal
                     id="clientMasterCreateModal" title="Add Client" icon="fa-building"
                     description="Register a shuttle service client. Trip times can be configured separately."
-                    size="small" form-id="clientMasterCreateForm"
+                    size="wide" form-id="clientMasterCreateForm"
                     :action="route('operation.clients.store')" submit-text="Save Client"
                 >
                     <input type="hidden" name="return_to" value="client-master-list">
-                    <div class="ui-form-group">
-                        <label for="clientMasterName">Client / Company Name <span class="ui-required">*</span></label>
-                        <input id="clientMasterName" type="text" name="name" minlength="2" maxlength="150" required autocomplete="off" value="{{ old('name') }}" placeholder="Enter company name">
-                        @error('name')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                    <div class="client-master-form-section">
+                        <h3><span>01</span> Company Information</h3>
+                        <div class="client-master-form-grid">
+                            <div class="ui-form-group client-master-form-wide">
+                                <label for="clientMasterName">Company / Client Name <span class="ui-required">*</span></label>
+                                <input id="clientMasterName" type="text" name="name" minlength="2" maxlength="150" required autocomplete="organization" value="{{ old('name') }}" placeholder="Enter registered company name">
+                                @error('name')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <div class="ui-form-group client-master-form-wide">
+                                <label for="clientMasterAddress">Company Address</label>
+                                <textarea id="clientMasterAddress" name="company_address" rows="2" maxlength="500" placeholder="Enter main business address">{{ old('company_address') }}</textarea>
+                                @error('company_address')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="client-master-form-section">
+                        <h3><span>02</span> Primary Contact</h3>
+                        <div class="client-master-form-grid">
+                            <div class="ui-form-group">
+                                <label for="clientMasterContactPerson">Contact Person <span class="ui-required">*</span></label>
+                                <input id="clientMasterContactPerson" type="text" name="contact_person" maxlength="150" required autocomplete="name" value="{{ old('contact_person') }}" placeholder="Full name">
+                                @error('contact_person')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <div class="ui-form-group">
+                                <label for="clientMasterPosition">Department / Position</label>
+                                <input id="clientMasterPosition" type="text" name="contact_position" maxlength="150" value="{{ old('contact_position') }}" placeholder="e.g., HR Officer">
+                                @error('contact_position')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <div class="ui-form-group">
+                                <label for="clientMasterPhone">Contact Number <span class="ui-required">*</span></label>
+                                <input id="clientMasterPhone" type="tel" name="contact_number" maxlength="30" required autocomplete="tel" value="{{ old('contact_number') }}" placeholder="e.g., 09123456789">
+                                @error('contact_number')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <div class="ui-form-group">
+                                <label for="clientMasterEmail">Email Address</label>
+                                <input id="clientMasterEmail" type="email" name="contact_email" maxlength="254" autocomplete="email" value="{{ old('contact_email') }}" placeholder="contact@company.com">
+                                @error('contact_email')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="client-master-form-section">
+                        <h3><span>03</span> Service Information</h3>
+                        <div class="client-master-form-grid">
+                            <div class="ui-form-group">
+                                <label for="clientMasterStartDate">Service Start Date</label>
+                                <input id="clientMasterStartDate" type="date" name="service_start_date" value="{{ old('service_start_date') }}">
+                                @error('service_start_date')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <p class="client-master-form-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Client ID and Active status are assigned automatically. Trip times are managed separately.</p>
+                        </div>
                     </div>
                 </x-ui.form-modal>
             @endif
