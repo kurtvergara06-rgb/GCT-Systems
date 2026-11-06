@@ -220,13 +220,13 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         const client = tripClientName.value.trim().toLowerCase();
         const previous = tripRoute.value;
 
-        // New trips must use an active client's allocated route. Existing
-        // historical trips retain their original route for safe editing.
+        // Clientless general service uses active, unallocated routes only.
+        // Named clients may use only their allocated active routes.
         for (const option of tripRoute.options) {
             if (!option.value) continue;
             const ownerId = String(option.dataset.clientId || '').trim();
             const ownerName = String(option.dataset.clientName || '').trim().toLowerCase();
-            const available = Boolean(client && ownerId && ownerName === client);
+            const available = client ? Boolean(ownerId && ownerName === client) : !ownerId;
             option.hidden = creating && !available;
             option.disabled = creating && !available;
         }
@@ -235,10 +235,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             option.value === previous && !option.disabled && !option.hidden
         );
         tripRoute.value = preserveRoute && stillAllowed ? previous : '';
-        tripRoute.disabled = creating && !client;
+        tripRoute.disabled = false;
 
         if (!creating) tripRoute.disabled = false;
-        tripClientName.required = creating;
+        tripClientName.required = false;
 
         if (creating && !tripRoute.value && arrivalTime) arrivalTime.value = '';
 
@@ -699,7 +699,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         syncTripRouteOptions({ preserveRoute: preserveValues });
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
-        if (tripClientName) tripClientName.required = true;
+        if (tripClientName) tripClientName.required = false;
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
