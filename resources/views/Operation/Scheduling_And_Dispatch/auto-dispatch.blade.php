@@ -308,7 +308,7 @@
                         </div>
                     </header>
 
-                    <div class="auto-table-wrap" role="region" aria-label="Incoming trip recommendations" tabindex="0">
+                    <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Incoming trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
                                 <col style="width:9%">
@@ -382,7 +382,7 @@
                         </div>
                     </header>
 
-                    <div class="auto-table-wrap" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
+                    <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
                                 <col style="width:9%">
