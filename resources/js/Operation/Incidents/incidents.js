@@ -364,7 +364,7 @@ function initIncidentBusLookup() {
                 const notice = document.createElement('p');
                 notice.textContent = typed
                     ? 'No bus on an In Progress trip matches this search.'
-                    : 'No In Progress trip buses are available today.';
+                    : 'No In Progress trip buses are currently available.';
                 results.appendChild(notice);
             } else {
                 matches.forEach(bus => {
