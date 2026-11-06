@@ -508,9 +508,8 @@
                 id="routeClient"
                 data-can-approve="{{ $canApproveRouteChanges ? '1' : '0' }}"
                 :options="$routeClients->pluck('name', 'id')->all()"
-                placeholder="Select a client from Client Trip Times"
+                placeholder="No Client (General Route)"
                 icon="fa-building"
-                required
                 full
             />
             <input type="hidden" name="operation_client_id" id="routeClientLockedValue" disabled>
