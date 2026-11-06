@@ -12,6 +12,7 @@ use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,6 +25,31 @@ class TripScheduleController extends Controller
     use SystemDataUpdateBroadcaster;
 
     private const MIN_ROUTE_DEPARTURE_INTERVAL_MINUTES = 15;
+
+    /**
+     * Lightweight month-level date markers for the Trip Schedule selector.
+     * Only count trips displayed by the active schedule list, including dates
+     * outside the currently selected day. Avoid loading full trip models.
+     */
+    public function availableDates(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+        ]);
+
+        $start = Carbon::createFromFormat('!Y-m', $validated['month'])->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $counts = TripSchedule::query()
+            ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
+            ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched'])
+            ->selectRaw('trip_date, COUNT(*) as trip_count')
+            ->groupBy('trip_date')
+            ->pluck('trip_count', 'trip_date')
+            ->map(fn ($count) => (int) $count);
+
+        return response()->json(['month' => $validated['month'], 'dates' => $counts]);
+    }
 
     public function index(Request $request): View
     {
