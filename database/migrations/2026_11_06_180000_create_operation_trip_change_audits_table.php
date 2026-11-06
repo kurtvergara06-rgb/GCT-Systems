@@ -16,10 +16,14 @@ return new class extends Migration
             $table->string('action', 32);
             $table->string('previous_status', 32)->nullable();
             $table->string('new_status', 32)->nullable();
-            $table->foreignId('previous_driver_id')->nullable();
-            $table->foreignId('new_driver_id')->nullable();
+            $table->string('previous_driver_id', 100)->nullable();
+            $table->string('new_driver_id', 100)->nullable();
+            $table->string('previous_driver_name')->nullable();
+            $table->string('new_driver_name')->nullable();
             $table->foreignId('previous_bus_id')->nullable();
             $table->foreignId('new_bus_id')->nullable();
+            $table->string('previous_bus_label')->nullable();
+            $table->string('new_bus_label')->nullable();
             $table->text('reason');
             $table->timestamps();
 
