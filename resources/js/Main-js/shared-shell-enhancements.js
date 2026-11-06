@@ -194,7 +194,12 @@ window.GCTPartialNavigation.registerInitializer('shared-shell-enhancements', 'ma
     const endDrag = (event) => {
       if (pointerId !== event.pointerId) return;
       pointerId = null;
-      if (dragged) blockClick = true;
+      if (dragged) {
+        blockClick = true;
+        // A completed pointer drag normally fires a click immediately.
+        // Avoid swallowing an unrelated next click if the browser omits it.
+        window.setTimeout(() => { blockClick = false; }, 0);
+      }
       dragged = false;
       wrap.classList.remove('is-drag-scrolling');
       if (wrap.hasPointerCapture(event.pointerId)) wrap.releasePointerCapture(event.pointerId);
