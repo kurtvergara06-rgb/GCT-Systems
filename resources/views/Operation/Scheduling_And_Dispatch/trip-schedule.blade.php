@@ -80,11 +80,11 @@
                     </x-ui.section-header>
 
                     <div class="trip-record-controls">
-                        <div class="trip-selected-date" aria-label="Currently selected trip schedule date">
+                        <div class="trip-selected-date" aria-label="Selected trip schedule filter date">
                             <span class="trip-selected-date-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
                             <span class="trip-selected-date-copy">
-                                <span class="trip-selected-date-label">Showing schedules for</span>
-                                <strong>{{ \Illuminate\Support\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
+                                <span class="trip-selected-date-label" data-trip-selected-date-label>Showing schedules for</span>
+                                <strong data-trip-selected-date-value>{{ \Illuminate\Support\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
                             </span>
                             @if(in_array(request('direction'), ['Incoming', 'Outgoing'], true))
                                 <span class="trip-selected-direction">{{ request('direction') }}</span>
