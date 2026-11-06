@@ -357,6 +357,16 @@
                                                         : ($trip->status === 'Dispatched' ? 'In Progress — Breakdown Reported' : 'Breakdown Reported — OIC Review');
                                                 }
                                             }
+                                            // ETA is not proof of completion for this incident-affected bus slot.
+                                            // Healthy bus slots retain their own normal trip status.
+                                            if ($slotBreakdown && $isScheduleEnded
+                                                && ($slotBreakdown->status !== 'Resolved'
+                                                    || ! str_contains((string) $slotBreakdown->resolution_notes, '[Trip outcome: Continued]'))) {
+                                                $slotDisplayStatus = 'Incident Hold';
+                                                $slotStatusTooltip = $slotBreakdown->status === 'Resolved'
+                                                    ? 'Incident resolved, but trip continuation was not verified — Interrupted / For Review.'
+                                                    : 'Breakdown remains active after ETA. Awaiting verified trip outcome.';
+                                            }
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
                                                 || ($assignment->incidents_count ?? 0) > 0;
                                             $isLocked = $tripLocked || $asgnHistory;
