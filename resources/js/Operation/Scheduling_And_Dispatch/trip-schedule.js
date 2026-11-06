@@ -37,6 +37,56 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripModalTitle = document.getElementById('tripModalTitle');
     const tripSubmitText = document.getElementById('tripSubmitText');
     const tripCode = document.getElementById('tripCode');
+    const tripCodeLabel = document.getElementById('tripCodeLabel');
+    const syncTripCodeLabel = () => {
+        if (tripCodeLabel) tripCodeLabel.textContent = tripCode?.value || 'Auto-generated';
+    };
+    // Show accessible inline messages rather than transient browser tooltips.
+    // Native constraint validation still prevents submitting incomplete trips.
+    tripForm?.addEventListener('invalid', (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement)) return;
+        event.preventDefault();
+        const group = field.closest('.ui-form-group');
+        if (!group) return;
+        const message = field.id === 'tripDirection'
+            ? 'Select Incoming or Outgoing to continue.'
+            : field.id === 'tripClientName'
+                ? 'Select a client to continue.'
+                : field.id === 'tripRoute'
+                    ? 'Select a route assigned to this client.'
+                    : field.id === 'departureTime' || field.id === 'departureTimeSlot'
+                        ? 'Select a valid departure time.'
+                        : field.validationMessage || 'Complete this field to continue.';
+        let error = group.querySelector('.trip-inline-error');
+        if (!error) {
+            error = document.createElement('span');
+            error.className = 'trip-inline-error';
+            error.setAttribute('role', 'alert');
+            group.appendChild(error);
+        }
+        error.textContent = message;
+        field.setAttribute('aria-invalid', 'true');
+        if (!tripForm.querySelector('[data-trip-validation-focused]')) {
+            field.setAttribute('data-trip-validation-focused', 'true');
+            field.focus({ preventScroll: true });
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, true);
+    const clearTripValidation = (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement) || !field.matches('input, select, textarea')) return;
+        if (!field.validity?.valid) return;
+        const group = field.closest('.ui-form-group');
+        group?.querySelector('.trip-inline-error')?.remove();
+        field.removeAttribute('aria-invalid');
+    };
+    tripForm?.addEventListener('input', clearTripValidation);
+    tripForm?.addEventListener('change', clearTripValidation);
+    tripForm?.addEventListener('click', () => {
+        tripForm.querySelectorAll('[data-trip-validation-focused]').forEach((field) => field.removeAttribute('data-trip-validation-focused'));
+    }, true);
+
     const tripDate = document.getElementById('tripDate');
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
@@ -540,6 +590,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripSubmitText.textContent = 'Create Trip';
         }
 
+        syncTripCodeLabel();
         updateNotesCount();
         updateTripTimeOptions({ preserveValue: preserveValues });
         calculateArrival();
@@ -635,6 +686,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripSubmitText.textContent = 'Update Trip';
         }
 
+        syncTripCodeLabel();
         syncTripRouteOptions({ preserveRoute: true });
         updateNotesCount();
         updateTripTimeOptions({ preserveValue: true });
@@ -947,6 +999,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             ?.focus();
     }
 
+    syncTripCodeLabel();
     updateNotesCount();
     restoreValidationModal();
 
