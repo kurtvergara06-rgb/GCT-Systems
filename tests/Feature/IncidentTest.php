@@ -99,7 +99,7 @@ class IncidentTest extends TestCase
             ->get(route('incidents'))
             ->assertOk()
             ->assertSee('data-bus-id="'.$this->bus->id.'"', false)
-            ->assertSee('Select a bus on an In Progress trip today.');
+            ->assertSee('Select a bus on an In Progress trip.');
 
         $this->tripSchedule->update(['status' => 'Ready']);
 
@@ -115,6 +115,38 @@ class IncidentTest extends TestCase
                 'location' => 'Test location',
             ])
             ->assertSessionHasErrors('bus_id');
+    }
+
+    public function test_overnight_in_progress_trip_remains_eligible_for_incident_reporting(): void
+    {
+        $yesterday = now(config('app.business_timezone', 'Asia/Manila'))
+            ->subDay()->toDateString();
+        $this->tripSchedule->update([
+            'trip_date' => $yesterday,
+            'departure_time' => '23:30:00',
+            'estimated_arrival_time' => '00:30:00',
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('data-bus-id="'.$this->bus->id.'"', false);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'bus_id' => $this->bus->id,
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Overnight route',
+                'description' => 'Operational incident reported after midnight.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'bus_id' => $this->bus->id,
+            'location' => 'Overnight route',
+        ]);
     }
 
     public function test_driver_can_submit_an_incident(): void
