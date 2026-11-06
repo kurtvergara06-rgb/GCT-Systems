@@ -563,7 +563,7 @@
                 <details class="ddr-extra-trip">
                     <summary class="ddr-extra-trip-heading">
                         <strong data-trip-title>Additional Trip</strong>
-                        <span class="ddr-extra-trip-tag">Assigned trip</span>
+                        <span class="ddr-extra-trip-tag">Journey log</span>
                         <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                     </summary>
                     <div class="ddr-extra-trip-body">
