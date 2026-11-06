@@ -11,6 +11,7 @@
 >
     @php
         $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+        $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
     @endphp
 
     <div class="app">
@@ -451,11 +452,12 @@
                                                         <i class="fa-solid fa-eye"></i>
                                                     </button>
 
-                                                    @if($canEditOperation && !$isLocked)
+                                                    @if($canEditOperation && !$isLocked && ($trip->status !== 'Ready' || $canApproveOperation))
                                                         <button
                                                             type="button"
                                                             class="assignment-action edit edit-assignment"
-                                                            title="Edit Assignment"
+                                                            title="{{ $trip->status === 'Ready' ? 'Replace Driver / Bus (Head approval required)' : 'Edit Assignment' }}"
+                                                            data-ready-replacement="{{ $trip->status === 'Ready' ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
                                                             data-trip-id="{{ $trip->id }}"
                                                             data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
@@ -467,6 +469,7 @@
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </button>
 
+                                                        @if($trip->status !== 'Ready')
                                                         <form
                                                             id="removeAssignmentForm-{{ $assignment->id }}"
                                                             method="POST"
@@ -491,6 +494,7 @@
                                                                 <i class="fa-solid fa-link-slash"></i>
                                                             </button>
                                                         </form>
+                                                        @endif
                                                     @elseif($canEditOperation)
                                                         <button
                                                             type="button"
@@ -895,6 +899,13 @@
                 <p class="assignment-pair-empty">Select a trip to load eligible pairs.</p>
             </div>
         </section>
+
+        <div class="ui-form-group ui-form-full" id="readyReplacementReasonGroup" hidden>
+            <label for="readyReplacementReason">Reason for replacement <span class="ui-required">*</span></label>
+            <textarea id="readyReplacementReason" name="replacement_reason" rows="3" minlength="10" maxlength="1000" placeholder="Explain the driver absence, bus breakdown, or replacement reason"></textarea>
+            <small>Operations Head approval is required. The previous and replacement resources will be recorded.</small>
+            @error('replacement_reason')<span class="ui-field-error">{{ $message }}</span>@enderror
+        </div>
 
         <div class="assignment-validation">
             <i class="fa-solid fa-circle-check"></i>
