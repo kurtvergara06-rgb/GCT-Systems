@@ -80,18 +80,37 @@
                     </x-ui.section-header>
 
                     <div class="trip-record-controls">
-                        <div class="trip-selected-date" aria-label="Selected trip schedule filter date">
-                            <span class="trip-selected-date-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
-                            <span class="trip-selected-date-copy">
-                                <span class="trip-selected-date-label" data-trip-selected-date-label>Showing schedules for</span>
-                                <strong data-trip-selected-date-value>{{ \Illuminate\Support\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
-                            </span>
-                            @if(in_array(request('direction'), ['Incoming', 'Outgoing'], true))
-                                <span class="trip-selected-direction">{{ request('direction') }}</span>
-                            @endif
+                        <div class="trip-date-selector" data-trip-calendar data-availability-url="{{ route('trip-schedule.available-dates') }}" data-selected-date="{{ $selectedTripDate }}">
+                            <button type="button" class="trip-selected-date" data-trip-calendar-trigger aria-expanded="false" aria-controls="tripAvailabilityCalendar" aria-label="Choose schedule date">
+                                <span class="trip-selected-date-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
+                                <span class="trip-selected-date-copy">
+                                    <span class="trip-selected-date-label">Showing schedules for</span>
+                                    <strong data-trip-selected-date-value>{{ \Illuminate\Support\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
+                                </span>
+                                <i class="fa-solid fa-chevron-down trip-date-chevron" aria-hidden="true"></i>
+                            </button>
+                            <div class="trip-availability-calendar" id="tripAvailabilityCalendar" data-trip-calendar-panel hidden>
+                                <div class="trip-calendar-heading">
+                                    <strong>Select Trip Date</strong>
+                                    <button type="button" data-trip-calendar-close aria-label="Close date calendar"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <p class="trip-calendar-hint">Green dots indicate dates with scheduled trips.</p>
+                                <div class="trip-calendar-month">
+                                    <button type="button" data-trip-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <strong data-trip-calendar-month></strong>
+                                    <button type="button" data-trip-calendar-next aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                                <div class="trip-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                                <div class="trip-calendar-days" data-trip-calendar-days role="group" aria-label="Choose a trip date"></div>
+                                <div class="trip-calendar-footer">
+                                    <span><i class="trip-calendar-legend-dot"></i> Has scheduled trips</span>
+                                    <button type="button" data-trip-calendar-today>Today</button>
+                                </div>
+                                <p class="trip-calendar-feedback" data-trip-calendar-feedback role="status" aria-live="polite"></p>
+                            </div>
                         </div>
-                    <x-ui.table-toolbar action="{{ route('trip-schedule', [], false) }}" data-server-filter="true" search-label="Search Trip Schedules" search-placeholder="Search trip, route, or status..." :filter-count="(int) request()->filled('trip_date') + (int) (request()->filled('direction') && request('direction') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Trip Schedules" :show-filter-count="false" filter-view="Operation.Scheduling_And_Dispatch.partials.trip-schedule-filters" :filter-data="compact('selectedTripDate', 'activeRoutes')" :sort-options="['departure_time' => 'Departure Time', 'trip_code' => 'Trip ID', 'trip_date' => 'Trip Date', 'required_buses' => 'Required Buses', 'status' => 'Status']" default-sort="departure_time">
-                        <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                    <x-ui.table-toolbar action="{{ route('trip-schedule', [], false) }}" data-server-filter="true" search-label="Search Trip Schedules" search-placeholder="Search trip, route, or status..." :filter-count="(int) (request()->filled('direction') && request('direction') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Trip Schedules" :show-filter-count="false" filter-view="Operation.Scheduling_And_Dispatch.partials.trip-schedule-filters" :filter-data="compact('selectedTripDate', 'activeRoutes')" :sort-options="['departure_time' => 'Departure Time', 'trip_code' => 'Trip ID', 'trip_date' => 'Trip Date', 'required_buses' => 'Required Buses', 'status' => 'Status']" default-sort="departure_time">
+                        <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"><input type="hidden" name="trip_date" value="{{ $selectedTripDate }}"></x-slot:hidden>
                     </x-ui.table-toolbar>
                     </div>
                     @if(request('tab') === 'history')
