@@ -466,7 +466,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     }
 
 
-    async function loadAvailability(tripId, explicitUrl = '') {
+    async function loadAvailability(tripId, explicitUrl = '', ignoreAssignmentId = '') {
         const pendingSlotInput = document.getElementById('assignmentPendingSlot');
         const lockedTripInput = document.getElementById('assignmentLockedTrip');
         const pendingContext = document.getElementById('assignmentPendingSlotContext');
@@ -493,7 +493,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         setAvailabilityMessage('Loading available resources…');
 
         try {
-            const response = await fetch(url, {
+            const availabilityUrl = new URL(url, window.location.origin);
+            if (ignoreAssignmentId) availabilityUrl.searchParams.set('assignment_id', ignoreAssignmentId);
+            const response = await fetch(availabilityUrl.toString(), {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -1016,7 +1018,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
             await loadAvailability(
                 editButton.dataset.tripId || '',
-                editButton.dataset.availabilityUrl || ''
+                editButton.dataset.availabilityUrl || '',
+                assignmentId
             );
 
             selectDriverById(editButton.dataset.driverId || '');
