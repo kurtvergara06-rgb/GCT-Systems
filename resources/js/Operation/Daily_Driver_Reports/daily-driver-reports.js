@@ -90,9 +90,16 @@ function initSearchableCombos() {
 
         const clear = () => {
             if (combo.dataset.field === 'bus' && input.readOnly) return;
+            const hadSelection = Boolean(hidden.value);
             hidden.value = '';
             input.value = '';
             combo.classList.remove('has-value');
+            // Clearing a driver must also clear its selected trip and assigned bus.
+            if (hadSelection && combo.dataset.field === 'driver') {
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '' },
+                }));
+            }
         };
 
         input.addEventListener('focus', open);
@@ -340,12 +347,15 @@ function initScheduleContextPanel() {
             selectComboValue('driver', schedule.driver_id, schedule.driver_name);
             const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
             if (busInput) busInput.readOnly = true;
+            // The bus comes from this exact trip assignment, never a separate search.
             selectComboValue('bus', schedule.bus_id, schedule.bus_no);
             for (const name of ['from_location', 'to_location']) {
                 const input = find('input[name="' + name + '"]');
                 if (input) input.readOnly = false;
             }
-            showStatus('matched', 'fa-circle-check', 'Assigned trip linked. Record actual From/To locations and travel times from the physical DDR.');
+            showStatus('matched', 'fa-circle-check',
+                'Trip ' + schedule.trip_code + ' linked · Assigned bus: ' + (schedule.bus_no || 'Unavailable') +
+                '. Record actual locations and travel times from the physical DDR.');
         };
         schedules.forEach(schedule => {
             const card = document.createElement('button');
@@ -429,7 +439,7 @@ function initScheduleContextPanel() {
 
             if (!response.ok) throw new Error('Assignment lookup failed');
             const payload = await response.json();
-            if (sequence !== lookupSequence) return;
+            if (sequence !== lookupSequence || date !== comboValues().date || driverId !== comboValues().driverId) return;
 
             const rows = payload.schedules || [];
 
