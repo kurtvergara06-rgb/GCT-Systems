@@ -157,7 +157,7 @@
                                         <th class="service-expander"></th>
                                         <th>Time</th>
                                         <th>Route</th>
-                                        <th>{{ $serviceDirection === 'Outgoing' ? 'Remarks / Drop-off Point' : 'Remarks / Pickup Point' }}</th>
+                                        <th>Origin / Destination</th>
                                         <th class="text-center">Required Buses</th>
                                         <th>Assigned Buses</th>
                                         <th>{{ request('tab') === 'history' ? 'Trip Status' : 'Assignment' }}</th>
@@ -168,14 +168,14 @@
                                     @forelse($directionTrips as $trip)
                                         @php
                                             $route = $trip->shuttleRoute;
-                                            // Use the saved route point, ignoring generic designer placeholders.
-                                            $locationCandidates = $serviceDirection === 'Incoming'
-                                                ? [$trip->route_origin_snapshot, $route?->origin]
-                                                : [$trip->route_destination_snapshot, $route?->destination];
-                                            $servicePoint = collect($locationCandidates)
+                                            // Prefer the trip's saved route snapshots so historical
+                                            // schedules remain accurate after a route is edited.
+                                            $validLocation = fn ($candidates) => collect($candidates)
                                                 ->map(fn ($value) => trim((string) $value))
                                                 ->first(fn ($value) => $value !== '' && ! in_array(strtolower($value), ['destination', 'origin', 'pickup point', 'drop-off point', 'drop off point', '—', 'n/a'], true))
                                                 ?? 'Not specified';
+                                            $originName = $validLocation([$trip->route_origin_snapshot, $route?->origin]);
+                                            $destinationName = $validLocation([$trip->route_destination_snapshot, $route?->destination]);
                                             $departureDateTime = $trip->departureDateTime();
                                             $arrivalDateTime = $trip->estimatedArrivalDateTime();
                                             $isHistorical = $trip->hasDeparted();
@@ -233,10 +233,16 @@
                                                 </div>
                                             </td>
                                             <td class="service-pickup">
-                                                <span class="service-location-text">
-                                                    <i class="fa-solid fa-location-dot"></i>
-                                                    {{ $servicePoint }}
-                                                </span>
+                                                <div class="service-route-endpoints">
+                                                    <div class="service-route-endpoint" title="Origin: {{ $originName }}">
+                                                        <span class="service-endpoint-label">From</span>
+                                                        <span class="service-endpoint-name">{{ $originName }}</span>
+                                                    </div>
+                                                    <div class="service-route-endpoint" title="Destination: {{ $destinationName }}">
+                                                        <span class="service-endpoint-label">To</span>
+                                                        <span class="service-endpoint-name">{{ $destinationName }}</span>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="service-count text-center">
                                                 <span class="service-buses-badge">
