@@ -289,6 +289,12 @@ class TripAssignmentController extends Controller
         $this->assertRouteIsActive($tripSchedule);
 
         $ignoreAssignmentId = $request->integer('assignment_id');
+        if ($ignoreAssignmentId
+            && ! $tripSchedule->assignments()->whereKey($ignoreAssignmentId)->exists()) {
+            throw ValidationException::withMessages([
+                'assignment_id' => 'The assignment does not belong to this trip.',
+            ]);
+        }
 
         $assignedToThisTrip = $tripSchedule->assignments()
             ->when($ignoreAssignmentId, fn ($q) => $q->where('id', '!=', $ignoreAssignmentId))
