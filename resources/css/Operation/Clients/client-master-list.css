@@ -79,3 +79,75 @@
 .client-master-pagination { display:flex;align-items:center;flex-wrap:wrap;gap:8px; }
 .client-master-pagination a,.client-master-pagination span { display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border:1px solid #d8e5f4;border-radius:7px;color:#2a568b;text-decoration:none;font-size:11px; }
 .client-master-pagination span[aria-disabled] { opacity:.48; }
+
+/* Add Client form: compact multi-section layout inside the shared centered modal. */
+.client-master-page .client-master-name-text small {
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.client-master-form-section + .client-master-form-section {
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid #e3eaf4;
+}
+.client-master-form-section h3 {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:0 0 14px;
+    color:#153353;
+    font-size:13px;
+    font-weight:800;
+}
+.client-master-form-section h3 span {
+    display:grid;
+    place-items:center;
+    width:27px;
+    height:27px;
+    border-radius:8px;
+    background:#eaf2ff;
+    color:#1659a8;
+    font-size:11px;
+}
+.client-master-form-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+.client-master-form-grid .ui-form-group { min-width:0; }
+.client-master-form-wide { grid-column:1/-1; }
+.client-master-form-grid :is(input,textarea) {
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+}
+.client-master-form-grid textarea {
+    resize:vertical;
+    min-height:66px;
+    padding:11px 13px;
+    border:1px solid #dce5f2;
+    border-radius:9px;
+    color:#142d4f;
+    background:#fff;
+    font:inherit;
+}
+.client-master-form-grid textarea:focus {
+    outline:2px solid #a7c5ff;
+    outline-offset:1px;
+}
+.client-master-form-note {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    color:#6b819e;
+    font-size:11px;
+    line-height:1.6;
+}
+@media(max-width:640px) {
+    .client-master-form-grid { grid-template-columns:minmax(0,1fr); }
+    .client-master-form-wide { grid-column:auto; }
+}
