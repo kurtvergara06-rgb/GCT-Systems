@@ -481,122 +481,18 @@ class DailyDriverReportController extends Controller
             );
     }
 
-    private function assertDdrEditable(DailyDriverReport $report): void
-    {
-        if ($report->trip_schedule_id !== null || $report->trip_assignment_id !== null
-            || $report->incidents()->exists()
-            || $report->additionalTrips()->where(function ($query) {
-                $query->whereNotNull('trip_schedule_id')->orWhereNotNull('trip_assignment_id');
-            })->exists()) {
-            throw ValidationException::withMessages([
-                'report' => 'This DDR is linked to operational history and cannot be modified.',
-            ]);
-        }
-    }
-
+    /**
+     * Saved DDRs are immutable. Keep these routes for legacy callers and return
+     * an explicit denial rather than allowing direct update/delete requests.
+     */
     public function update(Request $request, DailyDriverReport $dailyDriverReport): RedirectResponse
     {
-        // All saved DDRs are immutable, including previously unlinked records.
         abort(403, 'Saved Daily Driver Reports are view-only.');
-        $data = $request->validate([
-            'from_location' => ['required', 'string', 'max:150'],
-            'to_location' => ['required', 'string', 'max:150'],
-            'departure_time' => ['required', 'date_format:H:i'],
-            'arrival_time' => ['required', 'date_format:H:i'],
-            'passengers' => ['required', 'integer', 'min:0'],
-            'km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
-            'additional_trips' => ['sometimes', 'array'],
-            'additional_trips.*.id' => ['required', 'integer'],
-            'additional_trips.*.from_location' => ['required', 'string', 'max:150'],
-            'additional_trips.*.to_location' => ['required', 'string', 'max:150'],
-            'additional_trips.*.departure_time' => ['required', 'date_format:H:i'],
-            'additional_trips.*.arrival_time' => ['required', 'date_format:H:i'],
-            'additional_trips.*.passengers' => ['required', 'integer', 'min:0'],
-            'additional_trips.*.km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
-        ]);
-
-        DB::transaction(function () use ($dailyDriverReport, $data): void {
-            $report = DailyDriverReport::query()->whereKey($dailyDriverReport->id)
-                ->lockForUpdate()->firstOrFail();
-            $this->assertDdrEditable($report);
-            $existingEntries = $report->additionalTrips()->lockForUpdate()->get()->keyBy('id');
-            $submittedEntries = collect($data['additional_trips'] ?? []);
-            $submittedIds = $submittedEntries->pluck('id')->map(fn ($id) => (int) $id);
-            if ($submittedIds->duplicates()->isNotEmpty()
-                || $submittedIds->sort()->values()->all() !== $existingEntries->keys()->sort()->values()->all()) {
-                throw ValidationException::withMessages([
-                    'additional_trips' => 'The trip entries have changed. Reload the report before saving.',
-                ]);
-            }
-            $report->update([
-                'from_location' => $data['from_location'],
-                'to_location' => $data['to_location'],
-                'departure_time' => $data['departure_time'].':00',
-                'arrival_time' => $data['arrival_time'].':00',
-                'passengers' => $data['passengers'],
-                'km' => $data['km'] ?? null,
-            ]);
-            foreach ($submittedEntries as $entryData) {
-                $entry = $existingEntries->get((int) $entryData['id']);
-                $entry->update([
-                    'from_location' => $entryData['from_location'],
-                    'to_location' => $entryData['to_location'],
-                    'departure_time' => $entryData['departure_time'].':00',
-                    'arrival_time' => $entryData['arrival_time'].':00',
-                    'passengers' => $entryData['passengers'],
-                    'km' => $entryData['km'] ?? null,
-                ]);
-            }
-        });
-
-        return redirect()->route('daily-driver-reports')
-            ->with('success', 'DDR details updated.');
     }
 
     public function destroy(DailyDriverReport $dailyDriverReport): RedirectResponse
     {
-        // Do not permit permanent deletion through direct HTTP requests.
         abort(403, 'Saved Daily Driver Reports are view-only.');
-        DB::transaction(function () use ($dailyDriverReport): void {
-            $report = DailyDriverReport::query()
-                ->whereKey($dailyDriverReport->id)->lockForUpdate()->firstOrFail();
-
-            // Apply the same protection to update and delete, including an
-            // additional entry linked through its assignment alone.
-            $this->assertDdrEditable($report);
-
-            $reportDate = $report->report_date?->toDateString();
-            $driverId = $report->driver_id;
-
-            // Only erroneous standalone records may be removed.
-            $report->additionalTrips()->delete();
-            DB::table('daily_driver_report_ticket_claims')
-                ->where('daily_driver_report_id', $report->id)->delete();
-            $report->delete();
-
-            // Remove only an unlinked, time-free Present entry when there is
-            // no remaining DDR evidence for this driver and date.
-            // Records used by trip assignments or containing manual punch
-            // times must be preserved as independent historical evidence.
-            if ($driverId && $reportDate
-                && ! DailyDriverReport::query()
-                    ->where('driver_id', $driverId)
-                    ->whereDate('report_date', $reportDate)->exists()) {
-                $attendance = DriverAttendance::query()
-                    ->where('driver_id', $driverId)
-                    ->whereDate('attendance_date', $reportDate)
-                    ->lockForUpdate()->first();
-
-                if ($attendance && $attendance->status === 'Present'
-                    && $attendance->time_in === null && $attendance->time_out === null
-                    && ! $attendance->tripAssignments()->exists()) {
-                    $attendance->delete();
-                }
-            }
-        });
-
-        return redirect()->route('daily-driver-reports')
-            ->with('success', 'The unlinked daily driver report was deleted.');
     }
 
     public function assignedDrivers(Request $request): JsonResponse
