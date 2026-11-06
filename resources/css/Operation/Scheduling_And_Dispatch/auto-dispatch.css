@@ -5285,3 +5285,19 @@ body.ai-modal-open {
     cursor: pointer;
   }
 }
+
+/* The original compact preview could fit entirely inside the scrollport,
+   leaving no horizontal range to drag while sticky Actions covered Results.
+   Add only modest room on desktop, without resizing the enclosing card. */
+@media screen and (max-width: 1700px) {
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
+    min-width: 1360px;
+  }
+}
+@media screen and (pointer: fine) {
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready,
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready :is(td, th, span, strong, small) {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
