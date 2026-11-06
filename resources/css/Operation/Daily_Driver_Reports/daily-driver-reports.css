@@ -985,6 +985,11 @@
 }
 
 
+/* Driver availability is date-scoped; a hidden option must never display. */
+#ddrEncodeModal .ddr-combo-list [data-combo-option][hidden] {
+    display: none !important;
+}
+
 .ddr-combo-list li:hover,
 .ddr-combo-list li.is-highlight {
     background: #eaf2ff;
