@@ -48,6 +48,22 @@ class OperationMultiBusWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_manual_assignment_fleet_orders_body_numbers_naturally(): void
+    {
+        $this->createBus('10');
+        $this->createBus('2');
+        $this->createBus('3');
+
+        $this->actingAs($this->admin)
+            ->get(route('driver-bus-assignment'))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'BUS-2 · PLT-2',
+                'BUS-3 · PLT-3',
+                'BUS-10 · PLT-10',
+            ]);
+    }
+
     private function createDriver(string $suffix, string $status = 'Active'): Driver
     {
         $driver = Driver::create([
