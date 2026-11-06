@@ -3241,3 +3241,38 @@
     font-size: 12px;
     font-weight: 700;
 }
+
+/* Show both saved endpoints in each schedule row without adding columns. */
+.trip-schedule-page .service-table td.service-pickup {
+    max-width: none;
+}
+.trip-schedule-page .service-route-endpoints {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+.trip-schedule-page .service-route-endpoint {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: start;
+    gap: 6px;
+    min-width: 0;
+    line-height: 1.35;
+}
+.trip-schedule-page .service-endpoint-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #52749a;
+    white-space: nowrap;
+}
+.trip-schedule-page .service-route-endpoint:last-child .service-endpoint-label {
+    color: #0e8b67;
+}
+.trip-schedule-page .service-endpoint-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: #203b5b;
+    font-size: 11px;
+    font-weight: 650;
+}
