@@ -477,11 +477,11 @@
                     </div>
                     <div class="trip-guided-grid">
                         <div class="ui-form-group ui-form-full">
-                            <label for="tripClientName">Client / Company <span class="ui-required">*</span></label>
+                            <label for="tripClientName">Client / Company</label>
                             <div class="ui-input-wrap has-icon">
                                 <span class="ui-input-icon"><i class="fa-solid fa-building"></i></span>
-                                <select id="tripClientName" name="client_name" required>
-                                    <option value="">Select active client</option>
+                                <select id="tripClientName" name="client_name">
+                                    <option value="">No Client (General Service)</option>
                                     @foreach($operationClientNames as $clientName)
                                         <option value="{{ $clientName }}" @selected(old('client_name') === $clientName)>{{ $clientName }}</option>
                                     @endforeach
@@ -497,7 +497,7 @@
                             <div class="ui-input-wrap has-icon">
                                 <span class="ui-input-icon"><i class="fa-solid fa-route"></i></span>
                                 <select name="shuttle_route_id" id="tripRoute" required>
-                                    <option value="">Select client first</option>
+                                    <option value="">Select a route</option>
                                     @foreach($activeRoutes as $route)
                                         <option value="{{ $route->id }}" data-client-id="{{ $route->operation_client_id }}" data-client-name="{{ $route->client?->name }}" data-duration="{{ $route->calculated_time_minutes ?: $route->estimated_time_minutes ?: 60 }}" @selected((string) old('shuttle_route_id') === (string) $route->id)>
                                             {{ $route->route_code }} - {{ $route->route_name }} ({{ $route->origin }} to {{ $route->destination }})
