@@ -382,11 +382,16 @@ class OperationTripIntegrityTest extends TestCase
             'plate_no' => 'INT-6006',
             'status' => 'Active',
         ]);
+        $healthyDriver = Driver::create([
+            'driver_id' => 'D-INTEGRITY-HEALTHY',
+            'driver_name' => 'Healthy Bus Driver',
+            'employment_status' => 'Active',
+        ]);
         $healthy = TripAssignment::create([
             'trip_schedule_id' => $this->schedule->id,
-            'driver_attendance_id' => $this->attendance->id,
-            'driver_id' => $this->driver->driver_id,
-            'driver_name' => $this->driver->driver_name,
+            'driver_attendance_id' => null,
+            'driver_id' => $healthyDriver->driver_id,
+            'driver_name' => $healthyDriver->driver_name,
             'bus_id' => $healthyBus->id,
             'slot_number' => 2,
             'assigned_by' => $this->user->id,
@@ -399,7 +404,7 @@ class OperationTripIntegrityTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('daily-driver-reports.schedule-lookup', [
                 'report_date' => '2026-09-22',
-                'driver_id' => $this->driver->driver_id,
+                'driver_id' => $healthyDriver->driver_id,
                 'pending_only' => 1,
             ]))
             ->assertOk()
