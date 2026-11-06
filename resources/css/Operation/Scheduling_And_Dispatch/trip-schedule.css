@@ -3837,3 +3837,31 @@
     font: inherit;
     resize: vertical;
 }
+
+
+/* Service KPIs reflow based on the available pane width. At reduced content
+   widths, maintain readable cards instead of crushing four into one row. */
+.trip-schedule-page .trip-summary-grid,
+.trip-schedule-page .service-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.trip-schedule-page .trip-summary-card,
+.trip-schedule-page .trip-summary-grid .stat-card,
+.trip-schedule-page .service-summary-grid .stat-card,
+.trip-schedule-page .service-summary-grid .stat-card-link {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.trip-schedule-page .trip-summary-card > div:last-child,
+.trip-schedule-page .trip-summary-grid .stat-card-content,
+.trip-schedule-page .service-summary-grid .stat-card-content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.trip-schedule-page .service-controls-card,
+.trip-schedule-page .service-schedule-records,
+.trip-schedule-page .service-direction-card,
+.trip-schedule-page .service-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
