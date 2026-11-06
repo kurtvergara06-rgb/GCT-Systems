@@ -255,12 +255,16 @@ class IncidentController extends Controller
             }
         }
 
-        // Restrict newly submitted incident reports to In Progress trip assignments.
+        // Normal incident reporting is restricted to In Progress assignments.
+        // A mechanical breakdown may also be reported before departure on a
+        // Ready trip: its original bus must enter Maintenance and Operations
+        // needs the existing reserve replacement / readiness restoration flow.
         $reportDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        $reportTripScope = function ($tripQuery) use ($reportDate): void {
+        $isBreakdown = $validated['incident_type'] === 'Bus Breakdown';
+        $reportTripScope = function ($tripQuery) use ($reportDate, $isBreakdown): void {
             $tripQuery
                 ->whereDate('trip_date', '<=', $reportDate)
-                ->where('status', 'Dispatched');
+                ->whereIn('status', $isBreakdown ? ['Ready', 'Dispatched'] : ['Dispatched']);
         };
 
         $eligibleAssignment = TripAssignment::query()
@@ -269,7 +273,9 @@ class IncidentController extends Controller
             ->whereHas('tripSchedule', $reportTripScope);
         if (! $eligibleAssignment->exists()) {
             throw ValidationException::withMessages([
-                'bus_id' => 'Choose a bus assigned to an In Progress trip.',
+                'bus_id' => $isBreakdown
+                    ? 'Choose a bus assigned to a Ready or In Progress trip.'
+                    : 'Choose a bus assigned to an In Progress trip.',
             ]);
         }
 
