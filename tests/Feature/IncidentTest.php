@@ -749,6 +749,18 @@ class IncidentTest extends TestCase
             ->assertSee('Resolved Today');
     }
 
+    public function test_dispatched_replacement_still_counts_as_active_incident_and_breakdown(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+        $incident->update(['status' => 'Replacement Bus Dispatched']);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('<p>Active Incidents</p><h2>1</h2>', false)
+            ->assertSee('<p>Active Breakdowns</p><h2>1</h2>', false);
+    }
+
     private function reserveDispatchHead(): User
     {
         return User::factory()->create([
