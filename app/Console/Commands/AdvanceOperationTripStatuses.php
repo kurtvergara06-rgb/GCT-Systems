@@ -39,9 +39,13 @@ class AdvanceOperationTripStatuses extends Command
                             return;
                         }
 
-                        // A delayed scheduler run can transition directly from Ready
-                        // to Pending DDR if the entire planned window has elapsed.
-                        $nextStatus = $trip->estimatedArrivalDateTime()->lessThanOrEqualTo($now)
+                        // ETA does not clear a breakdown: leave the parent In Progress
+                        // while affected bus slots await a verified incident outcome.
+                        // Healthy slots may still submit DDRs independently.
+                        $etaPassed = $trip->estimatedArrivalDateTime()->lessThanOrEqualTo($now);
+                        $incidentHold = $etaPassed
+                            && app(TripDdrLifecycleService::class)->hasIncidentHold($trip);
+                        $nextStatus = $etaPassed && ! $incidentHold
                             ? 'Pending DDR'
                             : 'Dispatched';
 
