@@ -61,7 +61,7 @@ class OperationClientMasterListTest extends TestCase
         $this->actingAs($user)->get(route('client-trip-times'))
             ->assertOk()
             ->assertSee('Shuttle Partner A')
-            ->assertSee('0/4');
+            ->assertSee('Configure client');
     }
 
     public function test_client_master_list_shows_database_records_and_status_counts(): void
