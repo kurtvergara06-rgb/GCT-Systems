@@ -17,6 +17,7 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
         }
     };
     button.addEventListener('click', open);
+    if (button.dataset.openOnError === 'true') open();
     modal.addEventListener('click', onClose);
     return () => {
         button.removeEventListener('click', open);
