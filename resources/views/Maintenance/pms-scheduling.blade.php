@@ -116,7 +116,7 @@
                 {{-- =================================================
                     MAIN TABLE
                 ================================================== --}}
-                <div class="table-wrap">
+                <div class="table-wrap gct-responsive-records gct-sticky-actions">
 
                     <table class="pms-table">
 
