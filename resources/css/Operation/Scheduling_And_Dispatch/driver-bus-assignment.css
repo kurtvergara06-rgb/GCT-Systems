@@ -2525,3 +2525,27 @@
 .assignment-page .assignment-replacement-event span { font-weight: 750; }
 .assignment-page .assignment-replacement-event p { margin: 0; }
 .assignment-page .assignment-replacement-event small { color: #64748b; }
+
+
+/* The sidebar reduces the actual assignment pane width: auto-fit summary
+   cards so labels no longer become single-word narrow vertical columns. */
+.assignment-page .assignment-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.assignment-page .assignment-summary-card {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.assignment-page .assignment-summary-card > div:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.assignment-page .assignment-summary-card p,
+.assignment-page .assignment-summary-card small {
+    line-height: 1.45;
+}
+.assignment-page .assignment-card,
+.assignment-page .assignment-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
