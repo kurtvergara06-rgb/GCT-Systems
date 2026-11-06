@@ -53,6 +53,13 @@ class ClientMasterListController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:150'],
+            // Existing Client Trip Times creation remains backwards compatible.
+            'company_address' => ['nullable', 'string', 'max:500'],
+            'contact_person' => [$request->input('return_to') === 'client-master-list' ? 'required' : 'nullable', 'string', 'max:150'],
+            'contact_position' => ['nullable', 'string', 'max:150'],
+            'contact_number' => [$request->input('return_to') === 'client-master-list' ? 'required' : 'nullable', 'string', 'max:30', 'regex:/^[0-9+()\\s.-]{7,30}$/'],
+            'contact_email' => ['nullable', 'email', 'max:254'],
+            'service_start_date' => ['nullable', 'date'],
             'return_to' => ['sometimes', 'in:client-master-list'],
         ]);
 
@@ -64,7 +71,15 @@ class ClientMasterListController extends Controller
             ]);
         }
 
-        OperationClient::create(['name' => $name]);
+        OperationClient::create([
+            'name' => $name,
+            'company_address' => $validated['company_address'] ?? null,
+            'contact_person' => $validated['contact_person'] ?? null,
+            'contact_position' => $validated['contact_position'] ?? null,
+            'contact_number' => $validated['contact_number'] ?? null,
+            'contact_email' => $validated['contact_email'] ?? null,
+            'service_start_date' => $validated['service_start_date'] ?? null,
+        ]);
 
         return redirect()->route(($validated['return_to'] ?? '') === 'client-master-list' ? 'operation.clients.index' : 'client-trip-times')
             ->with('success', 'Client created successfully.');
