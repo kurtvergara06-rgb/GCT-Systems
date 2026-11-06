@@ -38,31 +38,44 @@
                     <div class="client-master-error" role="alert">{{ $errors->first() }}</div>
                 @endif
 
-                <form action="{{ route('operation.clients.index') }}" method="GET" class="client-master-filters" aria-label="Search and filter clients">
-                    <label class="client-master-search">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <span class="sr-only">Search client names</span>
-                        <input type="search" name="search" placeholder="Search client name..." value="{{ $search }}" maxlength="150">
-                    </label>
-                    <label>
-                        <span class="sr-only">Client status</span>
-                        <select name="status" aria-label="Filter by status">
-                            <option value="all" @selected($selectedStatus === 'all')>All Statuses</option>
-                            <option value="Active" @selected($selectedStatus === 'Active')>Active</option>
-                            <option value="Inactive" @selected($selectedStatus === 'Inactive')>Inactive</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span class="sr-only">Sort clients</span>
-                        <select name="sort" aria-label="Sort clients">
-                            <option value="name" @selected($selectedSort === 'name')>Client Name</option>
-                            <option value="newest" @selected($selectedSort === 'newest')>Newest First</option>
-                            <option value="oldest" @selected($selectedSort === 'oldest')>Oldest First</option>
-                        </select>
-                    </label>
-                    <button type="submit" class="client-master-filter-btn">Apply</button>
-                    <a class="client-master-clear" href="{{ route('operation.clients.index') }}">Reset</a>
-                </form>
+                <div class="client-master-record-controls">
+                    <nav class="client-master-record-tabs" aria-label="Client record groups">
+                        <a class="client-master-record-tab {{ $selectedTab === 'active' ? 'is-active' : '' }}"
+                           href="{{ route('operation.clients.index') }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}">
+                            <i class="fa-solid fa-building-circle-check" aria-hidden="true"></i> Active Clients
+                        </a>
+                        <a class="client-master-record-tab {{ $selectedTab === 'history' ? 'is-active' : '' }}"
+                           href="{{ route('operation.clients.index') }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'history'])) }}">
+                            <i class="fa-solid fa-building-circle-xmark" aria-hidden="true"></i> Inactive Clients
+                        </a>
+                    </nav>
+                    <x-ui.table-toolbar
+                        :action="route('operation.clients.index')"
+                        form-id="clientMasterToolbar"
+                        search-label="Search Clients"
+                        search-placeholder="Search company name..."
+                        filter-title="Filter Clients"
+                        filter-help="Filter by trip-time configuration progress."
+                        :filter-count="$selectedSetup !== '' ? 1 : 0"
+                        :sort-options="['name' => 'Client Name', 'created_at' => 'Date Registered']"
+                        default-sort="name"
+                    >
+                        <x-slot:hidden>
+                            <input type="hidden" name="tab" value="{{ $selectedTab }}">
+                        </x-slot:hidden>
+                        <x-slot:filters>
+                            <x-ui.table-toolbar-field label="Trip-Time Setup" name="setup">
+                                <option value="" @selected($selectedSetup === '')>All Clients</option>
+                                <option value="complete" @selected($selectedSetup === 'complete')>Fully Configured</option>
+                                <option value="needs-setup" @selected($selectedSetup === 'needs-setup')>Needs Setup</option>
+                            </x-ui.table-toolbar-field>
+                        </x-slot:filters>
+                    </x-ui.table-toolbar>
+                </div>
+                <div class="client-master-filter-loading" data-server-filter-loading hidden>
+                    <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+                    Updating client records...
+                </div>
 
                 <div class="client-master-table-wrap gct-responsive-records gct-sticky-actions" role="region" tabindex="0" aria-label="Client records table, horizontally scrollable">
                     <table class="client-master-table">
@@ -116,7 +129,7 @@
                                 <tr><td colspan="6" class="client-master-empty">
                                     <i class="fa-solid fa-building-circle-xmark" aria-hidden="true"></i>
                                     <strong>No clients found</strong>
-                                    <span>{{ $search !== '' || $selectedStatus !== 'all' ? 'Try changing your search or filter.' : 'Create a client to begin managing shuttle service requirements.' }}</span>
+                                    <span>{{ $search !== '' || $selectedSetup !== '' ? 'Try changing your search or filter.' : 'Create a client to begin managing shuttle service requirements.' }}</span>
                                 </td></tr>
                             @endforelse
                         </tbody>
