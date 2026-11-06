@@ -2731,19 +2731,20 @@
     #tripModal .ui-form-actions{padding:8px 0 10px}
 }
 
-/* Fixed shared column grid for Incoming / Outgoing rows. */
+/* Incoming / Outgoing: reserve enough width for readable assignment status
+   and three action buttons instead of squeezing or clipping their contents. */
 .trip-schedule-page .service-table{
     table-layout:fixed;
     width:100%;
-    min-width:1080px;
+    min-width:1280px;
 }
 .trip-schedule-page .service-col-expand{width:3%}
-.trip-schedule-page .service-col-time{width:9%}
-.trip-schedule-page .service-col-route{width:21%}
-.trip-schedule-page .service-col-point{width:19%}
-.trip-schedule-page .service-col-required{width:12%}
+.trip-schedule-page .service-col-time{width:8%}
+.trip-schedule-page .service-col-route{width:17%}
+.trip-schedule-page .service-col-point{width:20%}
+.trip-schedule-page .service-col-required{width:11%}
 .trip-schedule-page .service-col-assigned{width:12%}
-.trip-schedule-page .service-col-status{width:10%}
+.trip-schedule-page .service-col-status{width:15%}
 .trip-schedule-page .service-col-actions{width:14%}
 .trip-schedule-page .service-table th,
 .trip-schedule-page .service-table td{box-sizing:border-box;padding:10px 8px;vertical-align:middle}
@@ -2752,6 +2753,35 @@
 .trip-schedule-page .service-table td:nth-child(5),
 .trip-schedule-page .service-table th:nth-child(5){text-align:center}
 .trip-schedule-page .service-table td:nth-child(6) .service-progress{width:100%;max-width:120px}
+.trip-schedule-page .service-table tbody td:nth-child(7) {
+    text-align: center;
+}
+.trip-schedule-page .service-table tbody td:nth-child(7) .service-assignment-badge {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    padding: 7px 12px;
+    margin-inline: auto;
+    line-height: 1.25;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.trip-schedule-page .service-table tbody td:nth-child(7) .service-assignment-badge .status-badge__icon {
+    flex: 0 0 auto;
+}
+.trip-schedule-page .service-table tbody td:nth-child(7) .service-assignment-badge .status-badge__label {
+    display: inline-block;
+    min-width: 0;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
 .trip-schedule-page .service-table th:last-child,
 .trip-schedule-page .service-table td:last-child{text-align:center;vertical-align:middle}
 .trip-schedule-page .service-row-actions{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
