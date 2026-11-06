@@ -1975,18 +1975,42 @@ button.ddr-new-btn {
 .ddr-actions { display:flex; align-items:center; justify-content:center; gap:7px; }
 .ddr-actions .ddr-action { width:30px; height:30px; border:1px solid #c6daf9; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; padding:0; background:#eff6ff; color:#175ac0; cursor:pointer; text-decoration:none; }
 /* Saved reports have a single, clearly labeled view action. */
-.ddr-page .ddr-actions .ddr-view-action {
+/* Override compact icon-only action sizing: View includes both icon and text. */
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action {
     box-sizing: border-box;
-    width: auto;
-    min-width: 86px;
-    height: 34px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 92px;
+    min-width: 92px;
+    max-width: none;
+    height: 36px;
+    min-height: 36px;
     padding: 0 12px;
-    gap: 7px;
+    column-gap: 8px;
     white-space: nowrap;
     font-size: 12px;
     font-weight: 750;
+    line-height: 1;
 }
-.ddr-page .ddr-actions .ddr-view-action > i { flex: 0 0 auto; }
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action > i {
+    position: static;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+    margin: 0;
+    line-height: 1;
+}
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action > span {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
 .ddr-actions .ddr-action:hover:not(:disabled) { background:#dbeafe; }
 .ddr-actions .ddr-delete-trigger:not(:disabled) { color:#c0243d; background:#fff1f2; border-color:#fecdd3; }
 .ddr-actions .ddr-delete-trigger:disabled { color:#9ca3af; border-color:#e2e8f0; background:#f1f5f9; cursor:not-allowed; opacity:.7; }
