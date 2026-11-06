@@ -73,7 +73,16 @@ document.addEventListener('click', (event) => {
         return;
     }
 
-    if (!event.target.closest('[data-table-tool]') && !event.target.closest('.gct-picker-popover') && !event.target.closest('[role="listbox"]') && !event.target.closest('.flatpickr-calendar')) closeAllTableToolbars();
+    // A date picker removes its calendar DOM when a date is chosen. By the
+    // time this document handler runs, event.target may be detached, making
+    // closest('.gct-picker-popover') fail. The composed event path preserves
+    // the original calendar ancestors and prevents dismissing Filter early.
+    const clickedInsidePicker = event.composedPath().some((node) =>
+        node instanceof Element && node.matches('.gct-picker-popover, .flatpickr-calendar, [role="listbox"]')
+    );
+    if (!event.target.closest('[data-table-tool]') && !clickedInsidePicker) {
+        closeAllTableToolbars();
+    }
 });
 
 document.addEventListener('keydown', (event) => {
