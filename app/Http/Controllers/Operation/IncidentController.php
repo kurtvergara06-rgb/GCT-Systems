@@ -671,6 +671,15 @@ class IncidentController extends Controller
 
             $locked->update($updateData);
 
+            // Resolving a breakdown does not prove the trip completed.
+            // Release only verified Continued outcomes after ETA; Interrupted,
+            // Cancelled and Unknown remain on Incident Hold for review.
+            if ($locked->incident_type === 'Bus Breakdown' && $locked->trip_schedule_id
+                && $validated['status'] === 'Resolved') {
+                app(\App\Services\Operation\TripDdrLifecycleService::class)
+                    ->releaseAfterIncident((int) $locked->trip_schedule_id);
+            }
+
             if (Schema::hasTable('incident_responses')) {
                 IncidentResponse::create([
                     'incident_id' => $locked->id,
