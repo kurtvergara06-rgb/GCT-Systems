@@ -371,7 +371,7 @@ function initIncidentBusLookup() {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.className = 'inc-bus-lookup-option';
-                    button.textContent = [bus.dataset.busNo, bus.dataset.plateNo, bus.dataset.busStatus].filter(Boolean).join(' · ');
+                    button.textContent = [bus.dataset.busNo, bus.dataset.plateNo].filter(Boolean).join(' · ');
                     button.addEventListener('click', () => selectBus(bus));
                     results.appendChild(button);
                 });
