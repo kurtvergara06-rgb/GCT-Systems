@@ -52,9 +52,19 @@ class OperationClientMasterListTest extends TestCase
         $this->actingAs($user)->get(route('operation.clients.index'))
             ->assertOk()
             ->assertSee('Client Master List')
+            ->assertSee('Active Clients')
+            ->assertSee('Inactive Clients')
+            ->assertSee('id="clientMasterToolbar"', false)
             ->assertSee('EPSON')
-            ->assertSee('Archived Client')
+            ->assertDontSee('Archived Client</strong>', false)
+            ->assertDontSee('client-master-filter-btn')
+            ->assertDontSee('client-master-clear')
             ->assertSee('data-client-create-open', false);
+
+        $this->actingAs($user)->get(route('operation.clients.index', ['tab' => 'history']))
+            ->assertOk()
+            ->assertSee('Archived Client</strong>', false)
+            ->assertDontSee('EPSON</strong>', false);
     }
 
     public function test_client_master_list_search_and_status_filter(): void
@@ -64,10 +74,41 @@ class OperationClientMasterListTest extends TestCase
         OperationClient::create(['name' => 'Inactive Client', 'status' => 'Inactive']);
 
         $this->actingAs($user)
-            ->get(route('operation.clients.index', ['search' => 'EPSON', 'status' => 'Active']))
+            ->get(route('operation.clients.index', ['search' => 'EPSON', 'tab' => 'active']))
             ->assertOk()
             ->assertSee('EPSON')
             ->assertDontSee('Inactive Client</strong>', false);
+    }
+
+    public function test_client_master_list_tab_preserves_search_and_sort_controls(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Dormant Company', 'status' => 'Inactive']);
+
+        $this->actingAs($user)->get(route('operation.clients.index', [
+            'tab' => 'history',
+            'search' => 'Dormant',
+            'sort' => 'created_at',
+            'sort_direction' => 'desc',
+        ]))
+            ->assertOk()
+            ->assertSee('Dormant Company</strong>', false)
+            ->assertSee('name="sort_direction"', false)
+            ->assertSee('name="search"', false)
+            ->assertSee('name="tab" value="history"', false);
+    }
+
+    public function test_client_master_list_filter_by_configuration(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Needs Setup Client', 'status' => 'Active']);
+
+        $this->actingAs($user)->get(route('operation.clients.index', [
+            'setup' => 'needs-setup',
+            'tab' => 'active',
+        ]))
+            ->assertOk()
+            ->assertSee('Needs Setup Client</strong>', false);
     }
 
     public function test_view_only_user_can_view_client_master_list_but_not_create(): void
