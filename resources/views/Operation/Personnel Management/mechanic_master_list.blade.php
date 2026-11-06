@@ -80,7 +80,7 @@
                 Updating mechanic records...
             </div>
 
-            <div class="table-wrap personnel-master-table-wrap">
+            <div class="table-wrap personnel-master-table-wrap gct-responsive-records gct-sticky-actions">
                 <table class="attendance-table personnel-master-table">
                     <colgroup>
                         <col class="mechanic-col-id">
