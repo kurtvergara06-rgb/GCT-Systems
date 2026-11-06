@@ -31,16 +31,37 @@ class OperationClientMasterListTest extends TestCase
         return $user;
     }
 
-    public function test_client_creation_modal_is_available_on_trip_times_page(): void
+    public function test_client_trip_times_uses_master_list_clients_without_duplicate_creation_ui(): void
     {
         $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Newly Registered Client', 'status' => 'Active']);
 
         $this->actingAs($user)
             ->get(route('client-trip-times'))
             ->assertOk()
-            ->assertSee('id="cttCreateClientModal"', false)
-            ->assertSee('id="cttAddClientButton"', false)
-            ->assertSee('Client Configurations');
+            ->assertSee('Client Configurations')
+            ->assertSee('Newly Registered Client')
+            ->assertDontSee('id="cttCreateClientModal"', false)
+            ->assertDontSee('id="cttAddClientButton"', false)
+            ->assertDontSee('id="cttCreateClientModal"', false);
+    }
+
+    public function test_newly_registered_master_list_client_appears_in_trip_times_without_manual_sync(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), [
+                'name' => 'Shuttle Partner A',
+                'contact_person' => 'Test Coordinator',
+                'contact_number' => '09123456789',
+                'return_to' => 'client-master-list',
+            ])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->actingAs($user)->get(route('client-trip-times'))
+            ->assertOk()
+            ->assertSee('Shuttle Partner A')
+            ->assertSee('0/4');
     }
 
     public function test_client_master_list_shows_database_records_and_status_counts(): void
