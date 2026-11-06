@@ -21,6 +21,30 @@ class OperationAutoSchedulingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_general_service_trip_is_available_for_auto_scheduling(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $attendance, $bus, $route] = $this->makeScheduleResources();
+
+        $trip->update(['client_name' => null]);
+        $route->update(['operation_client_id' => null]);
+        $bus->operationClients()->detach();
+
+        $this->actingAs($user)
+            ->get(route('auto-scheduling', ['schedule_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee($route->route_code);
+
+        $this->actingAs($user)
+            ->postJson(route('auto-scheduling.generate'), [
+                'schedule_date' => $trip->trip_date->toDateString(),
+                'shift' => 'all',
+                'shuttle_route_id' => $route->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('summary.incoming.trips', 1);
+    }
+
     public function test_training_status_proxies_bus_ml_and_driver_data_fallback_provenance(): void
     {
         Http::fake([
