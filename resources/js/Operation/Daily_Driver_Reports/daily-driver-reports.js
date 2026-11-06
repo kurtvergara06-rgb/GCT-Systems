@@ -214,6 +214,10 @@ function initDdrAssignedDrivers() {
                 const input = driverCombo.querySelector('[data-combo-input]');
                 if (input) input.value = '';
                 driverCombo.classList.remove('has-value');
+                // A date change invalidating the driver must also clear its old trip/bus.
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '', source: driverCombo },
+                }));
             }
         } catch (error) {
             if (token !== requestToken) return;
