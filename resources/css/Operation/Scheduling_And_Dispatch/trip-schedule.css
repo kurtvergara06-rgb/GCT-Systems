@@ -3512,3 +3512,61 @@
         text-overflow: ellipsis;
     }
 }
+
+
+/* Trip Schedule: reuse GCT's shared drag-to-scroll, thin scrollbar and
+   conditional sticky Actions divider on Incoming and Outgoing tables. */
+@media screen {
+  .trip-schedule-page .service-table-scroll.gct-responsive-records.gct-sticky-actions {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-gutter: auto;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > thead > tr > th:last-child,
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr > td:last-child:not([colspan]) {
+    position: sticky;
+    right: 0;
+    box-sizing: border-box;
+    min-width: 140px;
+    width: 14%;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 4;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > thead > tr > th:last-child {
+    z-index: 9;
+    background: #f4f7fb;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr > td:last-child:not([colspan]) {
+    background: #fff;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: #f8fbff;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions .service-row-actions,
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions .trip-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 7px;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions .trip-actions form {
+    flex: 0 0 auto;
+  }
+  /* Each icon remains the existing shared action-button component; keep
+     disabled states and the existing delete confirmation wiring intact. */
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions .trip-actions .gct-record-action {
+    flex: 0 0 32px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    overflow: visible;
+  }
+  .trip-schedule-page .service-table-scroll.gct-sticky-actions .trip-actions .gct-record-action > i {
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1;
+  }
+}
