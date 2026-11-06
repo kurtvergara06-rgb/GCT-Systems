@@ -462,6 +462,62 @@ class TripScheduleController extends Controller
         return $this->scheduleReturnRedirect($request);
     }
 
+    /**
+     * Cancel a not-yet-departed Scheduled or Ready service.
+     * Keep existing assignments and the audit record for accountability.
+     */
+    public function cancel(Request $request, TripSchedule $tripSchedule): RedirectResponse
+    {
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'min:10', 'max:1000'],
+            'return_trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+        ]);
+
+        DB::transaction(function () use ($tripSchedule, $validated): void {
+            $trip = TripSchedule::query()
+                ->whereKey($tripSchedule->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($trip->hasDeparted() || ! in_array($trip->status, ['Scheduled', 'Ready'], true)) {
+                throw ValidationException::withMessages([
+                    'trip_schedule' => 'Only Scheduled or Ready trips before departure may be cancelled.',
+                ]);
+            }
+            if ($trip->dailyDriverReports()->exists() || $trip->incidents()->exists()) {
+                throw ValidationException::withMessages([
+                    'trip_schedule' => 'Trips with operational history must be handled through the incident workflow.',
+                ]);
+            }
+
+            $previousStatus = $trip->status;
+            $trip->update(['status' => 'Cancelled']);
+
+            DB::table('operation_trip_change_audits')->insert([
+                'trip_schedule_id' => $trip->id,
+                'performed_by' => auth()->id(),
+                'action' => 'cancelled',
+                'previous_status' => $previousStatus,
+                'new_status' => 'Cancelled',
+                'reason' => $validated['cancellation_reason'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }, 5);
+
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'updated',
+            $tripSchedule->id,
+            "{$tripSchedule->trip_code} was cancelled before departure."
+        );
+
+        session()->flash('success', 'Trip cancelled. The reason and assigned resources were retained for audit.');
+
+        return $this->scheduleReturnRedirect($request);
+    }
+
     public function destroy(
         Request $request,
         TripSchedule $tripSchedule
