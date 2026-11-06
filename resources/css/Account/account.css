@@ -1268,3 +1268,71 @@ body.account-crop-open {
         flex: 1;
     }
 }
+
+/* Local-only account role interface preview. Backend RBAC is unchanged. */
+.account-rbac-preview {
+    margin: 16px 0;
+    padding: 15px;
+    border: 1px solid #cbdcf2;
+    border-radius: 14px;
+    background: #f7faff;
+}
+.account-rbac-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.account-rbac-preview-header strong {
+    display: block;
+    color: #102e57;
+    font-size: 13px;
+}
+.account-rbac-preview-header p,
+.account-rbac-preview-note {
+    margin: 5px 0 0;
+    color: #526782;
+    font-size: 11px;
+    line-height: 1.6;
+}
+.account-rbac-preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: none;
+    color: #103e8a;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.account-rbac-preview-toggle input { accent-color: #0b40b5; }
+.account-rbac-preview [data-rbac-preview-details] { margin-top: 14px; }
+.account-rbac-preview [data-rbac-preview-details] > label {
+    display: block;
+    margin-bottom: 6px;
+    color: #263e60;
+    font-size: 11px;
+    font-weight: 700;
+}
+.account-rbac-preview select {
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 9px;
+    border: 1px solid #cbdcf2;
+    border-radius: 9px;
+    background: #fff;
+    color: #102e57;
+}
+.account-rbac-preview-panel {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #dfebfa;
+    border-radius: 10px;
+    background: #fff;
+}
+.account-rbac-preview-panel strong { color: #102e57; font-size: 12px; }
+.account-rbac-preview-panel p { margin: 5px 0 0; color: #526782; font-size: 11px; line-height: 1.7; }
+.account-rbac-preview [hidden] { display: none !important; }
+@media (max-width: 530px) {
+    .account-rbac-preview-header { align-items: flex-start; flex-direction: column; }
+}
