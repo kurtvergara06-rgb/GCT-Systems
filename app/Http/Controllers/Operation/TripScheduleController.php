@@ -482,6 +482,7 @@ class TripScheduleController extends Controller
         $validated = $request->validate([
             'cancellation_reason' => ['required', 'string', 'min:10', 'max:1000'],
             'return_trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+            'return_to_assignment' => ['sometimes', 'boolean'],
         ]);
 
         DB::transaction(function () use ($tripSchedule, $validated): void {
@@ -525,6 +526,13 @@ class TripScheduleController extends Controller
         );
 
         session()->flash('success', 'Trip cancelled. The reason and assigned resources were retained for audit.');
+
+        // Return to the same module when cancellation was initiated from assignment management.
+        if ($validated['return_to_assignment'] ?? false) {
+            return redirect()->route('driver-bus-assignment', [
+                'trip_date' => $validated['return_trip_date'] ?? $tripSchedule->trip_date?->format('Y-m-d'),
+            ]);
+        }
 
         return $this->scheduleReturnRedirect($request);
     }
