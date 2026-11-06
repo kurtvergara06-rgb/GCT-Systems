@@ -90,6 +90,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('trip-schedule');
+            Route::get('/available-dates', 'availableDates')->middleware('throttle:60,1')->name('trip-schedule.available-dates');
             Route::post('/', 'store')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.store');
