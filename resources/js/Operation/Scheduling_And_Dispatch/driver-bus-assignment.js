@@ -37,6 +37,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const removeAssignmentModal =
         document.getElementById('removeAssignmentModal');
 
+    const cancelAssignmentTripModal =
+        document.getElementById('cancelAssignmentTripModal');
+    const cancelAssignmentTripForm =
+        document.getElementById('cancelAssignmentTripForm');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -1419,6 +1424,33 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     /*
     |--------------------------------------------------------------------------
+    | Cancel Entire Trip (Operations Head only; server verifies again)
+    |--------------------------------------------------------------------------
+    */
+
+    document.querySelectorAll('.assignment-page .cancel-assignment-trip').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!cancelAssignmentTripModal || !cancelAssignmentTripForm) return;
+            const url = button.dataset.cancelUrl;
+            if (!url || !url.startsWith('/') || url.startsWith('//')) return;
+            cancelAssignmentTripForm.action = url;
+            const tripCode = cancelAssignmentTripModal.querySelector('#cancelAssignmentTripCode');
+            if (tripCode) tripCode.textContent = button.dataset.tripCode || 'this trip';
+            const reason = cancelAssignmentTripModal.querySelector('#assignmentCancellationReason');
+            if (reason) reason.value = '';
+            openModal(cancelAssignmentTripModal);
+            reason?.focus();
+        });
+    });
+
+    ['keepAssignmentTrip', 'closeCancelAssignmentTrip'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('click', () => {
+            closeModal(cancelAssignmentTripModal);
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Escape Key
     |--------------------------------------------------------------------------
     */
@@ -1436,6 +1468,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             closeModal(assignmentModal);
             closeModal(viewAssignmentModal);
             closeModal(removeAssignmentModal);
+            closeModal(cancelAssignmentTripModal);
         }
     );
 
