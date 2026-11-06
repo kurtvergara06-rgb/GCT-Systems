@@ -150,7 +150,7 @@
                                 </div>
                             </div>
                         </header>
-                        <div class="service-table-wrap service-table-scroll" role="region" aria-label="{{ $serviceDirection }} trip schedules" tabindex="0">
+                        <div class="service-table-wrap service-table-scroll gct-responsive-records gct-sticky-actions" role="region" aria-label="{{ $serviceDirection }} trip schedules" tabindex="0">
                             <table class="service-table">
                                 <colgroup>
                                     <col class="service-col-expand">
