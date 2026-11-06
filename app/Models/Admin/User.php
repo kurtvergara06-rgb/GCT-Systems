@@ -84,6 +84,17 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
+    public function canApproveReadyTripChanges(): bool
+    {
+        $department = strtolower(trim((string) $this->department));
+        $role = strtolower(trim((string) $this->role));
+
+        return $role === 'head'
+            && in_array($department, ['operation', 'admin'], true)
+            && $this->hasSystemPermission('operation', 'edit')
+            && $this->hasSystemPermission('operation', 'approve');
+    }
+
     public function canAssignReserveBus(): bool
     {
         $department = strtolower(trim((string) $this->department));
