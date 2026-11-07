@@ -895,6 +895,10 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('account-nav-tabs', $profile);
         $this->assertStringContainsString('account-profile-metrics', $profile);
         $this->assertStringContainsString('account-profile-photo-fields', $profile);
+        $this->assertStringContainsString('Critical profile-header geometry', $profile);
+        $this->assertStringContainsString('width="80" height="80"', $profile);
+        $this->assertStringContainsString('object-fit:cover;border-radius:50%', $profile);
+        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $profile);
         $this->assertStringContainsString('data-avatar-change-button', $profile);
         $this->assertSame(1, substr_count($profile, 'data-avatar-upload-form'));
         $this->assertSame(1, substr_count($profile, 'action="{{ route(\'account.profile.update\', [], false) }}"'));
