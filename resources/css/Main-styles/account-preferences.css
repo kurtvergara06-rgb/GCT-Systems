@@ -200,3 +200,49 @@ html[data-gct-theme="dark"] .routes-page .routes-record-controls > .routes-segme
     background: #304965;
     color: #f4f8ff;
 }
+
+
+/* Route ID and action controls: retain the dark, outlined treatments in the
+   approved mockup. Auto ID badges are created by auto-id-badges.js, and
+   identifier-text.css forces their text black, so override it narrowly here. */
+html[data-gct-theme="dark"] body .routes-page .routes-table tbody td:first-child .system-id-badge {
+    background: #102238 !important;
+    color: #edf5ff !important;
+    border: 1px solid #7188a6 !important;
+    border-radius: 5px;
+    box-shadow: none;
+}
+html[data-gct-theme="dark"] body .routes-page .routes-table tbody td:first-child .system-id-badge :is(i,svg) {
+    color: #edf5ff !important;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table .route-action:is(.view,.edit),
+html[data-gct-theme="dark"] .routes-page .routes-table .action-btn:is(.view,.edit) {
+    background: #122c4c;
+    color: #72b7ff;
+    border: 1px solid #245f9f;
+    box-shadow: none;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table .route-action.delete,
+html[data-gct-theme="dark"] .routes-page .routes-table .action-btn.delete {
+    background: #341e31;
+    color: #ff828b;
+    border: 1px solid #8e384d;
+    box-shadow: none;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table .route-action:is(.view,.edit):hover:not(:disabled),
+html[data-gct-theme="dark"] .routes-page .routes-table .action-btn:is(.view,.edit):hover:not(:disabled) {
+    background: #174b83;
+    border-color: #5daeff;
+    color: #fff;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table .route-action.delete:hover:not(:disabled),
+html[data-gct-theme="dark"] .routes-page .routes-table .action-btn.delete:hover:not(:disabled) {
+    background: #783042;
+    border-color: #ff7a89;
+    color: #fff;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table .route-action:focus-visible,
+html[data-gct-theme="dark"] .routes-page .routes-table .action-btn:focus-visible {
+    outline: 2px solid #9bcaff;
+    outline-offset: 2px;
+}
