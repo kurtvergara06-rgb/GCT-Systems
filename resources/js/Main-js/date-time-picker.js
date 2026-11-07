@@ -221,16 +221,22 @@ class GctDateTimePicker {
             this.renderDateTimePicker();
         }
 
+        // This picker instance is reused across pages. Remove the native
+        // popover attribute outside a top-layer Filter; otherwise the user
+        // agent hides it on later ordinary modal/date-field opens.
+        const inTopLayerFilter = toolbarPopover?.matches(':popover-open')
+            && typeof this.popover.showPopover === 'function';
+        if (!inTopLayerFilter) {
+            this.popover.removeAttribute('popover');
+        }
         this.popover.hidden = false;
-        // A calendar opened from a top-layer table Filter must itself use
-        // the top layer; otherwise overflow and stacking can obscure dates.
-        if (toolbarPopover?.matches(':popover-open')
-            && typeof this.popover.showPopover === 'function') {
+        if (inTopLayerFilter) {
             this.popover.setAttribute('popover', 'manual');
             try {
                 this.popover.showPopover();
             } catch {
-                // The regular positioned calendar remains available.
+                this.popover.removeAttribute('popover');
+                // Keep the normal positioned calendar available.
             }
         }
         this.positionPopover();
@@ -245,6 +251,7 @@ class GctDateTimePicker {
         if (this.popover.matches?.(':popover-open')) {
             this.popover.hidePopover();
         }
+        this.popover.removeAttribute('popover');
         this.popover.hidden = true;
         this.popover.innerHTML = '';
         this.activeInput = null;
