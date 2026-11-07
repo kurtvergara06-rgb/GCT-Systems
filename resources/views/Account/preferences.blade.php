@@ -1,4 +1,4 @@
-<x-layout.app title="FROMS - Settings" :assets="['resources/css/Account/account.css']">
+<x-layout.app title="FROMS - Settings" :assets="['resources/css/Account/account.css', 'resources/css/Main-styles/account-preferences.css']">
     @php
         $department = ucfirst(strtolower((string) $user->department));
         $icon = match (strtolower((string) $user->department)) {
