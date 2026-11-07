@@ -91,7 +91,11 @@ class AccountPreferencesSettingsTest extends TestCase
         $this->actingAs($user);
         $currentId = $this->app['session']->driver()->getId();
 
-        $this->delete(route('account.sessions.revoke', $currentId))
+        // The request must carry the same session cookie as the browser.
+        // Without it, StartSession generates a different request session ID,
+        // so the controller correctly responds 404 for an unknown session.
+        $this->withCookie(config('session.cookie'), $currentId)
+            ->delete(route('account.sessions.revoke', $currentId))
             ->assertStatus(422);
     }
 
