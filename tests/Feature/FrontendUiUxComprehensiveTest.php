@@ -519,6 +519,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('portalTarget.appendChild(this.popover)', $datePickerScript);
         $this->assertStringContainsString("toolbarPopover?.matches(':popover-open')", $datePickerScript);
         $this->assertStringContainsString('this.popover.showPopover()', $datePickerScript);
+        $this->assertStringContainsString("this.popover.removeAttribute('popover')", $datePickerScript);
+        $this->assertStringContainsString("menu.removeAttribute('popover')", $assignmentScript);
+        $this->assertStringContainsString("popover.removeAttribute('popover')", $popoverScript);
         $this->assertStringContainsString("picker?.querySelector('.gct-picker-close')?.click()", $popoverScript);
 
         // Both bespoke Operation record overlays get the same viewport portal
