@@ -80,7 +80,7 @@
                 Updating mechanic records...
             </div>
 
-            <div class="table-wrap personnel-master-table-wrap gct-responsive-records gct-sticky-actions">
+            <div class="table-wrap personnel-master-table-wrap gct-responsive-records gct-sticky-actions gct-master-scroll-10" role="region" tabindex="0" aria-label="Mechanic Master List records, scrollable">
                 <table class="attendance-table personnel-master-table">
                     <colgroup>
                         <col class="mechanic-col-id">
