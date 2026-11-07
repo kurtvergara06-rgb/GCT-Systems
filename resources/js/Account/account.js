@@ -25,6 +25,10 @@ window.GCTPartialNavigation.registerInitializer('account-management', '.account-
     const avatarForm = document.querySelector('[data-avatar-upload-form]');
     const avatarTrigger = avatarForm?.querySelector('[data-avatar-trigger]');
     const avatarInput = avatarForm?.querySelector('[data-avatar-input]');
+    // The separate Change Photo button reuses the same upload and crop flow.
+    document.querySelector('[data-avatar-change-button]')?.addEventListener('click', () => {
+        avatarTrigger?.click();
+    });
     const avatarPreview = avatarForm?.querySelector('[data-avatar-preview]');
     const avatarError = document.querySelector('[data-avatar-client-error]');
     const cropModal = document.querySelector('[data-avatar-crop-modal]');
