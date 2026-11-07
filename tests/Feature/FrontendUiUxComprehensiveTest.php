@@ -517,6 +517,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
         // obscured by the filter itself.
         $this->assertStringContainsString("input.closest('.gct-table-tool-popover')", $datePickerScript);
         $this->assertStringContainsString('portalTarget.appendChild(this.popover)', $datePickerScript);
+        $this->assertStringContainsString("toolbarPopover?.matches(':popover-open')", $datePickerScript);
+        $this->assertStringContainsString('this.popover.showPopover()', $datePickerScript);
+        $this->assertStringContainsString("picker?.querySelector('.gct-picker-close')?.click()", $popoverScript);
 
         // Both bespoke Operation record overlays get the same viewport portal
         // and backdrop-dismissal protection as shared form modals.
