@@ -545,6 +545,78 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     |--------------------------------------------------------------------------
     */
 
+    // Driver and Bus menus must escape the form modal's scroll container.
+    // Native manual popovers stay DOM children of their comboboxes, so the
+    // existing option click handlers and outside-click checks still work.
+    const positionAssignmentMenu = (menu, trigger) => {
+        if (!menu?.classList.contains('show') || !trigger) return;
+        const rect = trigger.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const gutter = 12;
+        const viewportLeft = viewport?.offsetLeft || 0;
+        const viewportTop = viewport?.offsetTop || 0;
+        const viewportWidth = viewport?.width || window.innerWidth;
+        const viewportHeight = viewport?.height || window.innerHeight;
+        const maxWidth = Math.max(1, viewportWidth - gutter * 2);
+        const maxHeight = Math.max(1, viewportHeight - gutter * 2);
+        const width = Math.min(Math.max(rect.width, 200), maxWidth);
+        const menuHeight = Math.min(menu.scrollHeight || 280, maxHeight);
+        const bottomLimit = viewportTop + viewportHeight - gutter;
+        const topLimit = viewportTop + gutter;
+        const above = rect.top - topLimit;
+        const below = bottomLimit - rect.bottom;
+        const top = below < menuHeight + 8 && above > below
+            ? rect.top - menuHeight - 6
+            : rect.bottom + 6;
+        Object.assign(menu.style, {
+            position: 'fixed',
+            inset: 'auto',
+            right: 'auto',
+            bottom: 'auto',
+            margin: '0',
+            boxSizing: 'border-box',
+            width: width + 'px',
+            maxWidth: maxWidth + 'px',
+            maxHeight: maxHeight + 'px',
+            overflowY: 'auto',
+            left: Math.max(viewportLeft + gutter,
+                Math.min(rect.left, viewportLeft + viewportWidth - gutter - width)) + 'px',
+            top: Math.max(topLimit, Math.min(top, bottomLimit - menuHeight)) + 'px',
+        });
+    };
+
+    const showAssignmentMenu = (menu, trigger) => {
+        if (!menu) return;
+        menu.classList.add('show');
+        if (typeof menu.showPopover === 'function') {
+            menu.setAttribute('popover', 'manual');
+            if (!menu.matches(':popover-open')) {
+                try {
+                    menu.showPopover();
+                } catch {
+                    // Keep legacy display behavior in older browsers.
+                }
+            }
+        }
+        positionAssignmentMenu(menu, trigger);
+    };
+
+    const hideAssignmentMenu = (menu) => {
+        if (!menu) return;
+        if (menu.matches?.(':popover-open')) menu.hidePopover();
+        menu.classList.remove('show');
+    };
+
+    const repositionAssignmentMenus = () => {
+        positionAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger);
+        positionAssignmentMenu(assignmentBusMenu, assignmentBusTrigger);
+    };
+
+    window.addEventListener('resize', repositionAssignmentMenus);
+    window.visualViewport?.addEventListener('resize', repositionAssignmentMenus);
+    window.visualViewport?.addEventListener('scroll', repositionAssignmentMenus);
+    document.addEventListener('scroll', repositionAssignmentMenus, true);
+
     function openDriverDropdown() {
         if (
             !assignmentDriverMenu
@@ -555,9 +627,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
         closeBusDropdown();
 
-        assignmentDriverMenu.classList.add(
-            'show'
-        );
+        showAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger);
 
         assignmentDriverTrigger.setAttribute(
             'aria-expanded',
@@ -578,9 +648,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             return;
         }
 
-        assignmentDriverMenu.classList.remove(
-            'show'
-        );
+        hideAssignmentMenu(assignmentDriverMenu);
 
         assignmentDriverTrigger.setAttribute(
             'aria-expanded',
@@ -723,9 +791,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         // after a trip or driver change).
         filterBusOptions(assignmentBusSearch?.value || '');
 
-        assignmentBusMenu.classList.add(
-            'show'
-        );
+        showAssignmentMenu(assignmentBusMenu, assignmentBusTrigger);
 
         assignmentBusTrigger.setAttribute(
             'aria-expanded',
@@ -746,9 +812,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             return;
         }
 
-        assignmentBusMenu.classList.remove(
-            'show'
-        );
+        hideAssignmentMenu(assignmentBusMenu);
 
         assignmentBusTrigger.setAttribute(
             'aria-expanded',
