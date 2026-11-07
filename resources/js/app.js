@@ -19,6 +19,7 @@ import '../css/Maintenance/purchase-request-modal-cleanup.css';
 import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/account-preferences.js';
+import './Main-js/master-list-scroll.js';
 import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-animations.js';
 import './Main-js/page-transitions.js';

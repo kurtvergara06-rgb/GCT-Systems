@@ -77,7 +77,7 @@
                     Updating client records...
                 </div>
 
-                <div class="client-master-table-wrap gct-responsive-records gct-sticky-actions" role="region" tabindex="0" aria-label="Client records table, horizontally scrollable">
+                <div class="client-master-table-wrap gct-responsive-records gct-sticky-actions gct-master-scroll-10" role="region" tabindex="0" aria-label="Client records table, horizontally scrollable">
                     <table class="client-master-table">
                         <thead>
                             <tr>

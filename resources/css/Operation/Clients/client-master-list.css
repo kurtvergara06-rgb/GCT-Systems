@@ -151,3 +151,34 @@
     .client-master-form-grid { grid-template-columns:minmax(0,1fr); }
     .client-master-form-wide { grid-column:auto; }
 }
+
+/* Keep the Actions heading and controls on the same centered axis. */
+.client-master-table th:last-child,
+.client-master-table td.client-master-actions {
+  text-align:center;
+}
+.client-master-table td.client-master-actions {
+  vertical-align:middle;
+}
+.client-master-page .gct-sticky-actions .client-master-actions {
+  min-width:220px;
+}
+.client-master-action-row {
+  width:100%;
+  min-height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.client-master-action-row > form {
+  display:flex;
+  align-items:center;
+  margin:0;
+}
+.client-master-action-row .client-master-action {
+  flex:0 0 auto;
+  min-height:32px;
+  box-sizing:border-box;
+  line-height:1.2;
+}
