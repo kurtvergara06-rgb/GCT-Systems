@@ -41,3 +41,103 @@ html.gct-reduced-motion *::after {
     .account-preference-row select { width:100%; }
     .account-preference-panel { padding:19px; }
 }
+
+/* ===== Personalization studio ===== */
+.account-personalization-page { max-width: 1100px; }
+.gct-personalization-intro {
+    display: flex; align-items: center; gap: 17px; padding: 21px 24px;
+    border-radius: 17px; margin-bottom: 20px; color: #fff;
+    background: linear-gradient(110deg,#092b57 0%,#0b40b5 75%,#2465db 100%);
+    box-shadow: 0 10px 25px rgba(9,43,87,.14);
+}
+.gct-personalization-icon { flex: 0 0 48px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.15); font-size: 21px; }
+.gct-personalization-intro h2 { margin: 0 0 5px; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.gct-personalization-intro p { margin: 0; color: #deebff; font-size: 12px; line-height: 1.6; }
+.gct-preference-device-label { flex-shrink: 0; margin-left: auto; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 8px 11px; font-size: 11px; font-weight: 650; color: #fff; }
+.gct-preference-section { margin-bottom: 17px; padding: 23px 26px; border-radius: 16px; }
+.gct-preference-section .account-card-header { padding-bottom: 17px; }
+.gct-preference-section .account-card-header h3 { display:flex; align-items:center; gap:10px; }
+.gct-preference-section .account-card-header h3 i { color: #0b40b5; font-size: 17px; }
+.gct-theme-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; padding: 19px 0 2px; border: none; min-width: 0; }
+.gct-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.gct-theme-choice { position: relative; min-width: 0; cursor: pointer; }
+.gct-theme-choice > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.gct-theme-thumbnail { display: block; position: relative; height: 108px; overflow: hidden; border: 2px solid #e0e8f2; border-radius: 12px; background: #f3f7fe; }
+.gct-theme-thumbnail > span { position: absolute; inset: 0 auto 0 0; width: 28%; background: #0a3157; }
+.gct-theme-thumbnail > i { position: absolute; left: 35%; top: 19%; width: 51%; height: 12%; border-radius: 5px; background: #cbd9ee; }
+.gct-theme-thumbnail > b { position: absolute; left: 35%; top: 44%; width: 58%; height: 37%; border-radius: 7px; background: #fff; box-shadow: 0 2px 9px rgba(9,43,87,.09); }
+.gct-theme-thumbnail-dark { background: #111b2b; border-color: #31415a; }
+.gct-theme-thumbnail-dark > span { background: #06142a; }
+.gct-theme-thumbnail-dark > i { background: #596d88; }
+.gct-theme-thumbnail-dark > b { background: #24354b; }
+.gct-theme-thumbnail-system { background: linear-gradient(90deg,#eff5fd 50%,#182439 50%); }
+.gct-theme-thumbnail-system > b { background: linear-gradient(90deg,#fff 26%,#27374d 26%); }
+.gct-theme-choice-caption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 3px 0; font-size: 12px; color: #233b58; }
+.gct-theme-choice-caption i { opacity: 0; font-size: 15px; color: #0b40b5; }
+.gct-theme-choice > input:checked ~ .gct-theme-thumbnail { border-color: #0b40b5; box-shadow: 0 0 0 3px rgba(11,64,181,.14); }
+.gct-theme-choice > input:checked ~ .gct-theme-choice-caption i { opacity: 1; }
+.gct-theme-choice > input:focus-visible ~ .gct-theme-thumbnail { outline: 3px solid #6f9af1; outline-offset: 3px; }
+.gct-preference-section .account-preference-row select { width: min(240px,100%); font-weight: 650; }
+.gct-preference-preview { margin-top: 21px; padding: 16px 19px; border-radius: 12px; border: 1px solid #d9e5f5; background: #f8fbff; }
+.gct-preference-preview > div { display: flex; gap: 8px; align-items: center; margin-bottom: 13px; font-size: 11px; font-weight: 800; color: #47658c; }
+.gct-preference-preview > strong { display: block; margin-bottom: 5px; font-size: 15px; color: #112d4f; }
+.gct-preference-preview > p { font-size: 12px; color: #586f89; line-height: 1.6; margin-bottom: 12px; }
+.gct-preference-preview > span { display: inline-flex; padding: 5px 11px; border-radius: 999px; background: #e4f8ed; color: #167142; font-size: 11px; font-weight: 800; }
+.gct-preferences-footer { display: flex; flex-wrap: wrap; gap: 11px; align-items: center; justify-content: flex-end; margin: 18px 2px 0; }
+.gct-preferences-footer > div { margin-right: auto; flex: 1 1 260px; }
+.gct-preferences-footer strong { font-size: 12px; color: #183351; }
+.gct-preferences-footer p { margin-top: 4px; font-size: 11px; color: #64748b; line-height: 1.5; }
+.gct-preferences-footer .account-preference-link { margin: 0; width: auto; min-height: 40px; }
+.gct-preferences-footer .account-reset-preferences { margin: 0; white-space: nowrap; }
+@media (max-width: 700px) {
+    .gct-personalization-intro { align-items: flex-start; flex-wrap: wrap; padding: 19px; }
+    .gct-preference-device-label { margin-left: 0; }
+    .gct-theme-options { gap: 9px; }
+    .gct-theme-thumbnail { height: 75px; }
+    .gct-preference-section { padding: 19px; }
+    .gct-preferences-footer { justify-content: stretch; }
+}
+
+/* ===== Live per-user preferences; normal GCT styling is the default ===== */
+html[data-gct-font="poppins"] { --gct-font-family: 'Poppins', Arial, sans-serif; }
+html[data-gct-font="inter"] { --gct-font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+html[data-gct-font="roboto"] { --gct-font-family: 'Roboto', Arial, sans-serif; }
+html[data-gct-font="inter"] body,
+html[data-gct-font="inter"] .main *,
+html[data-gct-font="roboto"] body,
+html[data-gct-font="roboto"] .main *,
+html[data-gct-font="poppins"] body,
+html[data-gct-font="poppins"] .main * { font-family: var(--gct-font-family); }
+html[data-gct-font-size="small"] { --gct-table-body-font-size: 11px; --gct-font-size-body: 11px; --gct-font-size-control: 12px; }
+html[data-gct-font-size="large"] { --gct-table-body-font-size: 14px; --gct-font-size-body: 14px; --gct-font-size-control: 15px; }
+html[data-gct-font-size="small"] .main :is(p, label, input, select, textarea, td, small) { font-size: 11px; }
+html[data-gct-font-size="large"] .main :is(p, label, input, select, textarea, td, small) { font-size: 14px; }
+html[data-gct-font-size="small"] .gct-preference-preview :is(p, strong) { font-size: 11px; }
+html[data-gct-font-size="large"] .gct-preference-preview :is(p, strong) { font-size: 15px; }
+
+/* Dark applies to content surfaces while retaining GCT's navy sidebar,
+   brand colors, badges and operational status meanings. */
+html[data-gct-theme="dark"] {
+    --bg: #101827; --bg-main: #101827;
+    --card: #1d2b40; --surface: #1d2b40;
+    --text: #e4ecf7; --text-main: #e4ecf7;
+    --muted: #9eafc5; --text-muted: #9eafc5;
+    --border: #33445e; --border-soft: #33445e;
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] :is(body,.app,.main,.account-page,.account-main) { background: #101827; color: #e4ecf7; }
+html[data-gct-theme="dark"] .main :is(.account-card,.account-hero-card,.account-preference-panel,.table-card,.table-wrap,.card,.panel-card,.stat-card,.users-card,.table-toolbar,.account-access-section) {
+    background: #1d2b40; border-color: #33445e; color: #e4ecf7;
+}
+html[data-gct-theme="dark"] .main :is(h1,h2,h3,h4,p,label,dt,dd,strong,.account-card-header-copy h3,.account-preference-row strong,.account-preference-breadcrumb span) { color: #e4ecf7; }
+html[data-gct-theme="dark"] .main :is(.account-card-header-copy p,.account-preference-row p,.account-preference-breadcrumb,.account-preference-status) { color: #acc0d9; }
+html[data-gct-theme="dark"] .main :is(input,textarea,select,.account-preference-row select) { background: #152339; border-color: #3d5571; color: #f1f5fa; }
+html[data-gct-theme="dark"] .main :is(.gct-preference-preview,.gct-preference-device-label,.account-input-wrap,.account-meta-tile,.account-access-grid>div) { background: #152339; border-color: #33445e; color: #e4ecf7; }
+html[data-gct-theme="dark"] .main :is(.gct-preference-preview > strong,.gct-theme-choice-caption,.gct-preferences-footer strong) { color: #e4ecf7; }
+html[data-gct-theme="dark"] .main :is(.gct-preference-preview > p,.gct-preferences-footer p) { color: #acc0d9; }
+html[data-gct-theme="dark"] .main :is(th,thead,.table-card th,.table-wrap th) { background: #243750; color: #edf2fa; }
+html[data-gct-theme="dark"] .main :is(td,.table-card td,.table-wrap td) { background: #1d2b40; color: #e4ecf7; border-color: #33445e; }
+html[data-gct-theme="dark"] .main :is(.account-nav-tabs,.account-profile-tabs,.gct-personalization-intro) { border-color: #33445e; }
+html[data-gct-theme="dark"] .main .account-nav-tab:not(.active) { color: #d6e5f7; }
+html[data-gct-theme="dark"] .main :is(.account-settings-links a,.account-preference-breadcrumb a) { color: #b9d1ff; }
+html[data-gct-theme="dark"] .main :is(.gct-preference-section .account-card-header,.account-preference-row) { border-color: #33445e; }
