@@ -155,7 +155,7 @@
                   </div>
 
                   @if($recordView === 'pending')
-                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
+                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap gct-responsive-records gct-sticky-actions">
                       <table class="purchase-request-table pr-pending-table pr-ir-style-table">
                           <thead><tr><th>JOB ORDER</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>STOCK STATUS</th><th>PR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                           <tbody>
@@ -212,7 +212,7 @@
                       </table>
                   </div>
                   @else
-                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap">
+                  <div class="table-wrap purchase-table-wrap pr-pending-table-wrap gct-responsive-records gct-sticky-actions">
                       <table class="purchase-request-table pr-ir-style-table pr-active-style-table">
                           <thead><tr><th>JOB ORDER / PR</th><th>SUBMITTED AT</th><th>PARTS FOR PURCHASE</th><th>STOCK STATUS</th><th>PR STATUS</th><th>RELEASE POLICY</th><th>ACTIONS</th></tr></thead>
                           <tbody>

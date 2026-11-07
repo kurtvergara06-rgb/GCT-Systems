@@ -330,6 +330,59 @@ class DailyDriverReportTest extends TestCase
             ->assertSee('Schedule match unavailable');
     }
 
+    public function test_ddr_driver_dropdown_only_lists_pending_unreported_assignments(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('06:15:00', '07:10:00');
+        $schedule->update(['status' => 'Pending DDR']);
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonPath('driver_ids.0', $this->driver->driver_id);
+
+        $schedule->update(['status' => 'Completed']);
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonCount(0, 'driver_ids');
+
+        $schedule->update(['status' => 'Pending DDR']);
+        $report = DailyDriverReport::create(array_merge($this->validPayload(), [
+            'ddr_no' => 'DDR-2026-0099',
+            'driver_name' => $this->driver->driver_name,
+            'trip_schedule_id' => $schedule->id,
+            'trip_assignment_id' => $schedule->assignments()->firstOrFail()->id,
+            'encoded_by' => $this->user->id,
+        ]));
+
+        $this->actingAs($this->user)
+            ->get(route('daily-driver-reports.assigned-drivers', ['report_date' => '2026-09-15']))
+            ->assertOk()
+            ->assertJsonCount(0, 'driver_ids');
+    }
+
+    public function test_pending_only_schedule_lookup_includes_assigned_bus_and_excludes_completed_trips(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('06:15:00', '07:10:00');
+        $schedule->update(['status' => 'Pending DDR']);
+
+        $url = route('daily-driver-reports.schedule-lookup', [
+            'report_date' => '2026-09-15',
+            'driver_id' => $this->driver->driver_id,
+            'pending_only' => 1,
+        ]);
+        $this->actingAs($this->user)->get($url)
+            ->assertOk()
+            ->assertJsonPath('schedules.0.bus_id', $this->bus->id)
+            ->assertJsonPath('schedules.0.bus_no', $this->bus->bus_no)
+            ->assertJsonPath('schedules.0.status', 'Pending DDR');
+
+        $schedule->update(['status' => 'Completed']);
+        $this->actingAs($this->user)->get($url)
+            ->assertOk()
+            ->assertJsonCount(0, 'schedules');
+    }
+
     public function test_schedule_lookup_returns_matching_trips_for_driver_and_bus(): void
     {
         $this->createAssignedSchedule('06:15:00', '07:10:00');
@@ -380,6 +433,39 @@ class DailyDriverReportTest extends TestCase
 
         $this->assertNull($report->fresh()->trip_schedule_id);
         $this->assertNull($report->fresh()->trip_assignment_id);
+    }
+
+    public function test_scheduled_ddr_allows_multiple_journey_segments_under_one_assignment(): void
+    {
+        [$schedule] = $this->createAssignedSchedule('05:00:00', '06:00:00');
+
+        $payload = $this->validPayload();
+        unset($payload['unscheduled_mode'], $payload['unscheduled_reason']);
+        $payload['selected_trip_schedule_id'] = $schedule->id;
+        $payload['additional_trips'] = [[
+            'trip_ticket' => 'SEGMENT-2',
+            'from_location' => 'Tanauan',
+            'to_location' => 'Malvar',
+            'departure_time' => '07:00',
+            'arrival_time' => '07:30',
+            'passengers' => 12,
+            'km' => 8.5,
+        ]];
+
+        $this->actingAs($this->user)
+            ->post(route('daily-driver-reports.store'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('daily-driver-reports'));
+
+        $report = DailyDriverReport::firstOrFail();
+        $this->assertSame($schedule->id, $report->trip_schedule_id);
+        $this->assertNotNull($report->trip_assignment_id);
+        $entry = $report->additionalTrips()->firstOrFail();
+        $this->assertNull($entry->trip_schedule_id);
+        $this->assertNull($entry->trip_assignment_id);
+        $this->assertSame('Tanauan', $entry->from_location);
+        $this->assertSame('Malvar', $entry->to_location);
+        $this->assertSame(8.5, (float) $entry->km);
     }
 
     public function test_additional_trip_persists_its_exact_schedule_relationship(): void
@@ -491,13 +577,28 @@ class DailyDriverReportTest extends TestCase
         $this->assertSame($secondAssignment->id, $report->fresh()->trip_assignment_id);
     }
 
-    public function test_deleting_last_unlinked_ddr_clears_only_unlinked_automatic_attendance(): void
+    public function test_saved_ddr_is_view_only_even_when_unlinked(): void
     {
         $this->actingAs($this->user)
             ->post(route('daily-driver-reports.store'), $this->validPayload())
             ->assertSessionHasNoErrors();
 
         $report = DailyDriverReport::query()->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->put(route('daily-driver-reports.update', $report), [
+                'from_location' => 'Changed',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($this->user)
+            ->delete(route('daily-driver-reports.destroy', $report))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('daily_driver_reports', [
+            'id' => $report->id,
+            'from_location' => 'Batangas',
+        ]);
         $this->assertDatabaseHas('driver_attendances', [
             'driver_id' => $this->driver->driver_id,
             'attendance_date' => '2026-09-15',
@@ -505,37 +606,12 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->delete(route('daily-driver-reports.destroy', $report))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseCount('daily_driver_reports', 0);
-        $this->assertDatabaseMissing('driver_attendances', [
-            'driver_id' => $this->driver->driver_id,
-            'attendance_date' => '2026-09-15',
-        ]);
-    }
-
-    public function test_deleting_one_ddr_preserves_attendance_when_another_ddr_exists(): void
-    {
-        $this->actingAs($this->user)
-            ->post(route('daily-driver-reports.store'), $this->validPayload())
-            ->assertSessionHasNoErrors();
-
-        $second = array_merge($this->validPayload(), ['trip_ticket' => 'TT-10002']);
-        $this->actingAs($this->user)
-            ->post(route('daily-driver-reports.store'), $second)
-            ->assertSessionHasNoErrors();
-
-        $report = DailyDriverReport::query()->where('trip_ticket', 'TT-10001')->firstOrFail();
-        $this->actingAs($this->user)
-            ->delete(route('daily-driver-reports.destroy', $report))
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('driver_attendances', [
-            'driver_id' => $this->driver->driver_id,
-            'attendance_date' => '2026-09-15',
-            'status' => 'Present',
-        ]);
+            ->get(route('daily-driver-reports'))
+            ->assertOk()
+            ->assertSee('ddr-view-action')
+            ->assertDontSee('ddr-edit-action')
+            ->assertDontSee('ddr-delete-trigger')
+            ->assertDontSee('id="ddrEdit-', false);
     }
 
     private function validPayload(): array

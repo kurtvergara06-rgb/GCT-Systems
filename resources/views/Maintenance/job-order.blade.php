@@ -125,7 +125,7 @@
                 </x-ui.table-toolbar>
                 </div>
 
-                <div class="table-wrap">
+                <div class="table-wrap jo-responsive-table-wrap" role="region" aria-label="Job Orders table" tabindex="0">
                     <table class="job-orders-table">
                         <thead>
                             <tr>

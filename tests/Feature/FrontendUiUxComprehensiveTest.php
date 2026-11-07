@@ -474,9 +474,64 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp->assertSee('id="tripModalTitle"', false);
         $resp->assertSee('id="tripSubmitText"', false);
         $resp->assertSee('id="viewTripModal"', false);
-        $resp->assertSee('trip-editor-grid', false);
+        $resp->assertSee('trip-editor-reference-layout', false);
+        $resp->assertSee('trip-reference-grid', false);
+        $resp->assertSee('name="trip_mode_choice" value="client"', false);
+        $resp->assertSee('name="trip_mode_choice" value="general"', false);
         $resp->assertSee('id="departureTimeSlot" disabled hidden', false);
         $resp->assertSee('trip-details-hero', false);
+    }
+
+    public function test_operation_dialog_and_toolbar_viewport_guards_are_present(): void
+    {
+        $popoverScript = file_get_contents(resource_path('js/Main-js/table-toolbar.js'));
+        $operationStyles = file_get_contents(resource_path('css/Operation/operation-action-buttons.css'));
+        $modalRuntime = file_get_contents(resource_path('js/Main-js/global-modal-backdrop.js'));
+
+        // The browser top layer avoids fixed-position offsets caused by GSAP
+        // transforms. Form fields remain inside the original toolbar element.
+        $this->assertStringContainsString("popover.showPopover()", $popoverScript);
+        $this->assertStringContainsString("popover.hidePopover()", $popoverScript);
+        $this->assertStringContainsString("getBoundingClientRect()", $popoverScript);
+        $this->assertStringContainsString("window.visualViewport?.addEventListener('resize'", $popoverScript);
+
+        // This is scoped to Operation and also supports dialogs that the
+        // shared modal portal has moved from <main> into <body>.
+        $this->assertStringContainsString('Operation-only viewport modal contract', $operationStyles);
+        $this->assertStringContainsString('max-width: min(100%, calc(100vw - 24px))', $operationStyles);
+        $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $modalRuntime);
+        $this->assertStringContainsString('document.body.appendChild(overlay)', $modalRuntime);
+
+        $assignmentScript = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $datePickerScript = file_get_contents(resource_path('js/Main-js/date-time-picker.js'));
+
+        // Searchable assignment menus also escape the modal scrollport,
+        // without moving their option lists out of their comboboxes.
+        $this->assertStringContainsString("showAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger)", $assignmentScript);
+        $this->assertStringContainsString("showAssignmentMenu(assignmentBusMenu, assignmentBusTrigger)", $assignmentScript);
+        $this->assertStringContainsString("menu.showPopover()", $assignmentScript);
+        $this->assertStringContainsString("menu.hidePopover()", $assignmentScript);
+        $this->assertStringContainsString("const dropdownOpen = assignmentDriverMenu?.classList.contains('show')", $assignmentScript);
+
+        // Filter calendar must share its native top-layer popup so it is not
+        // obscured by the filter itself.
+        $this->assertStringContainsString("input.closest('.gct-table-tool-popover')", $datePickerScript);
+        $this->assertStringContainsString('portalTarget.appendChild(this.popover)', $datePickerScript);
+        $this->assertStringContainsString("toolbarPopover?.matches(':popover-open')", $datePickerScript);
+        $this->assertStringContainsString('this.popover.showPopover()', $datePickerScript);
+        $this->assertStringContainsString("this.popover.removeAttribute('popover')", $datePickerScript);
+        $this->assertStringContainsString("menu.removeAttribute('popover')", $assignmentScript);
+        $this->assertStringContainsString("popover.removeAttribute('popover')", $popoverScript);
+        $this->assertStringContainsString("picker?.querySelector('.gct-picker-close')?.click()", $popoverScript);
+
+        // Both bespoke Operation record overlays get the same viewport portal
+        // and backdrop-dismissal protection as shared form modals.
+        $this->assertStringContainsString("'.ddr-record-overlay'", $modalRuntime);
+        $this->assertStringContainsString("'.inc-record-modal-backdrop'", $modalRuntime);
+        $this->assertSame(2, substr_count(
+            $modalRuntime,
+            "attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']"
+        ));
     }
 
     // =========================================================================
@@ -811,6 +866,184 @@ class FrontendUiUxComprehensiveTest extends TestCase
                 "Purchase page '{$label}' failed with status {$resp->status()} at {$url}"
             );
         }
+    }
+
+    public function test_sidebar_account_menu_and_compact_profile_keep_supported_actions(): void
+    {
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+        $sidebarScript = file_get_contents(resource_path('js/Main-js/sidebar.js'));
+        $sidebarStyles = file_get_contents(resource_path('css/Main-styles/sidebar.css'));
+        $profile = file_get_contents(resource_path('views/Account/profile.blade.php'));
+
+        $this->assertStringContainsString("route('account.profile', [], false)", $sidebar);
+        $this->assertStringContainsString("route('account.settings', [], false)", $sidebar);
+        $this->assertStringContainsString("route('onboarding.show', ['replay' => 1], false)", $sidebar);
+        $this->assertStringContainsString('data-confirm-type="logout"', $sidebar);
+        $this->assertStringContainsString('aria-controls="sidebarProfileMenu"', $sidebar);
+        $this->assertStringNotContainsString('class="profile-menu-item" disabled', $sidebar);
+        $this->assertStringNotContainsString("const accountUrl = label === 'profile'", $sidebarScript);
+        $this->assertStringContainsString("profileMenu.setAttribute('aria-hidden', 'false')", $sidebarScript);
+        $this->assertStringContainsString('Compact account menu: GCT', $sidebarStyles);
+
+        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure" open>', $profile);
+        $this->assertStringContainsString('account-profile-grid', $profile);
+        $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
+        $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
+        $this->assertStringContainsString('account-access-section', $profile);
+        $this->assertStringContainsString('account-profile-aside', $profile);
+        $this->assertStringContainsString('account-profile-tabs', $profile);
+        $this->assertStringContainsString('account-nav-tabs', $profile);
+        $this->assertStringContainsString('account-profile-metrics', $profile);
+        $this->assertStringContainsString('account-profile-photo-fields', $profile);
+        $this->assertStringContainsString('Critical profile-header geometry', $profile);
+        $this->assertStringContainsString('width="80" height="80"', $profile);
+        $this->assertStringContainsString('object-fit:cover;border-radius:50%', $profile);
+        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $profile);
+        $this->assertStringContainsString('data-avatar-change-button', $profile);
+        $this->assertSame(1, substr_count($profile, 'data-avatar-upload-form'));
+        $this->assertSame(1, substr_count($profile, 'action="{{ route(\'account.profile.update\', [], false) }}"'));
+        $accountScript = file_get_contents(resource_path('js/Account/account.js'));
+        $this->assertStringContainsString("avatarTrigger?.click()", $accountScript);
+        $this->assertStringContainsString('System Access', $profile);
+        $this->assertStringContainsString('Account History', $profile);
+        $this->assertStringContainsString('Member Since', $profile);
+        $this->assertStringContainsString('Last Login Recorded', $profile);
+        $this->assertStringContainsString("route('account.personalization')", $profile);
+        $this->assertStringContainsString("route('account.preferences')", $profile);
+        $this->assertStringNotContainsString('<input type="text" value="{{ $department }}" readonly>', $profile);
+        $this->assertStringNotContainsString('<input type="text" value="{{ $displayRole }}" readonly>', $profile);
+    }
+
+    public function test_routes_inactive_summary_uses_supported_neutral_icon_box(): void
+    {
+        $routes = file_get_contents(resource_path('views/Operation/Routes/routes-stops.blade.php'));
+        $sharedStyles = file_get_contents(resource_path('css/Main-styles/main.css'));
+
+        // "orange" has no shared .stat-icon palette definition and would
+        // leave the Inactive Routes icon floating without a background box.
+        $this->assertMatchesRegularExpression(
+            '/label="Inactive Routes"\\s+:value="\\$routeStats\\[\\x27inactive\\x27\\]"\\s+small="Currently unavailable"\\s+icon="fa-circle-pause"\\s+color="gray"/',
+            $routes
+        );
+        $this->assertStringContainsString('.stat-icon.gray', $sharedStyles);
+    }
+
+    public function test_routes_dark_theme_keeps_headers_and_sticky_actions_readable(): void
+    {
+        $styles = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+
+        // The sticky-actions utility uses a light default background unless
+        // its semantic dark-mode properties are explicitly provided.
+        $this->assertStringContainsString('Routes dark-mode contrast contract', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-background: #1d2b40', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-heading: #243750', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-hover: #293c56', $styles);
+        // Auto-ID badges use a global black-text !important rule. Their
+        // narrow Routes dark-mode override must restore readable ID text.
+        $this->assertStringContainsString('.routes-table tbody td:first-child .system-id-badge', $styles);
+        $this->assertStringContainsString('color: #edf5ff !important', $styles);
+        $this->assertStringContainsString('.routes-table .route-action:is(.view,.edit)', $styles);
+        $this->assertStringContainsString('.routes-table .route-action.delete', $styles);
+        $this->assertStringContainsString('.route-action:focus-visible', $styles);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table thead th', $styles);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table tbody tr > td', $styles);
+        $this->assertStringContainsString('.routes-record-controls > .routes-segmented-tabs', $styles);
+    }
+
+    public function test_personalization_and_general_settings_are_separate_authenticated_pages(): void
+    {
+        $this->get(route('account.personalization'))->assertRedirect(route('login'));
+        $this->get(route('account.preferences'))->assertRedirect(route('login'));
+
+        $this->actingAs($this->operationUser)
+            ->get(route('account.personalization'))
+            ->assertOk()
+            ->assertSeeText('Make your workspace yours')
+            ->assertSeeText('Appearance')
+            ->assertSeeText('Typography')
+            ->assertSeeText('Workspace')
+            ->assertSee('data-gct-preference="theme"', false)
+            ->assertSee('data-gct-preference="font"', false)
+            ->assertSee('data-gct-preference="fontSize"', false)
+            ->assertSee('data-gct-preference="density"', false)
+            ->assertSee('data-gct-preference="reducedMotion"', false)
+            ->assertSee('data-gct-reset-preferences', false);
+
+        $this->actingAs($this->operationUser)
+            ->get(route('account.preferences'))
+            ->assertOk()
+            ->assertSeeText('My Account Settings')
+            ->assertSee('data-gct-reset-preferences', false)
+            ->assertSee(route('account.settings', [], false), false);
+
+        // Both account pages must load their component styling after account.css.
+        // Depending on Vite CSS extraction, relying on the app.js import alone
+        // can leave the theme cards and introduction banner unstyled.
+        $personalization = file_get_contents(resource_path('views/Account/personalization.blade.php'));
+        $settingsPage = file_get_contents(resource_path('views/Account/preferences.blade.php'));
+        $explicitCss = "'resources/css/Account/account.css', 'resources/css/Main-styles/account-preferences.css'";
+        $this->assertStringContainsString($explicitCss, $personalization);
+        $this->assertStringContainsString($explicitCss, $settingsPage);
+        $this->assertStringContainsString('gct-personalization-intro', $personalization);
+        $this->assertStringContainsString('gct-theme-options', $personalization);
+
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+        $this->assertStringContainsString("route('account.personalization', [], false)", $sidebar);
+        $this->assertStringContainsString("route('account.preferences', [], false)", $sidebar);
+
+        // Require a matching authenticated identity before reading account-local preferences.
+        $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
+        $this->assertStringContainsString('name="gct-account-id"', $layout);
+        $this->assertStringContainsString('content="{{ auth()->id() }}"', $layout);
+        $this->assertStringContainsString('data-gct-user-id="{{ $authUser?->id }}"', $sidebar);
+
+
+        $runtime = file_get_contents(resource_path('js/Main-js/account-preferences.js'));
+        $this->assertStringContainsString("keyForCurrentUser", $runtime);
+
+        $this->assertStringContainsString("currentAccountId", $runtime);
+        $this->assertStringContainsString('meta[name="gct-account-id"]', $runtime);
+        $this->assertStringContainsString('serverId === sidebarId', $runtime);
+        $this->assertStringContainsString("window.addEventListener('pageshow', renderPreferences)", $runtime);
+        $this->assertStringContainsString("window.addEventListener('pageshow', renderSoundPreference)", $runtime);
+        $this->assertStringContainsString("localStorage.setItem", $runtime);
+        $this->assertStringContainsString("localStorage.removeItem", $runtime);
+        $this->assertStringContainsString("gct-reduced-motion", $runtime);
+        $this->assertStringContainsString("gct-density-compact", $runtime);
+        $this->assertStringContainsString("root.dataset.gctTheme", $runtime);
+        $this->assertStringContainsString("root.dataset.gctFont", $runtime);
+        $this->assertStringContainsString("root.dataset.gctFontSize", $runtime);
+        $this->assertStringContainsString("prefers-color-scheme: dark", $runtime);
+        $styles = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+        $this->assertStringContainsString('html[data-gct-theme="dark"]', $styles);
+        $this->assertStringContainsString('.gct-theme-options', $styles);
+    }
+
+    public function test_operation_master_lists_use_ten_row_scrollable_table_viewports(): void
+    {
+        $views = [
+            'Operation/Shuttle_Bus_Management/bus-master-list.blade.php',
+            'Operation/Personnel Management/driver_master_list.blade.php',
+            'Operation/Personnel Management/mechanic_master_list.blade.php',
+            'Operation/Clients/index.blade.php',
+        ];
+
+        foreach ($views as $view) {
+            $contents = file_get_contents(resource_path('views/'.$view));
+            $this->assertStringContainsString('gct-master-scroll-10', $contents, $view);
+        }
+
+        $runtime = file_get_contents(resource_path('js/Main-js/master-list-scroll.js'));
+        $this->assertStringContainsString('const VISIBLE_ROWS = 10;', $runtime);
+        $this->assertStringContainsString('rows.slice(0, VISIBLE_ROWS)', $runtime);
+        $this->assertStringContainsString('gct:navigation-ready', $runtime);
+
+        $app = file_get_contents(resource_path('js/app.js'));
+        $this->assertStringContainsString("import './Main-js/master-list-scroll.js';", $app);
+
+        $styles = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
+        $this->assertStringContainsString('gct-master-scroll-10.is-master-scrollable', $styles);
+        $this->assertStringContainsString('position: sticky;', $styles);
     }
 
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void

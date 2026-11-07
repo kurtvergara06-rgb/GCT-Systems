@@ -2406,3 +2406,33 @@
 @media (max-width: 700px) {
     .client-trip-times-page .ctt-client-buses { padding: 10px 11px; }
 }
+
+
+/* Client count belongs with the Client Configurations heading;
+   the filter toolbar has no decorative separator. */
+.client-trip-times-page .ctt-section-header > .ctt-client-count {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: 6px 11px;
+    min-height: 32px;
+    border: 1px solid #dce6f3;
+    border-radius: 9px;
+    background: #f6f9fd;
+    color: #425f81;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.client-trip-times-page .ctt-toolbar {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 14px;
+}
+@media (max-width: 620px) {
+    .client-trip-times-page .ctt-section-header {
+        flex-wrap: wrap;
+    }
+    .client-trip-times-page .ctt-section-header > .ctt-client-count {
+        margin-left: 0;
+    }
+}

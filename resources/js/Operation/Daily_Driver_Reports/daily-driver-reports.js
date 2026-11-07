@@ -84,32 +84,70 @@ function initSearchableCombos() {
             close();
 
             window.dispatchEvent(new CustomEvent('combo:select', {
-                detail: { field: combo.dataset.field || '', value },
+                detail: { field: combo.dataset.field || '', value, source: combo },
             }));
         };
 
         const clear = () => {
             if (combo.dataset.field === 'bus' && input.readOnly) return;
+            const hadSelection = Boolean(hidden.value);
             hidden.value = '';
             input.value = '';
             combo.classList.remove('has-value');
+            // Clearing a driver must also clear its selected trip and assigned bus.
+            if (hadSelection && combo.dataset.field === 'driver') {
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '', source: combo },
+                }));
+            }
         };
 
         input.addEventListener('focus', open);
 
+        // Preserve the user's search text. The old clear() call emptied it on every keystroke.
         input.addEventListener('input', () => {
             if (combo.dataset.field === 'bus' && input.readOnly) return;
-            clear();
+            const hadSelection = Boolean(hidden.value);
+            hidden.value = '';
+            combo.classList.remove('has-value');
+            if (hadSelection && combo.dataset.field === 'driver') {
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '', source: combo },
+                }));
+            }
             open();
         });
 
+        // Accept an unambiguous exact driver name/ID, including keyboard entry.
+        const selectExactMatch = () => {
+            if (combo.dataset.field !== 'driver' || hidden.value || !input.value.trim()) return false;
+            const search = input.value.trim().toLocaleLowerCase();
+            const matches = options.filter(option => !option.hidden && (
+                option.querySelector('strong')?.textContent.trim().toLocaleLowerCase() === search
+                || String(option.dataset.value).toLocaleLowerCase() === search
+            ));
+            if (matches.length !== 1) return false;
+            const option = matches[0];
+            select(option.dataset.value, option.querySelector('strong').textContent);
+            return true;
+        };
+
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') close();
+            if (e.key === 'Escape') {
+                close();
+            } else if (e.key === 'Enter' && combo.dataset.field === 'driver' && selectExactMatch()) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('blur', () => {
+            // Let suggestion mousedown commit first; do not choose ambiguous partial names.
+            selectExactMatch();
         });
 
         options.forEach((option) => {
             option.addEventListener('mousedown', (e) => {
                 e.preventDefault();
+                if (option.hidden) return;
                 select(option.dataset.value, option.querySelector('strong').textContent);
             });
         });
@@ -150,10 +188,13 @@ function initDdrAssignedDrivers() {
             return;
         }
         if (!date.value) {
-            // Keep the driver search usable before a date is selected.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            // The scheduled DDR driver list is date-scoped; do not show unrelated drivers.
+            options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+            driverCombo.classList.remove('open');
             return;
         }
+        options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+        driverCombo.classList.remove('open');
         try {
             const response = await fetch(window.ddrAssignedDriversUrl + '?' + new URLSearchParams({report_date: date.value}), {
                 headers: {'Accept': 'application/json'}
@@ -173,10 +214,16 @@ function initDdrAssignedDrivers() {
                 const input = driverCombo.querySelector('[data-combo-input]');
                 if (input) input.value = '';
                 driverCombo.classList.remove('has-value');
+                // A date change invalidating the driver must also clear its old trip/bus.
+                window.dispatchEvent(new CustomEvent('combo:select', {
+                    detail: { field: 'driver', value: '', source: driverCombo },
+                }));
             }
         } catch (error) {
-            // A failed lookup must not make the driver's input appear broken.
-            options.forEach((option) => { option.hidden = false; option.style.display = ''; });
+            if (token !== requestToken) return;
+            // Fail closed: an unsuccessful availability lookup must not display every driver.
+            options.forEach((option) => { option.hidden = true; option.style.display = 'none'; });
+            driverCombo.classList.remove('open');
         }
     };
     date.addEventListener('change', update);
@@ -340,12 +387,15 @@ function initScheduleContextPanel() {
             selectComboValue('driver', schedule.driver_id, schedule.driver_name);
             const busInput = root.querySelector('[data-combo][data-field="bus"] [data-combo-input]');
             if (busInput) busInput.readOnly = true;
+            // The bus comes from this exact trip assignment, never a separate search.
             selectComboValue('bus', schedule.bus_id, schedule.bus_no);
             for (const name of ['from_location', 'to_location']) {
                 const input = find('input[name="' + name + '"]');
                 if (input) input.readOnly = false;
             }
-            showStatus('matched', 'fa-circle-check', 'Assigned trip linked. Record actual From/To locations and travel times from the physical DDR.');
+            showStatus('matched', 'fa-circle-check',
+                'Trip ' + schedule.trip_code + ' linked · Assigned bus: ' + (schedule.bus_no || 'Unavailable') +
+                '. Record actual locations and travel times from the physical DDR.');
         };
         schedules.forEach(schedule => {
             const card = document.createElement('button');
@@ -381,6 +431,9 @@ function initScheduleContextPanel() {
             const busIds = [...new Set(schedules.map(schedule => String(schedule.bus_id || '')))];
             if (busIds.length === 1 && busIds[0]) {
                 selectComboValue('bus', busIds[0], schedules[0].bus_no);
+            } else {
+                showStatus('matched', 'fa-circle-info',
+                    'This driver has trips on different buses. Select the correct trip to fill its bus.');
             }
         }
         listEl.classList.toggle('has-items', schedules.length > 0);
@@ -421,6 +474,8 @@ function initScheduleContextPanel() {
                 report_date: date,
             });
             query.set('driver_id', driverId);
+            // Scheduled DDR encoding shows only trips that are awaiting a DDR.
+            query.set('pending_only', '1');
 
             const response = await fetch(
                 window.ddrScheduleLookupUrl + '?' + query.toString(),
@@ -429,16 +484,19 @@ function initScheduleContextPanel() {
 
             if (!response.ok) throw new Error('Assignment lookup failed');
             const payload = await response.json();
-            if (sequence !== lookupSequence) return;
+            if (sequence !== lookupSequence || date !== comboValues().date || driverId !== comboValues().driverId) return;
 
             const rows = payload.schedules || [];
 
             renderSchedules(rows);
-            showStatus(
-                rows.length > 0 ? 'matched' : 'unmatched',
-                rows.length > 0 ? 'fa-circle-check' : 'fa-triangle-exclamation',
-                payload.message || 'Schedule match unavailable.'
-            );
+            // A single trip is selected automatically; keep its assigned-bus confirmation visible.
+            if (rows.length !== 1) {
+                showStatus(
+                    rows.length > 0 ? 'matched' : 'unmatched',
+                    rows.length > 0 ? 'fa-circle-check' : 'fa-triangle-exclamation',
+                    payload.message || 'Schedule match unavailable.'
+                );
+            }
         } catch (error) {
             if (sequence === lookupSequence) {
                 showStatus('unmatched', 'fa-triangle-exclamation', 'Unable to retrieve assignments. Please try again.');
@@ -452,11 +510,7 @@ function initScheduleContextPanel() {
     }
 
     window.addEventListener('combo:select', (event) => {
-        if (!root.contains(event.target) && event.target !== window) {
-            // Combo events are dispatched globally; only this DDR modal owns this lookup.
-            return;
-        }
-        if (event.detail?.field !== 'driver') return;
+        if (event.detail?.field !== 'driver' || !event.detail.source || !root.contains(event.detail.source)) return;
         const bus = root.querySelector('[data-combo][data-field="bus"]');
         const hidden = bus?.querySelector('[data-combo-value]');
         const input = bus?.querySelector('[data-combo-input]');
@@ -608,7 +662,28 @@ function initDdrAdditionalTrips() {
             if (select.value) reserved.add(select.value);
             select.dataset.initialSchedule = '';
             const group = select.closest('.ddr-extra-assignment-group');
-            if (group) group.hidden = available.length === 1 && !!select.value;
+            if (!group) return;
+            const unscheduled = Boolean(modal.querySelector('#ddrUnscheduledMode')?.checked);
+            const autoLinked = !unscheduled && available.length === 1 && !!select.value;
+            group.hidden = unscheduled || autoLinked || available.length === 0;
+            let feedback = group.parentElement.querySelector('.ddr-assignment-feedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'ddr-assignment-feedback';
+                group.after(feedback);
+            }
+            const match = available.find(row => String(row.id) === String(select.value));
+            feedback.hidden = !autoLinked && (unscheduled || available.length > 0);
+            feedback.classList.toggle('is-warning', !autoLinked);
+            if (autoLinked && match) {
+                feedback.textContent = 'Automatically linked to ' +
+                    [match.trip_code, match.bus_no && 'Bus ' + match.bus_no].filter(Boolean).join(' · ') +
+                    '. Enter the actual journey details below.';
+            } else if (!unscheduled && available.length === 0) {
+                feedback.textContent = 'No other eligible assigned trip is available for this driver and bus. Remove this extra entry, or choose the correct trip above.';
+            } else {
+                feedback.textContent = '';
+            }
         });
     };
     modal.addEventListener('ddr:primary-assignment-changed', refillAssignmentSelectors);

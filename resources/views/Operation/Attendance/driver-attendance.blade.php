@@ -76,7 +76,7 @@
 
         </div>
 
-        <div class="table-wrap attendance-record-table-wrap">
+        <div class="table-wrap attendance-record-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="attendance-table">
             <colgroup><col style="width: 16%"><col style="width: 20%"><col style="width: 23%"><col style="width: 13%"><col style="width: 13%"><col style="width: 15%"></colgroup>
             <thead>

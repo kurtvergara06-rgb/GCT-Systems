@@ -422,6 +422,49 @@ document.addEventListener('DOMContentLoaded', function () {
     // default only until the user explicitly opens/closes the group.
     applyDropdownState();
 
+    /* =========================================================
+       PERSIST MENU SCROLL POSITION BETWEEN DOCUMENT NAVIGATIONS
+       Sidebar links intentionally perform full reloads. Store only
+       the navigation menu's offset (not the document scroll position).
+       Scope by department shell to avoid carrying one department's
+       offset into a different navigation tree.
+    ========================================================= */
+
+    const menuScrollStorageKey = `gct-sidebar-menu-scroll:${shellId}`;
+    const sidebarMenu = sidebar?.querySelector('.menu');
+
+    const saveMenuScroll = () => {
+        if (!sidebarMenu) return;
+        try {
+            sessionStorage.setItem(menuScrollStorageKey, String(Math.max(0, sidebarMenu.scrollTop)));
+        } catch {
+            // No persistent storage: the sidebar remains fully usable.
+        }
+    };
+
+    const restoreMenuScroll = () => {
+        if (!sidebarMenu) return;
+        let savedScroll;
+        try {
+            savedScroll = sessionStorage.getItem(menuScrollStorageKey);
+        } catch {
+            return;
+        }
+        if (savedScroll === null) return;
+        const offset = Number(savedScroll);
+        if (!Number.isFinite(offset) || offset < 0) return;
+        sidebarMenu.scrollTop = Math.min(offset, Math.max(0, sidebarMenu.scrollHeight - sidebarMenu.clientHeight));
+    };
+
+    // Restore after expanded menu groups are hydrated so the scroll height is
+    // correct. Avoid scrollIntoView(), which can also move the main document.
+    restoreMenuScroll();
+    window.requestAnimationFrame(restoreMenuScroll);
+    sidebarMenu?.addEventListener('scroll', saveMenuScroll, { passive: true });
+    window.addEventListener('pagehide', saveMenuScroll);
+
+
+
     document.addEventListener(
         'click',
         function (event) {
@@ -510,6 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // user's manual dropdown choices immediately after the destination is ready.
     window.addEventListener('gct:navigation-ready', function () {
         applyDropdownState();
+        restoreMenuScroll();
         ensureSidebarObserver();
         animateSidebarActiveItem();
     });
@@ -536,44 +580,6 @@ document.addEventListener('DOMContentLoaded', function () {
         );
 
 
-    /* =========================================================
-       ACCOUNT PAGE LINKS
-    ========================================================= */
-
-    if (profileMenu) {
-        profileMenu
-            .querySelectorAll('.profile-menu-item')
-            .forEach(function (item) {
-                const label = item
-                    .querySelector('span')
-                    ?.textContent
-                    ?.trim()
-                    ?.toLowerCase();
-
-                const accountUrl = label === 'profile'
-                    ? '/account/profile'
-                    : label === 'settings'
-                        ? '/account/settings'
-                        : null;
-
-                if (!accountUrl) {
-                    return;
-                }
-
-                if (item.tagName === 'A') {
-                    item.setAttribute('href', accountUrl);
-                    return;
-                }
-
-                item.disabled = false;
-
-                item.addEventListener('click', function () {
-                    window.location.assign(accountUrl);
-                });
-            });
-    }
-
-
     function closeProfileMenu() {
 
         if (
@@ -587,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function () {
         profileMenu.classList.remove(
             'show'
         );
+        profileMenu.setAttribute('aria-hidden', 'true');
 
         profileToggle.classList.remove(
             'active'
@@ -624,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function () {
             profileMenu.classList.add(
                 'show'
             );
+            profileMenu.setAttribute('aria-hidden', 'false');
 
             profileToggle.classList.add(
                 'active'

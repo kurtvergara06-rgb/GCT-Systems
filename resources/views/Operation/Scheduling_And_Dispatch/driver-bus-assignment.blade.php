@@ -11,6 +11,7 @@
 >
     @php
         $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+        $canApproveOperation = auth()->user()?->canApproveReadyTripChanges() ?? false;
     @endphp
 
     <div class="app">
@@ -132,7 +133,7 @@
                         <div class="assignment-direction-title"><h3>{{ $directionGroup['title'] }}</h3><p>{{ $directionGroup['description'] }}</p></div>
                         <span class="assignment-direction-count">{{ $directionTrips->count() }} {{ \Illuminate\Support\Str::plural('trip', $directionTrips->count()) }}</span>
                     </div>
-                <div class="assignment-table-wrap">
+                <div class="assignment-table-wrap gct-responsive-records gct-sticky-actions">
                     <table class="assignment-table">
                         <thead>
                             <tr>
@@ -302,6 +303,19 @@
                                                         Assign
                                                     </button>
                                                 @endif
+                                                @if($canEditOperation && $canApproveOperation
+                                                    && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                    && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                    && ($trip->incidents_count ?? 0) === 0)
+                                                    <button type="button"
+                                                        class="assignment-action cancel cancel-assignment-trip"
+                                                        title="Cancel entire trip (Head approval required)"
+                                                        aria-label="Cancel entire trip {{ $trip->trip_code }}"
+                                                        data-trip-code="{{ $trip->trip_code }}"
+                                                        data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
+                                                        <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -343,6 +357,19 @@
                                                         : ($trip->status === 'Dispatched' ? 'In Progress — Breakdown Reported' : 'Breakdown Reported — OIC Review');
                                                 }
                                             }
+                                            // The affected slot displays Incident Hold immediately; ETA
+                                            // alone cannot release it. Unaffected slots retain their status.
+                                            if ($slotBreakdown
+                                                && ($slotBreakdown->status !== 'Resolved'
+                                                    || ! preg_match('/\\[Trip outcome:\\s*Continued\\]/i', (string) $slotBreakdown->resolution_notes))) {
+                                                $slotDisplayStatus = $slotBreakdown->status === 'Resolved'
+                                                    ? (str_contains((string) $slotBreakdown->resolution_notes, '[Trip outcome: Interrupted]')
+                                                        ? 'Interrupted · Review' : 'Outcome Review')
+                                                    : 'Incident Hold';
+                                                $slotStatusTooltip = $slotBreakdown->status === 'Resolved'
+                                                    ? 'Incident resolved without a verified Continued outcome. Operations review is required.'
+                                                    : 'Breakdown remains active after ETA. Awaiting verified trip outcome.';
+                                            }
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
                                                 || ($assignment->incidents_count ?? 0) > 0;
                                             $isLocked = $tripLocked || $asgnHistory;
@@ -357,6 +384,15 @@
                                                 'bus' => $bus?->plate_no ?: $bus?->bus_no,
                                                 'status' => $trip->status,
                                                 'assignmentStatus' => $trip->assignment_status,
+                                                'replacementHistory' => ($replacementHistoryByAssignment->get($assignment->id) ?? collect())->map(fn ($audit) => [
+                                                    'date' => \Illuminate\Support\Carbon::parse($audit->created_at)->format('M d, Y g:i A'),
+                                                    'previousDriver' => $audit->previous_driver_name ?: $audit->previous_driver_id ?: 'Unknown',
+                                                    'newDriver' => $audit->new_driver_name ?: $audit->new_driver_id ?: 'Unknown',
+                                                    'previousBus' => $audit->previous_bus_label ?: $audit->previous_bus_id ?: 'Unknown',
+                                                    'newBus' => $audit->new_bus_label ?: $audit->new_bus_id ?: 'Unknown',
+                                                    'reason' => $audit->reason,
+                                                    'approvedBy' => $audit->approved_by_name ?: 'Account '.$audit->performed_by,
+                                                ])->values()->all(),
                                             ];
                                         @endphp
                                         <tr>
@@ -434,7 +470,7 @@
                                             <td>
                                                 <x-ui.status-badge
                                                     :status="$slotDisplayStatus"
-                                                :label="$slotBreakdown?->replacement && $trip->status === 'Ready' ? 'Ready · Reserve' : ($slotDisplayStatus === 'Partially Assigned' ? 'Partial' : null)"
+                                                :label="$slotDisplayStatus === 'Partially Assigned' ? 'Partial' : null"
                                                     class="assignment-status {{ \App\Support\StatusBadge::normalize($slotDisplayStatus) }}"
                                                     :title="$slotStatusTooltip"
                                                 />
@@ -451,11 +487,12 @@
                                                         <i class="fa-solid fa-eye"></i>
                                                     </button>
 
-                                                    @if($canEditOperation && !$isLocked)
+                                                    @if($canEditOperation && !$isLocked && ($trip->status !== 'Ready' || $canApproveOperation))
                                                         <button
                                                             type="button"
                                                             class="assignment-action edit edit-assignment"
-                                                            title="Edit Assignment"
+                                                            title="{{ $trip->status === 'Ready' ? 'Replace Driver / Bus (Head approval required)' : 'Edit Assignment' }}"
+                                                            data-ready-replacement="{{ $trip->status === 'Ready' ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
                                                             data-trip-id="{{ $trip->id }}"
                                                             data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
@@ -467,6 +504,7 @@
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </button>
 
+                                                        @if($trip->status !== 'Ready')
                                                         <form
                                                             id="removeAssignmentForm-{{ $assignment->id }}"
                                                             method="POST"
@@ -491,6 +529,7 @@
                                                                 <i class="fa-solid fa-link-slash"></i>
                                                             </button>
                                                         </form>
+                                                        @endif
                                                     @elseif($canEditOperation)
                                                         <button
                                                             type="button"
@@ -509,6 +548,19 @@
                                                             title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
                                                         >
                                                             <i class="fa-solid fa-link-slash"></i>
+                                                        </button>
+                                                    @endif
+                                                    @if($canEditOperation && $canApproveOperation
+                                                        && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                        && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                        && ($trip->incidents_count ?? 0) === 0)
+                                                        <button type="button"
+                                                            class="assignment-action cancel cancel-assignment-trip"
+                                                            title="Cancel entire trip (Head approval required)"
+                                                            aria-label="Cancel entire trip {{ $trip->trip_code }}"
+                                                            data-trip-code="{{ $trip->trip_code }}"
+                                                            data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
+                                                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
                                                         </button>
                                                     @endif
                                                 </div>
@@ -736,6 +788,7 @@
             data-driver-id="{{ old('driver_id', old('driver_attendance_id')) }}"
             data-bus-id="{{ old('bus_id') }}"
             data-method="{{ old('_method') }}"
+            data-replacement-reason="{{ old('replacement_reason') }}"
         ></span>
 
         <div class="assignment-form-grid" id="companyAssignmentFields">
@@ -896,6 +949,13 @@
             </div>
         </section>
 
+        <div class="ui-form-group ui-form-full" id="readyReplacementReasonGroup" hidden>
+            <label for="readyReplacementReason">Reason for replacement <span class="ui-required">*</span></label>
+            <textarea id="readyReplacementReason" name="replacement_reason" rows="3" minlength="10" maxlength="1000" placeholder="Explain the driver absence, bus breakdown, or replacement reason"></textarea>
+            <small>Operations Head approval is required. The previous and replacement resources will be recorded.</small>
+            @error('replacement_reason')<span class="ui-field-error">{{ $message }}</span>@enderror
+        </div>
+
         <div class="assignment-validation">
             <i class="fa-solid fa-circle-check"></i>
             <div>
@@ -937,6 +997,34 @@
             </button>
         </div>
     </x-ui.form-modal>
+
+    @if($canEditOperation && $canApproveOperation)
+    <x-ui.form-modal
+        id="cancelAssignmentTripModal"
+        title="Cancel Entire Trip?"
+        description="The scheduled service will be cancelled. Existing driver and bus assignments remain in audit history."
+        icon="fa-ban"
+        size="small"
+        form-id="cancelAssignmentTripForm"
+        action="#"
+        method="POST"
+        submit-text="Confirm Cancellation"
+        submit-icon="fa-ban"
+        cancel-text="Keep Trip"
+        cancel-id="keepAssignmentTrip"
+        close-id="closeCancelAssignmentTrip"
+    >
+        <input type="hidden" name="_method" value="PATCH">
+        <input type="hidden" name="return_to_assignment" value="1">
+        <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+        <p class="assignment-cancel-trip-summary">Trip <strong id="cancelAssignmentTripCode"></strong> will be marked as Cancelled. This affects every assigned bus slot.</p>
+        <div class="ui-form-group ui-form-full">
+            <label for="assignmentCancellationReason">Cancellation reason <span class="ui-required">*</span></label>
+            <textarea id="assignmentCancellationReason" name="cancellation_reason" rows="4" minlength="10" maxlength="1000" required placeholder="Explain why the entire scheduled trip must be cancelled..."></textarea>
+            <small>At least 10 characters. Your reason and approval will be recorded in the trip audit history.</small>
+        </div>
+    </x-ui.form-modal>
+    @endif
 
     @if($canEditOperation)
     <x-ui.action-buttom-modal

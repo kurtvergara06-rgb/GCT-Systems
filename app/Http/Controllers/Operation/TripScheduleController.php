@@ -12,6 +12,7 @@ use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,6 +25,31 @@ class TripScheduleController extends Controller
     use SystemDataUpdateBroadcaster;
 
     private const MIN_ROUTE_DEPARTURE_INTERVAL_MINUTES = 15;
+
+    /**
+     * Lightweight month-level date markers for the Trip Schedule selector.
+     * Only count trips displayed by the active schedule list, including dates
+     * outside the currently selected day. Avoid loading full trip models.
+     */
+    public function availableDates(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+        ]);
+
+        $start = Carbon::createFromFormat('!Y-m', $validated['month'])->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $counts = TripSchedule::query()
+            ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
+            ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched'])
+            ->selectRaw('trip_date, COUNT(*) as trip_count')
+            ->groupBy('trip_date')
+            ->pluck('trip_count', 'trip_date')
+            ->map(fn ($count) => (int) $count);
+
+        return response()->json(['month' => $validated['month'], 'dates' => $counts]);
+    }
 
     public function index(Request $request): View
     {
@@ -345,14 +371,25 @@ class TripScheduleController extends Controller
 
                     $this->assertEditableTripState($lockedTrip);
 
+                    // Cancellation is a separate, Head-approved action with
+                    // a mandatory reason and permanent audit history.
+                    if (($validated['status'] ?? $lockedTrip->status) === 'Cancelled'
+                        && $lockedTrip->status !== 'Cancelled') {
+                        throw ValidationException::withMessages([
+                            'trip_schedule' => 'Use Cancel Trip with Operations Head approval and a reason.',
+                        ]);
+                    }
+
                     $departure = $this->departureDateTime(
                         $validated['trip_date'],
                         $validated['departure_time']
                     );
 
-                    $effectiveClientName = filled($validated['client_name'] ?? null)
-                        ? $validated['client_name']
-                        : $lockedTrip->client_name;
+                    $effectiveClientName = ($validated['trip_service_mode'] ?? null) === 'general'
+                        ? null
+                        : (filled($validated['client_name'] ?? null)
+                            ? $validated['client_name']
+                            : $lockedTrip->client_name);
 
                     // Recheck client status while holding the client row lock.
                     // Client deactivation takes the same lock.
@@ -389,9 +426,7 @@ class TripScheduleController extends Controller
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
-                        'client_name' => filled($validated['client_name'] ?? null)
-                            ? $validated['client_name']
-                            : $lockedTrip->client_name,
+                        'client_name' => $effectiveClientName,
                         'direction' => $validated['direction'] ?? $lockedTrip->direction,
                         'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
@@ -432,6 +467,72 @@ class TripScheduleController extends Controller
             'success',
             'Trip schedule updated successfully.'
         );
+
+        return $this->scheduleReturnRedirect($request);
+    }
+
+    /**
+     * Cancel a not-yet-departed Scheduled or Ready service.
+     * Keep existing assignments and the audit record for accountability.
+     */
+    public function cancel(Request $request, TripSchedule $tripSchedule): RedirectResponse
+    {
+        abort_unless(auth()->user()?->canApproveReadyTripChanges() ?? false, 403);
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'min:10', 'max:1000'],
+            'return_trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+            'return_to_assignment' => ['sometimes', 'boolean'],
+        ]);
+
+        DB::transaction(function () use ($tripSchedule, $validated): void {
+            $trip = TripSchedule::query()
+                ->whereKey($tripSchedule->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($trip->hasDeparted() || ! in_array($trip->status, ['Scheduled', 'Ready'], true)) {
+                throw ValidationException::withMessages([
+                    'trip_schedule' => 'Only Scheduled or Ready trips before departure may be cancelled.',
+                ]);
+            }
+            if ($trip->dailyDriverReports()->exists() || $trip->incidents()->exists()) {
+                throw ValidationException::withMessages([
+                    'trip_schedule' => 'Trips with operational history must be handled through the incident workflow.',
+                ]);
+            }
+
+            $previousStatus = $trip->status;
+            $trip->update(['status' => 'Cancelled']);
+
+            DB::table('operation_trip_change_audits')->insert([
+                'trip_schedule_id' => $trip->id,
+                'performed_by' => auth()->id(),
+                'action' => 'cancelled',
+                'previous_status' => $previousStatus,
+                'new_status' => 'Cancelled',
+                'reason' => $validated['cancellation_reason'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }, 5);
+
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'TripSchedule',
+            'updated',
+            $tripSchedule->id,
+            "{$tripSchedule->trip_code} was cancelled before departure."
+        );
+
+        session()->flash('success', 'Trip cancelled. The reason and assigned resources were retained for audit.');
+
+        // Return to the same module when cancellation was initiated from assignment management.
+        if ($validated['return_to_assignment'] ?? false) {
+            return redirect()->route('driver-bus-assignment', [
+                'trip_date' => $validated['return_trip_date'] ?? $tripSchedule->trip_date?->format('Y-m-d'),
+            ]);
+        }
 
         return $this->scheduleReturnRedirect($request);
     }
@@ -554,7 +655,7 @@ class TripScheduleController extends Controller
             }
 
             throw ValidationException::withMessages([
-                'shuttle_route_id' => 'This route is unallocated. Choose No Client or select a route assigned to the client.',
+                'shuttle_route_id' => 'This route is not allocated to the selected client. Assign the route to an active client first.',
             ]);
         }
 
@@ -598,6 +699,7 @@ class TripScheduleController extends Controller
                 'date_format:H:i',
             ],
             'client_name' => ['nullable', 'string', 'max:255'],
+            'trip_service_mode' => ['sometimes', 'required', Rule::in(['client', 'general'])],
             'direction' => [$tripSchedule === null ? 'required' : 'nullable', Rule::in(['Incoming', 'Outgoing'])],
             'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
@@ -619,6 +721,21 @@ class TripScheduleController extends Controller
 
         $validated = $request->validate($rules);
 
+        // The explicit UI choice is authoritative; older API callers that do
+        // not send trip_service_mode remain backward compatible.
+        if (($validated['trip_service_mode'] ?? null) === 'client'
+            && blank($validated['client_name'] ?? null)) {
+            throw ValidationException::withMessages([
+                'client_name' => 'Select a client before choosing a client-allocated route.',
+            ]);
+        }
+        if (($validated['trip_service_mode'] ?? null) === 'general'
+            && filled($validated['client_name'] ?? null)) {
+            throw ValidationException::withMessages([
+                'client_name' => 'No Client trips cannot use a client allocation.',
+            ]);
+        }
+
         $requestedDeparture = $this->departureDateTime(
             $validated['trip_date'],
             $validated['departure_time']
@@ -633,9 +750,11 @@ class TripScheduleController extends Controller
             ]);
         }
 
-        $effectiveClientName = filled($validated['client_name'] ?? null)
-            ? $validated['client_name']
-            : $tripSchedule?->client_name;
+        $effectiveClientName = ($validated['trip_service_mode'] ?? null) === 'general'
+            ? null
+            : (filled($validated['client_name'] ?? null)
+                ? $validated['client_name']
+                : $tripSchedule?->client_name);
 
         $effectiveDirection = $validated['direction']
             ?? $tripSchedule?->direction;

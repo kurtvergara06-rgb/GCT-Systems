@@ -43,7 +43,7 @@
           </x-slot:filters>
         </x-ui.table-toolbar>
 
-        <div class="table-wrap stock-movement-scroll-table" role="region" aria-label="Scrollable stock movement records" tabindex="0">
+        <div class="table-wrap stock-movement-scroll-table gct-responsive-records" role="region" aria-label="Scrollable stock movement records" tabindex="0">
           <table class="stock-movement-table">
             <thead>
               <tr>

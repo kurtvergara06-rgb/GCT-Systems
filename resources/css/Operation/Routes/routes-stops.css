@@ -3214,57 +3214,121 @@
     margin-bottom: 0;
 }
 
+/* Route Details: compact vertical sequence (map remains the route geometry). */
 #routeDetailsModal .route-view-path-scroll {
-    margin: 15px 16px 16px;
-
+    margin: 12px 16px 16px;
     width: auto;
-
-    padding: 18px 16px 15px;
-
-    border-color: #dfe7f0;
+    max-width: calc(100% - 32px);
+    padding: 14px 16px;
+    overflow-x: hidden;
+    border: 1px solid #dfe7f0;
+    border-radius: 12px;
     background: #fbfdff;
 }
 
 #routeDetailsModal .route-path-count {
     min-height: 27px;
-
     padding: 0 9px;
-
     font-size: 9px;
     font-weight: 800;
 }
 
 #routeDetailsModal .horizontal-route-path {
-    min-width: max(520px, 100%);
-
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: flex-start;
-
-    gap: 46px;
-
-    padding: 0 14px;
+    gap: 0;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
 }
 
 #routeDetailsModal .horizontal-route-path::before {
-    top: 17px;
-    left: 70px;
-    right: 70px;
-
-    height: 3px;
-
-    opacity: .45;
+    content: none;
 }
 
 #routeDetailsModal .horizontal-route-node {
-    width: 132px;
-    flex: 0 0 132px;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 5px 0;
+    color: #2563eb;
+    text-align: left;
 }
 
-#routeDetailsModal .horizontal-route-content strong {
-    font-size: 11.5px;
+#routeDetailsModal .horizontal-route-node + .horizontal-route-node {
+    padding-top: 13px;
+}
+
+#routeDetailsModal .horizontal-route-node {
+    position: relative;
+}
+
+#routeDetailsModal .horizontal-route-node:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 27px;
+    bottom: -13px;
+    width: 2px;
+    background: #d7e2f0;
+}
+
+#routeDetailsModal .horizontal-route-node.stop .horizontal-route-marker::before {
+    content: none;
+}
+
+#routeDetailsModal .horizontal-route-marker {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: none;
+}
+
+#routeDetailsModal .horizontal-route-marker::after {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+#routeDetailsModal .horizontal-route-node.origin { color: #16a34a; }
+#routeDetailsModal .horizontal-route-node.stop { color: #2563eb; }
+#routeDetailsModal .horizontal-route-node.destination { color: #dc2626; }
+
+#routeDetailsModal .horizontal-route-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    margin-top: 0;
 }
 
 #routeDetailsModal .horizontal-route-content span {
-    font-size: 9px;
+    order: -1;
+    margin: 0;
+    color: #70829a;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+#routeDetailsModal .horizontal-route-content strong {
+    display: block;
+    color: #18314f;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
 /* Responsive */
@@ -3752,4 +3816,42 @@
     #routeDetailsModal .route-view-path-card { grid-area: path; }
     #routeDetailsModal .route-view-card { min-width: 0; margin: 0; }
     #routeDetailsModal .route-view-map { height: clamp(430px, 53vh, 620px); min-height: 430px; }
+}
+
+
+/* Sticky Actions separation is only visible when the Routes table overflows
+   horizontally; full-width tables should have no unnecessary divider. */
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child,
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none;
+}
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
+.routes-page .routes-table-wrap.gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+}
+
+
+/* Fit Route KPI cards to the actual workspace (not the window width).
+   Keeps four cards where space allows; reflows when sidebar is expanded. */
+.routes-page .route-summary-grid,
+.routes-page .routes-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.routes-page .route-summary-grid .stat-card,
+.routes-page .routes-summary-grid .stat-card,
+.routes-page .route-summary-grid .stat-card-link,
+.routes-page .routes-summary-grid .stat-card-link {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.routes-page .route-summary-grid .stat-card-content small,
+.routes-page .routes-summary-grid .stat-card-content small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+}
+.routes-page .table-card,
+.routes-page .routes-card {
+    min-width: 0;
+    max-width: 100%;
 }

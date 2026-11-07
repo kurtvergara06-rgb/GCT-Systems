@@ -79,7 +79,7 @@ class IncidentTest extends TestCase
             'estimated_arrival_time' => '06:00:00',
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Ready',
+            'status' => 'Dispatched',
             'created_by' => $this->user->id,
         ]);
 
@@ -91,6 +91,93 @@ class IncidentTest extends TestCase
             'bus_id' => $this->bus->id,
             'assigned_by' => $this->user->id,
         ]);
+    }
+
+    public function test_bus_dropdown_only_offers_in_progress_trip_assignments(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('data-bus-id="'.$this->bus->id.'"', false)
+            ->assertSee('Select a bus on an In Progress trip.');
+
+        $this->tripSchedule->update(['status' => 'Ready']);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertDontSee('data-bus-id="'.$this->bus->id.'"', false);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Test location',
+            ])
+            ->assertSessionHasErrors('bus_id');
+    }
+
+    public function test_overnight_in_progress_trip_remains_eligible_for_incident_reporting(): void
+    {
+        $yesterday = now(config('app.business_timezone', 'Asia/Manila'))
+            ->subDay()->toDateString();
+        $this->tripSchedule->update([
+            'trip_date' => $yesterday,
+            'departure_time' => '23:30:00',
+            'estimated_arrival_time' => '00:30:00',
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('data-bus-id="'.$this->bus->id.'"', false);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'bus_id' => $this->bus->id,
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Overnight route',
+                'description' => 'Operational incident reported after midnight.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'bus_id' => $this->bus->id,
+            'location' => 'Overnight route',
+        ]);
+    }
+
+    public function test_predeparture_ready_trip_accepts_breakdown_but_not_ordinary_road_incident(): void
+    {
+        $this->tripSchedule->update(['status' => 'Ready']);
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Ready trip terminal',
+            ])
+            ->assertSessionHasErrors('bus_id');
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Bus Breakdown',
+                'location' => 'Ready trip terminal',
+                'description' => 'Bus cannot depart.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'incident_type' => 'Bus Breakdown',
+            'bus_id' => $this->bus->id,
+        ]);
+        $this->assertSame('Under Maintenance', $this->bus->fresh()->status);
     }
 
     public function test_driver_can_submit_an_incident(): void
@@ -691,6 +778,18 @@ class IncidentTest extends TestCase
             ->assertSee('Active Incidents')
             ->assertSee('Active Breakdowns')
             ->assertSee('Resolved Today');
+    }
+
+    public function test_dispatched_replacement_still_counts_as_active_incident_and_breakdown(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+        $incident->update(['status' => 'Replacement Bus Dispatched']);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents'))
+            ->assertOk()
+            ->assertSee('<p>Active Incidents</p><h2>1</h2>', false)
+            ->assertSee('<p>Active Breakdowns</p><h2>1</h2>', false);
     }
 
     private function reserveDispatchHead(): User

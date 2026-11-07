@@ -138,7 +138,10 @@ class AutoSchedulingController extends Controller
         );
 
         $activeRoutes = ShuttleRoute::query()
-            ->whereHas('client', fn ($query) => $query->where('status', 'Active'))
+            ->where(function ($query): void {
+                $query->whereNull('operation_client_id')
+                    ->orWhereHas('client', fn ($client) => $client->where('status', 'Active'));
+            })
             ->where(
                 'status',
                 'Active'
@@ -778,8 +781,15 @@ class AutoSchedulingController extends Controller
         $drivers = $this->assumedPresentDrivers($date);
         $buses = Bus::query()->whereIn('fleet_purpose', ['Regular', 'Reserve'])->where('status', 'Active')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
-            ->orderBy('bus_no')->get(['id', 'bus_no', 'fleet_purpose'])
-            ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))->values();
+            ->get(['id', 'bus_no', 'fleet_purpose'])
+            ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))
+            // Regular first; each fleet group is ascending by body number.
+            ->sort(function (Bus $a, Bus $b): int {
+                $fleet = ($a->fleet_purpose === 'Reserve' ? 1 : 0)
+                    <=> ($b->fleet_purpose === 'Reserve' ? 1 : 0);
+                return $fleet ?: (strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                    ?: ($a->id <=> $b->id));
+            })->values();
         // First request without both selections supplies allowed choices.
         if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
             return response()->json([
@@ -2525,8 +2535,14 @@ class AutoSchedulingController extends Controller
     private function routeMatchesTripClient(TripSchedule $trip): bool
     {
         $route = $trip->shuttleRoute;
-        if (! $route || $route->status !== 'Active' || ! $route->operation_client_id) {
+        if (! $route || $route->status !== 'Active') {
             return false;
+        }
+
+        // General services must use a route with no client allocation.
+        // Dedicated services require the selected client's active route.
+        if (! $route->operation_client_id) {
+            return blank($trip->client_name);
         }
 
         $client = $route->client ?? $route->client()->first();

@@ -1,4 +1,154 @@
 window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
+    // Trip Date belongs to its own calendar dropdown, not the Filter popup.
+    // Monthly markers are fetched from the authorized schedule counts endpoint.
+    const datePickerRoot = document.querySelector('[data-trip-calendar]');
+    const dateTrigger = datePickerRoot?.querySelector('[data-trip-calendar-trigger]');
+    const calendarPanel = datePickerRoot?.querySelector('[data-trip-calendar-panel]');
+    const calendarTitle = datePickerRoot?.querySelector('[data-trip-calendar-month]');
+    const calendarGrid = datePickerRoot?.querySelector('[data-trip-calendar-days]');
+    const calendarFeedback = datePickerRoot?.querySelector('[data-trip-calendar-feedback]');
+    const selectedDateValue = datePickerRoot?.dataset.selectedDate || '';
+    const selectedParts = selectedDateValue.split('-').map(Number);
+    const calendarView = new Date(selectedParts[0] || new Date().getFullYear(), (selectedParts[1] || 1) - 1, 1);
+    const calendarCounts = new Map();
+    const calendarEvents = new AbortController();
+    let calendarFetch = null;
+
+    const isoCalendarDate = (year, month, day) =>
+        `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const calendarMonthKey = () =>
+        `${calendarView.getFullYear()}-${String(calendarView.getMonth() + 1).padStart(2, '0')}`;
+    const operationalToday = () => {
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+        }).formatToParts(new Date());
+        const value = (key) => parts.find((part) => part.type === key)?.value;
+        return isoCalendarDate(value('year'), value('month'), value('day'));
+    };
+    const goToScheduleDate = (date) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set('trip_date', date);
+        url.searchParams.delete('page');
+        url.searchParams.delete('history_page');
+        window.location.assign(url.toString());
+    };
+    const renderCalendar = () => {
+        if (!calendarGrid || !calendarTitle) return;
+        const year = calendarView.getFullYear();
+        const month = calendarView.getMonth();
+        const monthKey = calendarMonthKey();
+        calendarTitle.textContent = new Intl.DateTimeFormat('en-US', {
+            month: 'long', year: 'numeric',
+        }).format(calendarView);
+        calendarGrid.replaceChildren();
+        const counts = calendarCounts.get(monthKey) || {};
+        const firstWeekday = new Date(year, month, 1).getDay();
+        for (let index = 0; index < firstWeekday; index += 1) {
+            const spacer = document.createElement('span');
+            spacer.className = 'trip-calendar-empty';
+            spacer.setAttribute('aria-hidden', 'true');
+            calendarGrid.appendChild(spacer);
+        }
+        const maxDay = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= maxDay; day += 1) {
+            const key = isoCalendarDate(year, month + 1, day);
+            const count = Number(counts[key]) || 0;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'trip-calendar-day';
+            button.textContent = String(day);
+            if (count > 0) {
+                button.classList.add('has-trips');
+                const dot = document.createElement('span');
+                dot.className = 'trip-calendar-day-dot';
+                dot.setAttribute('aria-hidden', 'true');
+                button.appendChild(dot);
+            }
+            if (key === selectedDateValue) {
+                button.classList.add('is-selected');
+                button.setAttribute('aria-current', 'date');
+            }
+            if (key === operationalToday()) button.classList.add('is-today');
+            button.setAttribute('aria-label', `${key}, ${count} scheduled ${count === 1 ? 'trip' : 'trips'}`);
+            button.addEventListener('click', () => goToScheduleDate(key));
+            calendarGrid.appendChild(button);
+        }
+    };
+    const loadCalendarMonth = async () => {
+        if (!datePickerRoot || !calendarPanel) return;
+        const key = calendarMonthKey();
+        if (calendarCounts.has(key)) {
+            calendarFeedback.textContent = '';
+            renderCalendar();
+            return;
+        }
+        calendarFetch?.abort();
+        calendarFetch = new AbortController();
+        const currentFetch = calendarFetch;
+        calendarFeedback.textContent = 'Loading available trip dates...';
+        try {
+            const url = new URL(datePickerRoot.dataset.availabilityUrl, window.location.origin);
+            url.searchParams.set('month', key);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: currentFetch.signal,
+            });
+            if (!response.ok) throw new Error('Unable to retrieve trip dates');
+            const data = await response.json();
+            if (data.month !== key) return;
+            calendarCounts.set(key, data.dates || {});
+            if (calendarMonthKey() === key) {
+                calendarFeedback.textContent = '';
+                renderCalendar();
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError' && calendarMonthKey() === key) {
+                calendarFeedback.textContent = 'Trip indicators unavailable. You can still select a date.';
+            }
+        }
+    };
+    const closeCalendar = () => {
+        if (!calendarPanel) return;
+        calendarPanel.hidden = true;
+        dateTrigger?.setAttribute('aria-expanded', 'false');
+    };
+    dateTrigger?.addEventListener('click', () => {
+        const open = calendarPanel.hidden;
+        calendarPanel.hidden = !open;
+        dateTrigger.setAttribute('aria-expanded', String(open));
+        if (open) {
+            renderCalendar();
+            void loadCalendarMonth();
+        }
+    });
+    datePickerRoot?.querySelector('[data-trip-calendar-close]')?.addEventListener('click', () => {
+        closeCalendar();
+        dateTrigger?.focus();
+    });
+    for (const [selector, delta] of [['[data-trip-calendar-prev]', -1], ['[data-trip-calendar-next]', 1]]) {
+        datePickerRoot?.querySelector(selector)?.addEventListener('click', () => {
+            calendarView.setMonth(calendarView.getMonth() + delta, 1);
+            calendarFeedback.textContent = '';
+            renderCalendar();
+            void loadCalendarMonth();
+        });
+    }
+    datePickerRoot?.querySelector('[data-trip-calendar-today]')?.addEventListener('click', () => goToScheduleDate(operationalToday()));
+    document.addEventListener('click', (event) => {
+        if (datePickerRoot && !datePickerRoot.contains(event.target)) closeCalendar();
+    }, { signal: calendarEvents.signal });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && calendarPanel && !calendarPanel.hidden) {
+            closeCalendar();
+            dateTrigger?.focus();
+        }
+    }, { signal: calendarEvents.signal });
+    window.addEventListener('gct:navigation-before', () => {
+        calendarEvents.abort();
+        calendarFetch?.abort();
+    }, { once: true });
+
     const tripModal = document.getElementById('tripModal');
     const viewTripModal = document.getElementById('viewTripModal');
     const deleteTripModal = document.getElementById('deleteTripModal');
@@ -8,67 +158,133 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripModalTitle = document.getElementById('tripModalTitle');
     const tripSubmitText = document.getElementById('tripSubmitText');
     const tripCode = document.getElementById('tripCode');
+    const tripCodeLabel = document.getElementById('tripCodeLabel');
+    const syncTripCodeLabel = () => {
+        if (tripCodeLabel) tripCodeLabel.textContent = tripCode?.value || 'Auto-generated';
+        const display = document.getElementById('tripCodeDisplay');
+        if (display) display.value = tripCode?.value || 'Auto-generated';
+    };
+    // Show accessible inline messages rather than transient browser tooltips.
+    // Native constraint validation still prevents submitting incomplete trips.
+    tripForm?.addEventListener('invalid', (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement)) return;
+        event.preventDefault();
+        const group = field.closest('.ui-form-group');
+        if (!group) return;
+        const message = field.id === 'tripDirection'
+            ? 'Select Incoming or Outgoing to continue.'
+            : field.id === 'tripServiceMode'
+                ? 'Choose Client or No Client to continue.'
+            : field.id === 'tripClientName'
+                ? 'Select a client to continue.'
+                : field.id === 'tripRoute'
+                    ? 'Select a route assigned to this client.'
+                    : field.id === 'departureTime' || field.id === 'departureTimeSlot'
+                        ? 'Select a valid departure time.'
+                        : field.validationMessage || 'Complete this field to continue.';
+        let error = group.querySelector('.trip-inline-error');
+        if (!error) {
+            error = document.createElement('span');
+            error.className = 'trip-inline-error';
+            error.setAttribute('role', 'alert');
+            group.appendChild(error);
+        }
+        error.textContent = message;
+        field.setAttribute('aria-invalid', 'true');
+        if (!tripForm.querySelector('[data-trip-validation-focused]')) {
+            field.setAttribute('data-trip-validation-focused', 'true');
+            field.focus({ preventScroll: true });
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, true);
+    const clearTripValidation = (event) => {
+        const field = event.target;
+        if (!(field instanceof HTMLElement) || !field.matches('input, select, textarea')) return;
+        if (!field.validity?.valid) return;
+        const group = field.closest('.ui-form-group');
+        group?.querySelector('.trip-inline-error')?.remove();
+        field.removeAttribute('aria-invalid');
+    };
+    tripForm?.addEventListener('input', clearTripValidation);
+    tripForm?.addEventListener('change', clearTripValidation);
+    tripForm?.addEventListener('click', () => {
+        tripForm.querySelectorAll('[data-trip-validation-focused]').forEach((field) => field.removeAttribute('data-trip-validation-focused'));
+    }, true);
+
     const tripDate = document.getElementById('tripDate');
     const tripRoute = document.getElementById('tripRoute');
     const tripDirection = document.getElementById('tripDirection');
     const tripClientName = document.getElementById('tripClientName');
     const tripServiceMode = document.getElementById('tripServiceMode');
-    const tripGeneralServiceNotice = document.getElementById('tripGeneralServiceNotice');
-    const serviceModeInputs = Array.from(document.querySelectorAll('input[name="trip_service_mode"]'));
+    const tripModeChoices = Array.from(tripForm?.querySelectorAll('input[name="trip_mode_choice"]') || []);
+    const syncTripModeChoices = () => {
+        tripModeChoices.forEach((choice) => { choice.checked = choice.value === tripServiceMode?.value; });
+    };
+    tripModeChoices.forEach((choice) => {
+        choice.addEventListener('change', () => {
+            if (!choice.checked || !tripServiceMode) return;
+            tripServiceMode.value = choice.value;
+            tripServiceMode.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+    const tripCodeDisplay = document.getElementById('tripCodeDisplay');
+    const tripClientField = document.getElementById('tripClientField');
+    const tripRouteLabel = document.getElementById('tripRouteLabel');
 
     function syncTripRouteOptions({ preserveRoute = false } = {}) {
-        if (!tripRoute || !tripClientName) return;
+        if (!tripRoute || !tripClientName || !tripServiceMode) return;
 
         const creating = Boolean(tripFormMethod?.disabled);
-        const mode = serviceModeInputs.find(input => input.checked)?.value || 'client';
+        const mode = tripServiceMode.value;
         const client = tripClientName.value.trim().toLowerCase();
         const previous = tripRoute.value;
+        const requiresClient = mode === 'client';
 
-        tripClientName.closest('.ui-form-group')?.toggleAttribute('hidden', creating && mode === 'general');
-        if (tripGeneralServiceNotice) {
-            tripGeneralServiceNotice.hidden = !creating || mode !== 'general';
+        syncTripModeChoices();
+        if (tripClientField) tripClientField.hidden = !requiresClient;
+        tripClientName.disabled = !requiresClient;
+        tripClientName.required = requiresClient && creating;
+        if (tripRouteLabel) {
+            tripRouteLabel.innerHTML = (requiresClient ? 'Client Route' : mode === 'general' ? 'General Route' : 'Route')
+                + ' <span class="ui-required">*</span>';
         }
 
+        // Never offer a route belonging to another client (or a general route
+        // to a client trip), even when the select contains all active routes.
         for (const option of tripRoute.options) {
             if (!option.value) continue;
             const ownerId = String(option.dataset.clientId || '').trim();
             const ownerName = String(option.dataset.clientName || '').trim().toLowerCase();
             const available = mode === 'general'
-                ? ownerId === ''
-                : Boolean(client && ownerId && ownerName === client);
-            option.hidden = creating && !available;
-            option.disabled = creating && !available;
+                ? !ownerId
+                : requiresClient && Boolean(client && ownerId && ownerName === client);
+            // Preserve an existing legacy route without offering unrelated
+            // routes as alternatives when editing a historical schedule.
+            const legacyCurrent = !creating && option.value === tripRoute.dataset.originalRouteId;
+            option.hidden = !available && !legacyCurrent;
+            option.disabled = !available && !legacyCurrent;
         }
 
         const stillAllowed = Array.from(tripRoute.options).some(option =>
             option.value === previous && !option.disabled && !option.hidden
         );
         tripRoute.value = preserveRoute && stillAllowed ? previous : '';
-        tripRoute.disabled = creating && mode === 'client' && !client;
-
-        if (!creating) {
-            tripRoute.disabled = false;
+        // Editing historical trips preserves their existing route selection.
+        tripRoute.disabled = creating && (!mode || (requiresClient && !client));
+        const placeholder = tripRoute.options[0];
+        if (placeholder) {
+            placeholder.textContent = !mode ? 'Select trip type first'
+                : requiresClient && !client ? 'Select client first'
+                : 'Select a ' + (mode === 'general' ? 'general route' : 'client route');
         }
 
-        tripClientName.required = creating && mode === 'client';
-        if (creating && mode === 'general') {
-            tripClientName.value = '';
-        }
-
-        if (creating && !tripRoute.value && arrivalTime) {
-            arrivalTime.value = '';
-        }
+        if (creating && !tripRoute.value && arrivalTime) arrivalTime.value = '';
 
         const submit = tripForm?.querySelector('[type="submit"]');
         if (submit) submit.disabled = false;
         if (creating && tripSubmitText) tripSubmitText.textContent = 'Create Trip';
     }
-
-    serviceModeInputs.forEach(input => input.addEventListener('change', () => {
-        if (tripClientName) tripClientName.value = '';
-        syncTripRouteOptions();
-        updateTripTimeOptions({ preserveValue: false });
-    }));
 
     const tripRequiredBuses = document.getElementById('tripRequiredBuses');
     const departureTime = document.getElementById('departureTime');
@@ -85,6 +301,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const tripNotesCount = document.getElementById('tripNotesCount');
     const closeViewTripModal = document.getElementById('closeViewTripModal');
     const closeViewTripButton = document.getElementById('closeViewTripButton');
+
+    const cancelServiceTripModal = document.getElementById('cancelServiceTripModal');
+    const cancelServiceTripForm = document.getElementById('cancelServiceTripForm');
+    const cancelServiceTripCode = document.getElementById('cancelServiceTripCode');
+    const cancelServiceTripBack = document.getElementById('cancelServiceTripBack');
+    const cancelServiceTripClose = document.getElementById('cancelServiceTripClose');
 
     const deleteTripName = document.getElementById('deleteTripName');
     const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
@@ -493,7 +715,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         if (!preserveValues) {
             tripForm.reset();
             setTripClientValue('');
+            if (tripServiceMode) tripServiceMode.value = 'client';
         }
+        if (tripRoute) tripRoute.dataset.originalRouteId = '';
 
         tripForm.setAttribute('action', createAction);
 
@@ -513,12 +737,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             }
         }
 
-        if (tripServiceMode) tripServiceMode.hidden = false;
-        if (serviceModeInputs[0]) serviceModeInputs[0].checked = true;
         syncTripRouteOptions({ preserveRoute: preserveValues });
+        syncTripCodeLabel();
         setStatusCreateMode();
         if (tripDirection) tripDirection.required = true;
-        if (tripClientName) tripClientName.required = true;
+        if (tripClientName) tripClientName.required = tripServiceMode?.value === 'client';
 
         if (tripShift && !preserveValues) {
             tripShift.value = 'Automatic';
@@ -536,6 +759,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripSubmitText.textContent = 'Create Trip';
         }
 
+        syncTripCodeLabel();
         updateNotesCount();
         updateTripTimeOptions({ preserveValue: preserveValues });
         calculateArrival();
@@ -567,7 +791,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripFormMethod.value = 'PUT';
         }
 
-        if (tripServiceMode) tripServiceMode.hidden = true;
         setStatusEditMode();
 
         if (tripDate) {
@@ -597,6 +820,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
             if (tripRoute) {
                 tripRoute.value = button.dataset.routeId || '';
+                tripRoute.dataset.originalRouteId = tripRoute.value;
             }
             if (tripDirection) {
                 tripDirection.value = button.dataset.direction || '';
@@ -604,6 +828,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             }
             if (tripClientName) {
                 setTripClientValue(button.dataset.clientName || '');
+                if (tripServiceMode) tripServiceMode.value = tripClientName.value ? 'client' : 'general';
                 tripClientName.required = false; // Allow editing pre-migration trips.
             }
             if (tripRequiredBuses) tripRequiredBuses.value = button.dataset.requiredBuses || '1';
@@ -632,6 +857,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             tripSubmitText.textContent = 'Update Trip';
         }
 
+        syncTripCodeLabel();
         syncTripRouteOptions({ preserveRoute: true });
         updateNotesCount();
         updateTripTimeOptions({ preserveValue: true });
@@ -650,10 +876,19 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     departureTime?.addEventListener('change', calculateArrival);
     tripRoute?.addEventListener('change', calculateArrival);
 
-    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
-    tripClientName?.addEventListener('change', () => {
+    tripServiceMode?.addEventListener('change', () => {
+        setTripClientValue('');
+        if (tripRoute) tripRoute.value = '';
         syncTripRouteOptions();
         updateTripTimeOptions({ preserveValue: false });
+        calculateArrival();
+    });
+    tripClientName?.addEventListener('input', () => updateTripTimeOptions());
+    tripClientName?.addEventListener('change', () => {
+        if (tripRoute) tripRoute.value = '';
+        syncTripRouteOptions();
+        updateTripTimeOptions({ preserveValue: false });
+        calculateArrival();
     });
     tripDirection?.addEventListener('change', () => updateTripTimeOptions());
     departureTimeSlot?.addEventListener('change', () => {
@@ -852,6 +1087,16 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return;
         }
 
+        const cancellationButton = event.target.closest('.cancel-service-trip');
+        if (cancellationButton && cancelServiceTripForm && cancelServiceTripModal) {
+            cancelServiceTripForm.action = cancellationButton.dataset.cancelUrl || '#';
+            cancelServiceTripForm.querySelector('#cancellationReason').value = '';
+            if (cancelServiceTripCode) cancelServiceTripCode.textContent = cancellationButton.dataset.tripCode || 'this trip';
+            openModal(cancelServiceTripModal);
+            cancelServiceTripForm.querySelector('#cancellationReason')?.focus();
+            return;
+        }
+
         const deleteButton = event.target.closest('.delete-trip');
 
         if (deleteButton) {
@@ -866,6 +1111,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
             openModal(deleteTripModal);
         }
+    });
+
+    [cancelServiceTripBack, cancelServiceTripClose].filter(Boolean).forEach((button) => {
+        button.addEventListener('click', () => closeModal(cancelServiceTripModal));
     });
 
     cancelDeleteTrip?.addEventListener('click', () => {
@@ -944,6 +1193,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             ?.focus();
     }
 
+    syncTripCodeLabel();
     updateNotesCount();
     restoreValidationModal();
 

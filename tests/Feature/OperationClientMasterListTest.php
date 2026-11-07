@@ -31,16 +31,192 @@ class OperationClientMasterListTest extends TestCase
         return $user;
     }
 
-    public function test_client_creation_modal_is_available_on_trip_times_page(): void
+    public function test_client_trip_times_uses_master_list_clients_without_duplicate_creation_ui(): void
     {
         $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Newly Registered Client', 'status' => 'Active']);
 
         $this->actingAs($user)
             ->get(route('client-trip-times'))
             ->assertOk()
-            ->assertSee('id="cttCreateClientModal"', false)
-            ->assertSee('id="cttAddClientButton"', false)
-            ->assertDontSee('Client Master List');
+            ->assertSee('Client Configurations')
+            ->assertSee('Newly Registered Client')
+            ->assertDontSee('id="cttCreateClientModal"', false)
+            ->assertDontSee('id="cttAddClientButton"', false)
+            ->assertDontSee('id="cttCreateClientModal"', false);
+    }
+
+    public function test_newly_registered_master_list_client_appears_in_trip_times_without_manual_sync(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), [
+                'name' => 'Shuttle Partner A',
+                'contact_person' => 'Test Coordinator',
+                'contact_number' => '09123456789',
+                'return_to' => 'client-master-list',
+            ])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->actingAs($user)->get(route('client-trip-times'))
+            ->assertOk()
+            ->assertSee('Shuttle Partner A')
+            ->assertSee('Configure client');
+    }
+
+    public function test_client_master_list_shows_database_records_and_status_counts(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        OperationClient::create(['name' => 'Archived Client', 'status' => 'Inactive']);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('Client Master List')
+            ->assertSee('Active Clients')
+            ->assertSee('Inactive Clients')
+            ->assertSee('id="clientMasterToolbar"', false)
+            ->assertSee('EPSON')
+            ->assertDontSee('Archived Client</strong>', false)
+            ->assertDontSee('client-master-filter-btn')
+            ->assertDontSee('client-master-clear')
+            ->assertSee('data-client-create-open', false);
+
+        $this->actingAs($user)->get(route('operation.clients.index', ['tab' => 'history']))
+            ->assertOk()
+            ->assertSee('Archived Client</strong>', false)
+            ->assertDontSee('EPSON</strong>', false);
+    }
+
+    public function test_client_master_list_search_and_status_filter(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        OperationClient::create(['name' => 'Inactive Client', 'status' => 'Inactive']);
+
+        $this->actingAs($user)
+            ->get(route('operation.clients.index', ['search' => 'EPSON', 'tab' => 'active']))
+            ->assertOk()
+            ->assertSee('EPSON')
+            ->assertDontSee('Inactive Client</strong>', false);
+    }
+
+    public function test_client_master_list_tab_preserves_search_and_sort_controls(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Dormant Company', 'status' => 'Inactive']);
+
+        $this->actingAs($user)->get(route('operation.clients.index', [
+            'tab' => 'history',
+            'search' => 'Dormant',
+            'sort' => 'created_at',
+            'sort_direction' => 'desc',
+        ]))
+            ->assertOk()
+            ->assertSee('Dormant Company</strong>', false)
+            ->assertSee('name="sort_direction"', false)
+            ->assertSee('name="search"', false)
+            ->assertSee('name="tab" value="history"', false);
+    }
+
+    public function test_client_master_list_filter_by_configuration(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create(['name' => 'Needs Setup Client', 'status' => 'Active']);
+
+        $this->actingAs($user)->get(route('operation.clients.index', [
+            'setup' => 'needs-setup',
+            'tab' => 'active',
+        ]))
+            ->assertOk()
+            ->assertSee('Needs Setup Client</strong>', false);
+    }
+
+    public function test_view_only_user_can_view_client_master_list_but_not_create(): void
+    {
+        $user = $this->operationUser(false);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertDontSee('data-client-create-open', false);
+
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), ['name' => 'Unauthorized Client', 'return_to' => 'client-master-list'])
+            ->assertForbidden();
+    }
+
+    public function test_client_created_from_master_list_returns_to_master_list(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), [
+                'name' => 'New Shuttle Client',
+                'company_address' => 'Malvar, Batangas',
+                'contact_person' => 'Test Coordinator',
+                'contact_position' => 'HR Officer',
+                'contact_number' => '09123456789',
+                'contact_email' => 'coordinator@example.test',
+                'service_start_date' => '2026-11-01',
+                'return_to' => 'client-master-list',
+            ])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->assertDatabaseHas('operation_clients', [
+            'name' => 'New Shuttle Client',
+            'contact_person' => 'Test Coordinator',
+            'contact_number' => '09123456789',
+            'contact_email' => 'coordinator@example.test',
+        ]);
+    }
+
+    public function test_master_list_requires_primary_contact_details(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), [
+                'name' => 'Missing Contact Company',
+                'return_to' => 'client-master-list',
+            ])
+            ->assertSessionHasErrors(['contact_person', 'contact_number']);
+
+        $this->assertDatabaseMissing('operation_clients', ['name' => 'Missing Contact Company']);
+    }
+
+    public function test_client_master_list_shows_existing_contact_details(): void
+    {
+        $user = $this->operationUser(true);
+        OperationClient::create([
+            'name' => 'Contact Enabled',
+            'contact_person' => 'Operations Coordinator',
+            'contact_number' => '09123456789',
+        ]);
+
+        $this->actingAs($user)->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('Operations Coordinator')
+            ->assertSee('09123456789');
+    }
+
+    public function test_trip_times_client_creation_remains_backwards_compatible(): void
+    {
+        $user = $this->operationUser(true);
+        $this->actingAs($user)
+            ->post(route('operation.clients.store'), ['name' => 'Legacy Style Client'])
+            ->assertRedirect(route('client-trip-times'));
+
+        $this->assertDatabaseHas('operation_clients', ['name' => 'Legacy Style Client']);
+    }
+
+    public function test_client_status_changed_from_master_list_preserves_record(): void
+    {
+        $user = $this->operationUser(true);
+        $client = OperationClient::create(['name' => 'Paused Service']);
+
+        $this->actingAs($user)
+            ->patch(route('operation.clients.status', $client), ['status' => 'Inactive', 'return_to' => 'client-master-list'])
+            ->assertRedirect(route('operation.clients.index'));
+
+        $this->assertDatabaseHas('operation_clients', ['id' => $client->id, 'status' => 'Inactive']);
     }
 
     public function test_authorized_operations_user_can_create_client_from_trip_times(): void

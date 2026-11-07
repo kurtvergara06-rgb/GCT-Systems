@@ -120,7 +120,7 @@
                     Updating bus records...
                 </div>
 
-                <div class="table-wrap">
+                <div class="table-wrap gct-responsive-records gct-sticky-actions gct-master-scroll-10" role="region" tabindex="0" aria-label="Bus Master List records, scrollable">
                     <table class="bus-table {{ request('fleet_purpose') === 'Reserve' ? 'bus-table--reserve' : '' }}">
                         <thead>
                             <tr>

@@ -90,7 +90,7 @@
           </x-slot:filters>
         </x-ui.table-toolbar>
 
-        <div class="table-wrap records-table-wrap">
+        <div class="table-wrap records-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="restock-table records-table">
             <thead>
               <tr>

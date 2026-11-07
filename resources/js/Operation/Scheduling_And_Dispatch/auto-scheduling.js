@@ -1,5 +1,6 @@
 window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.auto-scheduling-page', () => {
     const pageRoot = document.querySelector('.auto-scheduling-page');
+
     const canEditOperation =
         pageRoot?.dataset.operationEdit === 'true';
     const canApproveOperation =
@@ -3451,6 +3452,13 @@ function updateMlStatus(conflicts) {
             const direction = item.direction || 'Incoming';
             const issue = String(item.reason || 'Resources unavailable')
                 .replace(/\s*\(Bus\s+\d+\/\d+\)\.?\s*$/i, '.');
+            // Keep the queue scannable; the full reason remains available in
+            // the cell tooltip and the selected AI Conflict Report.
+            const driverUnavailable = /no eligible driver is available/i.test(issue);
+            const busUnavailable = /no active bus is available/i.test(issue);
+            const issuePreview = driverUnavailable && busUnavailable
+                ? 'Driver and bus unavailable'
+                : issue;
             const trip = item.base_trip_code || item.trip_code || 'Trip';
             const severity = getConflictSeverity(item);
             const required = Math.max(1, Number(item.required_buses || 1));
@@ -3466,7 +3474,7 @@ function updateMlStatus(conflicts) {
                 </span></td>
                 <td><strong>${escapeHtml(item.route_code || '—')}</strong><small>${escapeHtml(item.route_name || '')}</small></td>
                 <td>${escapeHtml(item.departure_display || displayTime(item.departure_time))}</td>
-                <td class="gct-conflict-issue">${escapeHtml(issue)}</td>
+                <td class="gct-conflict-issue" title="${escapeHtml(issue)}">${escapeHtml(issuePreview)}</td>
                 <td><span class="gct-conflict-severity ${severity.key}"><i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}"></i> ${severity.label}</span></td>
                 <td><span class="gct-conflict-state"><i class="fa-regular fa-clock"></i> Needs Review</span></td>
             </tr>`;

@@ -98,7 +98,7 @@
                 </x-ui.table-toolbar>
 
                 <!-- DDR Table Container with Contained Scroll -->
-                <div class="table-wrap ddr-table-wrap" style="margin-top: 16px;">
+                <div class="table-wrap ddr-table-wrap gct-responsive-records gct-sticky-actions" style="margin-top: 16px;">
                     <table class="ddr-table">
                         <thead>
                             <tr>
@@ -188,28 +188,10 @@
 
                                     <td>
                                         <div class="ddr-actions">
-                                            <button type="button" class="ddr-action view ddr-open-modal" data-ddr-modal="ddrView-{{ $report->id }}" title="View Report Details" aria-label="View {{ $report->ddr_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
-                                            @php
-                                                $ddrLinked = $report->trip_schedule_id !== null || $report->trip_assignment_id !== null
-                                                    || $report->additionalTrips->contains(fn ($entry) => $entry->trip_schedule_id !== null || $entry->trip_assignment_id !== null);
-                                                $canDeleteDdr = (auth()->user()?->hasSystemPermission('operation', 'edit') ?? false) && ! $ddrLinked;
-                                            @endphp
-                                            @if($canDeleteDdr)
-                                                <button type="button" class="ddr-action ddr-edit-action ddr-open-modal" data-ddr-modal="ddrEdit-{{ $report->id }}" title="Edit report" aria-label="Edit {{ $report->ddr_no }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
-                                            @else
-                                                <button type="button" class="ddr-action ddr-edit-action" disabled
-                                                    title="Unavailable: linked history or insufficient permission"
-                                                    aria-label="Edit unavailable for {{ $report->ddr_no }}">
-                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                                                </button>
-                                            @endif
-                                            <button type="button" class="ddr-action ddr-delete-trigger"
-                                                data-ddr-id="{{ $report->ddr_no }}"
-                                                data-delete-url="{{ route('daily-driver-reports.destroy', ['dailyDriverReport' => $report->ddr_no], false) }}"
-                                                aria-label="Delete {{ $report->ddr_no }}"
-                                                title="{{ $canDeleteDdr ? 'Delete unlinked DDR' : 'Unavailable: linked history or insufficient permission' }}"
-                                                @disabled(! $canDeleteDdr)>
-                                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                            <button type="button" class="ddr-view-action ddr-open-modal" data-ddr-modal="ddrView-{{ $report->id }}" title="View Report Details" aria-label="View {{ $report->ddr_no }}"
+                                                style="box-sizing:border-box;display:inline-flex;flex:0 0 94px;flex-direction:row;align-items:center;justify-content:center;gap:8px;width:94px;min-width:94px;height:36px;min-height:36px;padding:0 12px;white-space:nowrap;">
+                                                <i class="fa-solid fa-eye" aria-hidden="true" style="position:static;display:inline-block;flex:none;margin:0;line-height:1;"></i>
+                                                <span style="display:inline-block;flex:none;margin:0;line-height:1;">View</span>
                                             </button>
                                         </div>
                                     </td>
@@ -229,7 +211,7 @@
                 <x-ui.table-footer :items="$reports" />
             </section>
 
-        {{-- View and correction forms are page-owned modal dialogs, never separate screens. --}}
+        {{-- Saved DDRs expose view-only details; no edit or delete controls. --}}
         @foreach($reports as $report)
             <div id="ddrView-{{ $report->id }}" class="ddr-record-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ddrViewTitle-{{ $report->id }}">
                 <section class="ddr-record-dialog">
@@ -271,68 +253,8 @@
                 </section>
             </div>
 
-            @if((auth()->user()?->hasSystemPermission('operation', 'edit') ?? false)
-                && !$report->trip_schedule_id && !$report->trip_assignment_id
-                && !$report->additionalTrips->contains(fn ($entry) => $entry->trip_schedule_id !== null || $entry->trip_assignment_id !== null))
-                <div id="ddrEdit-{{ $report->id }}" class="ddr-record-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ddrEditTitle-{{ $report->id }}">
-                    <section class="ddr-record-dialog ddr-record-dialog-edit">
-                        <header class="ddr-record-header">
-                            <div><h2 id="ddrEditTitle-{{ $report->id }}">Edit Daily Driver Report</h2><p>{{ $report->ddr_no }} · Correct values from the physical DDR</p></div>
-                            <button type="button" class="ddr-record-close" aria-label="Close edit report"><i class="fa-solid fa-xmark"></i></button>
-                        </header>
-                        <form method="POST" action="{{ route('daily-driver-reports.update', ['dailyDriverReport' => $report->ddr_no], false) }}">
-                            @csrf
-                            @method('PUT')
-                            <div class="ddr-record-body">
-                                <p class="ddr-record-note">Select a trip to correct its details. Report identity, driver, bus, and trip tickets remain protected.</p>
-                                <div class="ddr-edit-trip-list">
-                                    <details class="ddr-edit-trip" open>
-                                        <summary><span>Trip 1 <small>{{ $report->trip_ticket }}</small></span><i class="fa-solid fa-chevron-down"></i></summary>
-                                        <div class="ddr-record-fields">
-                                            <label>From *<input name="from_location" value="{{ $report->from_location }}" maxlength="150" required></label>
-                                            <label>To *<input name="to_location" value="{{ $report->to_location }}" maxlength="150" required></label>
-                                            <label>Departure *<input type="time" name="departure_time" value="{{ substr((string) $report->getRawOriginal('departure_time'), 0, 5) }}" required></label>
-                                            <label>Arrival *<input type="time" name="arrival_time" value="{{ substr((string) $report->getRawOriginal('arrival_time'), 0, 5) }}" required></label>
-                                            <label>Passengers *<input type="number" name="passengers" value="{{ $report->passengers }}" min="0" required></label>
-                                            <label>Kilometers<input type="number" name="km" value="{{ $report->km }}" min="0" step=".01"></label>
-                                        </div>
-                                    </details>
-                                    @foreach($report->additionalTrips as $entry)
-                                        <details class="ddr-edit-trip">
-                                            <summary><span>Trip {{ $loop->iteration + 1 }} <small>{{ $entry->trip_ticket }}</small></span><i class="fa-solid fa-chevron-down"></i></summary>
-                                            <input type="hidden" name="additional_trips[{{ $loop->index }}][id]" value="{{ $entry->id }}">
-                                            <div class="ddr-record-fields">
-                                                <label>From *<input name="additional_trips[{{ $loop->index }}][from_location]" value="{{ $entry->from_location }}" maxlength="150" required></label>
-                                                <label>To *<input name="additional_trips[{{ $loop->index }}][to_location]" value="{{ $entry->to_location }}" maxlength="150" required></label>
-                                                <label>Departure *<input type="time" name="additional_trips[{{ $loop->index }}][departure_time]" value="{{ substr((string) $entry->departure_time, 0, 5) }}" required></label>
-                                                <label>Arrival *<input type="time" name="additional_trips[{{ $loop->index }}][arrival_time]" value="{{ substr((string) $entry->arrival_time, 0, 5) }}" required></label>
-                                                <label>Passengers *<input type="number" name="additional_trips[{{ $loop->index }}][passengers]" value="{{ $entry->passengers }}" min="0" required></label>
-                                                <label>Kilometers<input type="number" name="additional_trips[{{ $loop->index }}][km]" value="{{ $entry->km }}" min="0" step=".01"></label>
-                                            </div>
-                                        </details>
-                                    @endforeach
-                                </div>
-                            </div>
-                            <footer class="ddr-record-footer"><button type="button" class="ddr-record-close">Cancel</button><button type="submit" class="ddr-record-save"><i class="fa-solid fa-floppy-disk"></i> Save Corrections</button></footer>
-                        </form>
-                    </section>
-                </div>
-            @endif
-        @endforeach
 
-        <x-ui.action-buttom-modal
-            mode="delete"
-            id="ddrDeleteModal"
-            delete-title="Delete Daily Driver Report?"
-            delete-message="Are you sure you want to delete"
-            name-id="ddrDeleteNumber"
-            cancel-id="ddrDeleteCancel"
-            confirm-id="ddrDeleteConfirm"
-        />
-        <form id="ddrDeleteForm" method="POST" action="" hidden>
-            @csrf
-            @method('DELETE')
-        </form>
+        @endforeach
 
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
 
@@ -438,10 +360,10 @@
                             <li
                                 data-combo-option
                                 data-value="{{ $driver->driver_id }}"
-                                data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->shift . ' ' . $driver->employment_status) }}"
+                                data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->employment_status) }}"
                             >
                                 <strong>{{ $driver->driver_name }}</strong>
-                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }}</small>
+                                <small>{{ $driver->driver_id }}</small>
                             </li>
                         @endforeach
                     </ul>
@@ -563,16 +485,16 @@
                 <details class="ddr-extra-trip">
                     <summary class="ddr-extra-trip-heading">
                         <strong data-trip-title>Additional Trip</strong>
-                        <span class="ddr-extra-trip-tag">Assigned trip</span>
+                        <span class="ddr-extra-trip-tag">Journey log</span>
                         <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                     </summary>
                     <div class="ddr-extra-trip-body">
                         <div class="ddr-extra-trip-actions">
-                            <p>Enter the actual journey details recorded on the physical DDR.</p>
+                            <p>Record each journey segment, boarding, or drop-off under this driver's selected bus and route.</p>
                             <button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash" aria-hidden="true"></i><span>Remove</span></button>
                         </div>
                         <div class="ddr-extra-trip-grid">
-                        <div class="ui-form-group ddr-extra-assignment-group"><label>Assigned Trip <span class="ui-required">*</span></label><small class="ddr-extra-trip-hint">Choose the correct scheduled trip for this entry.</small><select class="ddr-extra-assignment" data-trip-field="selected_trip_schedule_id"><option value="">Select an assigned trip...</option></select></div>
+                        {{-- Additional rows are journey logs under this physical DDR, not separate assignments. --}}
                         <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
                         <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
                         <x-ui.form-field label="To Location" name="ddr_trip_template_to" required placeholder="Destination terminal / stop" maxlength="150" data-trip-field="to_location" />

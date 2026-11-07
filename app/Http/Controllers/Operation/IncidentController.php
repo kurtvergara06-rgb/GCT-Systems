@@ -92,12 +92,14 @@ class IncidentController extends Controller
             ->withQueryString();
 
         $totalIncidents = Incident::query()->count();
+        // Match the Active tab: Replacement Bus Dispatched remains active
+        // until the incident is actually Resolved or Cancelled.
         $activeIncidents = Incident::query()
-            ->whereIn('status', ['Reported', 'Monitoring', 'Responding'])
+            ->whereNotIn('status', ['Resolved', 'Cancelled'])
             ->count();
         $breakdownIncidents = Incident::query()
             ->where('incident_type', 'Bus Breakdown')
-            ->whereIn('status', ['Reported', 'Monitoring', 'Responding'])
+            ->whereNotIn('status', ['Resolved', 'Cancelled'])
             ->count();
         $resolvedToday = Incident::query()
             ->whereDate('resolved_at', now()->toDateString())
@@ -136,16 +138,10 @@ class IncidentController extends Controller
 
         $activeTripScope = function ($tripQuery) use ($today): void {
             $tripQuery
-                ->whereDate('trip_date', $today)
-                ->where(function ($statusQuery): void {
-                    $statusQuery
-                        ->whereIn('status', ['Ready', 'Dispatched'])
-                        ->orWhere(function ($assignedScheduled): void {
-                            $assignedScheduled
-                                ->where('status', 'Scheduled')
-                                ->where('assignment_status', 'Assigned');
-                        });
-                });
+                // An overnight journey can remain In Progress after midnight.
+                // Eligibility is determined by Dispatched, not today's date alone.
+                ->whereDate('trip_date', '<=', $today)
+                ->where('status', 'Dispatched');
         };
 
         if ($tripAssignmentId) {
@@ -168,10 +164,10 @@ class IncidentController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        // Keep every Ready-trip slot, not just the first assignment per trip.
+        // Keep every In Progress bus slot, not just the first assignment per trip.
         $availableTrips = $myAssignments;
 
-        // The normal Report Incident form is scoped to buses assigned to Ready trips.
+        // The normal Report Incident form is scoped to buses on In Progress trips.
         $assignedBusIds = $myAssignments->pluck('bus_id')->unique();
         $incidentBuses = Bus::query()->whereIn('id', $assignedBusIds)
             ->where('status', 'Active')
@@ -259,20 +255,16 @@ class IncidentController extends Controller
             }
         }
 
-        // Restrict newly submitted incident reports to active Ready/Dispatched trip assignments.
+        // Normal incident reporting is restricted to In Progress assignments.
+        // A mechanical breakdown may also be reported before departure on a
+        // Ready trip: its original bus must enter Maintenance and Operations
+        // needs the existing reserve replacement / readiness restoration flow.
         $reportDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        $reportTripScope = function ($tripQuery) use ($reportDate): void {
+        $isBreakdown = $validated['incident_type'] === 'Bus Breakdown';
+        $reportTripScope = function ($tripQuery) use ($reportDate, $isBreakdown): void {
             $tripQuery
-                ->whereDate('trip_date', $reportDate)
-                ->where(function ($statusQuery): void {
-                    $statusQuery
-                        ->whereIn('status', ['Ready', 'Dispatched'])
-                        ->orWhere(function ($assignedScheduled): void {
-                            $assignedScheduled
-                                ->where('status', 'Scheduled')
-                                ->where('assignment_status', 'Assigned');
-                        });
-                });
+                ->whereDate('trip_date', '<=', $reportDate)
+                ->whereIn('status', $isBreakdown ? ['Ready', 'Dispatched'] : ['Dispatched']);
         };
 
         $eligibleAssignment = TripAssignment::query()
@@ -281,7 +273,9 @@ class IncidentController extends Controller
             ->whereHas('tripSchedule', $reportTripScope);
         if (! $eligibleAssignment->exists()) {
             throw ValidationException::withMessages([
-                'bus_id' => 'Choose a bus assigned to a Ready trip today.',
+                'bus_id' => $isBreakdown
+                    ? 'Choose a bus assigned to a Ready or In Progress trip.'
+                    : 'Choose a bus assigned to an In Progress trip.',
             ]);
         }
 
@@ -685,6 +679,15 @@ class IncidentController extends Controller
             }
 
             $locked->update($updateData);
+
+            // Resolving a breakdown does not prove the trip completed.
+            // Release only verified Continued outcomes after ETA; Interrupted,
+            // Cancelled and Unknown remain on Incident Hold for review.
+            if ($locked->incident_type === 'Bus Breakdown' && $locked->trip_schedule_id
+                && $validated['status'] === 'Resolved') {
+                app(\App\Services\Operation\TripDdrLifecycleService::class)
+                    ->releaseAfterIncident((int) $locked->trip_schedule_id);
+            }
 
             if (Schema::hasTable('incident_responses')) {
                 IncidentResponse::create([

@@ -57,4 +57,31 @@ JS,
             $animations
         );
     }
+    public function test_shared_form_modals_keep_action_footer_outside_the_scrollport(): void
+    {
+        $component = file_get_contents(
+            resource_path('views/components/ui/form-modal.blade.php')
+        );
+        $css = file_get_contents(
+            resource_path('css/Main-styles/form-components.css')
+        );
+
+        $this->assertStringContainsString('class="ui-form-modal-scrollable"', $component);
+        $this->assertStringContainsString('class="ui-form-actions"', $component);
+        $this->assertGreaterThan(
+            strpos($component, 'class="ui-form-modal-scrollable"'),
+            strpos($component, 'class="ui-form-actions"')
+        );
+        $this->assertStringContainsString('GCT shared form modal scroll contract', $css);
+        $this->assertStringContainsString(
+            '.ui-form-overlay > .ui-form-modal > .ui-form-content > .ui-form-modal-body > .ui-form-modal-scrollable',
+            $css
+        );
+        $this->assertStringContainsString('overflow-y: auto;', $css);
+        $this->assertStringContainsString(
+            '.ui-form-overlay > .ui-form-modal > .ui-form-content > .ui-form-modal-body > .ui-form-actions',
+            $css
+        );
+    }
+
 }

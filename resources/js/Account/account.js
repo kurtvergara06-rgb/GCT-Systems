@@ -1,7 +1,34 @@
 window.GCTPartialNavigation.registerInitializer('account-management', '.account-main', () => {
+
+    // Display-only RBAC preview for the local Admin Head settings page.
+    // This does not change the authenticated role or permission checks.
+    const rolePreview = document.querySelector('[data-rbac-preview]');
+    if (rolePreview) {
+        const toggle = rolePreview.querySelector('[data-rbac-preview-toggle]');
+        const details = rolePreview.querySelector('[data-rbac-preview-details]');
+        const select = rolePreview.querySelector('[data-rbac-preview-select]');
+        const panels = rolePreview.querySelectorAll('[data-rbac-preview-panel]');
+
+        const updateRolePreview = () => {
+            if (!toggle || !details || !select) return;
+            details.hidden = !toggle.checked;
+            panels.forEach((panel) => {
+                panel.hidden = panel.dataset.rbacPreviewPanel !== select.value;
+            });
+        };
+
+        toggle?.addEventListener('change', updateRolePreview);
+        select?.addEventListener('change', updateRolePreview);
+        updateRolePreview();
+    }
+
     const avatarForm = document.querySelector('[data-avatar-upload-form]');
     const avatarTrigger = avatarForm?.querySelector('[data-avatar-trigger]');
     const avatarInput = avatarForm?.querySelector('[data-avatar-input]');
+    // The separate Change Photo button reuses the same upload and crop flow.
+    document.querySelector('[data-avatar-change-button]')?.addEventListener('click', () => {
+        avatarTrigger?.click();
+    });
     const avatarPreview = avatarForm?.querySelector('[data-avatar-preview]');
     const avatarError = document.querySelector('[data-avatar-client-error]');
     const cropModal = document.querySelector('[data-avatar-crop-modal]');

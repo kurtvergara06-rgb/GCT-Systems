@@ -149,6 +149,7 @@
                     ['label' => 'Routes', 'route' => 'operation.routes', 'icon' => 'fa-route'],
                     ['label' => 'Driver Master List', 'route' => 'operation.personnel.drivers', 'icon' => 'fa-id-card'],
                     ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
+                    ['label' => 'Client Master List', 'route' => 'operation.clients.index', 'icon' => 'fa-building'],
                 ],
             ],
             [
@@ -162,6 +163,7 @@
                 'label' => 'Trip Planning & Scheduling',
                 'icon' => 'fa-calendar-days',
                 'children' => [
+                    ['label' => 'Client Trip Times', 'route' => 'client-trip-times', 'icon' => 'fa-clock'],
                     ['label' => 'Trip Schedule', 'route' => 'trip-schedule', 'icon' => 'fa-calendar-days'],
                     ['label' => 'Driver & Bus Assignment', 'route' => 'driver-bus-assignment', 'icon' => 'fa-user-tie'],
                     ['label' => 'Auto Scheduling', 'route' => 'auto-scheduling', 'icon' => 'fa-wand-magic-sparkles'],
@@ -371,7 +373,7 @@
         || ($normalizedDepartment === 'admin' && $normalizedRole === 'head');
 @endphp
 
-<aside class="sidebar" id="appSidebar" data-gct-shell="{{ $componentDepartment }}">
+<aside class="sidebar" id="appSidebar" data-gct-shell="{{ $componentDepartment }}" data-gct-user-id="{{ $authUser?->id }}">
     <button
         type="button"
         class="sidebar-collapse-btn"
@@ -489,6 +491,8 @@
             class="user-box sidebar-profile-toggle"
             id="sidebarProfileToggle"
             aria-expanded="false"
+            aria-controls="sidebarProfileMenu"
+            aria-haspopup="menu"
             title="{{ $displayName }}"
         >
             <div class="avatar">
@@ -505,38 +509,64 @@
             <i class="fa-solid fa-chevron-down profile-chevron"></i>
         </button>
 
-        <div class="sidebar-profile-menu" id="sidebarProfileMenu">
+        <div class="sidebar-profile-menu" id="sidebarProfileMenu" role="menu" aria-label="Account menu" aria-hidden="true">
             <div class="profile-menu-header">
                 <div class="profile-menu-avatar">
                     @if ($sidebarProfilePhotoUrl)
-                        <img src="{{ $sidebarProfilePhotoUrl }}" alt="{{ $displayName }} profile photo" class="sidebar-user-photo">
+                        <img src="{{ $sidebarProfilePhotoUrl }}" alt="" class="sidebar-user-photo">
                     @else
                         {{ $initials }}
                     @endif
                 </div>
-                <div>
+                <div class="profile-menu-identity">
                     <h4>{{ $displayName }}</h4>
                     <p>{{ $displayRole }}</p>
+                    <span class="profile-menu-department">{{ ucfirst($normalizedDepartment) }} Department</span>
                 </div>
             </div>
 
             <div class="profile-menu-divider"></div>
 
-            <button type="button" class="profile-menu-item" disabled>
-                <i class="fa-solid fa-user"></i>
-                <span>Profile</span>
-            </button>
+            @if(\Illuminate\Support\Facades\Route::has('account.profile'))
+                <a href="{{ route('account.profile', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    <span>My Profile</span>
+                </a>
+            @endif
 
-            @if($canOpenMaintenanceSettings && \Illuminate\Support\Facades\Route::has('settings'))
-                <a href="{{ route('settings', [], false) }}" class="profile-menu-item">
-                    <i class="fa-solid fa-gear"></i>
+            @if(\Illuminate\Support\Facades\Route::has('account.personalization'))
+                <a href="{{ route('account.personalization', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                    <span>Personalization</span>
+                </a>
+            @endif
+
+            @if(\Illuminate\Support\Facades\Route::has('account.preferences'))
+                <a href="{{ route('account.preferences', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>
                     <span>Settings</span>
                 </a>
-            @else
-                <button type="button" class="profile-menu-item" disabled>
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Settings</span>
-                </button>
+            @endif
+
+            @if(\Illuminate\Support\Facades\Route::has('account.settings'))
+                <a href="{{ route('account.settings', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                    <span>Security &amp; Password</span>
+                </a>
+            @endif
+
+            @if(\Illuminate\Support\Facades\Route::has('onboarding.show'))
+                <a href="{{ route('onboarding.show', ['replay' => 1], false) }}" class="profile-menu-item" role="menuitem" data-system-tutorial-link>
+                    <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                    <span>System Tutorial</span>
+                </a>
+            @endif
+
+            @if($canOpenMaintenanceSettings && \Illuminate\Support\Facades\Route::has('settings'))
+                <a href="{{ route('settings', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                    <span>Department Settings</span>
+                </a>
             @endif
 
             <div class="profile-menu-divider"></div>
@@ -553,16 +583,11 @@
                     data-confirm-type="logout"
                 >
                     @csrf
-                    <button type="submit" class="profile-menu-item logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
+                    <button type="submit" class="profile-menu-item logout" role="menuitem">
+                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                         <span>Log out</span>
                     </button>
                 </form>
-            @else
-                <button type="button" class="profile-menu-item logout" disabled>
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Log out</span>
-                </button>
             @endif
         </div>
     </div>

@@ -3828,3 +3828,27 @@
 .inc-page .inc-table td .inc-status-dot-pill[data-status-key="cancelled"] {
     color: #64748b; background: #f1f5f9; border-color: #dae2eb;
 }
+
+
+/* Responsive content width: sidebar and DevTools can leave a narrow main pane
+   even when viewport-based breakpoints would still select four KPI columns. */
+.inc-page .inc-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 225px), 1fr));
+}
+.inc-page .inc-summary-card {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.inc-page .inc-summary-card > div:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.inc-page .inc-summary-card p,
+.inc-page .inc-summary-card small {
+    line-height: 1.45;
+}
+.inc-page .inc-card,
+.inc-page .inc-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}

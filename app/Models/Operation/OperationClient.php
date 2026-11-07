@@ -9,7 +9,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OperationClient extends Model
 {
-    protected $fillable = ['name', 'status'];
+    protected $fillable = [
+        'name', 'status', 'company_address', 'contact_person', 'contact_position',
+        'contact_number', 'contact_email', 'service_start_date',
+    ];
+
+    protected function casts(): array
+    {
+        return ['service_start_date' => 'date'];
+    }
 
     public function isActive(): bool
     {

@@ -37,6 +37,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const removeAssignmentModal =
         document.getElementById('removeAssignmentModal');
 
+    const cancelAssignmentTripModal =
+        document.getElementById('cancelAssignmentTripModal');
+    const cancelAssignmentTripForm =
+        document.getElementById('cancelAssignmentTripForm');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -70,6 +75,16 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     const assignmentRestoreState =
         document.getElementById('assignmentRestoreState');
+    const replacementReasonGroup = document.getElementById('readyReplacementReasonGroup');
+    const replacementReason = document.getElementById('readyReplacementReason');
+    const setReplacementReasonMode = (required) => {
+        if (replacementReasonGroup) replacementReasonGroup.hidden = !required;
+        if (replacementReason) {
+            replacementReason.required = required;
+            if (!required) replacementReason.value = '';
+        }
+    };
+
 
 
     /*
@@ -456,7 +471,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     }
 
 
-    async function loadAvailability(tripId, explicitUrl = '') {
+    async function loadAvailability(tripId, explicitUrl = '', ignoreAssignmentId = '') {
         const pendingSlotInput = document.getElementById('assignmentPendingSlot');
         const lockedTripInput = document.getElementById('assignmentLockedTrip');
         const pendingContext = document.getElementById('assignmentPendingSlotContext');
@@ -483,7 +498,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         setAvailabilityMessage('Loading available resources…');
 
         try {
-            const response = await fetch(url, {
+            const availabilityUrl = new URL(url, window.location.origin);
+            if (ignoreAssignmentId) availabilityUrl.searchParams.set('assignment_id', ignoreAssignmentId);
+            const response = await fetch(availabilityUrl.toString(), {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -528,6 +545,81 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     |--------------------------------------------------------------------------
     */
 
+    // Driver and Bus menus must escape the form modal's scroll container.
+    // Native manual popovers stay DOM children of their comboboxes, so the
+    // existing option click handlers and outside-click checks still work.
+    const positionAssignmentMenu = (menu, trigger) => {
+        if (!menu?.classList.contains('show') || !trigger) return;
+        const rect = trigger.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const gutter = 12;
+        const viewportLeft = viewport?.offsetLeft || 0;
+        const viewportTop = viewport?.offsetTop || 0;
+        const viewportWidth = viewport?.width || window.innerWidth;
+        const viewportHeight = viewport?.height || window.innerHeight;
+        const maxWidth = Math.max(1, viewportWidth - gutter * 2);
+        const maxHeight = Math.max(1, viewportHeight - gutter * 2);
+        const width = Math.min(Math.max(rect.width, 200), maxWidth);
+        const menuHeight = Math.min(menu.scrollHeight || 280, maxHeight);
+        const bottomLimit = viewportTop + viewportHeight - gutter;
+        const topLimit = viewportTop + gutter;
+        const above = rect.top - topLimit;
+        const below = bottomLimit - rect.bottom;
+        const top = below < menuHeight + 8 && above > below
+            ? rect.top - menuHeight - 6
+            : rect.bottom + 6;
+        Object.assign(menu.style, {
+            position: 'fixed',
+            inset: 'auto',
+            right: 'auto',
+            bottom: 'auto',
+            margin: '0',
+            boxSizing: 'border-box',
+            width: width + 'px',
+            maxWidth: maxWidth + 'px',
+            maxHeight: maxHeight + 'px',
+            overflowY: 'auto',
+            left: Math.max(viewportLeft + gutter,
+                Math.min(rect.left, viewportLeft + viewportWidth - gutter - width)) + 'px',
+            top: Math.max(topLimit, Math.min(top, bottomLimit - menuHeight)) + 'px',
+        });
+    };
+
+    const showAssignmentMenu = (menu, trigger) => {
+        if (!menu) return;
+        menu.classList.add('show');
+        if (typeof menu.showPopover === 'function') {
+            menu.setAttribute('popover', 'manual');
+            if (!menu.matches(':popover-open')) {
+                try {
+                    menu.showPopover();
+                } catch {
+                    // Avoid the UA hiding a menu with [popover] but no
+                    // :popover-open state when top-layer activation fails.
+                    menu.removeAttribute('popover');
+                }
+            }
+        }
+        positionAssignmentMenu(menu, trigger);
+    };
+
+    const hideAssignmentMenu = (menu) => {
+        if (!menu) return;
+        if (menu.matches?.(':popover-open')) menu.hidePopover();
+        menu.removeAttribute('popover');
+        menu.classList.remove('show');
+    };
+
+    const repositionAssignmentMenus = () => {
+        positionAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger);
+        positionAssignmentMenu(assignmentBusMenu, assignmentBusTrigger);
+    };
+
+    window.addEventListener('resize', repositionAssignmentMenus);
+    window.visualViewport?.addEventListener('resize', repositionAssignmentMenus);
+    window.visualViewport?.addEventListener('scroll', repositionAssignmentMenus);
+    document.addEventListener('scroll', repositionAssignmentMenus, true);
+
     function openDriverDropdown() {
         if (
             !assignmentDriverMenu
@@ -538,9 +630,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
         closeBusDropdown();
 
-        assignmentDriverMenu.classList.add(
-            'show'
-        );
+        showAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger);
 
         assignmentDriverTrigger.setAttribute(
             'aria-expanded',
@@ -561,9 +651,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             return;
         }
 
-        assignmentDriverMenu.classList.remove(
-            'show'
-        );
+        hideAssignmentMenu(assignmentDriverMenu);
 
         assignmentDriverTrigger.setAttribute(
             'aria-expanded',
@@ -706,9 +794,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         // after a trip or driver change).
         filterBusOptions(assignmentBusSearch?.value || '');
 
-        assignmentBusMenu.classList.add(
-            'show'
-        );
+        showAssignmentMenu(assignmentBusMenu, assignmentBusTrigger);
 
         assignmentBusTrigger.setAttribute(
             'aria-expanded',
@@ -729,9 +815,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             return;
         }
 
-        assignmentBusMenu.classList.remove(
-            'show'
-        );
+        hideAssignmentMenu(assignmentBusMenu);
 
         assignmentBusTrigger.setAttribute(
             'aria-expanded',
@@ -870,6 +954,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         assignmentForm.reset();
+        setReplacementReasonMode(false);
         document.getElementById('companyAssignmentFields')?.classList.remove('pending-slot-trip-locked');
         document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
         if (pairPicker) pairPicker.hidden = false;
@@ -1005,18 +1090,24 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
             await loadAvailability(
                 editButton.dataset.tripId || '',
-                editButton.dataset.availabilityUrl || ''
+                editButton.dataset.availabilityUrl || '',
+                assignmentId
             );
 
             selectDriverById(editButton.dataset.driverId || '');
             selectBusById(editButton.dataset.busId || '');
 
+            const readyReplacement = editButton.dataset.readyReplacement === 'true';
+            setReplacementReasonMode(readyReplacement);
+            if (readyReplacement && assignmentRestoreState?.dataset.hasErrors === 'true') {
+                if (replacementReason) replacementReason.value = assignmentRestoreState.dataset.replacementReason || '';
+            }
             if (assignmentModalTitle) {
-                assignmentModalTitle.textContent = 'Edit Assignment';
+                assignmentModalTitle.textContent = readyReplacement ? 'Replace Driver / Bus' : 'Edit Assignment';
             }
 
             if (assignmentSubmitText) {
-                assignmentSubmitText.textContent = 'Update Assignment';
+                assignmentSubmitText.textContent = readyReplacement ? 'Approve Replacement' : 'Update Assignment';
             }
 
             openModal(assignmentModal);
@@ -1318,6 +1409,25 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                     `;
                 })
                 .join('');
+
+        const history = Array.isArray(details.replacementHistory)
+            ? details.replacementHistory : [];
+        if (history.length) {
+            const section = document.createElement('section');
+            section.className = 'assignment-replacement-history';
+            section.innerHTML = `
+                <h3>Approved Replacement History</h3>
+                ${history.map((entry) => `
+                    <article class="assignment-replacement-event">
+                        <strong>${escapeHtml(entry.date || 'Recorded replacement')}</strong>
+                        <div><span>Driver</span> ${escapeHtml(entry.previousDriver || 'Unknown')} → ${escapeHtml(entry.newDriver || 'Unknown')}</div>
+                        <div><span>Bus</span> ${escapeHtml(String(entry.previousBus || 'Unknown'))} → ${escapeHtml(String(entry.newBus || 'Unknown'))}</div>
+                        <p><span>Reason:</span> ${escapeHtml(entry.reason || 'Not specified')}</p>
+                        <small>Approved by ${escapeHtml(String(entry.approvedBy || '—'))}</small>
+                    </article>`).join('')}
+            `;
+            viewAssignmentContent.appendChild(section);
+        }
     }
 
 
@@ -1381,6 +1491,33 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     /*
     |--------------------------------------------------------------------------
+    | Cancel Entire Trip (Operations Head only; server verifies again)
+    |--------------------------------------------------------------------------
+    */
+
+    document.querySelectorAll('.assignment-page .cancel-assignment-trip').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!cancelAssignmentTripModal || !cancelAssignmentTripForm) return;
+            const url = button.dataset.cancelUrl;
+            if (!url || !url.startsWith('/') || url.startsWith('//')) return;
+            cancelAssignmentTripForm.action = url;
+            const tripCode = cancelAssignmentTripModal.querySelector('#cancelAssignmentTripCode');
+            if (tripCode) tripCode.textContent = button.dataset.tripCode || 'this trip';
+            const reason = cancelAssignmentTripModal.querySelector('#assignmentCancellationReason');
+            if (reason) reason.value = '';
+            openModal(cancelAssignmentTripModal);
+            reason?.focus();
+        });
+    });
+
+    ['keepAssignmentTrip', 'closeCancelAssignmentTrip'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('click', () => {
+            closeModal(cancelAssignmentTripModal);
+        });
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Escape Key
     |--------------------------------------------------------------------------
     */
@@ -1392,12 +1529,21 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 return;
             }
 
+            // Escape dismisses a focused dropdown before closing its form.
+            // This prevents losing an in-progress assignment while searching.
+            const dropdownOpen = assignmentDriverMenu?.classList.contains('show')
+                || assignmentBusMenu?.classList.contains('show');
             closeDriverDropdown();
             closeBusDropdown();
+            if (dropdownOpen) {
+                event.preventDefault();
+                return;
+            }
 
             closeModal(assignmentModal);
             closeModal(viewAssignmentModal);
             closeModal(removeAssignmentModal);
+            closeModal(cancelAssignmentTripModal);
         }
     );
 

@@ -121,3 +121,141 @@ body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar-button {
 html:has(body.modal-open) {
   overflow: hidden;
 }
+
+
+/* GCT responsive records contract (opt-in).
+   Add gct-responsive-records on a normal table scroll wrapper.
+   Add gct-sticky-actions ONLY when the last column is Actions/Action.
+   Do not apply to modals, pivot tables, embedded details, or tables whose
+   final cell is not an action. Existing page-specific min-widths remain. */
+.gct-responsive-records {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.gct-responsive-records > table {
+  min-width: max(100%, 980px);
+}
+/* Sticky is harmless on a wide screen where there is no overflow.
+   Do not pin empty-row colspan cells or nested details. */
+.gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child,
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+  position: sticky;
+  right: 0;
+  min-width: 132px;
+  white-space: nowrap;
+  background: var(--gct-sticky-actions-background, #fff);
+  box-shadow: none;
+  z-index: 4;
+}
+.gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child {
+  z-index: 9;
+  background: var(--gct-sticky-actions-heading, #f3f7fc);
+}
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr:hover > td:last-child:not([colspan]) {
+  background: var(--gct-sticky-actions-hover, #f8fbff);
+}
+.gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) :is(.actions, .table-actions, .action-buttons) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+
+/* Shared horizontal table behavior. Compact and unobtrusive on all normal
+   record-table scrollports; no modal/pivot/analytics scrollbars are changed. */
+@media screen {
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap
+  ):has(> table) {
+    scrollbar-width: thin;
+    scrollbar-color: #a8b7c9 transparent;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap
+  ):has(> table)::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap
+  ):has(> table)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap
+  ):has(> table)::-webkit-scrollbar-thumb {
+    background: #a8b7c9;
+    border: 0;
+    border-radius: 3px;
+  }
+  main :is(
+    .gct-responsive-records,
+    .table-wrap, .table-responsive, .table-wrapper, .table-container,
+    .service-table-scroll, .assignment-table-wrap, .auto-table-wrap,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap
+  ):has(> table)::-webkit-scrollbar-thumb:hover {
+    background: #7188a4;
+  }
+
+  /* Never draw the sticky-column divider on a table that fits. The stronger
+     no-overflow rule also clears old page-local shadows (e.g. Auto Scheduling). */
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none !important;
+  }
+  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+  }
+
+  main .gct-drag-scroll-ready { cursor: grab; }
+  main .gct-drag-scroll-ready.is-drag-scrolling { cursor: grabbing; user-select: none; }
+  main .gct-drag-scroll-ready :is(button, a, input, select, textarea, summary, [role="button"]) { cursor: pointer; }
+  main .gct-drag-scroll-ready :is(td, th, span, strong, small) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+
+/* Opt-in master records viewport: ten actual rendered rows, measured by JS.
+   The table itself remains a normal semantic table with native scrolling. */
+main .table-wrap.gct-master-scroll-10.is-master-scrollable,
+main .client-master-table-wrap.gct-master-scroll-10.is-master-scrollable {
+  max-height: var(--gct-master-scroll-height) !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+main .gct-master-scroll-10.is-master-scrollable > table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--gct-sticky-actions-heading, #f3f7fc);
+}
+main .gct-master-scroll-10.is-master-scrollable.gct-sticky-actions > table > thead > tr > th:last-child {
+  z-index: 10;
+}
+main .gct-master-scroll-10:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}

@@ -3,6 +3,7 @@ const toastSelector = '[data-system-toast]';
 const closeButtonSelector = '.system-toast-close';
 const removeDelay = 4000;
 const removeAnimationDelay = 180;
+const maxVisibleToasts = 3;
 
 const toastTimeoutByType = {
     success: 4000,
@@ -48,17 +49,20 @@ const removeToast = (toast) => {
 
     clearToastTimers(toast);
     const finishRemoval = () => {
+        clearToastTimers(toast);
         toast.remove();
-        toastTimers.delete(toast);
     };
 
     toast.classList.add('is-removing');
 
-    if (window.GCTSystemAnimations?.animateToastOut?.(toast, finishRemoval)) {
-        return;
-    }
+    const animated = window.GCTSystemAnimations?.animateToastOut?.(toast, finishRemoval);
 
-    const cleanupTimer = window.setTimeout(finishRemoval, removeAnimationDelay);
+    // Animation completion normally removes the toast. Keep a fallback in
+    // case the page animation is interrupted by navigation or another tween.
+    const cleanupTimer = window.setTimeout(
+        finishRemoval,
+        animated ? 500 : removeAnimationDelay
+    );
 
     toastTimers.set(toast, { cleanupTimer });
 };
@@ -184,6 +188,16 @@ window.showSystemToast = function (message, type = 'info', title = null, options
             options.timeout ?? null
         );
         return duplicateToast;
+    }
+
+    // Transient notifications should never form an unlimited stack. Evict the
+    // oldest toast immediately (including its timer) before adding a new one.
+    const visibleToasts = Array.from(root.querySelectorAll(toastSelector));
+    while (visibleToasts.length >= maxVisibleToasts) {
+        const oldest = visibleToasts.shift();
+        clearToastTimers(oldest);
+        window.gsap?.killTweensOf?.(oldest);
+        oldest.remove();
     }
 
     const toast = document.createElement('div');

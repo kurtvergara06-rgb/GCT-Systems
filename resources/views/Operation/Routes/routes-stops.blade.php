@@ -70,7 +70,7 @@
         :value="$routeStats['inactive']"
         small="Currently unavailable"
         icon="fa-circle-pause"
-        color="orange"
+        color="gray"
     />
 
     <x-ui.summary-card
@@ -137,7 +137,7 @@
                 {{-- =================================================
                     TABLE
                 ================================================== --}}
-                <div class="table-wrap routes-table-wrap">
+                <div class="table-wrap routes-table-wrap gct-responsive-records gct-sticky-actions">
 
                     <table class="routes-table">
 
@@ -508,9 +508,8 @@
                 id="routeClient"
                 data-can-approve="{{ $canApproveRouteChanges ? '1' : '0' }}"
                 :options="$routeClients->pluck('name', 'id')->all()"
-                placeholder="Select a client from Client Trip Times"
+                placeholder="No Client (General Route)"
                 icon="fa-building"
-                required
                 full
             />
             <input type="hidden" name="operation_client_id" id="routeClientLockedValue" disabled>

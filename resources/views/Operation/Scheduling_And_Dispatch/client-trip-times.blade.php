@@ -79,9 +79,9 @@
                         <h2>Client Configurations</h2>
                         <p>Manage the allowed time slots for incoming and outgoing trips by client.</p>
                     </div>
-                    @if($canEditOperation)
-                        <button type="button" class="ctt-btn ctt-btn-primary ctt-create-client-primary" id="cttAddClientButton"><i class="fa-solid fa-plus" aria-hidden="true"></i> Create Client</button>
-                    @endif
+                    <span class="ctt-client-count" id="cttClientCount" aria-live="polite">
+                        {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
+                    </span>
                 </div>
 
                 <div class="ctt-toolbar" aria-label="Client search, filter and sorting tools">
@@ -114,9 +114,6 @@
                                 <span>Expand all</span>
                             </button>
                         @endif
-                        <span class="ctt-client-count" id="cttClientCount">
-                            {{ $clients->count() }} {{ \Illuminate\Support\Str::plural('Client', $clients->count()) }}
-                        </span>
                     </div>
                 </div>
 
@@ -250,7 +247,7 @@
                     <div class="ctt-page-empty" id="cttPageEmpty">
                         <i class="fa-solid fa-building-circle-xmark" aria-hidden="true"></i>
                         <strong>No clients available</strong>
-                        <span>Create a client using the Create Client button above to begin configuring departure times.</span>
+                        <span>Clients registered in Client Master List appear here automatically. Add a client there to configure its trip times.</span>
                     </div>
                 @endforelse
 
@@ -374,26 +371,7 @@
                     </button>
                 </div>
             </x-ui.form-modal>
-            @if($canEditOperation)
-                <x-ui.form-modal
-                    id="cttCreateClientModal"
-                    title="Create Client"
-                    description="Add a client record, then configure its allowed departure times."
-                    icon="fa-building"
-                    size="small"
-                    form-id="cttCreateClientForm"
-                    :action="route('operation.clients.store')"
-                    submit-text="Save Client"
-                >
-                    <div class="ui-form-group">
-                        <label for="cttNewClientName">Client Name <span class="ui-required">*</span></label>
-                        <input type="text" id="cttNewClientName" name="name" minlength="2" maxlength="150" value="{{ old('name') }}" required autocomplete="off" placeholder="Enter client name">
-                        @error('name')
-                            <span class="ctt-field-error" role="alert">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </x-ui.form-modal>
-            @endif
+
 
         </main>
     </div>

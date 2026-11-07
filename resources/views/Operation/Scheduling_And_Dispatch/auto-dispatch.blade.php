@@ -76,12 +76,13 @@
                         <p>Select the date and route to prepare driver and bus recommendations.</p>
                     </div>
                     <div class="auto-header-side-actions">
-                        <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks active drivers, authorization, bus availability, and schedule conflicts before confirming assignments. No attendance record is created.</span></div>
                         <a class="schedule-secondary-btn auto-client-trip-times-link" href="{{ route('client-trip-times') }}">
                             <i class="fa-solid fa-clock" aria-hidden="true"></i> Client Trip Times
                         </a>
                     </div>
                 </div>
+
+                <div class="auto-scheduling-assurance" role="note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Before confirmation, GCT checks driver authorization, bus availability, and scheduling conflicts. Planning does not create attendance records.</span></div>
 
                 <form id="autoSchedulingForm" class="auto-scheduling-form">
                     @csrf
@@ -308,7 +309,7 @@
                         </div>
                     </header>
 
-                    <div class="auto-table-wrap" role="region" aria-label="Incoming trip recommendations" tabindex="0">
+                    <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Incoming trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
                                 <col style="width:9%">
@@ -382,7 +383,7 @@
                         </div>
                     </header>
 
-                    <div class="auto-table-wrap" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
+                    <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
                                 <col style="width:9%">

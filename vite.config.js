@@ -28,6 +28,7 @@ export default defineConfig({
                 'resources/css/Main-styles/gct-scrollbar.css',
                 'resources/css/Main-styles/pr-details-modal.css',
                 'resources/css/Account/account.css',
+                'resources/css/Main-styles/account-preferences.css',
 
                 'resources/js/Main-js/partial-navigation.js',
                 'resources/js/Main-js/sidebar.js',
@@ -202,11 +203,13 @@ export default defineConfig({
 
                 'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/client-trip-times.css',
+                'resources/css/Operation/Clients/client-master-list.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
 
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/client-trip-times.js',
+                'resources/js/Operation/Clients/client-master-list.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
 

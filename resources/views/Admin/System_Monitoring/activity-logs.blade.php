@@ -94,7 +94,7 @@
                     <span>Loading activity records...</span>
                 </div>
 
-                <div class="table-wrap activity-table-wrap">
+                <div class="table-wrap activity-table-wrap gct-responsive-records gct-sticky-actions">
                     <table id="activityLogsTable" class="activity-logs-table">
                         <thead>
                             <tr>

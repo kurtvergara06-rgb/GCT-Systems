@@ -5195,3 +5195,335 @@ body.ai-modal-open {
 /* Two active scheduling filters: date and route (Shift was retired). */
 .auto-scheduling-page .schedule-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 660px) { .auto-scheduling-page .schedule-form-grid { grid-template-columns: 1fr; } }
+
+/* Preview actions stay accessible when the eight-column timetable overflows.
+   Leave full-width client group rows and empty states unpinned. */
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions {
+    overflow-x: auto;
+    scrollbar-gutter: auto;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+    min-width: 190px;
+    width: 190px;
+    text-align: center;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+    background: #fff;
+}
+.auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: #f8fbff;
+}
+
+
+/* Auto Scheduling preview: provide a real horizontal scroll range instead of
+   squeezing result/driver cells under the sticky Action column. Desktop-wide
+   tables still fill their container without unnecessary scroll tracks. */
+@media screen {
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    scrollbar-gutter: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #a8b7c9 transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
+    width: 100%;
+    min-width: 1120px;
+    table-layout: fixed;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-thumb {
+    background: #a8b7c9;
+    border: 0;
+    border-radius: 3px;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar-thumb:hover {
+    background: #7188a4;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+    position: sticky;
+    right: 0;
+    min-width: 190px;
+    width: 190px;
+    box-sizing: border-box;
+    background: #fff;
+    box-shadow: -1px 0 0 #d6e1ef, -8px 0 13px -12px rgba(15, 23, 42, .3);
+    z-index: 6;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
+    z-index: 12;
+    background: var(--auto-table-head, #f3f7fc);
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
+    background: #f8fafc;
+  }
+}
+
+/* Preserve the compact preview components; mouse drag only scrolls when the
+   table is genuinely wider than its wrapper. Touch remains native. */
+@media screen and (pointer: fine) {
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready {
+    cursor: grab;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready.is-drag-scrolling {
+    cursor: grabbing;
+    user-select: none;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready :is(button, a, input, select, textarea, summary, [role="button"]) {
+    cursor: pointer;
+  }
+}
+
+/* Reuse the compact eight-column preview geometry. Avoid imposing an
+   oversized 1360px canvas just to make drag scrolling possible. */
+@media screen {
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
+    min-width: 1250px;
+  }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(1) { width: 8% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(2) { width: 11% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(3) { width: 14% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(4) { width: 11% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(5) { width: 16% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(6) { width: 10% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(7) { width: 15% !important; }
+  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(8) { width: 15% !important; }
+}
+@media screen and (pointer: fine) {
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready,
+  .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready :is(td, th, span, strong, small) {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+
+/* Compact Scheduling Setup: no tall, stretched resource card or stacked CTA. */
+@media screen {
+  .auto-scheduling-page .auto-main-grid {
+    align-items: start;
+  }
+  .auto-scheduling-page .auto-main-grid > .schedule-configuration-card,
+  .auto-scheduling-page .auto-main-grid > .resource-card {
+    min-width: 0;
+    height: auto;
+    align-self: start;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header {
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header > div:first-child {
+    min-width: 0;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-header-side-actions {
+    flex: 0 0 auto;
+    align-items: center;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-client-trip-times-link {
+    min-height: 38px;
+    padding: 7px 11px;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-scheduling-assurance {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: none;
+    margin: 0 0 15px;
+    padding: 9px 11px;
+    border: 1px solid #dce9ff;
+    border-radius: 9px;
+    background: #f4f8ff;
+    color: #2155a0;
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+  .auto-scheduling-page .schedule-configuration-card > .auto-scheduling-assurance i {
+    flex: 0 0 auto;
+    font-size: 14px;
+    margin: 0;
+  }
+  .auto-scheduling-page .schedule-configuration-card .generation-summary {
+    margin-top: 13px;
+    padding: 10px 13px;
+    gap: 12px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status {
+    min-height: 0;
+    margin-top: 12px;
+    padding: 9px 12px;
+    gap: 8px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status .ai-status-label {
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .ai-ml-status .ai-status-badge {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .schedule-configuration-card .generate-schedule-btn {
+    margin-top: 13px;
+    height: 47px;
+  }
+  .auto-scheduling-page .auto-main-grid > .resource-card .resource-item {
+    padding: 11px 0;
+  }
+}
+@media screen and (max-width: 700px) {
+  .auto-scheduling-page .schedule-configuration-card > .auto-card-header {
+    flex-wrap: wrap;
+  }
+  .auto-scheduling-page .schedule-configuration-card .auto-header-side-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
+/* AI Conflict Review: keep the queue readable and the side report compact.
+   Presentation-only; conflict sorting, calculations and actions are unchanged. */
+@media screen and (min-width: 1251px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-single-conflict):not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1.75fr) minmax(380px, .95fr);
+    gap: 14px;
+  }
+}
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-list,
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-panel {
+    min-width: 0;
+    align-self: start;
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgba(15, 42, 76, .04);
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px 12px;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-tabs {
+    gap: 3px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-tabs button {
+    padding: 9px 8px;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace [data-gct-conflict-search] {
+    flex: 0 1 250px;
+    min-width: 155px;
+    max-width: 250px;
+    height: 37px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th {
+    padding: 10px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table td {
+    height: auto;
+    min-height: 62px;
+    padding: 12px 7px;
+    line-height: 1.45;
+    font-size: 11px;
+    vertical-align: middle;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(1) { width: 22%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(2) { width: 15%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(3) { width: 11%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(4) { width: 26%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(5) { width: 11%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table th:nth-child(6) { width: 15%; }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-table .gct-conflict-issue {
+    font-size: 11px;
+    color: #344760;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-count {
+    padding: 9px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-header {
+    min-height: 48px;
+    padding: 10px 13px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-trip {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta {
+    gap: 7px;
+    padding: 10px 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta > div {
+    min-height: 0;
+    padding: 9px 7px;
+    gap: 6px;
+    align-items: center;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-meta > div i {
+    flex: 0 0 auto;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-alert {
+    min-height: 0;
+    margin: 0 11px 10px;
+    padding: 11px 12px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs button {
+    min-height: 40px;
+    padding: 9px 5px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-recommendations {
+    padding: 9px 11px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-actions {
+    padding: 9px 11px 11px;
+    gap: 7px;
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-actions .ai-resolution-btn {
+    min-height: 38px;
+    padding: 9px 7px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
+@media screen and (max-width: 1250px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-panel {
+    position: static;
+  }
+}
+@media screen and (max-width: 670px) {
+  .auto-scheduling-page .gct-conflict-workspace .gct-conflict-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .auto-scheduling-page .gct-conflict-workspace [data-gct-conflict-search] {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+  }
+}

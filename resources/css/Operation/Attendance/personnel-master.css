@@ -2360,7 +2360,7 @@
 
 
 /* Consistent Operations record tabs and section divider. */
-.personnel-master-page .personnel-master-panel > .personnel-section-header {
+.personnel-master-page .driver-master-panel > .personnel-section-header {
     padding-bottom: 15px;
     margin-bottom: 12px;
     border-bottom: 0;
@@ -2536,3 +2536,95 @@
 @media(max-width:950px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:700px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(2,minmax(0,1fr))}.personnel-catalog-dialog .personnel-catalog-skills-heading {align-items:flex-start}}
 @media(max-width:420px) {.personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:1fr}}
+
+
+/* Operations Driver Master List — responsive column contract.
+   The earlier 17%-wide name column was narrower than the name cell's
+   own 190px minimum, allowing its contents to overlap the contact cell.
+   Keep this isolated from the Mechanic Master List and other tables. */
+.personnel-master-page .driver-master-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  max-height: none !important;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.personnel-master-page .driver-master-table-scroll > .driver-master-records-table {
+  width: 100%;
+  min-width: 1120px;
+  table-layout: fixed;
+}
+.personnel-master-page .driver-master-records-table .driver-col-id { width: 12%; }
+.personnel-master-page .driver-master-records-table .driver-col-name { width: 23%; }
+.personnel-master-page .driver-master-records-table .driver-col-contact { width: 15%; }
+.personnel-master-page .driver-master-records-table .driver-col-buses { width: 24%; }
+.personnel-master-page .driver-master-records-table .driver-col-status { width: 12%; }
+.personnel-master-page .driver-master-records-table .driver-col-actions { width: 14%; }
+.personnel-master-page .driver-master-records-table td:nth-child(2) .personnel-name-cell {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(2) .personnel-name-cell > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(3) {
+  white-space: nowrap;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(4) .driver-bus-summary {
+  max-width: 100%;
+  min-width: 0;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(6) .actions {
+  flex-wrap: nowrap;
+}
+/* The sidebar makes the table's available width smaller than the viewport.
+   Always pin Actions inside its scroll container; this is inert when no
+   horizontal overflow exists. Apply only to the real six-column data rows. */
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:nth-child(6),
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody td:nth-child(6) {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: #fff;
+  box-shadow: -1px 0 #dbe5f0, -8px 0 14px -13px rgba(15, 23, 42, .36);
+}
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:nth-child(6) {
+  z-index: 7;
+  background: #f3f7fc;
+}
+.personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody tr:hover td:nth-child(6) {
+  background: #f8fbff;
+}
+
+
+/* Driver Records header: the generic <=1380px toolbar rule expands
+   .personnel-add-btn to width:100%, breaking the header on laptops.
+   Restore an intrinsic button width without changing other modules. */
+.personnel-master-page .driver-master-panel > .personnel-section-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.personnel-master-page .driver-master-panel > .personnel-section-header > div {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.personnel-master-page .driver-master-panel > .personnel-section-header > .personnel-add-btn {
+  flex: 0 0 auto;
+  width: auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .personnel-master-page .driver-master-panel > .personnel-section-header > .personnel-add-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}

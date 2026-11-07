@@ -182,7 +182,7 @@
         </div>
 
 
-        <div class="table-wrap">
+        <div class="table-wrap gct-responsive-records gct-sticky-actions">
           <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
             <thead>
               <tr>

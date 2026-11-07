@@ -263,7 +263,7 @@ function initIncidentBusLookup() {
             const emptyNote = lookup.querySelector('[data-trip-empty-note]');
             if (emptyNote) {
                 emptyNote.textContent = bus
-                    ? 'No Ready trip assignment matches this bus today.'
+                    ? 'No In Progress trip assignment matches this bus today.'
                     : 'Enter a Bus ID to see matching trip and driver details.';
                 emptyNote.hidden = Boolean(option?.value);
             }
@@ -330,7 +330,7 @@ function initIncidentBusLookup() {
                 results.hidden = false;
             } else {
                 const notice = document.createElement('p');
-                notice.textContent = 'No Ready trip assignment matches this bus today.';
+                notice.textContent = 'No In Progress trip assignment matches this bus today.';
                 results.appendChild(notice);
                 results.hidden = false;
             }
@@ -344,7 +344,7 @@ function initIncidentBusLookup() {
             showTripOptions(bus);
             if (!matchingTrips(confirmedBus).length) showDetails(null);
         };
-        const search = () => {
+        const search = (showAll = false) => {
             const typed = input.value.trim().toLowerCase();
             if (busSelect.value !== confirmedBus || !buses.some(bus => bus.dataset.busId === confirmedBus &&
                 [bus.dataset.busNo, bus.dataset.plateNo].some(s => (s || '').toLowerCase() === typed))) {
@@ -354,29 +354,31 @@ function initIncidentBusLookup() {
                 input.setCustomValidity('Select a Bus ID from the suggestions.');
             }
             results.replaceChildren();
-            if (!typed) { results.hidden = true; return; }
-            const matches = buses.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
+            // Opening an empty Bus ID field lists all buses currently on In Progress trips.
+            const matches = buses.filter(bus => showAll || !typed || [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase().includes(typed))).slice(0, 30);
             const exact = matches.filter(bus => [bus.dataset.busNo, bus.dataset.plateNo]
                 .some(value => (value || '').toLowerCase() === typed));
-            if (exact.length === 1) { selectBus(exact[0]); return; }
+            if (!showAll && exact.length === 1) { selectBus(exact[0]); return; }
             if (!matches.length) {
                 const notice = document.createElement('p');
-                notice.textContent = 'No bus assigned to a Ready trip matches this search.';
+                notice.textContent = typed
+                    ? 'No bus on an In Progress trip matches this search.'
+                    : 'No In Progress trip buses are currently available.';
                 results.appendChild(notice);
             } else {
                 matches.forEach(bus => {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.className = 'inc-bus-lookup-option';
-                    button.textContent = [bus.dataset.busNo, bus.dataset.plateNo, bus.dataset.busStatus].filter(Boolean).join(' · ');
+                    button.textContent = [bus.dataset.busNo, bus.dataset.plateNo].filter(Boolean).join(' · ');
                     button.addEventListener('click', () => selectBus(bus));
                     results.appendChild(button);
                 });
             }
             results.hidden = false;
         };
-        input.addEventListener('input', search);
+        input.addEventListener('input', () => search());
         input.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 results.hidden = true;
@@ -387,7 +389,9 @@ function initIncidentBusLookup() {
             if (!lookup.contains(event.target)) results.hidden = true;
         });
         input.addEventListener('focus', () => {
-            if (input.value && !confirmedBus) search();
+            // Clicking the field displays the full active bus list without
+            // discarding a previously confirmed assignment.
+            search(true);
         });
         tripSelect.addEventListener('change', () => {
             const selected = tripSelect.selectedOptions[0];

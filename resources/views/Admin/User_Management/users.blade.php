@@ -145,7 +145,7 @@
                 </x-ui.table-toolbar>
                 </div>
 
-                <div class="records-table-wrap users-table-wrap table-wrap">
+                <div class="records-table-wrap users-table-wrap table-wrap gct-responsive-records gct-sticky-actions">
                     <table class="records-table users-table">
                         <thead>
                             <tr>

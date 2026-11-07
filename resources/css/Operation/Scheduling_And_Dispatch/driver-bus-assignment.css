@@ -1240,6 +1240,48 @@
     color: #ffffff;
 }
 
+/* Cancel an entire scheduled service, not an individual driver/bus assignment. */
+.assignment-page .assignment-action.cancel-assignment-trip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.assignment-page .assignment-action.cancel-assignment-trip:hover {
+    background: #be123c;
+    color: #ffffff;
+}
+.assignment-page .assignment-action.cancel-assignment-trip:focus-visible {
+    outline: 2px solid #be123c;
+    outline-offset: 2px;
+}
+.assignment-page .assignment-cancel-trip-summary {
+    margin: 0 0 14px;
+    padding: 12px;
+    border: 1px solid #fecdd3;
+    border-radius: 9px;
+    background: #fff7f8;
+    color: #881337;
+    font-size: 13px;
+    line-height: 1.5;
+}
+#cancelAssignmentTripModal .ui-form-group textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 105px;
+    padding: 10px 12px;
+    resize: vertical;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    font: inherit;
+}
+
 .resource-empty {
     margin: 14px 0 0;
     color: var(--assign-muted);
@@ -1893,11 +1935,11 @@
 /* Simplified resource tables — three aligned data columns, no action buttons. */
 .assignment-page .assignment-table { min-width: 0; }
 .assignment-page .assignment-table th:nth-child(1) { width: 9%; }
-.assignment-page .assignment-table th:nth-child(2) { width: 14%; }
-.assignment-page .assignment-table th:nth-child(3) { width: 19%; }
-.assignment-page .assignment-table th:nth-child(4) { width: 22%; }
-.assignment-page .assignment-table th:nth-child(5) { width: 13%; }
-.assignment-page .assignment-table th:nth-child(6) { width: 11%; }
+.assignment-page .assignment-table th:nth-child(2) { width: 13%; }
+.assignment-page .assignment-table th:nth-child(3) { width: 18%; }
+.assignment-page .assignment-table th:nth-child(4) { width: 20%; }
+.assignment-page .assignment-table th:nth-child(5) { width: 12%; }
+.assignment-page .assignment-table th:nth-child(6) { width: 16%; }
 .assignment-page .assignment-table th:nth-child(7) { width: 12%; }
 .assignment-page .resource-card .resource-list-head--drivers,
 .assignment-page .resource-card .resource-list-head--buses {
@@ -1943,7 +1985,7 @@
 /* Seven-column Trip Assignments table: header and body use matching alignment. */
 .assignment-page .assignment-table {
     width: 100%;
-    min-width: 980px;
+    min-width: 1120px;
     table-layout: fixed;
     border-collapse: collapse;
 }
@@ -1979,7 +2021,28 @@
 .assignment-page .assignment-table tbody td:nth-child(7) .assignment-actions {
     justify-content: center;
 }
-.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status { margin-inline: auto; }
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 30px;
+    padding: 6px 10px;
+    margin-inline: auto;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status .status-badge__icon {
+    flex: 0 0 auto;
+}
+.assignment-page .assignment-table tbody td:nth-child(6) .assignment-status .status-badge__label {
+    min-width: 0;
+}
 
 /* Match Driver Master List: light segmented tabs beside the search/filter/sort toolbar. */
 .assignment-page .assignment-record-controls {
@@ -2332,4 +2395,157 @@
     background: #e0ecff;
     border: 1px solid #bfd4ff;
     color: #1d4ed8;
+}
+
+
+/* Direction tables: don't reserve an empty vertical scrollbar gutter.
+   Native scrollbars still appear when the content actually overflows. */
+.assignment-page .assignment-direction-section .assignment-table-wrap {
+    scrollbar-gutter: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+.assignment-page .assignment-direction-section .assignment-table {
+    width: 100%;
+}
+
+/* Driver and bus availability are compact rectangular status boxes.
+   Keep the existing labels and availability semantics unchanged. */
+.assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned,
+.assignment-page .resource-card .resource-record > .availability.available {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 29px;
+    padding: 5px 9px;
+    box-sizing: border-box;
+    border-radius: 7px;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+}
+.assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned {
+    background: #fff7df;
+    border: 1px solid #f2cf78;
+    color: #935a00;
+}
+.assignment-page .resource-card .resource-record > .availability.available {
+    background: #ddfae8;
+    border: 1px solid #a8edc2;
+    color: #137647;
+}
+@media (max-width: 900px) {
+    .assignment-page .resource-card .resource-record > .gct-pill.gct-pill--unassigned,
+    .assignment-page .resource-card .resource-record > .availability.available {
+        justify-self: end;
+    }
+}
+
+/* Responsive assignment records: preserve the rightmost Actions column as
+   the table scrolls. Scoped to the two direction tables, not resource cards. */
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions {
+    overflow-x: auto;
+    scrollbar-gutter: auto;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > thead > tr > th:last-child,
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr > td:last-child:not([colspan]) {
+    min-width: 132px;
+    width: 132px;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr > td:last-child:not([colspan]) {
+    background: #fff;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: #f8fbff;
+}
+
+
+/* Controlled Ready-trip replacement fields and transparent audit in View. */
+#readyReplacementReasonGroup[hidden] { display: none !important; }
+#readyReplacementReasonGroup {
+    margin-top: 12px;
+    padding: 13px;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    background: #fffbeb;
+}
+#readyReplacementReasonGroup label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 750;
+}
+#readyReplacementReasonGroup textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 12px;
+    border: 1px solid #d6dfeb;
+    border-radius: 8px;
+    background: white;
+    font: inherit;
+    resize: vertical;
+}
+#readyReplacementReasonGroup small {
+    display: block;
+    margin-top: 7px;
+    color: #87620a;
+    font-size: 11px;
+}
+.assignment-page .assignment-replacement-history {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+.assignment-page .assignment-replacement-history h3 {
+    margin: 0;
+    color: #17365a;
+    font-size: 13px;
+    font-weight: 800;
+}
+.assignment-page .assignment-replacement-event {
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid #d8e4f4;
+    border-radius: 10px;
+    background: #f8fbff;
+    font-size: 12px;
+    color: #30445d;
+    overflow-wrap: anywhere;
+}
+.assignment-page .assignment-replacement-event strong { color: #142e50; }
+.assignment-page .assignment-replacement-event span { font-weight: 750; }
+.assignment-page .assignment-replacement-event p { margin: 0; }
+.assignment-page .assignment-replacement-event small { color: #64748b; }
+
+
+/* The sidebar reduces the actual assignment pane width: auto-fit summary
+   cards so labels no longer become single-word narrow vertical columns. */
+.assignment-page .assignment-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.assignment-page .assignment-summary-card {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.assignment-page .assignment-summary-card > div:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.assignment-page .assignment-summary-card p,
+.assignment-page .assignment-summary-card small {
+    line-height: 1.45;
+}
+.assignment-page .assignment-card,
+.assignment-page .assignment-table-wrap {
+    min-width: 0;
+    max-width: 100%;
 }

@@ -48,6 +48,7 @@
     box-sizing: border-box;
 
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
 
     background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
@@ -69,6 +70,9 @@
 
 .ui-form-modal {
     box-sizing: border-box;
+    /* Center when there is room; allow top/bottom scrolling on short laptops. */
+    margin: auto;
+    flex-shrink: 0;
 
     width: 100%;
 
@@ -1184,4 +1188,59 @@
     display: none;
     width: 0;
     height: 0;
+}
+
+
+/* GCT shared form modal scroll contract (all <x-ui.form-modal> consumers).
+   Header and footer must stay visible while ONLY fields scroll. This
+   also eliminates nested shell/overlay scrollbars on short laptops.
+   Specialized modals may retain their own scoped grid and spacing. */
+.ui-form-overlay > .ui-form-modal {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    overflow: hidden;
+}
+.ui-form-overlay > .ui-form-modal > .ui-form-modal-header {
+    flex: 0 0 auto;
+}
+.ui-form-overlay > .ui-form-modal > .ui-form-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.ui-form-overlay > .ui-form-modal > .ui-form-content > .ui-form-modal-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.ui-form-overlay > .ui-form-modal > .ui-form-content > .ui-form-modal-body > .ui-form-modal-scrollable {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+}
+.ui-form-overlay > .ui-form-modal > .ui-form-content > .ui-form-modal-body > .ui-form-actions {
+    flex: 0 0 auto;
+    margin-top: 12px;
+    padding-top: 16px;
+    padding-bottom: 2px;
+    background: var(--ui-surface, #fff);
+}
+@media (max-width: 760px) {
+    .ui-form-overlay > .ui-form-modal {
+        max-height: calc(100dvh - 28px);
+    }
+}
+@media (max-width: 480px) {
+    .ui-form-overlay > .ui-form-modal {
+        max-height: calc(100dvh - 16px);
+    }
 }

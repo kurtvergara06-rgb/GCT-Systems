@@ -25,7 +25,7 @@
             <x-ui.summary-card label="Authorized Drivers" value="{{ $stats['authorized'] }}" small="Active drivers with assigned buses" icon="fa-bus" color="yellow" />
         </section>
 
-        <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel">
+        <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel driver-master-panel">
             <div class="section-header personnel-section-header">
                 <div>
                     <h2>Driver Records</h2>
@@ -63,7 +63,7 @@
                 Updating driver records...
             </div>
 
-            <div class="table-wrap personnel-master-table-wrap">
+            <div class="table-wrap personnel-master-table-wrap driver-master-table-scroll gct-master-scroll-10" role="region" aria-label="Driver records table, horizontally scrollable" tabindex="0">
                 <table class="attendance-table personnel-master-table driver-master-records-table">
                     <colgroup>
                         <col class="driver-col-id"><col class="driver-col-name"><col class="driver-col-contact">

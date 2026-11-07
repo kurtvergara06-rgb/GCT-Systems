@@ -352,6 +352,56 @@
                             </div>
                         </section>
 
+
+                        {{-- Development-only, visual role preview: never alters authentication or permissions. --}}
+                        @if (app()->environment('local')
+                            && strtolower((string) $user->department) === 'admin'
+                            && strtolower((string) $user->role) === 'head')
+                            <section class="account-rbac-preview" data-rbac-preview aria-labelledby="accountRbacPreviewTitle">
+                                <div class="account-rbac-preview-header">
+                                    <div>
+                                        <strong id="accountRbacPreviewTitle"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> RBAC Interface Preview</strong>
+                                        <p>Local development only. Review departmental navigation without changing permissions.</p>
+                                    </div>
+                                    <label class="account-rbac-preview-toggle">
+                                        <input type="checkbox" data-rbac-preview-toggle aria-controls="accountRbacPreviewDetails">
+                                        <span>Enable preview</span>
+                                    </label>
+                                </div>
+                                <div id="accountRbacPreviewDetails" data-rbac-preview-details hidden>
+                                    <label for="accountRbacPreviewDepartment">Department interface</label>
+                                    <select id="accountRbacPreviewDepartment" data-rbac-preview-select>
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="operation">Operations</option>
+                                        <option value="warehouse">Warehouse</option>
+                                        <option value="purchase">Purchasing</option>
+                                        <option value="admin">Administration</option>
+                                    </select>
+                                    <div class="account-rbac-preview-panel" data-rbac-preview-panel="maintenance">
+                                        <strong>Maintenance navigation</strong>
+                                        <p>Dashboard · Job Orders · Mechanic Management · Item Requests · Purchase Requisitions · Fuel Reports</p>
+                                    </div>
+                                    <div class="account-rbac-preview-panel" data-rbac-preview-panel="operation" hidden>
+                                        <strong>Operations navigation</strong>
+                                        <p>Dashboard · Trip Scheduling · Driver &amp; Bus Assignment · Trip Records · DDR · Incidents</p>
+                                    </div>
+                                    <div class="account-rbac-preview-panel" data-rbac-preview-panel="warehouse" hidden>
+                                        <strong>Warehouse navigation</strong>
+                                        <p>Dashboard · Inventory · Stock Movements · Part Requests · Incoming Deliveries</p>
+                                    </div>
+                                    <div class="account-rbac-preview-panel" data-rbac-preview-panel="purchase" hidden>
+                                        <strong>Purchasing navigation</strong>
+                                        <p>Dashboard · Maintenance Requests · Inventory Restock · Purchase Orders</p>
+                                    </div>
+                                    <div class="account-rbac-preview-panel" data-rbac-preview-panel="admin" hidden>
+                                        <strong>Administration navigation</strong>
+                                        <p>Dashboard · Account Management · Roles &amp; Permissions · System Monitoring · Analytics · Settings</p>
+                                    </div>
+                                    <p class="account-rbac-preview-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Preview only. Your actual account role, sidebar, routes, API authorization, and approval rules remain enforced.</p>
+                                </div>
+                            </section>
+                        @endif
+
                         <ul class="account-tips-list">
                             <li class="account-tip-item">
                                 <div class="account-tip-icon">

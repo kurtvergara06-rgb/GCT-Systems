@@ -21,6 +21,30 @@ class OperationAutoSchedulingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_general_service_trip_is_available_for_auto_scheduling(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $attendance, $bus, $route] = $this->makeScheduleResources();
+
+        $trip->update(['client_name' => null, 'direction' => 'Incoming']);
+        $route->update(['operation_client_id' => null]);
+        $bus->operationClients()->detach();
+
+        $this->actingAs($user)
+            ->get(route('auto-scheduling', ['schedule_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee($route->route_code);
+
+        $this->actingAs($user)
+            ->postJson(route('auto-scheduling.generate'), [
+                'schedule_date' => $trip->trip_date->toDateString(),
+                'shift' => 'all',
+                'shuttle_route_id' => $route->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('summary.incoming.trips', 1);
+    }
+
     public function test_training_status_proxies_bus_ml_and_driver_data_fallback_provenance(): void
     {
         Http::fake([
@@ -1458,15 +1482,25 @@ class OperationAutoSchedulingTest extends TestCase
             'fulfilled_by_assignment_id' => $slotOneAssignment->id,
         ]);
 
+        // Filling the last open slot makes the trip Ready. A Ready-trip
+        // assignment cannot be removed directly: a Head-approved replacement
+        // or whole-trip cancellation is required instead.
+        $this->assertSame('Ready', $trip->fresh()->status);
         $this->actingAs($user)
             ->delete(route('driver-bus-assignment.destroy', $slotOneAssignment))
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasErrors('trip_schedule_id');
 
+        // The deferred slot stays fulfilled; rejection must not erase the
+        // original decision or either confirmed bus assignment.
         $this->assertDatabaseHas('auto_schedule_slot_decisions', [
             'trip_schedule_id' => $trip->id,
             'slot_number' => 1,
-            'status' => 'Pending',
-            'fulfilled_by_assignment_id' => null,
+            'status' => 'Resolved',
+            'fulfilled_by_assignment_id' => $slotOneAssignment->id,
+        ]);
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 1,
         ]);
         $this->assertDatabaseHas('trip_assignments', [
             'trip_schedule_id' => $trip->id,

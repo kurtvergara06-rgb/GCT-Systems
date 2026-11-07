@@ -560,9 +560,8 @@
 
 .ddr-table {
     width: 100%;
-
-    min-width: 1100px;
-
+    min-width: 1240px;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -634,50 +633,43 @@
 }
 
 
-.ddr-table th:nth-child(1) {
-    width: 11%;
+/* Balanced widths for the nine-column DDR table (total: 100%). */
+.ddr-table th:nth-child(1) { width: 10%; }
+.ddr-table th:nth-child(2) { width: 10%; }
+.ddr-table th:nth-child(3) { width: 16%; }
+.ddr-table th:nth-child(4) { width: 8%; }
+.ddr-table th:nth-child(5) { width: 8%; }
+.ddr-table th:nth-child(6) { width: 15%; }
+.ddr-table th:nth-child(7) { width: 12%; }
+.ddr-table th:nth-child(8) { width: 11%; }
+.ddr-table th:nth-child(9) { width: 10%; }
+
+
+/* Keep short quantities and action controls legible at laptop widths. */
+.ddr-card .ddr-table-wrap {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
 }
-
-
-.ddr-table th:nth-child(2) {
-    width: 11%;
+.ddr-card .ddr-table td:nth-child(5) .ddr-passenger-pill,
+.ddr-card .ddr-table td:nth-child(8) .ddr-passenger-pill {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    min-width: max-content;
 }
-
-
-.ddr-table th:nth-child(3) {
-    width: 12%;
+.ddr-card .ddr-table td:nth-child(9) .ddr-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
-
-
-.ddr-table th:nth-child(4) {
-    width: 9%;
+.ddr-card .ddr-table td:nth-child(3) {
+    overflow-wrap: normal;
+    word-break: normal;
 }
-
-
-.ddr-table th:nth-child(5) {
-    width: 13%;
-}
-
-
-.ddr-table th:nth-child(6) {
-    width: 19%;
-}
-
-
-.ddr-table th:nth-child(7) {
-    width: 12%;
-}
-
-
-.ddr-table th:nth-child(8) {
-    width: 9%;
-}
-
-
-.ddr-table th:nth-child(9) {
-    width: 6%;
-}
-
 
 .ddr-table th:nth-child(4),
 .ddr-table td:nth-child(4),
@@ -984,6 +976,11 @@
         background-color 0.14s ease;
 }
 
+
+/* Driver availability is date-scoped; a hidden option must never display. */
+#ddrEncodeModal .ddr-combo-list [data-combo-option][hidden] {
+    display: none !important;
+}
 
 .ddr-combo-list li:hover,
 .ddr-combo-list li.is-highlight {
@@ -1977,6 +1974,47 @@ button.ddr-new-btn {
 /* DDR icon actions and an in-page confirmation modal. */
 .ddr-actions { display:flex; align-items:center; justify-content:center; gap:7px; }
 .ddr-actions .ddr-action { width:30px; height:30px; border:1px solid #c6daf9; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; padding:0; background:#eff6ff; color:#175ac0; cursor:pointer; text-decoration:none; }
+/* Saved reports have a single, clearly labeled view action. */
+/* Labeled DDR View action: intentionally independent of icon-only .ddr-action rules. */
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 94px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 94px;
+    min-width: 94px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #175ac0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+}
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action:hover {
+    border-color: #175ac0;
+    background: #dbeafe;
+}
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action > i,
+.ddr-page .ddr-card .ddr-table .ddr-actions button.ddr-view-action > span {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
 .ddr-actions .ddr-action:hover:not(:disabled) { background:#dbeafe; }
 .ddr-actions .ddr-delete-trigger:not(:disabled) { color:#c0243d; background:#fff1f2; border-color:#fecdd3; }
 .ddr-actions .ddr-delete-trigger:disabled { color:#9ca3af; border-color:#e2e8f0; background:#f1f5f9; cursor:not-allowed; opacity:.7; }
@@ -2211,7 +2249,10 @@ button.ddr-new-btn {
     border-radius: 11px; background: #f8fafc;
 }
 #ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
-#ddrEncodeModal .ddr-report-meta-grid > :nth-child(3) { grid-column: 1 / -1; }
+#ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
+#ddrEncodeModal .ddr-report-meta-grid .ui-form-group,
+#ddrEncodeModal .ddr-report-meta-grid .ddr-form-group,
+#ddrEncodeModal .ddr-report-meta-grid .ddr-combo { width: 100%; min-width: 0; }
 #ddrEncodeModal .ddr-trip-one-heading { margin-top: 4px; }
 #ddrEncodeModal .ddr-route-note { grid-column: 1 / -1; }
 #ddrEncodeModal .ddr-extra-assignment-group { grid-column: 1 / -1; }
@@ -2241,10 +2282,11 @@ button.ddr-new-btn {
     border-radius: 12px;
     background: #f8fafc;
 }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver { grid-column: 1 / -1; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 1; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date { grid-column: 2; }
-#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number { grid-column: 1 / -1; }
+/* Match the DOM order: Date | DDR Number, then Driver | Bus. */
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date { grid-column: 1; grid-row: 1; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number { grid-column: 2; grid-row: 1; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver { grid-column: 1; grid-row: 2; }
+#ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 2; grid-row: 2; }
 #ddrEncodeModal .ddr-report-meta-grid > [hidden] { display: none; }
 #ddrEncodeModal .ddr-number-preview {
     display: flex;
@@ -2426,6 +2468,10 @@ button.ddr-new-btn {
 
 @media (max-width: 700px) {
     #ddrEncodeModal .ddr-report-meta-grid { grid-template-columns: minmax(0, 1fr); }
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-date,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-number,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-driver,
+    #ddrEncodeModal .ddr-report-meta-grid > .ddr-meta-bus { grid-column: 1; grid-row: auto; }
     #ddrEncodeModal .ddr-primary-trip { padding: 11px; }
     #ddrEncodeModal .ddr-multi-header { align-items: center; }
 }
@@ -2442,6 +2488,26 @@ button.ddr-new-btn {
     gap: 10px;
 }
 #ddrEncodeModal .ddr-extra-trip-grid > * { min-width: 0; }
+/* Keep auto-linked assignment selectors hidden despite the grid's flex rule. */
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group[hidden] {
+    display: none !important;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-assignment-feedback {
+    grid-column: 1 / -1;
+    padding: 10px 12px;
+    border: 1px solid #c8e6d2;
+    border-radius: 9px;
+    background: #effaf3;
+    color: #17623c;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+#ddrEncodeModal .ddr-extra-trip-grid .ddr-assignment-feedback.is-warning {
+    border-color: #f1d5a5;
+    background: #fffbeb;
+    color: #92400e;
+}
 #ddrEncodeModal .ddr-extra-trip-grid .ddr-extra-assignment-group {
     grid-column: 1 / -1;
     display: flex;

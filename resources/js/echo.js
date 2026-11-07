@@ -56,7 +56,7 @@ window.realtimePageRouteMap = {
 window.showSystemNotification = function (message) {
     try {
         if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(message, 'info', 'System Updated', { timeout: 8000, keepRealtime: true });
+            window.showSystemToast(message, 'info', 'System Updated', { timeout: 5000 });
         }
     } catch (error) {
         console.warn('Realtime notification failed:', error);

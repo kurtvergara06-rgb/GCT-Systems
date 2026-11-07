@@ -50,6 +50,7 @@
   >
 
   @auth
+    <meta name="gct-account-id" content="{{ auth()->id() }}">
     <meta
       name="gct-force-password-change"
       content="{{ auth()->user()->must_change_password ? '1' : '0' }}"

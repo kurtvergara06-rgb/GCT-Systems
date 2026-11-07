@@ -14,6 +14,7 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -152,6 +153,15 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
+        $replacementHistoryByAssignment = DB::table('operation_trip_change_audits as audit')
+            ->leftJoin('users as approver', 'approver.id', '=', 'audit.performed_by')
+            ->whereIn('audit.trip_schedule_id', $trips->getCollection()->pluck('id'))
+            ->where('audit.action', 'ready_replacement')
+            ->select('audit.*', 'approver.name as approved_by_name')
+            ->orderByDesc('audit.created_at')
+            ->get()
+            ->groupBy('trip_assignment_id');
+
         $scheduledTripsForDate = TripSchedule::query()
             ->whereDate('trip_date', $selectedTripDate)
             ->whereIn('status', ['Scheduled', 'Ready'])
@@ -184,13 +194,26 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'driver_page')
             ->withQueryString();
 
-        $availableBuses = Bus::query()
+        // Body numbers must be ordered naturally (2, 9, 10, 20), not
+        // lexicographically (10, 2, 20, 9). Sort before paginating so a
+        // smaller body number never appears on a later page.
+        $orderedEligibleBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
             ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
-            ->orderBy('bus_no')
-            ->paginate(10, ['*'], 'bus_page')
-            ->withQueryString();
+            ->get()
+            ->sort(fn (Bus $a, Bus $b): int =>
+                strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                ?: ($a->id <=> $b->id))
+            ->values();
+        $busPage = LengthAwarePaginator::resolveCurrentPage('bus_page');
+        $availableBuses = (new LengthAwarePaginator(
+            $orderedEligibleBuses->forPage($busPage, 10)->values(),
+            $orderedEligibleBuses->count(),
+            10,
+            $busPage,
+            ['pageName' => 'bus_page', 'path' => $request->url()]
+        ))->withQueryString();
 
         $unassignedTrips = TripSchedule::query()
             ->with(['shuttleRoute', 'assignments.bus', 'assignments.driverAttendance'])
@@ -214,6 +237,7 @@ class TripAssignmentController extends Controller
             'Operation.Scheduling_And_Dispatch.driver-bus-assignment',
             compact(
                 'trips',
+                'replacementHistoryByAssignment',
                 'scheduledTripsForDate',
                 'pendingAssignments',
                 'availableDrivers',
@@ -279,6 +303,12 @@ class TripAssignmentController extends Controller
         $this->assertRouteIsActive($tripSchedule);
 
         $ignoreAssignmentId = $request->integer('assignment_id');
+        if ($ignoreAssignmentId
+            && ! $tripSchedule->assignments()->whereKey($ignoreAssignmentId)->exists()) {
+            throw ValidationException::withMessages([
+                'assignment_id' => 'The assignment does not belong to this trip.',
+            ]);
+        }
 
         $assignedToThisTrip = $tripSchedule->assignments()
             ->when($ignoreAssignmentId, fn ($q) => $q->where('id', '!=', $ignoreAssignmentId))
@@ -341,7 +371,6 @@ class TripAssignmentController extends Controller
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
             )
-            ->orderBy('bus_no')
             ->get()
             ->filter(function (Bus $bus) use ($tripClient): bool {
                 $allocations = $bus->operationClients
@@ -352,6 +381,9 @@ class TripAssignmentController extends Controller
                     ? $allocations->isEmpty()
                     : $allocations->contains($tripClient);
             })
+            ->sort(fn (Bus $a, Bus $b): int =>
+                strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                ?: ($a->id <=> $b->id))
             ->values()
             ->map(fn (Bus $bus) => [
                 'id' => $bus->id,
@@ -529,9 +561,12 @@ class TripAssignmentController extends Controller
             $request,
             $tripAssignment
         );
+        $request->validate([
+            'replacement_reason' => ['nullable', 'string', 'min:10', 'max:1000'],
+        ]);
 
         $trip = DB::transaction(
-            function () use ($validated, $tripAssignment): TripSchedule {
+            function () use ($validated, $tripAssignment, $request): TripSchedule {
                 $lockedAssignment = TripAssignment::query()
                     ->whereKey($tripAssignment->id)
                     ->lockForUpdate()
@@ -544,6 +579,20 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
+                $isReadyReplacement = $trip->status === 'Ready';
+                $replacementReason = trim((string) $request->input('replacement_reason', ''));
+                if ($isReadyReplacement) {
+                    if (! (auth()->user()?->canApproveReadyTripChanges() ?? false)) {
+                        throw ValidationException::withMessages([
+                            'trip_schedule_id' => 'Only the Operations Head may approve a Ready-trip replacement.',
+                        ]);
+                    }
+                    if (mb_strlen($replacementReason) < 10 || mb_strlen($replacementReason) > 1000) {
+                        throw ValidationException::withMessages([
+                            'replacement_reason' => 'Provide a replacement reason between 10 and 1000 characters.',
+                        ]);
+                    }
+                }
                 $this->assertRouteIsActive($trip);
 
                 $driver = $this->lockEligibleDriver(
@@ -575,6 +624,34 @@ class TripAssignmentController extends Controller
                     $lockedAssignment->id
                 );
 
+                if ($isReadyReplacement) {
+                    if ((string) $lockedAssignment->driver_id === (string) $driver->driver_id
+                        && (int) $lockedAssignment->bus_id === (int) $bus->id) {
+                        throw ValidationException::withMessages([
+                            'trip_schedule_id' => 'Select a different driver or bus for the replacement.',
+                        ]);
+                    }
+                    DB::table('operation_trip_change_audits')->insert([
+                        'trip_schedule_id' => $trip->id,
+                        'trip_assignment_id' => $lockedAssignment->id,
+                        'performed_by' => auth()->id(),
+                        'action' => 'ready_replacement',
+                        'previous_status' => $trip->status,
+                        'new_status' => 'Ready',
+                        'previous_driver_id' => $lockedAssignment->driver_id,
+                        'new_driver_id' => $driver->driver_id,
+                        'previous_driver_name' => $lockedAssignment->driver_name,
+                        'new_driver_name' => $driver->driver_name,
+                        'previous_bus_id' => $lockedAssignment->bus_id,
+                        'new_bus_id' => $bus->id,
+                        'previous_bus_label' => $lockedAssignment->bus?->bus_no,
+                        'new_bus_label' => $bus->bus_no,
+                        'reason' => $replacementReason,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 $lockedAssignment->update([
                     'driver_attendance_id' => $driver->id ?: null,
                     'driver_id' => $driver->driver_id,
@@ -599,7 +676,9 @@ class TripAssignmentController extends Controller
 
         session()->flash(
             'success',
-            'Assignment updated successfully.'
+            $trip->status === 'Ready'
+                ? 'Ready-trip replacement approved and recorded successfully.'
+                : 'Assignment updated successfully.'
         );
 
         return $this->redirectToIndex($request);
@@ -622,6 +701,11 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
+                if ($trip->status === 'Ready') {
+                    throw ValidationException::withMessages([
+                        'trip_schedule_id' => 'Ready-trip assignments cannot be removed directly. Use an approved replacement or cancel the trip before departure.',
+                    ]);
+                }
 
                 DB::table('auto_schedule_slot_decisions')
                     ->where('fulfilled_by_assignment_id', $lockedAssignment->id)

@@ -75,6 +75,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.reverse-location');
     Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.calculate');
 
+    Route::get('/operation/clients', [ClientMasterListController::class, 'index'])
+        ->middleware('system.permission:operation,view')
+        ->name('operation.clients.index');
     Route::post('/operation/clients', [ClientMasterListController::class, 'store'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.store');
@@ -87,12 +90,16 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('trip-schedule');
+            Route::get('/available-dates', 'availableDates')->middleware('throttle:60,1')->name('trip-schedule.available-dates');
             Route::post('/', 'store')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.store');
             Route::put('/{tripSchedule}', 'update')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.update');
+            Route::patch('/{tripSchedule}/cancel', 'cancel')
+                ->middleware(['system.permission:operation,edit', 'system.permission:operation,approve'])
+                ->name('trip-schedule.cancel');
             Route::delete('/{tripSchedule}', 'destroy')
                 ->middleware('system.permission:operation,edit')
                 ->name('trip-schedule.destroy');
@@ -175,6 +182,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
         Route::get('/assigned-drivers', 'assignedDrivers')->middleware('throttle:60,1')->name('daily-driver-reports.assigned-drivers');
+        // Keep legacy URLs registered for permission auditing, but controller rejects mutation.
         Route::put('/{dailyDriverReport}', 'update')->middleware('system.permission:operation,edit')->name('daily-driver-reports.update');
         Route::delete('/{dailyDriverReport}', 'destroy')->middleware('system.permission:operation,edit')->name('daily-driver-reports.destroy');
     });
