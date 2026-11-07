@@ -119,4 +119,27 @@ class FrontendAssetOptimizationTest extends TestCase
             $vite
         );
     }
+
+    public function test_operation_route_map_pin_styles_are_loaded_only_on_routes_page(): void
+    {
+        $app = file_get_contents(resource_path('js/app.js'));
+        $vite = file_get_contents(base_path('vite.config.js'));
+        $routes = file_get_contents(resource_path('views/Operation/Routes/routes-stops.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Routes/route-pin-enhancements.css'));
+
+        $this->assertStringNotContainsString(
+            "import '../css/Operation/Routes/route-pin-enhancements.css';",
+            $app
+        );
+        $this->assertStringContainsString(
+            "'resources/css/Operation/Routes/route-pin-enhancements.css'",
+            $vite
+        );
+        $this->assertStringContainsString(
+            "'resources/css/Operation/Routes/route-pin-enhancements.css'",
+            $routes
+        );
+        $this->assertStringContainsString('#routeModal', $styles);
+    }
+
 }
