@@ -522,6 +522,10 @@ class FrontendUiUxComprehensiveTest extends TestCase
         // and backdrop-dismissal protection as shared form modals.
         $this->assertStringContainsString("'.ddr-record-overlay'", $modalRuntime);
         $this->assertStringContainsString("'.inc-record-modal-backdrop'", $modalRuntime);
+        $this->assertSame(2, substr_count(
+            $modalRuntime,
+            "attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']"
+        ));
     }
 
     // =========================================================================
