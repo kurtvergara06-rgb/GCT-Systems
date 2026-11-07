@@ -24,6 +24,12 @@ Route::middleware(['web', 'auth'])
         Route::get('/settings', 'settings')
             ->name('account.settings');
 
+        Route::get('/personalization', 'personalization')
+            ->name('account.personalization');
+
+        Route::get('/preferences', 'preferences')
+            ->name('account.preferences');
+
         Route::put('/settings/password', 'updatePassword')
             ->name('account.password.update');
     });
