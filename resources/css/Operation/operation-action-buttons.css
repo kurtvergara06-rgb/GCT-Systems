@@ -349,3 +349,58 @@
 .app:has(.sidebar[data-gct-shell="operation"]) main :is(.table-card, .service-controls-card, .trip-history-card, .personnel-master-panel) > :is(.section-header, .trip-card-header) {
     border-bottom: 0 !important;
 }
+
+/* Operation-only viewport modal contract.
+   Shared dialogs can be relocated to <body> when GSAP/partial navigation
+   transforms a page ancestor; selectors therefore start at body, not .app.
+   Do not affect popup visibility or backdrop-click dismissal behavior. */
+body:has(.sidebar[data-gct-shell="operation"]) :is(
+  .ui-form-overlay,
+  .modal-overlay,
+  .route-modal-overlay,
+  .trip-modal-overlay,
+  .personnel-modal-overlay,
+  .ai-resolution-modal-overlay,
+  .ddr-record-overlay.is-open,
+  .inc-record-modal-backdrop,
+  .inc-report-modal-overlay
+) {
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding-inline: max(12px, env(safe-area-inset-left), env(safe-area-inset-right));
+  padding-block: max(12px, env(safe-area-inset-top), env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+body:has(.sidebar[data-gct-shell="operation"]) :is(
+  .ui-form-overlay > .ui-form-modal,
+  .modal-overlay > .modal-box,
+  .route-modal-overlay > .route-modal,
+  .route-modal-overlay > .route-details-modal,
+  .ddr-record-overlay > .ddr-record-dialog,
+  .inc-record-modal-backdrop > .inc-record-modal
+) {
+  margin: auto;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: min(100%, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
+}
+@media (max-height: 560px) {
+  body:has(.sidebar[data-gct-shell="operation"]) :is(
+    .ui-form-overlay,
+    .modal-overlay,
+    .route-modal-overlay,
+    .trip-modal-overlay,
+    .personnel-modal-overlay,
+    .ai-resolution-modal-overlay,
+    .ddr-record-overlay.is-open,
+    .inc-record-modal-backdrop
+  ) {
+    align-items: flex-start;
+  }
+}
