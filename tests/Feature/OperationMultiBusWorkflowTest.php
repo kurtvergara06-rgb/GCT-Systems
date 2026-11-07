@@ -323,16 +323,57 @@ class OperationMultiBusWorkflowTest extends TestCase
 
         $asgn2 = $trip->assignments()->where('bus_id', $b2->id)->firstOrFail();
 
-        // Remove assignment 2
-        $this->actingAs($this->admin)->delete(route('driver-bus-assignment.destroy', $asgn2->id));
+        // Fully assigned trips are Ready: direct removal would bypass
+        // approved replacement/cancellation controls and must be rejected.
+        $this->actingAs($this->admin)
+            ->delete(route('driver-bus-assignment.destroy', $asgn2->id))
+            ->assertSessionHasErrors('trip_schedule_id');
 
         $trip->refresh();
-        $this->assertEquals(2, $trip->assignments()->count());
-        $this->assertDatabaseMissing('trip_assignments', ['id' => $asgn2->id]);
-        $this->assertDatabaseHas('trip_assignments', ['bus_id' => $b1->id]);
-        $this->assertDatabaseHas('trip_assignments', ['bus_id' => $b3->id]);
-        $this->assertEquals('Partially Assigned', $trip->assignment_status);
-        $this->assertEquals('Scheduled', $trip->status);
+        $this->assertEquals(3, $trip->assignments()->count());
+        $this->assertDatabaseHas('trip_assignments', ['id' => $asgn2->id]);
+        $this->assertEquals('Assigned', $trip->assignment_status);
+        $this->assertEquals('Ready', $trip->status);
+    }
+
+    public function test_partial_assignment_removal_preserves_remaining_bus_and_recalculates_status(): void
+    {
+        $trip = $this->createTripSchedule(3);
+        $date = $trip->trip_date->toDateString();
+
+        $firstDriver = $this->createDriver('PARTIAL-1');
+        $firstAttendance = $this->createAttendance($firstDriver, $date);
+        $firstBus = $this->createBus('PARTIAL-1');
+        $secondDriver = $this->createDriver('PARTIAL-2');
+        $secondAttendance = $this->createAttendance($secondDriver, $date);
+        $secondBus = $this->createBus('PARTIAL-2');
+
+        $this->actingAs($this->admin)
+            ->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $firstAttendance->id,
+                'bus_id' => $firstBus->id,
+            ])->assertSessionHasNoErrors();
+
+        $this->actingAs($this->admin)
+            ->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $secondAttendance->id,
+                'bus_id' => $secondBus->id,
+            ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Partially Assigned', $trip->fresh()->assignment_status);
+        $secondAssignment = $trip->assignments()->where('bus_id', $secondBus->id)->firstOrFail();
+
+        $this->actingAs($this->admin)
+            ->delete(route('driver-bus-assignment.destroy', $secondAssignment))
+            ->assertSessionHasNoErrors();
+
+        $this->assertEquals(1, $trip->assignments()->count());
+        $this->assertDatabaseMissing('trip_assignments', ['id' => $secondAssignment->id]);
+        $this->assertDatabaseHas('trip_assignments', ['trip_schedule_id' => $trip->id, 'bus_id' => $firstBus->id]);
+        $this->assertSame('Partially Assigned', $trip->fresh()->assignment_status);
+        $this->assertSame('Scheduled', $trip->fresh()->status);
     }
 
     /**
