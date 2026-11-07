@@ -222,6 +222,17 @@ class GctDateTimePicker {
         }
 
         this.popover.hidden = false;
+        // A calendar opened from a top-layer table Filter must itself use
+        // the top layer; otherwise overflow and stacking can obscure dates.
+        if (toolbarPopover?.matches(':popover-open')
+            && typeof this.popover.showPopover === 'function') {
+            this.popover.setAttribute('popover', 'manual');
+            try {
+                this.popover.showPopover();
+            } catch {
+                // The regular positioned calendar remains available.
+            }
+        }
         this.positionPopover();
         trigger.setAttribute('aria-expanded', 'true');
     }
@@ -231,6 +242,9 @@ class GctDateTimePicker {
             this.activeTrigger.setAttribute('aria-expanded', 'false');
         }
 
+        if (this.popover.matches?.(':popover-open')) {
+            this.popover.hidePopover();
+        }
         this.popover.hidden = true;
         this.popover.innerHTML = '';
         this.activeInput = null;
