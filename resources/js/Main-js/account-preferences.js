@@ -1,6 +1,13 @@
 // Per-account browser preferences: no permission or workflow state is mutated.
+// The authenticated identity must agree between the server-rendered page
+// and sidebar. Never read another account's localStorage on stale navigation.
+const currentAccountId = () => {
+    const serverId = document.querySelector('meta[name="gct-account-id"]')?.content;
+    const sidebarId = document.getElementById('appSidebar')?.dataset.gctUserId;
+    return serverId && sidebarId && serverId === sidebarId ? serverId : null;
+};
 const keyForCurrentUser = () => {
-    const id = document.getElementById('appSidebar')?.dataset.gctUserId;
+    const id = currentAccountId();
     return id ? `gct:ui-preferences:${id}` : null;
 };
 const defaults = Object.freeze({
@@ -96,13 +103,14 @@ colorSchemeMedia?.addEventListener?.('change', () => {
 document.addEventListener('DOMContentLoaded', renderPreferences);
 document.addEventListener('gct:page-loaded', renderPreferences);
 window.addEventListener('gct:navigation-ready', renderPreferences);
+window.addEventListener('pageshow', renderPreferences);
 if (document.readyState !== 'loading') renderPreferences();
 
 
 // Optional notification sound. Critical in-app messages are never filtered
 // or muted; only the sound cue is configurable on this browser.
 const soundKeyForCurrentUser = () => {
-    const id = document.getElementById('appSidebar')?.dataset.gctUserId;
+    const id = currentAccountId();
     return id ? `gct:notification-sound:${id}` : null;
 };
 const notificationSoundEnabled = () => {
@@ -136,6 +144,7 @@ document.addEventListener('change', (event) => {
 document.addEventListener('DOMContentLoaded', renderSoundPreference);
 window.addEventListener('gct:navigation-ready', renderSoundPreference);
 document.addEventListener('gct:page-loaded', renderSoundPreference);
+window.addEventListener('pageshow', renderSoundPreference);
 if (document.readyState !== 'loading') renderSoundPreference();
 
 let observedNotificationAccount = null;

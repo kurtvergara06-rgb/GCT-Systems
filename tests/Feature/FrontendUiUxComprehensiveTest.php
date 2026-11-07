@@ -991,8 +991,21 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("route('account.personalization', [], false)", $sidebar);
         $this->assertStringContainsString("route('account.preferences', [], false)", $sidebar);
 
+        // Require a matching authenticated identity before reading account-local preferences.
+        $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
+        $this->assertStringContainsString('name="gct-account-id"', $layout);
+        $this->assertStringContainsString('content="{{ auth()->id() }}"', $layout);
+        $this->assertStringContainsString('data-gct-user-id="{{ $authUser?->id }}"', $sidebar);
+
+
         $runtime = file_get_contents(resource_path('js/Main-js/account-preferences.js'));
         $this->assertStringContainsString("keyForCurrentUser", $runtime);
+
+        $this->assertStringContainsString("currentAccountId", $runtime);
+        $this->assertStringContainsString('meta[name="gct-account-id"]', $runtime);
+        $this->assertStringContainsString('serverId === sidebarId', $runtime);
+        $this->assertStringContainsString("window.addEventListener('pageshow', renderPreferences)", $runtime);
+        $this->assertStringContainsString("window.addEventListener('pageshow', renderSoundPreference)", $runtime);
         $this->assertStringContainsString("localStorage.setItem", $runtime);
         $this->assertStringContainsString("localStorage.removeItem", $runtime);
         $this->assertStringContainsString("gct-reduced-motion", $runtime);
