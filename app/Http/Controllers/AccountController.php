@@ -111,6 +111,20 @@ class AccountController extends Controller
         ]);
     }
 
+    public function personalization(Request $request): View
+    {
+        return view('Account.personalization', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    public function preferences(Request $request): View
+    {
+        return view('Account.preferences', [
+            'user' => $request->user(),
+        ]);
+    }
+
     public function updatePassword(Request $request): RedirectResponse
     {
         /** @var User $user */
