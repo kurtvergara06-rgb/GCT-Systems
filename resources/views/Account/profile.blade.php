@@ -75,7 +75,7 @@
             />
 
             <section class="account-content">
-                {{-- Hero Identity Card --}}
+                {{-- Compact employee identity header. Photo crop and upload are unchanged. --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
                         <form
@@ -130,7 +130,7 @@
                                 />
                             </div>
                             <div class="account-avatar-help">
-                                <span>Click the photo to choose and crop a JPG, PNG, or WebP image up to 2 MB.</span>
+                                <span>Choose a photo (JPG, PNG or WebP, up to 2 MB).</span>
                                 @if ($profilePhotoUrl)
                                     <form
                                         action="{{ route('account.profile.photo.destroy', [], false) }}"
@@ -210,28 +210,10 @@
                     </section>
                 </div>
 
-                {{-- Account navigation: separate profile, preferences and security. --}}
-                <nav class="account-nav-tabs">
-                    <a href="{{ route('account.profile') }}" class="account-nav-tab active">
-                        <i class="fa-solid fa-user-gear"></i>
-                        <span>My Profile</span>
-                    </a>
-                    <a href="{{ route('account.personalization') }}" class="account-nav-tab">
-                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                        <span>Personalization</span>
-                    </a>
-                    <a href="{{ route('account.preferences') }}" class="account-nav-tab">
-                        <i class="fa-solid fa-gear" aria-hidden="true"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a href="{{ route('account.settings') }}" class="account-nav-tab">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Security & Password</span>
-                    </a>
-                    <a href="{{ route('onboarding.show', ['replay' => 1]) }}" class="account-nav-tab" data-system-tutorial-link>
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <span>System Tutorial</span>
-                    </a>
+                <nav class="account-profile-links" aria-label="Related account pages">
+                    <a href="{{ route('account.personalization') }}"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Personalization</a>
+                    <a href="{{ route('account.preferences') }}"><i class="fa-solid fa-gear" aria-hidden="true"></i> Settings</a>
+                    <a href="{{ route('account.settings') }}"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Security</a>
                 </nav>
 
                 <div class="account-grid account-profile-grid">
@@ -306,6 +288,10 @@
                             </div>
                         </form>
 
+
+                    </section>
+
+                    <aside class="account-profile-aside" aria-label="Account access and history">
                         <section class="account-access-section" aria-labelledby="accountAccessHeading">
                             <div class="account-access-header">
                                 <div>
@@ -329,8 +315,6 @@
                                 </div>
                             </dl>
                         </section>
-                    </section>
-
                     {{-- Account metadata stays available without a permanent second column. --}}
                     <details class="account-card account-summary-card account-details-disclosure">
                         <summary class="account-details-summary">
@@ -338,7 +322,7 @@
                                 <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
                                 <span>
                                     <strong>Account History</strong>
-                                    <small>System ID, account status, role and login history</small>
+                                    <small>Membership and last recorded sign-in</small>
                                 </span>
                             </span>
                             <i class="fa-solid fa-chevron-down account-details-chevron" aria-hidden="true"></i>
@@ -375,6 +359,7 @@
                             <i class="fa-solid fa-arrow-right" style="margin-left: auto; font-size: 11px;"></i>
                         </a>
                     </details>
+                    </aside>
                 </div>
             </section>
         </main>
