@@ -12,6 +12,10 @@ const OVERLAY_SELECTORS = [
   '.batch-feedback-overlay',
   '.success-modal-overlay',
   '.ui-form-overlay',
+  // Operation record dialogs use bespoke overlay names; include them in
+  // the same viewport portal, body-scroll and no-backdrop-dismiss contract.
+  '.ddr-record-overlay',
+  '.inc-record-modal-backdrop',
   '.admin-modal-overlay',
   '.records-modal-overlay',
   '.batch-delete-modal-overlay',
