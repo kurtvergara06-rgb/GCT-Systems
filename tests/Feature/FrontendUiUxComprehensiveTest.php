@@ -891,6 +891,37 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
     }
 
+    public function test_personalization_and_general_settings_are_separate_authenticated_pages(): void
+    {
+        $this->get(route('account.personalization'))->assertRedirect(route('login'));
+        $this->get(route('account.preferences'))->assertRedirect(route('login'));
+
+        $this->actingAs($this->operationUser)
+            ->get(route('account.personalization'))
+            ->assertOk()
+            ->assertSeeText('Display preferences')
+            ->assertSee('data-gct-preference="density"', false)
+            ->assertSee('data-gct-preference="reducedMotion"', false);
+
+        $this->actingAs($this->operationUser)
+            ->get(route('account.preferences'))
+            ->assertOk()
+            ->assertSeeText('Account settings')
+            ->assertSee('data-gct-reset-preferences', false)
+            ->assertSee(route('account.settings', [], false), false);
+
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+        $this->assertStringContainsString("route('account.personalization', [], false)", $sidebar);
+        $this->assertStringContainsString("route('account.preferences', [], false)", $sidebar);
+
+        $runtime = file_get_contents(resource_path('js/Main-js/account-preferences.js'));
+        $this->assertStringContainsString("keyForCurrentUser", $runtime);
+        $this->assertStringContainsString("localStorage.setItem", $runtime);
+        $this->assertStringContainsString("localStorage.removeItem", $runtime);
+        $this->assertStringContainsString("gct-reduced-motion", $runtime);
+        $this->assertStringContainsString("gct-density-compact", $runtime);
+    }
+
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
     {
         Driver::create([
