@@ -868,6 +868,29 @@ class FrontendUiUxComprehensiveTest extends TestCase
         }
     }
 
+    public function test_sidebar_account_menu_and_compact_profile_keep_supported_actions(): void
+    {
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+        $sidebarScript = file_get_contents(resource_path('js/Main-js/sidebar.js'));
+        $sidebarStyles = file_get_contents(resource_path('css/Main-styles/sidebar.css'));
+        $profile = file_get_contents(resource_path('views/Account/profile.blade.php'));
+
+        $this->assertStringContainsString("route('account.profile', [], false)", $sidebar);
+        $this->assertStringContainsString("route('account.settings', [], false)", $sidebar);
+        $this->assertStringContainsString("route('onboarding.show', ['replay' => 1], false)", $sidebar);
+        $this->assertStringContainsString('data-confirm-type="logout"', $sidebar);
+        $this->assertStringContainsString('aria-controls="sidebarProfileMenu"', $sidebar);
+        $this->assertStringNotContainsString('class="profile-menu-item" disabled', $sidebar);
+        $this->assertStringNotContainsString("const accountUrl = label === 'profile'", $sidebarScript);
+        $this->assertStringContainsString("profileMenu.setAttribute('aria-hidden', 'false')", $sidebarScript);
+        $this->assertStringContainsString('Compact account menu: GCT', $sidebarStyles);
+
+        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure">', $profile);
+        $this->assertStringContainsString('account-profile-grid', $profile);
+        $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
+        $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
+    }
+
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
     {
         Driver::create([
