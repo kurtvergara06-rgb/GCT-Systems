@@ -238,7 +238,8 @@ html:has(body.modal-open) {
 
 /* Opt-in master records viewport: ten actual rendered rows, measured by JS.
    The table itself remains a normal semantic table with native scrolling. */
-main .gct-master-scroll-10.is-master-scrollable {
+main .table-wrap.gct-master-scroll-10.is-master-scrollable,
+main .client-master-table-wrap.gct-master-scroll-10.is-master-scrollable {
   max-height: var(--gct-master-scroll-height) !important;
   overflow-x: auto !important;
   overflow-y: auto !important;
