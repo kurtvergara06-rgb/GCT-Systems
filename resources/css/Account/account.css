@@ -1442,3 +1442,99 @@ body.account-crop-open {
     .account-access-section { padding: 15px; }
     .account-access-grid { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* Profile v2: compact GitHub-style edit form with a separate read-only rail. */
+.account-page .account-content { max-width: 1320px; }
+.account-page .account-hero-card {
+    max-width: 1120px;
+    padding: 17px 22px;
+    margin-bottom: 16px;
+    border-radius: 15px;
+}
+.account-page .account-hero-identity { gap: 14px; }
+.account-page .account-hero-copy h2 { font-size: 19px; }
+.account-page .account-avatar-help { font-size: 11px; }
+.account-profile-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+    max-width: 1120px;
+}
+.account-profile-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #dae4f0;
+    border-radius: 9px;
+    background: #fff;
+    color: #36516e;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 650;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.account-profile-links a:hover,
+.account-profile-links a:focus-visible {
+    border-color: #a8c1e7;
+    background: #eef5ff;
+    color: #0b40b5;
+    outline: none;
+}
+.account-profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(280px, .9fr);
+    max-width: 1120px;
+    gap: 16px;
+    align-items: start;
+}
+.account-profile-grid > .account-card { padding: 24px; }
+.account-profile-aside { display: grid; gap: 14px; min-width: 0; }
+.account-profile-aside .account-access-section {
+    margin: 0;
+    padding: 21px;
+    border: 1px solid #dfe7f1;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15,23,42,.04);
+}
+.account-profile-aside .account-access-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 15px;
+    border-top: 1px solid #edf1f7;
+}
+.account-profile-aside .account-access-grid > div {
+    display: grid;
+    grid-template-columns: minmax(90px, .9fr) minmax(0, 1.1fr);
+    align-items: start;
+    gap: 9px;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 1px solid #edf1f7;
+    border-radius: 0;
+    background: transparent;
+}
+.account-profile-aside .account-access-grid > div:last-child { border-bottom: 0; }
+.account-profile-aside .account-access-grid dt,
+.account-profile-aside .account-access-grid dd { margin: 0; line-height: 1.5; }
+.account-profile-aside .account-access-header p { margin-top: 6px; }
+.account-profile-aside .account-access-status { margin-top: 4px; }
+.account-profile-aside .account-details-disclosure { border-radius: 15px; }
+.account-profile-aside .account-details-disclosure .account-tile-list { grid-template-columns: 1fr; }
+.account-profile-grid .account-form-actions { margin-top: 19px; }
+@media (max-width: 1020px) {
+    .account-profile-grid { grid-template-columns: minmax(0, 1fr); max-width: 800px; }
+    .account-profile-aside { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+    .account-page .account-hero-card { padding: 16px; }
+    .account-profile-grid > .account-card { padding: 18px; }
+    .account-profile-aside .account-access-section { padding: 17px; }
+    .account-profile-links a { flex: 1 1 auto; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .account-profile-links a { transition: none; }
+}
