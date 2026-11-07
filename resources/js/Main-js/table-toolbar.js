@@ -52,6 +52,10 @@ const positionTableToolPopover = (trigger, popover) => {
 
 const hideTableToolPopover = (popover) => {
     if (!popover) return;
+    // Close any date/time picker owned by this Filter before hiding its
+    // parent. Native manual popovers have independent top-layer lifetimes.
+    const picker = popover.querySelector('.gct-picker-popover:not([hidden])');
+    picker?.querySelector('.gct-picker-close')?.click();
     if (popover.matches?.(':popover-open')) popover.hidePopover();
     popover.hidden = true;
 };
