@@ -940,6 +940,17 @@ class FrontendUiUxComprehensiveTest extends TestCase
             ->assertSee('data-gct-reset-preferences', false)
             ->assertSee(route('account.settings', [], false), false);
 
+        // Both account pages must load their component styling after account.css.
+        // Depending on Vite CSS extraction, relying on the app.js import alone
+        // can leave the theme cards and introduction banner unstyled.
+        $personalization = file_get_contents(resource_path('views/Account/personalization.blade.php'));
+        $settingsPage = file_get_contents(resource_path('views/Account/preferences.blade.php'));
+        $explicitCss = "'resources/css/Account/account.css', 'resources/css/Main-styles/account-preferences.css'";
+        $this->assertStringContainsString($explicitCss, $personalization);
+        $this->assertStringContainsString($explicitCss, $settingsPage);
+        $this->assertStringContainsString('gct-personalization-intro', $personalization);
+        $this->assertStringContainsString('gct-theme-options', $personalization);
+
         $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
         $this->assertStringContainsString("route('account.personalization', [], false)", $sidebar);
         $this->assertStringContainsString("route('account.preferences', [], false)", $sidebar);
