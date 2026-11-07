@@ -1194,7 +1194,12 @@ class OperationTripScheduleHardeningTest extends TestCase
     {
         $user = $this->operationUser();
         $route = $this->route();
-        $trip = $this->trip($route, ['trip_code' => 'T-CONTEXT']);
+        // Keep this schedule partially assigned so edits/removal remain
+        // legal. Fully assigned Ready trips require an approved replacement.
+        $trip = $this->trip($route, [
+            'trip_code' => 'T-CONTEXT',
+            'required_buses' => 2,
+        ]);
         $date = $trip->trip_date->toDateString();
         [, $firstAttendance, $firstBus] = $this->assignmentResources(
             $date,
