@@ -185,15 +185,17 @@ class GctDateTimePicker {
         this.activeInput = input;
         this.activeTrigger = trigger;
 
-        // Keep modal-owned calendar interactions inside the modal's DOM tree.
-        // Portalling to body can break focus containment and pointer handling.
-        if (input.dataset.pickerPlacement === 'below') {
-            const modal = input.closest('.pms-monitor-dialog');
-            if (modal && this.popover.parentElement !== modal) {
-                modal.appendChild(this.popover);
-            }
-        } else if (this.popover.parentElement !== document.body) {
-            document.body.appendChild(this.popover);
+        // Filter / Sort use native top-layer popovers to escape clipped
+        // tables. Mount their calendar as a child of the top-layer filter
+        // so it remains clickable above the toolbar instead of behind it.
+        // PMS dialogs keep their existing in-dialog calendar placement.
+        const toolbarPopover = input.closest('.gct-table-tool-popover');
+        const pmsDialog = input.dataset.pickerPlacement === 'below'
+            ? input.closest('.pms-monitor-dialog')
+            : null;
+        const portalTarget = toolbarPopover || pmsDialog || document.body;
+        if (this.popover.parentElement !== portalTarget) {
+            portalTarget.appendChild(this.popover);
         }
 
         if (input.type === 'date') {
