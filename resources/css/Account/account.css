@@ -1389,3 +1389,56 @@ body.account-crop-open {
 @media (prefers-reduced-motion: reduce) {
     .account-details-chevron { transition: none; }
 }
+
+/* Employee profile: editable identity and administrator-assigned system access. */
+.account-profile-grid { max-width: 970px; }
+.account-profile-grid .account-card-header-copy p { max-width: 610px; }
+.account-access-section {
+    margin-top: 26px;
+    padding: 20px;
+    border: 1px solid #e1e9f3;
+    border-radius: 13px;
+    background: #f8fafd;
+}
+.account-access-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.account-access-header h3 { margin: 0; color: #173250; font-size: 14px; font-weight: 800; }
+.account-access-header p { margin-top: 5px; color: #657991; font-size: 11px; line-height: 1.5; }
+.account-access-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border: 1px solid #b5e3ce;
+    border-radius: 8px;
+    background: #e9f8f0;
+    color: #166b43;
+    font-size: 11px;
+    font-weight: 700;
+}
+.account-access-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 17px 0 0;
+}
+.account-access-grid > div {
+    min-width: 0;
+    padding: 12px 13px;
+    border: 1px solid #e0e8f2;
+    border-radius: 10px;
+    background: #fff;
+}
+.account-access-grid dt { margin: 0 0 5px; color: #667b95; font-size: 10px; font-weight: 650; }
+.account-access-grid dd { margin: 0; color: #172f4d; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
+.account-profile-grid .account-form-actions { margin-top: 18px; }
+.account-page .account-nav-tabs { max-width: 100%; flex-wrap: wrap; }
+@media (max-width: 660px) {
+    .account-access-section { padding: 15px; }
+    .account-access-grid { grid-template-columns: 1fr; gap: 8px; }
+}
