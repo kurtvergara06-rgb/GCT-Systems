@@ -97,3 +97,97 @@ document.addEventListener('DOMContentLoaded', renderPreferences);
 document.addEventListener('gct:page-loaded', renderPreferences);
 window.addEventListener('gct:navigation-ready', renderPreferences);
 if (document.readyState !== 'loading') renderPreferences();
+
+
+// Optional notification sound. Critical in-app messages are never filtered
+// or muted; only the sound cue is configurable on this browser.
+const soundKeyForCurrentUser = () => {
+    const id = document.getElementById('appSidebar')?.dataset.gctUserId;
+    return id ? `gct:notification-sound:${id}` : null;
+};
+const notificationSoundEnabled = () => {
+    const key = soundKeyForCurrentUser();
+    if (!key) return false;
+    try { return localStorage.getItem(key) === 'enabled'; }
+    catch { return false; }
+};
+const renderSoundPreference = () => {
+    document.querySelectorAll('[data-gct-notification-sound]').forEach((control) => {
+        control.checked = notificationSoundEnabled();
+    });
+};
+document.addEventListener('change', (event) => {
+    const control = event.target.closest?.('[data-gct-notification-sound]');
+    const key = soundKeyForCurrentUser();
+    if (!control || !key) return;
+    try {
+        localStorage.setItem(key, control.checked ? 'enabled' : 'disabled');
+        renderSoundPreference();
+        document.querySelectorAll('[data-gct-settings-status]').forEach((el) => {
+            el.textContent = 'Notification sound preference saved for this browser.';
+        });
+    } catch {
+        control.checked = notificationSoundEnabled();
+        document.querySelectorAll('[data-gct-settings-status]').forEach((el) => {
+            el.textContent = 'This browser could not save the sound preference.';
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', renderSoundPreference);
+window.addEventListener('gct:navigation-ready', renderSoundPreference);
+document.addEventListener('gct:page-loaded', renderSoundPreference);
+if (document.readyState !== 'loading') renderSoundPreference();
+
+let observedNotificationAccount = null;
+let lastObservedUnreadCount = null;
+let notificationAudioContext = null;
+const playOptionalNotificationCue = () => {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+        notificationAudioContext ||= new AudioContextClass();
+        if (notificationAudioContext.state !== 'running') return;
+        const oscillator = notificationAudioContext.createOscillator();
+        const volume = notificationAudioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 660;
+        volume.gain.setValueAtTime(0.0001, notificationAudioContext.currentTime);
+        volume.gain.exponentialRampToValueAtTime(0.035, notificationAudioContext.currentTime + 0.012);
+        volume.gain.exponentialRampToValueAtTime(0.0001, notificationAudioContext.currentTime + 0.17);
+        oscillator.connect(volume);
+        volume.connect(notificationAudioContext.destination);
+        oscillator.start();
+        oscillator.stop(notificationAudioContext.currentTime + 0.18);
+    } catch {
+        // Browser restrictions must never break the notification center.
+    }
+};
+// Audio activation requires a user gesture in browsers that block autoplay.
+document.addEventListener('pointerdown', () => {
+    if (!notificationSoundEnabled()) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+        notificationAudioContext ||= new AudioContextClass();
+        if (notificationAudioContext.state === 'suspended') {
+            notificationAudioContext.resume().catch(() => {});
+        }
+    } catch {
+        // Sound is best effort, not a required part of system notifications.
+    }
+});
+window.addEventListener('topbar-summary-loaded', (event) => {
+    const account = soundKeyForCurrentUser();
+    const count = event.detail?.unread_count;
+    if (!account || typeof count !== 'number') return;
+    const next = Math.max(0, count);
+    if (account !== observedNotificationAccount) {
+        observedNotificationAccount = account;
+        lastObservedUnreadCount = next;
+        return;
+    }
+    if (lastObservedUnreadCount !== null && next > lastObservedUnreadCount && notificationSoundEnabled()) {
+        playOptionalNotificationCue();
+    }
+    lastObservedUnreadCount = next;
+});

@@ -30,6 +30,9 @@ Route::middleware(['web', 'auth'])
         Route::get('/preferences', 'preferences')
             ->name('account.preferences');
 
+        Route::delete('/preferences/sessions/{sessionId}', 'revokeSession')
+            ->name('account.sessions.revoke');
+
         Route::put('/settings/password', 'updatePassword')
             ->name('account.password.update');
     });

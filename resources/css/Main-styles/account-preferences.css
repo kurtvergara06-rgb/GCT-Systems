@@ -246,3 +246,80 @@ html[data-gct-theme="dark"] .routes-page .routes-table .action-btn:focus-visible
     outline: 2px solid #9bcaff;
     outline-offset: 2px;
 }
+
+
+/* Account Settings: focused Notifications, Security and Browser sections. */
+.gct-settings-page { max-width: 1030px; }
+.gct-settings-intro {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; padding: 18px 22px; border-radius: 15px;
+    background: linear-gradient(110deg, #0c3266, #0b40b5);
+    color: #fff; box-shadow: 0 10px 24px rgba(15,54,111,.13);
+}
+.gct-settings-intro-icon { display: grid; place-items: center; flex: 0 0 43px; width: 43px; height: 43px; border-radius: 12px; background: rgba(255,255,255,.17); font-size: 18px; }
+.gct-settings-intro > span:last-child { display:grid; gap: 4px; }
+.gct-settings-intro strong { font-size: 16px; font-weight: 800; color:#fff; }
+.gct-settings-intro small { font-size: 11px; color:#e1ebff; }
+.gct-settings-panel { margin-bottom: 18px; padding: 24px; border-radius: 15px; }
+.gct-settings-panel .account-card-header { padding-bottom: 16px; }
+.gct-settings-panel .account-card-header-copy h3 { display:flex; align-items:center; gap: 10px; font-size:15px; }
+.gct-settings-panel .account-card-header-copy h3 i { color:#0b40b5; }
+.gct-settings-row {
+    display:flex; align-items:center; justify-content:space-between; gap:22px;
+    min-height: 68px; padding:15px 2px; border-bottom: 1px solid #e6edf6;
+}
+.gct-settings-row:last-of-type { border-bottom:0; }
+.gct-settings-row > div:first-child,
+.gct-settings-row > span:first-child { min-width:0; flex:1; }
+.gct-settings-row strong { display:block; font-size:12px; color:#142f51; font-weight:750; }
+.gct-settings-row p { margin:5px 0 0; color:#64748b; font-size:11px; line-height:1.55; }
+.gct-settings-row-link { text-decoration:none; color:inherit; border-radius:8px; padding-inline:11px; }
+.gct-settings-row-link:hover,.gct-settings-row-link:focus-visible { background:#f1f6ff; outline:2px solid #b4cdf4; outline-offset:-2px; }
+.gct-settings-row-link > i { color:#8298b4; font-size:11px; }
+.gct-settings-locked,.gct-session-current {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:7px 10px; border-radius:9px;
+    background:#e9f7ef; border:1px solid #bde4ce;
+    color:#176e44; font-weight:750; font-size:11px; white-space:nowrap;
+}
+.gct-settings-note,.gct-settings-empty {
+    font-size:11px; line-height:1.6; color:#708199; margin:13px 0 0;
+}
+.gct-settings-sessions-heading { margin:20px 0 6px; display:grid; gap:5px; }
+.gct-settings-sessions-heading strong { font-size:13px; color:#183454; }
+.gct-settings-sessions-heading small { font-size:11px; color:#71839c; }
+.gct-settings-session {
+    display:flex; align-items:center; gap:13px; padding:15px 4px;
+    border-bottom:1px solid #e6edf6; min-width:0;
+}
+.gct-settings-session:last-child { border-bottom:0; }
+.gct-session-icon { flex: 0 0 38px; display:grid; place-items:center; width:38px; height:38px; border-radius:10px; background:#eef5ff; color:#0b40b5; }
+.gct-settings-session-details { flex:1; display:grid; min-width:0; gap:4px; }
+.gct-settings-session-details strong { font-size:12px; color:#142f51; }
+.gct-settings-session-details small { font-size:10px; line-height:1.5; color:#687e99; overflow-wrap:anywhere; }
+.gct-settings-session form { margin:0; }
+.gct-settings-revoke { border:1px solid #e6a7af; border-radius:8px; padding:9px 12px; background:#fff6f6; color:#ab283a; font-size:11px; font-weight:750; cursor:pointer; white-space:nowrap; }
+.gct-settings-revoke:hover,.gct-settings-revoke:focus-visible { background:#ffebed; outline:2px solid #efb2bc; }
+.gct-settings-panel .account-reset-preferences { margin:0; white-space:nowrap; }
+html[data-gct-theme="dark"] .gct-settings-row,
+html[data-gct-theme="dark"] .gct-settings-session { border-color:#34465f; }
+html[data-gct-theme="dark"] .gct-settings-row strong,
+html[data-gct-theme="dark"] .gct-settings-sessions-heading strong,
+html[data-gct-theme="dark"] .gct-settings-session-details strong { color:#e4ecf7; }
+html[data-gct-theme="dark"] .gct-settings-row p,
+html[data-gct-theme="dark"] .gct-settings-session-details small,
+html[data-gct-theme="dark"] .gct-settings-sessions-heading small,
+html[data-gct-theme="dark"] .gct-settings-note,
+html[data-gct-theme="dark"] .gct-settings-empty { color:#b0c1d8; }
+html[data-gct-theme="dark"] .gct-settings-row-link:hover { background:#263a55; }
+html[data-gct-theme="dark"] .gct-session-icon { background:#233955; color:#9ec3ff; }
+html[data-gct-theme="dark"] .gct-settings-revoke { background:#3d2432; border-color:#994a5d; color:#ff9fa8; }
+@media (max-width: 660px) {
+    .gct-settings-panel { padding: 18px; }
+    .gct-settings-row { flex-direction:column; align-items:stretch; gap:12px; }
+    .gct-settings-locked { align-self:flex-start; }
+    .gct-settings-session { flex-wrap:wrap; }
+    .gct-settings-session form { width:100%; }
+    .gct-settings-revoke { width:100%; }
+    .gct-settings-intro { padding:16px; }
+}
