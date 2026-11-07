@@ -972,7 +972,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->actingAs($this->operationUser)
             ->get(route('account.preferences'))
             ->assertOk()
-            ->assertSeeText('Account settings')
+            ->assertSeeText('My Account Settings')
             ->assertSee('data-gct-reset-preferences', false)
             ->assertSee(route('account.settings', [], false), false);
 
