@@ -1526,8 +1526,16 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 return;
             }
 
+            // Escape dismisses a focused dropdown before closing its form.
+            // This prevents losing an in-progress assignment while searching.
+            const dropdownOpen = assignmentDriverMenu?.classList.contains('show')
+                || assignmentBusMenu?.classList.contains('show');
             closeDriverDropdown();
             closeBusDropdown();
+            if (dropdownOpen) {
+                event.preventDefault();
+                return;
+            }
 
             closeModal(assignmentModal);
             closeModal(viewAssignmentModal);
