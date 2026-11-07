@@ -1336,3 +1336,56 @@ body.account-crop-open {
 @media (max-width: 530px) {
     .account-rbac-preview-header { align-items: flex-start; flex-direction: column; }
 }
+
+/* My Profile: the form is the primary task; metadata is secondary. */
+.account-profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 920px;
+    gap: 14px;
+}
+.account-profile-grid > .account-card { min-width: 0; }
+.account-details-disclosure { padding: 0; overflow: hidden; }
+.account-details-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 17px 21px;
+    cursor: pointer;
+    list-style: none;
+    color: #183250;
+}
+.account-details-summary::-webkit-details-marker { display: none; }
+.account-details-summary:focus-visible {
+    outline: 3px solid rgba(11, 64, 181, .3);
+    outline-offset: -3px;
+}
+.account-details-heading { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+.account-details-heading > i {
+    display: grid; place-items: center; flex: 0 0 36px;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #edf4fd; color: #0b40b5; font-size: 14px;
+}
+.account-details-heading > span { display: grid; gap: 3px; min-width: 0; }
+.account-details-heading strong { font-size: 13px; font-weight: 800; }
+.account-details-heading small { color: #64748b; font-size: 11px; line-height: 1.4; }
+.account-details-chevron { color: #64748b; font-size: 12px; transition: transform .18s ease; }
+.account-details-disclosure[open] .account-details-chevron { transform: rotate(180deg); }
+.account-details-disclosure .account-tile-list {
+    padding: 4px 21px 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.account-details-disclosure .account-secondary-link {
+    width: calc(100% - 42px);
+    margin: 0 21px 21px;
+    box-sizing: border-box;
+}
+@media (max-width: 640px) {
+    .account-details-disclosure .account-tile-list { grid-template-columns: 1fr; }
+    .account-details-summary { padding-inline: 15px; }
+    .account-details-disclosure .account-tile-list { padding-inline: 15px; }
+    .account-details-disclosure .account-secondary-link { width: calc(100% - 30px); margin-inline: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .account-details-chevron { transition: none; }
+}
