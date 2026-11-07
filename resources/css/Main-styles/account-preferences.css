@@ -1,0 +1,43 @@
+/* Browser-only personalization; default layout stays unchanged. */
+html.gct-density-compact main table:not(.calendar-table) th,
+html.gct-density-compact main table:not(.calendar-table) td {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+}
+html.gct-reduced-motion *,
+html.gct-reduced-motion *::before,
+html.gct-reduced-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+.account-preferences-page { max-width: 940px; }
+.account-preference-breadcrumb { display:flex; align-items:center; gap:9px; margin-bottom:18px; font-size:12px; color:#64748b; }
+.account-preference-breadcrumb a { color:#0b40b5; text-decoration:none; font-weight:700; }
+.account-preference-breadcrumb > i { font-size:9px; color:#9caec4; }
+.account-preference-panel { margin-bottom:18px; }
+.account-preference-row { display:flex; align-items:center; justify-content:space-between; gap:22px; padding:19px 0; border-bottom:1px solid #edf1f7; }
+.account-preference-row > div { flex:1; min-width:0; }
+.account-preference-row strong { display:block; font-size:13px; color:#122c4d; }
+.account-preference-row p { margin-top:5px; color:#66788f; font-size:12px; line-height:1.5; }
+.account-preference-row select { width:min(190px, 100%); min-height:39px; padding:0 11px; border:1px solid #d6e2f0; border-radius:9px; background:#fff; color:#102a4c; font-size:12px; }
+.account-preference-check { display:flex; align-items:center; gap:9px; color:#193b60; font-size:12px; font-weight:600; cursor:pointer; }
+.account-preference-check input { accent-color:#0b40b5; width:17px; height:17px; }
+.account-preference-status { margin-top:13px; min-height:18px; color:#35614d; font-size:12px; }
+.account-preference-link { width:max-content; margin-top:16px; padding-inline:16px; }
+.account-settings-links { display:grid; gap:4px; padding-top:18px; }
+.account-settings-links a { display:flex; align-items:center; gap:15px; padding:13px 10px; border-radius:10px; text-decoration:none; color:#173150; }
+.account-settings-links a:hover, .account-settings-links a:focus-visible { background:#f2f6fc; outline:none; }
+.account-settings-links a > i:first-child { display:grid; place-items:center; flex:0 0 36px; width:36px; height:36px; border-radius:9px; color:#0b40b5; background:#edf4ff; }
+.account-settings-links a > span { flex:1; min-width:0; display:grid; gap:4px; }
+.account-settings-links strong { font-size:13px; }
+.account-settings-links small { color:#64748b; font-size:11px; }
+.account-settings-links a > i:last-child { color:#8a9ab0; font-size:11px; }
+.account-reset-preferences { margin-top:17px; min-height:40px; padding:0 16px; border:1px solid #d6e2f0; border-radius:9px; background:#fff; color:#193c66; font-weight:700; font-size:12px; cursor:pointer; }
+.account-reset-preferences:hover { background:#f3f7fc; }
+@media(max-width:640px) {
+    .account-preference-row { flex-direction:column; align-items:stretch; gap:13px; }
+    .account-preference-row select { width:100%; }
+    .account-preference-panel { padding:19px; }
+}
