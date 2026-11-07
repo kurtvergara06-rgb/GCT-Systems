@@ -511,6 +511,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("showAssignmentMenu(assignmentBusMenu, assignmentBusTrigger)", $assignmentScript);
         $this->assertStringContainsString("menu.showPopover()", $assignmentScript);
         $this->assertStringContainsString("menu.hidePopover()", $assignmentScript);
+        $this->assertStringContainsString("const dropdownOpen = assignmentDriverMenu?.classList.contains('show')", $assignmentScript);
 
         // Filter calendar must share its native top-layer popup so it is not
         // obscured by the filter itself.
