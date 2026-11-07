@@ -534,6 +534,20 @@
                 </a>
             @endif
 
+            @if(\Illuminate\Support\Facades\Route::has('account.personalization'))
+                <a href="{{ route('account.personalization', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                    <span>Personalization</span>
+                </a>
+            @endif
+
+            @if(\Illuminate\Support\Facades\Route::has('account.preferences'))
+                <a href="{{ route('account.preferences', [], false) }}" class="profile-menu-item" role="menuitem">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                    <span>Settings</span>
+                </a>
+            @endif
+
             @if(\Illuminate\Support\Facades\Route::has('account.settings'))
                 <a href="{{ route('account.settings', [], false) }}" class="profile-menu-item" role="menuitem">
                     <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
