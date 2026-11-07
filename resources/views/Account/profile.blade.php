@@ -361,14 +361,6 @@
                             </div>
                         </div>
 
-                        <a
-                            href="{{ route('account.settings', [], false) }}"
-                            class="account-secondary-link"
-                        >
-                            <i class="fa-solid fa-key"></i>
-                            <span>Manage Password & Security</span>
-                            <i class="fa-solid fa-arrow-right" style="margin-left: auto; font-size: 11px;"></i>
-                        </a>
                         </details>
                     </aside>
                 </div>
