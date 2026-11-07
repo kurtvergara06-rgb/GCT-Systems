@@ -1482,15 +1482,25 @@ class OperationAutoSchedulingTest extends TestCase
             'fulfilled_by_assignment_id' => $slotOneAssignment->id,
         ]);
 
+        // Filling the last open slot makes the trip Ready. A Ready-trip
+        // assignment cannot be removed directly: a Head-approved replacement
+        // or whole-trip cancellation is required instead.
+        $this->assertSame('Ready', $trip->fresh()->status);
         $this->actingAs($user)
             ->delete(route('driver-bus-assignment.destroy', $slotOneAssignment))
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasErrors('trip_schedule_id');
 
+        // The deferred slot stays fulfilled; rejection must not erase the
+        // original decision or either confirmed bus assignment.
         $this->assertDatabaseHas('auto_schedule_slot_decisions', [
             'trip_schedule_id' => $trip->id,
             'slot_number' => 1,
-            'status' => 'Pending',
-            'fulfilled_by_assignment_id' => null,
+            'status' => 'Resolved',
+            'fulfilled_by_assignment_id' => $slotOneAssignment->id,
+        ]);
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 1,
         ]);
         $this->assertDatabaseHas('trip_assignments', [
             'trip_schedule_id' => $trip->id,
