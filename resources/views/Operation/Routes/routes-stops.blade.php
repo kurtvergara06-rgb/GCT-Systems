@@ -5,6 +5,7 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Routes/routes-stops.css',
+        'resources/css/Operation/Routes/route-pin-enhancements.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Routes/routes-stops.js'
     ]"
