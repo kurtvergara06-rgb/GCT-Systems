@@ -482,6 +482,27 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp->assertSee('trip-details-hero', false);
     }
 
+    public function test_operation_dialog_and_toolbar_viewport_guards_are_present(): void
+    {
+        $popoverScript = file_get_contents(resource_path('js/Main-js/table-toolbar.js'));
+        $operationStyles = file_get_contents(resource_path('css/Operation/operation-action-buttons.css'));
+        $modalRuntime = file_get_contents(resource_path('js/Main-js/global-modal-backdrop.js'));
+
+        // The browser top layer avoids fixed-position offsets caused by GSAP
+        // transforms. Form fields remain inside the original toolbar element.
+        $this->assertStringContainsString("popover.showPopover()", $popoverScript);
+        $this->assertStringContainsString("popover.hidePopover()", $popoverScript);
+        $this->assertStringContainsString("getBoundingClientRect()", $popoverScript);
+        $this->assertStringContainsString("window.visualViewport?.addEventListener('resize'", $popoverScript);
+
+        // This is scoped to Operation and also supports dialogs that the
+        // shared modal portal has moved from <main> into <body>.
+        $this->assertStringContainsString('Operation-only viewport modal contract', $operationStyles);
+        $this->assertStringContainsString('max-width: min(100%, calc(100vw - 24px))', $operationStyles);
+        $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $modalRuntime);
+        $this->assertStringContainsString('document.body.appendChild(overlay)', $modalRuntime);
+    }
+
     // =========================================================================
     // 4. MAINTENANCE MODULE PAGES
     // =========================================================================
