@@ -890,6 +890,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
         $this->assertStringContainsString('account-access-section', $profile);
+        $this->assertStringContainsString('account-profile-aside', $profile);
+        $this->assertStringContainsString('account-profile-links', $profile);
+        $this->assertStringNotContainsString('account-nav-tabs', $profile);
         $this->assertStringContainsString('System Access', $profile);
         $this->assertStringContainsString('Account History', $profile);
         $this->assertStringContainsString('Member Since', $profile);
