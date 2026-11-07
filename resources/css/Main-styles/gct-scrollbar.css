@@ -234,3 +234,27 @@ html:has(body.modal-open) {
     user-select: none;
   }
 }
+
+
+/* Opt-in master records viewport: ten actual rendered rows, measured by JS.
+   The table itself remains a normal semantic table with native scrolling. */
+main .gct-master-scroll-10.is-master-scrollable {
+  max-height: var(--gct-master-scroll-height) !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+main .gct-master-scroll-10.is-master-scrollable > table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--gct-sticky-actions-heading, #f3f7fc);
+}
+main .gct-master-scroll-10.is-master-scrollable.gct-sticky-actions > table > thead > tr > th:last-child {
+  z-index: 10;
+}
+main .gct-master-scroll-10:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
