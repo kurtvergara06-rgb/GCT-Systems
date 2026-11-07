@@ -10,39 +10,102 @@
     <div class="app account-page">
         <x-layout.sidebar :department="$department" :icon="$icon" />
         <main class="main account-main">
-            <x-layout.topbar title="Settings" subtitle="Manage your account options and browser preferences" />
-            <section class="account-content account-preferences-page">
+            <x-layout.topbar title="Settings" subtitle="Notifications, account security and browser preferences" />
+            <section class="account-content account-preferences-page gct-settings-page">
                 <nav class="account-preference-breadcrumb" aria-label="Account navigation">
                     <a href="{{ route('account.profile') }}">My Profile</a>
                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     <span>Settings</span>
                 </nav>
-                <section class="account-card account-preference-panel" aria-labelledby="accountSettingsTitle">
+                <header class="gct-settings-intro">
+                    <span class="gct-settings-intro-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></span>
+                    <span><strong>My Account Settings</strong><small>Personal controls for your GCT-Systems workspace</small></span>
+                </header>
+
+                <section class="account-card account-preference-panel gct-settings-panel" aria-labelledby="notificationSettingsHeading">
                     <div class="account-card-header">
                         <div class="account-card-header-copy">
-                            <h3 id="accountSettingsTitle">Account settings</h3>
-                            <p>Your account options are separate from administrator-managed system settings.</p>
+                            <h3 id="notificationSettingsHeading"><i class="fa-regular fa-bell" aria-hidden="true"></i> Notifications</h3>
+                            <p>Manage optional notification behavior while keeping essential fleet and approval updates visible.</p>
                         </div>
-                        <div class="account-card-icon"><i class="fa-solid fa-gear" aria-hidden="true"></i></div>
                     </div>
-                    <div class="account-settings-links">
-                        <a href="{{ route('account.profile') }}"><i class="fa-regular fa-user" aria-hidden="true"></i><span><strong>My Profile</strong><small>Edit your name, email and profile photo</small></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                        <a href="{{ route('account.settings') }}"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span><strong>Security &amp; Password</strong><small>Manage your account password</small></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                        <a href="{{ route('account.personalization') }}"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span><strong>Personalization</strong><small>Table spacing and reduced motion</small></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                        @if(\Illuminate\Support\Facades\Route::has('onboarding.show'))
-                            <a href="{{ route('onboarding.show', ['replay' => 1]) }}" data-system-tutorial-link><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span><strong>System Tutorial</strong><small>Replay your orientation guide</small></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-                        @endif
+                    <div class="gct-settings-row">
+                        <div><strong>In-app operational notifications</strong><p>Required incident, scheduling, approval and workflow alerts remain available.</p></div>
+                        <span class="gct-settings-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Always enabled</span>
                     </div>
+                    <div class="gct-settings-row">
+                        <div><strong>Notification sounds</strong><p>Play a brief sound when a new unread notification arrives after this browser is activated.</p></div>
+                        <label class="account-preference-check">
+                            <input type="checkbox" data-gct-notification-sound aria-label="Notification sounds">
+                            <span>Enable sounds</span>
+                        </label>
+                    </div>
+                    <p class="gct-settings-note">Sound is optional and applies only to this browser. Browser playback restrictions may prevent sound until you interact with the page.</p>
+                    <p class="account-preference-status" data-gct-settings-status role="status" aria-live="polite"></p>
                 </section>
-                <section class="account-card account-preference-panel" aria-labelledby="browserPreferenceTitle">
+
+                <section class="account-card account-preference-panel gct-settings-panel" aria-labelledby="securitySessionsHeading">
                     <div class="account-card-header">
                         <div class="account-card-header-copy">
-                            <h3 id="browserPreferenceTitle">Browser preferences</h3>
-                            <p>Reset interface spacing and motion preferences stored locally in this browser for your account. This does not delete your profile, login or business records.</p>
+                            <h3 id="securitySessionsHeading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Security &amp; Sessions</h3>
+                            <p>Review your sign-ins and protect your own account.</p>
                         </div>
-                        <div class="account-card-icon"><i class="fa-solid fa-laptop" aria-hidden="true"></i></div>
                     </div>
-                    <button type="button" class="account-reset-preferences" data-gct-reset-preferences>Reset display preferences</button>
+                    <a href="{{ route('account.settings') }}" class="gct-settings-row gct-settings-row-link">
+                        <span><strong>Security &amp; Password</strong><p>Update your password through the existing protected form.</p></span>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                    <div class="gct-settings-sessions-heading">
+                        <strong>Active sessions</strong>
+                        <small>Only sessions belonging to your account are shown.</small>
+                    </div>
+                    @if($sessionsSupported)
+                        @forelse($sessions as $session)
+                            <div class="gct-settings-session">
+                                <span class="gct-session-icon"><i class="fa-solid {{ $session->current ? 'fa-laptop' : 'fa-desktop' }}" aria-hidden="true"></i></span>
+                                <div class="gct-settings-session-details">
+                                    <strong>{{ $session->current ? 'This device' : 'Other signed-in session' }}</strong>
+                                    <small>{{ $session->device }}</small>
+                                    <small>{{ $session->ip_address }} · Last active {{ $session->last_activity }}</small>
+                                </div>
+                                @if($session->current)
+                                    <span class="gct-session-current">Current</span>
+                                @else
+                                    <form action="{{ route('account.sessions.revoke', $session->id) }}" method="POST"
+                                        data-confirm-form
+                                        data-confirm-title="Sign Out Device"
+                                        data-confirm-message="Sign out this session? The other device will need to sign in again."
+                                        data-confirm-button="Sign Out"
+                                        data-confirm-type="warning">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="gct-settings-revoke">Sign out</button>
+                                    </form>
+                                @endif
+                            </div>
+                        @empty
+                            <p class="gct-settings-empty">No active database sessions are currently listed for this account.</p>
+                        @endforelse
+                    @else
+                        <p class="gct-settings-empty"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Session management is available when GCT uses the database session driver. Your current session remains protected by the existing login and logout system.</p>
+                    @endif
+                </section>
+
+                <section class="account-card account-preference-panel gct-settings-panel" aria-labelledby="browserDisplayHeading">
+                    <div class="account-card-header">
+                        <div class="account-card-header-copy">
+                            <h3 id="browserDisplayHeading"><i class="fa-solid fa-display" aria-hidden="true"></i> Browser &amp; Display</h3>
+                            <p>Personal appearance controls stay separate from fleet operations and permissions.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('account.personalization') }}" class="gct-settings-row gct-settings-row-link">
+                        <span><strong>Personalization</strong><p>Font, table density, reduced motion and saved appearance choices.</p></span>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                    <div class="gct-settings-row">
+                        <div><strong>Restore display defaults</strong><p>Reset appearance preferences for your account on this browser only.</p></div>
+                        <button type="button" class="account-reset-preferences" data-gct-reset-preferences><i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Reset preferences</button>
+                    </div>
                     <p class="account-preference-status" data-gct-preferences-status role="status" aria-live="polite"></p>
                 </section>
             </section>
