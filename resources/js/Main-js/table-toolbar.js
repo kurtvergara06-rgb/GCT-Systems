@@ -57,6 +57,7 @@ const hideTableToolPopover = (popover) => {
     const picker = popover.querySelector('.gct-picker-popover:not([hidden])');
     picker?.querySelector('.gct-picker-close')?.click();
     if (popover.matches?.(':popover-open')) popover.hidePopover();
+    popover.removeAttribute('popover');
     popover.hidden = true;
 };
 
@@ -68,7 +69,9 @@ const showTableToolPopover = (popover) => {
         try {
             popover.showPopover();
         } catch {
-            // Older browsers retain the fixed-position fallback.
+            // A failed top-layer activation must not leave the UA's
+            // [popover]:not(:popover-open) display:none rule enabled.
+            popover.removeAttribute('popover');
         }
     }
 };
