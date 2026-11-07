@@ -142,3 +142,56 @@ html[data-gct-theme="dark"] .main :is(.account-nav-tabs,.account-profile-tabs,.g
 html[data-gct-theme="dark"] .main .account-nav-tab:not(.active) { color: #d6e5f7; }
 html[data-gct-theme="dark"] .main :is(.account-settings-links a,.account-preference-breadcrumb a) { color: #b9d1ff; }
 html[data-gct-theme="dark"] .main :is(.gct-preference-section .account-card-header,.account-preference-row) { border-color: #33445e; }
+
+
+/* Routes dark-mode contrast contract.
+   The shared sticky-actions utility defaults to white backgrounds unless
+   these semantic properties are supplied by the active department page.
+   Do not recolor action buttons or status badges: their tones encode actions. */
+html[data-gct-theme="dark"] .routes-page {
+    --route-text: #e4ecf7;
+    --route-muted: #a9bbd3;
+    --route-border: #354761;
+    --route-soft-border: #354761;
+    --route-card: #1d2b40;
+    --route-table-head: #243750;
+    --gct-sticky-actions-background: #1d2b40;
+    --gct-sticky-actions-heading: #243750;
+    --gct-sticky-actions-hover: #293c56;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table thead,
+html[data-gct-theme="dark"] .routes-page .routes-table thead th {
+    background: var(--route-table-head);
+    color: #dce8f8;
+    border-color: var(--route-border);
+}
+html[data-gct-theme="dark"] .routes-page .routes-table tbody tr > td {
+    background: var(--route-card);
+    color: var(--route-text);
+    border-color: var(--route-soft-border);
+}
+html[data-gct-theme="dark"] .routes-page .routes-table tbody tr:hover > td {
+    background: var(--gct-sticky-actions-hover);
+}
+html[data-gct-theme="dark"] .routes-page .routes-table-wrap.gct-sticky-actions > table > thead > tr > th:last-child {
+    background: var(--gct-sticky-actions-heading);
+    color: #dce8f8;
+}
+html[data-gct-theme="dark"] .routes-page .routes-table-wrap.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+    background: var(--gct-sticky-actions-background);
+    color: var(--route-text);
+}
+html[data-gct-theme="dark"] .routes-page .routes-table-wrap.gct-sticky-actions > table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-sticky-actions-hover);
+}
+html[data-gct-theme="dark"] .routes-page .routes-record-controls > .routes-segmented-tabs {
+    background: #17263b;
+    border-color: #354761;
+}
+html[data-gct-theme="dark"] .routes-page .routes-record-controls > .routes-segmented-tabs > .gct-record-tab {
+    color: #baccdf;
+}
+html[data-gct-theme="dark"] .routes-page .routes-record-controls > .routes-segmented-tabs > .gct-record-tab.is-active {
+    background: #304965;
+    color: #f4f8ff;
+}
