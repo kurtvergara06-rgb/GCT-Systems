@@ -1334,3 +1334,100 @@ body.sidebar-collapsed .main {
     padding-top: 14px;
   }
 }
+
+/* Compact account menu: GCT navy palette, ChatGPT-style grouping. */
+#appSidebar .sidebar-profile-wrap { z-index: 15; }
+#appSidebar .sidebar-profile-menu {
+  box-sizing: border-box;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 10px);
+  min-width: 0;
+  width: 100%;
+  max-height: min(420px, calc(100dvh - 90px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  background: #142840;
+  color: #f8fafc;
+  border: 1px solid #344a63;
+  border-radius: 14px;
+  box-shadow: 0 20px 46px rgba(3, 15, 32, .35);
+  scrollbar-width: thin;
+}
+#appSidebar .profile-menu-header { gap: 10px; padding: 10px 9px; }
+#appSidebar .profile-menu-avatar {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  background: #dae5f2;
+  font-size: 12px;
+}
+#appSidebar .profile-menu-identity { min-width: 0; flex: 1; }
+#appSidebar .profile-menu-header h4 {
+  max-width: 100%;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 750;
+}
+#appSidebar .profile-menu-header p {
+  max-width: 100%;
+  margin-top: 3px;
+  color: #c3d2e4;
+  font-size: 10px;
+}
+#appSidebar .profile-menu-department {
+  display: block;
+  margin-top: 3px;
+  color: #8fa8c3;
+  font-size: 10px;
+}
+#appSidebar .profile-menu-divider { background: #30445d; margin: 6px 3px; }
+#appSidebar .profile-menu-item {
+  min-height: 40px;
+  gap: 11px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: transparent;
+  color: #ecf2fb;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+#appSidebar .profile-menu-item i { width: 17px; color: #b6c6dc; font-size: 13px; }
+#appSidebar .profile-menu-item:hover,
+#appSidebar .profile-menu-item:focus-visible {
+  color: #fff;
+  background: #294463;
+  outline: none;
+}
+#appSidebar .profile-menu-item.logout { color: #f3f6fb; }
+#appSidebar .profile-menu-item.logout:hover { color: #fff; background: #294463; }
+#appSidebar .profile-logout-form { width: 100%; }
+#appSidebar .profile-logout-form > button { text-align: left; }
+@media (min-width: 769px) {
+  #appSidebar.collapsed .sidebar-profile-menu {
+    position: absolute;
+    top: auto;
+    bottom: 0;
+    left: calc(100% + 14px);
+    right: auto;
+    width: 278px;
+    min-width: 0;
+  }
+}
+@media (max-width: 768px) {
+  #appSidebar .sidebar-profile-menu,
+  #appSidebar.collapsed .sidebar-profile-menu {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-height: min(55dvh, 420px);
+    margin-top: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #appSidebar .sidebar-profile-menu.show { animation: none; }
+}
