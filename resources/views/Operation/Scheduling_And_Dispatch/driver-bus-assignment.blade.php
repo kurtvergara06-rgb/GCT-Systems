@@ -470,7 +470,7 @@
                                             <td>
                                                 <x-ui.status-badge
                                                     :status="$slotDisplayStatus"
-                                                :label="$slotBreakdown?->replacement && $trip->status === 'Ready' ? 'Ready · Reserve' : ($slotDisplayStatus === 'Partially Assigned' ? 'Partial' : null)"
+                                                :label="$slotDisplayStatus === 'Partially Assigned' ? 'Partial' : null"
                                                     class="assignment-status {{ \App\Support\StatusBadge::normalize($slotDisplayStatus) }}"
                                                     :title="$slotStatusTooltip"
                                                 />
