@@ -71,7 +71,7 @@
         <main class="main account-main">
             <x-layout.topbar
                 title="My Profile"
-                subtitle="View and manage your personal account identity and system details"
+                subtitle="Manage your profile details and review your system access"
             />
 
             <section class="account-content">
@@ -210,11 +210,19 @@
                     </section>
                 </div>
 
-                {{-- Unified Module Tabs --}}
+                {{-- Account navigation: separate profile, preferences and security. --}}
                 <nav class="account-nav-tabs">
                     <a href="{{ route('account.profile') }}" class="account-nav-tab active">
                         <i class="fa-solid fa-user-gear"></i>
                         <span>My Profile</span>
+                    </a>
+                    <a href="{{ route('account.personalization') }}" class="account-nav-tab">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        <span>Personalization</span>
+                    </a>
+                    <a href="{{ route('account.preferences') }}" class="account-nav-tab">
+                        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                        <span>Settings</span>
                     </a>
                     <a href="{{ route('account.settings') }}" class="account-nav-tab">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -289,37 +297,6 @@
                                 @enderror
                             </div>
 
-                            <div class="account-form-row">
-                                <div class="account-field">
-                                    <label>
-                                        <span>Department</span>
-                                        <span class="account-field-tag">Administrative</span>
-                                    </label>
-                                    <div class="account-input-wrap">
-                                        <i class="fa-solid {{ $icon }} account-input-icon"></i>
-                                        <input type="text" value="{{ $department }}" readonly>
-                                        <span class="account-locked-pill">
-                                            <i class="fa-solid fa-lock"></i> Locked
-                                        </span>
-                                    </div>
-                                    <small><i class="fa-solid fa-circle-info"></i> Department module assignment is managed by Admin.</small>
-                                </div>
-
-                                <div class="account-field">
-                                    <label>
-                                        <span>Role & Title</span>
-                                        <span class="account-field-tag">Administrative</span>
-                                    </label>
-                                    <div class="account-input-wrap">
-                                        <i class="fa-solid fa-shield-halved account-input-icon"></i>
-                                        <input type="text" value="{{ $displayRole }}" readonly>
-                                        <span class="account-locked-pill">
-                                            <i class="fa-solid fa-lock"></i> Locked
-                                        </span>
-                                    </div>
-                                    <small><i class="fa-solid fa-circle-info"></i> Role-based permissions are managed by Admin.</small>
-                                </div>
-                            </div>
 
                             <div class="account-form-actions">
                                 <button type="submit" class="account-primary-button">
@@ -328,6 +305,30 @@
                                 </button>
                             </div>
                         </form>
+
+                        <section class="account-access-section" aria-labelledby="accountAccessHeading">
+                            <div class="account-access-header">
+                                <div>
+                                    <h3 id="accountAccessHeading">System Access</h3>
+                                    <p>Assigned by the system administrator. These details cannot be changed from your profile.</p>
+                                </div>
+                                <span class="account-access-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $user->status ?: 'Active' }}</span>
+                            </div>
+                            <dl class="account-access-grid">
+                                <div>
+                                    <dt>System ID</dt>
+                                    <dd>{{ $displayUserId }}</dd>
+                                </div>
+                                <div>
+                                    <dt>Department</dt>
+                                    <dd>{{ $department }}</dd>
+                                </div>
+                                <div>
+                                    <dt>Role</dt>
+                                    <dd>{{ $displayRole }}</dd>
+                                </div>
+                            </dl>
+                        </section>
                     </section>
 
                     {{-- Account metadata stays available without a permanent second column. --}}
