@@ -474,7 +474,10 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp->assertSee('id="tripModalTitle"', false);
         $resp->assertSee('id="tripSubmitText"', false);
         $resp->assertSee('id="viewTripModal"', false);
-        $resp->assertSee('trip-editor-grid', false);
+        $resp->assertSee('trip-editor-reference-layout', false);
+        $resp->assertSee('trip-reference-grid', false);
+        $resp->assertSee('name="trip_mode_choice" value="client"', false);
+        $resp->assertSee('name="trip_mode_choice" value="general"', false);
         $resp->assertSee('id="departureTimeSlot" disabled hidden', false);
         $resp->assertSee('trip-details-hero', false);
     }
