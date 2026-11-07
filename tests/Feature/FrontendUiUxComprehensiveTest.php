@@ -914,6 +914,21 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringNotContainsString('<input type="text" value="{{ $displayRole }}" readonly>', $profile);
     }
 
+    public function test_routes_dark_theme_keeps_headers_and_sticky_actions_readable(): void
+    {
+        $styles = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+
+        // The sticky-actions utility uses a light default background unless
+        // its semantic dark-mode properties are explicitly provided.
+        $this->assertStringContainsString('Routes dark-mode contrast contract', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-background: #1d2b40', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-heading: #243750', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-hover: #293c56', $styles);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table thead th', $styles);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table tbody tr > td', $styles);
+        $this->assertStringContainsString('.routes-record-controls > .routes-segmented-tabs', $styles);
+    }
+
     public function test_personalization_and_general_settings_are_separate_authenticated_pages(): void
     {
         $this->get(route('account.personalization'))->assertRedirect(route('login'));
