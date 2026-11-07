@@ -1019,6 +1019,33 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('.gct-theme-options', $styles);
     }
 
+    public function test_operation_master_lists_use_ten_row_scrollable_table_viewports(): void
+    {
+        $views = [
+            'Operation/Shuttle_Bus_Management/bus-master-list.blade.php',
+            'Operation/Personnel Management/driver_master_list.blade.php',
+            'Operation/Personnel Management/mechanic_master_list.blade.php',
+            'Operation/Clients/index.blade.php',
+        ];
+
+        foreach ($views as $view) {
+            $contents = file_get_contents(resource_path('views/'.$view));
+            $this->assertStringContainsString('gct-master-scroll-10', $contents, $view);
+        }
+
+        $runtime = file_get_contents(resource_path('js/Main-js/master-list-scroll.js'));
+        $this->assertStringContainsString('const VISIBLE_ROWS = 10;', $runtime);
+        $this->assertStringContainsString('rows.slice(0, VISIBLE_ROWS)', $runtime);
+        $this->assertStringContainsString('gct:navigation-ready', $runtime);
+
+        $app = file_get_contents(resource_path('js/app.js'));
+        $this->assertStringContainsString("import './Main-js/master-list-scroll.js';", $app);
+
+        $styles = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
+        $this->assertStringContainsString('gct-master-scroll-10.is-master-scrollable', $styles);
+        $this->assertStringContainsString('position: sticky;', $styles);
+    }
+
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
     {
         Driver::create([
