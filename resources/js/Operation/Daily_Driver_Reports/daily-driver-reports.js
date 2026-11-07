@@ -107,6 +107,7 @@ function initSearchableCombos() {
         // Preserve the user's search text. The old clear() call emptied it on every keystroke.
         input.addEventListener('input', () => {
             if (combo.dataset.field === 'bus' && input.readOnly) return;
+<<<<<<< HEAD
             const hadSelection = Boolean(hidden.value);
             hidden.value = '';
             combo.classList.remove('has-value');
@@ -115,6 +116,9 @@ function initSearchableCombos() {
                     detail: { field: 'driver', value: '', source: combo },
                 }));
             }
+=======
+            clear();
+>>>>>>> origin/main
             open();
         });
 
@@ -431,9 +435,12 @@ function initScheduleContextPanel() {
             const busIds = [...new Set(schedules.map(schedule => String(schedule.bus_id || '')))];
             if (busIds.length === 1 && busIds[0]) {
                 selectComboValue('bus', busIds[0], schedules[0].bus_no);
+<<<<<<< HEAD
             } else {
                 showStatus('matched', 'fa-circle-info',
                     'This driver has trips on different buses. Select the correct trip to fill its bus.');
+=======
+>>>>>>> origin/main
             }
         }
         listEl.classList.toggle('has-items', schedules.length > 0);
@@ -662,6 +669,7 @@ function initDdrAdditionalTrips() {
             if (select.value) reserved.add(select.value);
             select.dataset.initialSchedule = '';
             const group = select.closest('.ddr-extra-assignment-group');
+<<<<<<< HEAD
             if (!group) return;
             const unscheduled = Boolean(modal.querySelector('#ddrUnscheduledMode')?.checked);
             const autoLinked = !unscheduled && available.length === 1 && !!select.value;
@@ -684,6 +692,9 @@ function initDdrAdditionalTrips() {
             } else {
                 feedback.textContent = '';
             }
+=======
+            if (group) group.hidden = available.length === 1 && !!select.value;
+>>>>>>> origin/main
         });
     };
     modal.addEventListener('ddr:primary-assignment-changed', refillAssignmentSelectors);

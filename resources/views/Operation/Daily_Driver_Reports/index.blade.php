@@ -363,7 +363,11 @@
                                 data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->employment_status) }}"
                             >
                                 <strong>{{ $driver->driver_name }}</strong>
+<<<<<<< HEAD
                                 <small>{{ $driver->driver_id }}</small>
+=======
+                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }}</small>
+>>>>>>> origin/main
                             </li>
                         @endforeach
                     </ul>
