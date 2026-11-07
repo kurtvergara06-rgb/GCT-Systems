@@ -60,6 +60,51 @@
         $profilePhotoUrl = $user->profilePhotoUrl();
     @endphp
 
+    {{-- Critical profile-header geometry: safe even when a previous Vite CSS bundle is cached. --}}
+    <style>
+        .account-page .account-hero-card {
+            width: 100%; max-width: none; display: flex; flex-wrap: wrap;
+            align-items: center; justify-content: space-between; gap: 20px;
+            padding: 20px 24px; min-height: 128px;
+        }
+        .account-page .account-hero-identity {
+            display: flex; flex: 1 1 315px; align-items: center;
+            gap: 18px; min-width: 0;
+        }
+        .account-page .account-hero-copy { flex: 1; min-width: 0; }
+        .account-page .account-hero-avatar,
+        .account-page .account-hero-avatar img { aspect-ratio: 1 / 1; }
+        .account-page .account-profile-metrics {
+            display: grid; flex: 1 1 450px; min-width: 0;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0; padding: 14px 8px;
+            border-radius: 13px; background: #f4f8fe;
+        }
+        .account-page .account-profile-metrics > div {
+            display: flex; align-items: center; gap: 10px;
+            min-width: 0; padding: 0 12px; border-left: 1px solid #d5e1f1;
+        }
+        .account-page .account-profile-metrics > div:first-child { border-left: 0; }
+        .account-page .account-profile-metrics i { color: #0b40b5; font-size: 17px; flex-shrink: 0; }
+        .account-page .account-profile-metrics span { display: grid; gap: 4px; min-width: 0; }
+        .account-page .account-profile-metrics small {
+            font-size: 10px; color: #687c97; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .035em;
+        }
+        .account-page .account-profile-metrics strong {
+            color: #102948; font-size: 12px; font-weight: 800;
+            line-height: 1.4; overflow-wrap: anywhere;
+        }
+        @media (max-width: 1250px) {
+            .account-page .account-profile-metrics { flex-basis: 100%; }
+        }
+        @media (max-width: 740px) {
+            .account-page .account-hero-card { padding: 16px; }
+            .account-page .account-profile-metrics { grid-template-columns: 1fr; gap: 12px; }
+            .account-page .account-profile-metrics > div { padding: 0; border-left: 0; }
+        }
+    </style>
+
     <div class="app account-page">
         <x-layout.sidebar
             :department="$department"
@@ -78,9 +123,9 @@
                 {{-- Compact employee identity header. Photo crop and upload are unchanged. --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
-                        <span class="account-hero-avatar" aria-hidden="true">
+                        <span class="account-hero-avatar" aria-hidden="true" style="display:grid;place-items:center;flex:0 0 88px;width:88px;height:88px;max-width:88px;max-height:88px;min-width:88px;min-height:88px;overflow:hidden;border-radius:50%;border:4px solid #fff;background:#0b40b5;color:#fff;box-shadow:0 0 0 2px #cbdcf1">
                             @if ($profilePhotoUrl)
-                                <img src="{{ $profilePhotoUrl }}" alt="">
+                                <img src="{{ $profilePhotoUrl }}" alt="" width="80" height="80" style="display:block;width:80px;height:80px;max-width:80px;max-height:80px;min-width:80px;min-height:80px;object-fit:cover;border-radius:50%">
                             @else
                                 <span>{{ $initials }}</span>
                             @endif
