@@ -885,14 +885,21 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("profileMenu.setAttribute('aria-hidden', 'false')", $sidebarScript);
         $this->assertStringContainsString('Compact account menu: GCT', $sidebarStyles);
 
-        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure">', $profile);
+        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure" open>', $profile);
         $this->assertStringContainsString('account-profile-grid', $profile);
         $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
         $this->assertStringContainsString('account-access-section', $profile);
         $this->assertStringContainsString('account-profile-aside', $profile);
-        $this->assertStringContainsString('account-profile-links', $profile);
-        $this->assertStringNotContainsString('account-nav-tabs', $profile);
+        $this->assertStringContainsString('account-profile-tabs', $profile);
+        $this->assertStringContainsString('account-nav-tabs', $profile);
+        $this->assertStringContainsString('account-profile-metrics', $profile);
+        $this->assertStringContainsString('account-profile-photo-fields', $profile);
+        $this->assertStringContainsString('data-avatar-change-button', $profile);
+        $this->assertSame(1, substr_count($profile, 'data-avatar-upload-form'));
+        $this->assertSame(1, substr_count($profile, 'action="{{ route(\'account.profile.update\', [], false) }}"'));
+        $accountScript = file_get_contents(resource_path('js/Account/account.js'));
+        $this->assertStringContainsString("avatarTrigger?.click()", $accountScript);
         $this->assertStringContainsString('System Access', $profile);
         $this->assertStringContainsString('Account History', $profile);
         $this->assertStringContainsString('Member Since', $profile);
