@@ -922,9 +922,16 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->actingAs($this->operationUser)
             ->get(route('account.personalization'))
             ->assertOk()
-            ->assertSeeText('Display preferences')
+            ->assertSeeText('Make your workspace yours')
+            ->assertSeeText('Appearance')
+            ->assertSeeText('Typography')
+            ->assertSeeText('Workspace')
+            ->assertSee('data-gct-preference="theme"', false)
+            ->assertSee('data-gct-preference="font"', false)
+            ->assertSee('data-gct-preference="fontSize"', false)
             ->assertSee('data-gct-preference="density"', false)
-            ->assertSee('data-gct-preference="reducedMotion"', false);
+            ->assertSee('data-gct-preference="reducedMotion"', false)
+            ->assertSee('data-gct-reset-preferences', false);
 
         $this->actingAs($this->operationUser)
             ->get(route('account.preferences'))
@@ -943,6 +950,13 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("localStorage.removeItem", $runtime);
         $this->assertStringContainsString("gct-reduced-motion", $runtime);
         $this->assertStringContainsString("gct-density-compact", $runtime);
+        $this->assertStringContainsString("root.dataset.gctTheme", $runtime);
+        $this->assertStringContainsString("root.dataset.gctFont", $runtime);
+        $this->assertStringContainsString("root.dataset.gctFontSize", $runtime);
+        $this->assertStringContainsString("prefers-color-scheme: dark", $runtime);
+        $styles = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+        $this->assertStringContainsString('html[data-gct-theme="dark"]', $styles);
+        $this->assertStringContainsString('.gct-theme-options', $styles);
     }
 
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
