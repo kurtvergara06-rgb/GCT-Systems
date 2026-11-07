@@ -594,7 +594,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 try {
                     menu.showPopover();
                 } catch {
-                    // Keep legacy display behavior in older browsers.
+                    // Avoid the UA hiding a menu with [popover] but no
+                    // :popover-open state when top-layer activation fails.
+                    menu.removeAttribute('popover');
                 }
             }
         }
@@ -604,6 +606,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const hideAssignmentMenu = (menu) => {
         if (!menu) return;
         if (menu.matches?.(':popover-open')) menu.hidePopover();
+        menu.removeAttribute('popover');
         menu.classList.remove('show');
     };
 
