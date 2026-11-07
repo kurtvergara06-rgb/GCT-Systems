@@ -279,7 +279,6 @@
                                 @enderror
                             </div>
 
-
                             <div class="account-form-actions">
                                 <button type="submit" class="account-primary-button">
                                     <i class="fa-solid fa-floppy-disk"></i>
@@ -287,8 +286,6 @@
                                 </button>
                             </div>
                         </form>
-
-
                     </section>
 
                     <aside class="account-profile-aside" aria-label="Account access and history">
@@ -315,8 +312,8 @@
                                 </div>
                             </dl>
                         </section>
-                    {{-- Account metadata stays available without a permanent second column. --}}
-                    <details class="account-card account-summary-card account-details-disclosure">
+                        {{-- Account history stays expandable and read-only. --}}
+                        <details class="account-card account-summary-card account-details-disclosure">
                         <summary class="account-details-summary">
                             <span class="account-details-heading">
                                 <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
@@ -358,7 +355,7 @@
                             <span>Manage Password & Security</span>
                             <i class="fa-solid fa-arrow-right" style="margin-left: auto; font-size: 11px;"></i>
                         </a>
-                    </details>
+                        </details>
                     </aside>
                 </div>
             </section>
