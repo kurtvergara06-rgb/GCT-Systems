@@ -94,4 +94,50 @@ class AccountPreferencesSettingsTest extends TestCase
         $this->delete(route('account.sessions.revoke', $currentId))
             ->assertStatus(422);
     }
+
+    public function test_active_session_list_only_displays_signed_in_users_sessions(): void
+    {
+        if (! Schema::hasTable('sessions')) {
+            $this->markTestSkipped('Database sessions migration is not installed.');
+        }
+
+        $user = User::factory()->create([
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $other = User::factory()->create([
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        foreach ([
+            ['id' => 'owned-visible-session-111', 'user_id' => $user->id, 'user_agent' => 'OwnBrowserMarker'],
+            ['id' => 'foreign-hidden-session-222', 'user_id' => $other->id, 'user_agent' => 'OtherEmployeeBrowserMarker'],
+        ] as $session) {
+            DB::table('sessions')->insert([
+                ...$session,
+                'ip_address' => '127.0.0.1',
+                'payload' => base64_encode('test'),
+                'last_activity' => time(),
+            ]);
+        }
+
+        config()->set('session.driver', 'database');
+
+        $this->actingAs($user)
+            ->get(route('account.preferences'))
+            ->assertOk()
+            ->assertSee('OwnBrowserMarker')
+            ->assertSee('owned-visible-session-111')
+            ->assertDontSee('OtherEmployeeBrowserMarker')
+            ->assertDontSee('foreign-hidden-session-222');
+
+        $this->actingAs($other)
+            ->get(route('account.preferences'))
+            ->assertOk()
+            ->assertSee('OtherEmployeeBrowserMarker')
+            ->assertDontSee('OwnBrowserMarker')
+            ->assertDontSee('owned-visible-session-111');
+    }
+
 }
