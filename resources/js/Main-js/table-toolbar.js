@@ -1,30 +1,79 @@
-// Keep shared Search / Filter / Sort menus visible even when their table card
-// clips overflow, especially close to the bottom of the viewport.
+// Use the browser top layer for table tool popovers. A transformed page
+// wrapper creates a new containing block for position:fixed; that can push
+// Filter / Sort beyond the production viewport even with clamped coordinates.
+// Native popovers remain inside their form in the DOM, preserving inputs,
+// validation, and submit behavior while escaping overflow and transforms.
+const getViewport = () => {
+    const view = window.visualViewport;
+    return {
+        left: view?.offsetLeft || 0,
+        top: view?.offsetTop || 0,
+        width: view?.width || window.innerWidth,
+        height: view?.height || window.innerHeight,
+    };
+};
+
 const positionTableToolPopover = (trigger, popover) => {
-    if (!trigger || !popover) return;
+    if (!trigger || !popover || popover.hidden) return;
     const rect = trigger.getBoundingClientRect();
+    const viewport = getViewport();
     const gutter = 12;
-    const width = Math.min(Math.max(popover.offsetWidth || 260, 240), window.innerWidth - gutter * 2);
-    const height = Math.min(popover.scrollHeight || 300, window.innerHeight - gutter * 2);
-    const below = window.innerHeight - rect.bottom - gutter;
-    const above = rect.top - gutter;
-    const openAbove = below < height && above > below;
+    const availableWidth = Math.max(1, viewport.width - gutter * 2);
+    const availableHeight = Math.max(1, viewport.height - gutter * 2);
+    const width = Math.min(
+        Math.max(popover.scrollWidth || popover.offsetWidth || 260, 240),
+        availableWidth
+    );
+    const height = Math.min(popover.scrollHeight || 300, availableHeight);
+    const leftBound = viewport.left + gutter;
+    const topBound = viewport.top + gutter;
+    const rightBound = viewport.left + viewport.width - gutter;
+    const bottomBound = viewport.top + viewport.height - gutter;
+    const below = bottomBound - rect.bottom;
+    const above = rect.top - topBound;
+    const openAbove = below < height + 8 && above > below;
+    const preferredTop = openAbove ? rect.top - height - 8 : rect.bottom + 8;
     Object.assign(popover.style, {
         position: 'fixed',
         zIndex: '99990',
+        inset: 'auto',
+        right: 'auto',
+        bottom: 'auto',
+        margin: '0',
+        boxSizing: 'border-box',
         width: width + 'px',
-        maxHeight: Math.max(110, window.innerHeight - gutter * 2) + 'px',
+        maxWidth: availableWidth + 'px',
+        maxHeight: availableHeight + 'px',
         overflowY: 'auto',
-        left: Math.max(gutter, Math.min(rect.right - width, window.innerWidth - width - gutter)) + 'px',
-        top: (openAbove ? Math.max(gutter, rect.top - height - 8) : Math.min(rect.bottom + 8, window.innerHeight - height - gutter)) + 'px',
+        left: Math.max(leftBound, Math.min(rect.right - width, rightBound - width)) + 'px',
+        top: Math.max(topBound, Math.min(preferredTop, bottomBound - height)) + 'px',
     });
+};
+
+const hideTableToolPopover = (popover) => {
+    if (!popover) return;
+    if (popover.matches?.(':popover-open')) popover.hidePopover();
+    popover.hidden = true;
+};
+
+const showTableToolPopover = (popover) => {
+    if (!popover) return;
+    popover.hidden = false;
+    if (typeof popover.showPopover === 'function') {
+        popover.setAttribute('popover', 'manual');
+        try {
+            popover.showPopover();
+        } catch {
+            // Older browsers retain the fixed-position fallback.
+        }
+    }
 };
 
 const closeAllTableToolbars = (except = null) => {
     document.querySelectorAll('[data-table-tool]').forEach((tool) => {
         if (tool === except) return;
         tool.querySelector('[data-table-tool-trigger]')?.setAttribute('aria-expanded', 'false');
-        tool.querySelector('.gct-table-tool-popover')?.setAttribute('hidden', '');
+        hideTableToolPopover(tool.querySelector('.gct-table-tool-popover'));
     });
 };
 
@@ -35,7 +84,8 @@ document.addEventListener('click', (event) => {
         const popover = tool?.querySelector('.gct-table-tool-popover');
         const shouldOpen = Boolean(popover?.hasAttribute('hidden'));
         closeAllTableToolbars(tool);
-        popover?.toggleAttribute('hidden', !shouldOpen);
+        if (shouldOpen) showTableToolPopover(popover);
+        else hideTableToolPopover(popover);
         trigger.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
         if (shouldOpen) positionTableToolPopover(trigger, popover);
         if (shouldOpen && tool?.dataset.tableTool === 'search') {
@@ -93,8 +143,12 @@ document.addEventListener('submit', (event) => {
     if (event.target.matches('form[data-table-toolbar]')) closeAllTableToolbars();
 });
 
-window.addEventListener('resize', () => {
+const repositionOpenTableToolbars = () => {
     document.querySelectorAll('[data-table-tool-popover]:not([hidden]), .gct-table-tool-popover:not([hidden])').forEach((popover) => {
         positionTableToolPopover(popover.closest('[data-table-tool]')?.querySelector('[data-table-tool-trigger]'), popover);
     });
-});
+};
+window.addEventListener('resize', repositionOpenTableToolbars);
+window.visualViewport?.addEventListener('resize', repositionOpenTableToolbars);
+window.visualViewport?.addEventListener('scroll', repositionOpenTableToolbars);
+document.addEventListener('scroll', repositionOpenTableToolbars, true);
