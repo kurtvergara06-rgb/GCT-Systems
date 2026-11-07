@@ -103,12 +103,17 @@ html.gct-reduced-motion *::after {
 html[data-gct-font="poppins"] { --gct-font-family: 'Poppins', Arial, sans-serif; }
 html[data-gct-font="inter"] { --gct-font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
 html[data-gct-font="roboto"] { --gct-font-family: 'Roboto', Arial, sans-serif; }
-html[data-gct-font="inter"] body,
-html[data-gct-font="inter"] .main *,
-html[data-gct-font="roboto"] body,
-html[data-gct-font="roboto"] .main *,
-html[data-gct-font="poppins"] body,
-html[data-gct-font="poppins"] .main * { font-family: var(--gct-font-family); }
+/* Text inherits the selected family through layout containers. Never apply a
+   family to every descendant: icon fonts own their family and weight. */
+html[data-gct-font] :is(body, .main, .sidebar) {
+    font-family: var(--gct-font-family);
+}
+html[data-gct-font] :is(h1, h2, h3, h4, h5, h6, p, label, input, select,
+    textarea, button, a, th, td, dt, dd, small, strong, legend, summary, option):not(
+    :where(.fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands,
+        .material-icons, .material-symbols-outlined, .material-symbols-rounded)) {
+    font-family: var(--gct-font-family);
+}
 html[data-gct-font-size="small"] { --gct-table-body-font-size: 11px; --gct-font-size-body: 11px; --gct-font-size-control: 12px; }
 html[data-gct-font-size="large"] { --gct-table-body-font-size: 14px; --gct-font-size-body: 14px; --gct-font-size-control: 15px; }
 html[data-gct-font-size="small"] .main :is(p, label, input, select, textarea, td, small) { font-size: 11px; }
@@ -128,16 +133,16 @@ html[data-gct-theme="dark"] {
 }
 html[data-gct-theme="dark"] :is(body,.app,.main,.account-page,.account-main) { background: #101827; color: #e4ecf7; }
 html[data-gct-theme="dark"] .main :is(.account-card,.account-hero-card,.account-preference-panel,.table-card,.table-wrap,.card,.panel-card,.stat-card,.users-card,.table-toolbar,.account-access-section) {
-    background: #1d2b40; border-color: #33445e; color: #e4ecf7;
+    background: var(--surface); border-color: var(--border-soft); color: var(--text-main);
 }
-html[data-gct-theme="dark"] .main :is(h1,h2,h3,h4,p,label,dt,dd,strong,.account-card-header-copy h3,.account-preference-row strong,.account-preference-breadcrumb span) { color: #e4ecf7; }
+html[data-gct-theme="dark"] .main :is(h1,h2,h3,h4,p,label,dt,dd,.account-card-header-copy h3,.account-preference-row strong,.account-preference-breadcrumb span) { color: #e4ecf7; }
 html[data-gct-theme="dark"] .main :is(.account-card-header-copy p,.account-preference-row p,.account-preference-breadcrumb,.account-preference-status) { color: #acc0d9; }
 html[data-gct-theme="dark"] .main :is(input,textarea,select,.account-preference-row select) { background: #152339; border-color: #3d5571; color: #f1f5fa; }
 html[data-gct-theme="dark"] .main :is(.gct-preference-preview,.gct-preference-device-label,.account-input-wrap,.account-meta-tile,.account-access-grid>div) { background: #152339; border-color: #33445e; color: #e4ecf7; }
 html[data-gct-theme="dark"] .main :is(.gct-preference-preview > strong,.gct-theme-choice-caption,.gct-preferences-footer strong) { color: #e4ecf7; }
 html[data-gct-theme="dark"] .main :is(.gct-preference-preview > p,.gct-preferences-footer p) { color: #acc0d9; }
 html[data-gct-theme="dark"] .main :is(th,thead,.table-card th,.table-wrap th) { background: #243750; color: #edf2fa; }
-html[data-gct-theme="dark"] .main :is(td,.table-card td,.table-wrap td) { background: #1d2b40; color: #e4ecf7; border-color: #33445e; }
+html[data-gct-theme="dark"] .main :is(td,.table-card td,.table-wrap td) { background: var(--surface); color: var(--text-main); border-color: var(--border-soft); }
 html[data-gct-theme="dark"] .main :is(.account-nav-tabs,.account-profile-tabs,.gct-personalization-intro) { border-color: #33445e; }
 html[data-gct-theme="dark"] .main .account-nav-tab:not(.active) { color: #d6e5f7; }
 html[data-gct-theme="dark"] .main :is(.account-settings-links a,.account-preference-breadcrumb a) { color: #b9d1ff; }

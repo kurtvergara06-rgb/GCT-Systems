@@ -28,6 +28,7 @@ export default defineConfig({
                 'resources/css/Main-styles/gct-scrollbar.css',
                 'resources/css/Main-styles/pr-details-modal.css',
                 'resources/css/Account/account.css',
+                'resources/css/Main-styles/account-preferences.css',
 
                 'resources/js/Main-js/partial-navigation.js',
                 'resources/js/Main-js/sidebar.js',
