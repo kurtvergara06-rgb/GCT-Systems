@@ -78,41 +78,13 @@
                 {{-- Compact employee identity header. Photo crop and upload are unchanged. --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
-                        <form
-                            action="{{ route('account.profile.photo.update', [], false) }}"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            class="account-avatar-form"
-                            data-avatar-upload-form
-                        >
-                            @csrf
-                            @method('PUT')
-                            <button
-                                type="button"
-                                class="account-avatar-wrapper account-avatar-trigger"
-                                data-avatar-trigger
-                                aria-label="Choose a new profile photo"
-                            >
-                                <span class="account-avatar-large" data-avatar-preview>
-                                    @if ($profilePhotoUrl)
-                                        <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
-                                    @else
-                                        <span data-avatar-initials>{{ $initials }}</span>
-                                    @endif
-                                </span>
-                                <span class="account-avatar-edit" aria-hidden="true">
-                                    <i class="fa-solid fa-camera"></i>
-                                </span>
-                                <span class="account-avatar-status-dot" title="Active Account"></span>
-                            </button>
-                            <input
-                                type="file"
-                                name="avatar"
-                                accept="image/jpeg,image/png,image/webp"
-                                class="account-avatar-input"
-                                data-avatar-input
-                            >
-                        </form>
+                        <span class="account-hero-avatar" aria-hidden="true">
+                            @if ($profilePhotoUrl)
+                                <img src="{{ $profilePhotoUrl }}" alt="">
+                            @else
+                                <span>{{ $initials }}</span>
+                            @endif
+                        </span>
                         <div class="account-hero-copy">
                             <h2>{{ $user->name }}</h2>
                             <div class="account-hero-badges">
@@ -129,29 +101,12 @@
                                     class="account-badge account-badge-status"
                                 />
                             </div>
-                            <div class="account-avatar-help">
-                                <span>Choose a photo (JPG, PNG or WebP, up to 2 MB).</span>
-                                @if ($profilePhotoUrl)
-                                    <form
-                                        action="{{ route('account.profile.photo.destroy', [], false) }}"
-                                        method="POST"
-                                        data-confirm-form
-                                        data-confirm-title="Remove Profile Photo"
-                                        data-confirm-message="Remove your current profile photo and return to your initials?"
-                                        data-confirm-button="Remove Photo"
-                                        data-confirm-type="danger"
-                                    >
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="account-avatar-remove">Remove photo</button>
-                                    </form>
-                                @endif
-                            </div>
-                            @error('avatar')
-                                <span class="account-field-error account-avatar-error">{{ $message }}</span>
-                            @enderror
-                            <span class="account-field-error account-avatar-error" data-avatar-client-error hidden></span>
                         </div>
+                    </div>
+                    <div class="account-profile-metrics" aria-label="Account overview">
+                        <div><i class="fa-regular fa-id-card" aria-hidden="true"></i><span><small>System ID</small><strong>{{ $displayUserId }}</strong></span></div>
+                        <div><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><small>Member Since</small><strong>{{ $user->created_at?->format('M d, Y') ?? 'System Setup' }}</strong></span></div>
+                        <div><i class="fa-regular fa-clock" aria-hidden="true"></i><span><small>Last Login</small><strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Not recorded' }}</strong></span></div>
                     </div>
                 </div>
 
@@ -210,10 +165,12 @@
                     </section>
                 </div>
 
-                <nav class="account-profile-links" aria-label="Related account pages">
-                    <a href="{{ route('account.personalization') }}"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Personalization</a>
-                    <a href="{{ route('account.preferences') }}"><i class="fa-solid fa-gear" aria-hidden="true"></i> Settings</a>
-                    <a href="{{ route('account.settings') }}"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Security</a>
+                <nav class="account-nav-tabs account-profile-tabs" aria-label="Account sections">
+                    <a href="{{ route('account.profile') }}" class="account-nav-tab active" aria-current="page"><i class="fa-solid fa-user" aria-hidden="true"></i> Profile</a>
+                    <a href="{{ route('account.personalization') }}" class="account-nav-tab"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Personalization</a>
+                    <a href="{{ route('account.preferences') }}" class="account-nav-tab"><i class="fa-solid fa-gear" aria-hidden="true"></i> Settings</a>
+                    <a href="{{ route('account.settings') }}" class="account-nav-tab"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Security &amp; Password</a>
+                    <a href="{{ route('onboarding.show', ['replay' => 1]) }}" class="account-nav-tab" data-system-tutorial-link><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> System Tutorial</a>
                 </nav>
 
                 <div class="account-grid account-profile-grid">
@@ -229,6 +186,70 @@
                             </div>
                         </div>
 
+                        <div class="account-profile-photo-fields">
+                            <div class="account-profile-photo">
+                                <form
+                                action="{{ route('account.profile.photo.update', [], false) }}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="account-avatar-form"
+                                data-avatar-upload-form
+                            >
+                                @csrf
+                                @method('PUT')
+                                <button
+                                    type="button"
+                                    class="account-avatar-wrapper account-avatar-trigger"
+                                    data-avatar-trigger
+                                    aria-label="Choose a new profile photo"
+                                >
+                                    <span class="account-avatar-large" data-avatar-preview>
+                                        @if ($profilePhotoUrl)
+                                            <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
+                                        @else
+                                            <span data-avatar-initials>{{ $initials }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="account-avatar-edit" aria-hidden="true">
+                                        <i class="fa-solid fa-camera"></i>
+                                    </span>
+                                    <span class="account-avatar-status-dot" title="Active Account"></span>
+                                </button>
+                                <input
+                                    type="file"
+                                    name="avatar"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    class="account-avatar-input"
+                                    data-avatar-input
+                                >
+                            </form>
+                                <strong>Profile Photo</strong>
+                                <small>JPG, PNG or WebP (max 2 MB)</small>
+                                <button type="button" class="account-photo-change-button" data-avatar-change-button><i class="fa-solid fa-upload" aria-hidden="true"></i> Change Photo</button>
+                                <div class="account-avatar-help">
+                                <span>Choose a photo (JPG, PNG or WebP, up to 2 MB).</span>
+                                @if ($profilePhotoUrl)
+                                    <form
+                                        action="{{ route('account.profile.photo.destroy', [], false) }}"
+                                        method="POST"
+                                        data-confirm-form
+                                        data-confirm-title="Remove Profile Photo"
+                                        data-confirm-message="Remove your current profile photo and return to your initials?"
+                                        data-confirm-button="Remove Photo"
+                                        data-confirm-type="danger"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="account-avatar-remove">Remove photo</button>
+                                    </form>
+                                @endif
+                            </div>
+                            @error('avatar')
+                                <span class="account-field-error account-avatar-error">{{ $message }}</span>
+                            @enderror
+                            <span class="account-field-error account-avatar-error" data-avatar-client-error hidden></span>
+                            </div>
+                            <div class="account-profile-fields">
                         <form
                             action="{{ route('account.profile.update', [], false) }}"
                             method="POST"
@@ -286,6 +307,8 @@
                                 </button>
                             </div>
                         </form>
+                            </div>
+                        </div>
                     </section>
 
                     <aside class="account-profile-aside" aria-label="Account access and history">
@@ -295,25 +318,16 @@
                                     <h3 id="accountAccessHeading">System Access</h3>
                                     <p>Assigned by the system administrator. These details cannot be changed from your profile.</p>
                                 </div>
-                                <span class="account-access-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ $user->status ?: 'Active' }}</span>
+
                             </div>
                             <dl class="account-access-grid">
-                                <div>
-                                    <dt>System ID</dt>
-                                    <dd>{{ $displayUserId }}</dd>
-                                </div>
-                                <div>
-                                    <dt>Department</dt>
-                                    <dd>{{ $department }}</dd>
-                                </div>
-                                <div>
-                                    <dt>Role</dt>
-                                    <dd>{{ $displayRole }}</dd>
-                                </div>
+                                <div><dt><i class="fa-solid fa-building" aria-hidden="true"></i> Department</dt><dd>{{ $department }}</dd></div>
+                                <div><dt><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Role &amp; Title</dt><dd>{{ $displayRole }}</dd></div>
+                                <div><dt><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Account Status</dt><dd>{{ $user->status ?: 'Active' }}</dd></div>
                             </dl>
                         </section>
                         {{-- Account history stays expandable and read-only. --}}
-                        <details class="account-card account-summary-card account-details-disclosure">
+                        <details class="account-card account-summary-card account-details-disclosure" open>
                         <summary class="account-details-summary">
                             <span class="account-details-heading">
                                 <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
