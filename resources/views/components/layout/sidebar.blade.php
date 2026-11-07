@@ -373,7 +373,7 @@
         || ($normalizedDepartment === 'admin' && $normalizedRole === 'head');
 @endphp
 
-<aside class="sidebar" id="appSidebar" data-gct-shell="{{ $componentDepartment }}">
+<aside class="sidebar" id="appSidebar" data-gct-shell="{{ $componentDepartment }}" data-gct-user-id="{{ $authUser?->id }}">
     <button
         type="button"
         class="sidebar-collapse-btn"
