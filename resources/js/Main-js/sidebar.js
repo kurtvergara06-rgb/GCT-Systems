@@ -580,44 +580,6 @@ document.addEventListener('DOMContentLoaded', function () {
         );
 
 
-    /* =========================================================
-       ACCOUNT PAGE LINKS
-    ========================================================= */
-
-    if (profileMenu) {
-        profileMenu
-            .querySelectorAll('.profile-menu-item')
-            .forEach(function (item) {
-                const label = item
-                    .querySelector('span')
-                    ?.textContent
-                    ?.trim()
-                    ?.toLowerCase();
-
-                const accountUrl = label === 'profile'
-                    ? '/account/profile'
-                    : label === 'settings'
-                        ? '/account/settings'
-                        : null;
-
-                if (!accountUrl) {
-                    return;
-                }
-
-                if (item.tagName === 'A') {
-                    item.setAttribute('href', accountUrl);
-                    return;
-                }
-
-                item.disabled = false;
-
-                item.addEventListener('click', function () {
-                    window.location.assign(accountUrl);
-                });
-            });
-    }
-
-
     function closeProfileMenu() {
 
         if (
@@ -631,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function () {
         profileMenu.classList.remove(
             'show'
         );
+        profileMenu.setAttribute('aria-hidden', 'true');
 
         profileToggle.classList.remove(
             'active'
@@ -668,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function () {
             profileMenu.classList.add(
                 'show'
             );
+            profileMenu.setAttribute('aria-hidden', 'false');
 
             profileToggle.classList.add(
                 'active'
