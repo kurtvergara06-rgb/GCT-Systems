@@ -914,6 +914,20 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringNotContainsString('<input type="text" value="{{ $displayRole }}" readonly>', $profile);
     }
 
+    public function test_routes_inactive_summary_uses_supported_neutral_icon_box(): void
+    {
+        $routes = file_get_contents(resource_path('views/Operation/Routes/routes-stops.blade.php'));
+        $sharedStyles = file_get_contents(resource_path('css/Main-styles/main.css'));
+
+        // "orange" has no shared .stat-icon palette definition and would
+        // leave the Inactive Routes icon floating without a background box.
+        $this->assertMatchesRegularExpression(
+            '/label="Inactive Routes"\\s+:value="\\$routeStats\\[\\x27inactive\\x27\\]"\\s+small="Currently unavailable"\\s+icon="fa-circle-pause"\\s+color="gray"/',
+            $routes
+        );
+        $this->assertStringContainsString('.stat-icon.gray', $sharedStyles);
+    }
+
     public function test_routes_dark_theme_keeps_headers_and_sticky_actions_readable(): void
     {
         $styles = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));

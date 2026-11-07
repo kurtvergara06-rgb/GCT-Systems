@@ -70,7 +70,7 @@
         :value="$routeStats['inactive']"
         small="Currently unavailable"
         icon="fa-circle-pause"
-        color="orange"
+        color="gray"
     />
 
     <x-ui.summary-card
