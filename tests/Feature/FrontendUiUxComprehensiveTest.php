@@ -501,6 +501,26 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('max-width: min(100%, calc(100vw - 24px))', $operationStyles);
         $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $modalRuntime);
         $this->assertStringContainsString('document.body.appendChild(overlay)', $modalRuntime);
+
+        $assignmentScript = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $datePickerScript = file_get_contents(resource_path('js/Main-js/date-time-picker.js'));
+
+        // Searchable assignment menus also escape the modal scrollport,
+        // without moving their option lists out of their comboboxes.
+        $this->assertStringContainsString("showAssignmentMenu(assignmentDriverMenu, assignmentDriverTrigger)", $assignmentScript);
+        $this->assertStringContainsString("showAssignmentMenu(assignmentBusMenu, assignmentBusTrigger)", $assignmentScript);
+        $this->assertStringContainsString("menu.showPopover()", $assignmentScript);
+        $this->assertStringContainsString("menu.hidePopover()", $assignmentScript);
+
+        // Filter calendar must share its native top-layer popup so it is not
+        // obscured by the filter itself.
+        $this->assertStringContainsString("input.closest('.gct-table-tool-popover')", $datePickerScript);
+        $this->assertStringContainsString('portalTarget.appendChild(this.popover)', $datePickerScript);
+
+        // Both bespoke Operation record overlays get the same viewport portal
+        // and backdrop-dismissal protection as shared form modals.
+        $this->assertStringContainsString("'.ddr-record-overlay'", $modalRuntime);
+        $this->assertStringContainsString("'.inc-record-modal-backdrop'", $modalRuntime);
     }
 
     // =========================================================================
