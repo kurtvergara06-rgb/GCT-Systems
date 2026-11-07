@@ -85,7 +85,9 @@ it('passes explicit data to reusable filter partials', function (): void {
             :filter-data="[
                 'selectedTripDate' => '2026-10-13',
                 'activeRoutes' => collect([(object) ['id' => 7, 'route_name' => 'Test Route']]),
-            ]" />
+            ]">
+            <x-slot:hidden><input type="hidden" name="trip_date" value="2026-10-13"></x-slot:hidden>
+        </x-ui.table-toolbar>
     BLADE);
 
     expect($html)
