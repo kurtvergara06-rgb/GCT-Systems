@@ -337,7 +337,7 @@
                             <span class="account-details-heading">
                                 <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
                                 <span>
-                                    <strong>Account Details</strong>
+                                    <strong>Account History</strong>
                                     <small>System ID, account status, role and login history</small>
                                 </span>
                             </span>
@@ -345,36 +345,6 @@
                         </summary>
 
                         <div class="account-tile-list">
-                            <div class="account-meta-tile">
-                                <div class="account-meta-tile-icon">
-                                    <i class="fa-solid fa-id-badge"></i>
-                                </div>
-                                <div class="account-meta-tile-copy">
-                                    <span>System ID</span>
-                                    <strong>{{ $displayUserId }}</strong>
-                                </div>
-                            </div>
-
-                            <div class="account-meta-tile">
-                                <div class="account-meta-tile-icon">
-                                    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
-                                </div>
-                                <div class="account-meta-tile-copy">
-                                    <span>Account Status</span>
-                                    <strong>{{ $user->status ?: 'Active' }}</strong>
-                                </div>
-                            </div>
-
-                            <div class="account-meta-tile">
-                                <div class="account-meta-tile-icon">
-                                    <i class="fa-solid {{ $icon }}"></i>
-                                </div>
-                                <div class="account-meta-tile-copy">
-                                    <span>Department & Role</span>
-                                    <strong>{{ $displayRole }}</strong>
-                                </div>
-                            </div>
-
                             <div class="account-meta-tile">
                                 <div class="account-meta-tile-icon">
                                     <i class="fa-regular fa-calendar-check"></i>
