@@ -7,10 +7,7 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
-<<<<<<< HEAD
 use Carbon\Carbon;
-=======
->>>>>>> origin/main
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -149,13 +146,10 @@ class DiagnosticAnalyticsTest extends TestCase
 
     public function test_fuel_diagnostic_view_calculates_objective_6_2_2_baseline_and_anomalies(): void
     {
-<<<<<<< HEAD
         // Keep the baseline in the previous calendar month and the anomaly
         // in the selected month. Relative dates alone make this test vary
         // depending on which day of the month the suite runs.
         $this->travelTo(Carbon::parse('2026-11-02 12:00:00', 'Asia/Manila'));
-=======
->>>>>>> origin/main
         $admin = $this->createAdmin();
 
         $bus = Bus::create([
