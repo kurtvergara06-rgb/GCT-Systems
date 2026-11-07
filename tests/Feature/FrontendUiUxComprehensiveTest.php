@@ -889,6 +889,15 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('account-profile-grid', $profile);
         $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
+        $this->assertStringContainsString('account-access-section', $profile);
+        $this->assertStringContainsString('System Access', $profile);
+        $this->assertStringContainsString('Account History', $profile);
+        $this->assertStringContainsString('Member Since', $profile);
+        $this->assertStringContainsString('Last Login Recorded', $profile);
+        $this->assertStringContainsString("route('account.personalization')", $profile);
+        $this->assertStringContainsString("route('account.preferences')", $profile);
+        $this->assertStringNotContainsString('<input type="text" value="{{ $department }}" readonly>', $profile);
+        $this->assertStringNotContainsString('<input type="text" value="{{ $displayRole }}" readonly>', $profile);
     }
 
     public function test_personalization_and_general_settings_are_separate_authenticated_pages(): void
