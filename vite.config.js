@@ -187,6 +187,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Routes/routes-stops.css',
+                'resources/css/Operation/Routes/route-pin-enhancements.css',
                 'resources/js/Operation/Routes/routes-stops.js',
 
                 // ======================================================
