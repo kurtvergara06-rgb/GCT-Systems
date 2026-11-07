@@ -924,6 +924,13 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('--gct-sticky-actions-background: #1d2b40', $styles);
         $this->assertStringContainsString('--gct-sticky-actions-heading: #243750', $styles);
         $this->assertStringContainsString('--gct-sticky-actions-hover: #293c56', $styles);
+        // Auto-ID badges use a global black-text !important rule. Their
+        // narrow Routes dark-mode override must restore readable ID text.
+        $this->assertStringContainsString('.routes-table tbody td:first-child .system-id-badge', $styles);
+        $this->assertStringContainsString('color: #edf5ff !important', $styles);
+        $this->assertStringContainsString('.routes-table .route-action:is(.view,.edit)', $styles);
+        $this->assertStringContainsString('.routes-table .route-action.delete', $styles);
+        $this->assertStringContainsString('.route-action:focus-visible', $styles);
         $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table thead th', $styles);
         $this->assertStringContainsString('html[data-gct-theme="dark"] .routes-page .routes-table tbody tr > td', $styles);
         $this->assertStringContainsString('.routes-record-controls > .routes-segmented-tabs', $styles);
