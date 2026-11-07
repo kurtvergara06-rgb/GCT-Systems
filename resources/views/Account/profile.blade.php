@@ -226,7 +226,7 @@
                     </a>
                 </nav>
 
-                <div class="account-grid">
+                <div class="account-grid account-profile-grid">
                     {{-- Personal Information Form --}}
                     <section class="account-card">
                         <div class="account-card-header">
@@ -330,17 +330,18 @@
                         </form>
                     </section>
 
-                    {{-- Account Details Sidebar --}}
-                    <aside class="account-card account-summary-card">
-                        <div class="account-card-header">
-                            <div class="account-card-header-copy">
-                                <h3>Account Overview</h3>
-                                <p>System credentials and operational parameters for your account.</p>
-                            </div>
-                            <div class="account-card-icon">
-                                <i class="fa-solid fa-user-shield"></i>
-                            </div>
-                        </div>
+                    {{-- Account metadata stays available without a permanent second column. --}}
+                    <details class="account-card account-summary-card account-details-disclosure">
+                        <summary class="account-details-summary">
+                            <span class="account-details-heading">
+                                <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
+                                <span>
+                                    <strong>Account Details</strong>
+                                    <small>System ID, account status, role and login history</small>
+                                </span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down account-details-chevron" aria-hidden="true"></i>
+                        </summary>
 
                         <div class="account-tile-list">
                             <div class="account-meta-tile">
@@ -402,7 +403,7 @@
                             <span>Manage Password & Security</span>
                             <i class="fa-solid fa-arrow-right" style="margin-left: auto; font-size: 11px;"></i>
                         </a>
-                    </aside>
+                    </details>
                 </div>
             </section>
         </main>
