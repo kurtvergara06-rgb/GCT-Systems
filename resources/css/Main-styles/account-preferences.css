@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;800&display=swap');
 /* Browser-only personalization; default layout stays unchanged. */
 html.gct-density-compact main table:not(.calendar-table) th,
 html.gct-density-compact main table:not(.calendar-table) td {
