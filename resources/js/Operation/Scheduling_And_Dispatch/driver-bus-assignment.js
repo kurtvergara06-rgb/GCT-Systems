@@ -342,6 +342,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     let eligiblePairs = [];
     let editingSlotNumber = 0;
     let fleetMode = 'Regular';
+    let reserveNotice = 'Reserve deployment requires Operations Head authorization.';
     let availabilitySummary = { drivers: 0, buses: 0, reason: 'Select a trip to load eligible resources.' };
 
     function updatePairTripContext(trip = null) {
@@ -377,7 +378,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (pairCount) pairCount.textContent = `${fleetPairs.length} eligible pairs · ${drivers.length} drivers`;
         if (driverCount) driverCount.textContent = `${drivers.length} eligible drivers`;
         if (fleetNote) fleetNote.textContent = fleetMode === 'Reserve'
-            ? 'Shared standby buses have no permanent driver assignment. Operations Head approval is required, and a valid Regular pair takes priority.'
+            ? (fleetPairs.length
+                ? 'Shared standby buses can be used by eligible drivers with Operations Head approval.'
+                : reserveNotice)
             : 'Regular buses must be authorized for the selected driver and compatible with the client.';
         document.querySelectorAll('#assignmentPairPicker [data-assignment-fleet]').forEach(button => {
             const active = button.dataset.assignmentFleet === fleetMode;
@@ -444,6 +447,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         updatePairTripContext(data?.trip || null);
         const drivers = Array.isArray(data?.drivers) ? data.drivers : [];
         const buses = Array.isArray(data?.buses) ? data.buses : [];
+        reserveNotice = data?.reserve_notice || 'No Reserve buses available for this trip.';
 
         if (assignmentDriverOptionsContainer) {
             assignmentDriverOptionsContainer.innerHTML = drivers.length
@@ -1020,6 +1024,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         assignmentForm.reset();
         editingSlotNumber = 0;
         fleetMode = 'Regular';
+        reserveNotice = 'Select a trip to check Reserve eligibility.';
         setReplacementReasonMode(false);
         document.getElementById('companyAssignmentFields')?.classList.remove('pending-slot-trip-locked');
         document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
