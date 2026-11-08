@@ -4,8 +4,10 @@
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Operation/Scheduling_And_Dispatch/auto-dispatch.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/auto-calendar.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/auto-calendar.js',
     ]"
 >
 @php
@@ -65,6 +67,55 @@
                     <small>Preliminary count · generate to check actual conflicts</small>
                 </div>
             </article>
+        </section>
+
+        <section class="auto-card auto-calendar-card" id="autoSchedulingCalendar"
+                 data-calendar-url="{{ route('auto-scheduling.calendar') }}"
+                 aria-label="Monthly trip overview">
+            <div class="auto-calendar-heading">
+                <div>
+                    <span class="section-eyebrow">Monthly Trip Overview</span>
+                    <h2>Trip Schedule Calendar</h2>
+                    <p>See upcoming trips and assignments before choosing a scheduling date.</p>
+                </div>
+                <div class="auto-calendar-controls">
+                    <button class="auto-calendar-icon-button" type="button" data-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                    <strong data-calendar-month aria-live="polite"></strong>
+                    <button class="auto-calendar-icon-button" type="button" data-calendar-next aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="auto-calendar-today" type="button" data-calendar-today>Today</button>
+                    <button class="auto-calendar-toggle" type="button" data-calendar-toggle aria-expanded="true" aria-controls="autoCalendarBody">
+                        <i class="fa-solid fa-chevron-up" aria-hidden="true"></i><span>Hide calendar</span>
+                    </button>
+                </div>
+            </div>
+            <div id="autoCalendarBody" class="auto-calendar-body">
+                <div class="auto-calendar-grid-panel">
+                    <div class="auto-calendar-weekdays" aria-hidden="true">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="auto-calendar-days" data-calendar-days role="group" aria-label="Select scheduling date"></div>
+                </div>
+                <div class="auto-calendar-detail" aria-live="polite">
+                    <div class="auto-calendar-detail-heading">
+                        <span class="auto-calendar-detail-icon"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span>
+                        <div><h3 data-calendar-selected-date>Selected date</h3><p>Trip summary for the selected date</p></div>
+                    </div>
+                    <div class="auto-calendar-metrics">
+                        <div class="auto-calendar-metric is-total"><strong data-calendar-total>—</strong><span>Total Trips</span></div>
+                        <div class="auto-calendar-metric is-pending"><strong data-calendar-pending>—</strong><span>Needs Scheduling</span></div>
+                        <div class="auto-calendar-metric is-assigned"><strong data-calendar-assigned>—</strong><span>Already Assigned</span></div>
+                    </div>
+                    <div class="auto-calendar-progress-label"><strong>Assignment Progress</strong><span data-calendar-progress-label>—</span></div>
+                    <div class="auto-calendar-progress" role="progressbar" aria-label="Trip assignment progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-calendar-progress><span data-calendar-progress-fill></span></div>
+                    <div class="auto-calendar-legend">
+                        <span><i class="auto-calendar-dot is-assigned"></i> Already Assigned</span>
+                        <span><i class="auto-calendar-dot is-pending"></i> Needs Scheduling</span>
+                        <span><i class="auto-calendar-dot is-none"></i> No Trips</span>
+                    </div>
+                    <p class="auto-calendar-note">Counts show active-route Scheduled/Ready trips. Past or departed unassigned trips are not eligible for generation.</p>
+                </div>
+            </div>
+            <p class="auto-calendar-feedback" data-calendar-feedback role="status" hidden></p>
         </section>
 
         <section class="auto-main-grid">
