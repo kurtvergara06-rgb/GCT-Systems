@@ -78,6 +78,25 @@ class OperationDriverAttendanceUiTest extends TestCase
             ->assertViewHas('summaryDate', '2026-11-01');
     }
 
+    public function test_verified_attendance_groups_trip_date_and_schedule_and_labels_view_action(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Attendance/driver-attendance.css'));
+
+        $this->assertStringContainsString('class="attendance-assignment-schedule"', $view);
+        $this->assertStringContainsString('$attendance->attendance_date?->format(\'M d, Y\')', $view);
+        $this->assertStringContainsString('$primaryTrip->departureDateTime()->format(\'g:i A\')', $view);
+        $this->assertStringContainsString('$primaryTrip->estimatedArrivalDateTime()->format(\'g:i A\')', $view);
+        $this->assertStringContainsString('<th>Time-in</th>', $view);
+        $this->assertStringContainsString("class=\"attendance-status-cell\"", $view);
+        $this->assertStringContainsString('attendance-view-action open-view-driver-attendance-modal', $view);
+        $this->assertStringContainsString('<span>View</span>', $view);
+        $this->assertStringContainsString('aria-label="View attendance for', $view);
+        $this->assertStringContainsString('button.attendance-view-action', $styles);
+        $this->assertStringContainsString('.attendance-assignment-schedule', $styles);
+        $this->assertStringContainsString('.attendance-status-cell .gct-pill', $styles);
+    }
+
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
     {
         $view = file_get_contents(
