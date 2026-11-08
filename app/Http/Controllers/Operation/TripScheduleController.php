@@ -44,15 +44,19 @@ class TripScheduleController extends Controller
         // The calendar represents recorded statuses, not inferred departure times.
         $counts = TripSchedule::query()
             ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
-            ->selectRaw('trip_date, status, COUNT(*) as trip_count')
-            ->groupBy('trip_date', 'status')
+            ->selectRaw('trip_date, status, assignment_status, COUNT(*) as trip_count')
+            ->groupBy('trip_date', 'status', 'assignment_status')
             ->get();
 
         $dates = [];
         foreach ($counts as $row) {
             $date = $row->trip_date->toDateString();
             $status = match ($row->status) {
-                'Scheduled', 'Ready' => 'scheduled',
+                'Scheduled', 'Ready' => match ($row->assignment_status) {
+                    'Assigned' => 'assigned',
+                    'Partially Assigned' => 'partial',
+                    default => 'unassigned',
+                },
                 'Dispatched', 'In Progress' => 'in_progress',
                 'Pending DDR' => 'pending_ddr',
                 'Completed' => 'completed',
