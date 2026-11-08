@@ -1063,6 +1063,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             resetAssignmentForm();
 
             const assignmentId = editButton.dataset.assignmentId;
+            editingSlotNumber = Number(editButton.dataset.slotNumber || 0);
 
             ensureTripOption(
                 editButton.dataset.tripId,
