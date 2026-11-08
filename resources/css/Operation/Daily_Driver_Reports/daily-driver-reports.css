@@ -2588,13 +2588,13 @@ button.ddr-new-btn {
 
 /* Operation final audit: DDR record dialogs remain centered without clipping
    their header/footer on short laptop viewports. */
-.ddr-page .ddr-record-overlay.is-open {
+.ddr-record-overlay.is-open {
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
 }
-.ddr-page .ddr-record-overlay.is-open > .ddr-record-dialog {
+.ddr-record-overlay.is-open > .ddr-record-dialog {
     flex-shrink: 0;
     margin: auto;
     max-width: 100%;
