@@ -183,19 +183,24 @@
   line-height:1.2;
 }
 
-/* Client profile actions: keep four labeled controls visible in the
-   shared sticky Actions column without overlapping adjacent fields. */
-.client-master-page .client-master-table { min-width: 1240px; }
-.client-master-page .client-master-table th:last-child { width: 32%; }
+/* Four actions fit inside a compact sticky column; the button title and
+   aria-label retain their purpose without visible text. */
+.client-master-page .client-master-table { min-width: 960px; }
+.client-master-page .client-master-table th:nth-child(1) { width: 12%; }
+.client-master-page .client-master-table th:nth-child(2) { width: 28%; }
+.client-master-page .client-master-table th:nth-child(3) { width: 14%; }
+.client-master-page .client-master-table th:nth-child(4) { width: 16%; }
+.client-master-page .client-master-table th:nth-child(5) { width: 11%; }
+.client-master-page .client-master-table th:last-child { width: 19%; }
 .client-master-page .gct-sticky-actions .client-master-actions {
     box-sizing: border-box;
-    min-width: 350px;
-    width: 32%;
+    min-width: 184px;
+    width: 19%;
     background: #fff;
 }
 .client-master-page .client-master-action-row {
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     flex-wrap: nowrap;
 }
 .client-master-page .client-master-action-row .client-master-action {
@@ -203,10 +208,27 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    height: 34px;
     min-height: 34px;
-    padding: 0 10px;
+    padding: 0;
+    gap: 0;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1;
     white-space: nowrap;
+}
+.client-master-page .client-master-action-row .client-master-action > i {
+    flex: 0 0 auto;
+    margin: 0;
+    line-height: 1;
+}
+.client-master-page .client-master-action-row .client-master-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
 }
 .client-master-page #clientMasterDetailSubmit[hidden] { display: none !important; }
 .client-master-detail-summary {
