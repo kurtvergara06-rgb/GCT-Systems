@@ -2938,3 +2938,45 @@
     border: 1px solid #93c5fd;
     color: #1d4ed8;
 }
+
+
+/* Phase 4: shared labeled table action across Trip Records and DDR. */
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.table-action-btn.trip-history-view-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 94px;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    gap: 8px;
+    padding: 0 12px;
+    white-space: nowrap;
+}
+.trip-records-page .unified-trip-history-table button.table-action-btn.trip-history-view-action > :is(i, span) {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
+.trip-records-page .trip-history-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) table {
+    min-width: 620px;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) td {
+    overflow-wrap: anywhere;
+}
