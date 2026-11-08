@@ -263,8 +263,11 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             'sequence' => 2,
             'trip_schedule_id' => $trip->id,
             'trip_ticket' => 'T-DDR-ACTUAL-ADDITIONAL',
+            'from_location' => 'Terminal A',
+            'to_location' => 'Terminal B',
             'departure_time' => '10:00:00',
             'arrival_time' => '11:00:00',
+            'passengers' => 0,
         ]);
 
         $this->actingAs($this->operationUser())
