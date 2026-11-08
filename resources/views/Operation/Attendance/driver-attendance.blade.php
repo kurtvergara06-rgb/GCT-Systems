@@ -108,6 +108,20 @@
                   if ($historicalAssignments->count() > 1) {
                     $assignmentSummary .= ' | ' . $historicalAssignments->count() . ' assigned trips';
                   }
+
+                  // The modal receives the complete set of assignments for
+                  // this DDR-verified service date, not just the first trip.
+                  $modalTripAssignments = $historicalAssignments->map(function ($assignment) {
+                    $trip = $assignment->tripSchedule;
+                    return [
+                      'trip_id' => $trip?->trip_code ?? 'Trip unavailable',
+                      'bus' => $assignment->bus?->bus_no ?? 'Bus unavailable',
+                      'date' => $trip?->trip_date?->format('M d, Y') ?? 'Date unavailable',
+                      'departure' => $trip?->departureDateTime()?->format('g:i A') ?? '—',
+                      'arrival' => $trip?->estimatedArrivalDateTime()?->format('g:i A') ?? '—',
+                      'status' => $trip?->status ?? 'Unknown',
+                    ];
+                  })->values();
                 @endphp
 
                 <tr>
@@ -152,6 +166,7 @@
                         data-driver-name="{{ $attendance->driver_name }}"
                         data-shift="{{ $attendance->shift }}"
                         data-bus-assignment="{{ $assignmentSummary }}"
+                        data-trip-assignments="{{ $modalTripAssignments->toJson() }}"
                         data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
                         data-time-in="{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}"
                         data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
@@ -196,6 +211,21 @@
     close-id="closeViewDriverAttendanceModal"
   >
     <div class="attendance-details-grid" id="viewDriverAttendanceContent"></div>
+    <section class="attendance-modal-trips" aria-labelledby="attendanceModalTripsTitle">
+      <div class="attendance-modal-trips-heading">
+        <div>
+          <h3 id="attendanceModalTripsTitle"><i class="fa-solid fa-route" aria-hidden="true"></i> Trip Assignments</h3>
+          <p>Scheduled trips linked to this driver's verified service date.</p>
+        </div>
+        <span id="attendanceModalTripsCount" class="attendance-modal-trips-count">0 trips</span>
+      </div>
+      <div class="attendance-modal-trips-scroll" role="region" aria-label="Driver trip assignments table" tabindex="0">
+        <table class="attendance-modal-trips-table">
+          <thead><tr><th scope="col">Trip ID</th><th scope="col">Bus</th><th scope="col">Service Date</th><th scope="col">Scheduled Time</th><th scope="col">Status</th></tr></thead>
+          <tbody id="attendanceModalTripsBody"><tr><td colspan="5" class="attendance-modal-trips-empty">No trip assignments found for this date.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
     <div class="ui-form-actions">
       <button type="button" id="closeViewDriverAttendanceButton" class="ui-form-btn ui-form-btn-primary">
         <i class="fa-solid fa-check"></i>
