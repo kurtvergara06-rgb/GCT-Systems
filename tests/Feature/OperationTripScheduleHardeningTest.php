@@ -2042,7 +2042,15 @@ class OperationTripScheduleHardeningTest extends TestCase
             $script
         );
         $this->assertStringContainsString(
-            'const busAuthorized = allowed.includes(String(option.dataset.value));',
+            'const busAuthorized = Boolean(selectedDriver)',
+            $script
+        );
+        $this->assertStringContainsString(
+            "option.dataset.purpose === 'Reserve'",
+            $script
+        );
+        $this->assertStringContainsString(
+            '|| allowed.includes(String(option.dataset.value))',
             $script
         );
         $this->assertStringContainsString(
