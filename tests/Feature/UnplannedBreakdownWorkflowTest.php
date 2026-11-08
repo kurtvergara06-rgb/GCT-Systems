@@ -210,6 +210,17 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             'created_by' => $operationHead->id,
         ]);
 
+        // A real dispatched assignment must not prevent an approved breakdown
+        // referral from opening its repair Job Order.
+        TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_id' => 'DRV-BRK-002',
+            'driver_name' => 'Breakdown Driver',
+            'bus_id' => $bus->id,
+            'assigned_by' => $operationHead->id,
+        ]);
+        $this->assertTrue($bus->hasOngoingDispatch());
+
         $incident = Incident::create([
             'incident_no' => 'INC-BRK-0002',
             'trip_schedule_id' => $trip->id,
