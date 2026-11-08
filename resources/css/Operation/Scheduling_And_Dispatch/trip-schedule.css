@@ -3903,6 +3903,64 @@
     outline: 2px solid #ea580c;
     outline-offset: 2px;
 }
+/* Cancellation is a short confirmation form, not a full-width editor.
+   Scope the sizing here to avoid changing the shared modal component or
+   Create/Edit Trip. The original POST/PATCH, validation and close behavior
+   remain unchanged. */
+#cancelServiceTripModal.ui-form-overlay {
+    box-sizing: border-box;
+    padding: 16px;
+    align-items: center;
+    justify-content: center;
+}
+#cancelServiceTripModal .ui-form-modal.ui-form-modal-md {
+    box-sizing: border-box;
+    flex: 0 1 560px;
+    width: min(100%, 560px);
+    max-width: 560px;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    overflow-y: auto;
+    border-radius: 16px;
+}
+#cancelServiceTripModal .ui-form-modal-header {
+    padding: 18px 20px 16px;
+    gap: 14px;
+}
+#cancelServiceTripModal .ui-form-heading {
+    min-width: 0;
+}
+#cancelServiceTripModal .ui-form-heading p {
+    line-height: 1.5;
+}
+#cancelServiceTripModal .ui-form-modal-body {
+    padding: 18px 20px 16px;
+}
+#cancelServiceTripModal .ui-form-modal-scrollable {
+    min-width: 0;
+}
+#cancelServiceTripModal .ui-form-actions {
+    margin-top: 16px;
+}
+@media (max-width: 600px) {
+    #cancelServiceTripModal.ui-form-overlay {
+        padding: 10px;
+    }
+    #cancelServiceTripModal .ui-form-modal.ui-form-modal-md {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 20px);
+        border-radius: 12px;
+    }
+    #cancelServiceTripModal .ui-form-modal-header,
+    #cancelServiceTripModal .ui-form-modal-body {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    #cancelServiceTripModal .ui-form-actions {
+        flex-wrap: wrap;
+    }
+}
 #cancelServiceTripModal .trip-cancellation-context {
     margin: 0 0 12px;
     color: #334155;
