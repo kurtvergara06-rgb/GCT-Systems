@@ -353,7 +353,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         const assigned = Number(trip.assigned_slots || 0);
         const required = Number(trip.required_buses || 1);
         document.getElementById('assignmentPairSlot').textContent =
-            'Slot ' + Math.min(assigned + 1, required) + ' of ' + required;
+            'Slot ' + (editingSlotNumber || Math.min(assigned + 1, required)) + ' of ' + required;
     }
 
     function renderPairCards() {
