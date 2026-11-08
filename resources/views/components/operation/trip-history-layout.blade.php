@@ -32,7 +32,7 @@
 
                 @isset($helper)<div class="trip-history-helper">{{ $helper }}</div>@endisset
 
-                <div class="table-wrap trip-table-wrap trip-history-table-wrap">{{ $slot }}</div>
+                <div class="table-wrap trip-table-wrap trip-history-table-wrap gct-responsive-records gct-sticky-actions">{{ $slot }}</div>
                 {{ $pagination }}
             </section>
         </main>
