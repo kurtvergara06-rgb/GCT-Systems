@@ -114,6 +114,8 @@
                                     $firstUnit = $resources->first();
                                     $route = $trip->shuttleRoute;
                                     $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0) + (float) ($trip->additional_recorded_distance_km ?? 0);
+                                    $ddrTimes = \App\Support\Operation\TripDdrActualTimes::forTrip($trip);
+                                    $singleDdrTime = $ddrTimes->count() === 1 ? $ddrTimes->first() : null;
                                     $tripDataJson = json_encode([
                                         'trip_code' => $trip->trip_code,
                                         'trip_date' => $trip->trip_date?->format('M d, Y'),
@@ -137,8 +139,9 @@
                                         'assignments' => $resources->all(),
                                         'departure_time' => $trip->departure_time,
                                         'estimated_arrival_time' => $trip->estimated_arrival_time,
-                                        'actual_departure_time' => $trip->actual_departure_time ?: '—',
-                                        'actual_arrival_time' => $trip->actual_arrival_time ?: '—',
+                                        'actual_departure_time' => $singleDdrTime['departure'] ?? '—',
+                                        'actual_arrival_time' => $singleDdrTime['arrival'] ?? '—',
+                                        'ddr_times' => $ddrTimes->all(),
                                         'actual_duration_minutes' => $units->first()?->actual_duration_minutes,
                                         'notes' => $trip->notes,
                                     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
@@ -162,10 +165,14 @@
                                     <td><x-ui.status-badge class="trip-history-outcome" :status="$assignmentOutcome" :title="'Assignment fulfillment; not proof of completed transportation'" /></td>
                                     <td><x-ui.status-badge :status="$trip->status === 'Dispatched' ? 'In Progress' : $trip->status" class="trip-history-operational-status" /></td>
                                     <td class="unified-trip-actual-times">
-                                        @if($trip->actual_departure_time || $trip->actual_arrival_time)
-                                            {{ $trip->actual_departure_time ?: '—' }} → {{ $trip->actual_arrival_time ?: '—' }}
+                                        @if($singleDdrTime)
+                                            <strong>{{ $singleDdrTime['departure'] ?: '—' }} → {{ $singleDdrTime['arrival'] ?: '—' }}</strong>
+                                            <small>DDR {{ $singleDdrTime['ddr_no'] }}</small>
+                                        @elseif($ddrTimes->isNotEmpty())
+                                            <strong>{{ $ddrTimes->count() }} DDR trip records</strong>
+                                            <small>View individual driver/bus times</small>
                                         @else
-                                            <span class="trip-resource-empty">Not recorded</span>
+                                            <span class="trip-resource-empty">{{ $trip->status === 'Pending DDR' ? 'Awaiting DDR' : 'No DDR recorded' }}</span>
                                         @endif
                                     </td>
                                     <td>
@@ -200,6 +207,16 @@
             </div>
 
             <div class="trip-detail-body">
+                <section class="unified-trip-ddr-times" aria-label="DDR reported actual times">
+                    <h3>Driver-Reported Actual Times (DDR)</h3>
+                    <p>Only linked DDR records are shown. Each bus or additional trip is listed separately.</p>
+                    <div class="unified-trip-ddr-table-wrap">
+                        <table>
+                            <thead><tr><th>DDR</th><th>Driver / Bus</th><th>Departure</th><th>Arrival</th></tr></thead>
+                            <tbody id="modalDdrTimeRows"><tr><td colspan="4">Select a trip to view DDR times.</td></tr></tbody>
+                        </table>
+                    </div>
+                </section>
                 <section class="unified-trip-modal-summary" aria-label="Assignment fulfillment">
                     <div><small>Required Bus Slots</small><strong id="modalRequiredSlots">—</strong></div>
                     <div><small>Assigned Bus Slots</small><strong id="modalAssignedSlots">—</strong></div>
