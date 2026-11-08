@@ -609,7 +609,7 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertStringContainsString("fleetMode = selectedBusOption?.dataset.purpose === 'Reserve'", $script);
     }
 
-    public function test_reserve_bus_rejected_if_authorized_regular_pair_is_available(): void
+    public function test_head_can_deploy_reserve_even_if_authorized_regular_pair_is_available(): void
     {
         $trip = $this->createTripSchedule(1);
         $driver = $this->createDriver('REGULAR-FIRST');
@@ -618,13 +618,34 @@ class OperationMultiBusWorkflowTest extends TestCase
         $driver->authorizedBuses()->syncWithoutDetaching([$regular->id]);
         $reserve = $this->createBus('RESERVE-FALLBACK', 'Active', 'Reserve');
 
+        $response = $this->actingAs($this->admin)->getJson(
+            route('driver-bus-assignment.availability', $trip)
+        );
+        $response->assertOk();
+        $this->assertContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertContains($driver->driver_id, collect($response->json('drivers'))->pluck('id')->all());
+
         $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
             'trip_schedule_id' => $trip->id,
             'driver_attendance_id' => $attendance->id,
             'bus_id' => $reserve->id,
-        ])->assertSessionHasErrors('bus_id');
+        ])->assertSessionHasNoErrors();
 
-        $this->assertSame(0, $trip->assignments()->count());
+        $assignment = $trip->assignments()->where('bus_id', $reserve->id)->firstOrFail();
+        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
+            'trip_assignment_id' => $assignment->id,
+            'bus_id' => $reserve->id,
+        ]);
+    }
+
+    public function test_reserve_driver_list_does_not_depend_on_permanent_bus_authorization(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('availabilityDrivers = drivers', $script);
+        $this->assertStringContainsString("if (fleetMode === 'Reserve')", $script);
+        $this->assertStringContainsString('availabilityDrivers.forEach(driver =>', $script);
+        $this->assertStringContainsString('if (!driverMap.has(id)) driverMap.set(id, { driver, buses: [] })', $script);
     }
 
     public function test_reserve_bus_availability_includes_any_active_driver_without_authorization(): void
