@@ -664,9 +664,8 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
-                $hasUnavailableAssignedBus = $trip->assignments()
-                    ->whereHas('bus', fn ($q) => $q->where('status', '!=', 'Active'))
-                    ->exists();
+                $hasUnavailableAssignedBus = $lockedAssignment->bus === null
+                    || $lockedAssignment->bus->status !== 'Active';
                 $isReadyReplacement = $trip->status === 'Ready'
                     || ($trip->status === 'Scheduled' && $hasUnavailableAssignedBus);
                 $replacementReason = trim((string) $request->input('replacement_reason', ''));
