@@ -236,14 +236,27 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             ->assertSee('No DDR recorded')
             ->assertDontSee('08:15:00 → 09:30:00');
 
+        $bus = \App\Models\Maintenance\Bus::create([
+            'bus_no' => 'DDR-TEST-BUS',
+            'plate_no' => 'DDR-1234',
+            'bus_model' => 'Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+        ]);
         $report = DailyDriverReport::create([
             'ddr_no' => 'DDR-2026-1234',
             'report_date' => '2026-10-01',
             'trip_schedule_id' => $trip->id,
             'trip_ticket' => 'T-DDR-ACTUAL',
+            'driver_id' => 'DDR-DRIVER-1',
             'driver_name' => 'Verified Driver',
+            'bus_id' => $bus->id,
+            'from_location' => 'Terminal A',
+            'to_location' => 'Terminal B',
             'departure_time' => '08:05:00',
             'arrival_time' => '09:10:00',
+            'passengers' => 10,
+            'encoded_by' => $this->operationUser()->id,
         ]);
         $report->additionalTrips()->create([
             'sequence' => 2,
