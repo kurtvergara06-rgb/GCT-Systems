@@ -142,4 +142,22 @@ class FrontendAssetOptimizationTest extends TestCase
         $this->assertStringContainsString('#routeModal', $styles);
     }
 
+
+    public function test_auto_scheduling_print_table_has_one_authoritative_column_width_set(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+
+        // Older print sections defined and redefined the same seven widths.
+        // Keep the final printing contract intact without shadowed copies.
+        $expected = [11, 12, 21, 13, 17, 16, 10];
+        foreach ($expected as $index => $percent) {
+            $selector = 'body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child('.($index + 1).')';
+            $pattern = '/'.preg_quote($selector, '/').'\\s*\\{\\s*width:\\s*(\\d+)%\\s*!important;\\s*\\}/';
+            $matches = [];
+            $count = preg_match_all($pattern, $css, $matches);
+            $this->assertSame(1, $count, $selector.' must be defined once');
+            $this->assertSame((string) $percent, $matches[1][0], $selector.' width must remain unchanged');
+        }
+    }
+
 }
