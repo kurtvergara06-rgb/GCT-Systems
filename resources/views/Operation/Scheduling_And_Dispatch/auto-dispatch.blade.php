@@ -363,14 +363,14 @@
                     <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Incoming trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
-                                <col style="width:9%">
-                                <col style="width:11%">
-                                <col style="width:18%">
-                                <col style="width:12%">
-                                <col style="width:14%">
-                                <col style="width:14%">
-                                <col style="width:10%">
-                                <col style="width:12%">
+                                <col class="auto-col-trip">
+                                <col class="auto-col-time">
+                                <col class="auto-col-route">
+                                <col class="auto-col-required">
+                                <col class="auto-col-driver">
+                                <col class="auto-col-bus">
+                                <col class="auto-col-result">
+                                <col class="auto-col-action">
                             </colgroup>
                             <thead>
                                 <tr>
@@ -437,14 +437,14 @@
                     <div class="auto-table-wrap gct-responsive-records gct-sticky-actions" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
                             <colgroup>
-                                <col style="width:9%">
-                                <col style="width:11%">
-                                <col style="width:18%">
-                                <col style="width:12%">
-                                <col style="width:14%">
-                                <col style="width:14%">
-                                <col style="width:10%">
-                                <col style="width:12%">
+                                <col class="auto-col-trip">
+                                <col class="auto-col-time">
+                                <col class="auto-col-route">
+                                <col class="auto-col-required">
+                                <col class="auto-col-driver">
+                                <col class="auto-col-bus">
+                                <col class="auto-col-result">
+                                <col class="auto-col-action">
                             </colgroup>
                             <thead>
                                 <tr>
