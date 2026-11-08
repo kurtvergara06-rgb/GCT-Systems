@@ -50,7 +50,7 @@
 
 
     <table class="trip-table trip-history-table">
-        <thead><tr><th>Trip ID</th><th>Schedule</th><th>Route</th><th>Assigned Resources</th><th>Bus Slots</th><th>Scheduling Outcome</th><th>Operational Status</th></tr></thead>
+        <thead><tr><th scope="col">Trip ID</th><th scope="col">Schedule</th><th scope="col">Route</th><th scope="col">Assigned Resources</th><th scope="col">Bus Slots</th><th scope="col">Scheduling Outcome</th><th scope="col">Operational Status</th></tr></thead>
         <tbody>
             @forelse($assignmentHistoryTrips as $trip)
                 @php
