@@ -227,7 +227,7 @@
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-display-route="{{ $bus->display_route_name }}"
                                                 data-client-allocation-type="{{ $bus->client_allocation_type }}"
-                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}">
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}"
                                             />
                                             @if($canEditOperation)
                                             <x-ui.action-button
