@@ -2647,3 +2647,41 @@
 /* Explicit replacement warning without changing historical operation state. */
 .assignment-page .assignment-maintenance-warning { display: inline-flex; align-items: center; gap: 5px; width: fit-content; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 3px 7px; font-size: 10px; font-weight: 750; margin-top: 4px; }
 .assignment-page .assignment-status.replacement-required { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; }
+
+
+/* Shared table-action component adopted by Assignment rows.
+   Keep all four states visually aligned without changing page event hooks. */
+.assignment-page .assignment-table td:last-child .assignment-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+.assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 13px;
+}
+.assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action > i {
+    line-height: 1;
+    font-size: 13px;
+}
+.assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
