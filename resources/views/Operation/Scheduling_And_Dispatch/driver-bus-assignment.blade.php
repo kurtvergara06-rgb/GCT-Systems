@@ -424,6 +424,12 @@
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
                                                 || ($assignment->incidents_count ?? 0) > 0;
                                             $isLocked = $tripLocked || $asgnHistory;
+                                            // Explicit action semantics: mutable Scheduled slots
+                                            // can be edited/removed; Ready or unavailable-bus
+                                            // slots must go through Head-approved replacement.
+                                            $requiresHeadReplacement = $trip->status === 'Ready' || $needsMaintenanceReplacement;
+                                            $canChangeSlot = $canEditOperation && ! $isLocked
+                                                && (! $requiresHeadReplacement || $canApproveOperation);
                                             $details = [
                                                 'tripCode' => $trip->trip_code,
                                                 'date' => $trip->trip_date?->format('M d, Y'),
@@ -544,12 +550,13 @@
                                                         <i class="fa-solid fa-eye"></i>
                                                     </button>
 
-                                                    @if($canEditOperation && !$isLocked && (($trip->status !== 'Ready' && !$needsMaintenanceReplacement) || $canApproveOperation))
+                                                    @if($canChangeSlot)
                                                         <button
                                                             type="button"
                                                             class="assignment-action edit edit-assignment"
-                                                            title="{{ $trip->status === 'Ready' || $needsMaintenanceReplacement ? 'Replace Driver / Bus (Operations Head approval required)' : 'Edit Assignment' }}"
-                                                            data-ready-replacement="{{ $trip->status === 'Ready' || $needsMaintenanceReplacement ? 'true' : 'false' }}"
+                                                            title="{{ $requiresHeadReplacement ? 'Replace Driver / Bus — Operations Head approval and reason required' : 'Edit Assignment' }}"
+                                                            aria-label="{{ $requiresHeadReplacement ? 'Replace assigned driver or bus' : 'Edit assigned driver or bus' }}"
+                                                            data-ready-replacement="{{ $requiresHeadReplacement ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
                                                             data-slot-number="{{ $assignment->slot_number }}"
                                                             data-trip-id="{{ $trip->id }}"
@@ -559,10 +566,10 @@
                                                             data-bus-id="{{ $assignment->bus_id }}"
                                                             data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
                                                         >
-                                                            <i class="fa-solid {{ $needsMaintenanceReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square' }}"></i>
+                                                            <i class="fa-solid {{ $requiresHeadReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square' }}"></i>
                                                         </button>
 
-                                                        @if($trip->status !== 'Ready')
+                                                        @if(! $requiresHeadReplacement)
                                                         <form
                                                             id="removeAssignmentForm-{{ $assignment->id }}"
                                                             method="POST"
@@ -588,6 +595,17 @@
                                                             </button>
                                                         </form>
                                                         @endif
+                                                    @elseif($canEditOperation && $requiresHeadReplacement)
+                                                        <button
+                                                            type="button"
+                                                            class="assignment-action edit assignment-action-disabled"
+                                                            disabled
+                                                            aria-disabled="true"
+                                                            title="{{ $isLocked ? 'Replacement unavailable: trip departed or operational history exists' : 'Only Operations Head can authorize this replacement' }}"
+                                                            aria-label="Replacement requires Operations Head authorization"
+                                                        >
+                                                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                                        </button>
                                                     @elseif($canEditOperation)
                                                         <button
                                                             type="button"
