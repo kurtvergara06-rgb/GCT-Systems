@@ -3899,3 +3899,25 @@
     margin: 0;
     line-height: 1;
 }
+
+
+/* Operation final audit: avoid minimum-height clipping in incident dialogs. */
+.inc-record-modal-backdrop,
+.inc-workflow-overlay {
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+}
+.inc-record-modal-backdrop > .inc-record-modal,
+.inc-workflow-overlay > .inc-workflow-dialog {
+    flex-shrink: 0;
+    margin: auto;
+    max-width: 100%;
+}
+.inc-workflow-overlay > .inc-workflow-dialog {
+    box-sizing: border-box;
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    height: min(92dvh, 960px);
+}
