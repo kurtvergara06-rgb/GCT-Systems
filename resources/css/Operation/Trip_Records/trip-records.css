@@ -3000,6 +3000,6 @@
 }
 @supports (height: 100dvh) {
     #tripDetailModal.trip-modal-overlay > .trip-modal {
-        max-height: calc(100dvh - 2 * clamp(10px, 2.5vh, 22px));
+        max-height: calc(100dvh - clamp(20px, 5vh, 44px));
     }
 }
