@@ -105,6 +105,27 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->assertStringContainsString('Six columns: separate scheduled service date/time', $styles);
     }
 
+    public function test_attendance_view_modal_lists_all_trips_in_a_read_only_table(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Attendance/driver-attendance.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Attendance/driver-attendance.css'));
+
+        $this->assertStringContainsString('data-trip-assignments="{{ $modalTripAssignments->toJson() }}"', $view);
+        $this->assertStringContainsString('$historicalAssignments->map(function ($assignment)', $view);
+        $this->assertStringContainsString('->values();', $view);
+        $this->assertStringContainsString('id="attendanceModalTripsBody"', $view);
+        $this->assertStringContainsString('id="attendanceModalTripsCount"', $view);
+        $this->assertStringContainsString('<th scope="col">Trip ID</th>', $view);
+        $this->assertStringContainsString('<th scope="col">Scheduled Time</th>', $view);
+        $this->assertStringContainsString('renderAttendanceTrips(button);', $script);
+        $this->assertStringContainsString('trips.map(trip =>', $script);
+        $this->assertStringContainsString('escapeAttendanceHtml(trip.trip_id', $script);
+        $this->assertStringNotContainsString("['Current Assignment', button.dataset.busAssignment", $script);
+        $this->assertStringContainsString('max-height: 285px;', $styles);
+        $this->assertStringContainsString('.attendance-modal-trips-table th', $styles);
+    }
+
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
     {
         $view = file_get_contents(
