@@ -112,6 +112,33 @@ class OperationClientMasterListTest extends TestCase
         $this->assertStringContainsString('width: 34px;', $styles);
     }
 
+    public function test_client_modals_have_scoped_responsive_layout_and_separate_read_only_view(): void
+    {
+        $client = OperationClient::create(['name' => 'Client Modal Test', 'status' => 'Active']);
+
+        $this->actingAs($this->operationUser(true))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('id="clientMasterCreateModal"', false)
+            ->assertSee('id="clientMasterDetailModal"', false)
+            ->assertSee('class="client-profile-view"', false)
+            ->assertSee('class="client-profile-edit-fields"', false)
+            ->assertSee('id="clientViewCompany"', false)
+            ->assertSee('id="clientViewEmail"', false)
+            ->assertSee('data-client-mode="view"', false)
+            ->assertSee('data-client-mode="edit"', false);
+
+        $styles = file_get_contents(resource_path('css/Operation/Clients/client-master-list.css'));
+        $script = file_get_contents(resource_path('js/Operation/Clients/client-master-list.js'));
+        $this->assertStringContainsString('#clientMasterCreateModal.ui-form-overlay > .ui-form-modal', $styles);
+        $this->assertStringContainsString('#clientMasterDetailModal[data-mode="view"].ui-form-overlay > .ui-form-modal', $styles);
+        $this->assertStringContainsString('max-width: 760px;', $styles);
+        $this->assertStringContainsString('max-width: 690px;', $styles);
+        $this->assertStringContainsString('.client-profile-view[hidden]', $styles);
+        $this->assertStringContainsString('viewProfile.hidden = editing;', $script);
+        $this->assertStringContainsString('editFields.hidden = !editing;', $script);
+    }
+
     public function test_client_details_can_be_corrected_without_changing_client_id_or_allocations(): void
     {
         $client = OperationClient::create(['name' => 'Original Client', 'status' => 'Active']);
