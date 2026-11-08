@@ -103,6 +103,7 @@
                     </div>
                 </div>
 
+                <div class="assignment-calendar-toolbar">
                 <div class="assignment-date-picker" data-assignment-calendar
                      data-calendar-url="{{ route('driver-bus-assignment.calendar') }}"
                      data-selected-date="{{ $selectedTripDate }}">
@@ -142,12 +143,13 @@
                     </div>
                 </div>
                 <div class="assignment-record-controls">
-                <x-ui.table-toolbar action="{{ route('driver-bus-assignment', [], false) }}" search-label="Search Assignments" search-placeholder="Search trip, route, driver, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'all')" :show-filter-count="false" filter-title="Filter Assignments" :sort-options="['departure_time' => 'Schedule Time', 'trip_code' => 'Trip ID', 'status' => 'Trip Status']" default-sort="departure_time" data-server-filter-navigation="true">
+                <x-ui.table-toolbar action="{{ route('driver-bus-assignment', [], false) }}" search-label="Search Assignments" search-placeholder="Search trip, route, driver, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all')" :show-filter-count="false" filter-title="Filter Assignments" :sort-options="['departure_time' => 'Schedule Time', 'trip_code' => 'Trip ID', 'status' => 'Trip Status']" default-sort="departure_time" data-server-filter-navigation="true">
+                    <x-slot:hidden><input type="hidden" name="trip_date" value="{{ $selectedTripDate }}"></x-slot:hidden>
                     <x-slot:filters>
-                        <x-ui.table-toolbar-field label="Trip Date" name="trip_date" type="date" :value="$selectedTripDate" />
                         <x-ui.table-toolbar-field label="Status" name="status" default="all"><option value="all">All Statuses</option>@foreach(['Ready', 'Assigned', 'Unassigned', 'Dispatched', 'Completed', 'Cancelled', 'Missed'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
                 </div>
 
                 @php
