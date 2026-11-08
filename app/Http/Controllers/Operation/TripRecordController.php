@@ -110,15 +110,24 @@ class TripRecordController extends Controller
 
         return response()->streamDownload(function () use ($request): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Trip ID', 'Date', 'Shift', 'Route', 'Plate Number', 'Driver', 'Scheduled Departure', 'Estimated Arrival', 'Actual Departure', 'Actual Arrival', 'Recorded Distance (km)', 'Planned Distance (km)', 'Status']);
+            fputcsv($out, ['Trip ID', 'Date', 'Shift', 'Route', 'Plate Number', 'Driver', 'Scheduled Departure', 'Estimated Arrival', 'Actual Departure', 'Actual Arrival', 'Recorded Distance (km)', 'Planned Distance (km)', 'Status', 'Required Bus Slots', 'Assigned Bus Slots', 'Assignment Outcome', 'External Rental Resources']);
             $this->historyQuery($request)
-                ->with(['shuttleRoute', 'assignments.bus'])
+                ->with(['shuttleRoute', 'assignments.bus', 'externalRentals'])
                 ->withSum('dailyDriverReports as primary_recorded_distance_km', 'km')
                 ->withSum('dailyDriverReportTripEntries as additional_recorded_distance_km', 'km')
                 ->orderBy('id')->chunkById(250, function ($trips) use ($out): void {
                     foreach ($trips as $trip) {
                         $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0)
                             + (float) ($trip->additional_recorded_distance_km ?? 0);
+                        $assigned = $trip->assignments->count() + $trip->externalRentals->where('status', 'Assigned')->count();
+                        $required = max(1, (int) ($trip->required_buses ?? 1));
+                        $outcome = match (true) {
+                            $trip->status === 'Cancelled' => 'Cancelled',
+                            $trip->status === 'Missed' => 'Missed',
+                            $assigned === 0 => 'No Assignments',
+                            $assigned < $required => 'Partially Assigned',
+                            default => 'Fully Assigned',
+                        };
                         $row = [
                             $trip->trip_code, $trip->trip_date?->format('Y-m-d'), $trip->shift,
                             $trip->route_name_snapshot ?: $trip->shuttleRoute?->route_name,
@@ -128,6 +137,12 @@ class TripRecordController extends Controller
                             $recordedDistance ?: null,
                             $trip->planned_distance_km ?? $trip->shuttleRoute?->distance_km,
                             $trip->status,
+                            $required,
+                            $assigned,
+                            $outcome,
+                            $trip->externalRentals->where('status', 'Assigned')
+                                ->map(fn ($rental) => trim(($rental->driver_name ?: 'External driver').' / '.($rental->plate_number ?: 'External rental')))
+                                ->implode('; '),
                         ];
                         // Stop spreadsheet formula injection when CSV opens in Excel.
                         fputcsv($out, array_map(fn ($v) => is_string($v) && preg_match('/^\\s*[=+@-]/', $v) ? "'".$v : $v, $row));
