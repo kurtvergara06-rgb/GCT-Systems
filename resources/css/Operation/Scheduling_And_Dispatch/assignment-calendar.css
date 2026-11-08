@@ -37,7 +37,8 @@
 .assignment-page .assignment-calendar-dot.is-unassigned{background:#eab308}
 .assignment-page .assignment-calendar-dot.is-partial{background:#f97316}
 .assignment-page .assignment-calendar-dot.is-assigned{background:#16a34a}
-.assignment-page .assignment-calendar-dot.is-in_progress{background:#2563eb}
+.assignment-page .assignment-calendar-dot.is-in_progress{background:#7c3aed}
+.assignment-page .assignment-calendar-dot.is-pending_ddr{background:#2563eb}
 .assignment-page .assignment-calendar-dot.is-missed{background:#dc2626}
 .assignment-page .assignment-calendar-dot.is-delayed{background:#8b5cf6}
 .assignment-page .assignment-calendar-dot.is-history{background:#94a3b8}
