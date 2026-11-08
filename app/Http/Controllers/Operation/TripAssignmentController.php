@@ -211,7 +211,8 @@ class TripAssignmentController extends Controller
             ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->get()
             ->sort(fn (Bus $a, Bus $b): int =>
-                strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
+                (($a->fleet_purpose === 'Reserve' ? 1 : 0) <=> ($b->fleet_purpose === 'Reserve' ? 1 : 0))
+                ?: strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
                 ?: ($a->id <=> $b->id))
             ->values();
         $busPage = LengthAwarePaginator::resolveCurrentPage('bus_page');
@@ -423,10 +424,12 @@ class TripAssignmentController extends Controller
 
         $tripClient = mb_strtolower(trim((string) ($tripSchedule->client_name ?? '')));
 
+        $canSelectReserve = auth()->user()?->canApproveReadyTripChanges() ?? false;
+
         $buses = Bus::query()
             ->with('operationClients:id,name')
             ->where('status', 'Active')
-            ->where('fleet_purpose', 'Regular')
+            ->whereIn('fleet_purpose', $canSelectReserve ? ['Regular', 'Reserve'] : ['Regular'])
             ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->when(
                 $busyBusIds !== [],
@@ -437,6 +440,10 @@ class TripAssignmentController extends Controller
                 $allocations = $bus->operationClients
                     ->pluck('name')
                     ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+
+                if ($bus->fleet_purpose === 'Reserve') {
+                    return true;
+                }
 
                 return $tripClient === ''
                     ? $allocations->isEmpty()
@@ -451,7 +458,23 @@ class TripAssignmentController extends Controller
                 'bus_no' => $bus->bus_no,
                 'model' => $bus->bus_model,
                 'plate_no' => $bus->plate_no,
+                'purpose' => $bus->fleet_purpose,
             ]);
+
+        // Reserve buses have no permanently authorized drivers. They are
+        // offered only when no valid Regular driver/bus pair is available.
+        // Server-side write validation independently enforces this condition.
+        $hasRegularPair = $buses->contains(function ($bus) use ($drivers): bool {
+            if ($bus['purpose'] !== 'Regular') {
+                return false;
+            }
+
+            return $drivers->contains(fn ($driver) =>
+                in_array($bus['id'], $driver['authorized_bus_ids'], true));
+        });
+        if ($hasRegularPair) {
+            $buses = $buses->filter(fn ($bus) => $bus['purpose'] !== 'Reserve')->values();
+        }
 
         return response()->json([
             'trip' => [
