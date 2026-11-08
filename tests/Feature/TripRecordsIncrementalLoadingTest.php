@@ -360,6 +360,21 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringContainsString('.trip-ddr-empty-state[hidden]', $styles);
     }
 
+    public function test_trip_details_modal_keeps_scrollable_database_drawer_and_compact_footer(): void
+    {
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+
+        $this->assertStringContainsString('#tripDetailModal .trip-detail-body {', $styles);
+        $this->assertStringContainsString('overflow-y: auto;', $styles);
+        $this->assertStringContainsString('flex: 0 0 auto;', $styles);
+        $this->assertStringContainsString('#tripDetailModal .trip-database-telemetry-drawer {', $styles);
+        $this->assertStringContainsString('#tripDetailModal .trip-modal-actions {', $styles);
+        $this->assertStringContainsString('min-height: 60px;', $styles);
+        $this->assertStringContainsString('const displayTime = (value) => {', $script);
+        $this->assertStringContainsString('tripOverviewDeparture: displayTime(data.departure_time)', $script);
+    }
+
     public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
