@@ -52,6 +52,32 @@ class OperationDriverAttendanceUiTest extends TestCase
             ->assertDontSeeText('Unassigned Present');
     }
 
+    public function test_legacy_today_tab_redirects_to_same_ddr_verified_history_view(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        foreach (['today', 'history'] as $tab) {
+            $this->actingAs($user)
+                ->get(route('driver-attendance', ['tab' => $tab]))
+                ->assertOk()
+                ->assertSeeText('DDR-Verified Attendance History')
+                ->assertSeeText('Service Date (optional)')
+                ->assertDontSeeText("Today's Attendance")
+                ->assertViewHas('verifiedDrivers', 0);
+        }
+
+        $this->actingAs($user)
+            ->get(route('driver-attendance', ['attendance_date' => '2026-11-01']))
+            ->assertOk()
+            ->assertViewHas('summaryDate', '2026-11-01');
+    }
+
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
     {
         $view = file_get_contents(
