@@ -25,7 +25,7 @@
                         <p>Maintain client records here. Trip-time configurations remain in Trip Planning &amp; Scheduling.</p>
                     </div>
                     @if($canEditOperation)
-                        <button class="client-master-add" type="button" data-client-create-open @if($errors->any()) data-open-on-error="true" @endif>
+                        <button class="client-master-add" type="button" data-client-create-open @if($errors->any() && !old('editing_client_id')) data-open-on-error="true" @endif>
                             <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Client
                         </button>
                     @endif
@@ -126,7 +126,7 @@
                                                 <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                                             </button>
                                             @if($canEditOperation)
-                                                <button type="button" class="client-master-action" data-client-detail-open data-client-mode="edit"
+                                                <button type="button" class="client-master-action" data-client-detail-open data-client-mode="edit" data-client-record-id="{{ $client->id }}"
                                                     data-client-id="CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}"
                                                     data-client-name="{{ $client->name }}"
                                                     data-client-address="{{ $client->company_address }}"
@@ -190,9 +190,11 @@
             </section>
 
             <x-ui.form-modal id="clientMasterDetailModal" title="Client Details" title-id="clientMasterDetailTitle"
+                data-edit-error-client="{{ old('editing_client_id') }}"
                 icon="fa-building" description="Client profile details; trip times and bus allocations are managed separately."
                 size="wide" form-id="clientMasterDetailForm" action="#" method="PUT"
                 submit-text="Update Client" submit-id="clientMasterDetailSubmit" cancel-text="Close">
+                <input type="hidden" name="editing_client_id" id="clientDetailEditingId">
                 <div class="client-master-detail-summary" aria-label="Client reference and allocation overview">
                     <div><small>Client ID (permanent)</small><strong id="clientDetailId">—</strong></div>
                     <div><small>Status</small><strong id="clientDetailStatus">—</strong></div>
