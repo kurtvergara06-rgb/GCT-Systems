@@ -36,6 +36,35 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
     }
 
+    public function test_assignment_calendar_distinguishes_completed_and_cancelled_from_missed(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route('R-CALENDAR-STATUS');
+        $date = '2026-11-03';
+
+        foreach (['Completed', 'Cancelled', 'Missed', 'Pending DDR', 'Dispatched', 'Ready', 'Scheduled'] as $index => $status) {
+            $this->trip($route, [
+                'trip_code' => 'T-CALENDAR-'.$index,
+                'trip_date' => $date,
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => in_array($status, ['Ready', 'Completed', 'Pending DDR', 'Dispatched'], true)
+                    ? 'Assigned' : 'Unassigned',
+            ]);
+        }
+
+        $response = $this->actingAs($user)->getJson(route('driver-bus-assignment.calendar', ['month' => '2026-11']));
+        $response->assertOk()
+            ->assertJsonPath('dates.'.$date.'.total', 7)
+            ->assertJsonPath('dates.'.$date.'.statuses.completed', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.cancelled', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.missed', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.pending_ddr', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.in_progress', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.assigned', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.unassigned', 1);
+    }
+
     public function test_assignment_calendar_with_archived_trips_explains_empty_active_table(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
