@@ -151,7 +151,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
     const tripModal = document.getElementById('tripModal');
     const viewTripModal = document.getElementById('viewTripModal');
-    const deleteTripModal = document.getElementById('deleteTripModal');
 
     const tripForm = document.getElementById('tripForm');
     const tripFormMethod = document.getElementById('tripFormMethod');
@@ -308,16 +307,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const cancelServiceTripBack = document.getElementById('cancelServiceTripBack');
     const cancelServiceTripClose = document.getElementById('cancelServiceTripClose');
 
-    const deleteTripName = document.getElementById('deleteTripName');
-    const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
-    const confirmDeleteTrip = document.getElementById('confirmDeleteTrip');
 
     const closeTripModal = document.getElementById('closeTripModal');
     const cancelTripModal = document.getElementById('cancelTripModal');
 
     const createAction = '/operation/trip-schedule';
     const clientTripTimesUrl = '/operation/client-trip-times';
-    let selectedDeleteForm = null;
 
     let clientTripTimeConfigs = {};
 
@@ -1097,39 +1092,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return;
         }
 
-        const deleteButton = event.target.closest('.delete-trip');
-
-        if (deleteButton) {
-            selectedDeleteForm = document.getElementById(
-                deleteButton.dataset.formId
-            );
-
-            if (deleteTripName) {
-                deleteTripName.textContent =
-                    deleteButton.dataset.tripCode || 'this trip';
-            }
-
-            openModal(deleteTripModal);
-        }
     });
 
     [cancelServiceTripBack, cancelServiceTripClose].filter(Boolean).forEach((button) => {
         button.addEventListener('click', () => closeModal(cancelServiceTripModal));
-    });
-
-    cancelDeleteTrip?.addEventListener('click', () => {
-        selectedDeleteForm = null;
-        closeModal(deleteTripModal);
-    });
-
-    confirmDeleteTrip?.addEventListener('click', () => {
-        if (!selectedDeleteForm?.isConnected) {
-            selectedDeleteForm = null;
-            closeModal(deleteTripModal);
-            return;
-        }
-
-        selectedDeleteForm.requestSubmit();
     });
 
     document.addEventListener('keydown', (event) => {
@@ -1139,7 +1105,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
         closeModal(tripModal);
         closeModal(viewTripModal);
-        closeModal(deleteTripModal);
     });
 
     function restoreValidationModal() {
