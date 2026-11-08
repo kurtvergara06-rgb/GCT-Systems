@@ -81,6 +81,48 @@ class OperationAutoSchedulingTest extends TestCase
             ->assertSee('data-calendar-url="'.route('auto-scheduling.calendar').'"', false);
     }
 
+    public function test_assignment_calendar_reports_real_status_counts_without_changing_trips(): void
+    {
+        $user = User::factory()->create();
+        [$trip] = $this->makeScheduleResources();
+        $date = $trip->trip_date->toDateString();
+        $month = $trip->trip_date->format('Y-m');
+        $trip->update(['status' => 'Scheduled', 'assignment_status' => 'Unassigned']);
+
+        $partial = $trip->replicate();
+        $partial->trip_code = 'T-ASSIGN-CALENDAR-PARTIAL';
+        $partial->assignment_status = 'Partially Assigned';
+        $partial->save();
+
+        $assigned = $trip->replicate();
+        $assigned->trip_code = 'T-ASSIGN-CALENDAR-ASSIGNED';
+        $assigned->assignment_status = 'Assigned';
+        $assigned->save();
+
+        $missed = $trip->replicate();
+        $missed->trip_code = 'T-ASSIGN-CALENDAR-MISSED';
+        $missed->status = 'Missed';
+        $missed->save();
+
+        $response = $this->actingAs($user)
+            ->getJson(route('driver-bus-assignment.calendar', ['month' => $month]))
+            ->assertOk()
+            ->assertJsonPath('month', $month);
+
+        $day = $response->json('dates.'.$date);
+        $this->assertSame(4, $day['total']);
+        $this->assertSame(1, $day['statuses']['unassigned']);
+        $this->assertSame(1, $day['statuses']['partial']);
+        $this->assertSame(1, $day['statuses']['assigned']);
+        $this->assertSame(1, $day['statuses']['missed']);
+        $this->assertDatabaseCount('trip_schedules', 4);
+
+        $this->actingAs($user)
+            ->getJson(route('driver-bus-assignment.calendar', ['month' => 'not-a-month']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('month');
+    }
+
     public function test_general_service_trip_is_available_for_auto_scheduling(): void
     {
         $user = User::factory()->create();
