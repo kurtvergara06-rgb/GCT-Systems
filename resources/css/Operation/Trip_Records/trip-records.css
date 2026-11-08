@@ -2547,15 +2547,36 @@
     }
 }
 
-/* Unified Trip History shows the eye icon plus View text. */
+/* Keep the icon and label inside one fully sized clickable button,
+   overriding the 34px icon-only .trip-action dimensions. */
 .trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
-    width: auto;
-    min-width: 68px;
-    gap: 5px;
-    height: 30px;
-    min-height: 30px;
-    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 76px;
+    min-width: 76px;
+    max-width: 76px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 7px;
+    gap: 6px;
+    border-radius: 8px;
     font-size: 11px;
     font-weight: 750;
+    line-height: 1;
     white-space: nowrap;
+    overflow: hidden;
+}
+.trip-records-page .unified-trip-history-table .view-trip-btn > .fa-eye {
+    display: inline-block;
+    flex: 0 0 auto;
+    font-size: 11px;
+    line-height: 1;
+}
+.trip-records-page .unified-trip-history-table .view-trip-btn > .view-trip-label {
+    display: inline-block;
+    flex: 0 0 auto;
+    line-height: 1;
 }
