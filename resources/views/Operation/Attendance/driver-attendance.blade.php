@@ -164,7 +164,6 @@
                         aria-label="View attendance for {{ $attendance->driver_name }} on {{ $attendance->attendance_date?->format('M d, Y') }}"
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"
-                        data-shift="{{ $attendance->shift }}"
                         data-bus-assignment="{{ $assignmentSummary }}"
                         data-trip-assignments="{{ $modalTripAssignments->toJson() }}"
                         data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
