@@ -1088,7 +1088,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 assignmentFormMethod.value = 'PUT';
                 // Editing uses the same searchable, validated pair cards as
                 // assigning a pending slot. Keep the original trip locked.
-                document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
+                document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active', 'pending-slot-trip-locked');
                 if (pairPicker) pairPicker.hidden = false;
                 if (pairSearch) pairSearch.value = '';
             }
