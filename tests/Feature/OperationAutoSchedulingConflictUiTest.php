@@ -168,3 +168,26 @@ it('supports a bounded larger set of validated conflict alternatives', function 
     expect($controller)->toContain('->take(50)');
     expect($script)->toContain('alternativePairs.map(renderPairCard).join');
 });
+
+
+it('keeps both auto schedule tables synchronized through shared column classes', function (): void {
+    $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/auto-dispatch.blade.php'));
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    foreach (['trip', 'time', 'route', 'required', 'driver', 'bus', 'result', 'action'] as $column) {
+        expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
+        expect($styles)->toContain('.auto-schedule-table .auto-col-'.$column);
+    }
+
+    expect(substr_count($view, '<th scope="col">Trip ID</th>'))->toBe(2)
+        ->and($view)->toContain('id="autoScheduleIncomingBody"')
+        ->toContain('id="autoScheduleOutgoingBody"')
+        ->toContain('gct-responsive-records gct-sticky-actions')
+        ->and($styles)->toContain('.gct-conflict-table [data-gct-report-index]:focus-visible')
+        ->toContain('@media (max-width: 700px)')
+        ->and($script)->toContain("document.getElementById('autoScheduleIncomingBody')")
+        ->toContain("document.getElementById('autoScheduleOutgoingBody')")
+        ->toContain('data-gct-apply-inline')
+        ->toContain('data-apply-selected-reserve');
+});
