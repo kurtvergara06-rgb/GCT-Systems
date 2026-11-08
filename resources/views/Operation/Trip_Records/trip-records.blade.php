@@ -154,9 +154,6 @@
                                         @if($firstUnit)
                                             <strong>{{ $firstUnit['driver_name'] }}</strong>
                                             <small>{{ $firstUnit['bus_no'] ?: ($firstUnit['plate_no'] ?: 'No bus number') }}</small>
-                                            @if($resources->count() > 1)
-                                                <small>+{{ $resources->count() - 1 }} more — View for details</small>
-                                            @endif
                                         @else
                                             <span class="trip-resource-empty">Not assigned</span>
                                         @endif
