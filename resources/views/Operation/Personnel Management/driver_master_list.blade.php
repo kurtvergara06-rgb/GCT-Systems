@@ -73,7 +73,7 @@
                     <tbody>
                     @forelse($drivers as $driver)
                         @php
-                            $driverRecord = e(json_encode([
+                            $driverRecord = json_encode([
                                 'driver_id' => $driver->driver_id,
                                 'identity_locked' => $driver->attendances_exists || \App\Models\Operation\TripAssignment::query()->where('driver_id', $driver->driver_id)->exists(),
                                 'driver_name' => $driver->driver_name,
@@ -81,7 +81,7 @@
                                 'contact_number' => $driver->contact_number,
                                 'employment_status' => $driver->employment_status,
                                 'bus_ids' => $driver->authorizedBuses->pluck('id')->all(),
-                            ], JSON_THROW_ON_ERROR));
+                            ], JSON_THROW_ON_ERROR);
                         @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
