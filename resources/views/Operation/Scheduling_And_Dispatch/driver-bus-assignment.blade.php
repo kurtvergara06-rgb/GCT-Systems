@@ -124,8 +124,8 @@
                         </div>
                         <div class="assignment-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
                         <div class="assignment-calendar-days" data-assignment-calendar-days role="group" aria-label="Choose assignment date"></div>
-                        <div class="assignment-calendar-legend" aria-label="Assignment status color legend">
-                            <strong>Assignment Status Legend</strong>
+                        <div class="assignment-calendar-legend" aria-label="Assignment and trip status color legend">
+                            <strong>Trip Status Legend</strong>
                             <div class="assignment-calendar-legend-grid">
                                 <span><i class="assignment-calendar-dot is-unassigned"></i> Unassigned</span>
                                 <span><i class="assignment-calendar-dot is-partial"></i> Partially Assigned</span>
