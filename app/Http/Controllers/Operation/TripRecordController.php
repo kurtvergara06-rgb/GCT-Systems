@@ -112,13 +112,14 @@ class TripRecordController extends Controller
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Trip ID', 'Date', 'Shift', 'Route', 'Plate Number', 'Driver', 'Scheduled Departure', 'Estimated Arrival', 'Actual Departure', 'Actual Arrival', 'Recorded Distance (km)', 'Planned Distance (km)', 'Status', 'Required Bus Slots', 'Assigned Bus Slots', 'Assignment Outcome', 'External Rental Resources']);
             $this->historyQuery($request)
-                ->with(['shuttleRoute', 'assignments.bus', 'externalRentals'])
+                ->with(['shuttleRoute', 'assignments.bus', 'externalRentals', 'dailyDriverReports.bus', 'dailyDriverReportTripEntries.report.bus'])
                 ->withSum('dailyDriverReports as primary_recorded_distance_km', 'km')
                 ->withSum('dailyDriverReportTripEntries as additional_recorded_distance_km', 'km')
                 ->orderBy('id')->chunkById(250, function ($trips) use ($out): void {
                     foreach ($trips as $trip) {
                         $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0)
                             + (float) ($trip->additional_recorded_distance_km ?? 0);
+                        $ddrRows = \App\Support\Operation\TripDdrActualTimes::forTrip($trip);
                         $assigned = $trip->assignments->count() + $trip->externalRentals->where('status', 'Assigned')->count();
                         $required = max(1, (int) ($trip->required_buses ?? 1));
                         $outcome = match (true) {
@@ -133,7 +134,8 @@ class TripRecordController extends Controller
                             $trip->route_name_snapshot ?: $trip->shuttleRoute?->route_name,
                             $trip->assignments->map(fn ($a) => $a->bus?->plate_no ?: $a->bus?->bus_no ?: '—')->implode('; '),
                             $trip->assignments->pluck('driver_name')->filter()->implode('; '), $trip->departure_time, $trip->estimated_arrival_time,
-                            $trip->actual_departure_time, $trip->actual_arrival_time,
+                            $ddrRows->pluck('departure')->filter()->implode('; '),
+                            $ddrRows->pluck('arrival')->filter()->implode('; '),
                             $recordedDistance ?: null,
                             $trip->planned_distance_km ?? $trip->shuttleRoute?->distance_km,
                             $trip->status,
@@ -174,6 +176,8 @@ class TripRecordController extends Controller
             'assignment.bus',
             'assignment.driverAttendance',
             'externalRentals',
+            'dailyDriverReports.bus',
+            'dailyDriverReportTripEntries.report.bus',
         ])
             ->withSum('dailyDriverReports as primary_recorded_distance_km', 'km')
             ->withSum('dailyDriverReportTripEntries as additional_recorded_distance_km', 'km');
