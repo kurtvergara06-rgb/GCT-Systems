@@ -2454,13 +2454,13 @@
     white-space: nowrap;
     font-size: 11px;
 }
-.trip-records-page .unified-trip-modal-summary {
+#tripDetailModal .unified-trip-modal-summary {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 16px;
 }
-.trip-records-page .unified-trip-modal-summary > div {
+#tripDetailModal .unified-trip-modal-summary > div {
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -2469,8 +2469,8 @@
     border-radius: 10px;
     background: #f5f9ff;
 }
-.trip-records-page .unified-trip-modal-summary small { font-size: 11px; color: #64748b; }
-.trip-records-page .unified-trip-modal-summary strong { font-size: 14px; color: #0f2a4d; }
+#tripDetailModal .unified-trip-modal-summary small { font-size: 11px; color: #64748b; }
+#tripDetailModal .unified-trip-modal-summary strong { font-size: 14px; color: #0f2a4d; }
 @media (max-width: 600px) {
-    .trip-records-page .unified-trip-modal-summary { grid-template-columns: 1fr; }
+    #tripDetailModal .unified-trip-modal-summary { grid-template-columns: 1fr; }
 }
