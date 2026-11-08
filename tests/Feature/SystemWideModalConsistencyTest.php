@@ -120,6 +120,7 @@ JS,
         $this->assertStringContainsString('.route-modal-overlay > :is(.route-modal, .route-details-modal)', $routesCss);
         $this->assertStringContainsString('Operation final audit: viewport-safe Trip History modal centering', $tripCss);
         $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $backdrop);
+        $this->assertStringContainsString("'.inc-workflow-overlay'", $backdrop);
     }
 
 }
