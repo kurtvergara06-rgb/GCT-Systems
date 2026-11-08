@@ -224,9 +224,6 @@
                                             @else
                                                 <button type="button" class="action-btn delete inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                                             @endif
-
-
-                                        </div>
                                             @endif
                                         </div>
                                     </td>
