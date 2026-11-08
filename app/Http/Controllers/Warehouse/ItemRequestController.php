@@ -345,6 +345,8 @@ class ItemRequestController extends Controller
                     && ! $allJoPartsIssued
                     && array_sum($nowTotals) > 0;
                 $workStarted = ($allJoPartsIssued || $partialReleaseAuthorized)
+                    // Planned PMS must be started explicitly by Maintenance Head.
+                    && $jo->maintenance_type !== 'PMS'
                     && $jo->status === 'On Hold'
                     && $jo->review_status === 'Approved'
                     && filled($jo->assigned_mechanic);
