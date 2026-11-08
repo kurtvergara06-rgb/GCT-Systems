@@ -3893,10 +3893,10 @@
 
 /* Operation final audit: route dialogs center when short enough and remain
    reachable when viewport height or browser zoom reduces available space. */
-.routes-page .route-modal-overlay {
+.route-modal-overlay {
     overflow-x: hidden;
 }
-.routes-page .route-modal-overlay > :is(.route-modal, .route-details-modal) {
+.route-modal-overlay > :is(.route-modal, .route-details-modal) {
     box-sizing: border-box;
     flex-shrink: 0;
     margin: auto;
