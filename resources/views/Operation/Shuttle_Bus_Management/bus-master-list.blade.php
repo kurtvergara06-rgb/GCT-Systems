@@ -500,6 +500,8 @@
                         name="bus_no"
                         id="edit_bus_no"
                         required
+                        readonly
+                        aria-readonly="true"
                         aria-describedby="editBusNoLockHint"
                     ></div>
                 </div>
@@ -559,7 +561,7 @@
                     </select></div>
                 </div>
                         </div>
-                        <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
+                        <p id="editBusNoLockHint" class="bus-no-lock-hint full-width"><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is permanent and cannot be changed after creation.</p>
                     </div>
                     <div class="bus-modal-lower">
 <section class="bus-modal-panel">
