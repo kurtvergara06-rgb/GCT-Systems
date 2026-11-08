@@ -556,6 +556,42 @@ class OperationMultiBusWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_staff_cannot_deploy_shared_reserve_without_operations_head_authority(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('RESERVE-STAFF');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $reserve = $this->createBus('RESERVE-STAFF', 'Active', 'Reserve');
+        $staff = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->withoutMiddleware(\\App\\Http\\Middleware\\RequireSystemPermission::class)
+            ->actingAs($staff)->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $attendance->id,
+                'bus_id' => $reserve->id,
+            ])->assertSessionHasErrors('bus_id');
+
+        $this->assertSame(0, $trip->assignments()->count());
+        $this->assertDatabaseCount('auto_schedule_reserve_approvals', 0);
+    }
+
+    public function test_edit_assignment_shows_pair_picker_instead_of_separate_driver_bus_dropdowns(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString("assignmentFormMethod.value = 'PUT'", $script);
+        $this->assertStringContainsString("if (pairPicker) pairPicker.hidden = false", $script);
+        $this->assertStringContainsString('editingSlotNumber = Number(editButton.dataset.slotNumber || 0)', $script);
+        $this->assertStringContainsString('data-slot-number="{{ $assignment->slot_number }}"', $view);
+    }
+
     public function test_reserve_bus_rejected_if_authorized_regular_pair_is_available(): void
     {
         $trip = $this->createTripSchedule(1);
