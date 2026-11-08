@@ -85,11 +85,11 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
         );
         if (erroredButton) {
             openDetail(erroredButton);
-            const previous = @json(old());
-            for (const name of Object.keys(fields)) {
-                if (!Object.prototype.hasOwnProperty.call(previous, name)) continue;
+            for (const [name, dataKey] of Object.entries(fields)) {
+                const key = 'old' + dataKey.charAt(0).toUpperCase() + dataKey.slice(1);
+                if (!(key in detailModal.dataset)) continue;
                 const field = detailForm?.elements.namedItem(name);
-                if (field) field.value = previous[name] ?? '';
+                if (field) field.value = detailModal.dataset[key] || '';
             }
         }
     }
