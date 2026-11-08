@@ -126,6 +126,33 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->assertStringContainsString('.attendance-modal-trips-table th', $styles);
     }
 
+    public function test_visible_shift_fields_are_removed_and_completed_trips_have_success_badge(): void
+    {
+        $attendanceView = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
+        $attendanceJs = file_get_contents(resource_path('js/Operation/Attendance/driver-attendance.js'));
+        $attendanceCss = file_get_contents(resource_path('css/Operation/Attendance/driver-attendance.css'));
+        $tripView = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $tripSchedule = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
+        $assignmentPrint = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/assignment-print.blade.php'));
+        $mechanicJs = file_get_contents(resource_path('js/Operation/Attendance/mechanic-attendance.js'));
+        $mechanicList = file_get_contents(resource_path('views/Maintenance/mechanic-list.blade.php'));
+
+        $this->assertStringNotContainsString("['Shift', button.dataset.shift]", $attendanceJs);
+        $this->assertStringNotContainsString("['Shift', button.dataset.shift]", $mechanicJs);
+        $this->assertStringNotContainsString('label="Shift" name="shift"', $tripView);
+        $this->assertStringNotContainsString('Record Dates & Shift', $tripView);
+        $this->assertStringNotContainsString('>Shift</span>', $tripView);
+        $this->assertStringNotContainsString('}} shift', $tripSchedule);
+        $this->assertStringNotContainsString('Time / Shift', $assignmentPrint);
+        $this->assertStringNotContainsString('>{{ $trip->shift }}</div>', $assignmentPrint);
+        $this->assertStringNotContainsString("'shift' => 'Shift'", $mechanicList);
+
+        $this->assertStringContainsString('fa-circle-check', $attendanceJs);
+        $this->assertStringContainsString('is-completed', $attendanceJs);
+        $this->assertStringContainsString('.attendance-modal-trip-status.is-completed', $attendanceCss);
+        $this->assertStringContainsString('id="attendanceModalTripsBody"', $attendanceView);
+    }
+
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
     {
         $view = file_get_contents(
