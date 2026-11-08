@@ -139,6 +139,47 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertSame('M-001', $mechanic->fresh()->mechanic_id);
     }
 
+    public function test_driver_name_can_be_corrected_after_history_without_rewriting_snapshots(): void
+    {
+        $user = $this->operationUser();
+        $driver = $this->driver();
+        $oldName = $driver->driver_name;
+        $attendance = DriverAttendance::create([
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $oldName,
+            'shift' => $driver->shift,
+            'attendance_date' => now()->toDateString(),
+            'status' => 'Present',
+        ]);
+        $bus = $this->bus();
+        $trip = $this->trip(['status' => 'Completed']);
+        $assignment = TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $oldName,
+            'bus_id' => $bus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('operation.personnel.drivers.update', $driver),
+                $this->driverPayload('D-TAMPERED', 'Corrected Driver Name'))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('D-001', $driver->fresh()->driver_id);
+        $this->assertSame('Corrected Driver Name', $driver->fresh()->driver_name);
+        $this->assertSame('D-001', $attendance->fresh()->driver_id);
+        $this->assertSame($oldName, $attendance->fresh()->driver_name);
+        $this->assertSame('D-001', $assignment->fresh()->driver_id);
+        $this->assertSame($oldName, $assignment->fresh()->driver_name);
+
+        $script = file_get_contents(resource_path('js/Operation/Attendance/personnel-master-modal.js'));
+        $this->assertStringContainsString('nameInput.readOnly = false', $script);
+        $this->assertStringContainsString('idInput.readOnly = true', $script);
+    }
+
     public function test_duplicate_personnel_names_are_rejected_by_validation_and_the_database(): void
     {
         $user = $this->operationUser();
