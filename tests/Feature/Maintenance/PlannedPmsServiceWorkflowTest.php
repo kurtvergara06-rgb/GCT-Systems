@@ -74,7 +74,7 @@ class PlannedPmsServiceWorkflowTest extends TestCase
             ->post(route('job-orders.start-pms-service', $job))->assertStatus(403);
 
         $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
-            ->post(route('job-orders.start-pms-service', $job))->assertRedirect();
+            ->post(route('job-orders.start-pms-service', $job), ['physical_release_confirmed' => '1'])->assertRedirect();
 
         $this->assertSame('On Going', $job->fresh()->status);
         $this->assertNotNull($job->fresh()->actual_started_at);
