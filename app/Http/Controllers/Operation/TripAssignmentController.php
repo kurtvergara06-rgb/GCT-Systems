@@ -208,7 +208,7 @@ class TripAssignmentController extends Controller
         $orderedEligibleBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->get()
             ->sort(fn (Bus $a, Bus $b): int =>
                 strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
@@ -425,7 +425,7 @@ class TripAssignmentController extends Controller
             ->with('operationClients:id,name')
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->when(
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
@@ -954,7 +954,7 @@ class TripAssignmentController extends Controller
             ->whereKey($busId)
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->lockForUpdate()
             ->first();
 
@@ -964,9 +964,9 @@ class TripAssignmentController extends Controller
             ]);
         }
 
-        if (JobOrder::query()
+        if (JobOrder::query()->blocksDispatch()
             ->where('bus_no', $bus->bus_no)
-            ->where('status', '!=', 'Completed')
+            
             ->exists()) {
             throw ValidationException::withMessages([
                 'bus_id' => 'This bus has an unresolved Maintenance Job Order and cannot be assigned until Maintenance clears it.',
