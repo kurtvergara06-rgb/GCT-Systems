@@ -52,7 +52,7 @@
         </div>
 
         <div class="attendance-record-controls">
-        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status') + (int) request()->filled('attendance_date')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In', 'attendance_date' => 'Attendance Date']" default-sort="attendance_date">
+        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status') + (int) request()->filled('attendance_date')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'attendance_date' => 'Attendance Date']" default-sort="attendance_date">
 
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
@@ -64,13 +64,12 @@
 
         <div class="table-wrap attendance-record-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="attendance-table">
-            <colgroup><col style="width: 15%"><col style="width: 18%"><col style="width: 32%"><col style="width: 12%"><col style="width: 11%"><col style="width: 12%"></colgroup>
+            <colgroup><col style="width: 17%"><col style="width: 20%"><col style="width: 37%"><col style="width: 12%"><col style="width: 14%"></colgroup>
             <thead>
               <tr>
                 <th>Driver ID</th>
                 <th>Driver</th>
                 <th>Trip Assignment</th>
-                <th>Time-in</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -137,7 +136,6 @@
                       <div class="attendance-assignment-unassigned"><span class="gct-pill gct-pill--unassigned">Unassigned</span><small><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></div>
                     @endif
                   </td>
-                  <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td><div class="attendance-status-cell"><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></div></td>
                   <td>
                     <div class="actions">
@@ -166,7 +164,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="6"
+                  colspan="5"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
                   description="No driver attendance records match your selected filters."
