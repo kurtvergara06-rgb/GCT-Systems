@@ -321,7 +321,10 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringContainsString('gct-responsive-records gct-sticky-actions', $layout);
         $this->assertStringContainsString('.unified-trip-history-table > tbody > tr > td:last-child:not([colspan])', $styles);
         $this->assertStringContainsString('right: 0;', $styles);
-        $this->assertStringContainsString('min-width: 72px;', $styles);
+        $this->assertStringContainsString('col.history-col-action { width: 110px; }', $styles);
+        $this->assertStringContainsString('table-layout: fixed;', $styles);
+        $this->assertStringContainsString('width: 84px;', $styles);
+        $this->assertStringContainsString('class="history-col-action"', $view);
     }
 
 }
