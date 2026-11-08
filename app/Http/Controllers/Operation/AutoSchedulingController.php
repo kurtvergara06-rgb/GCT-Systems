@@ -108,8 +108,7 @@ class AutoSchedulingController extends Controller
                 'Active'
             )
             ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
-                
-                ->select('bus_no'))
+                                ->select('bus_no'))
             ->count();
 
         $unavailableDrivers =
@@ -352,8 +351,7 @@ class AutoSchedulingController extends Controller
                 'Active'
             )
             ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
-                
-                ->select('bus_no'))
+                                ->select('bus_no'))
             ->orderBy('bus_no')
             ->get();
 
@@ -1344,8 +1342,7 @@ class AutoSchedulingController extends Controller
 
                 if ($bus && JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $bus->bus_no)
-                    
-                    ->exists()) {
+                                        ->exists()) {
                     throw ValidationException::withMessages([
                         $field => 'A selected bus has an unresolved Maintenance Job Order. Generate the schedule again.',
                     ]);
