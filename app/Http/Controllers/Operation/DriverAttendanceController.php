@@ -84,7 +84,7 @@ class DriverAttendanceController extends Controller
             ->with(['bus', 'tripSchedule.shuttleRoute'])
             ->whereIn('driver_id', $pageAttendances->pluck('driver_id'))
             ->whereHas('tripSchedule', fn ($q) => $q->whereIn('trip_date', $dates)
-                ->whereNotIn('status', ['Cancelled', 'Missed', 'Completed']))
+                ->where('status', '!=', 'Cancelled'))
             ->get()->groupBy(fn ($a) => $a->driver_id.'|'.$a->tripSchedule?->trip_date?->format('Y-m-d'));
 
         $pageAttendances->each(function (DriverAttendance $attendance) use ($assignmentsByDriverDate): void {
