@@ -69,7 +69,7 @@
               <tr>
                 <th>Driver ID</th>
                 <th>Driver</th>
-                <th>Current Assignment</th>
+                <th>Trip Assignment</th>
                 <th>Time-in</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -88,16 +88,16 @@
                     default => 'present',
                   };
 
-                  $activeAssignments = $attendance
+                  $historicalAssignments = $attendance
                     ->displayTripAssignments
                     ->filter(function ($assignment) {
                       $trip = $assignment->tripSchedule;
-                      return $trip && ! in_array($trip->status, ['Cancelled', 'Completed'], true);
+                      return $trip && $trip->status !== 'Cancelled';
                     })
                     ->sortBy(fn ($assignment) => optional($assignment->tripSchedule)->departure_time)
                     ->values();
 
-                  $primaryAssignment = $activeAssignments->first();
+                  $primaryAssignment = $historicalAssignments->first();
                   $primaryTrip = $primaryAssignment?->tripSchedule;
                   $primaryBus = $primaryAssignment?->bus;
 
@@ -105,8 +105,8 @@
                     ? trim(($primaryBus?->bus_no ?? 'Bus unavailable') . ' | ' . ($primaryTrip?->trip_code ?? 'Trip unavailable'))
                     : 'Unassigned';
 
-                  if ($activeAssignments->count() > 1) {
-                    $assignmentSummary .= ' | ' . $activeAssignments->count() . ' assigned trips';
+                  if ($historicalAssignments->count() > 1) {
+                    $assignmentSummary .= ' | ' . $historicalAssignments->count() . ' assigned trips';
                   }
                 @endphp
 
@@ -124,9 +124,9 @@
                             – {{ date('h:i A', strtotime($primaryTrip->estimated_arrival_time)) }}
                           @endif
                         </span>
-                        @if($activeAssignments->count() > 1)
+                        @if($historicalAssignments->count() > 1)
                           <small class="current-assignment-more">
-                            +{{ $activeAssignments->count() - 1 }} more assignment(s)
+                            +{{ $historicalAssignments->count() - 1 }} more assignment(s)
                           </small>
                         @endif
                       </div>
