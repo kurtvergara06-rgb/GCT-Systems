@@ -169,7 +169,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <button type="button" class="trip-action view view-trip-btn" title="View unified trip history" aria-label="View history for {{ $trip->trip_code }}" data-trip="{{ $tripDataJson }}">
+                                        <button type="button" class="trip-action view view-trip-btn" title="View unified trip history" aria-label="View history for {{ $trip->trip_code }}" data-trip='{{ $tripDataJson }}'>
                                             <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                         </button>
                                     </td>
@@ -192,7 +192,7 @@
                         <h2 id="modalTripCode">Trip Details</h2>
                         <span id="modalStatus" class="trip-status scheduled">—</span>
                     </div>
-                    <p>Comprehensive operational log & multi-unit schedule execution breakdown.</p>
+                    <p>Read-only assignment details and actual operational records for this trip.</p>
                 </div>
                 <button type="button" class="trip-modal-close" aria-label="Close modal">
                     <i class="fa-solid fa-xmark"></i>
@@ -200,6 +200,11 @@
             </div>
 
             <div class="trip-detail-body">
+                <section class="unified-trip-modal-summary" aria-label="Assignment fulfillment">
+                    <div><small>Required Bus Slots</small><strong id="modalRequiredSlots">—</strong></div>
+                    <div><small>Assigned Bus Slots</small><strong id="modalAssignedSlots">—</strong></div>
+                    <div><small>Assignment Outcome</small><strong id="modalAssignmentOutcome">—</strong></div>
+                </section>
                 <!-- Saved unit assignments for this historical trip (no placeholder records). -->
                 <div class="unit-records-card">
                     <div class="unit-records-header">
