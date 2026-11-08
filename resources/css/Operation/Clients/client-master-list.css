@@ -256,3 +256,246 @@
 @media(max-width:640px) {
     .client-master-detail-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+/* Client Master List modal presentation (Add, Edit, View only).
+   Narrower, centered forms without changing global GCT modal sizing. */
+#clientMasterCreateModal.ui-form-overlay,
+#clientMasterDetailModal.ui-form-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: clamp(10px, 3vh, 24px);
+}
+#clientMasterCreateModal.ui-form-overlay > .ui-form-modal,
+#clientMasterDetailModal.ui-form-overlay > .ui-form-modal {
+    box-sizing: border-box;
+    width: min(100%, 760px);
+    max-width: 760px;
+    margin: auto;
+    max-height: calc(100dvh - 32px);
+    border: 1px solid #dce5f1;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(13, 37, 69, .22);
+}
+#clientMasterDetailModal[data-mode="view"].ui-form-overlay > .ui-form-modal {
+    width: min(100%, 690px);
+    max-width: 690px;
+}
+#clientMasterCreateModal .ui-form-modal-header,
+#clientMasterDetailModal .ui-form-modal-header {
+    padding: 18px 22px 16px;
+    gap: 14px;
+    border-bottom: 1px solid #e5edf7;
+}
+#clientMasterCreateModal .ui-form-modal-header h2,
+#clientMasterDetailModal .ui-form-modal-header h2 {
+    font-size: 19px;
+    line-height: 1.3;
+}
+#clientMasterCreateModal .ui-form-modal-header p,
+#clientMasterDetailModal .ui-form-modal-header p {
+    font-size: 11px;
+    line-height: 1.6;
+}
+#clientMasterCreateModal .ui-form-modal-body,
+#clientMasterDetailModal .ui-form-modal-body {
+    padding: 18px 22px 16px;
+}
+#clientMasterCreateModal .ui-form-modal-scrollable,
+#clientMasterDetailModal .ui-form-modal-scrollable {
+    padding: 0 2px 2px 0;
+}
+#clientMasterCreateModal .ui-form-actions,
+#clientMasterDetailModal .ui-form-actions {
+    margin-top: 16px;
+    border-top: 1px solid #e8edf6;
+    padding-top: 14px;
+}
+#clientMasterCreateModal .client-master-form-section,
+#clientMasterDetailModal .client-master-form-section {
+    padding: 16px;
+    background: #f7f9fd;
+    border: 1px solid #e4eaf4;
+    border-radius: 12px;
+}
+#clientMasterCreateModal .client-master-form-section + .client-master-form-section,
+#clientMasterDetailModal .client-master-form-section + .client-master-form-section {
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e4eaf4;
+}
+#clientMasterCreateModal .client-master-form-section h3,
+#clientMasterDetailModal .client-master-form-section h3 {
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+#clientMasterCreateModal .client-master-form-grid,
+#clientMasterDetailModal .client-master-form-grid {
+    gap: 12px 14px;
+}
+#clientMasterCreateModal .client-master-form-grid :is(input,textarea),
+#clientMasterDetailModal .client-master-form-grid :is(input,textarea) {
+    min-height: 39px;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+}
+#clientMasterCreateModal .client-master-form-grid textarea,
+#clientMasterDetailModal .client-master-form-grid textarea {
+    min-height: 58px;
+    resize: vertical;
+}
+#clientMasterDetailModal .client-master-detail-summary {
+    gap: 8px;
+    margin-bottom: 14px;
+}
+#clientMasterDetailModal .client-master-detail-summary > div {
+    padding: 12px;
+    background: #f4f8fe;
+    border: 1px solid #dce8fa;
+    border-radius: 10px;
+}
+#clientMasterDetailModal .client-master-detail-summary small {
+    font-size: 10px;
+    color: #617b98;
+}
+#clientMasterDetailModal .client-master-detail-summary strong {
+    font-size: 13px;
+    font-weight: 800;
+}
+#clientMasterDetailModal .client-profile-view[hidden],
+#clientMasterDetailModal .client-profile-edit-fields[hidden] {
+    display: none !important;
+}
+#clientMasterDetailModal .client-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #dce8f8;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #eff6ff, #fbfdff);
+}
+#clientMasterDetailModal .client-profile-identity-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #dbeafe;
+    color: #1d5aab;
+    font-size: 19px;
+}
+#clientMasterDetailModal .client-profile-identity-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+}
+#clientMasterDetailModal .client-profile-identity-text strong {
+    font-size: 16px;
+    font-weight: 800;
+    color: #142f50;
+    overflow-wrap: anywhere;
+}
+#clientMasterDetailModal .client-profile-identity-text small {
+    font-size: 11px;
+    color: #607995;
+    overflow-wrap: anywhere;
+}
+#clientMasterDetailModal .client-profile-section-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 10px;
+}
+#clientMasterDetailModal .client-profile-section-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    background: #eaf2ff;
+    color: #175db6;
+    border-radius: 9px;
+}
+#clientMasterDetailModal .client-profile-section-header div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+#clientMasterDetailModal .client-profile-section-header strong {
+    font-size: 12px;
+    color: #153353;
+}
+#clientMasterDetailModal .client-profile-section-header small {
+    font-size: 10px;
+    color: #7b8da5;
+}
+#clientMasterDetailModal .client-profile-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 9px;
+    margin: 0;
+}
+#clientMasterDetailModal .client-profile-detail-grid > div {
+    padding: 12px;
+    min-width: 0;
+    border: 1px solid #e1eaf5;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+#clientMasterDetailModal .client-profile-detail-grid dt {
+    font-size: 10px;
+    color: #71849d;
+    margin-bottom: 5px;
+}
+#clientMasterDetailModal .client-profile-detail-grid dd {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a3759;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+#clientMasterDetailModal .client-profile-view-footnote {
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    margin: 14px 0 0;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #657d98;
+}
+#clientMasterDetailModal .client-master-form-note {
+    margin-top: 12px;
+}
+@media (max-width: 640px) {
+    #clientMasterCreateModal.ui-form-overlay,
+    #clientMasterDetailModal.ui-form-overlay { padding: 10px; }
+    #clientMasterCreateModal.ui-form-overlay > .ui-form-modal,
+    #clientMasterDetailModal.ui-form-overlay > .ui-form-modal {
+        max-height: calc(100dvh - 20px);
+        border-radius: 12px;
+    }
+    #clientMasterCreateModal .ui-form-modal-header,
+    #clientMasterDetailModal .ui-form-modal-header {
+        padding: 15px 16px;
+    }
+    #clientMasterCreateModal .ui-form-modal-body,
+    #clientMasterDetailModal .ui-form-modal-body {
+        padding: 14px 16px;
+    }
+    #clientMasterCreateModal .client-master-form-section,
+    #clientMasterDetailModal .client-master-form-section { padding: 12px; }
+    #clientMasterDetailModal .client-master-detail-summary,
+    #clientMasterDetailModal .client-profile-detail-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+}
+@media (max-width: 380px) {
+    #clientMasterDetailModal .client-master-detail-summary,
+    #clientMasterDetailModal .client-profile-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
