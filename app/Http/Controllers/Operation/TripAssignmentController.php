@@ -153,6 +153,14 @@ class TripAssignmentController extends Controller
             ->paginate(10, ['*'], 'trip_page')
             ->withQueryString();
 
+        // Calendar dots cover every stored trip status; this page intentionally
+        // displays only active/manageable assignments. Explain dates with
+        // historical trips rather than presenting a misleading empty table.
+        $allTripsForDate = TripSchedule::query()
+            ->whereDate('trip_date', $selectedTripDate)
+            ->count();
+        $hiddenTripsForDate = max(0, $allTripsForDate - $trips->total());
+
         $replacementHistoryByAssignment = DB::table('operation_trip_change_audits as audit')
             ->leftJoin('users as approver', 'approver.id', '=', 'audit.performed_by')
             ->whereIn('audit.trip_schedule_id', $trips->getCollection()->pluck('id'))
@@ -243,7 +251,9 @@ class TripAssignmentController extends Controller
                 'availableDrivers',
                 'availableBuses',
                 'unassignedTrips',
-                'selectedTripDate'
+                'selectedTripDate',
+                'allTripsForDate',
+                'hiddenTripsForDate'
             )
         );
     }
