@@ -49,7 +49,8 @@ window.GCTPartialNavigation.registerInitializer('operation-assignment-calendar',
         }
         const labels = {
             unassigned: 'Unassigned', partial: 'Partially Assigned', assigned: 'Fully Assigned',
-            in_progress: 'In Progress / DDR', missed: 'Missed', history: 'Completed / Canceled',
+            in_progress: 'In Progress', pending_ddr: 'Pending DDR',
+            missed: 'Missed', history: 'Completed / Canceled',
             delayed: 'Delayed'
         };
         const fragment = document.createDocumentFragment();
