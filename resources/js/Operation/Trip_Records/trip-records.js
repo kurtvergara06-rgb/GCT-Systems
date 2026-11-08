@@ -149,6 +149,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         const searchInput = modalOverlay.querySelector('#unitRecordSearchInput');
         if (searchInput) {
             searchInput.value = '';
+            const numberOfUnits = Array.isArray(data.assignments) ? data.assignments.length : 0;
+            const searchControl = searchInput.closest('.unit-records-controls');
+            if (searchControl) searchControl.hidden = numberOfUnits < 5;
             filterDemoRows('');
         }
 
