@@ -65,6 +65,46 @@ class OperationTripScheduleHardeningTest extends TestCase
             ->assertJsonPath('dates.'.$date.'.statuses.unassigned', 1);
     }
 
+    public function test_trip_schedule_calendar_uses_the_same_status_categories_as_assignment_calendar(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route('R-SCHEDULE-CALENDAR');
+        $date = '2026-11-03';
+        $statuses = [
+            ['Scheduled', 'Unassigned'],
+            ['Scheduled', 'Partially Assigned'],
+            ['Ready', 'Assigned'],
+            ['Dispatched', 'Assigned'],
+            ['Pending DDR', 'Assigned'],
+            ['Completed', 'Assigned'],
+            ['Missed', 'Unassigned'],
+            ['Cancelled', 'Unassigned'],
+            ['Delayed', 'Assigned'],
+        ];
+
+        foreach ($statuses as $index => [$status, $assignmentStatus]) {
+            $this->trip($route, [
+                'trip_code' => 'T-SCHEDULE-CAL-'.$index,
+                'trip_date' => $date,
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => $assignmentStatus,
+            ]);
+        }
+
+        $expected = [
+            'unassigned', 'partial', 'assigned', 'in_progress',
+            'pending_ddr', 'completed', 'missed', 'cancelled', 'delayed',
+        ];
+        $response = $this->actingAs($user)
+            ->getJson(route('trip-schedule.available-dates', ['month' => '2026-11']));
+
+        $response->assertOk()->assertJsonPath('dates.'.$date.'.total', 9);
+        foreach ($expected as $status) {
+            $response->assertJsonPath('dates.'.$date.'.statuses.'.$status, 1);
+        }
+    }
+
     public function test_assignment_calendar_with_archived_trips_explains_empty_active_table(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
