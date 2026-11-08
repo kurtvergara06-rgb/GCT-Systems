@@ -565,9 +565,6 @@ class TripAssignmentController extends Controller
                 $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
                 $this->assertBusAllocatedToTripClient($trip, $bus);
                 if ($bus->fleet_purpose === 'Reserve') {
-                    $this->assertReserveAssignmentAllowed($trip, $lockedAssignment->id);
-                }
-                if ($bus->fleet_purpose === 'Reserve') {
                     $this->assertReserveAssignmentAllowed($trip);
                 }
 
@@ -698,6 +695,9 @@ class TripAssignmentController extends Controller
                 $bus = $this->lockEligibleBus($validated['bus_id']);
                 $this->assertDriverAuthorizedForBus($driver->driver_id, $bus->id);
                 $this->assertBusAllocatedToTripClient($trip, $bus);
+                if ($bus->fleet_purpose === 'Reserve') {
+                    $this->assertReserveAssignmentAllowed($trip, $lockedAssignment->id);
+                }
 
                 if ($trip->assignments()->where('id', '!=', $lockedAssignment->id)->where('driver_id', $driver->driver_id)->exists()) {
                     throw ValidationException::withMessages([
