@@ -153,6 +153,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('auto-scheduling');
+            Route::get('/calendar', 'calendar')->name('auto-scheduling.calendar');
             Route::get('/ai/training/status', 'trainingStatus')->name('auto-scheduling.ai.training-status');
             Route::get('/drafts', 'listDrafts')->name('auto-scheduling.drafts.index');
             Route::get('/draft', 'loadDraft')->name('auto-scheduling.draft.load');
