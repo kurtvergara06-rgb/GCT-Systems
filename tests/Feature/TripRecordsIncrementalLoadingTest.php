@@ -25,7 +25,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         ]);
     }
 
-    public function test_both_trip_history_tabs_use_the_shared_layout_toolbar_and_pagination(): void
+    public function test_legacy_history_links_use_one_unified_table_and_toolbar(): void
     {
         $user = $this->operationUser();
 
@@ -40,7 +40,47 @@ class TripRecordsIncrementalLoadingTest extends TestCase
                 ->assertSeeText('Filter')
                 ->assertSeeText('Sort');
 
-            $response->assertSee($view === 'assignments' ? 'Assignment History' : 'Operational Records');
+            $response->assertSee('Unified Trip History')
+                ->assertSee('Assignment Outcome')
+                ->assertSee('Operational Status')
+                ->assertDontSee('class="trip-history-tabs"', false);
+        }
+    }
+
+    public function test_unified_history_includes_elapsed_unassigned_trips_and_terminal_operations(): void
+    {
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-UNIFIED',
+            'route_name' => 'Unified Route',
+            'origin' => 'Origin',
+            'destination' => 'Destination',
+            'status' => 'Active',
+        ]);
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->subDays(2)->toDateString();
+        foreach (['Scheduled' => 'T-UNIFIED-ELAPSED', 'Completed' => 'T-UNIFIED-COMPLETED'] as $status => $code) {
+            TripSchedule::create([
+                'trip_code' => $code,
+                'trip_date' => $date,
+                'shuttle_route_id' => $route->id,
+                'departure_time' => '08:00:00',
+                'estimated_arrival_time' => '09:00:00',
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => 'Unassigned',
+            ]);
+        }
+
+        foreach ([[], ['view' => 'assignments'], ['view' => 'operations']] as $parameters) {
+            $this->actingAs($this->operationUser())
+                ->get(route('trip-records', $parameters))
+                ->assertOk()
+                ->assertSee('T-UNIFIED-ELAPSED')
+                ->assertSee('T-UNIFIED-COMPLETED')
+                ->assertSee('Assigned Resources')
+                ->assertSee('Bus Slots')
+                ->assertSee('Actual Times')
+                ->assertDontSee('class="trip-history-tabs"', false)
+                ->assertViewHas('trips', fn ($trips) => $trips->total() === 2);
         }
     }
 
