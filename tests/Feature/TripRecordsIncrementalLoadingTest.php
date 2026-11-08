@@ -308,4 +308,20 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             ->assertOk()
             ->assertViewHas('onTimeRate', 100.0);
     }
+
+    public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $layout = file_get_contents(resource_path('views/components/operation/trip-history-layout.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $this->assertStringContainsString("['driver_name']", $view);
+        $this->assertStringContainsString('data-trip=', $view);
+        $this->assertStringNotContainsString('more — View for details', $view);
+        $this->assertStringContainsString('gct-responsive-records gct-sticky-actions', $layout);
+        $this->assertStringContainsString('.unified-trip-history-table > tbody > tr > td:last-child:not([colspan])', $styles);
+        $this->assertStringContainsString('right: 0;', $styles);
+        $this->assertStringContainsString('min-width: 72px;', $styles);
+    }
+
 }
