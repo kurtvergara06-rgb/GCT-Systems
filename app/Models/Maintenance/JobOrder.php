@@ -270,7 +270,8 @@ class JobOrder extends Model
     {
         return $query->where('status', '!=', 'Completed')
             ->where(function ($q): void {
-                $q->where('maintenance_type', '!=', 'PMS')
+                $q->whereNull('maintenance_type')
+                    ->orWhere('maintenance_type', '!=', 'PMS')
                     ->orWhere(function ($pms): void {
                         $pms->where('maintenance_type', 'PMS')
                             ->whereNotNull('actual_started_at');
