@@ -188,11 +188,15 @@
 
                                     <td>
                                         <div class="ddr-actions">
-                                            <button type="button" class="ddr-view-action ddr-open-modal" data-ddr-modal="ddrView-{{ $report->id }}" title="View Report Details" aria-label="View {{ $report->ddr_no }}"
-                                                style="box-sizing:border-box;display:inline-flex;flex:0 0 94px;flex-direction:row;align-items:center;justify-content:center;gap:8px;width:94px;min-width:94px;height:36px;min-height:36px;padding:0 12px;white-space:nowrap;">
-                                                <i class="fa-solid fa-eye" aria-hidden="true" style="position:static;display:inline-block;flex:none;margin:0;line-height:1;"></i>
-                                                <span style="display:inline-block;flex:none;margin:0;line-height:1;">View</span>
-                                            </button>
+                                            <x-ui.table-action
+                                                variant="view"
+                                                label="View"
+                                                show-label
+                                                class="ddr-view-action ddr-open-modal"
+                                                data-ddr-modal="ddrView-{{ $report->id }}"
+                                                title="View Report Details"
+                                                aria-label="View {{ $report->ddr_no }}"
+                                            />
                                         </div>
                                     </td>
                                 </tr>
