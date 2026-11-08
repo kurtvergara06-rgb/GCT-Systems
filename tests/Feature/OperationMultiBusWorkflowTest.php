@@ -653,6 +653,26 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertStringContainsString('Only Operations Head can authorize this replacement', $view);
     }
 
+    public function test_assignment_table_uses_shared_action_component_and_preserves_js_hooks(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css'));
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('type="view"', $view);
+        $this->assertStringContainsString('class="assignment-action view-assignment"', $view);
+        $this->assertStringContainsString('class="assignment-action edit-assignment"', $view);
+        $this->assertStringContainsString('class="assignment-action remove remove-assignment"', $view);
+        $this->assertStringContainsString('data-ready-replacement="{{ $requiresHeadReplacement ?', $view);
+        $this->assertStringContainsString('data-form-id="removeAssignmentForm-', $view);
+        $this->assertStringContainsString('@if(! $requiresHeadReplacement)', $view);
+        $this->assertStringContainsString('Only Operations Head can authorize this replacement', $view);
+        $this->assertStringContainsString('.gct-record-action.assignment-action', $styles);
+        $this->assertStringContainsString("closest('.view-assignment')", $script);
+        $this->assertStringContainsString("closest('.edit-assignment')", $script);
+        $this->assertStringContainsString("closest('.remove-assignment')", $script);
+    }
+
     public function test_assignment_modal_supports_driver_first_selection_in_create_and_edit(): void
     {
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
