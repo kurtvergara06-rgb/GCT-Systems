@@ -7,6 +7,9 @@ use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
+use App\Models\Operation\ShuttleRoute;
+use App\Models\Operation\TripAssignment;
+use App\Models\Operation\TripSchedule;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +19,61 @@ use Tests\TestCase;
 class PlannedPmsServiceWorkflowTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_routine_pms_cannot_start_while_bus_has_unfinished_dispatched_trip(): void
+    {
+        $head = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $bus = Bus::create(['bus_no' => 'BUS-PMS-ON-TRIP', 'status' => 'Active']);
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-PMS-TRIP',
+            'route_name' => 'PMS Active Trip',
+            'origin' => 'Terminal A',
+            'destination' => 'Terminal B',
+            'distance_km' => 12,
+            'estimated_time_minutes' => 45,
+            'status' => 'Active',
+        ]);
+        $trip = TripSchedule::create([
+            'trip_code' => 'T-PMS-ON-TRIP',
+            'trip_date' => now()->toDateString(),
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '08:45:00',
+            'shift' => 'Morning',
+            'assignment_status' => 'Assigned',
+            'status' => 'Dispatched',
+            'created_by' => $head->id,
+        ]);
+        TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'bus_id' => $bus->id,
+            'driver_id' => 'D-PMS-TRIP',
+            'driver_name' => 'PMS Assigned Driver',
+        ]);
+        $this->assertTrue($bus->hasOngoingDispatch());
+
+        $job = JobOrder::create([
+            'job_order_no' => 'JO-PMS-ON-TRIP',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Routine service due',
+            'maintenance_type' => 'PMS',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'assigned_mechanic' => 'Service Mechanic',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $this->actingAs($head)->withoutMiddleware(RequireSystemPermission::class)
+            ->post(route('job-orders.start-pms-service', $job), ['physical_release_confirmed' => '1'])
+            ->assertSessionHasErrors('bus_no');
+
+        $this->assertSame('On Hold', $job->fresh()->status);
+        $this->assertSame('Active', $bus->fresh()->status);
+    }
 
     public function test_planned_pms_does_not_block_dispatch_but_started_pms_and_repairs_do(): void
     {
