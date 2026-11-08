@@ -2643,3 +2643,7 @@
 #assignmentModal .assignment-driver-choice small, #assignmentModal .assignment-bus-choice small { color: #64748b; font-size: 10px; overflow-wrap: anywhere; }
 #assignmentModal .assignment-driver-choice > i:last-child, #assignmentModal .assignment-bus-choice > i:last-child { color: #2563eb; flex: 0 0 auto; }
 @media (max-width: 580px) { #assignmentModal .assignment-driver-first-buses { grid-template-columns: minmax(0, 1fr); } }
+
+/* Explicit replacement warning without changing historical operation state. */
+.assignment-page .assignment-maintenance-warning { display: inline-flex; align-items: center; gap: 5px; width: fit-content; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 3px 7px; font-size: 10px; font-weight: 750; margin-top: 4px; }
+.assignment-page .assignment-status.replacement-required { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; }
