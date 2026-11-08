@@ -1354,6 +1354,9 @@ class JobOrderController extends Controller
     public function startPmsService(Request $request, JobOrder $jobOrder)
     {
         $this->assertMaintenanceHead();
+        $request->validate([
+            'physical_release_confirmed' => ['required', 'accepted'],
+        ]);
 
         $updated = DB::transaction(function () use ($jobOrder): JobOrder {
             $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
