@@ -5,6 +5,7 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/trip-calendar-status.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
     ]"
