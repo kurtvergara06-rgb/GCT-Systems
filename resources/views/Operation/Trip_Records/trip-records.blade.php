@@ -1,4 +1,4 @@
-<x-operation.trip-history-layout active-view="operations" heading="Operational Records" description="Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.">
+<x-operation.trip-history-layout active-view="unified" heading="Unified Trip History" description="Read-only assignment fulfillment and operational outcomes for every historical trip.">
     <x-slot:kpis>
                 <article class="trip-summary-card">
                     <div class="trip-summary-icon green">
@@ -53,8 +53,8 @@
     </x-slot:headerAction>
 
     <x-slot:toolbar>
-                <x-ui.table-toolbar action="{{ route('trip-records', ['view' => 'operations'], false) }}" form-id="tripRecordsFilterForm" search-label="Search Trip Records" search-placeholder="Search trip code, bus, driver, or route..." :filter-count="collect(['date_from','date_to'])->filter(fn ($key) => request()->filled($key))->count() + (int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('shift') && request('shift') !== 'all')" filter-title="Filter Trip Records" :sort-options="['trip_date' => 'Trip Date', 'trip_code' => 'Trip ID', 'departure_time' => 'Departure Time', 'status' => 'Status']" default-sort="trip_date" default-direction="desc">
-                    <x-slot:hidden><input type="hidden" name="view" value="operations"></x-slot:hidden>
+                <x-ui.table-toolbar action="{{ route('trip-records', [], false) }}" form-id="tripRecordsFilterForm" search-label="Search Trip Records" search-placeholder="Search trip code, bus, driver, or route..." :filter-count="collect(['date_from','date_to'])->filter(fn ($key) => request()->filled($key))->count() + (int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('shift') && request('shift') !== 'all')" filter-title="Filter Trip Records" :sort-options="['trip_date' => 'Trip Date', 'trip_code' => 'Trip ID', 'departure_time' => 'Departure Time', 'status' => 'Status']" default-sort="trip_date" default-direction="desc">
+
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Date From" name="date_from" type="date" />
                         <x-ui.table-toolbar-field label="Date To" name="date_to" type="date" />
@@ -66,175 +66,116 @@
     </x-slot:toolbar>
 
 
-                    <table class="trip-table trip-history-table">
+                    <table class="trip-table trip-history-table unified-trip-history-table">
                         <thead>
                             <tr>
                                 <th>Trip ID</th>
-                                <th>Date & Shift</th>
-                                <th>Route & Terminals</th>
-                                <th>Plate Number</th>
-                                <th>Driver</th>
-                                <th>Scheduled</th>
+                                <th>Schedule</th>
+                                <th>Route</th>
+                                <th>Assigned Resources</th>
+                                <th>Bus Slots</th>
+                                <th>Assignment Outcome</th>
+                                <th>Operational Status</th>
                                 <th>Actual Times</th>
-                                <th>Recorded Distance</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-
                         <tbody>
                             @forelse($trips as $trip)
                                 @php
-                                    $allAssignments = $trip->assignments->sortBy('id')->values();
-                                    $assignment = $allAssignments->first() ?: $trip->assignment;
-                                    $bus = $assignment?->bus;
+                                    $units = $trip->assignments->sortBy('id')->values();
+                                    $externalUnits = $trip->externalRentals->where('status', 'Assigned')->values();
+                                    $assignedCount = $units->count() + $externalUnits->count();
+                                    $requiredCount = max(1, (int) ($trip->required_buses ?? 1));
+                                    $assignmentOutcome = match (true) {
+                                        $trip->status === 'Cancelled' => 'Cancelled',
+                                        $trip->status === 'Missed' => 'Missed',
+                                        $assignedCount === 0 => 'No Assignments',
+                                        $assignedCount < $requiredCount => 'Partially Assigned',
+                                        default => 'Fully Assigned',
+                                    };
+                                    $resources = $units->map(fn ($unit) => [
+                                        'driver_name' => $unit->driver_name ?: 'Driver unavailable',
+                                        'driver_id' => $unit->driver_id,
+                                        'bus_no' => $unit->bus?->bus_no,
+                                        'plate_no' => $unit->bus?->plate_no,
+                                        'bus_model' => $unit->bus?->bus_model,
+                                        'actual_duration_minutes' => $unit->actual_duration_minutes,
+                                        'external' => false,
+                                    ])->concat($externalUnits->map(fn ($unit) => [
+                                        'driver_name' => $unit->driver_name ?: 'External driver',
+                                        'driver_id' => null,
+                                        'bus_no' => null,
+                                        'plate_no' => $unit->plate_number,
+                                        'bus_model' => 'External rental',
+                                        'actual_duration_minutes' => null,
+                                        'external' => true,
+                                    ]))->values();
+                                    $firstUnit = $resources->first();
                                     $route = $trip->shuttleRoute;
-                                    $routeCode = $trip->route_code_snapshot ?: $route?->route_code;
-                                    $routeName = $trip->route_name_snapshot ?: $route?->route_name;
-                                    $routeOrigin = $trip->route_origin_snapshot ?: $route?->origin;
-                                    $routeDestination = $trip->route_destination_snapshot ?: $route?->destination;
-                                    $plannedDistance = $trip->planned_distance_km ?? $route?->distance_km;
-                                    $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0)
-                                        + (float) ($trip->additional_recorded_distance_km ?? 0);
-                                    $tripDateFormatted = \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y');
-                                    $shiftClass = strtolower($trip->shift);
-                                    $statusClass = strtolower($trip->status);
-
-                                    $departureFmt = $trip->departure_time ? \Carbon\Carbon::parse($trip->departure_time)->format('H:i') : '—';
-                                    $estArrivalFmt = $trip->estimated_arrival_time ? \Carbon\Carbon::parse($trip->estimated_arrival_time)->format('H:i') : '—';
-
-                                    $actualDeptFmt = $trip->actual_departure_time ? \Carbon\Carbon::parse($trip->actual_departure_time)->format('H:i') : null;
-                                    $actualArrFmt = $trip->actual_arrival_time ? \Carbon\Carbon::parse($trip->actual_arrival_time)->format('H:i') : null;
-
+                                    $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0) + (float) ($trip->additional_recorded_distance_km ?? 0);
                                     $tripDataJson = json_encode([
                                         'trip_code' => $trip->trip_code,
-                                        'trip_date' => $tripDateFormatted,
+                                        'trip_date' => $trip->trip_date?->format('M d, Y'),
                                         'shift' => $trip->shift,
                                         'status' => $trip->status,
-                                        'route_code' => $routeCode,
-                                        'route_name' => $routeName,
-                                        'origin' => $routeOrigin,
-                                        'destination' => $routeDestination,
+                                        'assignment_outcome' => $assignmentOutcome,
+                                        'required_buses' => $requiredCount,
+                                        'assigned_buses' => $assignedCount,
+                                        'route_code' => $trip->route_code_snapshot ?: $route?->route_code,
+                                        'route_name' => $trip->route_name_snapshot ?: $route?->route_name,
+                                        'origin' => $trip->route_origin_snapshot ?: $route?->origin,
+                                        'destination' => $trip->route_destination_snapshot ?: $route?->destination,
                                         'distance_km' => $recordedDistance > 0 ? number_format($recordedDistance, 2) : null,
-                                        'planned_distance_km' => $plannedDistance ? number_format($plannedDistance, 2) : null,
+                                        'planned_distance_km' => $trip->planned_distance_km ?? $route?->distance_km,
                                         'estimated_time_minutes' => $trip->planned_duration_minutes ?? $route?->estimated_time_minutes,
-                                        'bus_no' => $bus?->bus_no,
-                                        'plate_no' => $bus?->plate_no,
-                                        'bus_model' => $bus?->bus_model,
-                                        'driver_name' => $assignment?->driver_name,
-                                        'driver_id' => $assignment?->driver_id,
-                                        'assignments' => $allAssignments->map(fn ($a) => [
-                                            'bus_no' => $a->bus?->bus_no,
-                                            'plate_no' => $a->bus?->plate_no,
-                                            'bus_model' => $a->bus?->bus_model,
-                                            'driver_name' => $a->driver_name,
-                                            'driver_id' => $a->driver_id,
-                                            'actual_duration_minutes' => $a->actual_duration_minutes,
-                                        ])->values()->all(),
-                                        'departure_time' => $departureFmt,
-                                        'estimated_arrival_time' => $estArrivalFmt,
-                                        'actual_departure_time' => $actualDeptFmt ?: '—',
-                                        'actual_arrival_time' => $actualArrFmt ?: '—',
-                                        'actual_duration_minutes' => $assignment?->actual_duration_minutes,
+                                        'bus_no' => $firstUnit['bus_no'] ?? null,
+                                        'plate_no' => $firstUnit['plate_no'] ?? null,
+                                        'bus_model' => $firstUnit['bus_model'] ?? null,
+                                        'driver_name' => $firstUnit['driver_name'] ?? null,
+                                        'driver_id' => $firstUnit['driver_id'] ?? null,
+                                        'assignments' => $resources->all(),
+                                        'departure_time' => $trip->departure_time,
+                                        'estimated_arrival_time' => $trip->estimated_arrival_time,
+                                        'actual_departure_time' => $trip->actual_departure_time ?: '—',
+                                        'actual_arrival_time' => $trip->actual_arrival_time ?: '—',
+                                        'actual_duration_minutes' => $units->first()?->actual_duration_minutes,
                                         'notes' => $trip->notes,
-                                    ]);
+                                    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
                                 @endphp
-
                                 <tr>
-                                    <td>
-                                        <x-ui.id-badge :value="$trip->trip_code" />
-                                    </td>
-
-                                    <td>
-                                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
-                                            <strong style="font-size: 12px; color: var(--trip-navy);">{{ $tripDateFormatted }}</strong>
-                                            <span class="shift-badge {{ $shiftClass }}">{{ $trip->shift }}</span>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <div class="route-cell">
-                                            <strong>{{ $routeName ?: '—' }}</strong>
-                                            <span>
-                                                {{ $routeOrigin ?: '—' }}
-                                                <i class="fa-solid fa-arrow-right-long" style="font-size: 9px; margin: 0 3px; color: var(--trip-blue);"></i>
-                                                {{ $routeDestination ?: '—' }}
-                                            </span>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        @forelse($allAssignments as $unit)
-                                            <div style="margin-bottom: 3px;"><x-ui.id-badge :value="$unit->bus?->plate_no ?: ($unit->bus?->bus_no ?: 'No plate')" /></div>
-                                        @empty
-                                            <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
-                                        @endforelse
-                                    </td>
-
-                                    <td>
-                                        @forelse($allAssignments as $unit)
-                                            <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px;">
-                                                <span style="font-weight: 700; color: var(--trip-navy);">{{ $unit->driver_name ?: '—' }}</span>
-                                                @if($unit->driver_id)
-                                                    <small style="color: var(--trip-muted); font-size: 11px;">{{ $unit->driver_id }}</small>
-                                                @endif
-                                            </div>
-                                        @empty
-                                            <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
-                                        @endforelse
-                                    </td>
-
-                                    <td>
-                                        <span style="font-weight: 600; color: #334155; font-size: 12px;">
-                                            {{ $departureFmt }} <span style="color: #94a3b8;">→</span> {{ $estArrivalFmt }}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        @if($actualDeptFmt || $actualArrFmt)
-                                            <div style="display: flex; flex-direction: column; gap: 2px; align-items: center;">
-                                                <span style="font-weight: 700; color: var(--trip-navy); font-size: 12px;">
-                                                    {{ $actualDeptFmt ?: '—' }} → {{ $actualArrFmt ?: '—' }}
-                                                </span>
-                                                @if($assignment?->actual_duration_minutes)
-                                                    <small style="color: var(--trip-muted); font-size: 11px;">{{ $assignment->actual_duration_minutes }} mins run</small>
-                                                @endif
-                                            </div>
+                                    <td><x-ui.id-badge :value="$trip->trip_code" /></td>
+                                    <td class="unified-trip-date"><strong>{{ $trip->trip_date?->format('M d, Y') }}</strong><small>{{ $trip->departureDateTime()->format('g:i A') }} – {{ $trip->estimatedArrivalDateTime()->format('g:i A') }}</small></td>
+                                    <td><strong>{{ $trip->route_name_snapshot ?: ($route?->route_name ?? 'Route unavailable') }}</strong></td>
+                                    <td class="unified-trip-resource">
+                                        @if($firstUnit)
+                                            <strong>{{ $firstUnit['driver_name'] }}</strong>
+                                            <small>{{ $firstUnit['bus_no'] ?: ($firstUnit['plate_no'] ?: 'No bus number') }}</small>
+                                            @if($resources->count() > 1)
+                                                <small>+{{ $resources->count() - 1 }} more — View for details</small>
+                                            @endif
                                         @else
-                                            <span style="color: #94a3b8;">—</span>
+                                            <span class="trip-resource-empty">Not assigned</span>
                                         @endif
                                     </td>
-
-                                    <td>
-                                        <strong style="color: var(--trip-navy); font-size: 12px;">
-                                            {{ $recordedDistance > 0 ? number_format($recordedDistance, 1) . ' km' : '—' }}
-                                        </strong>
+                                    <td><span class="trip-history-slots {{ $assignedCount >= $requiredCount ? 'is-full' : ($assignedCount > 0 ? 'is-partial' : 'is-empty') }}">{{ $assignedCount }}/{{ $requiredCount }}</span></td>
+                                    <td><x-ui.status-badge class="trip-history-outcome" :status="$assignmentOutcome" :title="'Assignment fulfillment; not proof of completed transportation'" /></td>
+                                    <td><x-ui.status-badge :status="$trip->status === 'Dispatched' ? 'In Progress' : $trip->status" class="trip-history-operational-status" /></td>
+                                    <td class="unified-trip-actual-times">
+                                        @if($trip->actual_departure_time || $trip->actual_arrival_time)
+                                            {{ $trip->actual_departure_time ?: '—' }} → {{ $trip->actual_arrival_time ?: '—' }}
+                                        @else
+                                            <span class="trip-resource-empty">Not recorded</span>
+                                        @endif
                                     </td>
-
                                     <td>
-                                        <x-ui.status-badge :status="$trip->status" class="trip-status {{ $statusClass }}" />
-                                    </td>
-
-                                    <td>
-                                        <div class="trip-actions">
-                                            <button
-                                                type="button"
-                                                class="trip-action view view-trip-btn"
-                                                title="View Trip Details"
-                                                data-trip="{{ $tripDataJson }}"
-                                            >
-                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                            </button>
-                                        </div>
+                                        <button type="button" class="trip-action view view-trip-btn" title="View unified trip history" aria-label="View history for {{ $trip->trip_code }}" data-trip="{{ $tripDataJson }}">
+                                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row
-                                    colspan="10"
-                                    icon="fa-route"
-                                    message="No Trip Records Found"
-                                    description="No historical trips matched your search or filter criteria. Try adjusting the date, route, or status filters."
-                                />
+                                <x-ui.empty-row colspan="9" icon="fa-route" message="No Trip History Found" description="No historical trips matched the selected filters." />
                             @endforelse
                         </tbody>
                     </table>
