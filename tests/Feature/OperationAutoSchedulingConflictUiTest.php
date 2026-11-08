@@ -191,3 +191,28 @@ it('keeps both auto schedule tables synchronized through shared column classes',
         ->toContain('data-gct-apply-inline')
         ->toContain('data-apply-selected-reserve');
 });
+
+it('uses only semantic Auto Scheduling column widths in screen styles', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+    $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/auto-dispatch.blade.php'));
+
+    foreach (['trip', 'time', 'route', 'required', 'driver', 'bus', 'result', 'action'] as $column) {
+        expect($styles)->toContain('.auto-schedule-table .auto-col-'.$column.' { width:');
+        expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
+    }
+
+    expect($styles)->not->toContain('.auto-schedule-table colgroup col:nth-child(')
+        ->and($styles)->toContain('min-width: 1250px;')
+        ->and($styles)->toContain('overscroll-behavior: contain;');
+});
+
+it('retains only one Bus Availability table scroll contract', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Shuttle_Bus_Management/bus-availability.css'));
+    $view = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-availability.blade.php'));
+
+    expect($styles)->toContain('overscroll-behavior:contain')
+        ->not->toContain('.availability-table-wrap{max-height:430px;overflow-y:auto;overflow-x:auto;scrollbar-width:thin}')
+        ->and($view)->toContain('gct-responsive-records gct-sticky-actions')
+        ->toContain('<x-ui.table-toolbar')
+        ->toContain('open-availability-bus');
+});
