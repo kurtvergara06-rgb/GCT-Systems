@@ -81,6 +81,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::post('/operation/clients', [ClientMasterListController::class, 'store'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.store');
+    Route::put('/operation/clients/{operationClient}', [ClientMasterListController::class, 'update'])
+        ->middleware('system.permission:operation,edit')
+        ->name('operation.clients.update');
     Route::patch('/operation/clients/{operationClient}/status', [ClientMasterListController::class, 'updateStatus'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.status');
