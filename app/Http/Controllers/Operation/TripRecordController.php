@@ -21,7 +21,16 @@ class TripRecordController extends Controller
 
     private function historyQuery(Request $request): Builder
     {
-        $query = TripSchedule::query()->whereIn('status', ['Completed', 'Delayed', 'Cancelled', 'Missed']);
+        // Unified history: preserve operational outcomes plus elapsed assignment
+        // windows. Never infer or change the stored operational status.
+        $driver = DB::connection()->getDriverName();
+        $endSql = $driver === 'sqlite'
+            ? "CASE WHEN estimated_arrival_date IS NOT NULL THEN datetime(estimated_arrival_date || ' ' || estimated_arrival_time) ELSE datetime(trip_date || ' ' || estimated_arrival_time, CASE WHEN time(estimated_arrival_time) <= time(departure_time) THEN '+1 day' ELSE '+0 day' END) END"
+            : "CASE WHEN estimated_arrival_date IS NOT NULL THEN TIMESTAMP(estimated_arrival_date, estimated_arrival_time) ELSE DATE_ADD(TIMESTAMP(trip_date, estimated_arrival_time), INTERVAL IF(estimated_arrival_time <= departure_time, 1, 0) DAY) END";
+        $query = TripSchedule::query()->where(function (Builder $history) use ($endSql): void {
+            $history->whereIn('status', ['Completed', 'Delayed', 'Cancelled', 'Missed'])
+                ->orWhereRaw("($endSql) <= ?", [now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d H:i:s')]);
+        });
         // Search
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
@@ -94,7 +103,7 @@ class TripRecordController extends Controller
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'trip_date' => ['nullable', 'date_format:Y-m-d'],
             'shift' => ['nullable', 'in:all,Morning,Afternoon,Night'],
-            'status' => ['nullable', 'in:all,Completed,Delayed,Cancelled,Missed'],
+            'status' => ['nullable', 'in:all,Scheduled,Ready,Dispatched,Pending DDR,Completed,Delayed,Cancelled,Missed'],
             'route' => ['nullable', 'regex:/^(all|[1-9][0-9]*)$/'],
             'search' => ['nullable', 'string', 'max:150'],
         ]);
@@ -130,62 +139,15 @@ class TripRecordController extends Controller
 
     public function index(Request $request): View
     {
-        $historyMode = $request->query('view', 'assignments');
-        if ($historyMode !== 'operations') {
-            $request->validate([
-                'trip_date' => ['nullable', 'date_format:Y-m-d'],
-                'search' => ['nullable', 'string', 'max:150'],
-                'sort' => ['nullable', 'in:trip_date,trip_code,departure_time,status'],
-                'sort_direction' => ['nullable', 'in:asc,desc'],
-            ]);
-
-            $now = now(config('app.business_timezone', 'Asia/Manila'));
-            $driver = DB::connection()->getDriverName();
-            $endSql = $driver === 'sqlite'
-                ? "CASE WHEN estimated_arrival_date IS NOT NULL THEN datetime(estimated_arrival_date || ' ' || estimated_arrival_time) ELSE datetime(trip_date || ' ' || estimated_arrival_time, CASE WHEN time(estimated_arrival_time) <= time(departure_time) THEN '+1 day' ELSE '+0 day' END) END"
-                : 'CASE WHEN estimated_arrival_date IS NOT NULL THEN TIMESTAMP(estimated_arrival_date, estimated_arrival_time) ELSE DATE_ADD(TIMESTAMP(trip_date, estimated_arrival_time), INTERVAL IF(estimated_arrival_time <= departure_time, 1, 0) DAY) END';
-            $query = TripSchedule::query()
-                ->with(['shuttleRoute', 'assignments.bus', 'externalRentals'])
-                ->where(function ($q) use ($endSql, $now) {
-                    $q->whereIn('status', ['Completed', 'Cancelled', 'Missed'])
-                        ->orWhereRaw("($endSql) <= ?", [$now->format('Y-m-d H:i:s')]);
-                });
-            if ($request->filled('search')) {
-                $term = trim((string) $request->input('search'));
-                $query->where(function ($q) use ($term) {
-                    $q->where('trip_code', 'like', "%{$term}%")
-                        ->orWhereHas('assignments', fn ($a) => $a->where('driver_name', 'like', "%{$term}%")
-                            ->orWhereHas('bus', fn ($b) => $b->where('bus_no', 'like', "%{$term}%")));
-                });
-            }
-            if ($request->filled('trip_date')) {
-                $query->whereDate('trip_date', $request->input('trip_date'));
-            }
-            TableSort::apply(
-                $query,
-                $request,
-                [
-                    'trip_date' => 'trip_date',
-                    'trip_code' => 'trip_code',
-                    'departure_time' => 'departure_time',
-                    'status' => 'status',
-                ],
-                'trip_date',
-                'desc'
-            );
-            $assignmentHistoryTrips = $query
-                ->paginate(self::RECORDS_PER_PAGE, ['*'], 'assignments_page')
-                ->withQueryString();
-
-            return view('Operation.Trip_Records.assignment-history', compact('assignmentHistoryTrips'));
-        }
-
+        // Both legacy history URLs resolve to one read-only Trip History table.
+        // Assignment history includes elapsed trip windows, even when the
+        // operational status has not yet reached a terminal state.
         $request->validate([
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'trip_date' => ['nullable', 'date_format:Y-m-d'],
             'shift' => ['nullable', 'in:all,Morning,Afternoon,Night'],
-            'status' => ['nullable', 'in:all,Completed,Delayed,Cancelled,Missed'],
+            'status' => ['nullable', 'in:all,Scheduled,Ready,Dispatched,Pending DDR,Completed,Delayed,Cancelled,Missed'],
             'route' => ['nullable', 'regex:/^(all|[1-9][0-9]*)$/'],
             'search' => ['nullable', 'string', 'max:150'],
         ]);
@@ -196,6 +158,7 @@ class TripRecordController extends Controller
             'assignments.driverAttendance',
             'assignment.bus',
             'assignment.driverAttendance',
+            'externalRentals',
         ])
             ->withSum('dailyDriverReports as primary_recorded_distance_km', 'km')
             ->withSum('dailyDriverReportTripEntries as additional_recorded_distance_km', 'km');
@@ -248,7 +211,7 @@ class TripRecordController extends Controller
             ->get(['id', 'route_code', 'route_name', 'origin', 'destination', 'distance_km']);
 
         $shifts = ['Morning', 'Afternoon', 'Night'];
-        $statuses = ['Completed', 'Delayed', 'Cancelled', 'Missed'];
+        $statuses = ['Scheduled', 'Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed', 'Cancelled', 'Missed'];
 
         return view('Operation.Trip_Records.trip-records', [
             'trips' => $trips,
