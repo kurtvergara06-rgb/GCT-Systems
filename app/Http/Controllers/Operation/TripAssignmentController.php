@@ -475,8 +475,14 @@ class TripAssignmentController extends Controller
         if ($hasRegularPair) {
             $buses = $buses->filter(fn ($bus) => $bus['purpose'] !== 'Reserve')->values();
         }
+        $reserveNotice = ! $canSelectReserve
+            ? 'Reserve deployment requires Operations Head authorization.'
+            : ($hasRegularPair
+                ? 'Reserve deployment is unavailable while an eligible Regular pair exists.'
+                : 'No eligible Reserve bus is available for this trip.');
 
         return response()->json([
+            'reserve_notice' => $reserveNotice,
             'trip' => [
                 'id' => $tripSchedule->id,
                 'date' => $tripSchedule->trip_date?->toDateString(),
