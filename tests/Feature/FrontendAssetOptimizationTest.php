@@ -160,4 +160,28 @@ class FrontendAssetOptimizationTest extends TestCase
         }
     }
 
+
+    public function test_operation_trip_and_assignment_action_ownership_stays_separate(): void
+    {
+        $tripView = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
+        $assignmentView = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $tripJs = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
+        $assignmentJs = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('cancel-service-trip', $tripView);
+        $this->assertStringContainsString('cancelServiceTripModal', $tripView);
+        $this->assertStringNotContainsString('deleteTripForm-', $tripView);
+        $this->assertStringNotContainsString('deleteTripModal', $tripView);
+
+        $this->assertStringContainsString('remove-assignment', $assignmentView);
+        $this->assertStringContainsString('removeAssignmentModal', $assignmentView);
+        $this->assertStringNotContainsString('cancel-assignment-trip', $assignmentView);
+        $this->assertStringNotContainsString('cancelAssignmentTripModal', $assignmentView);
+
+        $this->assertStringContainsString('cancel-service-trip', $tripJs);
+        $this->assertStringNotContainsString('deleteTripModal', $tripJs);
+        $this->assertStringNotContainsString('cancelAssignmentTripModal', $assignmentJs);
+        $this->assertStringContainsString('remove-assignment', $assignmentJs);
+    }
+
 }
