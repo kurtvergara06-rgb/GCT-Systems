@@ -58,10 +58,13 @@ class OperationMultiBusWorkflowTest extends TestCase
             ->get(route('driver-bus-assignment'))
             ->assertOk()
             ->assertSeeInOrder([
-                'BUS-2 · PLT-2',
-                'BUS-3 · PLT-3',
-                'BUS-10 · PLT-10',
-            ]);
+                'BUS-2',
+                'BUS-3',
+                'BUS-10',
+            ])
+            ->assertDontSee('BUS-2 · PLT-2')
+            ->assertDontSee('BUS-3 · PLT-3')
+            ->assertDontSee('BUS-10 · PLT-10');
     }
 
     private function createDriver(string $suffix, string $status = 'Active'): Driver
