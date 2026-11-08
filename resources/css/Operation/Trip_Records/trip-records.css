@@ -2428,3 +2428,49 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Unified history: keep the list compact; detail fields remain in View. */
+.trip-records-page .unified-trip-history-table { min-width: 1040px; }
+.trip-records-page .unified-trip-history-table th,
+.trip-records-page .unified-trip-history-table td { vertical-align: middle; }
+.trip-records-page .unified-trip-history-table .unified-trip-date,
+.trip-records-page .unified-trip-history-table .unified-trip-resource {
+    min-width: 115px;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-date strong,
+.trip-records-page .unified-trip-history-table .unified-trip-resource strong {
+    display: block;
+    font-size: 12px;
+    color: var(--trip-navy);
+}
+.trip-records-page .unified-trip-history-table .unified-trip-date small,
+.trip-records-page .unified-trip-history-table .unified-trip-resource small {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--trip-muted);
+}
+.trip-records-page .unified-trip-history-table .unified-trip-actual-times {
+    white-space: nowrap;
+    font-size: 11px;
+}
+.trip-records-page .unified-trip-modal-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.trip-records-page .unified-trip-modal-summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid #deebfa;
+    border-radius: 10px;
+    background: #f5f9ff;
+}
+.trip-records-page .unified-trip-modal-summary small { font-size: 11px; color: #64748b; }
+.trip-records-page .unified-trip-modal-summary strong { font-size: 14px; color: #0f2a4d; }
+@media (max-width: 600px) {
+    .trip-records-page .unified-trip-modal-summary { grid-template-columns: 1fr; }
+}
