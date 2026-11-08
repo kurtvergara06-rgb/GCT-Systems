@@ -972,14 +972,26 @@
             <span id="assignmentPairSlot"></span>
         </div>
 
-        <section class="assignment-pair-picker" id="assignmentPairPicker" aria-label="Eligible driver and bus pairs">
+        <section class="assignment-pair-picker assignment-driver-first" id="assignmentPairPicker" aria-label="Choose a driver and one eligible bus">
             <div class="assignment-pair-header">
-                <div><strong>Eligible Driver & Bus Pairs</strong><small>Regular: authorized driver and client match. Reserve: shared bus, Operations Head only when no Regular pair is available.</small></div>
-                <span id="assignmentPairCount">Select a trip</span>
+                <div><strong>Choose Driver & Bus</strong><small>Choose a driver first, then one eligible bus. Multiple authorized buses may belong to one driver.</small></div>
+                <span id="assignmentPairCount" aria-live="polite">Select a trip</span>
             </div>
-            <input type="search" id="assignmentPairSearch" placeholder="Search driver, ID, or bus..." aria-label="Search eligible driver and bus pairs">
-            <div class="assignment-pair-list" id="assignmentPairList" aria-live="polite">
-                <p class="assignment-pair-empty">Select a trip to load eligible pairs.</p>
+            <div class="assignment-fleet-tabs" role="group" aria-label="Bus fleet type">
+                <button type="button" class="assignment-fleet-tab is-active" data-assignment-fleet="Regular" aria-pressed="true">Regular Buses</button>
+                <button type="button" class="assignment-fleet-tab" data-assignment-fleet="Reserve" aria-pressed="false">Reserve Buses</button>
+            </div>
+            <p class="assignment-fleet-note" id="assignmentFleetNote">Regular buses require driver authorization and a matching client.</p>
+            <div class="assignment-driver-first-step">
+                <div class="assignment-step-heading"><strong>1. Select Driver</strong><span id="assignmentDriverCount"></span></div>
+                <input type="search" id="assignmentPairSearch" placeholder="Search driver name or ID..." aria-label="Search eligible drivers">
+                <div class="assignment-driver-first-list" id="assignmentDriverFirstList" role="group" aria-label="Eligible drivers"></div>
+            </div>
+            <div class="assignment-driver-first-step">
+                <div class="assignment-step-heading"><strong>2. Select Bus</strong><span id="assignmentSelectedDriverSummary">Choose a driver above</span></div>
+                <div class="assignment-driver-first-buses" id="assignmentPairList" role="group" aria-label="Eligible buses for selected driver" aria-live="polite">
+                    <p class="assignment-pair-empty">Select a driver to see available buses.</p>
+                </div>
             </div>
         </section>
 
