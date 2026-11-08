@@ -2503,9 +2503,9 @@
     position: sticky;
     right: 0;
     box-sizing: border-box;
-    width: 72px;
-    min-width: 72px;
-    max-width: 72px;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
     text-align: center;
     white-space: nowrap;
     background-color: #fff;
@@ -2539,18 +2539,19 @@
 @media (max-width: 760px) {
     .trip-records-page .unified-trip-history-table > thead > tr > th:last-child,
     .trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
-        width: 62px;
-        min-width: 62px;
-        max-width: 62px;
+        width: 86px;
+        min-width: 86px;
+        max-width: 86px;
         padding-left: 6px;
         padding-right: 6px;
     }
 }
 
-/* Unified Trip History uses a compact text View action rather than an icon. */
+/* Unified Trip History shows the eye icon plus View text. */
 .trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
     width: auto;
-    min-width: 48px;
+    min-width: 68px;
+    gap: 5px;
     height: 30px;
     min-height: 30px;
     padding: 0 9px;
