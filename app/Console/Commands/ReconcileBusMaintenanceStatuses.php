@@ -57,8 +57,7 @@ class ReconcileBusMaintenanceStatuses extends Command
                     $bus->status,
                     JobOrder::query()->blocksDispatch()
                         ->where('bus_no', $bus->bus_no)
-                        
-                        ->count(),
+                                                ->count(),
                     'Under Maintenance (restore '.$bus->status.' after release)',
                 ];
             })->all()
@@ -78,8 +77,7 @@ class ReconcileBusMaintenanceStatuses extends Command
 
                 $hasUnresolvedJobOrder = JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $bus->bus_no)
-                    
-                    ->lockForUpdate()
+                                        ->lockForUpdate()
                     ->exists();
 
                 if (! $hasUnresolvedJobOrder || $bus->status === 'Under Maintenance') {
