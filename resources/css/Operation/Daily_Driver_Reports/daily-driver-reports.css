@@ -2543,3 +2543,44 @@ button.ddr-new-btn {
 @media(max-width: 580px) {
     #ddrEncodeModal .ddr-extra-trip-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Phase 4: shared labeled table action and responsive DDR detail table. */
+.ddr-page .ddr-card .ddr-table .ddr-actions button.table-action-btn.ddr-view-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 94px;
+    width: 94px;
+    min-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    gap: 8px;
+    white-space: nowrap;
+}
+.ddr-page .ddr-card .ddr-table .ddr-actions button.table-action-btn.ddr-view-action > :is(i, span) {
+    position: static;
+    display: inline-block;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
+.ddr-page .ddr-record-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.ddr-page .ddr-record-table {
+    min-width: 680px;
+}
+.ddr-page .ddr-record-table th {
+    white-space: nowrap;
+}
+.ddr-page .ddr-record-table td {
+    overflow-wrap: anywhere;
+}
+.ddr-page .ddr-record-table-wrap:focus-within {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
