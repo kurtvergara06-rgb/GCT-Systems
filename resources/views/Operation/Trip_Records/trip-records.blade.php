@@ -174,7 +174,7 @@
                                     </td>
                                     <td>
                                         <button type="button" class="trip-action view view-trip-btn" title="View unified trip history" aria-label="View history for {{ $trip->trip_code }}" data-trip='{{ $tripDataJson }}'>
-                                            View
+                                            <i class="fa-solid fa-eye" aria-hidden="true"></i> View
                                         </button>
                                     </td>
                                 </tr>
