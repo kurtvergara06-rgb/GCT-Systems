@@ -483,7 +483,7 @@
                                                 <div class="assignment-bus-cell">
                                                     <span class="assignment-resource-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
                                                     <div class="assignment-bus-info">
-                                                        <strong>{{ $bus ? trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) : 'Plate not recorded' }}</strong>
+                                                        <strong>{{ $bus?->bus_no ?: 'Bus ID not recorded' }}</strong>
                                                         <span>{{ $bus?->bus_model ?: 'Model not recorded' }}</span>
                                                         @if($slotBreakdown)
                                                             <a href="{{ route('incidents.show', ['incident' => $slotBreakdown->incident_no], false) }}"
@@ -757,7 +757,7 @@
                             </div>
 
                             <div class="resource-record-info">
-                                <strong>{{ trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) ?: 'Plate not recorded' }}</strong>
+                                <strong>{{ $bus->bus_no ?: 'Bus ID not recorded' }}</strong>
                                 <span class="resource-mobile-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
                             </div>
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
