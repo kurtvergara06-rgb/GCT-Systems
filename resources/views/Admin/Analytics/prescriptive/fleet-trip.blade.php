@@ -170,7 +170,7 @@
             <div class="gov-card">
                 <div class="gov-card__icon blue"><i class="fa-solid fa-clock"></i></div>
                 <div>
-                    <h4>Driver Shift Limits Compliance</h4>
+                    <h4>Driver Duty Time Compliance</h4>
                     <p>Schedule staggering honors the DOLE and LTFRB 8-hour maximum continuous driving regulations without triggering overtime penalties.</p>
                 </div>
             </div>
