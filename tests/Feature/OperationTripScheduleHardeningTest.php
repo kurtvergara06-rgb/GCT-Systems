@@ -36,6 +36,21 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
     }
 
+    public function test_assignment_calendar_with_archived_trips_explains_empty_active_table(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $controller = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css'));
+
+        $this->assertStringContainsString('$allTripsForDate > 0', $view);
+        $this->assertStringContainsString('These trips are no longer shown in active Driver &amp; Bus Assignment.', $view);
+        $this->assertStringContainsString('View Trip History', $view);
+        $this->assertStringContainsString("'date_from' => $selectedTripDate", $view);
+        $this->assertStringContainsString("'date_to' => $selectedTripDate", $view);
+        $this->assertStringContainsString('$allTripsForDate = TripSchedule::query()', $controller);
+        $this->assertStringContainsString('assignment-history-notice', $styles);
+    }
+
     public function test_new_trip_modal_supports_no_client_general_service(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
