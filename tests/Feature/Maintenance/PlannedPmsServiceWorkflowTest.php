@@ -17,6 +17,40 @@ class PlannedPmsServiceWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_planned_pms_does_not_block_dispatch_but_started_pms_and_repairs_do(): void
+    {
+        $pmsBus = Bus::create(['bus_no' => 'BUS-PLANNED-ONLY', 'status' => 'Active']);
+        $repairBus = Bus::create(['bus_no' => 'BUS-REPAIR-BLOCK', 'status' => 'Under Maintenance']);
+
+        $pms = JobOrder::create([
+            'job_order_no' => 'JO-PMS-PLANNED',
+            'bus_no' => $pmsBus->bus_no,
+            'problem_issue' => 'PMS due',
+            'maintenance_type' => 'PMS',
+            'review_status' => 'Approved',
+            'status' => 'On Hold',
+            'part_status' => 'No Parts Required',
+        ]);
+        JobOrder::create([
+            'job_order_no' => 'JO-REPAIR-BLOCK',
+            'bus_no' => $repairBus->bus_no,
+            'problem_issue' => 'Brake fault',
+            'maintenance_type' => 'Repair',
+            'review_status' => 'Approved',
+            'status' => 'On Going',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $this->assertFalse(JobOrder::query()->blocksDispatch()
+            ->where('bus_no', $pmsBus->bus_no)->exists());
+        $this->assertTrue(JobOrder::query()->blocksDispatch()
+            ->where('bus_no', $repairBus->bus_no)->exists());
+
+        $pms->update(['status' => 'On Going', 'actual_started_at' => now()]);
+        $this->assertTrue(JobOrder::query()->blocksDispatch()
+            ->where('bus_no', $pmsBus->bus_no)->exists());
+    }
+
     public function test_pms_approval_keeps_bus_available_until_head_explicitly_starts_service(): void
     {
         Storage::fake('local');
