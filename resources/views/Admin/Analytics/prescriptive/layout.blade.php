@@ -208,7 +208,7 @@
                                 <tr>
                                     <th>Trip Code</th>
                                     <th>Route &amp; Corridor</th>
-                                    <th>Shift / Date</th>
+                                    <th>Trip Date</th>
                                     <th>Recorded Departure</th>
                                     <th>Est. Arrival</th>
                                     <th>Duration</th>
@@ -231,8 +231,7 @@
                                             <br><small style="color:#64748b;">{{ $rec->route_code }}</small>
                                         </td>
                                         <td>
-                                            <span class="dashboard-badge">{{ $rec->shift }}</span>
-                                            <br><small style="color:#64748b;">{{ $rec->trip_date }}</small>
+                                            <span class="dashboard-badge">{{ $rec->trip_date }}</span>
                                         </td>
                                         <td>
                                             <strong style="color:#1d4ed8; font-size:13px;">{{ $rec->suggested_departure }}</strong>
@@ -295,7 +294,7 @@
                                 <thead>
                                     <tr>
                                         <th>Driver &amp; Authorization</th>
-                                        <th>Shift &amp; Attendance</th>
+                                        <th>Attendance</th>
                                         <th>Duty Hours</th>
                                         <th>Clearance &amp; Rationale</th>
                                     </tr>
@@ -309,7 +308,6 @@
                                             </td>
                                             <td>
                                                 <span class="badge-status warning">{{ $driver->attendance_status }}</span>
-                                                <br><small style="color:#64748b;">{{ $driver->shift }}</small>
                                             </td>
                                             <td>
                                                 <span class="code-pill">{{ $driver->duty_hours }}</span>
