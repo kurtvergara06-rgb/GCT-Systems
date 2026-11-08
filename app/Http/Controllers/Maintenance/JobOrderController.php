@@ -1812,8 +1812,8 @@ class JobOrderController extends Controller
         }
 
         $hasActiveJobOrder = JobOrder::query()
+            ->blocksDispatch()
             ->where('bus_no', $busNo)
-            ->open()
             ->exists();
 
         if ($hasActiveJobOrder) {
