@@ -510,9 +510,10 @@ class OperationMultiBusWorkflowTest extends TestCase
     }
 
     /**
-     * Test 9: Maintenance, Inactive, and Reserve buses rejected for regular assignment.
+     * Test 9: Unavailable buses are blocked; Reserve requires Head approval
+     * but no permanent authorization pivot.
      */
-    public function test_09_maintenance_inactive_and_reserve_buses_rejected(): void
+    public function test_09_maintenance_inactive_buses_rejected_and_head_can_assign_shared_reserve(): void
     {
         $trip = $this->createTripSchedule(1);
         $date = $trip->trip_date->toDateString();
@@ -544,7 +545,49 @@ class OperationMultiBusWorkflowTest extends TestCase
             'driver_attendance_id' => $a->id,
             'bus_id' => $bRes->id,
         ]);
-        $respRes->assertSessionHasErrors('bus_id');
+        $respRes->assertSessionHasNoErrors();
+        $assignment = TripAssignment::query()
+            ->where('trip_schedule_id', $trip->id)
+            ->where('bus_id', $bRes->id)->firstOrFail();
+        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
+            'trip_assignment_id' => $assignment->id,
+            'bus_id' => $bRes->id,
+            'approval_method' => 'Direct',
+        ]);
+    }
+
+    public function test_reserve_bus_rejected_if_authorized_regular_pair_is_available(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('REGULAR-FIRST');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $regular = $this->createBus('REGULAR-FIRST');
+        $driver->authorizedBuses()->syncWithoutDetaching([$regular->id]);
+        $reserve = $this->createBus('RESERVE-FALLBACK', 'Active', 'Reserve');
+
+        $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $reserve->id,
+        ])->assertSessionHasErrors('bus_id');
+
+        $this->assertSame(0, $trip->assignments()->count());
+    }
+
+    public function test_reserve_bus_availability_includes_any_active_driver_without_authorization(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('RESERVE-SHARED');
+        $reserve = $this->createBus('RESERVE-SHARED', 'Active', 'Reserve');
+
+        $this->assertFalse($driver->authorizedBuses()->whereKey($reserve->id)->exists());
+
+        $response = $this->actingAs($this->admin)->getJson(
+            route('driver-bus-assignment.availability', $trip)
+        );
+        $response->assertOk();
+        $this->assertContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertContains($driver->driver_id, collect($response->json('drivers'))->pluck('id')->all());
     }
 
     /**
