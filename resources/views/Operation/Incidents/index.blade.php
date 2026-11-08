@@ -198,7 +198,17 @@
                                         <x-ui.status-badge :status="$incident->status" :label="$incident->status === 'Replacement Bus Dispatched' ? 'Reserve Deployed' : null" :title="$incident->status" class="inc-status-dot-pill status-{{ strtolower(str_replace(' ', '-', $incident->status)) }}" />
                                     </td>
                                     <td>
-                                        <div class="inc-actions inc-record-actions">
+                                        <div class="inc-actions inc-record-actions{{ $tab === 'history' ? ' inc-history-actions' : '' }}">
+                                            @if($tab === 'history')
+                                                <button type="button"
+                                                    class="inc-history-view-action"
+                                                    data-incident-modal-action="view"
+                                                    data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}"
+                                                    title="View incident details"
+                                                    aria-label="View incident {{ $incident->incident_no }}">
+                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
+                                                </button>
+                                            @else
                                             <button type="button" class="action-btn view inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident details and workflow" title="Incident Details & Workflow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></button>
                                             @if($canModifyIncident)
                                                 <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
@@ -216,6 +226,8 @@
                                             @endif
 
 
+                                        </div>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
