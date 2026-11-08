@@ -64,12 +64,13 @@
 
         <div class="table-wrap attendance-record-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="attendance-table">
-            <colgroup><col style="width: 17%"><col style="width: 20%"><col style="width: 37%"><col style="width: 12%"><col style="width: 14%"></colgroup>
+            <colgroup><col style="width: 15%"><col style="width: 18%"><col style="width: 25%"><col style="width: 19%"><col style="width: 11%"><col style="width: 12%"></colgroup>
             <thead>
               <tr>
                 <th>Driver ID</th>
                 <th>Driver</th>
                 <th>Trip Assignment</th>
+                <th>Scheduled Date &amp; Time</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -117,15 +118,7 @@
                       <div class="current-assignment-cell">
                         <span class="current-assignment-bus">{{ $primaryBus?->bus_no ?? 'Bus unavailable' }}</span>
                         <span class="current-assignment-trip" title="{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}">{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}</span>
-                        <span class="attendance-assignment-schedule">
-                          <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                          {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}
-                          @if($primaryTrip)
-                            <span class="attendance-assignment-separator" aria-hidden="true">•</span>
-                            <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                            {{ $primaryTrip->departureDateTime()->format('g:i A') }} – {{ $primaryTrip->estimatedArrivalDateTime()->format('g:i A') }}
-                          @endif
-                        </span>
+
                         @if($historicalAssignments->count() > 1)
                           <small class="current-assignment-more">
                             +{{ $historicalAssignments->count() - 1 }} more assignment(s)
@@ -133,8 +126,18 @@
                         @endif
                       </div>
                     @else
-                      <div class="attendance-assignment-unassigned"><span class="gct-pill gct-pill--unassigned">Unassigned</span><small><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></div>
+                      <span class="gct-pill gct-pill--unassigned">Unassigned</span>
                     @endif
+                  </td>
+                  <td>
+                    <div class="attendance-trip-datetime">
+                      <span class="attendance-trip-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</span>
+                      @if($primaryTrip)
+                        <span class="attendance-trip-time"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $primaryTrip->departureDateTime()->format('g:i A') }} – {{ $primaryTrip->estimatedArrivalDateTime()->format('g:i A') }}</span>
+                      @else
+                        <span class="attendance-trip-time is-empty">No scheduled trip</span>
+                      @endif
+                    </div>
                   </td>
                   <td><div class="attendance-status-cell"><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></div></td>
                   <td>
@@ -164,7 +167,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="5"
+                  colspan="6"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
                   description="No driver attendance records match your selected filters."
