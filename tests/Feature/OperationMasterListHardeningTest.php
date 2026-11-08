@@ -765,7 +765,7 @@ class OperationMasterListHardeningTest extends TestCase
         $template = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
         $this->assertStringNotContainsString('assignment-journey', $template);
         $this->assertStringContainsString("['Cancelled', 'Dispatched', 'Completed']", $template);
-        $this->assertStringContainsString('!$isLocked', $template);
+        $this->assertStringContainsString('! $isLocked', $template);
         $this->assertStringNotContainsString('resource-assign-bus', $template);
         $this->assertStringNotContainsString('resource-assign-driver', $template);
         $this->assertStringNotContainsString("'Night'", $template);
