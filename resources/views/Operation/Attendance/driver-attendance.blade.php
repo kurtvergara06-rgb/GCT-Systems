@@ -64,7 +64,7 @@
 
         <div class="table-wrap attendance-record-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="attendance-table">
-            <colgroup><col style="width: 16%"><col style="width: 20%"><col style="width: 23%"><col style="width: 13%"><col style="width: 13%"><col style="width: 15%"></colgroup>
+            <colgroup><col style="width: 15%"><col style="width: 18%"><col style="width: 32%"><col style="width: 12%"><col style="width: 11%"><col style="width: 12%"></colgroup>
             <thead>
               <tr>
                 <th>Driver ID</th>
@@ -112,16 +112,19 @@
 
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
-                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>{{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></span></div></td>
+                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong></span></div></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
                         <span class="current-assignment-bus">{{ $primaryBus?->bus_no ?? 'Bus unavailable' }}</span>
-                        <span class="current-assignment-trip">
-                          {{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}
+                        <span class="current-assignment-trip" title="{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}">{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}</span>
+                        <span class="attendance-assignment-schedule">
+                          <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                          {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}
                           @if($primaryTrip)
-                            • {{ date('h:i A', strtotime($primaryTrip->departure_time)) }}
-                            – {{ date('h:i A', strtotime($primaryTrip->estimated_arrival_time)) }}
+                            <span class="attendance-assignment-separator" aria-hidden="true">•</span>
+                            <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                            {{ $primaryTrip->departureDateTime()->format('g:i A') }} – {{ $primaryTrip->estimatedArrivalDateTime()->format('g:i A') }}
                           @endif
                         </span>
                         @if($historicalAssignments->count() > 1)
@@ -131,18 +134,19 @@
                         @endif
                       </div>
                     @else
-                      <span class="gct-pill gct-pill--unassigned">Unassigned</span>
+                      <div class="attendance-assignment-unassigned"><span class="gct-pill gct-pill--unassigned">Unassigned</span><small><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></div>
                     @endif
                   </td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
-                  <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
+                  <td><div class="attendance-status-cell"><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></div></td>
                   <td>
                     <div class="actions">
                       @if($canEditOperation)
                       <button
                         type="button"
-                        class="action-btn view open-view-driver-attendance-modal"
-                        title="View"
+                        class="action-btn view attendance-view-action open-view-driver-attendance-modal"
+                        title="View attendance details"
+                        aria-label="View attendance for {{ $attendance->driver_name }} on {{ $attendance->attendance_date?->format('M d, Y') }}"
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"
                         data-shift="{{ $attendance->shift }}"
@@ -152,7 +156,7 @@
                         data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
                         data-status="{{ $attendance->status }}"
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                       </button>
 
 
