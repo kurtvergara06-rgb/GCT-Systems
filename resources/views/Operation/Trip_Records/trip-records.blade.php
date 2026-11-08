@@ -79,15 +79,15 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>Trip ID</th>
-                                <th>Schedule</th>
-                                <th>Route</th>
-                                <th>Assigned Resources</th>
-                                <th>Bus Slots</th>
-                                <th>Assignment Outcome</th>
-                                <th>Operational Status</th>
-                                <th>Actual Times</th>
-                                <th>Actions</th>
+                                <th scope="col">Trip ID</th>
+                                <th scope="col">Schedule</th>
+                                <th scope="col">Route</th>
+                                <th scope="col">Assigned Resources</th>
+                                <th scope="col">Bus Slots</th>
+                                <th scope="col">Assignment Outcome</th>
+                                <th scope="col">Operational Status</th>
+                                <th scope="col">Actual Times</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
