@@ -95,7 +95,7 @@
                                     <strong>Select Trip Date</strong>
                                     <button type="button" data-trip-calendar-close aria-label="Close date calendar"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
-                                <p class="trip-calendar-hint">Green dots indicate dates with scheduled trips.</p>
+                                <p class="trip-calendar-hint">Colored dots indicate recorded trip statuses. Multiple dots mean different statuses on the same date.</p>
                                 <div class="trip-calendar-month">
                                     <button type="button" data-trip-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
                                     <strong data-trip-calendar-month></strong>
@@ -103,8 +103,20 @@
                                 </div>
                                 <div class="trip-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
                                 <div class="trip-calendar-days" data-trip-calendar-days role="group" aria-label="Choose a trip date"></div>
+                                <div class="trip-calendar-status-legend" aria-label="Trip status color legend">
+                                    <strong>Trip Status Legend</strong>
+                                    <div class="trip-calendar-legend-grid">
+                                        <span><i class="trip-calendar-legend-dot is-scheduled"></i> Scheduled / Ready</span>
+                                        <span><i class="trip-calendar-legend-dot is-in_progress"></i> In Progress</span>
+                                        <span><i class="trip-calendar-legend-dot is-pending_ddr"></i> Pending DDR</span>
+                                        <span><i class="trip-calendar-legend-dot is-completed"></i> Completed</span>
+                                        <span><i class="trip-calendar-legend-dot is-missed"></i> Missed</span>
+                                        <span><i class="trip-calendar-legend-dot is-cancelled"></i> Canceled</span>
+                                        <span><i class="trip-calendar-legend-dot is-delayed"></i> Delayed</span>
+                                    </div>
+                                </div>
                                 <div class="trip-calendar-footer">
-                                    <span><i class="trip-calendar-legend-dot"></i> Has scheduled trips</span>
+                                    <span><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Multiple dots = different statuses</span>
                                     <button type="button" data-trip-calendar-today>Today</button>
                                 </div>
                                 <p class="trip-calendar-feedback" data-trip-calendar-feedback role="status" aria-live="polite"></p>
