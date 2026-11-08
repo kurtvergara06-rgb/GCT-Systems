@@ -215,16 +215,12 @@ class PersonnelController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // Driver ID and name are historical join keys in attendance and
-            // trip records. They cannot change after linked records exist.
-            $hasHistory = $lockedDriver->attendances()->exists()
-                || TripAssignment::query()->where('driver_id', $lockedDriver->driver_id)->exists();
-            if ($hasHistory && (
-                $validated['driver_id'] !== $lockedDriver->driver_id
-                || $validated['driver_name'] !== $lockedDriver->driver_name
-            )) {
+            // Driver ID is the permanent identity key. Correcting the current
+            // display name is allowed; historical attendance/assignment/DDR
+            // name snapshots are deliberately preserved for audit integrity.
+            if ($validated['driver_id'] !== $lockedDriver->driver_id) {
                 throw ValidationException::withMessages([
-                    'driver_id' => 'Driver ID and name cannot be changed after attendance or trip history exists.',
+                    'driver_id' => 'Driver ID is permanent and cannot be changed.',
                 ]);
             }
 
