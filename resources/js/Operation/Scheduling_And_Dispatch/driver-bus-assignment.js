@@ -396,7 +396,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 <span><strong>${escapeHtml(item.driver.name)}</strong><small>${escapeHtml(item.driver.driver_id)} · ${item.buses.length} eligible bus(es)</small></span>
                 <i class="fa-solid ${active ? 'fa-circle-check' : 'fa-circle'}" aria-hidden="true"></i>
             </button>`;
-        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(fleetPairs.length ? 'No driver matches your search.' : availabilitySummary.reason)}</p>`;
+        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(fleetPairs.length ? 'No driver matches your search.' : (fleetMode === 'Reserve' ? reserveNotice : availabilitySummary.reason))}</p>`;
 
         if (selectedDriverSummary) selectedDriverSummary.textContent = chosen
             ? `${chosen.driver.name} · ${chosen.buses.length} eligible bus(es)`
