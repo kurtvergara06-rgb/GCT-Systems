@@ -59,23 +59,19 @@ class DriverAttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Keep the attendance record list in sync with the selected KPI date.
+        // Weekly DDR submissions verify service dates retrospectively.
+        // Legacy tab=today links now show the same unified history instead
+        // of implying that today's DDR must already have been submitted.
         $request->validate([
             'tab' => ['sometimes', 'in:today,history'],
             'attendance_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
         ]);
-        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        $activeTab = $request->input('tab') === 'history' ? 'history' : 'today';
-        // History shows every prior date unless the operator explicitly filters it.
-        $summaryDate = $activeTab === 'today' ? $today : $request->input('attendance_date');
-        if ($activeTab === 'history') {
-            $query->whereDate('attendance_date', '<', $today);
-            if ($summaryDate) $query->whereDate('attendance_date', $summaryDate);
-        } else {
-            $query->whereDate('attendance_date', $today);
+        $summaryDate = $request->input('attendance_date');
+        if ($summaryDate) {
+            $query->whereDate('attendance_date', $summaryDate);
         }
 
-        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in', 'attendance_date' => 'attendance_date'], $activeTab === 'history' ? 'attendance_date' : 'driver_name', $activeTab === 'history' ? 'desc' : 'asc');
+        TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in', 'attendance_date' => 'attendance_date'], 'attendance_date', 'desc');
         $driverAttendances = $query
             ->paginate(10)
             ->withQueryString();
@@ -98,43 +94,22 @@ class DriverAttendanceController extends Controller
 
         $summaryQuery = DriverAttendance::query();
         $ddrConfirmed($summaryQuery);
-        if ($activeTab === 'today') {
-            $summaryQuery->whereDate('attendance_date', $today);
-        } else {
-            $summaryQuery->whereDate('attendance_date', '<', $today);
-            if ($summaryDate) $summaryQuery->whereDate('attendance_date', $summaryDate);
+        if ($summaryDate) {
+            $summaryQuery->whereDate('attendance_date', $summaryDate);
         }
 
-        $present = (clone $summaryQuery)->where('status', 'Present')->count();
-        $assignedPresent = (clone $summaryQuery)->where('status', 'Present')
-            ->whereExists(function ($query) {
-                $query->selectRaw('1')
-                    ->from('trip_assignments')
-                    ->join('trip_schedules', 'trip_schedules.id', '=', 'trip_assignments.trip_schedule_id')
-                    ->whereColumn('trip_assignments.driver_id', 'driver_attendances.driver_id')
-                    ->whereColumn('trip_schedules.trip_date', 'driver_attendances.attendance_date')
-                    ->whereNotIn('trip_schedules.status', ['Cancelled', 'Missed', 'Completed']);
-            })->count();
-        $unassignedPresent = max(0, $present - $assignedPresent);
+        $verifiedDrivers = (clone $summaryQuery)->distinct()->count('driver_id');
         $attendanceRecords = (clone $summaryQuery)->count();
-        $absent = (clone $summaryQuery)->where('status', 'Absent')->count();
-        $late = (clone $summaryQuery)->where('status', 'Late')->count();
-        $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
-
-        $nextDriverId = 'From Driver Master List';
+        $verifiedTripDays = (clone $summaryQuery)->distinct()->count('attendance_date');
+        $lastVerifiedDate = (clone $summaryQuery)->max('attendance_date');
 
         return view('Operation.Attendance.driver-attendance', compact(
             'driverAttendances',
-            'present',
-            'assignedPresent',
-            'unassignedPresent',
+            'verifiedDrivers',
             'attendanceRecords',
-            'absent',
-            'late',
-            'onDuty',
-            'nextDriverId',
-            'summaryDate',
-            'activeTab'
+            'verifiedTripDays',
+            'lastVerifiedDate',
+            'summaryDate'
         ));
     }
 
