@@ -2580,3 +2580,42 @@
     flex: 0 0 auto;
     line-height: 1;
 }
+
+/* Correct the underlying table geometry: the label was clipped because the
+   browser compressed its last table cell despite the sticky-cell CSS width.
+   Explicit column tracks keep the View button fully inside that cell. */
+.trip-records-page .unified-trip-history-table {
+    width: max(100%, 1460px);
+    min-width: 1460px;
+    table-layout: fixed;
+}
+.trip-records-page .unified-trip-history-table col.history-col-trip { width: 170px; }
+.trip-records-page .unified-trip-history-table col.history-col-schedule { width: 150px; }
+.trip-records-page .unified-trip-history-table col.history-col-route { width: 190px; }
+.trip-records-page .unified-trip-history-table col.history-col-resources { width: 165px; }
+.trip-records-page .unified-trip-history-table col.history-col-slots { width: 90px; }
+.trip-records-page .unified-trip-history-table col.history-col-assignment { width: 180px; }
+.trip-records-page .unified-trip-history-table col.history-col-status { width: 165px; }
+.trip-records-page .unified-trip-history-table col.history-col-actual { width: 180px; }
+.trip-records-page .unified-trip-history-table col.history-col-action { width: 170px; }
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > thead > tr > th:last-child,
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: sticky;
+    right: 0;
+    box-sizing: border-box;
+    text-align: center;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
+    width: 84px;
+    min-width: 84px;
+    max-width: 84px;
+    height: 32px;
+    padding: 0 10px;
+    gap: 7px;
+    overflow: visible;
+}
