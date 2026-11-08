@@ -638,6 +638,21 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertStringContainsString('data-slot-number="{{ $assignment->slot_number }}"', $view);
     }
 
+    public function test_assignment_table_separates_edit_replace_and_remove_actions(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString(
+            '$requiresHeadReplacement = $trip->status === \'Ready\' || $needsMaintenanceReplacement',
+            $view
+        );
+        $this->assertStringContainsString('@if($canChangeSlot)', $view);
+        $this->assertStringContainsString('@if(! $requiresHeadReplacement)', $view);
+        $this->assertStringContainsString('fa-arrow-right-arrow-left', $view);
+        $this->assertStringContainsString('data-ready-replacement="{{ $requiresHeadReplacement ? \'true\' : \'false\' }}"', $view);
+        $this->assertStringContainsString('Only Operations Head can authorize this replacement', $view);
+    }
+
     public function test_assignment_modal_supports_driver_first_selection_in_create_and_edit(): void
     {
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
