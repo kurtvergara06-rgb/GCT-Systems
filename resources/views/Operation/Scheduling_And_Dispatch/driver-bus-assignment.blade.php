@@ -116,7 +116,7 @@
                         <div class="assignment-calendar-heading"><strong>Select Assignment Date</strong>
                             <button type="button" data-assignment-calendar-close aria-label="Close calendar"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <p class="assignment-calendar-hint">Colored dots show assignment status. Multiple dots indicate different states on the same date.</p>
+                        <p class="assignment-calendar-hint">Colored dots show assignment outcomes and operational trip statuses. Multiple dots indicate different states on the same date.</p>
                         <div class="assignment-calendar-month">
                             <button type="button" data-assignment-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
                             <strong data-assignment-calendar-month></strong>
