@@ -1725,3 +1725,17 @@
         align-items: flex-start;
     }
 }
+
+/* Completed trips in the attendance modal use a clear success status. */
+#viewDriverAttendanceModal .attendance-modal-trip-status.is-completed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-color: #b7e8c8;
+    background: #dcfce7;
+    color: #15803d;
+}
+#viewDriverAttendanceModal .attendance-modal-trip-status.is-completed i {
+    font-size: 11px;
+    flex: 0 0 auto;
+}
