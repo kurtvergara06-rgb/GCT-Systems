@@ -336,6 +336,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const pairSearch = document.getElementById('assignmentPairSearch');
     const pairCount = document.getElementById('assignmentPairCount');
     let eligiblePairs = [];
+    let editingSlotNumber = 0;
     let availabilitySummary = { drivers: 0, buses: 0, reason: 'Select a trip to load eligible pairs.' };
 
     function updatePairTripContext(trip = null) {
