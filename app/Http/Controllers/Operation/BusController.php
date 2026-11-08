@@ -810,8 +810,7 @@ class BusController extends Controller
     private function unresolvedJobOrderBusNumbers()
     {
         return JobOrder::query()->blocksDispatch()
-            ->select('bus_no')
-            ;
+            ->select('bus_no');
     }
 
     private function hasTripBusHistory(Bus $bus, bool $lock = false): bool
