@@ -283,7 +283,8 @@ class TripAssignmentController extends Controller
             $date = $row->trip_date->toDateString();
             $status = match ($row->status) {
                 'Missed' => 'missed',
-                'Completed', 'Cancelled', 'Canceled' => 'history',
+                'Completed' => 'completed',
+                'Cancelled', 'Canceled' => 'cancelled',
                 'Dispatched', 'In Progress' => 'in_progress',
                 'Pending DDR' => 'pending_ddr',
                 'Delayed' => 'delayed',
