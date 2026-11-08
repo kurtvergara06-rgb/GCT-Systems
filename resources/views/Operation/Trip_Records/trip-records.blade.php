@@ -67,6 +67,17 @@
 
 
                     <table class="trip-table trip-history-table unified-trip-history-table">
+                        <colgroup>
+                            <col class="history-col-trip">
+                            <col class="history-col-schedule">
+                            <col class="history-col-route">
+                            <col class="history-col-resources">
+                            <col class="history-col-slots">
+                            <col class="history-col-assignment">
+                            <col class="history-col-status">
+                            <col class="history-col-actual">
+                            <col class="history-col-action">
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th>Trip ID</th>
