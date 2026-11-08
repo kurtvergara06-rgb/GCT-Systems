@@ -209,11 +209,11 @@
                                                     <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                                                 </button>
                                             @else
-                                            <button type="button" class="action-btn view inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident details and workflow" title="Incident Details & Workflow"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></button>
+                                            <x-ui.action-button type="view" icon="fa-diagram-project" class="inc-action" data-incident-workflow-open data-workflow-url="{{ route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]) }}" data-incident-full-url="{{ route('incidents.show', ['incident' => $incident->incident_no]) }}" aria-label="Open incident details and workflow" title="Incident Details & Workflow" />
                                             @if($canModifyIncident)
-                                                <button type="button" class="action-btn edit inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                                <x-ui.action-button type="edit" class="inc-action inc-edit-action" data-incident-modal-action="edit" data-update-url="{{ route('incidents.details.update', ['incident' => $incident->incident_no]) }}" aria-label="Edit incident" title="Edit Incident" />
                                             @else
-                                                <button type="button" class="action-btn edit inc-action inc-edit-action inc-action-disabled" disabled title="{{ $editLockReason }}" aria-label="Edit unavailable"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                                <x-ui.action-button type="edit" class="inc-action inc-edit-action inc-action-disabled" :disabled="true" :title="$editLockReason" aria-label="Edit unavailable" />
                                             @endif
                                             @if($canArchiveIncident)
                                                 <form method="POST" action="{{ route('incidents.destroy', ['incident' => $incident->incident_no]) }}" data-confirm-form data-confirm-type="delete" data-confirm-title="Archive Incident" data-confirm-message="Archive this unprocessed incident? It will leave Active records while its audit history remains available.">
@@ -222,7 +222,7 @@
                                                     <x-ui.action-button type="delete" button-type="submit" class="inc-action inc-delete-action" title="Archive Incident" aria-label="Archive incident" />
                                                 </form>
                                             @else
-                                                <button type="button" class="action-btn delete inc-action inc-delete-action inc-action-disabled" disabled title="{{ $archiveLockReason }}" aria-label="Archive unavailable"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                                <x-ui.action-button type="delete" class="inc-action inc-delete-action inc-action-disabled" :disabled="true" :title="$archiveLockReason" aria-label="Archive unavailable" />
                                             @endif
                                             @endif
                                         </div>
