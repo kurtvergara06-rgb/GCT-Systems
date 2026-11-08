@@ -208,6 +208,7 @@ export default defineConfig({
                 'resources/css/Operation/Clients/client-master-list.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
                 'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
+                'resources/css/Operation/Scheduling_And_Dispatch/trip-calendar-status.css',
 
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
                 'resources/js/Operation/Scheduling_And_Dispatch/auto-calendar.js',
