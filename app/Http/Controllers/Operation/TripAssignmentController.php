@@ -966,8 +966,7 @@ class TripAssignmentController extends Controller
 
         if (JobOrder::query()->blocksDispatch()
             ->where('bus_no', $bus->bus_no)
-            
-            ->exists()) {
+                        ->exists()) {
             throw ValidationException::withMessages([
                 'bus_id' => 'This bus has an unresolved Maintenance Job Order and cannot be assigned until Maintenance clears it.',
             ]);
