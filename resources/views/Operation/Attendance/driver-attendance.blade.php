@@ -17,7 +17,7 @@
 
     <x-layout.sidebar department="Operation" />
 
-    <main class="main driver-attendance-page" data-attendance-business-date="{{ now(config('app.business_timezone', 'Asia/Manila'))->toDateString() }}" data-attendance-auto-today="{{ $activeTab === 'today' ? '1' : '0' }}">
+    <main class="main driver-attendance-page" >
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="DDR-verified driver attendance history"
@@ -35,42 +35,28 @@
       @endif
 
       <section data-ajax-region="summary" class="stats-grid">
-        <x-ui.summary-card label="Present" value="{{ $present }}" small="Confirmed Present for current view" icon="fa-user-check" color="green" />
-        <x-ui.summary-card label="Assigned Present" value="{{ $assignedPresent }}" small="Present drivers assigned to active trips" icon="fa-bus" color="blue" />
-        <x-ui.summary-card label="Unassigned Present" value="{{ $unassignedPresent }}" small="Present drivers without active trip assignments" icon="fa-user-clock" color="yellow" />
-        <x-ui.summary-card label="Attendance Records" value="{{ $attendanceRecords }}" small="All saved statuses for current view" icon="fa-clipboard-list" color="purple" />
+        <x-ui.summary-card label="Verified Drivers" value="{{ $verifiedDrivers }}" small="Unique drivers with DDR-confirmed attendance" icon="fa-user-check" color="green" />
+        <x-ui.summary-card label="Verified Attendance Records" value="{{ $attendanceRecords }}" small="Driver service dates confirmed by DDR" icon="fa-clipboard-list" color="blue" />
+        <x-ui.summary-card label="Verified Service Dates" value="{{ $verifiedTripDays }}" small="Distinct service dates with confirmed attendance" icon="fa-calendar-check" color="yellow" />
+        <x-ui.summary-card label="Latest Verified Date" value="{{ $lastVerifiedDate ? \Illuminate\Support\Carbon::parse($lastVerifiedDate)->format('M d, Y') : '—' }}" small="Latest service date with a DDR record" icon="fa-clock-rotate-left" color="purple" />
       </section>
 
       <section data-ajax-region="records" class="table-card attendance-card">
         <div class="section-header">
           <div>
-            <h2>Driver Attendance List</h2>
-            <p>Attendance is automatically verified by a valid DDR.</p>
+            <h2>DDR-Verified Attendance History</h2>
+            <p>Attendance is confirmed by submitted DDR records for each service date.</p>
           </div>
           <span class="gct-pill gct-pill--unassigned">Automatically verified from DDR</span>
 
         </div>
 
         <div class="attendance-record-controls">
-          <nav class="attendance-record-tabs" aria-label="Driver attendance record groups">
-            <a class="attendance-record-tab {{ $activeTab === 'today' ? 'is-active' : '' }}"
-               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'attendance_date', 'page']), ['tab' => 'today'])) }}"
-               @if($activeTab === 'today') aria-current="page" @endif>
-              <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Today's Attendance
-            </a>
-            <a class="attendance-record-tab {{ $activeTab === 'history' ? 'is-active' : '' }}"
-               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'attendance_date', 'page']), ['tab' => 'history'])) }}"
-               @if($activeTab === 'history') aria-current="page" @endif>
-              <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Attendance History
-            </a>
-          </nav>
-        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In', 'attendance_date' => 'Attendance Date']" default-sort="{{ $activeTab === 'history' ? 'attendance_date' : 'driver_name' }}">
-          <x-slot:hidden><input type="hidden" name="tab" value="{{ $activeTab }}"></x-slot:hidden>
+        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status') + (int) request()->filled('attendance_date')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In', 'attendance_date' => 'Attendance Date']" default-sort="attendance_date">
+
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
-            @if($activeTab === 'history')
-              <x-ui.table-toolbar-field label="Attendance Date (optional)" name="attendance_date" type="date" :value="$summaryDate" />
-            @endif
+            <x-ui.table-toolbar-field label="Service Date (optional)" name="attendance_date" type="date" :value="$summaryDate" />
           </x-slot:filters>
         </x-ui.table-toolbar>
 
