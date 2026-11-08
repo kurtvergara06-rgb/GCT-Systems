@@ -106,6 +106,7 @@ final class StatusBadge
             'in-review' => ['tone' => 'pending', 'icon' => 'fa-magnifying-glass'],
             'review' => ['tone' => 'warning', 'icon' => 'fa-magnifying-glass'],
             'priority-review' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
+            'replacement-required' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
             'for-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],
             'needs-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],
             'for-pick-up' => ['tone' => 'scheduled', 'icon' => 'fa-box'],
