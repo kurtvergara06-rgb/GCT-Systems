@@ -3773,18 +3773,22 @@
     border-radius: 50%;
     background: #94a3b8;
 }
-.trip-schedule-page .trip-calendar-day-dot.is-scheduled,
-.trip-schedule-page .trip-calendar-legend-dot.is-scheduled { background: #eab308; }
+.trip-schedule-page .trip-calendar-day-dot.is-unassigned,
+.trip-schedule-page .trip-calendar-legend-dot.is-unassigned { background: #eab308; }
+.trip-schedule-page .trip-calendar-day-dot.is-partial,
+.trip-schedule-page .trip-calendar-legend-dot.is-partial { background: #f97316; }
+.trip-schedule-page .trip-calendar-day-dot.is-assigned,
+.trip-schedule-page .trip-calendar-legend-dot.is-assigned { background: #16a34a; }
 .trip-schedule-page .trip-calendar-day-dot.is-in_progress,
-.trip-schedule-page .trip-calendar-legend-dot.is-in_progress { background: #2563eb; }
+.trip-schedule-page .trip-calendar-legend-dot.is-in_progress { background: #7c3aed; }
 .trip-schedule-page .trip-calendar-day-dot.is-pending_ddr,
-.trip-schedule-page .trip-calendar-legend-dot.is-pending_ddr { background: #f97316; }
+.trip-schedule-page .trip-calendar-legend-dot.is-pending_ddr { background: #2563eb; }
 .trip-schedule-page .trip-calendar-day-dot.is-completed,
 .trip-schedule-page .trip-calendar-legend-dot.is-completed { background: #16a34a; }
 .trip-schedule-page .trip-calendar-day-dot.is-missed,
 .trip-schedule-page .trip-calendar-legend-dot.is-missed { background: #dc2626; }
 .trip-schedule-page .trip-calendar-day-dot.is-cancelled,
-.trip-schedule-page .trip-calendar-legend-dot.is-cancelled { background: #94a3b8; }
+.trip-schedule-page .trip-calendar-legend-dot.is-cancelled { background: #dc2626; }
 .trip-schedule-page .trip-calendar-day-dot.is-delayed,
 .trip-schedule-page .trip-calendar-legend-dot.is-delayed { background: #8b5cf6; }
 .trip-schedule-page .trip-calendar-status-legend {
