@@ -184,4 +184,22 @@ class FrontendAssetOptimizationTest extends TestCase
         $this->assertStringContainsString('remove-assignment', $assignmentJs);
     }
 
+
+    public function test_trip_schedule_calendar_shows_status_breakdown_and_legend(): void
+    {
+        $controller = file_get_contents(app_path('Http/Controllers/Operation/TripScheduleController.php'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/trip-schedule.css'));
+
+        $this->assertStringContainsString("->groupBy('trip_date', 'status')", $controller);
+        $this->assertStringContainsString("'Missed' => 'missed'", $controller);
+        $this->assertStringContainsString("'Pending DDR' => 'pending_ddr'", $controller);
+        $this->assertStringContainsString('trip-calendar-status-legend', $view);
+        $this->assertStringContainsString('Multiple dots = different statuses', $view);
+        $this->assertStringContainsString('trip-calendar-status-dots', $script);
+        $this->assertStringContainsString('statuses = data.statuses', $script);
+        $this->assertStringContainsString('.trip-calendar-day-dot.is-missed', $styles);
+    }
+
 }
