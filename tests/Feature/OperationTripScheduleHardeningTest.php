@@ -1461,6 +1461,60 @@ class OperationTripScheduleHardeningTest extends TestCase
         }
     }
 
+    public function test_overdue_demo_trip_with_now_unavailable_bus_recovers_without_changing_future_or_real_trips(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00', 'Asia/Manila'));
+
+        try {
+            $route = $this->route();
+            $demo = $this->trip($route, [
+                'trip_code' => 'TRIP-DEMO26-20261105-1',
+                'trip_date' => '2026-11-05',
+                'estimated_arrival_date' => '2026-11-05',
+                'assignment_status' => 'Assigned',
+            ]);
+            $futureDemo = $this->trip($route, [
+                'trip_code' => 'TRIP-DEMO26-20261109-1',
+                'trip_date' => '2026-11-09',
+                'estimated_arrival_date' => '2026-11-09',
+                'assignment_status' => 'Assigned',
+            ]);
+            $real = $this->trip($route, [
+                'trip_code' => 'TRIP-REAL-20261105-1',
+                'trip_date' => '2026-11-05',
+                'estimated_arrival_date' => '2026-11-05',
+                'assignment_status' => 'Assigned',
+            ]);
+
+            foreach ([$demo, $futureDemo, $real] as $index => $trip) {
+                [$driver, $attendance, $bus] = $this->assignmentResources(
+                    $trip->trip_date->toDateString(),
+                    'DEMO-MAINT-'.$index
+                );
+                TripAssignment::create([
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $attendance->id,
+                    'driver_id' => $driver->driver_id,
+                    'driver_name' => $attendance->driver_name,
+                    'bus_id' => $bus->id,
+                ]);
+                $bus->update(['status' => 'Under Maintenance']);
+            }
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+
+            $this->assertSame('Pending DDR', $demo->fresh()->status);
+            $this->assertSame('Scheduled', $futureDemo->fresh()->status);
+            $this->assertSame('Scheduled', $real->fresh()->status);
+            $this->assertSame('Assigned', $demo->fresh()->assignment_status);
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+            $this->assertSame('Pending DDR', $demo->fresh()->status);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_overdue_unassigned_trips_are_persisted_as_missed_without_changing_terminal_trips(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00', 'Asia/Manila'));
