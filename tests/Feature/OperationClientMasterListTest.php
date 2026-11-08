@@ -89,6 +89,29 @@ class OperationClientMasterListTest extends TestCase
             ->assertDontSee('data-client-mode="edit"', false);
     }
 
+    public function test_client_actions_use_icon_only_buttons_with_accessible_labels(): void
+    {
+        $client = OperationClient::create(['name' => 'Icon Button Client', 'status' => 'Active']);
+
+        $this->actingAs($this->operationUser(true))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('aria-label="View Icon Button Client"', false)
+            ->assertSee('aria-label="Edit Icon Button Client"', false)
+            ->assertSee('aria-label="View trip times for Icon Button Client"', false)
+            ->assertSee('aria-label="Deactivate Icon Button Client"', false)
+            ->assertSee('fa-eye', false)
+            ->assertSee('fa-pen-to-square', false)
+            ->assertSee('fa-clock', false)
+            ->assertSee('fa-power-off', false)
+            ->assertDontSee('<span>Trip Times</span>', false)
+            ->assertDontSee('<span>Edit</span>', false);
+
+        $styles = file_get_contents(resource_path('css/Operation/Clients/client-master-list.css'));
+        $this->assertStringContainsString('min-width: 184px;', $styles);
+        $this->assertStringContainsString('width: 34px;', $styles);
+    }
+
     public function test_client_details_can_be_corrected_without_changing_client_id_or_allocations(): void
     {
         $client = OperationClient::create(['name' => 'Original Client', 'status' => 'Active']);
