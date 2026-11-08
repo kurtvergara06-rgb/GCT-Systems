@@ -215,7 +215,7 @@
 
             <div class="trip-detail-body">
                 <section class="unified-trip-ddr-times" aria-label="DDR reported actual times">
-                    <h3>Driver-Reported Actual Times (DDR)</h3>
+                    <h3><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Driver-Reported Actual Times (DDR)</h3>
                     <p>Only linked DDR records are shown. Each bus or additional trip is listed separately.</p>
                     <div class="unified-trip-ddr-table-wrap">
                         <table>
@@ -233,7 +233,7 @@
                 <div class="unit-records-card">
                     <div class="unit-records-header">
                         <div class="unit-records-title-group">
-                            <h3>Assigned Units</h3>
+                            <h3><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Assigned Units</h3>
                             <p>Actual saved driver and bus assignments for this trip.</p>
                         </div>
                         <div class="unit-records-controls">
@@ -241,7 +241,6 @@
                                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                                 <input type="search" id="unitRecordSearchInput" placeholder="Search plate, driver, or bus..." aria-label="Search assigned units" />
                             </label>
-                            <button type="button" class="unit-records-export-btn" id="unitExportBtn"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export Units CSV</button>
                         </div>
                     </div>
                     <div class="unit-records-table-wrap">
