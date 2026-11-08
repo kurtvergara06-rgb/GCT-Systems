@@ -171,6 +171,67 @@ class AutoSchedulingController extends Controller
     }
 
     /**
+     * Read-only monthly trip summary for the Auto Scheduling calendar.
+     * Count trips, not bus slots. Only active routes and schedulable statuses
+     * appear; the pending bucket follows the same eligibility query as index().
+     */
+    public function calendar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+            'shuttle_route_id' => ['nullable'],
+        ]);
+
+        $month = Carbon::createFromFormat('!Y-m', $validated['month'], config('app.business_timezone', 'Asia/Manila'));
+        $start = $month->copy()->startOfMonth()->toDateString();
+        $end = $month->copy()->endOfMonth()->toDateString();
+        $route = $validated['shuttle_route_id'] ?? 'all';
+
+        $query = TripSchedule::query()
+            ->whereBetween('trip_date', [$start, $end])
+            ->whereIn('status', ['Scheduled', 'Ready'])
+            ->whereHas('shuttleRoute', fn ($builder) => $builder->where('status', 'Active'));
+
+        if ($route !== 'all') {
+            $query->where('shuttle_route_id', $route);
+        }
+
+        $totals = (clone $query)
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $assigned = (clone $query)
+            ->where('assignment_status', 'Assigned')
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $pending = (clone $query)
+            ->notDeparted()
+            ->where('assignment_status', '!=', 'Assigned')
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $days = [];
+        foreach ($month->copy()->startOfMonth()->daysUntil($month->copy()->endOfMonth()->addDay()) as $day) {
+            $date = $day->toDateString();
+            $days[] = [
+                'date' => $date,
+                'total' => (int) ($totals[$date] ?? 0),
+                'pending' => (int) ($pending[$date] ?? 0),
+                'assigned' => (int) ($assigned[$date] ?? 0),
+            ];
+        }
+
+        return response()->json([
+            'month' => $month->format('Y-m'),
+            'days' => $days,
+        ]);
+    }
+
+    /**
      * Proxy the Python model-readiness report for the Auto Scheduling page.
      */
     public function trainingStatus(): JsonResponse
