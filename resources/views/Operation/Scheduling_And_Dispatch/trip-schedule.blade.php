@@ -107,12 +107,14 @@
                                 <div class="trip-calendar-status-legend" aria-label="Trip status color legend">
                                     <strong>Trip Status Legend</strong>
                                     <div class="trip-calendar-legend-grid">
-                                        <span><i class="trip-calendar-legend-dot is-scheduled"></i> Scheduled / Ready</span>
+                                        <span><i class="trip-calendar-legend-dot is-unassigned"></i> Scheduled / Unassigned</span>
+                                        <span><i class="trip-calendar-legend-dot is-partial"></i> Partially Assigned</span>
+                                        <span><i class="trip-calendar-legend-dot is-assigned"></i> Fully Assigned / Ready</span>
                                         <span><i class="trip-calendar-legend-dot is-in_progress"></i> In Progress</span>
                                         <span><i class="trip-calendar-legend-dot is-pending_ddr"></i> Pending DDR</span>
                                         <span><i class="trip-calendar-legend-dot is-completed"></i> Completed</span>
                                         <span><i class="trip-calendar-legend-dot is-missed"></i> Missed</span>
-                                        <span><i class="trip-calendar-legend-dot is-cancelled"></i> Canceled</span>
+                                        <span><i class="trip-calendar-legend-dot is-cancelled"></i> Cancelled</span>
                                         <span><i class="trip-calendar-legend-dot is-delayed"></i> Delayed</span>
                                     </div>
                                 </div>
