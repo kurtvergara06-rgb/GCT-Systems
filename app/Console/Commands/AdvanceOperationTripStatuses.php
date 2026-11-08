@@ -40,6 +40,21 @@ class AdvanceOperationTripStatuses extends Command
                         }
 
                         $trip->syncAssignmentStatus(false);
+
+                        // Legacy DEMO records were inserted with assigned slots but
+                        // without the model's Ready transition. A bus's *current*
+                        // maintenance status cannot tell us whether it was usable
+                        // on a historical demo trip date. Recover only fully
+                        // assigned, departed demo records; keep real trip safety
+                        // decisions and all future readiness checks unchanged.
+                        if ($trip->status === 'Scheduled'
+                            && str_starts_with((string) $trip->trip_code, 'TRIP-DEMO')
+                            && $trip->hasDeparted()
+                            && $trip->is_fully_assigned
+                            && $trip->assignments()->exists()) {
+                            $trip->status = 'Ready';
+                        }
+
                         if (! $trip->isDirty()) {
                             return;
                         }
