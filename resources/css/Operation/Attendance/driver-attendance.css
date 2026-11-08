@@ -1537,3 +1537,67 @@
         min-width: 880px;
     }
 }
+
+/* Six columns: separate scheduled service date/time from bus and trip IDs.
+   This scoped layout supersedes the previous five-column sizing. */
+.driver-attendance-page .attendance-table th:nth-child(4),
+.driver-attendance-page .attendance-table td:nth-child(4) {
+    text-align: left;
+    white-space: normal;
+}
+.driver-attendance-page .attendance-table th:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(5),
+.driver-attendance-page .attendance-table th:nth-child(6),
+.driver-attendance-page .attendance-table td:nth-child(6) {
+    text-align: center;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-trip-datetime {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+    text-align: left;
+}
+.driver-attendance-page .attendance-trip-date,
+.driver-attendance-page .attendance-trip-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    color: #284467;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.driver-attendance-page .attendance-trip-date { font-weight: 750; }
+.driver-attendance-page .attendance-trip-time { color: #5c7698; }
+.driver-attendance-page .attendance-trip-datetime i {
+    flex: 0 0 auto;
+    width: 12px;
+    text-align: center;
+    color: #3974bf;
+}
+.driver-attendance-page .attendance-trip-time.is-empty {
+    font-weight: 500;
+    font-style: italic;
+    color: #94a3b8;
+}
+.driver-attendance-page .attendance-table th:last-child,
+.driver-attendance-page .attendance-table td:last-child:not([colspan]) {
+    box-sizing: border-box;
+    width: 12%;
+    min-width: 110px;
+}
+@media (max-width: 1000px) {
+    .driver-attendance-page .table-wrap.attendance-record-table-wrap {
+        overflow-x: auto;
+    }
+    .driver-attendance-page .attendance-table {
+        min-width: 1020px;
+    }
+}
