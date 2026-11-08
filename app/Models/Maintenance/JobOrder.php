@@ -261,6 +261,23 @@ class JobOrder extends Model
         return $this->status === 'On Going' ? 'In Progress' : $this->status;
     }
 
+    /**
+     * A planned PMS request does not withdraw a bus from dispatch.
+     * It becomes a blocking maintenance activity only at physical start.
+     * Preserve the established restrictions for all non-PMS open work.
+     */
+    public function scopeBlocksDispatch($query)
+    {
+        return $query->where('status', '!=', 'Completed')
+            ->where(function ($q): void {
+                $q->where('maintenance_type', '!=', 'PMS')
+                    ->orWhere(function ($pms): void {
+                        $pms->where('maintenance_type', 'PMS')
+                            ->whereNotNull('actual_started_at');
+                    });
+            });
+    }
+
     public function scopeOpen($query)
     {
         return $query->where('status', '!=', 'Completed')
