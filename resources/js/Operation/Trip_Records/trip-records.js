@@ -31,16 +31,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
     const elAssignedSlots = document.getElementById('modalAssignedSlots');
     const elAssignmentOutcome = document.getElementById('modalAssignmentOutcome');
 
-    let currentTrip = null;
-    const csvCell = (value) => {
-        const raw = String(value ?? '');
-        const safe = /^[\\s]*[=+@-]/.test(raw) ? "'" + raw : raw;
-        return '"' + safe.replaceAll('"', '""') + '"';
-    };
-
     const openModal = (data) => {
         if (!data) return;
-        currentTrip = data;
         const rows = modalOverlay.querySelector('#actualTripUnitRows');
         if (rows) {
             rows.replaceChildren();
@@ -175,36 +167,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         }, { signal });
     }
 
-    // The modal lives outside <main>; handle its controls on the overlay.
+    // The modal lives outside <main>; close it only using explicit controls.
     modalOverlay.addEventListener('click', (event) => {
         if (event.target.closest('.trip-modal-close, .trip-modal-dismiss')) {
             closeModal();
-            return;
         }
-
-        const exportBtn = event.target.closest('#unitExportBtn');
-        if (exportBtn) {
-            const assignments = Array.isArray(currentTrip?.assignments) ? currentTrip.assignments : [];
-            const csvRows = [
-                ['Trip ID', 'Slot', 'Bus No.', 'Plate Number', 'Bus Model', 'Driver Name', 'Driver ID', 'Scheduled Departure', 'Trip Status', 'Resource Type'],
-                ...assignments.map((a, index) => [
-                    currentTrip.trip_code, index + 1, a.bus_no, a.plate_no, a.bus_model,
-                    a.driver_name, a.driver_id, currentTrip.departure_time, currentTrip.status,
-                    a.external ? 'External rental' : 'Regular bus',
-                ]),
-            ];
-            const blob = new Blob([String.fromCharCode(0xFEFF), csvRows.map(row => row.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = (currentTrip?.trip_code || 'trip') + '-units.csv';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-            return;
-        }
-
     }, { signal });
 
     page.addEventListener('click', (event) => {
