@@ -141,7 +141,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
         <td><span class="attendance-modal-trip-bus">${escapeAttendanceHtml(trip.bus ?? '—')}</span></td>
         <td>${escapeAttendanceHtml(trip.date ?? '—')}</td>
         <td><span class="attendance-modal-trip-time">${escapeAttendanceHtml(trip.departure ?? '—')} – ${escapeAttendanceHtml(trip.arrival ?? '—')}</span></td>
-        <td><span class="attendance-modal-trip-status">${escapeAttendanceHtml(trip.status ?? 'Unknown')}</span></td>
+        <td><span class="attendance-modal-trip-status ${String(trip.status || '').trim().toLowerCase() === 'completed' ? 'is-completed' : ''}">${String(trip.status || '').trim().toLowerCase() === 'completed' ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i>' : ''}${escapeAttendanceHtml(trip.status ?? 'Unknown')}</span></td>
       </tr>`).join('');
   }
 
@@ -180,7 +180,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
           ['Driver ID', button.dataset.driverId],
           ['Driver Name', button.dataset.driverName],
           ['Role', 'Driver'],
-          ['Shift', button.dataset.shift],
           ['Service Date', button.dataset.attendanceDate],
           ['Time-in', button.dataset.timeIn],
 
