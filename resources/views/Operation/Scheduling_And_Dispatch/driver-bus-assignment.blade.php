@@ -127,13 +127,14 @@
                         <div class="assignment-calendar-legend" aria-label="Assignment and trip status color legend">
                             <strong>Trip Status Legend</strong>
                             <div class="assignment-calendar-legend-grid">
-                                <span><i class="assignment-calendar-dot is-unassigned"></i> Unassigned</span>
+                                <span><i class="assignment-calendar-dot is-unassigned"></i> Scheduled / Unassigned</span>
                                 <span><i class="assignment-calendar-dot is-partial"></i> Partially Assigned</span>
-                                <span><i class="assignment-calendar-dot is-assigned"></i> Fully Assigned</span>
+                                <span><i class="assignment-calendar-dot is-assigned"></i> Fully Assigned / Ready</span>
                                 <span><i class="assignment-calendar-dot is-in_progress"></i> In Progress</span>
                                 <span><i class="assignment-calendar-dot is-pending_ddr"></i> Pending DDR</span>
+                                <span><i class="assignment-calendar-dot is-completed"></i> Completed</span>
                                 <span><i class="assignment-calendar-dot is-missed"></i> Missed</span>
-                                <span><i class="assignment-calendar-dot is-history"></i> Completed / Canceled</span>
+                                <span><i class="assignment-calendar-dot is-cancelled"></i> Cancelled</span>
                                 <span><i class="assignment-calendar-dot is-delayed"></i> Delayed</span>
                             </div>
                         </div>
