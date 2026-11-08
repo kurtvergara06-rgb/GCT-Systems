@@ -67,6 +67,27 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (elRequiredSlots) elRequiredSlots.textContent = data.required_buses ?? '—';
         if (elAssignedSlots) elAssignedSlots.textContent = data.assigned_buses ?? '—';
         if (elAssignmentOutcome) elAssignmentOutcome.textContent = data.assignment_outcome || '—';
+        const ddrBody = modalOverlay.querySelector('#modalDdrTimeRows');
+        if (ddrBody) {
+            ddrBody.replaceChildren();
+            const ddrTimes = Array.isArray(data.ddr_times) ? data.ddr_times : [];
+            if (!ddrTimes.length) {
+                const row = ddrBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 4;
+                cell.textContent = data.status === 'Pending DDR' ? 'Awaiting DDR submission.' : 'No linked DDR recorded.';
+            } else {
+                ddrTimes.forEach(item => {
+                    const row = ddrBody.insertRow();
+                    [
+                        item.ddr_no || '—',
+                        [item.driver, item.bus, item.source].filter(Boolean).join(' • '),
+                        item.departure || '—',
+                        item.arrival || '—',
+                    ].forEach(value => { row.insertCell().textContent = value; });
+                });
+            }
+        }
         if (elTripCode) elTripCode.textContent = data.trip_code || '—';
         
         if (elStatus) {
