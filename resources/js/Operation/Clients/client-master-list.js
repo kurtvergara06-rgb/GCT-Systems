@@ -44,6 +44,8 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
         if (!detailModal || !detailForm) return;
         const editing = button.dataset.clientMode === 'edit' && Boolean(button.dataset.clientUpdateUrl);
         detailForm.action = editing ? button.dataset.clientUpdateUrl : '#';
+        const editId = document.getElementById('clientDetailEditingId');
+        if (editId) editId.value = editing ? (button.dataset.clientRecordId || '') : '';
         detailTitle.textContent = editing ? 'Edit Client Information' : 'View Client Information';
 
         for (const [name, dataKey] of Object.entries(fields)) {
@@ -70,7 +72,27 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
         (editing ? detailForm.elements.namedItem('name') : detailModal.querySelector('[data-ui-modal-close]'))?.focus();
     };
 
-    detailButtons.forEach(button => button.addEventListener('click', () => openDetail(button), { signal }));
+    // Delegation also works when AJAX filters replace individual table rows.
+    root.addEventListener('click', event => {
+        const button = event.target.closest('[data-client-detail-open]');
+        if (button && root.contains(button)) openDetail(button);
+    }, { signal });
+
+    if (detailModal?.dataset.editErrorClient) {
+        const erroredButton = detailButtons.find(button =>
+            button.dataset.clientMode === 'edit'
+            && button.dataset.clientRecordId === detailModal.dataset.editErrorClient
+        );
+        if (erroredButton) {
+            openDetail(erroredButton);
+            const previous = @json(old());
+            for (const name of Object.keys(fields)) {
+                if (!Object.prototype.hasOwnProperty.call(previous, name)) continue;
+                const field = detailForm?.elements.namedItem(name);
+                if (field) field.value = previous[name] ?? '';
+            }
+        }
+    }
     detailForm?.addEventListener('submit', event => {
         if (detailModal?.dataset.mode !== 'edit') event.preventDefault();
     }, { signal });
