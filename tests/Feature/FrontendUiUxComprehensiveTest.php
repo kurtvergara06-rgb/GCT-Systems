@@ -1044,6 +1044,14 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $styles = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
         $this->assertStringContainsString('gct-master-scroll-10.is-master-scrollable', $styles);
         $this->assertStringContainsString('position: sticky;', $styles);
+
+        $busStyles = file_get_contents(resource_path('css/Operation/Shuttle_Bus_Management/bus-master-list.css'));
+        $this->assertStringContainsString('gct-master-scroll-10.is-master-scrollable', $busStyles);
+        $this->assertStringContainsString('overflow-y: auto !important;', $busStyles);
+        $this->assertStringNotContainsString('.table-wrap:has(tbody > tr:nth-child(8))', $busStyles);
+
+        $this->assertStringContainsString('MutationObserver(refreshMasterScroll)', $runtime);
+        $this->assertStringContainsString('observeMasterRows()', $runtime);
     }
 
     public function test_driver_master_view_edit_modals_receive_decodable_record_attributes(): void
