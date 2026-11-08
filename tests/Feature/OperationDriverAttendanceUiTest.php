@@ -83,13 +83,17 @@ class OperationDriverAttendanceUiTest extends TestCase
         $view = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
         $styles = file_get_contents(resource_path('css/Operation/Attendance/driver-attendance.css'));
 
-        $this->assertStringContainsString('class="attendance-assignment-schedule"', $view);
+        $this->assertStringContainsString('<th>Scheduled Date &amp; Time</th>', $view);
+        $this->assertStringContainsString('class="attendance-trip-datetime"', $view);
+        $this->assertStringContainsString('class="attendance-trip-date"', $view);
+        $this->assertStringContainsString('class="attendance-trip-time"', $view);
+        $this->assertStringNotContainsString('class="attendance-assignment-schedule"', $view);
         $this->assertStringContainsString('$attendance->attendance_date?->format(\'M d, Y\')', $view);
         $this->assertStringContainsString('$primaryTrip->departureDateTime()->format(\'g:i A\')', $view);
         $this->assertStringContainsString('$primaryTrip->estimatedArrivalDateTime()->format(\'g:i A\')', $view);
         $this->assertStringNotContainsString('<th>Time-in</th>', $view);
         $this->assertStringNotContainsString("'time_in' => 'Time In'", $view);
-        $this->assertStringContainsString('colspan="5"', $view);
+        $this->assertStringContainsString('colspan="6"', $view);
         $this->assertStringContainsString('data-time-in=', $view);
         $this->assertStringContainsString("class=\"attendance-status-cell\"", $view);
         $this->assertStringContainsString('attendance-view-action open-view-driver-attendance-modal', $view);
@@ -98,7 +102,7 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->assertStringContainsString('button.attendance-view-action', $styles);
         $this->assertStringContainsString('.attendance-assignment-schedule', $styles);
         $this->assertStringContainsString('.attendance-status-cell .gct-pill', $styles);
-        $this->assertStringContainsString('Five-column DDR-verified attendance history', $styles);
+        $this->assertStringContainsString('Six columns: separate scheduled service date/time', $styles);
     }
 
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
