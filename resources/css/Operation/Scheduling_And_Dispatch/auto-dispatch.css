@@ -5265,20 +5265,12 @@ body.ai-modal-open {
   }
 }
 
-/* Reuse the compact eight-column preview geometry. Avoid imposing an
-   oversized 1360px canvas just to make drag scrolling possible. */
+/* Keep the preview scroll canvas compact; semantic .auto-col-* classes
+   below own column widths for both Incoming and Outgoing tables. */
 @media screen {
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
     min-width: 1250px;
   }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(1) { width: 8% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(2) { width: 11% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(3) { width: 14% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(4) { width: 11% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(5) { width: 16% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(6) { width: 10% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(7) { width: 15% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(8) { width: 15% !important; }
 }
 @media screen and (pointer: fine) {
   .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready,
