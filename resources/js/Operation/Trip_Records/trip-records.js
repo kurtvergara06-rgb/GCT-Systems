@@ -59,15 +59,44 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (elRequiredSlots) elRequiredSlots.textContent = data.required_buses ?? '—';
         if (elAssignedSlots) elAssignedSlots.textContent = data.assigned_buses ?? '—';
         if (elAssignmentOutcome) elAssignmentOutcome.textContent = data.assignment_outcome || '—';
+        // Primary trip summary uses saved schedule and assignment data only.
+        const overview = {
+            tripOverviewDate: data.trip_date || '—',
+            tripOverviewDeparture: data.departure_time || '—',
+            tripOverviewArrival: data.estimated_arrival_time || '—',
+            tripOverviewRoute: [data.route_code, data.route_name].filter(Boolean).join(' · ') || 'Route unavailable',
+            tripOverviewCorridor: [data.origin, data.destination].filter(Boolean).join(' → '),
+            tripOverviewSlots: `${data.assigned_buses ?? 0} / ${data.required_buses ?? 0} buses`,
+            tripOverviewOutcome: data.assignment_outcome || '—',
+        };
+        Object.entries(overview).forEach(([id, value]) => {
+            const node = modalOverlay.querySelector('#' + id);
+            if (node) node.textContent = value;
+        });
+        const assignedCount = modalOverlay.querySelector('#tripOverviewAssignedCount');
+        if (assignedCount) {
+            const count = Array.isArray(data.assignments) ? data.assignments.length : 0;
+            assignedCount.textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
+        }
+
         const ddrBody = modalOverlay.querySelector('#modalDdrTimeRows');
         if (ddrBody) {
             ddrBody.replaceChildren();
             const ddrTimes = Array.isArray(data.ddr_times) ? data.ddr_times : [];
-            if (!ddrTimes.length) {
-                const row = ddrBody.insertRow();
-                const cell = row.insertCell();
-                cell.colSpan = 4;
-                cell.textContent = data.status === 'Pending DDR' ? 'Awaiting DDR submission.' : 'No linked DDR recorded.';
+            const hasDdr = ddrTimes.length > 0;
+            const recordedSection = modalOverlay.querySelector('#tripDdrRecordedSection');
+            const emptySection = modalOverlay.querySelector('#tripDdrEmptyState');
+            const emptyText = modalOverlay.querySelector('#tripDdrEmptyText');
+            if (recordedSection) recordedSection.hidden = !hasDdr;
+            if (emptySection) emptySection.hidden = hasDdr;
+            if (!hasDdr) {
+                const status = String(data.status || '').toLowerCase();
+                const message = ['completed'].includes(status)
+                    ? 'This trip is marked Completed, but no linked DDR was found. Verification may be required.'
+                    : ['in progress', 'ongoing', 'dispatched', 'pending ddr'].includes(status)
+                        ? 'Awaiting driver-reported actual departure and arrival times.'
+                        : 'Actual trip times will be available after DDR submission.';
+                if (emptyText) emptyText.textContent = message;
             } else {
                 ddrTimes.forEach(item => {
                     const row = ddrBody.insertRow();
