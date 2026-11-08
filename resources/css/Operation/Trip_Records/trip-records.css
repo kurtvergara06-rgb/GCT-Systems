@@ -2488,3 +2488,61 @@
 .trip-records-page .unified-trip-actual-times strong,
 .trip-records-page .unified-trip-actual-times small { display: block; }
 .trip-records-page .unified-trip-actual-times small { margin-top: 4px; color: #64748b; font-size: 10px; }
+
+/* Unified history: keep the last View control visible while the record cells
+   scroll horizontally. Override the shared 132px Actions footprint because
+   this read-only table has one icon action. */
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
+.trip-records-page .unified-trip-history-table > thead > tr > th:last-child,
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+    position: sticky;
+    right: 0;
+    box-sizing: border-box;
+    width: 72px;
+    min-width: 72px;
+    max-width: 72px;
+    text-align: center;
+    white-space: nowrap;
+    background-color: #fff;
+    z-index: 12;
+}
+.trip-records-page .unified-trip-history-table > thead > tr > th:last-child {
+    background-color: #f3f7fc !important;
+    z-index: 22;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
+    background-color: #fbfdff;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background-color: #f8fbff;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-resource {
+    max-width: 175px;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-resource strong,
+.trip-records-page .unified-trip-history-table .unified-trip-resource small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 760px) {
+    .trip-records-page .unified-trip-history-table > thead > tr > th:last-child,
+    .trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+        width: 62px;
+        min-width: 62px;
+        max-width: 62px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+}
