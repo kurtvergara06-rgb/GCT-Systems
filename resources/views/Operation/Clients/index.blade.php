@@ -191,14 +191,12 @@
 
             <x-ui.form-modal id="clientMasterDetailModal" title="Client Details" title-id="clientMasterDetailTitle"
                 data-edit-error-client="{{ old('editing_client_id') }}"
-                @if(old('editing_client_id'))
-                    data-old-client-name="{{ old('name') }}"
-                    data-old-client-address="{{ old('company_address') }}"
-                    data-old-client-contact-person="{{ old('contact_person') }}"
-                    data-old-client-contact-position="{{ old('contact_position') }}"
-                    data-old-client-contact-number="{{ old('contact_number') }}"
-                    data-old-client-contact-email="{{ old('contact_email') }}"
-                @endif
+                data-old-client-name="{{ old('name') }}"
+                data-old-client-address="{{ old('company_address') }}"
+                data-old-client-contact-person="{{ old('contact_person') }}"
+                data-old-client-contact-position="{{ old('contact_position') }}"
+                data-old-client-contact-number="{{ old('contact_number') }}"
+                data-old-client-contact-email="{{ old('contact_email') }}"
                 icon="fa-building" description="Client profile details; trip times and bus allocations are managed separately."
                 size="wide" form-id="clientMasterDetailForm" action="#" method="PUT"
                 submit-text="Update Client" submit-id="clientMasterDetailSubmit" cancel-text="Close">
