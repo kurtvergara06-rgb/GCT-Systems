@@ -309,6 +309,26 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             ->assertViewHas('onTimeRate', 100.0);
     }
 
+    public function test_trip_details_modal_keeps_read_only_units_without_redundant_csv_export(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $this->assertStringContainsString('Driver-Reported Actual Times (DDR)', $view);
+        $this->assertStringContainsString('Assigned Units', $view);
+        $this->assertStringContainsString('id="actualTripUnitRows"', $view);
+        $this->assertStringContainsString('id="unitRecordSearchInput"', $view);
+        $this->assertStringContainsString('Underlying System Database Record', $view);
+        $this->assertStringContainsString('Export CSV', $view);
+        $this->assertStringNotContainsString('Export Units CSV', $view);
+        $this->assertStringNotContainsString('unitExportBtn', $view);
+        $this->assertStringNotContainsString('unitExportBtn', $script);
+        $this->assertStringNotContainsString('csvCell', $script);
+        $this->assertStringNotContainsString('.unit-records-export-btn', $styles);
+        $this->assertStringContainsString('#tripDetailModal .unit-records-header', $styles);
+    }
+
     public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
