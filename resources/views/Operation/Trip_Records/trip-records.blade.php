@@ -214,26 +214,31 @@
             </div>
 
             <div class="trip-detail-body">
-                <section class="unified-trip-ddr-times" aria-label="DDR reported actual times">
-                    <h3><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Driver-Reported Actual Times (DDR)</h3>
-                    <p>Only linked DDR records are shown. Each bus or additional trip is listed separately.</p>
-                    <div class="unified-trip-ddr-table-wrap">
-                        <table>
-                            <thead><tr><th>DDR</th><th>Driver / Bus</th><th>Departure</th><th>Arrival</th></tr></thead>
-                            <tbody id="modalDdrTimeRows"><tr><td colspan="4">Select a trip to view DDR times.</td></tr></tbody>
-                        </table>
+                <section class="trip-overview-section" aria-labelledby="tripOverviewHeading">
+                    <div class="trip-details-section-heading">
+                        <span class="trip-details-section-icon"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                        <h3 id="tripOverviewHeading">01 · Trip Information</h3>
+                    </div>
+                    <div class="trip-overview-grid">
+                        <div><small>Service Date</small><strong id="tripOverviewDate">—</strong></div>
+                        <div><small>Scheduled Departure</small><strong id="tripOverviewDeparture">—</strong></div>
+                        <div><small>Estimated Arrival</small><strong id="tripOverviewArrival">—</strong></div>
+                        <div class="trip-overview-route"><small>Route</small><strong id="tripOverviewRoute">—</strong><span id="tripOverviewCorridor"></span></div>
+                        <div><small>Bus Assignment</small><strong id="tripOverviewSlots">—</strong></div>
+                        <div><small>Assignment Outcome</small><strong id="tripOverviewOutcome">—</strong></div>
                     </div>
                 </section>
-                <section class="unified-trip-modal-summary" aria-label="Assignment fulfillment">
-                    <div><small>Required Bus Slots</small><strong id="modalRequiredSlots">—</strong></div>
-                    <div><small>Assigned Bus Slots</small><strong id="modalAssignedSlots">—</strong></div>
-                    <div><small>Assignment Outcome</small><strong id="modalAssignmentOutcome">—</strong></div>
-                </section>
+                <section class="trip-assigned-section" aria-labelledby="tripAssignedHeading">
+                    <div class="trip-details-section-heading">
+                        <span class="trip-details-section-icon"><i class="fa-solid fa-bus-simple" aria-hidden="true"></i></span>
+                        <h3 id="tripAssignedHeading">02 · Assigned Resources</h3>
+                        <span class="trip-assigned-count" id="tripOverviewAssignedCount">0 buses</span>
+                    </div>
                 <!-- Saved unit assignments for this historical trip (no placeholder records). -->
                 <div class="unit-records-card">
                     <div class="unit-records-header">
                         <div class="unit-records-title-group">
-                            <h3><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Assigned Units</h3>
+                            <h3>Assigned Units</h3>
                             <p>Actual saved driver and bus assignments for this trip.</p>
                         </div>
                         <div class="unit-records-controls">
@@ -252,6 +257,26 @@
                     <div class="unit-records-footer" id="unitTableEntriesCount"></div>
                 </div>
 
+                </section>
+                <section class="trip-execution-section" aria-labelledby="tripExecutionHeading">
+                    <div class="trip-details-section-heading">
+                        <span class="trip-details-section-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
+                        <h3 id="tripExecutionHeading">03 · Trip Execution &amp; DDR</h3>
+                    </div>
+                    <div class="trip-ddr-empty-state" id="tripDdrEmptyState" role="status">
+                        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                        <span id="tripDdrEmptyText">Actual trip times will be available after DDR submission.</span>
+                    </div>
+                    <div id="tripDdrRecordedSection" hidden>
+                        <div class="trip-ddr-recorded-heading"><strong>Driver-Reported Actual Times (DDR)</strong><small>Verified report entries for this trip and its assigned units</small></div>
+                    <div class="unified-trip-ddr-table-wrap">
+                        <table>
+                            <thead><tr><th>DDR</th><th>Driver / Bus</th><th>Departure</th><th>Arrival</th></tr></thead>
+                            <tbody id="modalDdrTimeRows"><tr><td colspan="4">Select a trip to view DDR times.</td></tr></tbody>
+                        </table>
+                    </div>
+                    </div>
+                </section>
                 <!-- Underlying Database Telemetry Drawer (Preserves all verified historical record fields) -->
                 <details class="trip-database-telemetry-drawer">
                     <summary>
