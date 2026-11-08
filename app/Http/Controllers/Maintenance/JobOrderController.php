@@ -1614,9 +1614,9 @@ class JobOrderController extends Controller
                 ->first();
 
             $hasAnotherActiveJobOrder = JobOrder::query()
+                ->blocksDispatch()
                 ->where('bus_no', $lockedJobOrder->bus_no)
                 ->where('id', '!=', $lockedJobOrder->id)
-                ->where('status', '!=', 'Completed')
                 ->exists();
 
             if ($lockedBus && ! $hasAnotherActiveJobOrder) {
