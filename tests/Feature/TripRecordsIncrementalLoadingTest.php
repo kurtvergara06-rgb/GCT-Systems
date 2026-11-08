@@ -208,6 +208,62 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertSame(99.0, (float) $trip->fresh()->planned_distance_km);
     }
 
+    public function test_unified_history_actual_times_are_sourced_from_linked_ddr_not_schedule_fields(): void
+    {
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-DDR-ACTUAL',
+            'route_name' => 'Actual Time Route',
+            'origin' => 'Terminal A',
+            'destination' => 'Terminal B',
+            'status' => 'Active',
+        ]);
+        $trip = TripSchedule::create([
+            'trip_code' => 'T-DDR-ACTUAL',
+            'trip_date' => '2026-10-01',
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '09:00:00',
+            'estimated_arrival_date' => '2026-10-01',
+            'actual_departure_time' => '08:15:00',
+            'actual_arrival_time' => '09:30:00',
+            'shift' => 'Morning',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Completed',
+        ]);
+        $this->actingAs($this->operationUser())
+            ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
+            ->assertOk()
+            ->assertSee('No DDR recorded')
+            ->assertDontSee('08:15:00 → 09:30:00');
+
+        $report = DailyDriverReport::create([
+            'ddr_no' => 'DDR-2026-1234',
+            'report_date' => '2026-10-01',
+            'trip_schedule_id' => $trip->id,
+            'trip_ticket' => 'T-DDR-ACTUAL',
+            'driver_name' => 'Verified Driver',
+            'departure_time' => '08:05:00',
+            'arrival_time' => '09:10:00',
+        ]);
+        $report->additionalTrips()->create([
+            'sequence' => 2,
+            'trip_schedule_id' => $trip->id,
+            'trip_ticket' => 'T-DDR-ACTUAL-ADDITIONAL',
+            'departure_time' => '10:00:00',
+            'arrival_time' => '11:00:00',
+        ]);
+
+        $this->actingAs($this->operationUser())
+            ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
+            ->assertOk()
+            ->assertSee('2 DDR trip records')
+            ->assertSee('DDR-2026-1234')
+            ->assertSee('8:05 AM')
+            ->assertSee('9:10 AM')
+            ->assertSee('10:00 AM')
+            ->assertSee('11:00 AM');
+    }
+
     public function test_overnight_on_time_rate_excludes_incomplete_actual_timestamps(): void
     {
         $route = ShuttleRoute::create([
