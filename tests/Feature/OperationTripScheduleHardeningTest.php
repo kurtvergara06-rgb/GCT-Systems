@@ -1434,14 +1434,14 @@ class OperationTripScheduleHardeningTest extends TestCase
             ]);
 
             foreach ([$past, $future] as $index => $trip) {
-                [, $attendance, $bus] = $this->assignmentResources(
+                [$driver, $attendance, $bus] = $this->assignmentResources(
                     $trip->trip_date->toDateString(),
                     'STATUS-RECOVERY-'.$index
                 );
                 TripAssignment::create([
                     'trip_schedule_id' => $trip->id,
                     'driver_attendance_id' => $attendance->id,
-                    'driver_id' => $attendance->driver_id,
+                    'driver_id' => $driver->driver_id,
                     'driver_name' => $attendance->driver_name,
                     'bus_id' => $bus->id,
                 ]);
