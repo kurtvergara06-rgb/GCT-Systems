@@ -772,7 +772,7 @@
                     <div class="resource-filter-bar" data-resource-filter="buses">
                         <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search plate number or model..." aria-label="Search visible unallocated buses"></label>
                     </div>
-                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus ID · Plate</span><span>Model</span><span>Status</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus ID</span><span>Model</span><span>Status</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record" data-resource-row="buses" data-resource-text="{{ strtolower($bus->plate_no.' '.$bus->bus_model.' '.$bus->bus_no) }}" data-resource-category="{{ strtolower($bus->bus_model) }}">
                             <div class="bus-resource-icon">
