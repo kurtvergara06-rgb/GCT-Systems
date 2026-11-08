@@ -801,8 +801,8 @@ class LinkedJobOrderResetService
         }
 
         $hasActiveJobOrder = JobOrder::query()
+            ->blocksDispatch()
             ->where('bus_no', $busNo)
-            ->open()
             ->exists();
 
         if ($hasActiveJobOrder) {
