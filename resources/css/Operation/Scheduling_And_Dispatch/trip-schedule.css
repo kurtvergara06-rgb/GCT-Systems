@@ -3612,12 +3612,21 @@
     flex: 0 0 auto;
     min-width: 0;
 }
+/* Same compact boxed date trigger as Driver & Bus Assignment.
+   Keep the existing calendar popover anchored to the selector. */
 .trip-schedule-page .trip-date-selector > .trip-selected-date {
     appearance: none;
-    border: 1px solid transparent;
-    border-radius: 11px;
-    background: transparent;
-    padding: 5px 9px 5px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dbe6f5;
+    border-radius: 10px;
+    background: #f8fbff;
+    padding: 6px 9px;
+    color: #173456;
     cursor: pointer;
     font: inherit;
     text-align: left;
@@ -3625,8 +3634,22 @@
 }
 .trip-schedule-page .trip-date-selector > .trip-selected-date:hover,
 .trip-schedule-page .trip-date-selector > .trip-selected-date[aria-expanded="true"] {
-    border-color: #dbe6f5;
-    background: #f5f9ff;
+    border-color: #b8d2fa;
+    background: #eaf3ff;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-icon {
+    width: 29px;
+    height: 29px;
+    border: 0;
+    border-radius: 8px;
+    background: #e8f1ff;
+    color: #155bb8;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-label {
+    font-size: 10px;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-copy strong {
+    font-size: 12px;
 }
 .trip-schedule-page .trip-date-selector > .trip-selected-date:focus-visible {
     outline: 2px solid #2563eb;
