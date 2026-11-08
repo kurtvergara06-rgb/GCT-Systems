@@ -235,3 +235,21 @@
   .bus-availability-page .availability-footer { justify-content: center; }
   .bus-availability-page .availability-footer nav { margin-left: 0; }
 }
+
+
+/* Phase 5: Bus Availability reuses the responsive records and sticky actions contract. */
+.bus-availability-page .availability-table-wrap.gct-responsive-records {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.bus-availability-page .availability-table-wrap.gct-responsive-records:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+.bus-availability-page .availability-table .availability-actions-cell .gct-record-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
