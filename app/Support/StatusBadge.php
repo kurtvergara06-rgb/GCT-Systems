@@ -97,6 +97,7 @@ final class StatusBadge
 
             // Waiting, review, and procurement states.
             'pending' => ['tone' => 'pending', 'icon' => 'fa-clock'],
+            'pending-ddr' => ['tone' => 'progress', 'icon' => 'fa-file-circle-exclamation'],
             'submitted' => ['tone' => 'pending', 'icon' => 'fa-file-circle-check'],
             'reported' => ['tone' => 'progress', 'icon' => 'fa-flag'],
             'scheduled' => ['tone' => 'scheduled', 'icon' => 'fa-calendar-check'],
