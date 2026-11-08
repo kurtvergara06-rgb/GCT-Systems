@@ -21,6 +21,35 @@ class AdvanceOperationTripStatuses extends Command
         $now = now(config('app.business_timezone', 'Asia/Manila'));
         $updated = 0;
 
+        // Recover fully assigned schedules whose operational status was left at
+        // Scheduled (for example, historical imports or demo-data inserts).
+        // Reuse the model's availability and required-slot checks rather than
+        // assuming that a stale assignment_status means the trip is ready.
+        TripSchedule::query()
+            ->where('status', 'Scheduled')
+            ->where('assignment_status', 'Assigned')
+            ->orderBy('id')
+            ->select('id')
+            ->chunkById(100, function ($rows) use (&$updated): void {
+                foreach ($rows as $row) {
+                    DB::transaction(function () use ($row, &$updated): void {
+                        $trip = TripSchedule::query()->lockForUpdate()->find($row->id);
+                        if (! $trip || $trip->status !== 'Scheduled'
+                            || $trip->assignment_status !== 'Assigned') {
+                            return;
+                        }
+
+                        $trip->syncAssignmentStatus(false);
+                        if (! $trip->isDirty()) {
+                            return;
+                        }
+
+                        $trip->save();
+                        $updated++;
+                    }, 3);
+                }
+            });
+
         TripSchedule::query()
             ->whereIn('status', ['Ready', 'Dispatched'])
             ->whereDate('trip_date', '<=', $now->toDateString())
