@@ -749,7 +749,7 @@ class TripAssignmentController extends Controller
                 // Preserve old Reserve approvals as historical records when a
                 // reserve bus is replaced, rather than attaching the approval
                 // to an unrelated newly assigned vehicle.
-                $reserveChanged = $lockedAssignment->bus_id !== $bus->id;
+                $reserveChanged = (int) $lockedAssignment->bus_id !== (int) $bus->id;
                 if ($reserveChanged) {
                     DB::table('auto_schedule_reserve_approvals')
                         ->where('trip_assignment_id', $lockedAssignment->id)
