@@ -53,14 +53,13 @@
     </x-slot:headerAction>
 
     <x-slot:toolbar>
-                <x-ui.table-toolbar action="{{ route('trip-records', [], false) }}" form-id="tripRecordsFilterForm" search-label="Search Trip Records" search-placeholder="Search trip code, bus, driver, or route..." :filter-count="collect(['date_from','date_to'])->filter(fn ($key) => request()->filled($key))->count() + (int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('shift') && request('shift') !== 'all')" filter-title="Filter Trip Records" :sort-options="['trip_date' => 'Trip Date', 'trip_code' => 'Trip ID', 'departure_time' => 'Departure Time', 'status' => 'Status']" default-sort="trip_date" default-direction="desc">
+                <x-ui.table-toolbar action="{{ route('trip-records', [], false) }}" form-id="tripRecordsFilterForm" search-label="Search Trip Records" search-placeholder="Search trip code, bus, driver, or route..." :filter-count="collect(['date_from','date_to'])->filter(fn ($key) => request()->filled($key))->count() + (int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all')" filter-title="Filter Trip Records" :sort-options="['trip_date' => 'Trip Date', 'trip_code' => 'Trip ID', 'departure_time' => 'Departure Time', 'status' => 'Status']" default-sort="trip_date" default-direction="desc">
 
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Date From" name="date_from" type="date" />
                         <x-ui.table-toolbar-field label="Date To" name="date_to" type="date" />
                         <x-ui.table-toolbar-field label="Status" name="status" default="all"><option value="all">All Statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
                         <x-ui.table-toolbar-field label="Route" name="route" default="all"><option value="all">All Routes</option>@foreach($routes as $route)<option value="{{ $route->id }}" @selected(request('route') == $route->id)>{{ $route->route_code }} - {{ $route->route_name }}</option>@endforeach</x-ui.table-toolbar-field>
-                        <x-ui.table-toolbar-field label="Shift" name="shift" default="all"><option value="all">All Shifts</option>@foreach($shifts as $shift)<option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
     </x-slot:toolbar>
@@ -270,16 +269,13 @@
                     <div class="telemetry-drawer-content">
                         <!-- Overview & Status -->
                         <div class="trip-detail-section">
-                            <h3 class="trip-detail-section-title">Record Dates & Shift</h3>
+                            <h3 class="trip-detail-section-title">Record Date</h3>
                             <div class="trip-detail-grid">
                                 <div class="trip-detail-item">
                                     <span class="trip-detail-label">Operational Date</span>
                                     <span id="modalTripDate" class="trip-detail-value">—</span>
                                 </div>
-                                <div class="trip-detail-item">
-                                    <span class="trip-detail-label">Shift</span>
-                                    <span id="modalShift" class="trip-detail-value">—</span>
-                                </div>
+
                             </div>
                         </div>
 
