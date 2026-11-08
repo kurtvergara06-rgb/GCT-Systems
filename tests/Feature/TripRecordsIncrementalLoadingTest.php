@@ -325,6 +325,10 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringContainsString('table-layout: fixed;', $styles);
         $this->assertStringContainsString('width: 84px;', $styles);
         $this->assertStringContainsString('class="history-col-action"', $view);
+        $this->assertStringContainsString('class="trip-history-view-action view-trip-btn"', $view);
+        $this->assertStringNotContainsString('class="trip-action view view-trip-btn"', $view);
+        $this->assertStringContainsString('button.trip-history-view-action', $styles);
+        $this->assertStringContainsString('width: 94px;', $styles);
     }
 
 }
