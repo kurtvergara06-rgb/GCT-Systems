@@ -216,3 +216,11 @@ it('retains only one Bus Availability table scroll contract', function (): void 
         ->toContain('<x-ui.table-toolbar')
         ->toContain('open-availability-bus');
 });
+
+it('keeps DDR detail horizontal scrolling without duplicate legacy declarations', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+
+    expect($styles)->not->toContain('.ddr-record-table-wrap { overflow-x:auto; }')
+        ->and($styles)->toContain('.ddr-record-table-wrap { max-width:100%; overflow-x:auto;')
+        ->toContain('.ddr-page .ddr-record-table-wrap {');
+});
