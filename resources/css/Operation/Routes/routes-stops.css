@@ -3855,3 +3855,37 @@
     min-width: 0;
     max-width: 100%;
 }
+
+
+/* Phase 5: shared record actions for Routes, preserving map/editor hooks. */
+.routes-page .routes-table .route-actions .gct-record-action.route-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+    border-radius: 8px;
+}
+.routes-page .routes-table .route-actions .gct-record-action.route-action > i {
+    font-size: 13px;
+    line-height: 1;
+}
+.routes-page .routes-table .route-actions .gct-record-action.route-action:focus-visible,
+.routes-page .routes-table .route-actions .gct-record-action.route-action:disabled {
+    transform: none;
+}
+.routes-page .routes-table .route-actions .gct-record-action.route-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.routes-page .routes-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
