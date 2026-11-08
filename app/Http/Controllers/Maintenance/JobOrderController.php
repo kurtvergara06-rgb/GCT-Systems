@@ -1276,7 +1276,12 @@ class JobOrderController extends Controller
                 $locked->id, $locked->job_order_no, $user->id, $user->name, $approvedAt->toISOString(),
             ]), (string) config('app.key'));
             $hasMechanics = $mechanics->isNotEmpty();
-            $canStart = $hasMechanics && (trim((string) $locked->part_needed) === '' || $locked->part_status === 'Issued');
+            // Routine PMS is approved first, and physically starts only through
+            // the explicit service-start action. Approval must not withdraw a
+            // bus committed to a trip or start the mechanic's work timer.
+            $plannedPms = $locked->maintenance_type === 'PMS';
+            $canStart = ! $plannedPms && $hasMechanics
+                && (trim((string) $locked->part_needed) === '' || $locked->part_status === 'Issued');
             $locked->update([
                 'review_status' => 'Approved',
                 'estimated_duration_value' => $finalDurationValue,
@@ -1293,7 +1298,9 @@ class JobOrderController extends Controller
                 'actual_started_at' => $canStart ? $approvedAt : null,
             ]);
 
-            $bus->placeUnderMaintenance();
+            if (! $plannedPms) {
+                $bus->placeUnderMaintenance();
+            }
             if ($canStart) {
                 $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
             }
@@ -1330,11 +1337,79 @@ class JobOrderController extends Controller
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'approved', $jobOrder->id, 'A Job Order was approved and electronically signed.');
         $bus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
-        if ($bus) {
+        if ($bus && $jobOrder->maintenance_type !== 'PMS') {
             $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'An approved Job Order placed the bus Under Maintenance.');
         }
 
-        return redirect()->back()->with('success', 'Job Order approved. The authenticated electronic signature and approval time were recorded.');
+        return redirect()->back()->with('success', $jobOrder->maintenance_type === 'PMS'
+            ? 'PMS approved and recorded. The bus remains available until Start PMS Service is confirmed.'
+            : 'Job Order approved. The authenticated electronic signature and approval time were recorded.');
+    }
+
+    /**
+     * Explicit physical service start for approved, planned PMS.
+     * Approval and parts issuance are preparation, not bus withdrawal.
+     */
+    public function startPmsService(Request $request, JobOrder $jobOrder)
+    {
+        $this->assertMaintenanceHead();
+
+        $updated = DB::transaction(function () use ($jobOrder): JobOrder {
+            $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+            if ($locked->maintenance_type !== 'PMS'
+                || $locked->review_status !== 'Approved'
+                || $locked->status !== 'On Hold'
+                || $locked->actual_started_at !== null) {
+                throw ValidationException::withMessages([
+                    'status' => 'Only approved PMS work that has not started may be started here.',
+                ]);
+            }
+            if (trim((string) $locked->assigned_mechanic) === ''
+                || (trim((string) $locked->part_needed) !== ''
+                    && $locked->part_status !== 'Issued')) {
+                throw ValidationException::withMessages([
+                    'status' => 'Assign a mechanic and issue all required parts before starting PMS.',
+                ]);
+            }
+
+            $bus = Bus::query()->where('bus_no', $locked->bus_no)->lockForUpdate()->firstOrFail();
+            if ($bus->hasOngoingDispatch()) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'This bus is still on an active trip. Coordinate its return before starting routine PMS.',
+                ]);
+            }
+            if (! in_array($bus->status, ['Active', 'Under Maintenance'], true)) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'This bus is not eligible to begin PMS.',
+                ]);
+            }
+            if ($bus->status === 'Active') {
+                $bus->placeUnderMaintenance();
+            }
+
+            $startedAt = now(config('app.business_timezone', 'Asia/Manila'));
+            $locked->update([
+                'status' => 'On Going',
+                'start_date' => $startedAt,
+                'actual_started_at' => $startedAt,
+            ]);
+            $this->workflow->setAttendanceStatus($locked->fresh('mechanicAssignments.mechanic'), 'On Duty');
+            $this->workflow->audit(
+                $locked, 'pms_service_started', 'On Hold', 'On Going',
+                'Physical preventive maintenance began after explicit Head authorization.',
+                ['bus_id' => $bus->id, 'started_at' => $startedAt->toISOString()]
+            );
+
+            return $locked;
+        }, 3);
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'updated', $updated->id, 'PMS service started.');
+        $bus = Bus::query()->where('bus_no', $updated->bus_no)->first();
+        if ($bus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'PMS service began; the bus is Under Maintenance.');
+        }
+
+        return redirect()->back()->with('success', 'PMS service started. The bus is now Under Maintenance.');
     }
 
     public function returnForRevision(Request $request, JobOrder $jobOrder)
