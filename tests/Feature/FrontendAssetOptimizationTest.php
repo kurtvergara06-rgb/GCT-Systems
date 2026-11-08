@@ -202,4 +202,22 @@ class FrontendAssetOptimizationTest extends TestCase
         $this->assertStringContainsString('.trip-calendar-day-dot.is-missed', $styles);
     }
 
+
+    public function test_trip_status_legend_styles_load_after_trip_schedule_styles(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
+        $vite = file_get_contents(base_path('vite.config.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/trip-calendar-status.css'));
+
+        $base = "'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css'";
+        $status = "'resources/css/Operation/Scheduling_And_Dispatch/trip-calendar-status.css'";
+        $this->assertNotFalse(strpos($view, $base));
+        $this->assertNotFalse(strpos($view, $status));
+        $this->assertLessThan(strpos($view, $status), strpos($view, $base));
+        $this->assertStringContainsString($status, $vite);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr))', $styles);
+        $this->assertStringContainsString('.trip-calendar-day-dot.is-missed', $styles);
+        $this->assertStringContainsString('background-color: #dc2626', $styles);
+    }
+
 }
