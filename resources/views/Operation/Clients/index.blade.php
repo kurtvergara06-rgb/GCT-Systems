@@ -123,7 +123,7 @@
                                                 data-client-buses="{{ $client->buses_count }}"
                                                 data-client-trip-times="{{ $client->trip_time_configurations_count }}"
                                                 title="View {{ $client->name }}" aria-label="View {{ $client->name }}">
-                                                <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                             @if($canEditOperation)
                                                 <button type="button" class="client-master-action" data-client-detail-open data-client-mode="edit" data-client-record-id="{{ $client->id }}"
@@ -139,10 +139,10 @@
                                                     data-client-trip-times="{{ $client->trip_time_configurations_count }}"
                                                     data-client-update-url="{{ route('operation.clients.update', $client) }}"
                                                     title="Edit {{ $client->name }}" aria-label="Edit {{ $client->name }}">
-                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span>Edit</span>
+                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                                                 </button>
                                             @endif
-                                            <a class="client-master-action" href="{{ route('client-trip-times') }}?search={{ urlencode($client->name) }}" title="View trip times for {{ $client->name }}" aria-label="View trip times for {{ $client->name }}"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>Trip Times</span></a>
+                                            <a class="client-master-action" href="{{ route('client-trip-times') }}?search={{ urlencode($client->name) }}" title="View trip times for {{ $client->name }}" aria-label="View trip times for {{ $client->name }}"><i class="fa-solid fa-clock" aria-hidden="true"></i></a>
                                             @if($canEditOperation)
                                                 <form action="{{ route('operation.clients.status', $client) }}" method="POST"
                                                     data-confirm-form data-confirm-type="status"
@@ -153,7 +153,7 @@
                                                     @method('PATCH')
                                                     <input type="hidden" name="status" value="{{ $client->isActive() ? 'Inactive' : 'Active' }}">
                                                     <input type="hidden" name="return_to" value="client-master-list">
-                                                    <button type="submit" class="client-master-action {{ $client->isActive() ? 'is-disable' : 'is-enable' }}">{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }}</button>
+                                                    <button type="submit" class="client-master-action {{ $client->isActive() ? 'is-disable' : 'is-enable' }}" title="{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }} {{ $client->name }}" aria-label="{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }} {{ $client->name }}"><i class="fa-solid fa-power-off" aria-hidden="true"></i></button>
                                                 </form>
                                             @endif
                                         </div>
