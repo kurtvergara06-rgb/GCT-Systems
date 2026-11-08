@@ -101,3 +101,30 @@ test('operation record tables reuse shared actions while retaining page event ho
         }
     }
 });
+
+test('operation DDR and Trip Records share labeled view controls with intact modal hooks', function () {
+    $ddr = file_get_contents(resource_path('views/Operation/Daily_Driver_Reports/index.blade.php'));
+    $trips = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+    $assignmentHistory = file_get_contents(resource_path('views/Operation/Trip_Records/assignment-history.blade.php'));
+    $ddrCss = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+    $tripCss = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+    foreach ([$ddr, $trips] as $view) {
+        expect($view)->toContain('<x-ui.table-action')
+            ->toContain('variant="view"')
+            ->toContain('show-label')
+            ->toContain('label="View"')
+            ->toContain('scope="col"');
+    }
+
+    expect($ddr)->toContain('class="ddr-view-action ddr-open-modal"')
+        ->toContain('data-ddr-modal="ddrView-')
+        ->toContain('<x-ui.table-footer :items="$reports"')
+        ->and($trips)->toContain('class="trip-history-view-action view-trip-btn"')
+        ->toContain(':data-trip="$tripDataJson"')
+        ->toContain('<x-ui.table-footer :items="$trips"')
+        ->and($assignmentHistory)->toContain('<th scope="col">Trip ID</th>')
+        ->toContain('<x-ui.table-footer :items="$assignmentHistoryTrips"')
+        ->and($ddrCss)->toContain('button.table-action-btn.ddr-view-action')
+        ->and($tripCss)->toContain('button.table-action-btn.trip-history-view-action');
+});
