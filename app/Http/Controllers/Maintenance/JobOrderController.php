@@ -726,9 +726,10 @@ class JobOrderController extends Controller
 
             // An Active master status does not mean the vehicle has returned
             // from an already dispatched trip. Guard writes as well as the UI.
-            if ($bus->hasOngoingDispatch()) {
+            if ($bus->hasOngoingDispatch()
+                && ! ($pmsSchedule !== null && $validated['maintenance_type'] === 'PMS')) {
                 throw ValidationException::withMessages([
-                    'bus_no' => 'This bus is currently dispatched. It cannot be assigned to a new Job Order until its trip is completed.',
+                    'bus_no' => 'This bus is currently dispatched. Routine PMS may be planned, but other work requires the incident/referral workflow.',
                 ]);
             }
 
