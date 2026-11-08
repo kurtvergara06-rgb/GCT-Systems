@@ -274,7 +274,8 @@ class TripAssignmentController extends Controller
             $status = match ($row->status) {
                 'Missed' => 'missed',
                 'Completed', 'Cancelled', 'Canceled' => 'history',
-                'Dispatched', 'In Progress', 'Pending DDR', 'Delayed' => 'in_progress',
+                'Dispatched', 'In Progress', 'Pending DDR' => 'in_progress',
+                'Delayed' => 'delayed',
                 'Scheduled', 'Ready' => match ($row->assignment_status) {
                     'Assigned' => 'assigned',
                     'Partially Assigned' => 'partial',
