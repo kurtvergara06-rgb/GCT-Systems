@@ -66,6 +66,24 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
             if (element) element.textContent = value || '—';
         }
 
+        const editFields = detailModal.querySelector('.client-profile-edit-fields');
+        const viewProfile = detailModal.querySelector('.client-profile-view');
+        if (editFields) editFields.hidden = !editing;
+        if (viewProfile) viewProfile.hidden = editing;
+        if (!editing) {
+            const details = {
+                clientViewCompany: button.dataset.clientName || 'Unnamed client',
+                clientViewAddress: button.dataset.clientAddress || 'No company address recorded',
+                clientViewPerson: button.dataset.clientContactPerson || 'Not provided',
+                clientViewPosition: button.dataset.clientContactPosition || 'Not provided',
+                clientViewPhone: button.dataset.clientContactNumber || 'Not provided',
+                clientViewEmail: button.dataset.clientContactEmail || 'Not provided',
+            };
+            for (const [id, value] of Object.entries(details)) {
+                const node = detailModal.querySelector('#' + id);
+                if (node) node.textContent = value;
+            }
+        }
         if (submitButton) submitButton.hidden = !editing;
         detailModal.dataset.mode = editing ? 'edit' : 'view';
         show(detailModal);
