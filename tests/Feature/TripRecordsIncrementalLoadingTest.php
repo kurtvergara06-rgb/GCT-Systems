@@ -329,6 +329,37 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringContainsString('#tripDetailModal .unit-records-header', $styles);
     }
 
+    public function test_trip_details_modal_uses_three_read_only_sections_and_conditional_ddr(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $first = strpos($view, '01 · Trip Information');
+        $second = strpos($view, '02 · Assigned Resources');
+        $third = strpos($view, '03 · Trip Execution &amp; DDR');
+        $this->assertNotFalse($first);
+        $this->assertNotFalse($second);
+        $this->assertNotFalse($third);
+        $this->assertLessThan($second, $first);
+        $this->assertLessThan($third, $second);
+
+        $this->assertStringContainsString('id="tripOverviewRoute"', $view);
+        $this->assertStringContainsString('id="tripOverviewSlots"', $view);
+        $this->assertStringContainsString('id="actualTripUnitRows"', $view);
+        $this->assertStringContainsString('id="tripDdrEmptyState"', $view);
+        $this->assertStringContainsString('id="tripDdrRecordedSection" hidden', $view);
+        $this->assertStringContainsString('id="modalDdrTimeRows"', $view);
+        $this->assertStringContainsString('Underlying System Database Record', $view);
+
+        $this->assertStringContainsString('recordedSection.hidden = !hasDdr;', $script);
+        $this->assertStringContainsString('emptySection.hidden = hasDdr;', $script);
+        $this->assertStringContainsString('This trip is marked Completed, but no linked DDR was found.', $script);
+        $this->assertStringContainsString('searchControl.hidden = numberOfUnits < 5;', $script);
+        $this->assertStringContainsString('.trip-overview-grid', $styles);
+        $this->assertStringContainsString('.trip-ddr-empty-state[hidden]', $styles);
+    }
+
     public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
