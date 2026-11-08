@@ -461,25 +461,13 @@ class TripAssignmentController extends Controller
                 'purpose' => $bus->fleet_purpose,
             ]);
 
-        // Reserve buses have no permanently authorized drivers. They are
-        // offered only when no valid Regular driver/bus pair is available.
-        // Server-side write validation independently enforces this condition.
-        $hasRegularPair = $buses->contains(function ($bus) use ($drivers): bool {
-            if ($bus['purpose'] !== 'Regular') {
-                return false;
-            }
-
-            return $drivers->contains(fn ($driver) =>
-                in_array($bus['id'], $driver['authorized_bus_ids'], true));
-        });
-        if ($hasRegularPair) {
-            $buses = $buses->filter(fn ($bus) => $bus['purpose'] !== 'Reserve')->values();
-        }
+        // Reserve buses are shared standby assets: they are not tied to
+        // permanent driver authorization or specific clients. The Head may
+        // choose one even when a Regular pair exists, while all safety and
+        // scheduling checks continue to run at confirmation.
         $reserveNotice = ! $canSelectReserve
             ? 'Reserve deployment requires Operations Head authorization.'
-            : ($hasRegularPair
-                ? 'Reserve deployment is unavailable while an eligible Regular pair exists.'
-                : 'No eligible Reserve bus is available for this trip.');
+            : 'No active, conflict-free Reserve bus is available for this trip.';
 
         return response()->json([
             'reserve_notice' => $reserveNotice,
@@ -1016,8 +1004,9 @@ class TripAssignmentController extends Controller
     }
 
     /**
-     * Reserve buses belong to the shared fleet; only the Operations Head may
-     * deploy them and only when no eligible Regular driver/bus pair remains.
+     * Shared Reserve fleet can be used by any eligible driver. Only the
+     * Operations Head may authorize deployment. Driver eligibility, bus
+     * maintenance, trip overlaps and duplicate slots are validated elsewhere.
      */
     private function assertReserveAssignmentAllowed(TripSchedule $trip, ?int $ignoreAssignmentId = null): void
     {
@@ -1025,44 +1014,6 @@ class TripAssignmentController extends Controller
             throw ValidationException::withMessages([
                 'bus_id' => 'Only the Operations Head can deploy a Reserve bus.',
             ]);
-        }
-
-        $existing = $trip->assignments()
-            ->when($ignoreAssignmentId, fn ($q) => $q->where('id', '!=', $ignoreAssignmentId))
-            ->get();
-        $conflicts = $this->conflictingAssignmentsForTrip($trip, $ignoreAssignmentId);
-        $busyDriverIds = $existing->pluck('driver_id')
-            ->merge($conflicts->pluck('driver_id'))->filter()->unique()->all();
-        $busyBusIds = $existing->pluck('bus_id')
-            ->merge($conflicts->pluck('bus_id'))->filter()->unique()->all();
-
-        $client = mb_strtolower(trim((string) ($trip->client_name ?? '')));
-        $regularBuses = Bus::query()
-            ->with('operationClients:id,name')
-            ->where('status', 'Active')
-            ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
-            ->when($busyBusIds !== [], fn ($q) => $q->whereNotIn('id', $busyBusIds))
-            ->get()
-            ->filter(function (Bus $bus) use ($client): bool {
-                $names = $bus->operationClients->pluck('name')
-                    ->map(fn ($name) => mb_strtolower(trim((string) $name)));
-
-                return $client === '' ? $names->isEmpty() : $names->contains($client);
-            });
-
-        foreach ($regularBuses as $regularBus) {
-            if (Driver::query()
-                ->where('employment_status', 'Active')
-                ->where(fn ($q) => $q->whereNull('license_expiration')
-                    ->orWhereDate('license_expiration', '>=', $trip->trip_date))
-                ->when($busyDriverIds !== [], fn ($q) => $q->whereNotIn('driver_id', $busyDriverIds))
-                ->whereHas('authorizedBuses', fn ($q) => $q->whereKey($regularBus->id))
-                ->exists()) {
-                throw ValidationException::withMessages([
-                    'bus_id' => 'An eligible Regular driver and bus pair is available. Use it before deploying a Reserve bus.',
-                ]);
-            }
         }
     }
 
@@ -1078,7 +1029,7 @@ class TripAssignmentController extends Controller
             'approved_by' => 'Operations Head (manual assignment)',
             'approval_method' => 'Direct',
             'approved_at' => now(),
-            'remarks' => 'Direct Reserve deployment approved by the Operations Head after checking Regular pairs.',
+            'remarks' => 'Operations Head authorized deployment of an available shared Reserve bus.',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
