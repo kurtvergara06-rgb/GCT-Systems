@@ -3889,3 +3889,17 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
 }
+
+
+/* Operation final audit: route dialogs center when short enough and remain
+   reachable when viewport height or browser zoom reduces available space. */
+.routes-page .route-modal-overlay {
+    overflow-x: hidden;
+}
+.routes-page .route-modal-overlay > :is(.route-modal, .route-details-modal) {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    margin: auto;
+    max-width: 100%;
+    max-height: calc(100dvh - 40px);
+}
