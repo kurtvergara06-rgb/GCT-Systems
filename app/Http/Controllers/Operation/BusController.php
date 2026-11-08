@@ -485,12 +485,11 @@ class BusController extends Controller
             $oldBusNo = $lockedBus->bus_no;
             $newBusNo = strtoupper(trim($validated['bus_no']));
 
-            if (
-                strcasecmp($oldBusNo, $newBusNo) !== 0
-                && $this->hasHistoricalBusReferences($lockedBus)
-            ) {
+            // Bus ID (Body Number) is permanent after creation, even when the
+            // bus has no history yet. Never rename it through an edit request.
+            if ($newBusNo !== $oldBusNo) {
                 throw ValidationException::withMessages([
-                    'bus_no' => 'Bus Number cannot be changed after trip, GPS, fuel, purchase, or maintenance history exists.',
+                    'bus_no' => 'Bus ID (Body Number) is permanent and cannot be changed.',
                 ]);
             }
 
@@ -515,7 +514,6 @@ class BusController extends Controller
             }
 
             $lockedBus->update([
-                'bus_no' => $newBusNo,
                 'plate_no' => $validated['plate_no'] ?? null,
                 'bus_model' => $validated['bus_model'] ?? null,
                 'year_model' => $validated['year_model'] ?? null,
