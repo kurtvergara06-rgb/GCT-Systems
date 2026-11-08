@@ -84,4 +84,23 @@ JS,
         );
     }
 
+    public function test_trip_history_modal_stays_centered_and_scrollable_on_short_viewports(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $css = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+        $backdrop = file_get_contents(resource_path('js/Main-js/global-modal-backdrop.js'));
+        $formCss = file_get_contents(resource_path('css/Main-styles/form-components.css'));
+
+        $this->assertStringContainsString('id="tripDetailModal"', $view);
+        $this->assertStringContainsString('Operation final audit: viewport-safe Trip History modal centering', $css);
+        $this->assertStringContainsString('#tripDetailModal.trip-modal-overlay > .trip-modal', $css);
+        $this->assertStringContainsString('align-items: safe center;', $css);
+        $this->assertStringContainsString('justify-content: safe center;', $css);
+        $this->assertStringContainsString('overflow-y: auto;', $css);
+        $this->assertStringContainsString('max-height: calc(100dvh - clamp(20px, 5vh, 44px));', $css);
+        $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $backdrop);
+        $this->assertStringContainsString('syncViewportPortals()', $backdrop);
+        $this->assertStringContainsString('GCT shared form modal scroll contract', $formCss);
+    }
+
 }
