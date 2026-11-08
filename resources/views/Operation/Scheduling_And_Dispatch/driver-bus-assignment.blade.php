@@ -539,6 +539,7 @@
                                                             title="{{ $trip->status === 'Ready' ? 'Replace Driver / Bus (Head approval required)' : 'Edit Assignment' }}"
                                                             data-ready-replacement="{{ $trip->status === 'Ready' ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
+                                                            data-slot-number="{{ $assignment->slot_number }}"
                                                             data-trip-id="{{ $trip->id }}"
                                                             data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
                                                             data-availability-url="{{ route('driver-bus-assignment.availability', $trip, false) }}"
