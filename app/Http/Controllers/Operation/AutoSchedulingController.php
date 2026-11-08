@@ -107,8 +107,8 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
-            ->whereNotIn('bus_no', JobOrder::query()
-                ->where('status', '!=', 'Completed')
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                
                 ->select('bus_no'))
             ->count();
 
@@ -351,8 +351,8 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
-            ->whereNotIn('bus_no', JobOrder::query()
-                ->where('status', '!=', 'Completed')
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                
                 ->select('bus_no'))
             ->orderBy('bus_no')
             ->get();
@@ -841,7 +841,7 @@ class AutoSchedulingController extends Controller
         $date = $trip->trip_date->toDateString();
         $drivers = $this->assumedPresentDrivers($date);
         $buses = Bus::query()->whereIn('fleet_purpose', ['Regular', 'Reserve'])->where('status', 'Active')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->get(['id', 'bus_no', 'fleet_purpose'])
             ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))
             // Regular first; each fleet group is ascending by body number.
@@ -1342,9 +1342,9 @@ class AutoSchedulingController extends Controller
                     $this->assertBusMatchesTripClient($trip, $bus, $field);
                 }
 
-                if ($bus && JobOrder::query()
+                if ($bus && JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $bus->bus_no)
-                    ->where('status', '!=', 'Completed')
+                    
                     ->exists()) {
                     throw ValidationException::withMessages([
                         $field => 'A selected bus has an unresolved Maintenance Job Order. Generate the schedule again.',
@@ -1362,8 +1362,8 @@ class AutoSchedulingController extends Controller
                     $regularCandidates = Bus::query()
                         ->where('fleet_purpose', 'Regular')
                         ->where('status', 'Active')
-                        ->whereNotIn('bus_no', JobOrder::query()
-                            ->where('status', '!=', 'Completed')->select('bus_no'))
+                        ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                            ->select('bus_no'))
                         ->lockForUpdate()
                         ->get();
 
@@ -2316,7 +2316,7 @@ class AutoSchedulingController extends Controller
                         'status',
                         'Active'
                     )
-                    ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+                    ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
                     ->orderBy('bus_no')
                     ->lockForUpdate()
                     ->get();
