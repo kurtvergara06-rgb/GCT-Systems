@@ -289,6 +289,45 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertSame('Active', $mechanic->fresh()->employment_status);
     }
 
+    public function test_bus_id_is_immutable_without_history_but_other_details_remain_editable(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload('BUS-TAMPERED'),
+                ['plate_no' => 'NEW-1234']
+            ))
+            ->assertSessionHasErrors('bus_no');
+
+        $this->assertSame('BUS-001', $bus->fresh()->bus_no);
+        $this->assertSame('ABC-1001', $bus->fresh()->plate_no);
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload('BUS-001'),
+                ['plate_no' => 'NEW-1234', 'bus_model' => 'Corrected Bus Model', 'capacity' => 45]
+            ))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('BUS-001', $bus->fresh()->bus_no);
+        $this->assertSame('NEW-1234', $bus->fresh()->plate_no);
+        $this->assertSame('Corrected Bus Model', $bus->fresh()->bus_model);
+        $this->assertSame(45, $bus->fresh()->capacity);
+
+        $view = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-master-list.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Shuttle_Bus_Management/bus-master-list.js'));
+
+        $this->assertMatchesRegularExpression('/id="edit_bus_no"[^>]*readonly[^>]*aria-readonly="true"/s', $view);
+        $this->assertStringContainsString('Bus ID (Body Number) is permanent', $view);
+        $this->assertStringContainsString('editBusNo.readOnly = true;', $script);
+        $this->assertStringNotContainsString("editBusNo.readOnly = button.dataset.busNoLocked === '1'", $script);
+    }
+
     public function test_bus_history_blocks_rename_and_delete_and_maintenance_blocks_activation(): void
     {
         $user = $this->operationUser();
