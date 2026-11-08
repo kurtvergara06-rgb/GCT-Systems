@@ -102,15 +102,15 @@
                     <table class="ddr-table">
                         <thead>
                             <tr>
-                                <th>DDR No.</th>
-                                <th>Report Date</th>
-                                <th>Driver</th>
-                                <th>Bus</th>
-                                <th>Trips</th>
-                                <th>First Route</th>
-                                <th>First Trip Times</th>
-                                <th>Total Passengers</th>
-                                <th>Action</th>
+                                <th scope="col">DDR No.</th>
+                                <th scope="col">Report Date</th>
+                                <th scope="col">Driver</th>
+                                <th scope="col">Bus</th>
+                                <th scope="col">Trips</th>
+                                <th scope="col">First Route</th>
+                                <th scope="col">First Trip Times</th>
+                                <th scope="col">Total Passengers</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
 
