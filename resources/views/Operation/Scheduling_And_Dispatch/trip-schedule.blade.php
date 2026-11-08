@@ -357,7 +357,7 @@
                                                     </div>
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-calendar-day"></i> Schedule:</span>
-                                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong> · {{ $trip->shift }} shift
+                                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong>
                                                     </div>
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Client / Company:</span>
