@@ -18,7 +18,7 @@
                     <div>
                         <p>On-Time Rate</p>
                         <h2>{{ $onTimeRate === null ? '—' : $onTimeRate.'%' }}</h2>
-                        <small>Completed trips with verified arrival times</small>
+                        <small>Based on stored trip actual timestamps; DDR verification shown below</small>
                     </div>
                 </article>
 
