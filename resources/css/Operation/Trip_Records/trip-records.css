@@ -2980,3 +2980,26 @@
 .trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) td {
     overflow-wrap: anywhere;
 }
+
+/* Operation final audit: viewport-safe Trip History modal centering.
+   Center when the dialog fits; scroll the overlay on compact laptop heights.
+   Do not change backdrop dismissal, dialog state, or body-scroll ownership. */
+#tripDetailModal.trip-modal-overlay {
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    align-items: safe center;
+    justify-content: safe center;
+}
+#tripDetailModal.trip-modal-overlay > .trip-modal {
+    flex-shrink: 0;
+    margin: auto;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+}
+@supports (height: 100dvh) {
+    #tripDetailModal.trip-modal-overlay > .trip-modal {
+        max-height: calc(100dvh - 2 * clamp(10px, 2.5vh, 22px));
+    }
+}
