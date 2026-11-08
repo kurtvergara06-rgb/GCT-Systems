@@ -487,7 +487,7 @@ class BusController extends Controller
 
             // Bus ID (Body Number) is permanent after creation, even when the
             // bus has no history yet. Never rename it through an edit request.
-            if ($newBusNo !== $oldBusNo) {
+            if (strcasecmp($oldBusNo, $newBusNo) !== 0) {
                 throw ValidationException::withMessages([
                     'bus_no' => 'Bus ID (Body Number) is permanent and cannot be changed.',
                 ]);
