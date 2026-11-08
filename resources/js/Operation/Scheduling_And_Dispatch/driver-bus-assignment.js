@@ -370,7 +370,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 data-pair-driver="${escapeHtml(String(pair.driver.id))}" data-pair-bus="${escapeHtml(String(pair.bus.id))}"
                 aria-pressed="${selected ? 'true' : 'false'}">
                 <span class="assignment-pair-driver"><i class="fa-solid fa-user-tie"></i><span><strong>${escapeHtml(pair.driver.name)}</strong><small>${escapeHtml(pair.driver.driver_id)} · ${escapeHtml(pair.driver.status)}</small></span></span>
-                <span class="assignment-pair-bus"><i class="fa-solid fa-bus"></i><span><strong>${escapeHtml(pair.bus.bus_no || 'Bus')}</strong><small>${escapeHtml(pair.bus.model || 'Authorized bus')}</small></span></span>
+                <span class="assignment-pair-bus"><i class="fa-solid fa-bus"></i><span><strong>${escapeHtml(pair.bus.bus_no || 'Bus')}</strong><small>${escapeHtml(pair.bus.purpose === 'Reserve' ? 'Reserve · Shared standby bus' : (pair.bus.model || 'Authorized bus'))}</small></span></span>
                 <i class="fa-solid ${selected ? 'fa-circle-check' : 'fa-circle'} assignment-pair-check"></i>
             </button>`;
         }).join('') : `<p class="assignment-pair-empty">${escapeHtml(emptyMessage)}</p>`;
@@ -408,10 +408,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             assignmentBusOptionsContainer.innerHTML = buses.length
                 ? buses.map((bus) => {
                     const busIdentifier = bus.bus_no || 'Bus ID not recorded';
-                    const label = bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier;
+                    const label = bus.purpose === 'Reserve'
+                        ? `${busIdentifier} — Reserve (Head only)`
+                        : (bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier);
                     const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
 
-                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-purpose="${escapeHtml(bus.purpose || 'Regular')}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
         }
@@ -420,8 +422,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         // maintenance/conflicting resources. Intersect with driver authorization.
         eligiblePairs = drivers.flatMap(driver => {
             const authorized = new Set((driver.authorized_bus_ids || []).map(String));
-            return buses.filter(bus => authorized.has(String(bus.id))).map(bus => ({
-                driver, bus, search: [driver.name, driver.driver_id, bus.bus_no, bus.model, bus.plate_no].join(' ').toLowerCase()
+            return buses.filter(bus => bus.purpose === 'Reserve' || authorized.has(String(bus.id))).map(bus => ({
+                driver, bus, search: [driver.name, driver.driver_id, bus.bus_no, bus.model, bus.plate_no, bus.purpose].join(' ').toLowerCase()
             }));
         });
         availabilitySummary = {
@@ -431,7 +433,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 ? 'No eligible drivers were returned for this trip. Check active driver records, licence dates, and overlapping assignments.'
                 : !buses.length
                     ? 'No compatible buses were returned. Check bus client allocation, active status, maintenance jobs, and overlapping assignments.'
-                    : 'Drivers and buses are available separately, but none of these drivers is authorized for the available buses. Review Driver Master List → Assigned Buses.'
+                    : 'Drivers and buses are available separately, but no eligible authorized Regular pair was found. Reserve buses are shared, Head-approved assets.'
         };
         renderPairCards();
 
@@ -740,7 +742,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         const allowed = assignmentDriverOptions.find(
             (option) => String(option.dataset.value) === String(value)
         )?.dataset.authorizedBuses?.split(',').filter(Boolean) || [];
-        if (assignmentBus?.value && !allowed.includes(String(assignmentBus.value))) {
+        const selectedBus = assignmentBusOptions.find(
+            option => String(option.dataset.value) === String(assignmentBus?.value)
+        );
+        if (assignmentBus?.value
+            && selectedBus?.dataset.purpose !== 'Reserve'
+            && !allowed.includes(String(assignmentBus.value))) {
             resetBusSelection();
         }
         filterBusOptions(assignmentBusSearch?.value || '');
@@ -845,7 +852,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                     : [];
                 // No selected driver means no bus can be offered. Only show
                 // buses explicitly authorized for the selected driver.
-                const busAuthorized = allowed.includes(String(option.dataset.value));
+                const busAuthorized = Boolean(selectedDriver)
+                    && (option.dataset.purpose === 'Reserve'
+                        || allowed.includes(String(option.dataset.value)));
 
                 option.hidden = !shouldShow || !busAuthorized;
             }
