@@ -325,6 +325,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         assignmentDriverOptions = [];
         assignmentBusOptions = [];
         eligiblePairs = [];
+        availabilityDrivers = [];
         availabilitySummary = { drivers: 0, buses: 0, reason: message };
         updatePairTripContext(null);
         renderPairCards();
@@ -340,6 +341,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const selectedDriverSummary = document.getElementById('assignmentSelectedDriverSummary');
     const fleetNote = document.getElementById('assignmentFleetNote');
     let eligiblePairs = [];
+    let availabilityDrivers = [];
     let editingSlotNumber = 0;
     let fleetMode = 'Regular';
     let reserveNotice = 'Reserve deployment requires Operations Head authorization.';
@@ -371,6 +373,14 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             if (!driverMap.has(id)) driverMap.set(id, { driver: pair.driver, buses: [] });
             driverMap.get(id).buses.push(pair.bus);
         });
+        // Reserve uses the complete eligible-driver pool, regardless of
+        // permanent authorized-bus pivots or the available Reserve bus count.
+        if (fleetMode === 'Reserve') {
+            availabilityDrivers.forEach(driver => {
+                const id = String(driver.id);
+                if (!driverMap.has(id)) driverMap.set(id, { driver, buses: [] });
+            });
+        }
         const drivers = Array.from(driverMap.values());
         const visibleDrivers = drivers.filter(item =>
             [item.driver.name, item.driver.driver_id].join(' ').toLowerCase().includes(query));
@@ -401,7 +411,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (selectedDriverSummary) selectedDriverSummary.textContent = chosen
             ? `${chosen.driver.name} · ${chosen.buses.length} eligible bus(es)`
             : 'Choose a driver above';
-        pairList.innerHTML = chosen ? chosen.buses.map(bus => {
+        pairList.innerHTML = chosen && chosen.buses.length ? chosen.buses.map(bus => {
             const active = String(assignmentBus?.value) === String(bus.id);
             return `<button type="button" class="assignment-bus-choice ${active ? 'is-selected' : ''}"
                 data-select-bus="${escapeHtml(String(bus.id))}" aria-pressed="${active}">
@@ -409,7 +419,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 <span><strong>${escapeHtml(bus.bus_no || 'Bus')}</strong><small>${escapeHtml(fleetMode === 'Reserve' ? 'Reserve · Shared standby' : (bus.model || 'Authorized Regular bus'))}</small></span>
                 <i class="fa-solid ${active ? 'fa-circle-check' : 'fa-circle'}" aria-hidden="true"></i>
             </button>`;
-        }).join('') : '<p class="assignment-pair-empty">Select a driver above to see their eligible buses.</p>';
+        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(chosen
+            ? (fleetMode === 'Reserve' ? reserveNotice : 'This driver has no eligible Regular bus.')
+            : 'Select a driver above to see their eligible buses.')}</p>`;
     }
 
     pairSearch?.addEventListener('input', renderPairCards);
@@ -447,6 +459,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         updatePairTripContext(data?.trip || null);
         const drivers = Array.isArray(data?.drivers) ? data.drivers : [];
         const buses = Array.isArray(data?.buses) ? data.buses : [];
+        availabilityDrivers = drivers;
         reserveNotice = data?.reserve_notice || 'No Reserve buses available for this trip.';
 
         if (assignmentDriverOptionsContainer) {
