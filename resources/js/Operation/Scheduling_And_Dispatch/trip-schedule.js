@@ -57,12 +57,14 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             const total = Number(data.total) || 0;
             const statuses = data.statuses || {};
             const statusLabels = {
-                scheduled: 'Scheduled / Ready',
+                unassigned: 'Scheduled / Unassigned',
+                partial: 'Partially Assigned',
+                assigned: 'Fully Assigned / Ready',
                 in_progress: 'In Progress',
                 pending_ddr: 'Pending DDR',
                 completed: 'Completed',
                 missed: 'Missed',
-                cancelled: 'Canceled',
+                cancelled: 'Cancelled',
                 delayed: 'Delayed',
                 other: 'Other',
             };
