@@ -21,6 +21,66 @@ class OperationAutoSchedulingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_month_calendar_counts_pending_and_assigned_trips_and_filters_routes(): void
+    {
+        $user = User::factory()->create();
+        [$pendingTrip, , , $route] = $this->makeScheduleResources();
+        $date = $pendingTrip->trip_date->toDateString();
+        $month = $pendingTrip->trip_date->format('Y-m');
+
+        $pendingTrip->update(['status' => 'Scheduled', 'assignment_status' => 'Unassigned']);
+
+        $assignedTrip = $pendingTrip->replicate();
+        $assignedTrip->trip_code = 'T-CALENDAR-ASSIGNED';
+        $assignedTrip->assignment_status = 'Assigned';
+        $assignedTrip->save();
+
+        $anotherRoute = ShuttleRoute::create([
+            'route_code' => 'R-CALENDAR-OTHER',
+            'route_name' => 'Another Calendar Route',
+            'origin' => 'Batangas',
+            'destination' => 'Lipa',
+            'status' => 'Active',
+        ]);
+        $otherTrip = $pendingTrip->replicate();
+        $otherTrip->trip_code = 'T-CALENDAR-OTHER';
+        $otherTrip->shuttle_route_id = $anotherRoute->id;
+        $otherTrip->save();
+
+        $all = $this->actingAs($user)->getJson(route('auto-scheduling.calendar', ['month' => $month]))
+            ->assertOk()
+            ->assertJsonPath('month', $month);
+
+        $day = collect($all->json('days'))->firstWhere('date', $date);
+        $this->assertSame(3, $day['total']);
+        $this->assertSame(2, $day['pending']);
+        $this->assertSame(1, $day['assigned']);
+
+        $filtered = $this->actingAs($user)->getJson(route('auto-scheduling.calendar', [
+            'month' => $month,
+            'shuttle_route_id' => $route->id,
+        ]))->assertOk();
+
+        $day = collect($filtered->json('days'))->firstWhere('date', $date);
+        $this->assertSame(2, $day['total']);
+        $this->assertSame(1, $day['pending']);
+        $this->assertSame(1, $day['assigned']);
+    }
+
+    public function test_month_calendar_validates_month_and_renders_only_to_authorized_users(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)
+            ->getJson(route('auto-scheduling.calendar', ['month' => 'invalid']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('month');
+
+        $this->actingAs($user)->get(route('auto-scheduling'))
+            ->assertOk()
+            ->assertSee('id="autoSchedulingCalendar"', false)
+            ->assertSee('data-calendar-url="'.route('auto-scheduling.calendar').'"', false);
+    }
+
     public function test_general_service_trip_is_available_for_auto_scheduling(): void
     {
         $user = User::factory()->create();
