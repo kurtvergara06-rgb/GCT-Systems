@@ -374,14 +374,14 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>Trip ID</th>
-                                    <th>Time</th>
-                                    <th>Route</th>
-                                    <th>Required Buses</th>
-                                    <th>Driver</th>
-                                    <th>Bus</th>
-                                    <th>Result</th>
-                                    <th>Action</th>
+                                    <th scope="col">Trip ID</th>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Route</th>
+                                    <th scope="col">Required Buses</th>
+                                    <th scope="col">Driver</th>
+                                    <th scope="col">Bus</th>
+                                    <th scope="col">Result</th>
+                                    <th scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="autoScheduleIncomingBody">
@@ -448,14 +448,14 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>Trip ID</th>
-                                    <th>Time</th>
-                                    <th>Route</th>
-                                    <th>Required Buses</th>
-                                    <th>Driver</th>
-                                    <th>Bus</th>
-                                    <th>Result</th>
-                                    <th>Action</th>
+                                    <th scope="col">Trip ID</th>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Route</th>
+                                    <th scope="col">Required Buses</th>
+                                    <th scope="col">Driver</th>
+                                    <th scope="col">Bus</th>
+                                    <th scope="col">Result</th>
+                                    <th scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="autoScheduleOutgoingBody">
