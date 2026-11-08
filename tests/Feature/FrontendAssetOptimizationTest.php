@@ -220,4 +220,23 @@ class FrontendAssetOptimizationTest extends TestCase
         $this->assertStringContainsString('background-color: #dc2626', $styles);
     }
 
+
+    public function test_assignment_month_calendar_is_registered_and_preserves_filter_date(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/assignment-calendar.js'));
+        $css = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/assignment-calendar.css'));
+        $vite = file_get_contents(base_path('vite.config.js'));
+
+        $this->assertStringContainsString('data-assignment-calendar', $view);
+        $this->assertStringContainsString('driver-bus-assignment.calendar', $view);
+        $this->assertStringContainsString('Assignment Status Legend', $view);
+        $this->assertStringContainsString('name="trip_date"', $view);
+        $this->assertStringContainsString("registerInitializer('operation-assignment-calendar'", $script);
+        $this->assertStringContainsString("url.searchParams.set('trip_date', date)", $script);
+        $this->assertStringContainsString('.assignment-calendar-legend-grid', $css);
+        $this->assertStringContainsString('.assignment-calendar-dot.is-missed', $css);
+        $this->assertStringContainsString('resources/js/Operation/Scheduling_And_Dispatch/assignment-calendar.js', $vite);
+    }
+
 }
