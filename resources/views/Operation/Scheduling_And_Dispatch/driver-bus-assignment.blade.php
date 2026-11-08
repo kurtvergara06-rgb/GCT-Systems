@@ -541,19 +541,19 @@
 
                                             <td>
                                                 <div class="assignment-actions">
-                                                    <button
-                                                        type="button"
-                                                        class="assignment-action view view-assignment"
-                                                        title="View"
-                                                        data-details='@json($details)'
-                                                    >
-                                                        <i class="fa-solid fa-eye"></i>
-                                                    </button>
+                                                    <x-ui.action-button
+                                                        type="view"
+                                                        class="assignment-action view-assignment"
+                                                        title="View Assignment"
+                                                        aria-label="View assignment for {{ $trip->trip_code }}"
+                                                        :data-details="$details ? json_encode($details, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) : '{}'"
+                                                    />
 
                                                     @if($canChangeSlot)
-                                                        <button
-                                                            type="button"
-                                                            class="assignment-action edit edit-assignment"
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            :icon="$requiresHeadReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square'"
+                                                            class="assignment-action edit-assignment"
                                                             title="{{ $requiresHeadReplacement ? 'Replace Driver / Bus — Operations Head approval and reason required' : 'Edit Assignment' }}"
                                                             aria-label="{{ $requiresHeadReplacement ? 'Replace assigned driver or bus' : 'Edit assigned driver or bus' }}"
                                                             data-ready-replacement="{{ $requiresHeadReplacement ? 'true' : 'false' }}"
@@ -565,9 +565,7 @@
                                                             data-driver-id="{{ $assignment->driver_id }}"
                                                             data-bus-id="{{ $assignment->bus_id }}"
                                                             data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
-                                                        >
-                                                            <i class="fa-solid {{ $requiresHeadReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square' }}"></i>
-                                                        </button>
+                                                        />
 
                                                         @if(! $requiresHeadReplacement)
                                                         <form
@@ -584,47 +582,42 @@
                                                             <input type="hidden" name="driver_page" value="{{ request('driver_page') }}">
                                                             <input type="hidden" name="bus_page" value="{{ request('bus_page') }}">
 
-                                                            <button
-                                                                type="button"
+                                                            <x-ui.action-button
+                                                                type="delete"
+                                                                icon="fa-link-slash"
                                                                 class="assignment-action remove remove-assignment"
                                                                 title="Remove Assignment"
+                                                                aria-label="Remove assignment for {{ $trip->trip_code }}"
                                                                 data-form-id="removeAssignmentForm-{{ $assignment->id }}"
                                                                 data-trip-code="{{ $trip->trip_code }}"
-                                                            >
-                                                                <i class="fa-solid fa-link-slash"></i>
-                                                            </button>
+                                                            />
                                                         </form>
                                                         @endif
                                                     @elseif($canEditOperation && $requiresHeadReplacement)
-                                                        <button
-                                                            type="button"
-                                                            class="assignment-action edit assignment-action-disabled"
-                                                            disabled
-                                                            aria-disabled="true"
-                                                            title="{{ $isLocked ? 'Replacement unavailable: trip departed or operational history exists' : 'Only Operations Head can authorize this replacement' }}"
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            icon="fa-arrow-right-arrow-left"
+                                                            class="assignment-action assignment-action-disabled"
+                                                            :disabled="true"
+                                                            :title="$isLocked ? 'Replacement unavailable: trip departed or operational history exists' : 'Only Operations Head can authorize this replacement'"
                                                             aria-label="Replacement requires Operations Head authorization"
-                                                        >
-                                                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                                        </button>
+                                                        />
                                                     @elseif($canEditOperation)
-                                                        <button
-                                                            type="button"
-                                                            class="assignment-action edit assignment-action-disabled"
-                                                            disabled
-                                                            aria-disabled="true"
-                                                            title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
-                                                        >
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
-                                                        <button
-                                                            type="button"
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            class="assignment-action assignment-action-disabled"
+                                                            :disabled="true"
+                                                            :title="$asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time'"
+                                                            aria-label="Edit assignment unavailable"
+                                                        />
+                                                        <x-ui.action-button
+                                                            type="delete"
+                                                            icon="fa-link-slash"
                                                             class="assignment-action remove assignment-action-disabled"
-                                                            disabled
-                                                            aria-disabled="true"
-                                                            title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
-                                                        >
-                                                            <i class="fa-solid fa-link-slash"></i>
-                                                        </button>
+                                                            :disabled="true"
+                                                            :title="$asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time'"
+                                                            aria-label="Remove assignment unavailable"
+                                                        />
                                                     @endif
 
                                                 </div>
