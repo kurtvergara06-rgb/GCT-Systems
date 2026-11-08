@@ -726,10 +726,13 @@ class JobOrderController extends Controller
 
             // An Active master status does not mean the vehicle has returned
             // from an already dispatched trip. Guard writes as well as the UI.
+            $approvedBreakdownReferral = $lockedReferral !== null
+                && $lockedReferral->incident?->incident_type === 'Bus Breakdown';
             if ($bus->hasOngoingDispatch()
-                && ! ($pmsSchedule !== null && $validated['maintenance_type'] === 'PMS')) {
+                && ! ($pmsSchedule !== null && $validated['maintenance_type'] === 'PMS')
+                && ! $approvedBreakdownReferral) {
                 throw ValidationException::withMessages([
-                    'bus_no' => 'This bus is currently dispatched. Routine PMS may be planned, but other work requires the incident/referral workflow.',
+                    'bus_no' => 'This bus is currently dispatched. Routine PMS may be planned, but urgent repair must follow an approved Bus Breakdown referral.',
                 ]);
             }
 
