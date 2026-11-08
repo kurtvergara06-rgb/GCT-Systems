@@ -23,12 +23,12 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->actingAs($user)
             ->get(route('driver-attendance'))
             ->assertOk()
-            ->assertSeeText('Driver Attendance List')
+            ->assertSeeText('DDR-Verified Attendance History')
             ->assertDontSeeText('Record Daily Attendance')
             ->assertSee('data-server-filter="true"', false);
     }
 
-    public function test_attendance_page_shows_four_date_scoped_kpi_cards(): void
+    public function test_attendance_page_shows_ddr_verified_historical_kpis_without_daily_tabs(): void
     {
         $user = User::factory()->create([
             'department' => 'Operation',
@@ -41,13 +41,15 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->actingAs($user)
             ->get(route('driver-attendance'))
             ->assertOk()
-            ->assertViewHas('present', 0)
-            ->assertViewHas('assignedPresent', 0)
-            ->assertViewHas('unassignedPresent', 0)
+            ->assertViewHas('verifiedDrivers', 0)
+            ->assertViewHas('verifiedTripDays', 0)
             ->assertViewHas('attendanceRecords', 0)
-            ->assertSeeText('Assigned Present')
-            ->assertSeeText('Unassigned Present')
-            ->assertSeeText('Attendance Records');
+            ->assertSeeText('Verified Drivers')
+            ->assertSeeText('Verified Service Dates')
+            ->assertSeeText('Verified Attendance Records')
+            ->assertDontSeeText("Today's Attendance")
+            ->assertDontSeeText('Assigned Present')
+            ->assertDontSeeText('Unassigned Present');
     }
 
     public function test_driver_attendance_filters_and_modals_follow_partial_ui_rules(): void
@@ -74,6 +76,9 @@ class OperationDriverAttendanceUiTest extends TestCase
         $this->assertStringNotContainsString('openImportDriverAttendanceModal', $view);
         $this->assertStringNotContainsString('resources/js/Operation/Attendance/batch-attendance.js', $view);
         $this->assertStringContainsString('resources/js/Operation/Attendance/driver-attendance.js', $view);
+        $this->assertStringContainsString('Service Date (optional)', $view);
+        $this->assertStringNotContainsString('attendance-record-tabs', $view);
+        $this->assertStringNotContainsString('attendanceAutoToday', $driverJs);
         $this->assertStringNotContainsString(
             'event.target === modal',
             $driverJs
