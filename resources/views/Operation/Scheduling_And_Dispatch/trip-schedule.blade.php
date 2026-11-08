@@ -337,14 +337,15 @@
                                                                 data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
                                                             />
                                                             @if($canCancel)
-                                                                <button
-                                                                    type="button"
+                                                                <x-ui.action-button
+                                                                    type="delete"
+                                                                    icon="fa-ban"
                                                                     class="trip-action cancel-service-trip"
                                                                     title="Cancel Trip (Head approval and reason required)"
                                                                     aria-label="Cancel trip {{ $trip->trip_code }}"
                                                                     data-trip-code="{{ $trip->trip_code }}"
                                                                     data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}"
-                                                                ><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
+                                                                />
                                                             @endif
                                                     </div>
                                                 </div>
