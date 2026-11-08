@@ -5,8 +5,10 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/assignment-calendar.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/assignment-calendar.js',
     ]"
 >
     @php
@@ -101,6 +103,44 @@
                     </div>
                 </div>
 
+                <div class="assignment-date-picker" data-assignment-calendar
+                     data-calendar-url="{{ route('driver-bus-assignment.calendar') }}"
+                     data-selected-date="{{ $selectedTripDate }}">
+                    <button type="button" class="assignment-date-trigger" data-assignment-calendar-trigger aria-expanded="false" aria-controls="assignmentDateCalendar">
+                        <span class="assignment-date-icon"><i class="fa-regular fa-calendar" aria-hidden="true"></i></span>
+                        <span class="assignment-date-copy"><small>Showing assignments for</small><strong>{{ \Carbon\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong></span>
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="assignment-date-calendar" id="assignmentDateCalendar" data-assignment-calendar-panel hidden>
+                        <div class="assignment-calendar-heading"><strong>Select Assignment Date</strong>
+                            <button type="button" data-assignment-calendar-close aria-label="Close calendar"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <p class="assignment-calendar-hint">Colored dots show assignment status. Multiple dots indicate different states on the same date.</p>
+                        <div class="assignment-calendar-month">
+                            <button type="button" data-assignment-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                            <strong data-assignment-calendar-month></strong>
+                            <button type="button" data-assignment-calendar-next aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="assignment-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                        <div class="assignment-calendar-days" data-assignment-calendar-days role="group" aria-label="Choose assignment date"></div>
+                        <div class="assignment-calendar-legend" aria-label="Assignment status color legend">
+                            <strong>Assignment Status Legend</strong>
+                            <div class="assignment-calendar-legend-grid">
+                                <span><i class="assignment-calendar-dot is-unassigned"></i> Unassigned</span>
+                                <span><i class="assignment-calendar-dot is-partial"></i> Partially Assigned</span>
+                                <span><i class="assignment-calendar-dot is-assigned"></i> Fully Assigned</span>
+                                <span><i class="assignment-calendar-dot is-in_progress"></i> In Progress / DDR</span>
+                                <span><i class="assignment-calendar-dot is-missed"></i> Missed</span>
+                                <span><i class="assignment-calendar-dot is-history"></i> Completed / Canceled</span>
+                            </div>
+                        </div>
+                        <div class="assignment-calendar-footer">
+                            <span><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Multiple dots = different states</span>
+                            <button type="button" data-assignment-calendar-today>Today</button>
+                        </div>
+                        <p class="assignment-calendar-feedback" data-assignment-calendar-feedback role="status" aria-live="polite"></p>
+                    </div>
+                </div>
                 <div class="assignment-record-controls">
                 <x-ui.table-toolbar action="{{ route('driver-bus-assignment', [], false) }}" search-label="Search Assignments" search-placeholder="Search trip, route, driver, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'all')" :show-filter-count="false" filter-title="Filter Assignments" :sort-options="['departure_time' => 'Schedule Time', 'trip_code' => 'Trip ID', 'status' => 'Trip Status']" default-sort="departure_time" data-server-filter-navigation="true">
                     <x-slot:filters>
