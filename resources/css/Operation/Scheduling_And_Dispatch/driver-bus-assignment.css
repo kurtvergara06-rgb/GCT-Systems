@@ -2549,3 +2549,67 @@
     min-width: 0;
     max-width: 100%;
 }
+
+/* When the calendar includes historical trips, explain why this active
+   assignment page has no rows and provide direct access to Trip History. */
+.driver-bus-assignment-page .assignment-history-notice,
+.assignment-page .assignment-history-notice,
+.assignment-history-notice {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin: 12px 14px;
+    padding: 13px 15px;
+    border: 1px solid #c7ddfa;
+    border-radius: 10px;
+    background: #f0f6ff;
+}
+.assignment-history-notice-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #dbeafe;
+    color: #195cba;
+}
+.assignment-history-notice-copy { flex: 1 1 auto; min-width: 0; }
+.assignment-history-notice-copy strong {
+    display: block;
+    color: #17365d;
+    font-size: 12px;
+    font-weight: 800;
+}
+.assignment-history-notice-copy p {
+    margin: 4px 0 0;
+    color: #55708f;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.assignment-history-notice-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    gap: 7px;
+    min-height: 35px;
+    padding: 7px 12px;
+    border: 1px solid #bdd6fa;
+    border-radius: 8px;
+    background: white;
+    color: #1557b2;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.assignment-history-notice-link:hover,
+.assignment-history-notice-link:focus-visible {
+    background: #dbeafe;
+    outline-offset: 2px;
+}
+@media (max-width: 650px) {
+    .assignment-history-notice { align-items: flex-start; flex-wrap: wrap; }
+    .assignment-history-notice-link { width: 100%; }
+}
