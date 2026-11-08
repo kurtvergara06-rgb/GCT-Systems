@@ -664,12 +664,16 @@ class TripAssignmentController extends Controller
                     ->firstOrFail();
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
-                $isReadyReplacement = $trip->status === 'Ready';
+                $hasUnavailableAssignedBus = $trip->assignments()
+                    ->whereHas('bus', fn ($q) => $q->where('status', '!=', 'Active'))
+                    ->exists();
+                $isReadyReplacement = $trip->status === 'Ready'
+                    || ($trip->status === 'Scheduled' && $hasUnavailableAssignedBus);
                 $replacementReason = trim((string) $request->input('replacement_reason', ''));
                 if ($isReadyReplacement) {
                     if (! (auth()->user()?->canApproveReadyTripChanges() ?? false)) {
                         throw ValidationException::withMessages([
-                            'trip_schedule_id' => 'Only the Operations Head may approve a Ready-trip replacement.',
+                            'trip_schedule_id' => 'Only the Operations Head may approve a Ready-trip or unavailable-bus replacement.',
                         ]);
                     }
                     if (mb_strlen($replacementReason) < 10 || mb_strlen($replacementReason) > 1000) {
@@ -723,7 +727,7 @@ class TripAssignmentController extends Controller
                         'trip_schedule_id' => $trip->id,
                         'trip_assignment_id' => $lockedAssignment->id,
                         'performed_by' => auth()->id(),
-                        'action' => 'ready_replacement',
+                        'action' => $trip->status === 'Ready' ? 'ready_replacement' : 'maintenance_replacement',
                         'previous_status' => $trip->status,
                         'new_status' => 'Ready',
                         'previous_driver_id' => $lockedAssignment->driver_id,
@@ -780,7 +784,7 @@ class TripAssignmentController extends Controller
         session()->flash(
             'success',
             $trip->status === 'Ready'
-                ? 'Ready-trip replacement approved and recorded successfully.'
+                ? 'Replacement approved and recorded successfully.'
                 : 'Assignment updated successfully.'
         );
 
