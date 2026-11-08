@@ -134,6 +134,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('driver-bus-assignment');
+            Route::get('/calendar', 'calendar')->middleware('throttle:60,1')->name('driver-bus-assignment.calendar');
             Route::get('/print', 'printSheet')->name('driver-bus-assignment.print');
             Route::get('/availability/{tripSchedule}', 'availability')
                 ->name('driver-bus-assignment.availability');
