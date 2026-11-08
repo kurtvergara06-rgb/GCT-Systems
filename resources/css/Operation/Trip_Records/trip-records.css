@@ -2824,3 +2824,109 @@
 }
 
 #tripDetailModal .unit-records-controls[hidden] { display: none !important; }
+
+/* Trip History modal viewport fix: keep the technical-record accordion
+   fully reachable; scroll the middle content rather than clipping its end. */
+#tripDetailModal.trip-modal-overlay {
+    padding: clamp(10px, 2.5vh, 22px);
+}
+#tripDetailModal > .trip-modal {
+    box-sizing: border-box;
+    width: min(930px, 100%);
+    max-width: 930px;
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    margin: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+#tripDetailModal .trip-modal-header {
+    flex: 0 0 auto;
+    padding: 14px 20px;
+}
+#tripDetailModal .trip-modal-header h2 {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+#tripDetailModal .trip-detail-body {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 14px 18px 20px;
+    gap: 11px;
+}
+#tripDetailModal .trip-overview-section,
+#tripDetailModal .trip-assigned-section,
+#tripDetailModal .trip-execution-section,
+#tripDetailModal .trip-database-telemetry-drawer {
+    flex: 0 0 auto;
+    min-height: max-content;
+}
+#tripDetailModal .trip-overview-section,
+#tripDetailModal .trip-assigned-section,
+#tripDetailModal .trip-execution-section {
+    padding: 13px;
+    border-radius: 11px;
+}
+#tripDetailModal .trip-details-section-heading {
+    margin-bottom: 10px;
+}
+#tripDetailModal .trip-overview-grid {
+    gap: 8px;
+}
+#tripDetailModal .trip-overview-grid > div {
+    padding: 10px;
+    gap: 4px;
+}
+#tripDetailModal .trip-database-telemetry-drawer {
+    overflow: visible;
+    border-radius: 11px;
+}
+#tripDetailModal .trip-database-telemetry-drawer > summary {
+    min-height: 55px;
+    padding: 11px 14px;
+}
+#tripDetailModal .trip-modal-actions {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 11px 18px;
+    min-height: 60px;
+    border-top: 1px solid #e1eaf4;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+}
+#tripDetailModal .trip-modal-footer-caption {
+    font-size: 10px;
+    margin-right: auto;
+}
+#tripDetailModal .trip-modal-dismiss {
+    height: 36px;
+    min-width: 85px;
+    padding: 0 14px;
+    border: 1px solid #cfdef2;
+    border-radius: 8px;
+    background: #f0f6ff;
+    color: #1c579b;
+}
+#tripDetailModal .trip-modal-dismiss:hover {
+    background: #dbeafe;
+}
+@media (max-width: 720px) {
+    #tripDetailModal > .trip-modal { max-height: calc(100dvh - 16px); }
+    #tripDetailModal .trip-modal-header { padding: 12px 14px; }
+    #tripDetailModal .trip-detail-body { padding: 10px 12px 16px; }
+    #tripDetailModal .trip-modal-actions { padding: 10px 12px; }
+}
+@media (max-width: 460px) {
+    #tripDetailModal .trip-modal-footer-caption { display: none; }
+    #tripDetailModal .trip-modal-dismiss { margin-left: auto; }
+}
