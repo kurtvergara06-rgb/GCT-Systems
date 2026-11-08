@@ -2591,13 +2591,13 @@
 }
 .trip-records-page .unified-trip-history-table col.history-col-trip { width: 170px; }
 .trip-records-page .unified-trip-history-table col.history-col-schedule { width: 150px; }
-.trip-records-page .unified-trip-history-table col.history-col-route { width: 190px; }
-.trip-records-page .unified-trip-history-table col.history-col-resources { width: 165px; }
+.trip-records-page .unified-trip-history-table col.history-col-route { width: 220px; }
+.trip-records-page .unified-trip-history-table col.history-col-resources { width: 195px; }
 .trip-records-page .unified-trip-history-table col.history-col-slots { width: 90px; }
 .trip-records-page .unified-trip-history-table col.history-col-assignment { width: 180px; }
 .trip-records-page .unified-trip-history-table col.history-col-status { width: 165px; }
 .trip-records-page .unified-trip-history-table col.history-col-actual { width: 180px; }
-.trip-records-page .unified-trip-history-table col.history-col-action { width: 170px; }
+.trip-records-page .unified-trip-history-table col.history-col-action { width: 110px; }
 .trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > thead > tr > th:last-child,
 .trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
     width: auto;
