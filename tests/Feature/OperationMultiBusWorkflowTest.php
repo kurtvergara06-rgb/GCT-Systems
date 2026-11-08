@@ -167,6 +167,51 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertEquals($bus->id, $trip->assignment->bus_id);
     }
 
+    public function test_maintenance_withdrawal_requires_head_approved_replacement_and_preserves_audit(): void
+    {
+        $trip = $this->createTripSchedule();
+        $driver = $this->createDriver('MAINT-OLD');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $bus = $this->createBus('MAINT-OLD');
+
+        $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $bus->id,
+        ])->assertSessionHasNoErrors();
+
+        $trip->refresh();
+        $this->assertSame('Ready', $trip->status);
+        $assignment = $trip->assignments()->firstOrFail();
+
+        $bus->placeUnderMaintenance();
+        $this->assertSame('Scheduled', $trip->fresh()->status);
+        $this->assertSame('Assigned', $trip->fresh()->assignment_status);
+        $this->assertSame($bus->id, $assignment->fresh()->bus_id);
+
+        $replacement = $this->createBus('MAINT-NEW');
+        $this->actingAs($this->admin)->put(route('driver-bus-assignment.update', $assignment), [
+            'driver_id' => $driver->driver_id,
+            'bus_id' => $replacement->id,
+        ])->assertSessionHasErrors('replacement_reason');
+
+        $this->actingAs($this->admin)->put(route('driver-bus-assignment.update', $assignment), [
+            'driver_id' => $driver->driver_id,
+            'bus_id' => $replacement->id,
+            'replacement_reason' => 'Original bus withdrawn by Maintenance.',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Ready', $trip->fresh()->status);
+        $this->assertSame($replacement->id, $assignment->fresh()->bus_id);
+        $this->assertDatabaseHas('operation_trip_change_audits', [
+            'trip_schedule_id' => $trip->id,
+            'trip_assignment_id' => $assignment->id,
+            'action' => 'maintenance_replacement',
+            'previous_bus_id' => $bus->id,
+            'new_bus_id' => $replacement->id,
+        ]);
+    }
+
     /**
      * Test 2: One schedule requiring three buses maintains independent assignments.
      */
