@@ -91,7 +91,7 @@ class BusController extends Controller
             ->groupBy('bus_id');
 
         $maintenanceLockedBusNumbers = JobOrder::query()
-            ->where('status', '!=', 'Completed')
+            ->blocksDispatch()
             ->whereIn('bus_no', $buses->getCollection()->pluck('bus_no'))
             ->pluck('bus_no')
             ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
@@ -460,9 +460,8 @@ class BusController extends Controller
                     ]);
                 }
 
-                if (JobOrder::query()
+                if (JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $lockedBus->bus_no)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null) {
                     throw ValidationException::withMessages([
@@ -496,9 +495,8 @@ class BusController extends Controller
             if (
                 $validated['status'] === 'Active'
                 && $lockedBus->status !== 'Active'
-                && JobOrder::query()
+                && JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $oldBusNo)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null
             ) {
@@ -595,9 +593,8 @@ class BusController extends Controller
                 ]);
             }
 
-            if (JobOrder::query()
+            if (JobOrder::query()->blocksDispatch()
                 ->where('bus_no', $lockedBus->bus_no)
-                ->where('status', '!=', 'Completed')
                 ->lockForUpdate()
                 ->first() !== null) {
                 throw ValidationException::withMessages([
@@ -633,9 +630,8 @@ class BusController extends Controller
             }
 
             if (
-                JobOrder::query()
+                JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $lockedBus->bus_no)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null
             ) {
@@ -813,9 +809,9 @@ class BusController extends Controller
 
     private function unresolvedJobOrderBusNumbers()
     {
-        return JobOrder::query()
+        return JobOrder::query()->blocksDispatch()
             ->select('bus_no')
-            ->where('status', '!=', 'Completed');
+            ;
     }
 
     private function hasTripBusHistory(Bus $bus, bool $lock = false): bool
