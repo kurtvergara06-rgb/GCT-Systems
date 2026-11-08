@@ -34,7 +34,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
     const displayTime = (value) => {
         if (typeof value !== 'string') return value || '—';
         // Keep date/time values untouched; only reformat plain HH:mm[:ss].
-        const match = value.trim().match(/^([01]?\\d|2[0-3]):([0-5]\\d)(?::[0-5]\\d)?$/);
+        const match = value.trim().match(/^([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
         if (!match) return value || '—';
         const hour = Number(match[1]);
         return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
