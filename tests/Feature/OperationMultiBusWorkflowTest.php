@@ -190,6 +190,7 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertSame($bus->id, $assignment->fresh()->bus_id);
 
         $replacement = $this->createBus('MAINT-NEW');
+        $driver->authorizedBuses()->syncWithoutDetaching([$replacement->id]);
         $this->actingAs($this->admin)->put(route('driver-bus-assignment.update', $assignment), [
             'driver_id' => $driver->driver_id,
             'bus_id' => $replacement->id,
