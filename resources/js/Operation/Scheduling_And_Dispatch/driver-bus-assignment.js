@@ -1074,8 +1074,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             if (assignmentFormMethod) {
                 assignmentFormMethod.disabled = false;
                 assignmentFormMethod.value = 'PUT';
-                document.getElementById('companyAssignmentFields')?.classList.remove('pair-picker-active');
-                if (pairPicker) pairPicker.hidden = true;
+                // Editing uses the same searchable, validated pair cards as
+                // assigning a pending slot. Keep the original trip locked.
+                document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
+                if (pairPicker) pairPicker.hidden = false;
+                if (pairSearch) pairSearch.value = '';
             }
 
             if (assignmentTrip) {
@@ -1092,6 +1095,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
             selectDriverById(editButton.dataset.driverId || '');
             selectBusById(editButton.dataset.busId || '');
+            renderPairCards();
 
             const readyReplacement = editButton.dataset.readyReplacement === 'true';
             setReplacementReasonMode(readyReplacement);
