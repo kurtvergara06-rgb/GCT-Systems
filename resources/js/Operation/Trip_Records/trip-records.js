@@ -27,6 +27,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
     const elActualArr = document.getElementById('modalActualArr');
     const elDuration = document.getElementById('modalDuration');
     const elNotes = document.getElementById('modalNotes');
+    const elRequiredSlots = document.getElementById('modalRequiredSlots');
+    const elAssignedSlots = document.getElementById('modalAssignedSlots');
+    const elAssignmentOutcome = document.getElementById('modalAssignmentOutcome');
 
     let currentTrip = null;
     const csvCell = (value) => {
@@ -51,7 +54,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
                 assignments.forEach((assignment, index) => {
                     const row = rows.insertRow();
                     [
-                        'Slot ' + (index + 1),
+                        'Slot ' + (assignment.slot_number || (index + 1)),
                         [assignment.bus_no, assignment.plate_no, assignment.bus_model].filter(Boolean).join(' • ') || '—',
                         [assignment.driver_name, assignment.driver_id].filter(Boolean).join(' • ') || '—',
                         data.departure_time || '—',
@@ -61,6 +64,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
             }
         }
 
+        if (elRequiredSlots) elRequiredSlots.textContent = data.required_buses ?? '—';
+        if (elAssignedSlots) elAssignedSlots.textContent = data.assigned_buses ?? '—';
+        if (elAssignmentOutcome) elAssignmentOutcome.textContent = data.assignment_outcome || '—';
         if (elTripCode) elTripCode.textContent = data.trip_code || '—';
         
         if (elStatus) {
@@ -159,10 +165,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (exportBtn) {
             const assignments = Array.isArray(currentTrip?.assignments) ? currentTrip.assignments : [];
             const csvRows = [
-                ['Trip ID', 'Slot', 'Bus No.', 'Plate Number', 'Bus Model', 'Driver Name', 'Driver ID', 'Scheduled Departure', 'Trip Status'],
+                ['Trip ID', 'Slot', 'Bus No.', 'Plate Number', 'Bus Model', 'Driver Name', 'Driver ID', 'Scheduled Departure', 'Trip Status', 'Resource Type'],
                 ...assignments.map((a, index) => [
                     currentTrip.trip_code, index + 1, a.bus_no, a.plate_no, a.bus_model,
                     a.driver_name, a.driver_id, currentTrip.departure_time, currentTrip.status,
+                    a.external ? 'External rental' : 'Regular bus',
                 ]),
             ];
             const blob = new Blob([String.fromCharCode(0xFEFF), csvRows.map(row => row.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
