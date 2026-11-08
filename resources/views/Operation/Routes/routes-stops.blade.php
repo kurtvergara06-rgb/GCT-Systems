@@ -333,7 +333,7 @@
                                                 data-destination-latitude="{{ $route->destination_latitude }}"
                                                 data-destination-longitude="{{ $route->destination_longitude }}"
                                                 data-destination-source="{{ $route->destination_source }}"
-                                                data-route-geometry='@json($route->route_geometry)'
+                                                :data-route-geometry="json_encode($route->route_geometry, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)"
                                                 data-distance="{{ $route->distance_km }}"
                                                 data-time="{{ $route->estimated_time_minutes }}"
                                                 data-status="{{ $route->status }}"
@@ -358,7 +358,7 @@
                                                     data-destination-latitude="{{ $route->destination_latitude }}"
                                                     data-destination-longitude="{{ $route->destination_longitude }}"
                                                     data-destination-source="{{ $route->destination_source }}"
-                                                    data-route-geometry='@json($route->route_geometry)'
+                                                    :data-route-geometry="json_encode($route->route_geometry, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)"
                                                     data-distance="{{ $route->distance_km }}"
                                                     data-time="{{ $route->estimated_time_minutes }}"
                                                     data-status="{{ $route->status }}"
