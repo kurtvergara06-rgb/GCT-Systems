@@ -128,3 +128,31 @@ test('operation DDR and Trip Records share labeled view controls with intact mod
         ->and($ddrCss)->toContain('button.table-action-btn.ddr-view-action')
         ->and($tripCss)->toContain('button.table-action-btn.trip-history-view-action');
 });
+
+test('operation Routes and Bus Availability use shared table controls without losing page hooks', function () {
+    $routes = file_get_contents(resource_path('views/Operation/Routes/routes-stops.blade.php'));
+    $availability = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-availability.blade.php'));
+    $routesJs = file_get_contents(resource_path('js/Operation/Routes/routes-stops.js'));
+    $routeCss = file_get_contents(resource_path('css/Operation/Routes/routes-stops.css'));
+    $availabilityCss = file_get_contents(resource_path('css/Operation/Shuttle_Bus_Management/bus-availability.css'));
+
+    expect(substr_count($routes, '<x-ui.action-button'))->toBeGreaterThanOrEqual(4)
+        ->and($routes)->toContain('class="route-action open-route-details"')
+        ->toContain('class="route-action edit-route-btn"')
+        ->toContain(':data-route-geometry="json_encode(')
+        ->toContain('data-stops="{{ $stopsJson }}"')
+        ->toContain('@if($canManageRoutes)')
+        ->toContain('@if($canApproveRouteChanges)')
+        ->toContain('<th scope="col">Route ID</th>')
+        ->toContain('<x-ui.empty-row')
+        ->toContain('<x-ui.table-footer')
+        ->and($routesJs)->toContain("'.open-route-details'")
+        ->toContain("'.edit-route-btn'")
+        ->and($routeCss)->toContain('.gct-record-action.route-action')
+        ->and($availability)->toContain('<x-ui.action-button type="view"')
+        ->toContain('gct-responsive-records gct-sticky-actions')
+        ->toContain('<th scope="col">Bus ID (Plate Number)</th>')
+        ->toContain('data-availability="{{ $readiness }}"')
+        ->toContain('<x-ui.empty-row')
+        ->and($availabilityCss)->toContain('.availability-table-wrap.gct-responsive-records');
+});
