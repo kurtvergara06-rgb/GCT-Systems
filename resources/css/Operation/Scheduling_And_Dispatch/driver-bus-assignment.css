@@ -2613,3 +2613,10 @@
     .assignment-history-notice { align-items: flex-start; flex-wrap: wrap; }
     .assignment-history-notice-link { width: 100%; }
 }
+
+/* Pending DDR uses the same blue semantic badge as Trip History, distinct from In Progress. */
+.assignment-page .assignment-table .assignment-status.pending-ddr {
+    background: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+}
