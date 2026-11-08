@@ -570,7 +570,7 @@ class OperationMultiBusWorkflowTest extends TestCase
             'onboarding_completed' => true,
         ]);
 
-        $this->withoutMiddleware(\\App\\Http\\Middleware\\RequireSystemPermission::class)
+        $this->withoutMiddleware(\App\Http\Middleware\RequireSystemPermission::class)
             ->actingAs($staff)->post(route('driver-bus-assignment.store'), [
                 'trip_schedule_id' => $trip->id,
                 'driver_attendance_id' => $attendance->id,
