@@ -1377,3 +1377,122 @@
 @media (max-width: 640px) {
   .driver-attendance-page .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* DDR-verified attendance: present service date and trip window together.
+   This scoped block overrides the former icon-only action dimensions. */
+.driver-attendance-page .attendance-table td:nth-child(3) .current-assignment-cell {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+}
+.driver-attendance-page .attendance-table .current-assignment-trip {
+    display: block;
+    max-width: 100%;
+    color: #193b66;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+}
+.driver-attendance-page .attendance-assignment-schedule {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 10px;
+    color: #617897;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: left;
+}
+.driver-attendance-page .attendance-assignment-schedule > i,
+.driver-attendance-page .attendance-assignment-unassigned > small > i {
+    color: #4179c0;
+    flex-shrink: 0;
+}
+.driver-attendance-page .attendance-assignment-separator {
+    color: #9bacbf;
+}
+.driver-attendance-page .attendance-assignment-unassigned {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+.driver-attendance-page .attendance-assignment-unassigned > small {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #617897;
+}
+.driver-attendance-page .attendance-table .attendance-status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.driver-attendance-page .attendance-table .attendance-status-cell .gct-pill {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:last-child .actions {
+    justify-content: center;
+    width: 100%;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action {
+    display: inline-flex;
+    box-sizing: border-box;
+    flex: 0 0 88px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 9px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background-color: #eff6ff;
+    color: #175ac0;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action > i,
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action > span {
+    position: static;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: auto;
+    line-height: 1;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action:hover {
+    background-color: #dbeafe;
+    color: #175ac0;
+    border-color: #175ac0;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+@media (max-width: 900px) {
+    .driver-attendance-page .attendance-table {
+        min-width: 960px;
+    }
+}
