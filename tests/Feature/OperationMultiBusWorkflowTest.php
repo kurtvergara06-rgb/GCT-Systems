@@ -592,6 +592,23 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertStringContainsString('data-slot-number="{{ $assignment->slot_number }}"', $view);
     }
 
+    public function test_assignment_modal_supports_driver_first_selection_in_create_and_edit(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString('id="assignmentDriverFirstList"', $view);
+        $this->assertStringContainsString('id="assignmentPairList"', $view);
+        $this->assertStringContainsString('data-assignment-fleet="Regular"', $view);
+        $this->assertStringContainsString('data-assignment-fleet="Reserve"', $view);
+        $this->assertStringContainsString('data-select-driver', $script);
+        $this->assertStringContainsString('data-select-bus', $script);
+        $this->assertStringContainsString('const driverMap = new Map()', $script);
+        $this->assertStringContainsString('item.buses.length', $script);
+        $this->assertStringContainsString("assignmentFormMethod.value = 'PUT'", $script);
+        $this->assertStringContainsString("fleetMode = selectedBusOption?.dataset.purpose === 'Reserve'", $script);
+    }
+
     public function test_reserve_bus_rejected_if_authorized_regular_pair_is_available(): void
     {
         $trip = $this->createTripSchedule(1);
