@@ -2930,3 +2930,11 @@
     #tripDetailModal .trip-modal-footer-caption { display: none; }
     #tripDetailModal .trip-modal-dismiss { margin-left: auto; }
 }
+
+/* Pending DDR is an operational waiting state, not an unknown gray status. */
+.trip-records-page .trip-history-operational-status.pending-ddr,
+.trip-records-page .unified-trip-history-table .pending-ddr {
+    background: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+}
