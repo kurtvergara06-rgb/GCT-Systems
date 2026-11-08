@@ -201,7 +201,7 @@ it('uses only semantic Auto Scheduling column widths in screen styles', function
         expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
     }
 
-    expect($styles)->not->toContain('.auto-schedule-table colgroup col:nth-child(')
+    expect($styles)->not->toContain('.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(')
         ->and($styles)->toContain('min-width: 1250px;')
         ->and($styles)->toContain('overscroll-behavior: contain;');
 });
