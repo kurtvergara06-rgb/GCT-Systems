@@ -2619,3 +2619,51 @@
     gap: 7px;
     overflow: visible;
 }
+
+/* Trip History View button: mirror DDR's labeled action exactly.
+   Do not inherit 34px icon-only .trip-action sizing. */
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 94px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #175ac0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: visible;
+    text-decoration: none;
+    transform: none;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action:hover {
+    border-color: #175ac0;
+    background: #dbeafe;
+    color: #175ac0;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.trip-records-page .unified-trip-history-table button.trip-history-view-action > i,
+.trip-records-page .unified-trip-history-table button.trip-history-view-action > .view-trip-label {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
