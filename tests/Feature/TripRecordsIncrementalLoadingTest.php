@@ -67,6 +67,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
                 'estimated_arrival_date' => $date,
                 'status' => $status,
                 'assignment_status' => 'Unassigned',
+                'shift' => 'Morning',
             ]);
         }
 
