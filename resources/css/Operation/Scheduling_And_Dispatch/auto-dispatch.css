@@ -4549,13 +4549,6 @@ body.ai-modal-open {
     overflow-wrap: anywhere;
     vertical-align: top;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 22% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 14% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 16% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 12% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 14% !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -4659,13 +4652,6 @@ body.ai-modal-open {
     background: #f1f5f9 !important;
     font-weight: bold !important;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 12% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 22% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 15% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 16% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 11% !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table th:last-child,
   body:has(.auto-scheduling-page) .auto-schedule-table td:last-child { display: none !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table tr { break-inside: avoid !important; }
@@ -5025,13 +5011,6 @@ body.ai-modal-open {
     border-radius: 0 !important; padding: 0 !important;
     font: inherit !important;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 21% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 15% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 14% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 11% !important; }
   body:has(.auto-scheduling-page) .gct-auto-print-signatures {
     display: flex !important; justify-content: space-between;
     gap: 14mm; margin-top: 18mm;
