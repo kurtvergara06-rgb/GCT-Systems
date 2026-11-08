@@ -48,9 +48,14 @@ window.GCTPartialNavigation.registerInitializer('operation-assignment-calendar',
             days.appendChild(blank);
         }
         const labels = {
-            unassigned: 'Unassigned', partial: 'Partially Assigned', assigned: 'Fully Assigned',
-            in_progress: 'In Progress', pending_ddr: 'Pending DDR',
-            missed: 'Missed', history: 'Completed / Canceled',
+            unassigned: 'Scheduled / Unassigned',
+            partial: 'Partially Assigned',
+            assigned: 'Fully Assigned / Ready',
+            in_progress: 'In Progress',
+            pending_ddr: 'Pending DDR',
+            completed: 'Completed',
+            missed: 'Missed',
+            cancelled: 'Cancelled',
             delayed: 'Delayed'
         };
         const fragment = document.createDocumentFragment();
