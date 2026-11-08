@@ -207,6 +207,27 @@
                     <div><small>Allocated Buses</small><strong id="clientDetailBuses">—</strong></div>
                     <div><small>Trip-Time Setup</small><strong id="clientDetailTripTimes">—</strong></div>
                 </div>
+                <section class="client-profile-view" aria-label="Read-only client information" hidden>
+                    <div class="client-profile-identity">
+                        <span class="client-profile-identity-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                        <div class="client-profile-identity-text">
+                            <strong id="clientViewCompany">—</strong>
+                            <small id="clientViewAddress">No company address recorded</small>
+                        </div>
+                    </div>
+                    <div class="client-profile-section-header">
+                        <span class="client-profile-section-icon"><i class="fa-solid fa-address-card" aria-hidden="true"></i></span>
+                        <div><strong>Primary Contact</strong><small>Registered contact information</small></div>
+                    </div>
+                    <dl class="client-profile-detail-grid">
+                        <div><dt>Contact Person</dt><dd id="clientViewPerson">—</dd></div>
+                        <div><dt>Department / Position</dt><dd id="clientViewPosition">—</dd></div>
+                        <div><dt>Contact Number</dt><dd id="clientViewPhone">—</dd></div>
+                        <div><dt>Email Address</dt><dd id="clientViewEmail">—</dd></div>
+                    </dl>
+                    <p class="client-profile-view-footnote"><i class="fa-solid fa-lock" aria-hidden="true"></i> Client ID and historical records are protected. Trip times and allocated buses are managed on their respective pages.</p>
+                </section>
+                <div class="client-profile-edit-fields">
                 <div class="client-master-form-section">
                     <h3><span>01</span> Company Information</h3>
                     <div class="client-master-form-grid">
@@ -240,7 +261,8 @@
                             <input id="clientDetailEmail" name="contact_email" type="email" maxlength="254" autocomplete="email">
                         </div>
                     </div>
-                    <p class="client-master-form-note">Client ID cannot be changed. Bus allocations and trip-time configurations remain in their respective pages.</p>
+                    <p class="client-master-form-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Client ID is permanent. Trip times and bus allocations are managed separately.</p>
+                </div>
                 </div>
             </x-ui.form-modal>
 
