@@ -133,6 +133,7 @@
                                 <span><i class="assignment-calendar-dot is-in_progress"></i> In Progress / DDR</span>
                                 <span><i class="assignment-calendar-dot is-missed"></i> Missed</span>
                                 <span><i class="assignment-calendar-dot is-history"></i> Completed / Canceled</span>
+                                <span><i class="assignment-calendar-dot is-delayed"></i> Delayed</span>
                             </div>
                         </div>
                         <div class="assignment-calendar-footer">
