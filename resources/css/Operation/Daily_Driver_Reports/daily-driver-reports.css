@@ -2045,7 +2045,7 @@ button.ddr-new-btn {
 .ddr-record-info>div { padding:11px; border-radius:9px; background:#f5f8fc; border:1px solid #e9eff7; overflow-wrap:anywhere; }
 .ddr-record-info small { display:block; font-size:10px; color:#62748d; margin-bottom:4px; }
 .ddr-record-info strong { color:#183451; font-size:12px; }
-.ddr-record-table-wrap { overflow-x:auto; }
+
 .ddr-record-table { width:100%; border-collapse:collapse; font-size:11px; }
 .ddr-record-table th,.ddr-record-table td { text-align:left; padding:9px; border-bottom:1px solid #e2e8f0; }
 .ddr-record-table th { background:#f0f5fa; color:#4f6684; }
@@ -2097,7 +2097,7 @@ button.ddr-new-btn {
 @media(max-width:680px) {
   .ddr-record-dialog .ddr-record-info { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .ddr-record-table { min-width:620px; }
-  .ddr-record-table-wrap { overflow-x:auto; }
+  
 }
 /* Consistent compact delete confirmation; actions stay in a single footer. */
 
