@@ -336,6 +336,10 @@
                                             @if($canReviewJobOrders && $hasMechanic && (!$hasNeededParts || $jobOrder->part_status === 'Issued'))
                                                 <form action="{{ route('job-orders.start-pms-service', $jobOrder) }}" method="POST">
                                                     @csrf
+                                                    <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:6px;">
+                                                        <input type="checkbox" name="physical_release_confirmed" value="1" required>
+                                                        Bus physically released
+                                                    </label>
                                                     <button type="submit" class="finish-btn"
                                                         title="Start physical PMS now. Bus enters Under Maintenance and Operations is notified.">
                                                         <i class="fa-solid fa-wrench" aria-hidden="true"></i>
