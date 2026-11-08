@@ -153,6 +153,18 @@
                 </div>
                 </div>
 
+                @if($trips->total() === 0 && $allTripsForDate > 0 && !request()->filled('search') && (!request()->filled('status') || request('status') === 'all'))
+                    <div class="assignment-history-notice" role="status">
+                        <span class="assignment-history-notice-icon" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                        <div class="assignment-history-notice-copy">
+                            <strong>{{ $allTripsForDate }} {{ \Illuminate\Support\Str::plural('trip', $allTripsForDate) }} recorded on {{ \Carbon\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
+                            <p>These trips are no longer shown in active Driver &amp; Bus Assignment. The calendar dots include historical trips; review their saved driver and bus details in Trip History.</p>
+                        </div>
+                        <a class="assignment-history-notice-link" href="{{ route('trip-records', ['date_from' => $selectedTripDate, 'date_to' => $selectedTripDate]) }}">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i> View Trip History
+                        </a>
+                    </div>
+                @endif
                 @php
                     $visibleAssignmentTrips = collect($trips->items());
                     $directionGroups = [
