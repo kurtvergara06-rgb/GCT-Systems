@@ -49,7 +49,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const submitText = document.getElementById('driverAttendanceSubmitText');
   const driverId = document.getElementById('driverAttendanceDriverId');
   const driverName = document.getElementById('driverAttendanceDriverName');
-  const shift = null;
   const attendanceDate = document.getElementById('driverAttendanceDate');
   const timeIn = document.getElementById('driverAttendanceTimeIn');
   const timeOut = document.getElementById('driverAttendanceTimeOut');
@@ -94,7 +93,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
 
         if (driverId) driverId.value = button.dataset.driverId || '';
         if (driverName) driverName.value = button.dataset.driverName || '';
-        if (shift) shift.value = button.dataset.shift || 'Morning';
         if (attendanceDate) {
           attendanceDate.value = button.dataset.attendanceDate || '';
           attendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
