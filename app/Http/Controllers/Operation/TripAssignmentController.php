@@ -249,6 +249,54 @@ class TripAssignmentController extends Controller
     }
 
     /**
+     * Month-level assignment overview for the date picker.
+     * Uses the stored assignment state and counts each trip once.
+     * Operational statuses take precedence over assignment indicators.
+     */
+    public function calendar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+        ]);
+        $start = \Carbon\Carbon::createFromFormat('!Y-m', $validated['month'])
+            ->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $rows = TripSchedule::query()
+            ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
+            ->selectRaw('trip_date, status, assignment_status, COUNT(*) as trip_count')
+            ->groupBy('trip_date', 'status', 'assignment_status')
+            ->get();
+
+        $dates = [];
+        foreach ($rows as $row) {
+            $date = $row->trip_date->toDateString();
+            $status = match ($row->status) {
+                'Missed' => 'missed',
+                'Completed', 'Cancelled', 'Canceled' => 'history',
+                'Dispatched', 'In Progress', 'Pending DDR', 'Delayed' => 'in_progress',
+                'Scheduled', 'Ready' => match ($row->assignment_status) {
+                    'Assigned' => 'assigned',
+                    'Partially Assigned' => 'partial',
+                    default => 'unassigned',
+                },
+                default => 'history',
+            };
+            $count = (int) $row->trip_count;
+            if (! isset($dates[$date])) {
+                $dates[$date] = ['total' => 0, 'statuses' => []];
+            }
+            $dates[$date]['total'] += $count;
+            $dates[$date]['statuses'][$status] = ($dates[$date]['statuses'][$status] ?? 0) + $count;
+        }
+
+        return response()->json([
+            'month' => $validated['month'],
+            'dates' => $dates,
+        ]);
+    }
+
+    /**
      * Print saved assignments for a selected trip date, without modifying records.
      */
     public function printSheet(Request $request): View
