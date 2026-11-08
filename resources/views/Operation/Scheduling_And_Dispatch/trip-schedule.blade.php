@@ -215,10 +215,10 @@
                                             $displayAssignmentStatus = $assignedCount >= $requiredCount ? 'Assigned' : ($assignedCount > 0 ? 'Partially Assigned' : 'Unassigned');
                                             $canManageSchedule = $trip->canBeManagedFromSchedule();
                                             $canEdit = $canEditOperation && $canManageSchedule && request('tab') !== 'history';
-                                            $canDelete = $canEdit;
                                             $canCancel = $canEditOperation && $canApproveOperation && ! $isHistorical
                                                 && in_array($trip->status, ['Scheduled', 'Ready'], true)
-                                                && ($trip->status === 'Ready' || ! $canDelete);
+                                                && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                && ($trip->incidents_count ?? 0) === 0;
                                             $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime) ? $arrivalDateTime->format('g:i A') : $arrivalDateTime->format('M d · g:i A');
                                             $assignmentLabel = in_array($trip->status, ['Missed', 'Cancelled', 'Completed'], true) ? $trip->status : ($assignedCount === 0 ? 'Pending' : ($assignedCount >= $requiredCount ? 'Fully Assigned' : 'Partially Assigned'));
                                             $viewTripData = [
@@ -330,27 +330,6 @@
                                                                     data-trip-code="{{ $trip->trip_code }}"
                                                                     data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}"
                                                                 ><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
-                                                            @else
-                                                            <form
-                                                                id="deleteTripForm-{{ $trip->id }}"
-                                                                method="POST"
-                                                                action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
-                                                            >
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
-                                                                <input type="hidden" name="return_search" value="{{ request('search') }}">
-                                                                <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
-
-                                                                <x-ui.action-button
-                                                                    type="delete"
-                                                                    class="trip-action delete-trip"
-                                                                    title="{{ $canDelete ? 'Delete' : 'Deleting unavailable for this trip' }}"
-                                                                    :disabled="! $canDelete"
-                                                                    data-form-id="deleteTripForm-{{ $trip->id }}"
-                                                                    data-trip-code="{{ $trip->trip_code }}"
-                                                                />
-                                                            </form>
                                                             @endif
                                                     </div>
                                                 </div>
@@ -662,17 +641,6 @@
         </div>
     </x-ui.form-modal>
 
-    @if($canEditOperation)
-        <x-ui.action-buttom-modal
-            mode="delete"
-            id="deleteTripModal"
-            delete-title="Delete Trip Schedule?"
-            delete-message="Are you sure you want to delete"
-            name-id="deleteTripName"
-            cancel-id="cancelDeleteTrip"
-            confirm-id="confirmDeleteTrip"
-        />
-    @endif
         </main>
     </div>
 </x-layout.app>
