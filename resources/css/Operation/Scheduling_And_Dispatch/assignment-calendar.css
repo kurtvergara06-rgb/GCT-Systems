@@ -1,3 +1,8 @@
+.assignment-page .assignment-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.assignment-page .assignment-calendar-toolbar .assignment-record-controls{flex:1 1 320px;min-width:0;display:flex;justify-content:flex-end}
+.assignment-page .assignment-calendar-toolbar .assignment-record-controls > *{max-width:100%}
+.assignment-page .assignment-calendar-toolbar .assignment-date-picker{margin:0}
+@media(max-width:760px){.assignment-page .assignment-calendar-toolbar{align-items:stretch}.assignment-page .assignment-calendar-toolbar .assignment-record-controls{justify-content:flex-start}}
 /* Scoped assignment status date picker, visually aligned with Trip Schedule. */
 .assignment-page .assignment-date-picker{position:relative;z-index:40;margin:0 0 8px;display:inline-block;max-width:100%}
 .assignment-page .assignment-date-trigger{display:flex;gap:9px;align-items:center;padding:6px 9px;background:#f8fbff;border:1px solid #dbe6f5;border-radius:10px;color:#173456;cursor:pointer;text-align:left;min-height:42px}
