@@ -31,6 +31,15 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
     const elAssignedSlots = document.getElementById('modalAssignedSlots');
     const elAssignmentOutcome = document.getElementById('modalAssignmentOutcome');
 
+    const displayTime = (value) => {
+        if (typeof value !== 'string') return value || '—';
+        // Keep date/time values untouched; only reformat plain HH:mm[:ss].
+        const match = value.trim().match(/^([01]?\\d|2[0-3]):([0-5]\\d)(?::[0-5]\\d)?$/);
+        if (!match) return value || '—';
+        const hour = Number(match[1]);
+        return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
+    };
+
     const openModal = (data) => {
         if (!data) return;
         const rows = modalOverlay.querySelector('#actualTripUnitRows');
@@ -49,7 +58,7 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
                         'Slot ' + (assignment.slot_number || (index + 1)),
                         [assignment.bus_no, assignment.plate_no, assignment.bus_model].filter(Boolean).join(' • ') || '—',
                         [assignment.driver_name, assignment.driver_id].filter(Boolean).join(' • ') || '—',
-                        data.departure_time || '—',
+                        displayTime(data.departure_time),
                         data.status || '—',
                     ].forEach(value => { row.insertCell().textContent = value; });
                 });
@@ -62,8 +71,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         // Primary trip summary uses saved schedule and assignment data only.
         const overview = {
             tripOverviewDate: data.trip_date || '—',
-            tripOverviewDeparture: data.departure_time || '—',
-            tripOverviewArrival: data.estimated_arrival_time || '—',
+            tripOverviewDeparture: displayTime(data.departure_time),
+            tripOverviewArrival: displayTime(data.estimated_arrival_time),
             tripOverviewRoute: [data.route_code, data.route_name].filter(Boolean).join(' · ') || 'Route unavailable',
             tripOverviewCorridor: [data.origin, data.destination].filter(Boolean).join(' → '),
             tripOverviewSlots: `${data.assigned_buses ?? 0} / ${data.required_buses ?? 0} buses`,
@@ -130,8 +139,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (elDriverName) elDriverName.textContent = data.driver_name || '—';
         if (elDriverId) elDriverId.textContent = data.driver_id ? `ID: ${data.driver_id}` : '';
 
-        if (elSchedDept) elSchedDept.textContent = data.departure_time || '—';
-        if (elSchedArr) elSchedArr.textContent = data.estimated_arrival_time || '—';
+        if (elSchedDept) elSchedDept.textContent = displayTime(data.departure_time);
+        if (elSchedArr) elSchedArr.textContent = displayTime(data.estimated_arrival_time);
         if (elActualDept) elActualDept.textContent = data.actual_departure_time || '—';
         if (elActualArr) elActualArr.textContent = data.actual_arrival_time || '—';
         if (elDuration) elDuration.textContent = data.actual_duration_minutes ? `${data.actual_duration_minutes} mins` : '—';
