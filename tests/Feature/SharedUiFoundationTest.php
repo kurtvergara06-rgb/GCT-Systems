@@ -68,3 +68,36 @@ test('warehouse pages load one scoped status typography contract', function () {
         // Scoped overrides intentionally beat legacy page-level declarations.
         ->toContain('height: 34px !important;');
 });
+
+test('shared record actions render accessible titles and disabled semantics safely', function () {
+    $view = Blade::render('<x-ui.action-button type="view" title="View Bus" aria-label="View bus BUS-101" data-bus-no="BUS-101" />');
+    $disabled = Blade::render('<x-ui.action-button type="edit" title="Locked: Under Maintenance" :disabled="true" />');
+
+    expect($view)
+        ->toContain('data-ui-component="action-button"')
+        ->toContain('title="View Bus"')
+        ->toContain('aria-label="View bus BUS-101"')
+        ->toContain('data-bus-no="BUS-101"')
+        ->not->toContain('title=&quot;')
+        ->and($disabled)
+        ->toContain('disabled')
+        ->toContain('aria-disabled="true"')
+        ->toContain('title="Locked: Under Maintenance"');
+});
+
+test('operation record tables reuse shared actions while retaining page event hooks', function () {
+    $paths = [
+        'Shuttle_Bus_Management/bus-master-list.blade.php' => ['open-view-bus', 'open-edit-bus'],
+        'Personnel Management/driver_master_list.blade.php' => ['data-personnel-action="view"', 'data-personnel-action="edit"'],
+        'Incidents/index.blade.php' => ['data-incident-workflow-open', 'data-incident-modal-action="edit"'],
+        'Scheduling_And_Dispatch/trip-schedule.blade.php' => ['cancel-service-trip', 'data-cancel-url'],
+    ];
+
+    foreach ($paths as $path => $hooks) {
+        $source = file_get_contents(resource_path('views/Operation/'.$path));
+        expect($source)->toContain('<x-ui.action-button');
+        foreach ($hooks as $hook) {
+            expect($source)->toContain($hook);
+        }
+    }
+});
