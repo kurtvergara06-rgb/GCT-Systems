@@ -114,8 +114,8 @@ class OperationTripScheduleHardeningTest extends TestCase
         $this->assertStringContainsString('$allTripsForDate > 0', $view);
         $this->assertStringContainsString('These trips are no longer shown in active Driver &amp; Bus Assignment.', $view);
         $this->assertStringContainsString('View Trip History', $view);
-        $this->assertStringContainsString("'date_from' => $selectedTripDate", $view);
-        $this->assertStringContainsString("'date_to' => $selectedTripDate", $view);
+        $this->assertStringContainsString("'date_from' => \$selectedTripDate", $view);
+        $this->assertStringContainsString("'date_to' => \$selectedTripDate", $view);
         $this->assertStringContainsString('$allTripsForDate = TripSchedule::query()', $controller);
         $this->assertStringContainsString('assignment-history-notice', $styles);
     }
