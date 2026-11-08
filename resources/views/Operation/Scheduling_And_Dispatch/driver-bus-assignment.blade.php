@@ -377,8 +377,14 @@
                                                     || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
                                                     || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
                                                 );
-                                            $slotDisplayStatus = $tripDisplayStatus;
-                                            $slotStatusTooltip = $tripDisplayStatus;
+                                            $needsMaintenanceReplacement = ! $isHistorical
+                                                && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                && (! $bus || $bus->status !== 'Active');
+                                            $slotDisplayStatus = $needsMaintenanceReplacement
+                                                ? 'Replacement Required' : $tripDisplayStatus;
+                                            $slotStatusTooltip = $needsMaintenanceReplacement
+                                                ? 'Assigned bus is unavailable. Operations Head must approve a replacement before departure.'
+                                                : $tripDisplayStatus;
                                             // A sibling bus breakdown may downgrade the shared trip from Ready
                                             // to Scheduled; healthy assigned slots must still display Ready.
                                             if (! $slotBreakdown && $trip->status === 'Scheduled'
@@ -485,6 +491,12 @@
                                                     <div class="assignment-bus-info">
                                                         <strong>{{ $bus?->bus_no ?: 'Bus ID not recorded' }}</strong>
                                                         <span>{{ $bus?->bus_model ?: 'Model not recorded' }}</span>
+                                                        @if($needsMaintenanceReplacement)
+                                                            <span class="assignment-maintenance-warning" title="Current bus status: {{ $bus?->status ?? 'Unavailable' }}. Assignment history is preserved.">
+                                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                                {{ $bus?->status === 'Under Maintenance' ? 'Under Maintenance' : 'Bus Unavailable' }}
+                                                            </span>
+                                                        @endif
                                                         @if($slotBreakdown)
                                                             <a href="{{ route('incidents.show', ['incident' => $slotBreakdown->incident_no], false) }}"
                                                                class="assignment-incident-indicator"
@@ -532,12 +544,12 @@
                                                         <i class="fa-solid fa-eye"></i>
                                                     </button>
 
-                                                    @if($canEditOperation && !$isLocked && ($trip->status !== 'Ready' || $canApproveOperation))
+                                                    @if($canEditOperation && !$isLocked && (($trip->status !== 'Ready' && !$needsMaintenanceReplacement) || $canApproveOperation))
                                                         <button
                                                             type="button"
                                                             class="assignment-action edit edit-assignment"
-                                                            title="{{ $trip->status === 'Ready' ? 'Replace Driver / Bus (Head approval required)' : 'Edit Assignment' }}"
-                                                            data-ready-replacement="{{ $trip->status === 'Ready' ? 'true' : 'false' }}"
+                                                            title="{{ $trip->status === 'Ready' || $needsMaintenanceReplacement ? 'Replace Driver / Bus (Operations Head approval required)' : 'Edit Assignment' }}"
+                                                            data-ready-replacement="{{ $trip->status === 'Ready' || $needsMaintenanceReplacement ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
                                                             data-slot-number="{{ $assignment->slot_number }}"
                                                             data-trip-id="{{ $trip->id }}"
@@ -547,7 +559,7 @@
                                                             data-bus-id="{{ $assignment->bus_id }}"
                                                             data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
                                                         >
-                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                            <i class="fa-solid {{ $needsMaintenanceReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square' }}"></i>
                                                         </button>
 
                                                         @if($trip->status !== 'Ready')
