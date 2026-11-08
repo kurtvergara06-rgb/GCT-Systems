@@ -974,7 +974,7 @@
 
         <section class="assignment-pair-picker" id="assignmentPairPicker" aria-label="Eligible driver and bus pairs">
             <div class="assignment-pair-header">
-                <div><strong>Eligible Driver & Bus Pairs</strong><small>Select an authorized pair compatible with this trip's client.</small></div>
+                <div><strong>Eligible Driver & Bus Pairs</strong><small>Regular: authorized driver and client match. Reserve: shared bus, Operations Head only when no Regular pair is available.</small></div>
                 <span id="assignmentPairCount">Select a trip</span>
             </div>
             <input type="search" id="assignmentPairSearch" placeholder="Search driver, ID, or bus..." aria-label="Search eligible driver and bus pairs">
