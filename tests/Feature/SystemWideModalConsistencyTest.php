@@ -103,4 +103,23 @@ JS,
         $this->assertStringContainsString('GCT shared form modal scroll contract', $formCss);
     }
 
+    public function test_operation_custom_dialogs_allow_compact_viewports_without_changing_dismissal(): void
+    {
+        $ddrCss = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+        $incidentCss = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+        $routesCss = file_get_contents(resource_path('css/Operation/Routes/routes-stops.css'));
+        $tripCss = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+        $backdrop = file_get_contents(resource_path('js/Main-js/global-modal-backdrop.js'));
+
+        $this->assertStringContainsString('Operation final audit: DDR record dialogs', $ddrCss);
+        $this->assertStringContainsString('.ddr-record-overlay.is-open > .ddr-record-dialog', $ddrCss);
+        $this->assertStringContainsString('Operation final audit: avoid minimum-height clipping', $incidentCss);
+        $this->assertStringContainsString('.inc-workflow-overlay > .inc-workflow-dialog', $incidentCss);
+        $this->assertStringContainsString('min-height: 0;', $incidentCss);
+        $this->assertStringContainsString('Operation final audit: route dialogs center', $routesCss);
+        $this->assertStringContainsString('.route-modal-overlay > :is(.route-modal, .route-details-modal)', $routesCss);
+        $this->assertStringContainsString('Operation final audit: viewport-safe Trip History modal centering', $tripCss);
+        $this->assertStringContainsString('hasFixedPositionContainingBlock(overlay)', $backdrop);
+    }
+
 }
