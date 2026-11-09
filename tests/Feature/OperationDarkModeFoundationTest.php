@@ -54,6 +54,33 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light'", $preferencesJs);
     }
 
+    public function test_operation_master_lists_and_sticky_action_columns_use_dark_tokens(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+        $personnel = file_get_contents(resource_path('css/Operation/Attendance/personnel-master.css'));
+        $sticky = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
+
+        $this->assertStringContainsString('.gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child', $css);
+        $this->assertStringContainsString('.gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan])', $css);
+        $this->assertStringContainsString('background: var(--gct-theme-surface-raised)', $css);
+        $this->assertStringContainsString('background: var(--gct-theme-surface)', $css);
+        $this->assertStringContainsString('background: var(--gct-sticky-actions-background, #fff)', $sticky);
+
+        $this->assertStringContainsString('.driver-master-records-table .driver-bus-details strong', $css);
+        $this->assertStringContainsString('.driver-master-records-table .driver-bus-details small', $css);
+        $this->assertStringContainsString('.personnel-master-page .personnel-record-tab.is-active', $css);
+        $this->assertStringContainsString('.gct-table-tool-trigger', $css);
+        $this->assertStringContainsString('.personnel-driver-form .driver-input-shell > :is(input, select)', $css);
+        $this->assertStringContainsString('.personnel-modal-overlay[data-mode="view"]', $css);
+        $this->assertStringContainsString('.driver-bus-details strong', $personnel);
+
+        foreach (['.routes-page', '.bus-master-list-page', '.ddr-page', '.trip-records-page', '.driver-attendance-page', '.client-master-page'] as $page) {
+            $this->assertStringContainsString($page, $css);
+        }
+        $this->assertStringNotContainsString('!important', $css);
+        $this->assertStringContainsString('Keep the designated yellow Export action', $css);
+    }
+
     public function test_saved_theme_hydrates_before_vite_and_scope_tracks_partial_navigation(): void
     {
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
