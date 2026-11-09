@@ -712,6 +712,13 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
   --gct-theme-border: #35465e;
   --gct-theme-focus: #8cb6ff;
 
+  /* Legacy Main-styles/main.css aliases (migration bridge). */
+  --bg: var(--gct-theme-canvas);
+  --card: var(--gct-theme-surface);
+  --text: var(--gct-theme-fg);
+  --muted: var(--gct-theme-muted);
+  --border: var(--gct-theme-border);
+
   --bg-main: var(--gct-theme-canvas);
   --surface: var(--gct-theme-surface);
   --text-main: var(--gct-theme-fg);
