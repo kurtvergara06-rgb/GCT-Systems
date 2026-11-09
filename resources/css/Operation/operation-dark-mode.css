@@ -454,3 +454,112 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-modal-o
 
 /* Do not touch success/danger status chips or disabled button colors.
    The colors communicate workflow state independently of the theme. */
+
+
+/* Semantic aliases for module stylesheets still using local --*-card,
+   --*-text, --*-border, and table-heading custom properties. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .routes-page, .bus-master-list-page, .ddr-page,
+    .trip-records-page, .auto-scheduling-page, .trip-schedule-page,
+    .assignment-page, .driver-attendance-page, .client-master-page
+) {
+    --route-text: var(--gct-theme-fg);
+    --route-muted: var(--gct-theme-muted);
+    --route-card: var(--gct-theme-surface);
+    --route-border: var(--gct-theme-border);
+    --route-soft-border: var(--gct-theme-border);
+    --route-table-head: var(--gct-theme-surface-raised);
+    --bus-card: var(--gct-theme-surface);
+    --bus-text: var(--gct-theme-fg);
+    --bus-muted: var(--gct-theme-muted);
+    --bus-border: var(--gct-theme-border);
+    --bus-table-head: var(--gct-theme-surface-raised);
+    --ddr-text: var(--gct-theme-fg);
+    --ddr-muted: var(--gct-theme-muted);
+    --ddr-border: var(--gct-theme-border);
+    --ddr-soft-border: var(--gct-theme-border);
+    --ddr-table-head: var(--gct-theme-surface-raised);
+    --trip-text: var(--gct-theme-fg);
+    --trip-muted: var(--gct-theme-muted);
+    --trip-border: var(--gct-theme-border);
+    --trip-soft-border: var(--gct-theme-border);
+    --trip-table-head: var(--gct-theme-surface-raised);
+    --gct-scrollbar-track: var(--gct-theme-surface);
+    --gct-scrollbar-thumb: #667d9c;
+    --gct-scrollbar-thumb-hover: #9bb6db;
+}
+
+/* Other Operation record lists with their own table classes rather than
+   generic .table-wrap/.table-card descendants. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-panel, .client-master-table-wrap,
+    .bus-master-list-page .bus-toolbar,
+    .bus-master-list-page .bus-tool-popover,
+    .bus-master-list-page .bus-tool-trigger,
+    .trip-records-page .trip-history-card,
+    .trip-records-page .trip-extra-filters,
+    .ddr-page .ddr-card,
+    .driver-attendance-page .attendance-card,
+    .routes-page .routes-card,
+    .auto-scheduling-page .service-direction-panel
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table th,
+    .bus-master-list-page .bus-table th,
+    .trip-records-page .trip-table th,
+    .ddr-page .ddr-table th,
+    .driver-attendance-page .attendance-table th
+) {
+    background-color: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table td,
+    .bus-master-list-page .bus-table td,
+    .trip-records-page .trip-table td,
+    .ddr-page .ddr-table td,
+    .driver-attendance-page .attendance-table td
+) {
+    background-color: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table tbody tr:hover td,
+    .bus-master-list-page .bus-table tbody tr:hover td,
+    .trip-records-page .trip-table tbody tr:hover td,
+    .ddr-page .ddr-table tbody tr:hover td,
+    .driver-attendance-page .attendance-table tbody tr:hover td
+) {
+    background-color: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-name-text strong,
+    .client-master-page .client-master-header h2,
+    .client-master-page .client-master-empty strong,
+    .driver-attendance-page .attendance-driver-details strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-name-text small,
+    .client-master-page .client-master-header p,
+    .client-master-page .client-master-footer,
+    .driver-attendance-page .attendance-driver-details small
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-record-tabs,
+    .client-master-page .client-master-record-tab.is-active,
+    .driver-attendance-page .attendance-record-tabs,
+    .driver-attendance-page .attendance-record-tab.is-active,
+    .trip-records-page .trip-more-filters > summary,
+    .trip-records-page .trip-export-btn:not(.trip-export-header)
+) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+/* Keep the designated yellow Export action and colored statuses unchanged. */
