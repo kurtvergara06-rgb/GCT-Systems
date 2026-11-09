@@ -791,7 +791,7 @@ class JobOrderController extends Controller
             return $createdJobOrder;
         });
 
-        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
+        $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'submitted_for_review', $jobOrder->id, "{$jobOrder->job_order_no} submitted for Maintenance Head review (not yet approved).");
         if ($sourceReferral) {
             $this->broadcastSystemDataUpdated('Maintenance', 'MaintenanceReferral', 'updated', $sourceReferral->id, 'Referral status updated to Job Order Created.');
         }
