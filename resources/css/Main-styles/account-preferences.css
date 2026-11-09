@@ -123,7 +123,7 @@ html[data-gct-font-size="large"] .gct-preference-preview :is(p, strong) { font-s
 
 /* Dark applies to content surfaces while retaining GCT's navy sidebar,
    brand colors, badges and operational status meanings. */
-html[data-gct-theme="dark"] {
+html[data-gct-theme="dark"]:has(.account-page) {
     --bg: #101827; --bg-main: #101827;
     --card: #1d2b40; --surface: #1d2b40;
     --text: #e4ecf7; --text-main: #e4ecf7;
@@ -131,22 +131,22 @@ html[data-gct-theme="dark"] {
     --border: #33445e; --border-soft: #33445e;
     color-scheme: dark;
 }
-html[data-gct-theme="dark"] :is(body,.app,.main,.account-page,.account-main) { background: #101827; color: #e4ecf7; }
-html[data-gct-theme="dark"] .main :is(.account-card,.account-hero-card,.account-preference-panel,.table-card,.table-wrap,.card,.panel-card,.stat-card,.users-card,.table-toolbar,.account-access-section) {
+html[data-gct-theme="dark"]:has(.account-page) :is(body,.app,.main,.account-page,.account-main) { background: #101827; color: #e4ecf7; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.account-card,.account-hero-card,.account-preference-panel,.table-card,.table-wrap,.card,.panel-card,.stat-card,.users-card,.table-toolbar,.account-access-section) {
     background: var(--surface); border-color: var(--border-soft); color: var(--text-main);
 }
-html[data-gct-theme="dark"] .main :is(h1,h2,h3,h4,p,label,dt,dd,.account-card-header-copy h3,.account-preference-row strong,.account-preference-breadcrumb span) { color: #e4ecf7; }
-html[data-gct-theme="dark"] .main :is(.account-card-header-copy p,.account-preference-row p,.account-preference-breadcrumb,.account-preference-status) { color: #acc0d9; }
-html[data-gct-theme="dark"] .main :is(input,textarea,select,.account-preference-row select) { background: #152339; border-color: #3d5571; color: #f1f5fa; }
-html[data-gct-theme="dark"] .main :is(.gct-preference-preview,.gct-preference-device-label,.account-input-wrap,.account-meta-tile,.account-access-grid>div) { background: #152339; border-color: #33445e; color: #e4ecf7; }
-html[data-gct-theme="dark"] .main :is(.gct-preference-preview > strong,.gct-theme-choice-caption,.gct-preferences-footer strong) { color: #e4ecf7; }
-html[data-gct-theme="dark"] .main :is(.gct-preference-preview > p,.gct-preferences-footer p) { color: #acc0d9; }
-html[data-gct-theme="dark"] .main :is(th,thead,.table-card th,.table-wrap th) { background: #243750; color: #edf2fa; }
-html[data-gct-theme="dark"] .main :is(td,.table-card td,.table-wrap td) { background: var(--surface); color: var(--text-main); border-color: var(--border-soft); }
-html[data-gct-theme="dark"] .main :is(.account-nav-tabs,.account-profile-tabs,.gct-personalization-intro) { border-color: #33445e; }
-html[data-gct-theme="dark"] .main .account-nav-tab:not(.active) { color: #d6e5f7; }
-html[data-gct-theme="dark"] .main :is(.account-settings-links a,.account-preference-breadcrumb a) { color: #b9d1ff; }
-html[data-gct-theme="dark"] .main :is(.gct-preference-section .account-card-header,.account-preference-row) { border-color: #33445e; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(h1,h2,h3,h4,p,label,dt,dd,.account-card-header-copy h3,.account-preference-row strong,.account-preference-breadcrumb span) { color: #e4ecf7; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.account-card-header-copy p,.account-preference-row p,.account-preference-breadcrumb,.account-preference-status) { color: #acc0d9; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(input,textarea,select,.account-preference-row select) { background: #152339; border-color: #3d5571; color: #f1f5fa; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.gct-preference-preview,.gct-preference-device-label,.account-input-wrap,.account-meta-tile,.account-access-grid>div) { background: #152339; border-color: #33445e; color: #e4ecf7; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.gct-preference-preview > strong,.gct-theme-choice-caption,.gct-preferences-footer strong) { color: #e4ecf7; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.gct-preference-preview > p,.gct-preferences-footer p) { color: #acc0d9; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(th,thead,.table-card th,.table-wrap th) { background: #243750; color: #edf2fa; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(td,.table-card td,.table-wrap td) { background: var(--surface); color: var(--text-main); border-color: var(--border-soft); }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.account-nav-tabs,.account-profile-tabs,.gct-personalization-intro) { border-color: #33445e; }
+html[data-gct-theme="dark"]:has(.account-page) .main .account-nav-tab:not(.active) { color: #d6e5f7; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.account-settings-links a,.account-preference-breadcrumb a) { color: #b9d1ff; }
+html[data-gct-theme="dark"]:has(.account-page) .main :is(.gct-preference-section .account-card-header,.account-preference-row) { border-color: #33445e; }
 
 
 /* Routes dark-mode contrast contract.
