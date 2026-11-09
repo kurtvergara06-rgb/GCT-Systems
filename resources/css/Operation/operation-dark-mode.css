@@ -286,3 +286,171 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         color-scheme: light;
     }
 }
+
+
+/*
+ * Phase 1 contrast hardening — Driver / Bus / Personnel Master Lists.
+ * Do not flatten state badges or light-only print documents.
+ * All rules are limited to the currently rendered Operation page.
+ */
+
+/* Sticky Actions columns use a different selector than normal table cells.
+   Their own background must win even when the table utility is loaded later. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+
+/* The Driver Master List uses personnel-specific wrappers, not the generic
+   .table-wrap used by the original theme implementation. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page {
+    --personnel-panel-border: var(--gct-theme-border);
+    --personnel-soft-blue: var(--gct-theme-surface-raised);
+    --personnel-soft-yellow: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-master-panel, .personnel-master-table-wrap, .personnel-master-table,
+    .personnel-master-page .attendance-toolbar.personnel-master-toolbar,
+    .personnel-master-page .driver-master-panel,
+    .personnel-master-page .personnel-record-tabs
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table thead,
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr:hover td {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .personnel-section-header h2, .personnel-page-hero h1,
+    .driver-master-records-table .driver-bus-details strong,
+    .driver-master-records-table .driver-bus-primary,
+    .driver-bus-more-row, .driver-bus-more-row b
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .personnel-section-header p, .personnel-page-hero p,
+    .driver-master-records-table .driver-bus-details small,
+    .driver-bus-more-row small, .driver-bus-more-panel > strong,
+    .personnel-empty-value
+) {
+    color: var(--gct-theme-muted);
+}
+
+/* Active / inactive navigation is a neutral filter, not a workflow badge. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tabs {
+    background: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tab {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tab.is-active {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .driver-bus-more summary, .driver-bus-more-panel,
+    .driver-bus-picker-trigger, .driver-bus-picker-panel,
+    .driver-bus-picker-search, .driver-bus-picker-option:hover,
+    .driver-bus-more-row
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .driver-bus-more-panel > strong {
+    color: var(--gct-theme-muted);
+}
+
+/* Correct the main Search, Filter and Sort button family; these use
+   .gct-table-tool-trigger rather than .table-toolbar-* selectors. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .gct-table-tool-trigger, .gct-table-toolbar .gct-table-tool-trigger.is-active,
+    .gct-table-tool-trigger:hover, .gct-table-tool-trigger[aria-expanded="true"],
+    .gct-table-filter-popover, .gct-table-sort-popover,
+    .gct-table-search-popover
+) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-master-page .personnel-master-toolbar .search-box input,
+    .personnel-master-page .personnel-master-toolbar .personnel-filter select,
+    .personnel-master-page .personnel-master-toolbar .filter-group select
+) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+
+/* Add, edit and view modals were independently styled with white headers,
+   white form shells and sticky white footers. Preserve their modal geometry. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal, .personnel-modal-header,
+    .personnel-modal-header-mechanic, .personnel-modal-driver .driver-modal-header,
+    .personnel-driver-form, .personnel-driver-form .driver-modal-group-heading,
+    .personnel-driver-form .driver-input-shell,
+    .personnel-driver-form .driver-input-shell > i,
+    .personnel-driver-form .driver-modal-actions,
+    .personnel-mechanic-form .personnel-modal-actions,
+    .personnel-specialization-field,
+    .driver-bus-picker-panel, .driver-bus-picker-trigger
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal .personnel-modal-title h2,
+    .personnel-modal-driver .personnel-modal-title h2,
+    .personnel-driver-form .driver-modal-group-heading strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal .personnel-modal-title p,
+    .personnel-driver-form .driver-modal-helper,
+    .driver-bus-help
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-driver-form .driver-input-shell > :is(input, select) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > :is(input:disabled, select:disabled) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    -webkit-text-fill-color: var(--gct-theme-fg);
+}
+
+/* Do not touch success/danger status chips or disabled button colors.
+   The colors communicate workflow state independently of the theme. */
