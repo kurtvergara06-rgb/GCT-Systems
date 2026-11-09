@@ -45,7 +45,11 @@ const applyPreferences = (preferences) => {
     root.dataset.gctFontSize = preferences.fontSize;
     root.classList.toggle('gct-density-compact', preferences.density === 'compact');
     root.classList.toggle('gct-reduced-motion', preferences.reducedMotion);
-    root.style.colorScheme = effectiveTheme;
+    // Dark appearance is currently enabled for Operation and Account pages.
+    // Other departments retain light native form controls until migrated.
+    const darkPageEnabled = document.body.dataset.gctOperationPage === '1'
+        || document.querySelector('.account-page') !== null;
+    root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light';
 };
 const updateInputs = (preferences) => {
     document.querySelectorAll('[data-gct-preference]').forEach((control) => {
