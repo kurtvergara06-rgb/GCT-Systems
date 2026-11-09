@@ -102,15 +102,15 @@
                     <table class="ddr-table">
                         <thead>
                             <tr>
-                                <th>DDR No.</th>
-                                <th>Report Date</th>
-                                <th>Driver</th>
-                                <th>Bus</th>
-                                <th>Trips</th>
-                                <th>First Route</th>
-                                <th>First Trip Times</th>
-                                <th>Total Passengers</th>
-                                <th>Action</th>
+                                <th scope="col">DDR No.</th>
+                                <th scope="col">Report Date</th>
+                                <th scope="col">Driver</th>
+                                <th scope="col">Bus</th>
+                                <th scope="col">Trips</th>
+                                <th scope="col">First Route</th>
+                                <th scope="col">First Trip Times</th>
+                                <th scope="col">Total Passengers</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
 
@@ -188,11 +188,15 @@
 
                                     <td>
                                         <div class="ddr-actions">
-                                            <button type="button" class="ddr-view-action ddr-open-modal" data-ddr-modal="ddrView-{{ $report->id }}" title="View Report Details" aria-label="View {{ $report->ddr_no }}"
-                                                style="box-sizing:border-box;display:inline-flex;flex:0 0 94px;flex-direction:row;align-items:center;justify-content:center;gap:8px;width:94px;min-width:94px;height:36px;min-height:36px;padding:0 12px;white-space:nowrap;">
-                                                <i class="fa-solid fa-eye" aria-hidden="true" style="position:static;display:inline-block;flex:none;margin:0;line-height:1;"></i>
-                                                <span style="display:inline-block;flex:none;margin:0;line-height:1;">View</span>
-                                            </button>
+                                            <x-ui.table-action
+                                                variant="view"
+                                                label="View"
+                                                show-label
+                                                class="ddr-view-action ddr-open-modal"
+                                                data-ddr-modal="ddrView-{{ $report->id }}"
+                                                title="View Report Details"
+                                                aria-label="View {{ $report->ddr_no }}"
+                                            />
                                         </div>
                                     </td>
                                 </tr>

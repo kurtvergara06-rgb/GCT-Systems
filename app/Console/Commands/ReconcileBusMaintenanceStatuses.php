@@ -32,9 +32,9 @@ class ReconcileBusMaintenanceStatuses extends Command
 
         $query = Bus::query()
             ->where('status', '!=', 'Under Maintenance')
-            ->whereIn('bus_no', JobOrder::query()
+            ->whereIn('bus_no', JobOrder::query()->blocksDispatch()
                 ->select('bus_no')
-                ->where('status', '!=', 'Completed'))
+                )
             ->orderBy('bus_no');
 
         if ($requestedBusNumbers->isNotEmpty()) {
@@ -55,10 +55,9 @@ class ReconcileBusMaintenanceStatuses extends Command
                 return [
                     $bus->bus_no,
                     $bus->status,
-                    JobOrder::query()
+                    JobOrder::query()->blocksDispatch()
                         ->where('bus_no', $bus->bus_no)
-                        ->where('status', '!=', 'Completed')
-                        ->count(),
+                                                ->count(),
                     'Under Maintenance (restore '.$bus->status.' after release)',
                 ];
             })->all()
@@ -76,10 +75,9 @@ class ReconcileBusMaintenanceStatuses extends Command
             $changed = DB::transaction(function () use ($candidate): bool {
                 $bus = Bus::query()->lockForUpdate()->findOrFail($candidate->id);
 
-                $hasUnresolvedJobOrder = JobOrder::query()
+                $hasUnresolvedJobOrder = JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $bus->bus_no)
-                    ->where('status', '!=', 'Completed')
-                    ->lockForUpdate()
+                                        ->lockForUpdate()
                     ->exists();
 
                 if (! $hasUnresolvedJobOrder || $bus->status === 'Under Maintenance') {

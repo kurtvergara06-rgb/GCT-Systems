@@ -53,24 +53,49 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
         const maxDay = new Date(year, month + 1, 0).getDate();
         for (let day = 1; day <= maxDay; day += 1) {
             const key = isoCalendarDate(year, month + 1, day);
-            const count = Number(counts[key]) || 0;
+            const data = counts[key] || {};
+            const total = Number(data.total) || 0;
+            const statuses = data.statuses || {};
+            const statusLabels = {
+                unassigned: 'Scheduled / Unassigned',
+                partial: 'Partially Assigned',
+                assigned: 'Fully Assigned / Ready',
+                in_progress: 'In Progress',
+                pending_ddr: 'Pending DDR',
+                completed: 'Completed',
+                missed: 'Missed',
+                cancelled: 'Cancelled',
+                delayed: 'Delayed',
+                other: 'Other',
+            };
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'trip-calendar-day';
-            button.textContent = String(day);
-            if (count > 0) {
+            const dayNumber = document.createElement('span');
+            dayNumber.textContent = String(day);
+            button.appendChild(dayNumber);
+            const details = [];
+            if (total > 0) {
                 button.classList.add('has-trips');
-                const dot = document.createElement('span');
-                dot.className = 'trip-calendar-day-dot';
-                dot.setAttribute('aria-hidden', 'true');
-                button.appendChild(dot);
+                const dots = document.createElement('span');
+                dots.className = 'trip-calendar-status-dots';
+                dots.setAttribute('aria-hidden', 'true');
+                for (const [status, label] of Object.entries(statusLabels)) {
+                    const count = Number(statuses[status]) || 0;
+                    if (!count) continue;
+                    const dot = document.createElement('span');
+                    dot.className = 'trip-calendar-day-dot is-' + status;
+                    dots.appendChild(dot);
+                    details.push(`${count} ${label}`);
+                }
+                button.appendChild(dots);
             }
             if (key === selectedDateValue) {
                 button.classList.add('is-selected');
                 button.setAttribute('aria-current', 'date');
             }
             if (key === operationalToday()) button.classList.add('is-today');
-            button.setAttribute('aria-label', `${key}, ${count} scheduled ${count === 1 ? 'trip' : 'trips'}`);
+            button.setAttribute('aria-label', `${key}, ${total} ${total === 1 ? 'trip' : 'trips'}${details.length ? ': ' + details.join(', ') : ''}`);
             button.addEventListener('click', () => goToScheduleDate(key));
             calendarGrid.appendChild(button);
         }
@@ -151,7 +176,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
     const tripModal = document.getElementById('tripModal');
     const viewTripModal = document.getElementById('viewTripModal');
-    const deleteTripModal = document.getElementById('deleteTripModal');
 
     const tripForm = document.getElementById('tripForm');
     const tripFormMethod = document.getElementById('tripFormMethod');
@@ -308,16 +332,12 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
     const cancelServiceTripBack = document.getElementById('cancelServiceTripBack');
     const cancelServiceTripClose = document.getElementById('cancelServiceTripClose');
 
-    const deleteTripName = document.getElementById('deleteTripName');
-    const cancelDeleteTrip = document.getElementById('cancelDeleteTrip');
-    const confirmDeleteTrip = document.getElementById('confirmDeleteTrip');
 
     const closeTripModal = document.getElementById('closeTripModal');
     const cancelTripModal = document.getElementById('cancelTripModal');
 
     const createAction = '/operation/trip-schedule';
     const clientTripTimesUrl = '/operation/client-trip-times';
-    let selectedDeleteForm = null;
 
     let clientTripTimeConfigs = {};
 
@@ -1097,39 +1117,10 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
             return;
         }
 
-        const deleteButton = event.target.closest('.delete-trip');
-
-        if (deleteButton) {
-            selectedDeleteForm = document.getElementById(
-                deleteButton.dataset.formId
-            );
-
-            if (deleteTripName) {
-                deleteTripName.textContent =
-                    deleteButton.dataset.tripCode || 'this trip';
-            }
-
-            openModal(deleteTripModal);
-        }
     });
 
     [cancelServiceTripBack, cancelServiceTripClose].filter(Boolean).forEach((button) => {
         button.addEventListener('click', () => closeModal(cancelServiceTripModal));
-    });
-
-    cancelDeleteTrip?.addEventListener('click', () => {
-        selectedDeleteForm = null;
-        closeModal(deleteTripModal);
-    });
-
-    confirmDeleteTrip?.addEventListener('click', () => {
-        if (!selectedDeleteForm?.isConnected) {
-            selectedDeleteForm = null;
-            closeModal(deleteTripModal);
-            return;
-        }
-
-        selectedDeleteForm.requestSubmit();
     });
 
     document.addEventListener('keydown', (event) => {
@@ -1139,7 +1130,6 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.tri
 
         closeModal(tripModal);
         closeModal(viewTripModal);
-        closeModal(deleteTripModal);
     });
 
     function restoreValidationModal() {

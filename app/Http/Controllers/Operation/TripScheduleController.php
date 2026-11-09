@@ -40,15 +40,42 @@ class TripScheduleController extends Controller
         $start = Carbon::createFromFormat('!Y-m', $validated['month'])->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
+        // Include active and historical trip statuses without loading trip models.
+        // The calendar represents recorded statuses, not inferred departure times.
         $counts = TripSchedule::query()
             ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
-            ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched'])
-            ->selectRaw('trip_date, COUNT(*) as trip_count')
-            ->groupBy('trip_date')
-            ->pluck('trip_count', 'trip_date')
-            ->map(fn ($count) => (int) $count);
+            ->selectRaw('trip_date, status, assignment_status, COUNT(*) as trip_count')
+            ->groupBy('trip_date', 'status', 'assignment_status')
+            ->get();
 
-        return response()->json(['month' => $validated['month'], 'dates' => $counts]);
+        $dates = [];
+        foreach ($counts as $row) {
+            $date = $row->trip_date->toDateString();
+            $status = match ($row->status) {
+                'Scheduled', 'Ready' => match ($row->assignment_status) {
+                    'Assigned' => 'assigned',
+                    'Partially Assigned' => 'partial',
+                    default => 'unassigned',
+                },
+                'Dispatched', 'In Progress' => 'in_progress',
+                'Pending DDR' => 'pending_ddr',
+                'Completed' => 'completed',
+                'Missed' => 'missed',
+                'Cancelled', 'Canceled' => 'cancelled',
+                'Delayed' => 'delayed',
+                default => 'other',
+            };
+
+            if (! isset($dates[$date])) {
+                $dates[$date] = ['total' => 0, 'statuses' => []];
+            }
+
+            $count = (int) $row->trip_count;
+            $dates[$date]['total'] += $count;
+            $dates[$date]['statuses'][$status] = ($dates[$date]['statuses'][$status] ?? 0) + $count;
+        }
+
+        return response()->json(['month' => $validated['month'], 'dates' => $dates]);
     }
 
     public function index(Request $request): View

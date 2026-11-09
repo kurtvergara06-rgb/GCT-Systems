@@ -58,10 +58,13 @@ class OperationMultiBusWorkflowTest extends TestCase
             ->get(route('driver-bus-assignment'))
             ->assertOk()
             ->assertSeeInOrder([
-                'BUS-2 · PLT-2',
-                'BUS-3 · PLT-3',
-                'BUS-10 · PLT-10',
-            ]);
+                'BUS-2',
+                'BUS-3',
+                'BUS-10',
+            ])
+            ->assertDontSee('BUS-2 · PLT-2')
+            ->assertDontSee('BUS-3 · PLT-3')
+            ->assertDontSee('BUS-10 · PLT-10');
     }
 
     private function createDriver(string $suffix, string $status = 'Active'): Driver
@@ -165,6 +168,52 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertEquals('Ready', $trip->status);
         $this->assertNotNull($trip->assignment);
         $this->assertEquals($bus->id, $trip->assignment->bus_id);
+    }
+
+    public function test_maintenance_withdrawal_requires_head_approved_replacement_and_preserves_audit(): void
+    {
+        $trip = $this->createTripSchedule();
+        $driver = $this->createDriver('MAINT-OLD');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $bus = $this->createBus('MAINT-OLD');
+
+        $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $bus->id,
+        ])->assertSessionHasNoErrors();
+
+        $trip->refresh();
+        $this->assertSame('Ready', $trip->status);
+        $assignment = $trip->assignments()->firstOrFail();
+
+        $bus->placeUnderMaintenance();
+        $this->assertSame('Scheduled', $trip->fresh()->status);
+        $this->assertSame('Assigned', $trip->fresh()->assignment_status);
+        $this->assertSame($bus->id, $assignment->fresh()->bus_id);
+
+        $replacement = $this->createBus('MAINT-NEW');
+        $driver->authorizedBuses()->syncWithoutDetaching([$replacement->id]);
+        $this->actingAs($this->admin)->put(route('driver-bus-assignment.update', $assignment), [
+            'driver_id' => $driver->driver_id,
+            'bus_id' => $replacement->id,
+        ])->assertSessionHasErrors('replacement_reason');
+
+        $this->actingAs($this->admin)->put(route('driver-bus-assignment.update', $assignment), [
+            'driver_id' => $driver->driver_id,
+            'bus_id' => $replacement->id,
+            'replacement_reason' => 'Original bus withdrawn by Maintenance.',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Ready', $trip->fresh()->status);
+        $this->assertSame($replacement->id, $assignment->fresh()->bus_id);
+        $this->assertDatabaseHas('operation_trip_change_audits', [
+            'trip_schedule_id' => $trip->id,
+            'trip_assignment_id' => $assignment->id,
+            'action' => 'maintenance_replacement',
+            'previous_bus_id' => $bus->id,
+            'new_bus_id' => $replacement->id,
+        ]);
     }
 
     /**
@@ -510,9 +559,10 @@ class OperationMultiBusWorkflowTest extends TestCase
     }
 
     /**
-     * Test 9: Maintenance, Inactive, and Reserve buses rejected for regular assignment.
+     * Test 9: Unavailable buses are blocked; Reserve requires Head approval
+     * but no permanent authorization pivot.
      */
-    public function test_09_maintenance_inactive_and_reserve_buses_rejected(): void
+    public function test_09_maintenance_inactive_buses_rejected_and_head_can_assign_shared_reserve(): void
     {
         $trip = $this->createTripSchedule(1);
         $date = $trip->trip_date->toDateString();
@@ -544,7 +594,158 @@ class OperationMultiBusWorkflowTest extends TestCase
             'driver_attendance_id' => $a->id,
             'bus_id' => $bRes->id,
         ]);
-        $respRes->assertSessionHasErrors('bus_id');
+        $respRes->assertSessionHasNoErrors();
+        $assignment = TripAssignment::query()
+            ->where('trip_schedule_id', $trip->id)
+            ->where('bus_id', $bRes->id)->firstOrFail();
+        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
+            'trip_assignment_id' => $assignment->id,
+            'bus_id' => $bRes->id,
+            'approval_method' => 'Direct',
+        ]);
+    }
+
+    public function test_staff_cannot_deploy_shared_reserve_without_operations_head_authority(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('RESERVE-STAFF');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $reserve = $this->createBus('RESERVE-STAFF', 'Active', 'Reserve');
+        $staff = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->withoutMiddleware(\App\Http\Middleware\RequireSystemPermission::class)
+            ->actingAs($staff)->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $attendance->id,
+                'bus_id' => $reserve->id,
+            ])->assertSessionHasErrors('bus_id');
+
+        $this->assertSame(0, $trip->assignments()->count());
+        $this->assertDatabaseCount('auto_schedule_reserve_approvals', 0);
+    }
+
+    public function test_edit_assignment_shows_pair_picker_instead_of_separate_driver_bus_dropdowns(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString("assignmentFormMethod.value = 'PUT'", $script);
+        $this->assertStringContainsString("if (pairPicker) pairPicker.hidden = false", $script);
+        $this->assertStringContainsString('editingSlotNumber = Number(editButton.dataset.slotNumber || 0)', $script);
+        $this->assertStringContainsString('data-slot-number="{{ $assignment->slot_number }}"', $view);
+    }
+
+    public function test_assignment_table_separates_edit_replace_and_remove_actions(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString(
+            '$requiresHeadReplacement = $trip->status === \'Ready\' || $needsMaintenanceReplacement',
+            $view
+        );
+        $this->assertStringContainsString('@if($canChangeSlot)', $view);
+        $this->assertStringContainsString('@if(! $requiresHeadReplacement)', $view);
+        $this->assertStringContainsString('fa-arrow-right-arrow-left', $view);
+        $this->assertStringContainsString('data-ready-replacement="{{ $requiresHeadReplacement ? \'true\' : \'false\' }}"', $view);
+        $this->assertStringContainsString('Only Operations Head can authorize this replacement', $view);
+    }
+
+    public function test_assignment_table_uses_shared_action_component_and_preserves_js_hooks(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css'));
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('type="view"', $view);
+        $this->assertStringContainsString('class="assignment-action view-assignment"', $view);
+        $this->assertStringContainsString('class="assignment-action edit-assignment"', $view);
+        $this->assertStringContainsString('class="assignment-action remove remove-assignment"', $view);
+        $this->assertStringContainsString('data-ready-replacement="{{ $requiresHeadReplacement ?', $view);
+        $this->assertStringContainsString('data-form-id="removeAssignmentForm-', $view);
+        $this->assertStringContainsString('@if(! $requiresHeadReplacement)', $view);
+        $this->assertStringContainsString('Only Operations Head can authorize this replacement', $view);
+        $this->assertStringContainsString('.gct-record-action.assignment-action', $styles);
+        $this->assertStringContainsString("closest('.view-assignment')", $script);
+        $this->assertStringContainsString("closest('.edit-assignment')", $script);
+        $this->assertStringContainsString("closest('.remove-assignment')", $script);
+    }
+
+    public function test_assignment_modal_supports_driver_first_selection_in_create_and_edit(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString('id="assignmentDriverFirstList"', $view);
+        $this->assertStringContainsString('id="assignmentPairList"', $view);
+        $this->assertStringContainsString('data-assignment-fleet="Regular"', $view);
+        $this->assertStringContainsString('data-assignment-fleet="Reserve"', $view);
+        $this->assertStringContainsString('data-select-driver', $script);
+        $this->assertStringContainsString('data-select-bus', $script);
+        $this->assertStringContainsString('const driverMap = new Map()', $script);
+        $this->assertStringContainsString('item.buses.length', $script);
+        $this->assertStringContainsString("assignmentFormMethod.value = 'PUT'", $script);
+        $this->assertStringContainsString("fleetMode = selectedBusOption?.dataset.purpose === 'Reserve'", $script);
+    }
+
+    public function test_head_can_deploy_reserve_even_if_authorized_regular_pair_is_available(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('REGULAR-FIRST');
+        $attendance = $this->createAttendance($driver, $trip->trip_date->toDateString());
+        $regular = $this->createBus('REGULAR-FIRST');
+        $driver->authorizedBuses()->syncWithoutDetaching([$regular->id]);
+        $reserve = $this->createBus('RESERVE-FALLBACK', 'Active', 'Reserve');
+
+        $response = $this->actingAs($this->admin)->getJson(
+            route('driver-bus-assignment.availability', $trip)
+        );
+        $response->assertOk();
+        $this->assertContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertContains($driver->driver_id, collect($response->json('drivers'))->pluck('id')->all());
+
+        $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $reserve->id,
+        ])->assertSessionHasNoErrors();
+
+        $assignment = $trip->assignments()->where('bus_id', $reserve->id)->firstOrFail();
+        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
+            'trip_assignment_id' => $assignment->id,
+            'bus_id' => $reserve->id,
+        ]);
+    }
+
+    public function test_reserve_driver_list_does_not_depend_on_permanent_bus_authorization(): void
+    {
+        $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('availabilityDrivers = drivers', $script);
+        $this->assertStringContainsString("if (fleetMode === 'Reserve')", $script);
+        $this->assertStringContainsString('availabilityDrivers.forEach(driver =>', $script);
+        $this->assertStringContainsString('if (!driverMap.has(id)) driverMap.set(id, { driver, buses: [] })', $script);
+    }
+
+    public function test_reserve_bus_availability_includes_any_active_driver_without_authorization(): void
+    {
+        $trip = $this->createTripSchedule(1);
+        $driver = $this->createDriver('RESERVE-SHARED');
+        $reserve = $this->createBus('RESERVE-SHARED', 'Active', 'Reserve');
+
+        $this->assertFalse($driver->authorizedBuses()->whereKey($reserve->id)->exists());
+
+        $response = $this->actingAs($this->admin)->getJson(
+            route('driver-bus-assignment.availability', $trip)
+        );
+        $response->assertOk();
+        $this->assertContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertContains($driver->driver_id, collect($response->json('drivers'))->pluck('id')->all());
     }
 
     /**

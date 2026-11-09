@@ -25,7 +25,7 @@
                         <p>Maintain client records here. Trip-time configurations remain in Trip Planning &amp; Scheduling.</p>
                     </div>
                     @if($canEditOperation)
-                        <button class="client-master-add" type="button" data-client-create-open @if($errors->any()) data-open-on-error="true" @endif>
+                        <button class="client-master-add" type="button" data-client-create-open @if($errors->any() && !old('editing_client_id')) data-open-on-error="true" @endif>
                             <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Client
                         </button>
                     @endif
@@ -111,7 +111,38 @@
                                     <td><span class="client-master-status {{ $client->isActive() ? 'is-active' : 'is-inactive' }}">{{ $client->status }}</span></td>
                                     <td class="client-master-actions">
                                         <div class="client-master-action-row">
-                                            <a class="client-master-action" href="{{ route('client-trip-times') }}?search={{ urlencode($client->name) }}" title="View trip times for {{ $client->name }}" aria-label="View trip times for {{ $client->name }}"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>Trip Times</span></a>
+                                            <button type="button" class="client-master-action" data-client-detail-open data-client-mode="view"
+                                                data-client-id="CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}"
+                                                data-client-name="{{ $client->name }}"
+                                                data-client-address="{{ $client->company_address }}"
+                                                data-client-contact-person="{{ $client->contact_person }}"
+                                                data-client-contact-position="{{ $client->contact_position }}"
+                                                data-client-contact-number="{{ $client->contact_number }}"
+                                                data-client-contact-email="{{ $client->contact_email }}"
+                                                data-client-status="{{ $client->status }}"
+                                                data-client-buses="{{ $client->buses_count }}"
+                                                data-client-trip-times="{{ $client->trip_time_configurations_count }}"
+                                                title="View {{ $client->name }}" aria-label="View {{ $client->name }}">
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                            </button>
+                                            @if($canEditOperation)
+                                                <button type="button" class="client-master-action" data-client-detail-open data-client-mode="edit" data-client-record-id="{{ $client->id }}"
+                                                    data-client-id="CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}"
+                                                    data-client-name="{{ $client->name }}"
+                                                    data-client-address="{{ $client->company_address }}"
+                                                    data-client-contact-person="{{ $client->contact_person }}"
+                                                    data-client-contact-position="{{ $client->contact_position }}"
+                                                    data-client-contact-number="{{ $client->contact_number }}"
+                                                    data-client-contact-email="{{ $client->contact_email }}"
+                                                    data-client-status="{{ $client->status }}"
+                                                    data-client-buses="{{ $client->buses_count }}"
+                                                    data-client-trip-times="{{ $client->trip_time_configurations_count }}"
+                                                    data-client-update-url="{{ route('operation.clients.update', $client) }}"
+                                                    title="Edit {{ $client->name }}" aria-label="Edit {{ $client->name }}">
+                                                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                                </button>
+                                            @endif
+                                            <a class="client-master-action" href="{{ route('client-trip-times') }}?search={{ urlencode($client->name) }}" title="View trip times for {{ $client->name }}" aria-label="View trip times for {{ $client->name }}"><i class="fa-solid fa-clock" aria-hidden="true"></i></a>
                                             @if($canEditOperation)
                                                 <form action="{{ route('operation.clients.status', $client) }}" method="POST"
                                                     data-confirm-form data-confirm-type="status"
@@ -122,7 +153,7 @@
                                                     @method('PATCH')
                                                     <input type="hidden" name="status" value="{{ $client->isActive() ? 'Inactive' : 'Active' }}">
                                                     <input type="hidden" name="return_to" value="client-master-list">
-                                                    <button type="submit" class="client-master-action {{ $client->isActive() ? 'is-disable' : 'is-enable' }}">{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }}</button>
+                                                    <button type="submit" class="client-master-action {{ $client->isActive() ? 'is-disable' : 'is-enable' }}" title="{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }} {{ $client->name }}" aria-label="{{ $client->isActive() ? 'Deactivate' : 'Reactivate' }} {{ $client->name }}"><i class="fa-solid fa-power-off" aria-hidden="true"></i></button>
                                                 </form>
                                             @endif
                                         </div>
@@ -157,6 +188,83 @@
                     @endif
                 </footer>
             </section>
+
+            <x-ui.form-modal id="clientMasterDetailModal" title="Client Details" title-id="clientMasterDetailTitle"
+                data-edit-error-client="{{ old('editing_client_id') }}"
+                data-old-client-name="{{ old('name') }}"
+                data-old-client-address="{{ old('company_address') }}"
+                data-old-client-contact-person="{{ old('contact_person') }}"
+                data-old-client-contact-position="{{ old('contact_position') }}"
+                data-old-client-contact-number="{{ old('contact_number') }}"
+                data-old-client-contact-email="{{ old('contact_email') }}"
+                icon="fa-building" description="Client profile details; trip times and bus allocations are managed separately."
+                size="wide" form-id="clientMasterDetailForm" action="#" method="PUT"
+                submit-text="Update Client" submit-id="clientMasterDetailSubmit" cancel-text="Close">
+                <input type="hidden" name="editing_client_id" id="clientDetailEditingId">
+                <div class="client-master-detail-summary" aria-label="Client reference and allocation overview">
+                    <div><small>Client ID (permanent)</small><strong id="clientDetailId">—</strong></div>
+                    <div><small>Status</small><strong id="clientDetailStatus">—</strong></div>
+                    <div><small>Allocated Buses</small><strong id="clientDetailBuses">—</strong></div>
+                    <div><small>Trip-Time Setup</small><strong id="clientDetailTripTimes">—</strong></div>
+                </div>
+                <section class="client-profile-view" aria-label="Read-only client information" hidden>
+                    <div class="client-profile-identity">
+                        <span class="client-profile-identity-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                        <div class="client-profile-identity-text">
+                            <strong id="clientViewCompany">—</strong>
+                            <small id="clientViewAddress">No company address recorded</small>
+                        </div>
+                    </div>
+                    <div class="client-profile-section-header">
+                        <span class="client-profile-section-icon"><i class="fa-solid fa-address-card" aria-hidden="true"></i></span>
+                        <div><strong>Primary Contact</strong><small>Registered contact information</small></div>
+                    </div>
+                    <dl class="client-profile-detail-grid">
+                        <div><dt>Contact Person</dt><dd id="clientViewPerson">—</dd></div>
+                        <div><dt>Department / Position</dt><dd id="clientViewPosition">—</dd></div>
+                        <div><dt>Contact Number</dt><dd id="clientViewPhone">—</dd></div>
+                        <div><dt>Email Address</dt><dd id="clientViewEmail">—</dd></div>
+                    </dl>
+                    <p class="client-profile-view-footnote"><i class="fa-solid fa-lock" aria-hidden="true"></i> Client ID and historical records are protected. Trip times and allocated buses are managed on their respective pages.</p>
+                </section>
+                <div class="client-profile-edit-fields">
+                <div class="client-master-form-section">
+                    <h3><span>01</span> Company Information</h3>
+                    <div class="client-master-form-grid">
+                        <div class="ui-form-group client-master-form-wide">
+                            <label for="clientDetailName">Company / Client Name <span class="ui-required">*</span></label>
+                            <input id="clientDetailName" name="name" type="text" required minlength="2" maxlength="150" autocomplete="organization">
+                        </div>
+                        <div class="ui-form-group client-master-form-wide">
+                            <label for="clientDetailAddress">Company Address</label>
+                            <textarea id="clientDetailAddress" name="company_address" rows="2" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="client-master-form-section">
+                    <h3><span>02</span> Primary Contact</h3>
+                    <div class="client-master-form-grid">
+                        <div class="ui-form-group">
+                            <label for="clientDetailPerson">Contact Person</label>
+                            <input id="clientDetailPerson" name="contact_person" type="text" maxlength="150" autocomplete="name">
+                        </div>
+                        <div class="ui-form-group">
+                            <label for="clientDetailPosition">Department / Position</label>
+                            <input id="clientDetailPosition" name="contact_position" type="text" maxlength="150">
+                        </div>
+                        <div class="ui-form-group">
+                            <label for="clientDetailPhone">Contact Number</label>
+                            <input id="clientDetailPhone" name="contact_number" type="tel" maxlength="30" autocomplete="tel">
+                        </div>
+                        <div class="ui-form-group">
+                            <label for="clientDetailEmail">Email Address</label>
+                            <input id="clientDetailEmail" name="contact_email" type="email" maxlength="254" autocomplete="email">
+                        </div>
+                    </div>
+                    <p class="client-master-form-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Client ID is permanent. Trip times and bus allocations are managed separately.</p>
+                </div>
+                </div>
+            </x-ui.form-modal>
 
             @if($canEditOperation)
                 <x-ui.form-modal

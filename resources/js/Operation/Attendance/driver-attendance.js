@@ -1,30 +1,4 @@
 window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '.driver-attendance-page', () => {
-  // Driver attendance is daily. Refresh a page left open across Philippine
-  // midnight; selected historical dates must stay on their chosen date.
-  if (window.__gctDriverAttendanceDayWatcher) {
-    window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-    window.__gctDriverAttendanceDayWatcher = null;
-  }
-  const attendancePage = document.querySelector('.driver-attendance-page');
-  if (attendancePage?.dataset.attendanceAutoToday === '1') {
-    const loadedDay = attendancePage.dataset.attendanceBusinessDate;
-    window.__gctDriverAttendanceDayWatcher = window.setInterval(() => {
-      if (!document.querySelector('.driver-attendance-page')) {
-        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-        window.__gctDriverAttendanceDayWatcher = null;
-        return;
-      }
-      const currentDay = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
-      }).format(new Date());
-      if (currentDay !== loadedDay) {
-        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
-        window.__gctDriverAttendanceDayWatcher = null;
-        window.location.reload();
-      }
-    }, 30000);
-  }
-
   function normalizeDriverAttendancePath(
     value,
     fallback = '/driver-attendance'
@@ -75,7 +49,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const submitText = document.getElementById('driverAttendanceSubmitText');
   const driverId = document.getElementById('driverAttendanceDriverId');
   const driverName = document.getElementById('driverAttendanceDriverName');
-  const shift = null;
   const attendanceDate = document.getElementById('driverAttendanceDate');
   const timeIn = document.getElementById('driverAttendanceTimeIn');
   const timeOut = document.getElementById('driverAttendanceTimeOut');
@@ -120,7 +93,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
 
         if (driverId) driverId.value = button.dataset.driverId || '';
         if (driverName) driverName.value = button.dataset.driverName || '';
-        if (shift) shift.value = button.dataset.shift || 'Morning';
         if (attendanceDate) {
           attendanceDate.value = button.dataset.attendanceDate || '';
           attendanceDate.dispatchEvent(new Event('input', { bubbles: true }));
@@ -140,6 +112,37 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
 
   const viewAttendanceModal = document.getElementById('viewDriverAttendanceModal');
   const viewAttendanceContent = document.getElementById('viewDriverAttendanceContent');
+  const modalTripBody = document.getElementById('attendanceModalTripsBody');
+  const modalTripCount = document.getElementById('attendanceModalTripsCount');
+
+  function renderAttendanceTrips(button) {
+    if (!modalTripBody) return;
+    let trips = [];
+    try {
+      const parsed = JSON.parse(button.dataset.tripAssignments || '[]');
+      if (Array.isArray(parsed)) trips = parsed;
+    } catch (error) {
+      console.warn('Could not parse verified attendance trip assignments.', error);
+    }
+    if (modalTripCount) {
+      modalTripCount.textContent = trips.length === 1 ? '1 trip' : `${trips.length} trips`;
+    }
+    if (!trips.length) {
+      modalTripBody.innerHTML = '<tr><td colspan="5" class="attendance-modal-trips-empty">No trip assignments found for this date.</td></tr>';
+      return;
+    }
+    // Escape every value before creating table rows; the dataset comes
+    // from Laravel-rendered JSON and is not trusted HTML.
+    modalTripBody.innerHTML = trips.map(trip => `
+      <tr>
+        <td><strong class="attendance-modal-trip-id">${escapeAttendanceHtml(trip.trip_id ?? '—')}</strong></td>
+        <td><span class="attendance-modal-trip-bus">${escapeAttendanceHtml(trip.bus ?? '—')}</span></td>
+        <td>${escapeAttendanceHtml(trip.date ?? '—')}</td>
+        <td><span class="attendance-modal-trip-time">${escapeAttendanceHtml(trip.departure ?? '—')} – ${escapeAttendanceHtml(trip.arrival ?? '—')}</span></td>
+        <td><span class="attendance-modal-trip-status ${String(trip.status || '').trim().toLowerCase() === 'completed' ? 'is-completed' : ''}">${String(trip.status || '').trim().toLowerCase() === 'completed' ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i>' : ''}${escapeAttendanceHtml(trip.status ?? 'Unknown')}</span></td>
+      </tr>`).join('');
+  }
+
 
   function getAttendanceStatusClass(value) {
     switch (String(value || '').trim().toLowerCase()) {
@@ -175,9 +178,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
           ['Driver ID', button.dataset.driverId],
           ['Driver Name', button.dataset.driverName],
           ['Role', 'Driver'],
-          ['Shift', button.dataset.shift],
-          ['Current Assignment', button.dataset.busAssignment || 'Unassigned'],
-          ['Date', button.dataset.attendanceDate],
+          ['Service Date', button.dataset.attendanceDate],
           ['Time-in', button.dataset.timeIn],
 
         ];
@@ -208,6 +209,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
             `;
         }
 
+        renderAttendanceTrips(button);
         openModal(viewAttendanceModal);
   });
 

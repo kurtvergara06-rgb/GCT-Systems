@@ -5,6 +5,7 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/trip-schedule.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/trip-calendar-status.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/trip-schedule.js',
     ]"
@@ -95,7 +96,7 @@
                                     <strong>Select Trip Date</strong>
                                     <button type="button" data-trip-calendar-close aria-label="Close date calendar"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
-                                <p class="trip-calendar-hint">Green dots indicate dates with scheduled trips.</p>
+                                <p class="trip-calendar-hint">Colored dots indicate recorded trip statuses. Multiple dots mean different statuses on the same date.</p>
                                 <div class="trip-calendar-month">
                                     <button type="button" data-trip-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
                                     <strong data-trip-calendar-month></strong>
@@ -103,8 +104,22 @@
                                 </div>
                                 <div class="trip-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
                                 <div class="trip-calendar-days" data-trip-calendar-days role="group" aria-label="Choose a trip date"></div>
+                                <div class="trip-calendar-status-legend" aria-label="Trip status color legend">
+                                    <strong>Trip Status Legend</strong>
+                                    <div class="trip-calendar-legend-grid">
+                                        <span><i class="trip-calendar-legend-dot is-unassigned"></i> Scheduled / Unassigned</span>
+                                        <span><i class="trip-calendar-legend-dot is-partial"></i> Partially Assigned</span>
+                                        <span><i class="trip-calendar-legend-dot is-assigned"></i> Fully Assigned / Ready</span>
+                                        <span><i class="trip-calendar-legend-dot is-in_progress"></i> In Progress</span>
+                                        <span><i class="trip-calendar-legend-dot is-pending_ddr"></i> Pending DDR</span>
+                                        <span><i class="trip-calendar-legend-dot is-completed"></i> Completed</span>
+                                        <span><i class="trip-calendar-legend-dot is-missed"></i> Missed</span>
+                                        <span><i class="trip-calendar-legend-dot is-cancelled"></i> Cancelled</span>
+                                        <span><i class="trip-calendar-legend-dot is-delayed"></i> Delayed</span>
+                                    </div>
+                                </div>
                                 <div class="trip-calendar-footer">
-                                    <span><i class="trip-calendar-legend-dot"></i> Has scheduled trips</span>
+                                    <span><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Multiple dots = different statuses</span>
                                     <button type="button" data-trip-calendar-today>Today</button>
                                 </div>
                                 <p class="trip-calendar-feedback" data-trip-calendar-feedback role="status" aria-live="polite"></p>
@@ -215,10 +230,10 @@
                                             $displayAssignmentStatus = $assignedCount >= $requiredCount ? 'Assigned' : ($assignedCount > 0 ? 'Partially Assigned' : 'Unassigned');
                                             $canManageSchedule = $trip->canBeManagedFromSchedule();
                                             $canEdit = $canEditOperation && $canManageSchedule && request('tab') !== 'history';
-                                            $canDelete = $canEdit;
                                             $canCancel = $canEditOperation && $canApproveOperation && ! $isHistorical
                                                 && in_array($trip->status, ['Scheduled', 'Ready'], true)
-                                                && ($trip->status === 'Ready' || ! $canDelete);
+                                                && ($trip->daily_driver_reports_count ?? 0) === 0
+                                                && ($trip->incidents_count ?? 0) === 0;
                                             $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime) ? $arrivalDateTime->format('g:i A') : $arrivalDateTime->format('M d · g:i A');
                                             $assignmentLabel = in_array($trip->status, ['Missed', 'Cancelled', 'Completed'], true) ? $trip->status : ($assignedCount === 0 ? 'Pending' : ($assignedCount >= $requiredCount ? 'Fully Assigned' : 'Partially Assigned'));
                                             $viewTripData = [
@@ -322,35 +337,15 @@
                                                                 data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
                                                             />
                                                             @if($canCancel)
-                                                                <button
-                                                                    type="button"
+                                                                <x-ui.action-button
+                                                                    type="delete"
+                                                                    icon="fa-ban"
                                                                     class="trip-action cancel-service-trip"
                                                                     title="Cancel Trip (Head approval and reason required)"
                                                                     aria-label="Cancel trip {{ $trip->trip_code }}"
                                                                     data-trip-code="{{ $trip->trip_code }}"
                                                                     data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}"
-                                                                ><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
-                                                            @else
-                                                            <form
-                                                                id="deleteTripForm-{{ $trip->id }}"
-                                                                method="POST"
-                                                                action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
-                                                            >
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
-                                                                <input type="hidden" name="return_search" value="{{ request('search') }}">
-                                                                <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
-
-                                                                <x-ui.action-button
-                                                                    type="delete"
-                                                                    class="trip-action delete-trip"
-                                                                    title="{{ $canDelete ? 'Delete' : 'Deleting unavailable for this trip' }}"
-                                                                    :disabled="! $canDelete"
-                                                                    data-form-id="deleteTripForm-{{ $trip->id }}"
-                                                                    data-trip-code="{{ $trip->trip_code }}"
                                                                 />
-                                                            </form>
                                                             @endif
                                                     </div>
                                                 </div>
@@ -365,7 +360,7 @@
                                                     </div>
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-calendar-day"></i> Schedule:</span>
-                                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong> · {{ $trip->shift }} shift
+                                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong>
                                                     </div>
                                                     <div class="service-detail-item">
                                                         <span class="detail-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Client / Company:</span>
@@ -662,17 +657,6 @@
         </div>
     </x-ui.form-modal>
 
-    @if($canEditOperation)
-        <x-ui.action-buttom-modal
-            mode="delete"
-            id="deleteTripModal"
-            delete-title="Delete Trip Schedule?"
-            delete-message="Are you sure you want to delete"
-            name-id="deleteTripName"
-            cancel-id="cancelDeleteTrip"
-            confirm-id="confirmDeleteTrip"
-        />
-    @endif
         </main>
     </div>
 </x-layout.app>

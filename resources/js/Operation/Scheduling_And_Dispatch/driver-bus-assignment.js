@@ -37,10 +37,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const removeAssignmentModal =
         document.getElementById('removeAssignmentModal');
 
-    const cancelAssignmentTripModal =
-        document.getElementById('cancelAssignmentTripModal');
-    const cancelAssignmentTripForm =
-        document.getElementById('cancelAssignmentTripForm');
 
 
     /*
@@ -329,6 +325,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         assignmentDriverOptions = [];
         assignmentBusOptions = [];
         eligiblePairs = [];
+        availabilityDrivers = [];
         availabilitySummary = { drivers: 0, buses: 0, reason: message };
         updatePairTripContext(null);
         renderPairCards();
@@ -337,17 +334,24 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     const pairPicker = document.getElementById('assignmentPairPicker');
     const pairList = document.getElementById('assignmentPairList');
+    const driverFirstList = document.getElementById('assignmentDriverFirstList');
     const pairSearch = document.getElementById('assignmentPairSearch');
     const pairCount = document.getElementById('assignmentPairCount');
+    const driverCount = document.getElementById('assignmentDriverCount');
+    const selectedDriverSummary = document.getElementById('assignmentSelectedDriverSummary');
+    const fleetNote = document.getElementById('assignmentFleetNote');
     let eligiblePairs = [];
-    let availabilitySummary = { drivers: 0, buses: 0, reason: 'Select a trip to load eligible pairs.' };
+    let availabilityDrivers = [];
+    let editingSlotNumber = 0;
+    let fleetMode = 'Regular';
+    let reserveNotice = 'Reserve deployment requires Operations Head authorization.';
+    let availabilitySummary = { drivers: 0, buses: 0, reason: 'Select a trip to load eligible resources.' };
 
     function updatePairTripContext(trip = null) {
         const summary = document.getElementById('assignmentPairTrip');
         if (!summary) return;
         summary.hidden = !trip;
         if (!trip) return;
-
         const name = [trip.trip_code || 'Trip', trip.route_code].filter(Boolean).join(' · ');
         document.getElementById('assignmentPairTripName').textContent = name;
         const time = String(trip.departure_time || '').slice(0, 5);
@@ -356,43 +360,107 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         const assigned = Number(trip.assigned_slots || 0);
         const required = Number(trip.required_buses || 1);
         document.getElementById('assignmentPairSlot').textContent =
-            'Slot ' + Math.min(assigned + 1, required) + ' of ' + required;
+            'Slot ' + (editingSlotNumber || Math.min(assigned + 1, required)) + ' of ' + required;
     }
 
     function renderPairCards() {
-        if (!pairList) return;
+        if (!pairList || !driverFirstList) return;
+        const fleetPairs = eligiblePairs.filter(pair => (pair.bus.purpose || 'Regular') === fleetMode);
         const query = (pairSearch?.value || '').trim().toLowerCase();
-        const visible = eligiblePairs.filter(pair => pair.search.includes(query));
-        if (pairCount) pairCount.textContent = `${eligiblePairs.length} eligible pairs · ${availabilitySummary.drivers} drivers · ${availabilitySummary.buses} buses`;
-        const emptyMessage = eligiblePairs.length === 0
-            ? availabilitySummary.reason
-            : 'No driver–bus pair matches your search. Clear the search to see all available pairs.';
-        pairList.innerHTML = visible.length ? visible.map(pair => {
-            const selected = String(assignmentDriver?.value) === String(pair.driver.id)
-                && String(assignmentBus?.value) === String(pair.bus.id);
-            return `<button type="button" class="assignment-pair-card ${selected ? 'is-selected' : ''}"
-                data-pair-driver="${escapeHtml(String(pair.driver.id))}" data-pair-bus="${escapeHtml(String(pair.bus.id))}"
-                aria-pressed="${selected ? 'true' : 'false'}">
-                <span class="assignment-pair-driver"><i class="fa-solid fa-user-tie"></i><span><strong>${escapeHtml(pair.driver.name)}</strong><small>${escapeHtml(pair.driver.driver_id)} · ${escapeHtml(pair.driver.status)}</small></span></span>
-                <span class="assignment-pair-bus"><i class="fa-solid fa-bus"></i><span><strong>${escapeHtml(pair.bus.bus_no || 'Bus')}</strong><small>${escapeHtml(pair.bus.model || 'Authorized bus')}</small></span></span>
-                <i class="fa-solid ${selected ? 'fa-circle-check' : 'fa-circle'} assignment-pair-check"></i>
+        const driverMap = new Map();
+        fleetPairs.forEach(pair => {
+            const id = String(pair.driver.id);
+            if (!driverMap.has(id)) driverMap.set(id, { driver: pair.driver, buses: [] });
+            driverMap.get(id).buses.push(pair.bus);
+        });
+        // Reserve uses the complete eligible-driver pool, regardless of
+        // permanent authorized-bus pivots or the available Reserve bus count.
+        if (fleetMode === 'Reserve') {
+            availabilityDrivers.forEach(driver => {
+                const id = String(driver.id);
+                if (!driverMap.has(id)) driverMap.set(id, { driver, buses: [] });
+            });
+        }
+        const drivers = Array.from(driverMap.values());
+        const visibleDrivers = drivers.filter(item =>
+            [item.driver.name, item.driver.driver_id].join(' ').toLowerCase().includes(query));
+        const chosen = drivers.find(item => String(item.driver.id) === String(assignmentDriver?.value));
+        if (pairCount) pairCount.textContent = `${fleetPairs.length} eligible pairs · ${drivers.length} drivers`;
+        if (driverCount) driverCount.textContent = `${drivers.length} eligible drivers`;
+        if (fleetNote) fleetNote.textContent = fleetMode === 'Reserve'
+            ? (fleetPairs.length
+                ? 'Shared standby buses can be used by eligible drivers with Operations Head approval.'
+                : reserveNotice)
+            : 'Regular buses must be authorized for the selected driver and compatible with the client.';
+        document.querySelectorAll('#assignmentPairPicker [data-assignment-fleet]').forEach(button => {
+            const active = button.dataset.assignmentFleet === fleetMode;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+
+        driverFirstList.innerHTML = visibleDrivers.length ? visibleDrivers.map(item => {
+            const active = String(assignmentDriver?.value) === String(item.driver.id);
+            return `<button type="button" class="assignment-driver-choice ${active ? 'is-selected' : ''}"
+                data-select-driver="${escapeHtml(String(item.driver.id))}" aria-pressed="${active}">
+                <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
+                <span><strong>${escapeHtml(item.driver.name)}</strong><small>${escapeHtml(item.driver.driver_id)} · ${item.buses.length} eligible bus(es)</small></span>
+                <i class="fa-solid ${active ? 'fa-circle-check' : 'fa-circle'}" aria-hidden="true"></i>
             </button>`;
-        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(emptyMessage)}</p>`;
+        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(fleetPairs.length ? 'No driver matches your search.' : (fleetMode === 'Reserve' ? reserveNotice : availabilitySummary.reason))}</p>`;
+
+        if (selectedDriverSummary) selectedDriverSummary.textContent = chosen
+            ? `${chosen.driver.name} · ${chosen.buses.length} eligible bus(es)`
+            : 'Choose a driver above';
+        pairList.innerHTML = chosen && chosen.buses.length ? chosen.buses.map(bus => {
+            const active = String(assignmentBus?.value) === String(bus.id);
+            return `<button type="button" class="assignment-bus-choice ${active ? 'is-selected' : ''}"
+                data-select-bus="${escapeHtml(String(bus.id))}" aria-pressed="${active}">
+                <i class="fa-solid fa-bus" aria-hidden="true"></i>
+                <span><strong>${escapeHtml(bus.bus_no || 'Bus')}</strong><small>${escapeHtml(fleetMode === 'Reserve' ? 'Reserve · Shared standby' : (bus.model || 'Authorized Regular bus'))}</small></span>
+                <i class="fa-solid ${active ? 'fa-circle-check' : 'fa-circle'}" aria-hidden="true"></i>
+            </button>`;
+        }).join('') : `<p class="assignment-pair-empty">${escapeHtml(chosen
+            ? (fleetMode === 'Reserve' ? reserveNotice : 'This driver has no eligible Regular bus.')
+            : 'Select a driver above to see their eligible buses.')}</p>`;
     }
 
     pairSearch?.addEventListener('input', renderPairCards);
-    pairList?.addEventListener('click', event => {
-        const card = event.target.closest('[data-pair-driver][data-pair-bus]');
-        if (!card) return;
-        selectDriverById(card.dataset.pairDriver);
-        selectBusById(card.dataset.pairBus);
-        renderPairCards();
+    pairPicker?.addEventListener('click', event => {
+        const fleetButton = event.target.closest('[data-assignment-fleet]');
+        if (fleetButton) {
+            const next = fleetButton.dataset.assignmentFleet;
+            if (next !== fleetMode) {
+                fleetMode = next;
+                resetDriverSelection();
+                resetBusSelection();
+                if (pairSearch) pairSearch.value = '';
+                renderPairCards();
+            }
+            return;
+        }
+        const driverButton = event.target.closest('[data-select-driver]');
+        if (driverButton) {
+            const nextDriver = driverButton.dataset.selectDriver;
+            if (String(assignmentDriver?.value) !== String(nextDriver)) {
+                selectDriverById(nextDriver);
+                resetBusSelection();
+            }
+            renderPairCards();
+            return;
+        }
+        const busButton = event.target.closest('[data-select-bus]');
+        if (busButton && assignmentDriver?.value) {
+            selectBusById(busButton.dataset.selectBus);
+            renderPairCards();
+        }
     });
 
     function renderAvailability(data) {
         updatePairTripContext(data?.trip || null);
         const drivers = Array.isArray(data?.drivers) ? data.drivers : [];
         const buses = Array.isArray(data?.buses) ? data.buses : [];
+        availabilityDrivers = drivers;
+        reserveNotice = data?.reserve_notice || 'No Reserve buses available for this trip.';
 
         if (assignmentDriverOptionsContainer) {
             assignmentDriverOptionsContainer.innerHTML = drivers.length
@@ -412,10 +480,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             assignmentBusOptionsContainer.innerHTML = buses.length
                 ? buses.map((bus) => {
                     const busIdentifier = bus.bus_no || 'Bus ID not recorded';
-                    const label = bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier;
+                    const label = bus.purpose === 'Reserve'
+                        ? `${busIdentifier} — Reserve (Head only)`
+                        : (bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier);
                     const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
 
-                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
+                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-purpose="${escapeHtml(bus.purpose || 'Regular')}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(busIdentifier)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
                 }).join('')
                 : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
         }
@@ -424,8 +494,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         // maintenance/conflicting resources. Intersect with driver authorization.
         eligiblePairs = drivers.flatMap(driver => {
             const authorized = new Set((driver.authorized_bus_ids || []).map(String));
-            return buses.filter(bus => authorized.has(String(bus.id))).map(bus => ({
-                driver, bus, search: [driver.name, driver.driver_id, bus.bus_no, bus.model, bus.plate_no].join(' ').toLowerCase()
+            return buses.filter(bus => bus.purpose === 'Reserve' || authorized.has(String(bus.id))).map(bus => ({
+                driver, bus, search: [driver.name, driver.driver_id, bus.bus_no, bus.model, bus.plate_no, bus.purpose].join(' ').toLowerCase()
             }));
         });
         availabilitySummary = {
@@ -435,16 +505,20 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 ? 'No eligible drivers were returned for this trip. Check active driver records, licence dates, and overlapping assignments.'
                 : !buses.length
                     ? 'No compatible buses were returned. Check bus client allocation, active status, maintenance jobs, and overlapping assignments.'
-                    : 'Drivers and buses are available separately, but none of these drivers is authorized for the available buses. Review Driver Master List → Assigned Buses.'
+                    : 'Drivers and buses are available separately, but no eligible authorized Regular pair was found. Reserve buses are shared, Head-approved assets.'
         };
-        renderPairCards();
-
         assignmentDriverOptions = Array.from(
             assignmentDriverOptionsContainer?.querySelectorAll('.assignment-driver-option') || []
         );
         assignmentBusOptions = Array.from(
             assignmentBusOptionsContainer?.querySelectorAll('.assignment-bus-option') || []
         );
+        // Editing a Reserve assignment must retain its selected fleet tab.
+        fleetMode = eligiblePairs.some(pair =>
+            String(pair.driver.id) === String(assignmentDriver?.value)
+            && String(pair.bus.id) === String(assignmentBus?.value)
+            && pair.bus.purpose === 'Reserve') ? 'Reserve' : 'Regular';
+        renderPairCards();
     }
 
 
@@ -744,7 +818,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         const allowed = assignmentDriverOptions.find(
             (option) => String(option.dataset.value) === String(value)
         )?.dataset.authorizedBuses?.split(',').filter(Boolean) || [];
-        if (assignmentBus?.value && !allowed.includes(String(assignmentBus.value))) {
+        const selectedBus = assignmentBusOptions.find(
+            option => String(option.dataset.value) === String(assignmentBus?.value)
+        );
+        if (assignmentBus?.value
+            && selectedBus?.dataset.purpose !== 'Reserve'
+            && !allowed.includes(String(assignmentBus.value))) {
             resetBusSelection();
         }
         filterBusOptions(assignmentBusSearch?.value || '');
@@ -849,7 +928,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                     : [];
                 // No selected driver means no bus can be offered. Only show
                 // buses explicitly authorized for the selected driver.
-                const busAuthorized = allowed.includes(String(option.dataset.value));
+                const busAuthorized = Boolean(selectedDriver)
+                    && (option.dataset.purpose === 'Reserve'
+                        || allowed.includes(String(option.dataset.value)));
 
                 option.hidden = !shouldShow || !busAuthorized;
             }
@@ -954,6 +1035,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         assignmentForm.reset();
+        editingSlotNumber = 0;
+        fleetMode = 'Regular';
+        reserveNotice = 'Select a trip to check Reserve eligibility.';
         setReplacementReasonMode(false);
         document.getElementById('companyAssignmentFields')?.classList.remove('pending-slot-trip-locked');
         document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active');
@@ -1056,6 +1140,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             resetAssignmentForm();
 
             const assignmentId = editButton.dataset.assignmentId;
+            editingSlotNumber = Number(editButton.dataset.slotNumber || 0);
 
             ensureTripOption(
                 editButton.dataset.tripId,
@@ -1078,8 +1163,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             if (assignmentFormMethod) {
                 assignmentFormMethod.disabled = false;
                 assignmentFormMethod.value = 'PUT';
-                document.getElementById('companyAssignmentFields')?.classList.remove('pair-picker-active');
-                if (pairPicker) pairPicker.hidden = true;
+                // Editing uses the same searchable, validated pair cards as
+                // assigning a pending slot. Keep the original trip locked.
+                document.getElementById('companyAssignmentFields')?.classList.add('pair-picker-active', 'pending-slot-trip-locked');
+                if (pairPicker) pairPicker.hidden = false;
+                if (pairSearch) pairSearch.value = '';
             }
 
             if (assignmentTrip) {
@@ -1096,6 +1184,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
             selectDriverById(editButton.dataset.driverId || '');
             selectBusById(editButton.dataset.busId || '');
+            const selectedBusOption = assignmentBusOptions.find(option =>
+                String(option.dataset.value) === String(assignmentBus?.value));
+            fleetMode = selectedBusOption?.dataset.purpose === 'Reserve' ? 'Reserve' : 'Regular';
+            renderPairCards();
 
             const readyReplacement = editButton.dataset.readyReplacement === 'true';
             setReplacementReasonMode(readyReplacement);
@@ -1491,33 +1583,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
     /*
     |--------------------------------------------------------------------------
-    | Cancel Entire Trip (Operations Head only; server verifies again)
-    |--------------------------------------------------------------------------
-    */
-
-    document.querySelectorAll('.assignment-page .cancel-assignment-trip').forEach((button) => {
-        button.addEventListener('click', () => {
-            if (!cancelAssignmentTripModal || !cancelAssignmentTripForm) return;
-            const url = button.dataset.cancelUrl;
-            if (!url || !url.startsWith('/') || url.startsWith('//')) return;
-            cancelAssignmentTripForm.action = url;
-            const tripCode = cancelAssignmentTripModal.querySelector('#cancelAssignmentTripCode');
-            if (tripCode) tripCode.textContent = button.dataset.tripCode || 'this trip';
-            const reason = cancelAssignmentTripModal.querySelector('#assignmentCancellationReason');
-            if (reason) reason.value = '';
-            openModal(cancelAssignmentTripModal);
-            reason?.focus();
-        });
-    });
-
-    ['keepAssignmentTrip', 'closeCancelAssignmentTrip'].forEach((id) => {
-        document.getElementById(id)?.addEventListener('click', () => {
-            closeModal(cancelAssignmentTripModal);
-        });
-    });
-
-    /*
-    |--------------------------------------------------------------------------
     | Escape Key
     |--------------------------------------------------------------------------
     */
@@ -1543,7 +1608,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             closeModal(assignmentModal);
             closeModal(viewAssignmentModal);
             closeModal(removeAssignmentModal);
-            closeModal(cancelAssignmentTripModal);
         }
     );
 

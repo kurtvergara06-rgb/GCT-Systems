@@ -25,7 +25,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         ]);
     }
 
-    public function test_both_trip_history_tabs_use_the_shared_layout_toolbar_and_pagination(): void
+    public function test_legacy_history_links_use_one_unified_table_and_toolbar(): void
     {
         $user = $this->operationUser();
 
@@ -40,7 +40,48 @@ class TripRecordsIncrementalLoadingTest extends TestCase
                 ->assertSeeText('Filter')
                 ->assertSeeText('Sort');
 
-            $response->assertSee($view === 'assignments' ? 'Assignment History' : 'Operational Records');
+            $response->assertSee('Unified Trip History')
+                ->assertSee('Assignment Outcome')
+                ->assertSee('Operational Status')
+                ->assertDontSee('class="trip-history-tabs"', false);
+        }
+    }
+
+    public function test_unified_history_includes_elapsed_unassigned_trips_and_terminal_operations(): void
+    {
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-UNIFIED',
+            'route_name' => 'Unified Route',
+            'origin' => 'Origin',
+            'destination' => 'Destination',
+            'status' => 'Active',
+        ]);
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->subDays(2)->toDateString();
+        foreach (['Scheduled' => 'T-UNIFIED-ELAPSED', 'Completed' => 'T-UNIFIED-COMPLETED'] as $status => $code) {
+            TripSchedule::create([
+                'trip_code' => $code,
+                'trip_date' => $date,
+                'shuttle_route_id' => $route->id,
+                'departure_time' => '08:00:00',
+                'estimated_arrival_time' => '09:00:00',
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => 'Unassigned',
+                'shift' => 'Morning',
+            ]);
+        }
+
+        foreach ([[], ['view' => 'assignments'], ['view' => 'operations']] as $parameters) {
+            $this->actingAs($this->operationUser())
+                ->get(route('trip-records', $parameters))
+                ->assertOk()
+                ->assertSee('T-UNIFIED-ELAPSED')
+                ->assertSee('T-UNIFIED-COMPLETED')
+                ->assertSee('Assigned Resources')
+                ->assertSee('Bus Slots')
+                ->assertSee('Actual Times')
+                ->assertDontSee('class="trip-history-tabs"', false)
+                ->assertViewHas('trips', fn ($trips) => $trips->total() === 2);
         }
     }
 
@@ -168,6 +209,78 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertSame(99.0, (float) $trip->fresh()->planned_distance_km);
     }
 
+    public function test_unified_history_actual_times_are_sourced_from_linked_ddr_not_schedule_fields(): void
+    {
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-DDR-ACTUAL',
+            'route_name' => 'Actual Time Route',
+            'origin' => 'Terminal A',
+            'destination' => 'Terminal B',
+            'status' => 'Active',
+        ]);
+        $trip = TripSchedule::create([
+            'trip_code' => 'T-DDR-ACTUAL',
+            'trip_date' => '2026-10-01',
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '09:00:00',
+            'estimated_arrival_date' => '2026-10-01',
+            'actual_departure_time' => '08:15:00',
+            'actual_arrival_time' => '09:30:00',
+            'shift' => 'Morning',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Completed',
+        ]);
+        $this->actingAs($this->operationUser())
+            ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
+            ->assertOk()
+            ->assertSee('No DDR recorded')
+            ->assertDontSee('08:15:00 → 09:30:00');
+
+        $bus = \App\Models\Maintenance\Bus::create([
+            'bus_no' => 'DDR-TEST-BUS',
+            'plate_no' => 'DDR-1234',
+            'bus_model' => 'Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+        ]);
+        $report = DailyDriverReport::create([
+            'ddr_no' => 'DDR-2026-1234',
+            'report_date' => '2026-10-01',
+            'trip_schedule_id' => $trip->id,
+            'trip_ticket' => 'T-DDR-ACTUAL',
+            'driver_id' => 'DDR-DRIVER-1',
+            'driver_name' => 'Verified Driver',
+            'bus_id' => $bus->id,
+            'from_location' => 'Terminal A',
+            'to_location' => 'Terminal B',
+            'departure_time' => '08:05:00',
+            'arrival_time' => '09:10:00',
+            'passengers' => 10,
+            'encoded_by' => $this->operationUser()->id,
+        ]);
+        $report->additionalTrips()->create([
+            'sequence' => 2,
+            'trip_schedule_id' => $trip->id,
+            'trip_ticket' => 'T-DDR-ACTUAL-ADDITIONAL',
+            'from_location' => 'Terminal A',
+            'to_location' => 'Terminal B',
+            'departure_time' => '10:00:00',
+            'arrival_time' => '11:00:00',
+            'passengers' => 0,
+        ]);
+
+        $this->actingAs($this->operationUser())
+            ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
+            ->assertOk()
+            ->assertSee('2 DDR trip records')
+            ->assertSee('DDR-2026-1234')
+            ->assertSee('8:05 AM')
+            ->assertSee('9:10 AM')
+            ->assertSee('10:00 AM')
+            ->assertSee('11:00 AM');
+    }
+
     public function test_overnight_on_time_rate_excludes_incomplete_actual_timestamps(): void
     {
         $route = ShuttleRoute::create([
@@ -199,4 +312,93 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             ->assertOk()
             ->assertViewHas('onTimeRate', 100.0);
     }
+
+    public function test_trip_details_modal_keeps_read_only_units_without_redundant_csv_export(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $this->assertStringContainsString('Driver-Reported Actual Times (DDR)', $view);
+        $this->assertStringContainsString('Assigned Units', $view);
+        $this->assertStringContainsString('id="actualTripUnitRows"', $view);
+        $this->assertStringContainsString('id="unitRecordSearchInput"', $view);
+        $this->assertStringContainsString('Underlying System Database Record', $view);
+        $this->assertStringContainsString('Export CSV', $view);
+        $this->assertStringNotContainsString('Export Units CSV', $view);
+        $this->assertStringNotContainsString('unitExportBtn', $view);
+        $this->assertStringNotContainsString('unitExportBtn', $script);
+        $this->assertStringNotContainsString('csvCell', $script);
+        $this->assertStringNotContainsString('.unit-records-export-btn', $styles);
+        $this->assertStringContainsString('#tripDetailModal .unit-records-header', $styles);
+    }
+
+    public function test_trip_details_modal_uses_three_read_only_sections_and_conditional_ddr(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $first = strpos($view, '01 · Trip Information');
+        $second = strpos($view, '02 · Assigned Resources');
+        $third = strpos($view, '03 · Trip Execution &amp; DDR');
+        $this->assertNotFalse($first);
+        $this->assertNotFalse($second);
+        $this->assertNotFalse($third);
+        $this->assertLessThan($second, $first);
+        $this->assertLessThan($third, $second);
+
+        $this->assertStringContainsString('id="tripOverviewRoute"', $view);
+        $this->assertStringContainsString('id="tripOverviewSlots"', $view);
+        $this->assertStringContainsString('id="actualTripUnitRows"', $view);
+        $this->assertStringContainsString('id="tripDdrEmptyState"', $view);
+        $this->assertStringContainsString('id="tripDdrRecordedSection" hidden', $view);
+        $this->assertStringContainsString('id="modalDdrTimeRows"', $view);
+        $this->assertStringContainsString('Underlying System Database Record', $view);
+
+        $this->assertStringContainsString('recordedSection.hidden = !hasDdr;', $script);
+        $this->assertStringContainsString('emptySection.hidden = hasDdr;', $script);
+        $this->assertStringContainsString('This trip is marked Completed, but no linked DDR was found.', $script);
+        $this->assertStringContainsString('searchControl.hidden = numberOfUnits < 5;', $script);
+        $this->assertStringContainsString('.trip-overview-grid', $styles);
+        $this->assertStringContainsString('.trip-ddr-empty-state[hidden]', $styles);
+    }
+
+    public function test_trip_details_modal_keeps_scrollable_database_drawer_and_compact_footer(): void
+    {
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+        $script = file_get_contents(resource_path('js/Operation/Trip_Records/trip-records.js'));
+
+        $this->assertStringContainsString('#tripDetailModal .trip-detail-body {', $styles);
+        $this->assertStringContainsString('overflow-y: auto;', $styles);
+        $this->assertStringContainsString('flex: 0 0 auto;', $styles);
+        $this->assertStringContainsString('#tripDetailModal .trip-database-telemetry-drawer {', $styles);
+        $this->assertStringContainsString('#tripDetailModal .trip-modal-actions {', $styles);
+        $this->assertStringContainsString('min-height: 60px;', $styles);
+        $this->assertStringContainsString('const displayTime = (value) => {', $script);
+        $this->assertStringContainsString('tripOverviewDeparture: displayTime(data.departure_time)', $script);
+    }
+
+    public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
+        $layout = file_get_contents(resource_path('views/components/operation/trip-history-layout.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Trip_Records/trip-records.css'));
+
+        $this->assertStringContainsString("['driver_name']", $view);
+        $this->assertStringContainsString('data-trip=', $view);
+        $this->assertStringNotContainsString('more — View for details', $view);
+        $this->assertStringContainsString('gct-responsive-records gct-sticky-actions', $layout);
+        $this->assertStringContainsString('.unified-trip-history-table > tbody > tr > td:last-child:not([colspan])', $styles);
+        $this->assertStringContainsString('right: 0;', $styles);
+        $this->assertStringContainsString('col.history-col-action { width: 110px; }', $styles);
+        $this->assertStringContainsString('table-layout: fixed;', $styles);
+        $this->assertStringContainsString('width: 84px;', $styles);
+        $this->assertStringContainsString('class="history-col-action"', $view);
+        $this->assertStringContainsString('class="trip-history-view-action view-trip-btn"', $view);
+        $this->assertStringNotContainsString('class="trip-action view view-trip-btn"', $view);
+        $this->assertStringContainsString('button.trip-history-view-action', $styles);
+        $this->assertStringContainsString('width: 94px;', $styles);
+    }
+
 }

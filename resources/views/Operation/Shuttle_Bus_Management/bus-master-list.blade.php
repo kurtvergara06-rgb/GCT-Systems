@@ -219,7 +219,7 @@
                                     @endunless
                                     <td class="bus-actions-cell">
                                         <div class="actions">
-                                            <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
+                                            <x-ui.action-button type="view" class="open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
                                                 data-bus-no-locked="{{ $bus->bus_no_locked ? '1' : '0' }}" data-plate-no="{{ $bus->plate_no }}"
                                                 data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
@@ -227,14 +227,14 @@
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-display-route="{{ $bus->display_route_name }}"
                                                 data-client-allocation-type="{{ $bus->client_allocation_type }}"
-                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}">
-                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                            </button>
+                                                data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}" data-authorized-drivers="{{ $bus->authorizedDrivers->pluck('driver_name')->join(', ') }}"
+                                            />
                                             @if($canEditOperation)
-                                            <button
-                                                class="action-btn edit open-edit-bus"
-                                                type="button"
-                                                @if($bus->maintenance_locked || $displayStatus === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Edit Bus" @endif
+                                            <x-ui.action-button
+                                                type="edit"
+                                                class="open-edit-bus"
+                                                title="{{ $bus->maintenance_locked || $displayStatus === 'Under Maintenance' ? 'Locked: bus Under Maintenance' : 'Edit Bus' }}"
+                                                :disabled="$bus->maintenance_locked || $displayStatus === 'Under Maintenance'"
                                                 data-id="{{ $bus->id }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
                                                 data-plate-no="{{ $bus->plate_no }}"
@@ -248,7 +248,7 @@
                                                 data-client-allocation-type="{{ $bus->client_allocation_type }}"
                                                 data-client-names="{{ $bus->operationClients->pluck('name')->join(', ') }}"
                                                 data-update-url="/bus-master-list/{{ $bus->id }}"
-                                            ><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
+                                            />
 
                                             @if($displayStatus === 'Active')
                                             <form action="{{ route('bus-master-list.deactivate', $bus, false) }}" method="POST"
@@ -500,6 +500,8 @@
                         name="bus_no"
                         id="edit_bus_no"
                         required
+                        readonly
+                        aria-readonly="true"
                         aria-describedby="editBusNoLockHint"
                     ></div>
                 </div>
@@ -559,7 +561,7 @@
                     </select></div>
                 </div>
                         </div>
-                        <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is locked because this bus has related operational history.</p>
+                        <p id="editBusNoLockHint" class="bus-no-lock-hint full-width"><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus ID (Body Number) is permanent and cannot be changed after creation.</p>
                     </div>
                     <div class="bus-modal-lower">
 <section class="bus-modal-panel">

@@ -88,6 +88,7 @@ Route::middleware([
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
                 Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
                 Route::post('/{jobOrder}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('job-orders.approve');
+                Route::post('/{jobOrder}/start-pms-service', 'startPmsService')->middleware('system.permission:maintenance,approve')->name('job-orders.start-pms-service');
                 Route::post('/{jobOrder}/return-for-revision', 'returnForRevision')->middleware('system.permission:maintenance,approve')->name('job-orders.return-for-revision');
                 Route::post('/{jobOrder}/reject', 'reject')->middleware('system.permission:maintenance,approve')->name('job-orders.reject');
                 Route::post('/{jobOrder}/finish', 'finish')->middleware('system.permission:maintenance,edit')->name('job-orders.finish');

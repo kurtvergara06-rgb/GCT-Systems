@@ -1,0 +1,56 @@
+.assignment-page .assignment-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.assignment-page .assignment-calendar-toolbar .assignment-record-controls{flex:1 1 320px;min-width:0;display:flex;justify-content:flex-end}
+.assignment-page .assignment-calendar-toolbar .assignment-record-controls > *{max-width:100%}
+.assignment-page .assignment-calendar-toolbar .assignment-date-picker{margin:0}
+@media(max-width:760px){.assignment-page .assignment-calendar-toolbar{align-items:stretch}.assignment-page .assignment-calendar-toolbar .assignment-record-controls{justify-content:flex-start}}
+/* Scoped assignment status date picker, visually aligned with Trip Schedule. */
+.assignment-page .assignment-date-picker{position:relative;z-index:40;margin:0 0 8px;display:inline-block;max-width:100%}
+.assignment-page .assignment-date-trigger{display:flex;gap:9px;align-items:center;padding:6px 9px;background:#f8fbff;border:1px solid #dbe6f5;border-radius:10px;color:#173456;cursor:pointer;text-align:left;min-height:42px}
+.assignment-page .assignment-date-trigger:hover,.assignment-page .assignment-date-trigger[aria-expanded=true]{background:#eaf3ff;border-color:#b8d2fa}
+.assignment-page .assignment-date-trigger:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.assignment-page .assignment-date-icon{display:grid;place-items:center;background:#e8f1ff;color:#155bb8;width:29px;height:29px;border-radius:8px}
+.assignment-page .assignment-date-copy{display:flex;flex-direction:column;gap:2px;min-width:113px}
+.assignment-page .assignment-date-copy small{color:#637893;font-size:10px}
+.assignment-page .assignment-date-copy strong{color:#153457;font-size:12px}
+.assignment-page .assignment-date-trigger>.fa-chevron-down{font-size:10px;color:#54739c}
+.assignment-page .assignment-date-calendar{position:absolute;left:0;top:calc(100% + 8px);z-index:120;width:325px;max-width:calc(100vw - 28px);box-sizing:border-box;background:#fff;border:1px solid #dce6f3;border-radius:13px;box-shadow:0 18px 46px rgba(15,35,68,.19);padding:15px}
+.assignment-page .assignment-date-calendar[hidden]{display:none!important}
+.assignment-page .assignment-calendar-heading,.assignment-page .assignment-calendar-month,.assignment-page .assignment-calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.assignment-page .assignment-calendar-heading strong,.assignment-page .assignment-calendar-month strong{font-size:13px;font-weight:800;color:#173456}
+.assignment-page .assignment-calendar-heading button,.assignment-page .assignment-calendar-month button{display:grid;place-items:center;width:30px;height:30px;border:1px solid #dfe8f4;border-radius:8px;background:#f5f8fd;color:#3b5777;cursor:pointer}
+.assignment-page .assignment-calendar-heading button:hover,.assignment-page .assignment-calendar-month button:hover{background:#eaf2ff}
+.assignment-page .assignment-calendar-hint{margin:7px 0 12px;color:#637893;font-size:10px;line-height:1.5}
+.assignment-page .assignment-calendar-month{margin-bottom:10px}
+.assignment-page .assignment-calendar-weekdays,.assignment-page .assignment-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.assignment-page .assignment-calendar-weekdays{margin-bottom:5px;text-align:center;color:#75869d;font-size:10px;font-weight:750}
+.assignment-page .assignment-calendar-weekdays span{padding:5px 0}
+.assignment-page .assignment-calendar-day,.assignment-page .assignment-calendar-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;height:38px;padding:2px;border:1px solid transparent;border-radius:8px;box-sizing:border-box;background:transparent;color:#27415e;font-size:12px;font-weight:650}
+.assignment-page .assignment-calendar-day{cursor:pointer}
+.assignment-page .assignment-calendar-day:hover{background:#edf5ff}
+.assignment-page .assignment-calendar-day.has-trips{background:#f4f8fc;font-weight:800}
+.assignment-page .assignment-calendar-day.is-selected{background:#eaf2ff;border-color:#4086e5;color:#1254ad}
+.assignment-page .assignment-calendar-day.is-today:not(.is-selected){border-color:#b9cce2}
+.assignment-page .assignment-calendar-day:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
+.assignment-page .assignment-calendar-dots{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px;max-width:36px;min-height:6px}
+.assignment-page .assignment-calendar-dot{display:inline-block;flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#94a3b8}
+.assignment-page .assignment-calendar-dots .assignment-calendar-dot{flex-basis:6px;width:6px;height:6px}
+.assignment-page .assignment-calendar-dot.is-unassigned{background:#eab308}
+.assignment-page .assignment-calendar-dot.is-partial{background:#f97316}
+.assignment-page .assignment-calendar-dot.is-assigned{background:#16a34a}
+.assignment-page .assignment-calendar-dot.is-in_progress{background:#7c3aed}
+.assignment-page .assignment-calendar-dot.is-pending_ddr{background:#2563eb}
+.assignment-page .assignment-calendar-dot.is-missed{background:#dc2626}
+.assignment-page .assignment-calendar-dot.is-delayed{background:#8b5cf6}
+.assignment-page .assignment-calendar-dot.is-completed{background:#16a34a}
+.assignment-page .assignment-calendar-dot.is-cancelled{background:#dc2626}
+.assignment-page .assignment-calendar-legend{margin-top:12px;padding-top:11px;border-top:1px solid #e5ecf5}
+.assignment-page .assignment-calendar-legend>strong{display:block;margin-bottom:9px;font-size:11px;font-weight:800;color:#173456}
+.assignment-page .assignment-calendar-legend-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 7px}
+.assignment-page .assignment-calendar-legend-grid>span{display:flex;align-items:center;gap:6px;min-width:0;color:#465a73;font-size:10px;line-height:1.35}
+.assignment-page .assignment-calendar-footer{margin-top:12px;padding-top:10px;border-top:1px solid #e8edf6;font-size:10px;color:#61768f}
+.assignment-page .assignment-calendar-footer span{display:inline-flex;align-items:center;gap:5px}
+.assignment-page .assignment-calendar-footer button{border:1px solid #dce6f3;border-radius:7px;background:#f8fbff;padding:6px 10px;font-size:11px;font-weight:750;color:#155bb8;cursor:pointer}
+.assignment-page .assignment-calendar-feedback{margin:5px 0 0;font-size:10px;color:#64748b}
+.assignment-page .assignment-calendar-feedback:empty{display:none}
+@media(max-width:450px){.assignment-page .assignment-date-calendar{width:min(325px,calc(100vw - 28px))}}
+@media print{.assignment-page .assignment-date-picker{display:none!important}}

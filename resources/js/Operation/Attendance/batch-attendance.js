@@ -264,7 +264,7 @@ function initBatchAttendancePage() {
                     <td style="${type === 'mechanic' ? 'display:none' : ''}">
                         <div class="batch-shift-meta">
                             <strong>${type === 'driver' ? 'Daily Attendance' : escapeHtml(row.shift)}</strong>
-                            <small>${type === 'driver' ? 'No shift assignment' : escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
+                            <small>${type === 'driver' ? 'Flexible reporting' : escapeHtml(formatTime(shiftStarts[row.shift]) || '')}</small>
                         </div>
                     </td>
                     <td>

@@ -1245,28 +1245,6 @@
     color: #0f172a;
 }
 
-.unit-records-export-btn {
-    height: 38px;
-    padding: 0 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    border: 1px solid #d97706;
-    border-radius: 9px;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #0f172a;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(217, 119, 6, 0.15);
-    transition: all 0.15s ease;
-}
-
-.unit-records-export-btn:hover {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-}
-
 /* =========================================================
    UNIT RECORDS TABLE
 ========================================================= */
@@ -2427,4 +2405,601 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Unified history: keep the list compact; detail fields remain in View. */
+.trip-records-page .unified-trip-history-table { min-width: 1040px; }
+.trip-records-page .unified-trip-history-table th,
+.trip-records-page .unified-trip-history-table td { vertical-align: middle; }
+.trip-records-page .unified-trip-history-table .unified-trip-date,
+.trip-records-page .unified-trip-history-table .unified-trip-resource {
+    min-width: 115px;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-date strong,
+.trip-records-page .unified-trip-history-table .unified-trip-resource strong {
+    display: block;
+    font-size: 12px;
+    color: var(--trip-navy);
+}
+.trip-records-page .unified-trip-history-table .unified-trip-date small,
+.trip-records-page .unified-trip-history-table .unified-trip-resource small {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--trip-muted);
+}
+.trip-records-page .unified-trip-history-table .unified-trip-actual-times {
+    white-space: nowrap;
+    font-size: 11px;
+}
+#tripDetailModal .unified-trip-modal-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+#tripDetailModal .unified-trip-modal-summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid #deebfa;
+    border-radius: 10px;
+    background: #f5f9ff;
+}
+#tripDetailModal .unified-trip-modal-summary small { font-size: 11px; color: #64748b; }
+#tripDetailModal .unified-trip-modal-summary strong { font-size: 14px; color: #0f2a4d; }
+@media (max-width: 600px) {
+    #tripDetailModal .unified-trip-modal-summary { grid-template-columns: 1fr; }
+}
+
+/* Verified DDR timing details, separate for each linked bus/trip entry. */
+#tripDetailModal .unified-trip-ddr-times { margin: 0 0 16px; }
+#tripDetailModal .unified-trip-ddr-times h3 { margin: 0 0 4px; font-size: 14px; color: #0f2a4d; }
+#tripDetailModal .unified-trip-ddr-times p { margin: 0 0 10px; font-size: 11px; color: #64748b; }
+#tripDetailModal .unified-trip-ddr-table-wrap { overflow-x: auto; border: 1px solid #dce5f2; border-radius: 10px; }
+#tripDetailModal .unified-trip-ddr-times table { width: 100%; min-width: 420px; border-collapse: collapse; }
+#tripDetailModal .unified-trip-ddr-times th,
+#tripDetailModal .unified-trip-ddr-times td { padding: 9px 11px; border-bottom: 1px solid #e7edf5; font-size: 11px; text-align: left; }
+#tripDetailModal .unified-trip-ddr-times th { color: #34516f; background: #f3f7fc; }
+#tripDetailModal .unified-trip-ddr-times tr:last-child td { border-bottom: 0; }
+.trip-records-page .unified-trip-actual-times strong,
+.trip-records-page .unified-trip-actual-times small { display: block; }
+.trip-records-page .unified-trip-actual-times small { margin-top: 4px; color: #64748b; font-size: 10px; }
+
+/* Unified history: keep the last View control visible while the record cells
+   scroll horizontally. Override the shared 132px Actions footprint because
+   this read-only table has one icon action. */
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
+.trip-records-page .unified-trip-history-table > thead > tr > th:last-child,
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+    position: sticky;
+    right: 0;
+    box-sizing: border-box;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
+    text-align: center;
+    white-space: nowrap;
+    background-color: #fff;
+    z-index: 12;
+}
+.trip-records-page .unified-trip-history-table > thead > tr > th:last-child {
+    background-color: #f3f7fc !important;
+    z-index: 22;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
+    background-color: #fbfdff;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background-color: #f8fbff;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-resource {
+    max-width: 175px;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-resource strong,
+.trip-records-page .unified-trip-history-table .unified-trip-resource small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 760px) {
+    .trip-records-page .unified-trip-history-table > thead > tr > th:last-child,
+    .trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+        width: 86px;
+        min-width: 86px;
+        max-width: 86px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+}
+
+/* Keep the icon and label inside one fully sized clickable button,
+   overriding the 34px icon-only .trip-action dimensions. */
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: 76px;
+    min-width: 76px;
+    max-width: 76px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 7px;
+    gap: 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.trip-records-page .unified-trip-history-table .view-trip-btn > .fa-eye {
+    display: inline-block;
+    flex: 0 0 auto;
+    font-size: 11px;
+    line-height: 1;
+}
+.trip-records-page .unified-trip-history-table .view-trip-btn > .view-trip-label {
+    display: inline-block;
+    flex: 0 0 auto;
+    line-height: 1;
+}
+
+/* Correct the underlying table geometry: the label was clipped because the
+   browser compressed its last table cell despite the sticky-cell CSS width.
+   Explicit column tracks keep the View button fully inside that cell. */
+.trip-records-page .unified-trip-history-table {
+    width: max(100%, 1460px);
+    min-width: 1460px;
+    table-layout: fixed;
+}
+.trip-records-page .unified-trip-history-table col.history-col-trip { width: 170px; }
+.trip-records-page .unified-trip-history-table col.history-col-schedule { width: 150px; }
+.trip-records-page .unified-trip-history-table col.history-col-route { width: 220px; }
+.trip-records-page .unified-trip-history-table col.history-col-resources { width: 195px; }
+.trip-records-page .unified-trip-history-table col.history-col-slots { width: 90px; }
+.trip-records-page .unified-trip-history-table col.history-col-assignment { width: 180px; }
+.trip-records-page .unified-trip-history-table col.history-col-status { width: 165px; }
+.trip-records-page .unified-trip-history-table col.history-col-actual { width: 180px; }
+.trip-records-page .unified-trip-history-table col.history-col-action { width: 110px; }
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > thead > tr > th:last-child,
+.trip-records-page .trip-history-table-wrap.gct-sticky-actions > .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: sticky;
+    right: 0;
+    box-sizing: border-box;
+    text-align: center;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child .view-trip-btn {
+    width: 84px;
+    min-width: 84px;
+    max-width: 84px;
+    height: 32px;
+    padding: 0 10px;
+    gap: 7px;
+    overflow: visible;
+}
+
+/* Trip History View button: mirror DDR's labeled action exactly.
+   Do not inherit 34px icon-only .trip-action sizing. */
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 94px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #175ac0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: visible;
+    text-decoration: none;
+    transform: none;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action:hover {
+    border-color: #175ac0;
+    background: #dbeafe;
+    color: #175ac0;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.trip-history-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.trip-records-page .unified-trip-history-table button.trip-history-view-action > i,
+.trip-records-page .unified-trip-history-table button.trip-history-view-action > .view-trip-label {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
+
+/* Read-only Trip History inspection modal: clear section hierarchy and
+   compact search, without an extra per-trip export control. */
+#tripDetailModal .trip-detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+#tripDetailModal .unified-trip-ddr-times {
+    margin: 0;
+}
+#tripDetailModal .unified-trip-ddr-times h3,
+#tripDetailModal .unit-records-title-group h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#tripDetailModal .unified-trip-ddr-times h3 > i,
+#tripDetailModal .unit-records-title-group h3 > i {
+    color: #2366b8;
+    flex-shrink: 0;
+}
+#tripDetailModal .unified-trip-modal-summary {
+    margin: 0;
+}
+#tripDetailModal .unit-records-card {
+    min-width: 0;
+}
+#tripDetailModal .unit-records-header {
+    gap: 14px;
+    flex-wrap: wrap;
+}
+#tripDetailModal .unit-records-controls {
+    margin-left: auto;
+    min-width: 0;
+}
+#tripDetailModal .unit-records-search {
+    min-width: min(260px, 100%);
+    max-width: 100%;
+}
+#tripDetailModal .unit-records-search input {
+    box-sizing: border-box;
+}
+@media (max-width: 650px) {
+    #tripDetailModal .unit-records-header {
+        align-items: stretch;
+    }
+    #tripDetailModal .unit-records-controls,
+    #tripDetailModal .unit-records-search {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* Trip History: concise three-stage read-only modal. Scoped to this modal. */
+#tripDetailModal .trip-modal { width: min(980px, calc(100vw - 28px)); max-height: calc(100dvh - 28px); }
+#tripDetailModal .trip-detail-body { gap: 14px; padding: 18px 20px; }
+#tripDetailModal .trip-overview-section,
+#tripDetailModal .trip-assigned-section,
+#tripDetailModal .trip-execution-section {
+    min-width: 0;
+    border: 1px solid #dce6f3;
+    border-radius: 13px;
+    background: #fff;
+    padding: 16px;
+}
+#tripDetailModal .trip-details-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 13px;
+}
+#tripDetailModal .trip-details-section-icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 8px;
+    color: #175cba;
+    background: #eaf2ff;
+}
+#tripDetailModal .trip-details-section-heading h3 {
+    margin: 0;
+    color: #133153;
+    font-size: 14px;
+    font-weight: 800;
+}
+#tripDetailModal .trip-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+}
+#tripDetailModal .trip-overview-grid > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid #e4ebf5;
+    background: #f7faff;
+    border-radius: 9px;
+}
+#tripDetailModal .trip-overview-grid small {
+    color: #6b8099;
+    font-size: 10px;
+    font-weight: 650;
+}
+#tripDetailModal .trip-overview-grid strong {
+    color: #173756;
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+#tripDetailModal .trip-overview-grid span {
+    color: #6b8099;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+#tripDetailModal .trip-assigned-count {
+    margin-left: auto;
+    padding: 5px 9px;
+    border: 1px solid #c9defa;
+    background: #edf5ff;
+    border-radius: 7px;
+    color: #1857b3;
+    font-size: 11px;
+    font-weight: 750;
+}
+#tripDetailModal .trip-assigned-section .unit-records-card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    gap: 10px;
+}
+#tripDetailModal .trip-assigned-section .unit-records-title-group h3 {
+    font-size: 12px;
+}
+#tripDetailModal .trip-assigned-section .unit-records-header {
+    margin: 0;
+    align-items: center;
+}
+#tripDetailModal .trip-ddr-empty-state {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 14px;
+    border: 1px dashed #cadbf0;
+    border-radius: 9px;
+    background: #f5f9ff;
+    color: #55708d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+#tripDetailModal .trip-ddr-empty-state i { flex: 0 0 auto; color: #3972bc; }
+#tripDetailModal .trip-ddr-recorded-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 9px;
+}
+#tripDetailModal .trip-ddr-recorded-heading strong { color: #1b3e62; font-size: 12px; }
+#tripDetailModal .trip-ddr-recorded-heading small { color: #71859f; font-size: 10px; }
+#tripDetailModal .trip-ddr-empty-state[hidden],
+#tripDetailModal #tripDdrRecordedSection[hidden] { display: none !important; }
+#tripDetailModal .trip-database-telemetry-drawer { margin: 0; }
+@media (max-width: 720px) {
+    #tripDetailModal .trip-detail-body { padding: 12px; }
+    #tripDetailModal .trip-overview-section,
+    #tripDetailModal .trip-assigned-section,
+    #tripDetailModal .trip-execution-section { padding: 12px; }
+    #tripDetailModal .trip-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+    #tripDetailModal .trip-overview-grid { grid-template-columns: 1fr; }
+}
+
+#tripDetailModal .unit-records-controls[hidden] { display: none !important; }
+
+/* Trip History modal viewport fix: keep the technical-record accordion
+   fully reachable; scroll the middle content rather than clipping its end. */
+#tripDetailModal.trip-modal-overlay {
+    padding: clamp(10px, 2.5vh, 22px);
+}
+#tripDetailModal > .trip-modal {
+    box-sizing: border-box;
+    width: min(930px, 100%);
+    max-width: 930px;
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    margin: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+#tripDetailModal .trip-modal-header {
+    flex: 0 0 auto;
+    padding: 14px 20px;
+}
+#tripDetailModal .trip-modal-header h2 {
+    font-size: 18px;
+    overflow-wrap: anywhere;
+}
+#tripDetailModal .trip-detail-body {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 14px 18px 20px;
+    gap: 11px;
+}
+#tripDetailModal .trip-overview-section,
+#tripDetailModal .trip-assigned-section,
+#tripDetailModal .trip-execution-section,
+#tripDetailModal .trip-database-telemetry-drawer {
+    flex: 0 0 auto;
+    min-height: max-content;
+}
+#tripDetailModal .trip-overview-section,
+#tripDetailModal .trip-assigned-section,
+#tripDetailModal .trip-execution-section {
+    padding: 13px;
+    border-radius: 11px;
+}
+#tripDetailModal .trip-details-section-heading {
+    margin-bottom: 10px;
+}
+#tripDetailModal .trip-overview-grid {
+    gap: 8px;
+}
+#tripDetailModal .trip-overview-grid > div {
+    padding: 10px;
+    gap: 4px;
+}
+#tripDetailModal .trip-database-telemetry-drawer {
+    overflow: visible;
+    border-radius: 11px;
+}
+#tripDetailModal .trip-database-telemetry-drawer > summary {
+    min-height: 55px;
+    padding: 11px 14px;
+}
+#tripDetailModal .trip-modal-actions {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 11px 18px;
+    min-height: 60px;
+    border-top: 1px solid #e1eaf4;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+}
+#tripDetailModal .trip-modal-footer-caption {
+    font-size: 10px;
+    margin-right: auto;
+}
+#tripDetailModal .trip-modal-dismiss {
+    height: 36px;
+    min-width: 85px;
+    padding: 0 14px;
+    border: 1px solid #cfdef2;
+    border-radius: 8px;
+    background: #f0f6ff;
+    color: #1c579b;
+}
+#tripDetailModal .trip-modal-dismiss:hover {
+    background: #dbeafe;
+}
+@media (max-width: 720px) {
+    #tripDetailModal > .trip-modal { max-height: calc(100dvh - 16px); }
+    #tripDetailModal .trip-modal-header { padding: 12px 14px; }
+    #tripDetailModal .trip-detail-body { padding: 10px 12px 16px; }
+    #tripDetailModal .trip-modal-actions { padding: 10px 12px; }
+}
+@media (max-width: 460px) {
+    #tripDetailModal .trip-modal-footer-caption { display: none; }
+    #tripDetailModal .trip-modal-dismiss { margin-left: auto; }
+}
+
+/* Pending DDR is an operational waiting state, not an unknown gray status. */
+.trip-records-page .trip-history-operational-status.pending-ddr,
+.trip-records-page .unified-trip-history-table .pending-ddr {
+    background: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1d4ed8;
+}
+
+
+/* Phase 4: shared labeled table action across Trip Records and DDR. */
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child button.table-action-btn.trip-history-view-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 94px;
+    width: 94px;
+    min-width: 94px;
+    max-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    gap: 8px;
+    padding: 0 12px;
+    white-space: nowrap;
+}
+.trip-records-page .unified-trip-history-table button.table-action-btn.trip-history-view-action > :is(i, span) {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
+.trip-records-page .trip-history-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) table {
+    min-width: 620px;
+}
+.trip-records-page :is(.unit-records-table-wrap, .unified-trip-ddr-table-wrap) td {
+    overflow-wrap: anywhere;
+}
+
+/* Operation final audit: viewport-safe Trip History modal centering.
+   Center when the dialog fits; scroll the overlay on compact laptop heights.
+   Do not change backdrop dismissal, dialog state, or body-scroll ownership. */
+#tripDetailModal.trip-modal-overlay {
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    align-items: safe center;
+    justify-content: safe center;
+}
+#tripDetailModal.trip-modal-overlay > .trip-modal {
+    flex-shrink: 0;
+    margin: auto;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+}
+@supports (height: 100dvh) {
+    #tripDetailModal.trip-modal-overlay > .trip-modal {
+        max-height: calc(100dvh - clamp(20px, 5vh, 44px));
+    }
 }

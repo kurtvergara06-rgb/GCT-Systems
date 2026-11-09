@@ -16,7 +16,6 @@ import '../css/Main-styles/page-transitions.css';
 import '../css/Main-styles/account-preferences.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Maintenance/purchase-request-modal-cleanup.css';
-import '../css/Operation/Routes/route-pin-enhancements.css';
 
 import './Main-js/account-preferences.js';
 import './Main-js/master-list-scroll.js';

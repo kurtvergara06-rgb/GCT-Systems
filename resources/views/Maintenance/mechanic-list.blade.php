@@ -76,7 +76,7 @@
           <span class="availability-live-badge">Live assignment status</span>
         </div>
 
-        <x-ui.table-toolbar action="{{ route('mechanic-list') }}" search-label="Search Mechanic Availability" search-placeholder="Search mechanic, JO, bus, maintenance type, or issue..." :filter-count="(int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates') + (int) (request()->filled('availability') && request('availability') !== 'All Types')" filter-title="Filter Mechanic Availability" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Shift', 'employment_status' => 'Employment Status']" default-sort="mechanic_name">
+        <x-ui.table-toolbar action="{{ route('mechanic-list') }}" search-label="Search Mechanic Availability" search-placeholder="Search mechanic, JO, bus, maintenance type, or issue..." :filter-count="(int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates') + (int) (request()->filled('availability') && request('availability') !== 'All Types')" filter-title="Filter Mechanic Availability" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'employment_status' => 'Employment Status']" default-sort="mechanic_name">
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="All Dates">@foreach(['All Dates','Today','This Week'] as $dateFilter)<option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>@endforeach</x-ui.table-toolbar-field>
             <x-ui.table-toolbar-field label="Availability" name="availability" default="All Types"><option value="All Types">All Availability</option><option value="Available" @selected(request('availability') === 'Available')>Available</option><option value="Assigned" @selected(request('availability') === 'Assigned')>Assigned</option><option value="Working" @selected(request('availability') === 'Working')>Working</option><option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option></x-ui.table-toolbar-field>
@@ -123,7 +123,7 @@
 
                       <div class="mechanic-profile-meta">
                         <strong>{{ $mechanic->mechanic_name }}</strong>
-                        <small>{{ $mechanic->shift ?: 'Mechanic' }}</small>
+                        <small>Mechanic</small>
                       </div>
                     </div>
                   </td>

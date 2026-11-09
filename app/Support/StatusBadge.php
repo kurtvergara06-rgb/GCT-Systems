@@ -97,6 +97,7 @@ final class StatusBadge
 
             // Waiting, review, and procurement states.
             'pending' => ['tone' => 'pending', 'icon' => 'fa-clock'],
+            'pending-ddr' => ['tone' => 'progress', 'icon' => 'fa-file-circle-exclamation'],
             'submitted' => ['tone' => 'pending', 'icon' => 'fa-file-circle-check'],
             'reported' => ['tone' => 'progress', 'icon' => 'fa-flag'],
             'scheduled' => ['tone' => 'scheduled', 'icon' => 'fa-calendar-check'],
@@ -105,6 +106,7 @@ final class StatusBadge
             'in-review' => ['tone' => 'pending', 'icon' => 'fa-magnifying-glass'],
             'review' => ['tone' => 'warning', 'icon' => 'fa-magnifying-glass'],
             'priority-review' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
+            'replacement-required' => ['tone' => 'negative', 'icon' => 'fa-triangle-exclamation'],
             'for-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],
             'needs-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],
             'for-pick-up' => ['tone' => 'scheduled', 'icon' => 'fa-box'],

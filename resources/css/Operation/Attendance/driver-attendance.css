@@ -1377,3 +1377,365 @@
 @media (max-width: 640px) {
   .driver-attendance-page .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* DDR-verified attendance: present service date and trip window together.
+   This scoped block overrides the former icon-only action dimensions. */
+.driver-attendance-page .attendance-table td:nth-child(3) .current-assignment-cell {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+}
+.driver-attendance-page .attendance-table .current-assignment-trip {
+    display: block;
+    max-width: 100%;
+    color: #193b66;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+}
+.driver-attendance-page .attendance-assignment-schedule {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 10px;
+    color: #617897;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: left;
+}
+.driver-attendance-page .attendance-assignment-schedule > i,
+.driver-attendance-page .attendance-assignment-unassigned > small > i {
+    color: #4179c0;
+    flex-shrink: 0;
+}
+.driver-attendance-page .attendance-assignment-separator {
+    color: #9bacbf;
+}
+.driver-attendance-page .attendance-assignment-unassigned {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+.driver-attendance-page .attendance-assignment-unassigned > small {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #617897;
+}
+.driver-attendance-page .attendance-table .attendance-status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.driver-attendance-page .attendance-table .attendance-status-cell .gct-pill {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:last-child .actions {
+    justify-content: center;
+    width: 100%;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action {
+    display: inline-flex;
+    box-sizing: border-box;
+    flex: 0 0 88px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0 9px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background-color: #eff6ff;
+    color: #175ac0;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action > i,
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action > span {
+    position: static;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: auto;
+    line-height: 1;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action:hover {
+    background-color: #dbeafe;
+    color: #175ac0;
+    border-color: #175ac0;
+}
+.driver-attendance-page .attendance-table td:last-child button.attendance-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+@media (max-width: 900px) {
+    .driver-attendance-page .attendance-table {
+        min-width: 960px;
+    }
+}
+
+/* Five-column DDR-verified attendance history.
+   The former Time-In column is now only shown in the View modal. */
+.driver-attendance-page .attendance-record-table-wrap > .attendance-table {
+    table-layout: fixed;
+    width: 100%;
+}
+.driver-attendance-page .attendance-table th:nth-child(4),
+.driver-attendance-page .attendance-table td:nth-child(4) {
+    text-align: center;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table th:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(5) {
+    text-align: center;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-table th:last-child,
+.driver-attendance-page .attendance-table td:last-child:not([colspan]) {
+    box-sizing: border-box;
+    width: 14%;
+    min-width: 110px;
+}
+.driver-attendance-page .attendance-table td:last-child:not([colspan]) .actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+}
+.driver-attendance-page .attendance-table td:last-child:not([colspan]) button.attendance-view-action {
+    width: 88px;
+    min-width: 88px;
+    max-width: 88px;
+    overflow: visible;
+}
+@media (max-width: 900px) {
+    .driver-attendance-page .attendance-table {
+        min-width: 880px;
+    }
+}
+
+/* Six columns: separate scheduled service date/time from bus and trip IDs.
+   This scoped layout supersedes the previous five-column sizing. */
+.driver-attendance-page .attendance-table th:nth-child(4),
+.driver-attendance-page .attendance-table td:nth-child(4) {
+    text-align: left;
+    white-space: normal;
+}
+.driver-attendance-page .attendance-table th:nth-child(5),
+.driver-attendance-page .attendance-table td:nth-child(5),
+.driver-attendance-page .attendance-table th:nth-child(6),
+.driver-attendance-page .attendance-table td:nth-child(6) {
+    text-align: center;
+    white-space: nowrap;
+}
+.driver-attendance-page .attendance-trip-datetime {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+    text-align: left;
+}
+.driver-attendance-page .attendance-trip-date,
+.driver-attendance-page .attendance-trip-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    color: #284467;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.driver-attendance-page .attendance-trip-date { font-weight: 750; }
+.driver-attendance-page .attendance-trip-time { color: #5c7698; }
+.driver-attendance-page .attendance-trip-datetime i {
+    flex: 0 0 auto;
+    width: 12px;
+    text-align: center;
+    color: #3974bf;
+}
+.driver-attendance-page .attendance-trip-time.is-empty {
+    font-weight: 500;
+    font-style: italic;
+    color: #94a3b8;
+}
+.driver-attendance-page .attendance-table th:last-child,
+.driver-attendance-page .attendance-table td:last-child:not([colspan]) {
+    box-sizing: border-box;
+    width: 12%;
+    min-width: 110px;
+}
+@media (max-width: 1000px) {
+    .driver-attendance-page .table-wrap.attendance-record-table-wrap {
+        overflow-x: auto;
+    }
+    .driver-attendance-page .attendance-table {
+        min-width: 1020px;
+    }
+}
+
+/* DDR history View modal: compact profile + independent, scrollable trip table.
+   All matched trips remain accessible, including 5 or more assignments. */
+#viewDriverAttendanceModal.ui-form-overlay > .ui-form-modal {
+    box-sizing: border-box;
+    width: min(900px, calc(100vw - 32px));
+    max-width: 900px;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+}
+#viewDriverAttendanceModal .attendance-details-grid {
+    gap: 9px;
+}
+#viewDriverAttendanceModal .attendance-detail-card {
+    padding: 11px 13px;
+}
+#viewDriverAttendanceModal .attendance-modal-trips {
+    min-width: 0;
+    margin-top: 18px;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 11px;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-heading h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #142f51;
+    font-size: 14px;
+    font-weight: 800;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-heading h3 i { color: #2468c3; }
+#viewDriverAttendanceModal .attendance-modal-trips-heading p {
+    margin: 4px 0 0;
+    color: #71839b;
+    font-size: 11px;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-count {
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid #d4e3fb;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1a5abb;
+    font-size: 11px;
+    font-weight: 750;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-scroll {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 285px;
+    overflow: auto;
+    border: 1px solid #dce6f3;
+    border-radius: 10px;
+    scrollbar-width: thin;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-table {
+    width: 100%;
+    min-width: 660px;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+    font-size: 11px;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 11px 12px;
+    background: #f2f6fc;
+    border-bottom: 1px solid #dce6f3;
+    color: #4b617d;
+    font-size: 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #e6edf6;
+    color: #284362;
+    vertical-align: middle;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-table tr:last-child td { border-bottom: 0; }
+#viewDriverAttendanceModal .attendance-modal-trips-table tbody tr:nth-child(even) td { background: #f9fbff; }
+#viewDriverAttendanceModal .attendance-modal-trip-id {
+    font-size: 10px;
+    color: #1c365b;
+    overflow-wrap: anywhere;
+}
+#viewDriverAttendanceModal .attendance-modal-trip-bus {
+    display: inline-flex;
+    padding: 4px 7px;
+    border: 1px solid #cbdcfa;
+    border-radius: 6px;
+    background: #edf4ff;
+    color: #1853a4;
+    font-weight: 800;
+}
+#viewDriverAttendanceModal .attendance-modal-trip-time { white-space: nowrap; }
+#viewDriverAttendanceModal .attendance-modal-trip-status {
+    display: inline-block;
+    padding: 5px 8px;
+    border: 1px solid #d8e3f0;
+    border-radius: 7px;
+    background: #f2f6fb;
+    color: #395273;
+    font-weight: 700;
+}
+#viewDriverAttendanceModal .attendance-modal-trips-empty {
+    padding: 26px 12px;
+    text-align: center;
+    color: #71839b;
+}
+@media (max-width: 700px) {
+    #viewDriverAttendanceModal .attendance-modal-trips-heading {
+        align-items: flex-start;
+    }
+}
+
+/* Completed trips in the attendance modal use a clear success status. */
+#viewDriverAttendanceModal .attendance-modal-trip-status.is-completed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-color: #b7e8c8;
+    background: #dcfce7;
+    color: #15803d;
+}
+#viewDriverAttendanceModal .attendance-modal-trip-status.is-completed i {
+    font-size: 11px;
+    flex: 0 0 auto;
+}

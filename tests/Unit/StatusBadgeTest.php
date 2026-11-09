@@ -21,6 +21,16 @@ it('keeps common status meanings visually distinct', function (): void {
         ->toMatchArray(['tone' => 'success', 'icon' => 'fa-check-double']);
 });
 
+it('renders Pending DDR as a known operational waiting status', function (): void {
+    expect(StatusBadge::resolve('Pending DDR'))
+        ->toMatchArray([
+            'key' => 'pending-ddr',
+            'label' => 'Pending DDR',
+            'tone' => 'progress',
+            'icon' => 'fa-file-circle-exclamation',
+        ]);
+});
+
 it('normalizes workflow labels without changing their displayed value', function (): void {
     expect(StatusBadge::resolve('Waiting for Delivery'))
         ->toMatchArray([

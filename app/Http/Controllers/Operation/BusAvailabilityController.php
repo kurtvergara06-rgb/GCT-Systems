@@ -24,9 +24,8 @@ class BusAvailabilityController extends Controller
 
         // A stale Active master status must never override an unresolved JO.
         // Match on the internal bus_no used by Maintenance, not the plate number.
-        $restrictedBusNumbers = JobOrder::query()
-            ->where('status', '!=', 'Completed')
-            ->distinct()
+        $restrictedBusNumbers = JobOrder::query()->blocksDispatch()
+                        ->distinct()
             ->pluck('bus_no')
             ->filter()
             ->values();

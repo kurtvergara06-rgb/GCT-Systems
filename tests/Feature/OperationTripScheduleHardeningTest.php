@@ -36,6 +36,90 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
     }
 
+    public function test_assignment_calendar_distinguishes_completed_and_cancelled_from_missed(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route('R-CALENDAR-STATUS');
+        $date = '2026-11-03';
+
+        foreach (['Completed', 'Cancelled', 'Missed', 'Pending DDR', 'Dispatched', 'Ready', 'Scheduled'] as $index => $status) {
+            $this->trip($route, [
+                'trip_code' => 'T-CALENDAR-'.$index,
+                'trip_date' => $date,
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => in_array($status, ['Ready', 'Completed', 'Pending DDR', 'Dispatched'], true)
+                    ? 'Assigned' : 'Unassigned',
+            ]);
+        }
+
+        $response = $this->actingAs($user)->getJson(route('driver-bus-assignment.calendar', ['month' => '2026-11']));
+        $response->assertOk()
+            ->assertJsonPath('dates.'.$date.'.total', 7)
+            ->assertJsonPath('dates.'.$date.'.statuses.completed', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.cancelled', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.missed', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.pending_ddr', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.in_progress', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.assigned', 1)
+            ->assertJsonPath('dates.'.$date.'.statuses.unassigned', 1);
+    }
+
+    public function test_trip_schedule_calendar_uses_the_same_status_categories_as_assignment_calendar(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route('R-SCHEDULE-CALENDAR');
+        $date = '2026-11-03';
+        $statuses = [
+            ['Scheduled', 'Unassigned'],
+            ['Scheduled', 'Partially Assigned'],
+            ['Ready', 'Assigned'],
+            ['Dispatched', 'Assigned'],
+            ['Pending DDR', 'Assigned'],
+            ['Completed', 'Assigned'],
+            ['Missed', 'Unassigned'],
+            ['Cancelled', 'Unassigned'],
+            ['Delayed', 'Assigned'],
+        ];
+
+        foreach ($statuses as $index => [$status, $assignmentStatus]) {
+            $this->trip($route, [
+                'trip_code' => 'T-SCHEDULE-CAL-'.$index,
+                'trip_date' => $date,
+                'estimated_arrival_date' => $date,
+                'status' => $status,
+                'assignment_status' => $assignmentStatus,
+            ]);
+        }
+
+        $expected = [
+            'unassigned', 'partial', 'assigned', 'in_progress',
+            'pending_ddr', 'completed', 'missed', 'cancelled', 'delayed',
+        ];
+        $response = $this->actingAs($user)
+            ->getJson(route('trip-schedule.available-dates', ['month' => '2026-11']));
+
+        $response->assertOk()->assertJsonPath('dates.'.$date.'.total', 9);
+        foreach ($expected as $status) {
+            $response->assertJsonPath('dates.'.$date.'.statuses.'.$status, 1);
+        }
+    }
+
+    public function test_assignment_calendar_with_archived_trips_explains_empty_active_table(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $controller = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css'));
+
+        $this->assertStringContainsString('$allTripsForDate > 0', $view);
+        $this->assertStringContainsString('These trips are no longer shown in active Driver &amp; Bus Assignment.', $view);
+        $this->assertStringContainsString('View Trip History', $view);
+        $this->assertStringContainsString("'date_from' => \$selectedTripDate", $view);
+        $this->assertStringContainsString("'date_to' => \$selectedTripDate", $view);
+        $this->assertStringContainsString('$allTripsForDate = TripSchedule::query()', $controller);
+        $this->assertStringContainsString('assignment-history-notice', $styles);
+    }
+
     public function test_new_trip_modal_supports_no_client_general_service(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/trip-schedule.blade.php'));
@@ -1394,6 +1478,112 @@ class OperationTripScheduleHardeningTest extends TestCase
         }
     }
 
+    public function test_status_advancement_recovers_fully_assigned_scheduled_trips_without_manual_confirmation(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00', 'Asia/Manila'));
+
+        try {
+            $route = $this->route();
+            $past = $this->trip($route, [
+                'trip_code' => 'T-STUCK-ASSIGNED-PAST',
+                'trip_date' => '2026-10-07',
+                'estimated_arrival_date' => '2026-10-07',
+                'assignment_status' => 'Assigned',
+            ]);
+            $future = $this->trip($route, [
+                'trip_code' => 'T-STUCK-ASSIGNED-FUTURE',
+                'trip_date' => '2026-10-10',
+                'estimated_arrival_date' => '2026-10-10',
+                'assignment_status' => 'Assigned',
+            ]);
+            $unassigned = $this->trip($route, [
+                'trip_code' => 'T-UNASSIGNED-FUTURE',
+                'trip_date' => '2026-10-10',
+                'estimated_arrival_date' => '2026-10-10',
+            ]);
+
+            foreach ([$past, $future] as $index => $trip) {
+                [$driver, $attendance, $bus] = $this->assignmentResources(
+                    $trip->trip_date->toDateString(),
+                    'STATUS-RECOVERY-'.$index
+                );
+                TripAssignment::create([
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $attendance->id,
+                    'driver_id' => $driver->driver_id,
+                    'driver_name' => $attendance->driver_name,
+                    'bus_id' => $bus->id,
+                ]);
+            }
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+
+            $this->assertSame('Pending DDR', $past->fresh()->status);
+            $this->assertSame('Ready', $future->fresh()->status);
+            $this->assertSame('Scheduled', $unassigned->fresh()->status);
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+            $this->assertSame('Pending DDR', $past->fresh()->status);
+            $this->assertSame('Ready', $future->fresh()->status);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_overdue_demo_trip_with_now_unavailable_bus_recovers_without_changing_future_or_real_trips(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00', 'Asia/Manila'));
+
+        try {
+            $route = $this->route();
+            $demo = $this->trip($route, [
+                'trip_code' => 'TRIP-DEMO26-20261105-1',
+                'trip_date' => '2026-11-05',
+                'estimated_arrival_date' => '2026-11-05',
+                'assignment_status' => 'Assigned',
+            ]);
+            $futureDemo = $this->trip($route, [
+                'trip_code' => 'TRIP-DEMO26-20261109-1',
+                'trip_date' => '2026-11-09',
+                'estimated_arrival_date' => '2026-11-09',
+                'assignment_status' => 'Assigned',
+            ]);
+            $real = $this->trip($route, [
+                'trip_code' => 'TRIP-REAL-20261105-1',
+                'trip_date' => '2026-11-05',
+                'estimated_arrival_date' => '2026-11-05',
+                'assignment_status' => 'Assigned',
+            ]);
+
+            foreach ([$demo, $futureDemo, $real] as $index => $trip) {
+                [$driver, $attendance, $bus] = $this->assignmentResources(
+                    $trip->trip_date->toDateString(),
+                    'DEMO-MAINT-'.$index
+                );
+                TripAssignment::create([
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $attendance->id,
+                    'driver_id' => $driver->driver_id,
+                    'driver_name' => $attendance->driver_name,
+                    'bus_id' => $bus->id,
+                ]);
+                $bus->update(['status' => 'Under Maintenance']);
+            }
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+
+            $this->assertSame('Pending DDR', $demo->fresh()->status);
+            $this->assertSame('Scheduled', $futureDemo->fresh()->status);
+            $this->assertSame('Scheduled', $real->fresh()->status);
+            $this->assertSame('Assigned', $demo->fresh()->assignment_status);
+
+            $this->artisan('operation:advance-trip-statuses')->assertSuccessful();
+            $this->assertSame('Pending DDR', $demo->fresh()->status);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_overdue_unassigned_trips_are_persisted_as_missed_without_changing_terminal_trips(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00', 'Asia/Manila'));
@@ -1852,7 +2042,15 @@ class OperationTripScheduleHardeningTest extends TestCase
             $script
         );
         $this->assertStringContainsString(
-            'const busAuthorized = allowed.includes(String(option.dataset.value));',
+            'const busAuthorized = Boolean(selectedDriver)',
+            $script
+        );
+        $this->assertStringContainsString(
+            "option.dataset.purpose === 'Reserve'",
+            $script
+        );
+        $this->assertStringContainsString(
+            '|| allowed.includes(String(option.dataset.value))',
             $script
         );
         $this->assertStringContainsString(

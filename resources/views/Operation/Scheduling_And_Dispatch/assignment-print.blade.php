@@ -59,7 +59,7 @@
     <table>
         <thead>
             <tr>
-                <th style="width:11%">Trip / Slot</th><th style="width:14%">Time / Shift</th>
+                <th style="width:11%">Trip / Slot</th><th style="width:14%">Departure Time</th>
                 <th style="width:20%">Route</th><th style="width:20%">Driver</th>
                 <th style="width:20%">Bus / Plate</th><th style="width:15%">Trip Status</th>
             </tr>
@@ -72,7 +72,7 @@
                 @endphp
                 <tr>
                     <td><strong>{{ $trip->trip_code }}</strong>@if($trip->required_buses > 1)<div>Slot {{ $slot }} of {{ $trip->required_buses }}</div>@endif</td>
-                    <td>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}<div>{{ $trip->shift }}</div></td>
+                    <td>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}</td>
                     <td><strong>{{ $trip->shuttleRoute?->route_code ?? '—' }}</strong><div>{{ $trip->shuttleRoute?->route_name ?? '—' }}</div></td>
                     <td>{{ $assignment->driver_name }}</td>
                     <td>{{ $assignment->bus?->bus_no ?? '—' }}<div>{{ $assignment->bus?->plate_no ?? '—' }}</div>
@@ -93,7 +93,7 @@
                 @php $trip = $external->tripSchedule; @endphp
                 <tr>
                     <td><strong>{{ $trip->trip_code }}</strong><div>Slot {{ $external->slot_number }} of {{ $trip->required_buses }}</div></td>
-                    <td>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}<div>{{ $trip->shift }}</div></td>
+                    <td>{{ \Carbon\Carbon::parse($trip->departure_time)->format('g:i A') }}</td>
                     <td><strong>{{ $trip->shuttleRoute?->route_code ?? '—' }}</strong><div>{{ $trip->shuttleRoute?->route_name ?? '—' }}</div></td>
                     <td>{{ $external->driver_name }}<div>External driver</div></td>
                     <td>{{ $external->plate_number }}<div>Rented · {{ $external->company_name }}</div></td>

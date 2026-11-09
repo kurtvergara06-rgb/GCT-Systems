@@ -112,7 +112,6 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
       const fields = [
         ['Mechanic ID', button.dataset.mechanicId],
         ['Mechanic Name', button.dataset.mechanicName],
-        ['Shift', button.dataset.shift],
         ['Assigned Job', button.dataset.assignedJob],
         ['Date', button.dataset.attendanceDate],
         ['Time-in', button.dataset.timeIn],

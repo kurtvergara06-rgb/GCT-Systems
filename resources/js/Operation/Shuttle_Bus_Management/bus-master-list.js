@@ -579,15 +579,13 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
                 if (editBusNo) {
                     editBusNo.value = button.dataset.busNo || '';
-                    const locked = button.dataset.busNoLocked === '1';
-                    editBusNo.readOnly = locked;
-                    editBusNo.classList.toggle('bus-locked-input', locked);
-                    editBusNo.setAttribute('aria-readonly', locked ? 'true' : 'false');
-                    editBusNo.title = locked
-                        ? 'Bus No. cannot be changed after operational history exists.'
-                        : '';
+                    // Bus ID is never editable after the bus has been created.
+                    editBusNo.readOnly = true;
+                    editBusNo.classList.add('bus-locked-input');
+                    editBusNo.setAttribute('aria-readonly', 'true');
+                    editBusNo.title = 'Bus ID (Body Number) is permanent.';
                     const hint = document.getElementById('editBusNoLockHint');
-                    if (hint) hint.hidden = !locked;
+                    if (hint) hint.hidden = false;
                 }
 
 
@@ -654,9 +652,10 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                     editRouteGrouping.readOnly = true;
                     editRouteGrouping.setAttribute('aria-readonly', 'true');
                 }
-                // Reapply the independent history-based Bus No. restriction.
-                if (!maintenanceLocked && editBusNo) {
-                    editBusNo.readOnly = button.dataset.busNoLocked === '1';
+                // Maintenance lock resets must never unlock the permanent Bus ID.
+                if (editBusNo) {
+                    editBusNo.readOnly = true;
+                    editBusNo.setAttribute('aria-readonly', 'true');
                 }
                 const fleetPurposeLocked = button.dataset.fleetPurposeLocked === '1';
                 if (editFleetPurpose) {

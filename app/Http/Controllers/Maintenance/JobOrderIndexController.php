@@ -182,7 +182,6 @@ class JobOrderIndexController extends Controller
                 && ! JobOrder::query()->where('bus_no', $pmsBus->bus_no)
                     ->where('maintenance_type', 'PMS')->open()->exists()
                 && ! JobOrder::query()->where('pms_schedule_id', $pmsCreate->id)->open()->exists()
-                && ! $pmsBus->hasOngoingDispatch()
                 && ! $availableBuses->contains('id', $pmsBus->id)) {
                 // The server-side create action enforces the same PMS-only exception.
                 $availableBuses->push($pmsBus);

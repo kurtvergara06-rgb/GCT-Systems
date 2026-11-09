@@ -5,8 +5,10 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css',
+        'resources/css/Operation/Scheduling_And_Dispatch/assignment-calendar.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js',
+        'resources/js/Operation/Scheduling_And_Dispatch/assignment-calendar.js',
     ]"
 >
     @php
@@ -101,15 +103,70 @@
                     </div>
                 </div>
 
+                <div class="assignment-calendar-toolbar">
+                <div class="assignment-date-picker" data-assignment-calendar
+                     data-calendar-url="{{ route('driver-bus-assignment.calendar') }}"
+                     data-selected-date="{{ $selectedTripDate }}">
+                    <button type="button" class="assignment-date-trigger" data-assignment-calendar-trigger aria-expanded="false" aria-controls="assignmentDateCalendar">
+                        <span class="assignment-date-icon"><i class="fa-regular fa-calendar" aria-hidden="true"></i></span>
+                        <span class="assignment-date-copy"><small>Showing assignments for</small><strong>{{ \Carbon\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong></span>
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="assignment-date-calendar" id="assignmentDateCalendar" data-assignment-calendar-panel hidden>
+                        <div class="assignment-calendar-heading"><strong>Select Assignment Date</strong>
+                            <button type="button" data-assignment-calendar-close aria-label="Close calendar"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <p class="assignment-calendar-hint">Colored dots show assignment outcomes and operational trip statuses. Multiple dots indicate different states on the same date.</p>
+                        <div class="assignment-calendar-month">
+                            <button type="button" data-assignment-calendar-prev aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                            <strong data-assignment-calendar-month></strong>
+                            <button type="button" data-assignment-calendar-next aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="assignment-calendar-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                        <div class="assignment-calendar-days" data-assignment-calendar-days role="group" aria-label="Choose assignment date"></div>
+                        <div class="assignment-calendar-legend" aria-label="Assignment and trip status color legend">
+                            <strong>Trip Status Legend</strong>
+                            <div class="assignment-calendar-legend-grid">
+                                <span><i class="assignment-calendar-dot is-unassigned"></i> Scheduled / Unassigned</span>
+                                <span><i class="assignment-calendar-dot is-partial"></i> Partially Assigned</span>
+                                <span><i class="assignment-calendar-dot is-assigned"></i> Fully Assigned / Ready</span>
+                                <span><i class="assignment-calendar-dot is-in_progress"></i> In Progress</span>
+                                <span><i class="assignment-calendar-dot is-pending_ddr"></i> Pending DDR</span>
+                                <span><i class="assignment-calendar-dot is-completed"></i> Completed</span>
+                                <span><i class="assignment-calendar-dot is-missed"></i> Missed</span>
+                                <span><i class="assignment-calendar-dot is-cancelled"></i> Cancelled</span>
+                                <span><i class="assignment-calendar-dot is-delayed"></i> Delayed</span>
+                            </div>
+                        </div>
+                        <div class="assignment-calendar-footer">
+                            <span><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Multiple dots = different states</span>
+                            <button type="button" data-assignment-calendar-today>Today</button>
+                        </div>
+                        <p class="assignment-calendar-feedback" data-assignment-calendar-feedback role="status" aria-live="polite"></p>
+                    </div>
+                </div>
                 <div class="assignment-record-controls">
-                <x-ui.table-toolbar action="{{ route('driver-bus-assignment', [], false) }}" search-label="Search Assignments" search-placeholder="Search trip, route, driver, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'all')" :show-filter-count="false" filter-title="Filter Assignments" :sort-options="['departure_time' => 'Schedule Time', 'trip_code' => 'Trip ID', 'status' => 'Trip Status']" default-sort="departure_time" data-server-filter-navigation="true">
+                <x-ui.table-toolbar action="{{ route('driver-bus-assignment', [], false) }}" search-label="Search Assignments" search-placeholder="Search trip, route, driver, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'all')" :show-filter-count="false" filter-title="Filter Assignments" :sort-options="['departure_time' => 'Schedule Time', 'trip_code' => 'Trip ID', 'status' => 'Trip Status']" default-sort="departure_time" data-server-filter-navigation="true">
+                    <x-slot:hidden><input type="hidden" name="trip_date" value="{{ $selectedTripDate }}"></x-slot:hidden>
                     <x-slot:filters>
-                        <x-ui.table-toolbar-field label="Trip Date" name="trip_date" type="date" :value="$selectedTripDate" />
                         <x-ui.table-toolbar-field label="Status" name="status" default="all"><option value="all">All Statuses</option>@foreach(['Ready', 'Assigned', 'Unassigned', 'Dispatched', 'Completed', 'Cancelled', 'Missed'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
+                </div>
 
+                @if($trips->total() === 0 && $allTripsForDate > 0 && !request()->filled('search') && (!request()->filled('status') || request('status') === 'all'))
+                    <div class="assignment-history-notice" role="status">
+                        <span class="assignment-history-notice-icon" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                        <div class="assignment-history-notice-copy">
+                            <strong>{{ $allTripsForDate }} {{ \Illuminate\Support\Str::plural('trip', $allTripsForDate) }} recorded on {{ \Carbon\Carbon::parse($selectedTripDate)->format('M d, Y') }}</strong>
+                            <p>These trips are no longer shown in active Driver &amp; Bus Assignment. The calendar dots include historical trips; review their saved driver and bus details in Trip History.</p>
+                        </div>
+                        <a class="assignment-history-notice-link" href="{{ route('trip-records', ['date_from' => $selectedTripDate, 'date_to' => $selectedTripDate]) }}">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i> View Trip History
+                        </a>
+                    </div>
+                @endif
                 @php
                     $visibleAssignmentTrips = collect($trips->items());
                     $directionGroups = [
@@ -303,19 +360,7 @@
                                                         Assign
                                                     </button>
                                                 @endif
-                                                @if($canEditOperation && $canApproveOperation
-                                                    && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
-                                                    && ($trip->daily_driver_reports_count ?? 0) === 0
-                                                    && ($trip->incidents_count ?? 0) === 0)
-                                                    <button type="button"
-                                                        class="assignment-action cancel cancel-assignment-trip"
-                                                        title="Cancel entire trip (Head approval required)"
-                                                        aria-label="Cancel entire trip {{ $trip->trip_code }}"
-                                                        data-trip-code="{{ $trip->trip_code }}"
-                                                        data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
-                                                        <i class="fa-solid fa-ban" aria-hidden="true"></i>
-                                                    </button>
-                                                @endif
+
                                             </div>
                                         </td>
                                     </tr>
@@ -332,8 +377,14 @@
                                                     || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
                                                     || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
                                                 );
-                                            $slotDisplayStatus = $tripDisplayStatus;
-                                            $slotStatusTooltip = $tripDisplayStatus;
+                                            $needsMaintenanceReplacement = ! $isHistorical
+                                                && in_array($trip->status, ['Scheduled', 'Ready'], true)
+                                                && (! $bus || $bus->status !== 'Active');
+                                            $slotDisplayStatus = $needsMaintenanceReplacement
+                                                ? 'Replacement Required' : $tripDisplayStatus;
+                                            $slotStatusTooltip = $needsMaintenanceReplacement
+                                                ? 'Assigned bus is unavailable. Operations Head must approve a replacement before departure.'
+                                                : $tripDisplayStatus;
                                             // A sibling bus breakdown may downgrade the shared trip from Ready
                                             // to Scheduled; healthy assigned slots must still display Ready.
                                             if (! $slotBreakdown && $trip->status === 'Scheduled'
@@ -373,6 +424,12 @@
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
                                                 || ($assignment->incidents_count ?? 0) > 0;
                                             $isLocked = $tripLocked || $asgnHistory;
+                                            // Explicit action semantics: mutable Scheduled slots
+                                            // can be edited/removed; Ready or unavailable-bus
+                                            // slots must go through Head-approved replacement.
+                                            $requiresHeadReplacement = $trip->status === 'Ready' || $needsMaintenanceReplacement;
+                                            $canChangeSlot = $canEditOperation && ! $isLocked
+                                                && (! $requiresHeadReplacement || $canApproveOperation);
                                             $details = [
                                                 'tripCode' => $trip->trip_code,
                                                 'date' => $trip->trip_date?->format('M d, Y'),
@@ -438,8 +495,14 @@
                                                 <div class="assignment-bus-cell">
                                                     <span class="assignment-resource-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
                                                     <div class="assignment-bus-info">
-                                                        <strong>{{ $bus ? trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) : 'Plate not recorded' }}</strong>
+                                                        <strong>{{ $bus?->bus_no ?: 'Bus ID not recorded' }}</strong>
                                                         <span>{{ $bus?->bus_model ?: 'Model not recorded' }}</span>
+                                                        @if($needsMaintenanceReplacement)
+                                                            <span class="assignment-maintenance-warning" title="Current bus status: {{ $bus?->status ?? 'Unavailable' }}. Assignment history is preserved.">
+                                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                                                {{ $bus?->status === 'Under Maintenance' ? 'Under Maintenance' : 'Bus Unavailable' }}
+                                                            </span>
+                                                        @endif
                                                         @if($slotBreakdown)
                                                             <a href="{{ route('incidents.show', ['incident' => $slotBreakdown->incident_no], false) }}"
                                                                class="assignment-incident-indicator"
@@ -478,33 +541,33 @@
 
                                             <td>
                                                 <div class="assignment-actions">
-                                                    <button
-                                                        type="button"
-                                                        class="assignment-action view view-assignment"
-                                                        title="View"
-                                                        data-details='@json($details)'
-                                                    >
-                                                        <i class="fa-solid fa-eye"></i>
-                                                    </button>
+                                                    <x-ui.action-button
+                                                        type="view"
+                                                        class="assignment-action view-assignment"
+                                                        title="View Assignment"
+                                                        aria-label="View assignment for {{ $trip->trip_code }}"
+                                                        :data-details="$details ? json_encode($details, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) : '{}'"
+                                                    />
 
-                                                    @if($canEditOperation && !$isLocked && ($trip->status !== 'Ready' || $canApproveOperation))
-                                                        <button
-                                                            type="button"
-                                                            class="assignment-action edit edit-assignment"
-                                                            title="{{ $trip->status === 'Ready' ? 'Replace Driver / Bus (Head approval required)' : 'Edit Assignment' }}"
-                                                            data-ready-replacement="{{ $trip->status === 'Ready' ? 'true' : 'false' }}"
+                                                    @if($canChangeSlot)
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            :icon="$requiresHeadReplacement ? 'fa-arrow-right-arrow-left' : 'fa-pen-to-square'"
+                                                            class="assignment-action edit-assignment"
+                                                            title="{{ $requiresHeadReplacement ? 'Replace Driver / Bus — Operations Head approval and reason required' : 'Edit Assignment' }}"
+                                                            aria-label="{{ $requiresHeadReplacement ? 'Replace assigned driver or bus' : 'Edit assigned driver or bus' }}"
+                                                            data-ready-replacement="{{ $requiresHeadReplacement ? 'true' : 'false' }}"
                                                             data-assignment-id="{{ $assignment->id }}"
+                                                            data-slot-number="{{ $assignment->slot_number }}"
                                                             data-trip-id="{{ $trip->id }}"
                                                             data-trip-label="{{ $trip->trip_code }} — {{ $trip->trip_date?->format('M d, Y') }}"
                                                             data-availability-url="{{ route('driver-bus-assignment.availability', $trip, false) }}"
                                                             data-driver-id="{{ $assignment->driver_id }}"
                                                             data-bus-id="{{ $assignment->bus_id }}"
                                                             data-update-url="{{ route('driver-bus-assignment.update', $assignment->id, false) }}"
-                                                        >
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
+                                                        />
 
-                                                        @if($trip->status !== 'Ready')
+                                                        @if(! $requiresHeadReplacement)
                                                         <form
                                                             id="removeAssignmentForm-{{ $assignment->id }}"
                                                             method="POST"
@@ -519,50 +582,44 @@
                                                             <input type="hidden" name="driver_page" value="{{ request('driver_page') }}">
                                                             <input type="hidden" name="bus_page" value="{{ request('bus_page') }}">
 
-                                                            <button
-                                                                type="button"
+                                                            <x-ui.action-button
+                                                                type="delete"
+                                                                icon="fa-link-slash"
                                                                 class="assignment-action remove remove-assignment"
                                                                 title="Remove Assignment"
+                                                                aria-label="Remove assignment for {{ $trip->trip_code }}"
                                                                 data-form-id="removeAssignmentForm-{{ $assignment->id }}"
                                                                 data-trip-code="{{ $trip->trip_code }}"
-                                                            >
-                                                                <i class="fa-solid fa-link-slash"></i>
-                                                            </button>
+                                                            />
                                                         </form>
                                                         @endif
+                                                    @elseif($canEditOperation && $requiresHeadReplacement)
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            icon="fa-arrow-right-arrow-left"
+                                                            class="assignment-action assignment-action-disabled"
+                                                            :disabled="true"
+                                                            :title="$isLocked ? 'Replacement unavailable: trip departed or operational history exists' : 'Only Operations Head can authorize this replacement'"
+                                                            aria-label="Replacement requires Operations Head authorization"
+                                                        />
                                                     @elseif($canEditOperation)
-                                                        <button
-                                                            type="button"
-                                                            class="assignment-action edit assignment-action-disabled"
-                                                            disabled
-                                                            aria-disabled="true"
-                                                            title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
-                                                        >
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
-                                                        <button
-                                                            type="button"
+                                                        <x-ui.action-button
+                                                            type="edit"
+                                                            class="assignment-action assignment-action-disabled"
+                                                            :disabled="true"
+                                                            :title="$asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time'"
+                                                            aria-label="Edit assignment unavailable"
+                                                        />
+                                                        <x-ui.action-button
+                                                            type="delete"
+                                                            icon="fa-link-slash"
                                                             class="assignment-action remove assignment-action-disabled"
-                                                            disabled
-                                                            aria-disabled="true"
-                                                            title="{{ $asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time' }}"
-                                                        >
-                                                            <i class="fa-solid fa-link-slash"></i>
-                                                        </button>
+                                                            :disabled="true"
+                                                            :title="$asgnHistory ? 'Unavailable: operational history is linked to this assignment' : 'Unavailable for this trip status or departure time'"
+                                                            aria-label="Remove assignment unavailable"
+                                                        />
                                                     @endif
-                                                    @if($canEditOperation && $canApproveOperation
-                                                        && !$isHistorical && in_array($trip->status, ['Scheduled', 'Ready'], true)
-                                                        && ($trip->daily_driver_reports_count ?? 0) === 0
-                                                        && ($trip->incidents_count ?? 0) === 0)
-                                                        <button type="button"
-                                                            class="assignment-action cancel cancel-assignment-trip"
-                                                            title="Cancel entire trip (Head approval required)"
-                                                            aria-label="Cancel entire trip {{ $trip->trip_code }}"
-                                                            data-trip-code="{{ $trip->trip_code }}"
-                                                            data-cancel-url="{{ route('trip-schedule.cancel', $trip->id, false) }}">
-                                                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
-                                                        </button>
-                                                    @endif
+
                                                 </div>
                                             </td>
                                         </tr>
@@ -715,7 +772,7 @@
                     <div class="resource-filter-bar" data-resource-filter="buses">
                         <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search plate number or model..." aria-label="Search visible unallocated buses"></label>
                     </div>
-                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus ID · Plate</span><span>Model</span><span>Status</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus ID</span><span>Model</span><span>Status</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record" data-resource-row="buses" data-resource-text="{{ strtolower($bus->plate_no.' '.$bus->bus_model.' '.$bus->bus_no) }}" data-resource-category="{{ strtolower($bus->bus_model) }}">
                             <div class="bus-resource-icon">
@@ -723,7 +780,7 @@
                             </div>
 
                             <div class="resource-record-info">
-                                <strong>{{ trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) ?: 'Plate not recorded' }}</strong>
+                                <strong>{{ $bus->bus_no ?: 'Bus ID not recorded' }}</strong>
                                 <span class="resource-mobile-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
                             </div>
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
@@ -938,14 +995,26 @@
             <span id="assignmentPairSlot"></span>
         </div>
 
-        <section class="assignment-pair-picker" id="assignmentPairPicker" aria-label="Eligible driver and bus pairs">
+        <section class="assignment-pair-picker assignment-driver-first" id="assignmentPairPicker" aria-label="Choose a driver and one eligible bus">
             <div class="assignment-pair-header">
-                <div><strong>Eligible Driver & Bus Pairs</strong><small>Select an authorized pair compatible with this trip's client.</small></div>
-                <span id="assignmentPairCount">Select a trip</span>
+                <div><strong>Choose Driver & Bus</strong><small>Choose a driver first, then one eligible bus. Multiple authorized buses may belong to one driver.</small></div>
+                <span id="assignmentPairCount" aria-live="polite">Select a trip</span>
             </div>
-            <input type="search" id="assignmentPairSearch" placeholder="Search driver, ID, or bus..." aria-label="Search eligible driver and bus pairs">
-            <div class="assignment-pair-list" id="assignmentPairList" aria-live="polite">
-                <p class="assignment-pair-empty">Select a trip to load eligible pairs.</p>
+            <div class="assignment-fleet-tabs" role="group" aria-label="Bus fleet type">
+                <button type="button" class="assignment-fleet-tab is-active" data-assignment-fleet="Regular" aria-pressed="true">Regular Buses</button>
+                <button type="button" class="assignment-fleet-tab" data-assignment-fleet="Reserve" aria-pressed="false">Reserve Buses</button>
+            </div>
+            <p class="assignment-fleet-note" id="assignmentFleetNote">Regular buses require driver authorization and a matching client.</p>
+            <div class="assignment-driver-first-step">
+                <div class="assignment-step-heading"><strong>1. Select Driver</strong><span id="assignmentDriverCount"></span></div>
+                <input type="search" id="assignmentPairSearch" placeholder="Search driver name or ID..." aria-label="Search eligible drivers">
+                <div class="assignment-driver-first-list" id="assignmentDriverFirstList" role="group" aria-label="Eligible drivers"></div>
+            </div>
+            <div class="assignment-driver-first-step">
+                <div class="assignment-step-heading"><strong>2. Select Bus</strong><span id="assignmentSelectedDriverSummary">Choose a driver above</span></div>
+                <div class="assignment-driver-first-buses" id="assignmentPairList" role="group" aria-label="Eligible buses for selected driver" aria-live="polite">
+                    <p class="assignment-pair-empty">Select a driver to see available buses.</p>
+                </div>
             </div>
         </section>
 
@@ -998,33 +1067,6 @@
         </div>
     </x-ui.form-modal>
 
-    @if($canEditOperation && $canApproveOperation)
-    <x-ui.form-modal
-        id="cancelAssignmentTripModal"
-        title="Cancel Entire Trip?"
-        description="The scheduled service will be cancelled. Existing driver and bus assignments remain in audit history."
-        icon="fa-ban"
-        size="small"
-        form-id="cancelAssignmentTripForm"
-        action="#"
-        method="POST"
-        submit-text="Confirm Cancellation"
-        submit-icon="fa-ban"
-        cancel-text="Keep Trip"
-        cancel-id="keepAssignmentTrip"
-        close-id="closeCancelAssignmentTrip"
-    >
-        <input type="hidden" name="_method" value="PATCH">
-        <input type="hidden" name="return_to_assignment" value="1">
-        <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
-        <p class="assignment-cancel-trip-summary">Trip <strong id="cancelAssignmentTripCode"></strong> will be marked as Cancelled. This affects every assigned bus slot.</p>
-        <div class="ui-form-group ui-form-full">
-            <label for="assignmentCancellationReason">Cancellation reason <span class="ui-required">*</span></label>
-            <textarea id="assignmentCancellationReason" name="cancellation_reason" rows="4" minlength="10" maxlength="1000" required placeholder="Explain why the entire scheduled trip must be cancelled..."></textarea>
-            <small>At least 10 characters. Your reason and approval will be recorded in the trip audit history.</small>
-        </div>
-    </x-ui.form-modal>
-    @endif
 
     @if($canEditOperation)
     <x-ui.action-buttom-modal
