@@ -26,7 +26,7 @@ body .jo-no-pill,
 body .jo-badge-number,
 body .request-no-pill,
 body .reference-no-pill {
-  color: #111827 !important;
+  color: var(--gct-id-foreground, #111827) !important;
 }
 
 body .system-id-badge i,
@@ -51,7 +51,7 @@ body .jo-no-pill i,
 body .jo-badge-number i,
 body .request-no-pill i,
 body .reference-no-pill i {
-  color: #111827 !important;
+  color: var(--gct-id-foreground, #111827) !important;
 }
 
 body .system-id-badge:hover,
@@ -76,5 +76,5 @@ body .jo-no-pill:hover,
 body .jo-badge-number:hover,
 body .request-no-pill:hover,
 body .reference-no-pill:hover {
-  color: #111827 !important;
+  color: var(--gct-id-foreground, #111827) !important;
 }
