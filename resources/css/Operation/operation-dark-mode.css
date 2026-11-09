@@ -1,0 +1,149 @@
+/*
+ * Operation dark theme — phase 1.
+ * Scoped to server-marked Operation pages. Keep all other modules and Light
+ * Mode untouched; never recolor workflow/status indicators globally.
+ *
+ * These semantic tokens are defined in Main-styles/theme.css.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+    color-scheme: dark;
+}
+
+/* Application shell and shared panels */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.app, .main) {
+    background-color: var(--gct-theme-canvas);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .stat-card, .stat-card-link, .card, .panel-card,
+    .assignment-card, .assignment-summary-card, .trip-summary-card,
+    .service-controls-card, .operation-command-header, .account-card
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar, .section-header, .topbar-dropdown,
+    .topbar-dropdown-header, .topbar-list-item,
+    .sidebar-profile-menu
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar h1, .topbar h2, .section-header h2, .section-header h3,
+    .operation-command-heading, .topbar-dropdown-header h3,
+    .topbar-list-title, .topbar-empty-state strong
+) {
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar p, .section-header p, .topbar-dropdown-header p,
+    .topbar-list-meta, .topbar-empty-state p, .operation-business-date,
+    .assignment-summary-card p, .assignment-summary-card small,
+    .trip-summary-card p, .trip-summary-card small
+) {
+    color: var(--gct-theme-muted);
+}
+
+/* Tables: avoid changing status badges, links or semantic state colors */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card,
+    .service-controls-card
+) table {
+    background-color: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) :is(th, thead td) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-muted);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) tbody td {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) tbody tr:hover td {
+    background-color: var(--gct-theme-hover);
+}
+
+/* Fields remain legible with the browser's native dark input affordances */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    .main select, .main textarea,
+    .modal-card input:not([type="checkbox"]):not([type="radio"]),
+    .modal-card select, .modal-card textarea
+) {
+    background-color: var(--gct-theme-input);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    input, select, textarea
+)::placeholder {
+    color: var(--gct-theme-placeholder);
+    opacity: 1;
+}
+
+/* Shared modal surfaces: never alter positioning, visibility, or backdrop logic */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .modal-card, .modal-box, .delete-modal-box, .feedback-modal,
+    .batch-feedback-modal, .ui-form-modal, .trip-modal,
+    .personnel-modal, .route-modal, .route-details-modal,
+    .schedule-modal, .records-modal
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .modal-header, .modal-card h2, .modal-box h2, .form-group label
+) {
+    color: var(--gct-theme-fg);
+}
+
+/* High-traffic filters and dropdowns */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar-list-item:hover, .topbar-list-item.is-unread,
+    .topbar-dropdown-header, .topbar-empty-state,
+    .sidebar-profile-menu a:hover
+) {
+    background-color: var(--gct-theme-hover);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .secondary-btn, .icon-btn
+) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+/* Accessible keyboard focus, without changing component dimensions */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .main input, .main select, .main textarea, .main button, .main a
+):focus-visible {
+    outline: 2px solid var(--gct-theme-focus);
+    outline-offset: 2px;
+}
+
+/* Leave workflow badges, chart series, danger buttons, sidebar's
+ * branded gradient and disabled states to their existing components. */
