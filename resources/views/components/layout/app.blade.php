@@ -5,6 +5,10 @@
 ])
 
 @php
+  // Theme rollout is Operation-only for now. Other modules retain their CSS.
+  $operationThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Operation/')
+  );
   $viteAssets = array_values(array_unique(array_merge([
     'resources/css/Main-styles/theme.css',
     'resources/css/Main-styles/main.css',
@@ -31,7 +35,9 @@
     'resources/css/Main-styles/gct-scrollbar.css',
   ], request()->is('admin/*', 'analytics/*', 'batch-file-processing*')
     ? ['resources/css/Admin/administration-standards.css']
-    : [])));
+    : [],
+    $operationThemePage ? ['resources/css/Operation/operation-dark-mode.css'] : []
+  )));
 @endphp
 
 <!DOCTYPE html>
@@ -73,11 +79,32 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
+  @if($operationThemePage && auth()->check())
+    {{-- Resolve the saved browser theme before styles paint to avoid a light flash. --}}
+    <script>
+      (() => {
+        try {
+          const key = @json('gct:ui-preferences:'.auth()->id());
+          const saved = JSON.parse(localStorage.getItem(key) || '{}');
+          const choice = ['light', 'dark', 'system'].includes(saved.theme) ? saved.theme : 'light';
+          const theme = choice === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : choice;
+          document.documentElement.dataset.gctTheme = theme;
+          document.documentElement.dataset.gctThemeChoice = choice;
+          document.documentElement.style.colorScheme = theme;
+        } catch (_) {
+          document.documentElement.dataset.gctTheme = 'light';
+        }
+      })();
+    </script>
+  @endif
+
   @vite($viteAssets)
   @stack('styles')
 </head>
 
-<body>
+<body @if($operationThemePage) data-gct-operation-page="1" @endif>
   {{ $slot }}
 
   <x-ui.action-buttom-modal
