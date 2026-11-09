@@ -83,13 +83,26 @@ class MaintenanceWorkflowHardeningTest extends TestCase
         $bus = Bus::where('bus_no', 'SYNC-BUS-01')->firstOrFail();
         $this->assertSame(4, PmsSchedule::where('bus_no', 'SYNC-BUS-01')->count());
 
+        // The Bus ID is an immutable body number, not a renameable label.
+        // A rejected rename must leave the original PMS schedule links intact.
         $this->actingAs($operationHead)->put(route('bus-master-list.update', $bus), [
             'bus_no' => 'SYNC-BUS-RENAMED',
             'status' => 'Active',
-        ])->assertRedirect();
+        ])->assertSessionHasErrors('bus_no');
 
-        $this->assertSame(0, PmsSchedule::where('bus_no', 'SYNC-BUS-01')->count());
-        $this->assertSame(4, PmsSchedule::where('bus_no', 'SYNC-BUS-RENAMED')->count());
+        $this->assertSame('SYNC-BUS-01', $bus->fresh()->bus_no);
+        $this->assertSame(4, PmsSchedule::where('bus_no', 'SYNC-BUS-01')->count());
+        $this->assertSame(0, PmsSchedule::where('bus_no', 'SYNC-BUS-RENAMED')->count());
+
+        // Editing other bus details remains supported and cannot duplicate PMS defaults.
+        $this->actingAs($operationHead)->put(route('bus-master-list.update', $bus), [
+            'bus_no' => 'SYNC-BUS-01',
+            'plate_no' => 'QA-PLATE-01',
+            'status' => 'Active',
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame('QA-PLATE-01', $bus->fresh()->plate_no);
+        $this->assertSame(4, PmsSchedule::where('bus_no', 'SYNC-BUS-01')->count());
     }
 
     public function test_manual_job_order_creation_rejects_a_bus_with_an_active_job_order(): void
