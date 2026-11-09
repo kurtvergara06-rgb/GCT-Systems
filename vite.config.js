@@ -165,6 +165,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/dashboard-operation.css',
+                'resources/css/Operation/operation-dark-mode.css',
                 'resources/css/Operation/operation-action-buttons.css',
                 'resources/js/Operation/dashboard-operation.js',
 
