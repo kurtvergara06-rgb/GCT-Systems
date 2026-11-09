@@ -40,7 +40,7 @@ class OperationDarkModeFoundationTest extends TestCase
         $preferences = file_get_contents(resource_path('js/Main-js/account-preferences.js'));
 
         $this->assertStringContainsString("'gct:ui-preferences:'.auth()->id()", $layout);
-        $this->assertStringContainsString("'prefers-color-scheme: dark'", $layout);
+        $this->assertStringContainsString('(prefers-color-scheme: dark)', $layout);
         $this->assertLessThan(
             strpos($layout, '@vite($viteAssets)'),
             strpos($layout, 'document.documentElement.dataset.gctTheme = theme')
