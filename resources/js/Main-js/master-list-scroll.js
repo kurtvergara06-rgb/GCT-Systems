@@ -27,11 +27,37 @@ function sizeMasterTable(wrapper) {
     wrapper.classList.add('is-master-scrollable');
 }
 
+const masterTableObservers = new Map();
+
+function observeMasterRows() {
+    document.querySelectorAll(MASTER_SELECTOR).forEach(wrapper => {
+        if (masterTableObservers.has(wrapper)) return;
+        const table = wrapper.querySelector(':scope > table');
+        if (!table?.tBodies.length) return;
+
+        // Record insertion/removal and live filtering can change row counts
+        // without firing the page-ready event.
+        const observer = new MutationObserver(refreshMasterScroll);
+        Array.from(table.tBodies).forEach(body => observer.observe(body, {
+            childList: true,
+            subtree: false,
+        }));
+        masterTableObservers.set(wrapper, observer);
+    });
+    // Partial navigation replaces the old page nodes; drop their observers.
+    for (const [wrapper, observer] of masterTableObservers) {
+        if (wrapper.isConnected) continue;
+        observer.disconnect();
+        masterTableObservers.delete(wrapper);
+    }
+}
+
 let masterScrollFrame = 0;
 function refreshMasterScroll() {
     if (masterScrollFrame) cancelAnimationFrame(masterScrollFrame);
     masterScrollFrame = requestAnimationFrame(() => {
         masterScrollFrame = 0;
+        observeMasterRows();
         document.querySelectorAll(MASTER_SELECTOR).forEach(sizeMasterTable);
     });
 }

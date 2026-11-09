@@ -168,3 +168,59 @@ it('supports a bounded larger set of validated conflict alternatives', function 
     expect($controller)->toContain('->take(50)');
     expect($script)->toContain('alternativePairs.map(renderPairCard).join');
 });
+
+
+it('keeps both auto schedule tables synchronized through shared column classes', function (): void {
+    $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/auto-dispatch.blade.php'));
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+    $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/auto-scheduling.js'));
+
+    foreach (['trip', 'time', 'route', 'required', 'driver', 'bus', 'result', 'action'] as $column) {
+        expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
+        expect($styles)->toContain('.auto-schedule-table .auto-col-'.$column);
+    }
+
+    expect(substr_count($view, '<th scope="col">Trip ID</th>'))->toBe(2)
+        ->and($view)->toContain('id="autoScheduleIncomingBody"')
+        ->toContain('id="autoScheduleOutgoingBody"')
+        ->toContain('gct-responsive-records gct-sticky-actions')
+        ->and($styles)->toContain('.gct-conflict-table [data-gct-report-index]:focus-visible')
+        ->toContain('@media (max-width: 700px)')
+        ->and($script)->toContain("document.getElementById('autoScheduleIncomingBody')")
+        ->toContain("document.getElementById('autoScheduleOutgoingBody')")
+        ->toContain('data-gct-apply-inline')
+        ->toContain('data-apply-selected-reserve');
+});
+
+it('uses only semantic Auto Scheduling column widths in screen styles', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/auto-dispatch.css'));
+    $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/auto-dispatch.blade.php'));
+
+    foreach (['trip', 'time', 'route', 'required', 'driver', 'bus', 'result', 'action'] as $column) {
+        expect($styles)->toContain('.auto-schedule-table .auto-col-'.$column.' { width:');
+        expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
+    }
+
+    expect($styles)->not->toContain('.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(')
+        ->and($styles)->toContain('min-width: 1250px;')
+        ->and($styles)->toContain('overscroll-behavior: contain;');
+});
+
+it('retains only one Bus Availability table scroll contract', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Shuttle_Bus_Management/bus-availability.css'));
+    $view = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-availability.blade.php'));
+
+    expect($styles)->toContain('overscroll-behavior:contain')
+        ->not->toContain('.availability-table-wrap{max-height:430px;overflow-y:auto;overflow-x:auto;scrollbar-width:thin}')
+        ->and($view)->toContain('gct-responsive-records gct-sticky-actions')
+        ->toContain('<x-ui.table-toolbar')
+        ->toContain('open-availability-bus');
+});
+
+it('keeps DDR detail horizontal scrolling without duplicate legacy declarations', function (): void {
+    $styles = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+
+    expect($styles)->not->toContain('.ddr-record-table-wrap { overflow-x:auto; }')
+        ->and($styles)->toContain('.ddr-record-table-wrap { max-width:100%; overflow-x:auto;')
+        ->toContain('.ddr-page .ddr-record-table-wrap {');
+});

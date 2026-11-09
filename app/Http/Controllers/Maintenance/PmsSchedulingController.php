@@ -505,8 +505,8 @@ class PmsSchedulingController extends Controller
         abort_unless($monitoring->status($currentKm !== null ? (float) $currentKm : null) === 'PMS Due', 409,
             'The bus is not yet due for preventive maintenance.');
 
-        abort_if($bus->hasOngoingDispatch(), 409,
-            'This bus is currently dispatched. Prepare PMS after the trip is completed.');
+        // An approved PMS is a preparation only; an active trip must prevent
+        // physical service start, not creation of a planned service request.
         abort_unless(in_array($bus->status, ['Active', 'Under Maintenance'], true), 409,
             'This bus is not eligible for a PMS Job Order in its current status.');
 

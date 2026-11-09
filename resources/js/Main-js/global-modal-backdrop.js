@@ -16,6 +16,7 @@ const OVERLAY_SELECTORS = [
   // the same viewport portal, body-scroll and no-backdrop-dismiss contract.
   '.ddr-record-overlay',
   '.inc-record-modal-backdrop',
+  '.inc-workflow-overlay',
   '.admin-modal-overlay',
   '.records-modal-overlay',
   '.batch-delete-modal-overlay',

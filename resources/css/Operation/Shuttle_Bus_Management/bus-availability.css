@@ -18,7 +18,7 @@
 .bus-availability-page .availability-table td{padding:12px}
 .bus-availability-page .availability-table .availability-status{border-radius:999px;padding:5px 11px;font-size:11px}
 .bus-availability-page .availability-table .availability-actions-cell .action-btn{width:34px;height:34px;min-width:34px;min-height:34px;border-radius:8px}
-.bus-availability-page .availability-table-wrap{max-height:430px;overflow-y:auto;overflow-x:auto;scrollbar-width:thin}
+
 .bus-availability-page .availability-table thead th{position:sticky;top:0;z-index:2}
 .bus-availability-page .availability-detail-content{z-index:10}
 .bus-availability-page .availability-footer{margin-top:14px;padding-top:14px;border-top:1px solid #e7edf5}
@@ -234,4 +234,22 @@
 @media (max-width: 650px) {
   .bus-availability-page .availability-footer { justify-content: center; }
   .bus-availability-page .availability-footer nav { margin-left: 0; }
+}
+
+
+/* Phase 5: Bus Availability reuses the responsive records and sticky actions contract. */
+.bus-availability-page .availability-table-wrap.gct-responsive-records {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.bus-availability-page .availability-table-wrap.gct-responsive-records:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+.bus-availability-page .availability-table .availability-actions-cell .gct-record-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
 }

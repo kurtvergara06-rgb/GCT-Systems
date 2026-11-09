@@ -81,6 +81,9 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::post('/operation/clients', [ClientMasterListController::class, 'store'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.store');
+    Route::put('/operation/clients/{operationClient}', [ClientMasterListController::class, 'update'])
+        ->middleware('system.permission:operation,edit')
+        ->name('operation.clients.update');
     Route::patch('/operation/clients/{operationClient}/status', [ClientMasterListController::class, 'updateStatus'])
         ->middleware('system.permission:operation,edit')
         ->name('operation.clients.status');
@@ -134,6 +137,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('driver-bus-assignment');
+            Route::get('/calendar', 'calendar')->middleware('throttle:60,1')->name('driver-bus-assignment.calendar');
             Route::get('/print', 'printSheet')->name('driver-bus-assignment.print');
             Route::get('/availability/{tripSchedule}', 'availability')
                 ->name('driver-bus-assignment.availability');
@@ -153,6 +157,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('auto-scheduling');
+            Route::get('/calendar', 'calendar')->name('auto-scheduling.calendar');
             Route::get('/ai/training/status', 'trainingStatus')->name('auto-scheduling.ai.training-status');
             Route::get('/drafts', 'listDrafts')->name('auto-scheduling.drafts.index');
             Route::get('/draft', 'loadDraft')->name('auto-scheduling.draft.load');

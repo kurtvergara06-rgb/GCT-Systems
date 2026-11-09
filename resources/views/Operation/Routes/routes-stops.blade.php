@@ -5,6 +5,7 @@
         'resources/css/Main-styles/sidebar.css',
         'resources/css/Main-styles/form-components.css',
         'resources/css/Operation/Routes/routes-stops.css',
+        'resources/css/Operation/Routes/route-pin-enhancements.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/Routes/routes-stops.js'
     ]"
@@ -144,15 +145,15 @@
                         <thead>
 
                             <tr>
-                                <th>Route ID</th>
-                                <th>Route Name</th>
-                                <th>Origin</th>
-                                <th>Destination</th>
-                                <th>Stops</th>
-                                <th>Distance</th>
-                                <th>Est. Time</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th scope="col">Route ID</th>
+                                <th scope="col">Route Name</th>
+                                <th scope="col">Origin</th>
+                                <th scope="col">Destination</th>
+                                <th scope="col">Stops</th>
+                                <th scope="col">Distance</th>
+                                <th scope="col">Est. Time</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
                             </tr>
 
                         </thead>
@@ -314,9 +315,9 @@
                                         <div class="route-actions">
 
                                             {{-- VIEW --}}
-                                            <button
-                                                type="button"
-                                                class="route-action view open-route-details"
+                                            <x-ui.action-button
+                                                type="view"
+                                                class="route-action open-route-details"
                                                 title="View Route"
 
                                                 data-id="{{ $route->id }}"
@@ -332,18 +333,16 @@
                                                 data-destination-latitude="{{ $route->destination_latitude }}"
                                                 data-destination-longitude="{{ $route->destination_longitude }}"
                                                 data-destination-source="{{ $route->destination_source }}"
-                                                data-route-geometry='@json($route->route_geometry)'
+                                                :data-route-geometry="json_encode($route->route_geometry, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)"
                                                 data-distance="{{ $route->distance_km }}"
                                                 data-time="{{ $route->estimated_time_minutes }}"
                                                 data-status="{{ $route->status }}"
                                                 data-stops="{{ $stopsJson }}"
-                                            >
-                                                <i class="fa-solid fa-eye"></i>
-                                            </button>
+                                            />
 
 
                                             @if($canManageRoutes)
-                                                <button type="button" class="route-action edit edit-route-btn"
+                                                <x-ui.action-button type="edit" class="route-action edit-route-btn"
                                                     title="Edit Route"
                                                     data-id="{{ $route->id }}"
                                                     data-route-code="{{ $route->route_code }}"
@@ -359,20 +358,17 @@
                                                     data-destination-latitude="{{ $route->destination_latitude }}"
                                                     data-destination-longitude="{{ $route->destination_longitude }}"
                                                     data-destination-source="{{ $route->destination_source }}"
-                                                    data-route-geometry='@json($route->route_geometry)'
+                                                    :data-route-geometry="json_encode($route->route_geometry, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)"
                                                     data-distance="{{ $route->distance_km }}"
                                                     data-time="{{ $route->estimated_time_minutes }}"
                                                     data-status="{{ $route->status }}"
                                                     data-has-schedules="{{ $route->trip_schedules_count > 0 ? '1' : '0' }}"
                                                     data-update-url="{{ route('operation.routes.update', $route->id, false) }}"
-                                                    data-stops="{{ $stopsJson }}">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </button>
+                                                    data-stops="{{ $stopsJson }}"
+                                                />
                                                 @else
-                                                <button type="button" class="route-action edit gct-action-unavailable" disabled aria-disabled="true"
-                                                    title="Historical route: only Operations Head can allocate clients" aria-label="Editing restricted to Operations Head">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </button>
+                                                <x-ui.action-button type="edit" class="route-action gct-action-unavailable" :disabled="true"
+                                                    title="Historical route: only Operations Head can allocate clients" aria-label="Editing restricted to Operations Head" />
                                                 @endif
                                             @if($canApproveRouteChanges)
                                             <form action="{{ route('operation.routes.status', $route->id, false) }}"
@@ -381,11 +377,14 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="{{ $route->status === 'Active' ? 'Inactive' : 'Active' }}">
-                                                <button type="submit" class="route-action {{ $route->status === 'Active' ? 'delete' : 'edit' }}"
-                                                    title="{{ $route->status === 'Active' ? 'Deactivate Route' : 'Activate Route' }}"
-                                                    aria-label="{{ $route->status === 'Active' ? 'Deactivate Route' : 'Activate Route' }}">
-                                                    <i class="fa-solid fa-power-off" aria-hidden="true"></i>
-                                                </button>
+                                                <x-ui.action-button
+                                                    :type="$route->status === 'Active' ? 'delete' : 'edit'"
+                                                    icon="fa-power-off"
+                                                    button-type="submit"
+                                                    class="route-action"
+                                                    :title="$route->status === 'Active' ? 'Deactivate Route' : 'Activate Route'"
+                                                    :aria-label="$route->status === 'Active' ? 'Deactivate Route' : 'Activate Route'"
+                                                />
                                             </form>
                                             @endif
 

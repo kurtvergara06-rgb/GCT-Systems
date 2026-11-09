@@ -333,13 +333,6 @@
   overflow-x: auto;
 }
 
-.table-wrap:has(tbody > tr:nth-child(8)) {
-  max-height: 520px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
 .table-wrap::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -3032,4 +3025,24 @@
 .bus-master-list-page .table-wrap {
     min-width: 0;
     max-width: 100%;
+}
+
+/* Bus Master List: ten visible records, using the dynamically measured
+   viewport supplied by master-list-scroll.js. Keep native horizontal scrolling
+   and the shared sticky Actions column. */
+main .bus-master-list-page .table-wrap.gct-responsive-records.gct-master-scroll-10.is-master-scrollable {
+  box-sizing: border-box;
+  max-height: var(--gct-master-scroll-height) !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+main .bus-master-list-page .table-wrap.gct-master-scroll-10.is-master-scrollable > .bus-table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+main .bus-master-list-page .table-wrap.gct-master-scroll-10.is-master-scrollable.gct-sticky-actions > .bus-table > thead > tr > th:last-child {
+  z-index: 10;
 }

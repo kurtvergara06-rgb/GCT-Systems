@@ -54,15 +54,15 @@
 
                 </div>
 
-                <div class="table-wrap availability-table-wrap">
+                <div class="table-wrap availability-table-wrap gct-responsive-records gct-sticky-actions" role="region" tabindex="0" aria-label="Bus availability records">
                     <table class="bus-table availability-table">
                         <thead>
                             <tr>
-                                <th>Bus ID (Plate Number)</th>
-                                <th>Model</th>
-                                <th>Current Status</th>
-                                <th>Next / Active Assignment</th>
-                                <th class="availability-actions-header">Actions</th>
+                                <th scope="col">Bus ID (Plate Number)</th>
+                                <th scope="col">Model</th>
+                                <th scope="col">Current Status</th>
+                                <th scope="col">Next / Active Assignment</th>
+                                <th scope="col" class="availability-actions-header">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

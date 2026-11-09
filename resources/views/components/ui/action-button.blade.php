@@ -31,8 +31,6 @@
     $buttonClass .= ' ' . $class;
   }
 
-  $titleAttr = $title ? ' title="' . e($title) . '"' : '';
-  $disabledAttr = $disabled ? ' disabled' : '';
   $currentStatus = (string) $attributes->get('data-current-status', '');
   $shouldRender = ! ($type === 'status' && $currentStatus !== '' && $currentStatus !== 'Ordered');
 @endphp
@@ -44,7 +42,7 @@
       class="{{ $buttonClass }}"
       data-ui-component="action-button"
       data-action="{{ $type }}"
-      {{ $titleAttr }}
+      @if($title !== '') title="{{ $title }}" @endif
       {{ $attributes }}
     >
       <i class="fa-solid {{ $icon }}"></i>
@@ -55,8 +53,8 @@
       class="{{ $buttonClass }}"
       data-ui-component="action-button"
       data-action="{{ $type }}"
-      {{ $titleAttr }}
-      {{ $disabledAttr }}
+      @if($title !== '') title="{{ $title }}" @endif
+      @disabled($disabled)
       @if($disabled) aria-disabled="true" @endif
       {{ $attributes }}
     >

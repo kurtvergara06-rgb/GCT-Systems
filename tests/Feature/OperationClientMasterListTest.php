@@ -64,6 +64,130 @@ class OperationClientMasterListTest extends TestCase
             ->assertSee('Configure client');
     }
 
+    public function test_client_master_list_shows_view_and_edit_but_preserves_existing_actions(): void
+    {
+        $client = OperationClient::create([
+            'name' => 'Client Profile Company',
+            'status' => 'Active',
+            'contact_person' => 'Original Contact',
+        ]);
+
+        $this->actingAs($this->operationUser(true))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('data-client-mode="view"', false)
+            ->assertSee('data-client-mode="edit"', false)
+            ->assertSee('data-client-update-url="'.route('operation.clients.update', $client).'"', false)
+            ->assertSee('Trip Times')
+            ->assertSee('Deactivate')
+            ->assertSee('clientMasterDetailModal');
+
+        $this->actingAs($this->operationUser(false))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('data-client-mode="view"', false)
+            ->assertDontSee('data-client-mode="edit"', false);
+    }
+
+    public function test_client_actions_use_icon_only_buttons_with_accessible_labels(): void
+    {
+        $client = OperationClient::create(['name' => 'Icon Button Client', 'status' => 'Active']);
+
+        $this->actingAs($this->operationUser(true))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('aria-label="View Icon Button Client"', false)
+            ->assertSee('aria-label="Edit Icon Button Client"', false)
+            ->assertSee('aria-label="View trip times for Icon Button Client"', false)
+            ->assertSee('aria-label="Deactivate Icon Button Client"', false)
+            ->assertSee('fa-eye', false)
+            ->assertSee('fa-pen-to-square', false)
+            ->assertSee('fa-clock', false)
+            ->assertSee('fa-power-off', false)
+            ->assertDontSee('<span>Trip Times</span>', false)
+            ->assertDontSee('<span>Edit</span>', false);
+
+        $styles = file_get_contents(resource_path('css/Operation/Clients/client-master-list.css'));
+        $this->assertStringContainsString('min-width: 184px;', $styles);
+        $this->assertStringContainsString('width: 34px;', $styles);
+    }
+
+    public function test_client_modals_have_scoped_responsive_layout_and_separate_read_only_view(): void
+    {
+        $client = OperationClient::create(['name' => 'Client Modal Test', 'status' => 'Active']);
+
+        $this->actingAs($this->operationUser(true))
+            ->get(route('operation.clients.index'))
+            ->assertOk()
+            ->assertSee('id="clientMasterCreateModal"', false)
+            ->assertSee('id="clientMasterDetailModal"', false)
+            ->assertSee('class="client-profile-view"', false)
+            ->assertSee('class="client-profile-edit-fields"', false)
+            ->assertSee('id="clientViewCompany"', false)
+            ->assertSee('id="clientViewEmail"', false)
+            ->assertSee('data-client-mode="view"', false)
+            ->assertSee('data-client-mode="edit"', false);
+
+        $styles = file_get_contents(resource_path('css/Operation/Clients/client-master-list.css'));
+        $script = file_get_contents(resource_path('js/Operation/Clients/client-master-list.js'));
+        $this->assertStringContainsString('#clientMasterCreateModal.ui-form-overlay > .ui-form-modal', $styles);
+        $this->assertStringContainsString('#clientMasterDetailModal[data-mode="view"].ui-form-overlay > .ui-form-modal', $styles);
+        $this->assertStringContainsString('max-width: 760px;', $styles);
+        $this->assertStringContainsString('max-width: 690px;', $styles);
+        $this->assertStringContainsString('.client-profile-view[hidden]', $styles);
+        $this->assertStringContainsString('viewProfile.hidden = editing;', $script);
+        $this->assertStringContainsString('editFields.hidden = !editing;', $script);
+    }
+
+    public function test_client_details_can_be_corrected_without_changing_client_id_or_allocations(): void
+    {
+        $client = OperationClient::create(['name' => 'Original Client', 'status' => 'Active']);
+        $payload = [
+            'name' => 'Corrected Client Company',
+            'company_address' => 'Updated Address',
+            'contact_person' => 'Updated Officer',
+            'contact_position' => 'HR Manager',
+            'contact_number' => '09123456789',
+            'contact_email' => 'contact@example.com',
+        ];
+
+        $this->actingAs($this->operationUser(true))
+            ->put(route('operation.clients.update', $client), $payload + ['id' => 9000, 'status' => 'Inactive'])
+            ->assertRedirect(route('operation.clients.index'))
+            ->assertSessionHasNoErrors();
+
+        $client->refresh();
+        $this->assertSame('Corrected Client Company', $client->name);
+        $this->assertSame('Updated Address', $client->company_address);
+        $this->assertSame('Updated Officer', $client->contact_person);
+        $this->assertSame('HR Manager', $client->contact_position);
+        $this->assertSame('09123456789', $client->contact_number);
+        $this->assertSame('contact@example.com', $client->contact_email);
+        $this->assertSame('Active', $client->status);
+    }
+
+    public function test_client_update_rejects_duplicate_name_and_denies_view_only_user(): void
+    {
+        $client = OperationClient::create(['name' => 'Original Client', 'status' => 'Active']);
+        OperationClient::create(['name' => 'Existing Company', 'status' => 'Active']);
+        $payload = [
+            'name' => 'existing company',
+            'contact_person' => 'Contact',
+        ];
+
+        $this->actingAs($this->operationUser(true))
+            ->put(route('operation.clients.update', $client), $payload)
+            ->assertSessionHasErrors('name');
+
+        $this->actingAs($this->operationUser(false))
+            ->put(route('operation.clients.update', $client), [
+                'name' => 'Unauthorized Rename',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame('Original Client', $client->fresh()->name);
+    }
+
     public function test_client_master_list_shows_database_records_and_status_counts(): void
     {
         $user = $this->operationUser(true);

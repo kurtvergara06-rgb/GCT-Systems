@@ -84,6 +84,63 @@ class ClientMasterListController extends Controller
         return redirect()->route(($validated['return_to'] ?? '') === 'client-master-list' ? 'operation.clients.index' : 'client-trip-times')
             ->with('success', 'Client created successfully.');
     }
+    public function update(Request $request, OperationClient $operationClient): RedirectResponse
+    {
+        // Client IDs are route-bound permanent keys, never accepted from the form.
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:150'],
+            'company_address' => ['nullable', 'string', 'max:500'],
+            'contact_person' => ['nullable', 'string', 'max:150'],
+            'contact_position' => ['nullable', 'string', 'max:150'],
+            'contact_number' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\\s.-]{7,30}$/'],
+            'contact_email' => ['nullable', 'email', 'max:254'],
+        ]);
+
+        DB::transaction(function () use ($operationClient, $validated): void {
+            $client = OperationClient::query()->lockForUpdate()->findOrFail($operationClient->id);
+            $newName = trim($validated['name']);
+            $renaming = $newName !== $client->name;
+
+            if ($renaming) {
+                if (OperationClient::query()
+                    ->whereKeyNot($client->id)
+                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($newName)])
+                    ->exists()) {
+                    throw ValidationException::withMessages(['name' => 'A client with this name already exists.']);
+                }
+
+                // Trip schedules currently store a client-name snapshot. A
+                // rename during active scheduling would break lookups that
+                // guard deactivation and unfinished trip operations.
+                $hasUnfinishedTrips = TripSchedule::query()
+                    ->whereRaw('LOWER(client_name) = ?', [mb_strtolower($client->name)])
+                    ->where(function ($query): void {
+                        $query->where(function ($upcoming): void {
+                            $upcoming->notDeparted()
+                                ->whereNotIn('status', ['Cancelled', 'Completed']);
+                        })->orWhereIn('status', ['Dispatched', 'Ongoing', 'In Progress', 'Pending DDR']);
+                    })->exists();
+                if ($hasUnfinishedTrips) {
+                    throw ValidationException::withMessages([
+                        'name' => 'Complete or cancel this client’s unfinished trips before changing the company name. Contact details may still be updated.',
+                    ]);
+                }
+            }
+
+            $client->update([
+                'name' => $newName,
+                'company_address' => $validated['company_address'] ?? null,
+                'contact_person' => $validated['contact_person'] ?? null,
+                'contact_position' => $validated['contact_position'] ?? null,
+                'contact_number' => $validated['contact_number'] ?? null,
+                'contact_email' => $validated['contact_email'] ?? null,
+            ]);
+        }, 5);
+
+        return redirect()->route('operation.clients.index')
+            ->with('success', 'Client details updated successfully.');
+    }
+
     public function updateStatus(Request $request, OperationClient $operationClient): RedirectResponse
     {
         $validated = $request->validate([

@@ -17,7 +17,7 @@
 
     <x-layout.sidebar department="Operation" />
 
-    <main class="main driver-attendance-page" data-attendance-business-date="{{ now(config('app.business_timezone', 'Asia/Manila'))->toDateString() }}" data-attendance-auto-today="{{ $activeTab === 'today' ? '1' : '0' }}">
+    <main class="main driver-attendance-page" >
       <x-layout.topbar
         title="Driver Attendance"
         subtitle="DDR-verified driver attendance history"
@@ -35,42 +35,28 @@
       @endif
 
       <section data-ajax-region="summary" class="stats-grid">
-        <x-ui.summary-card label="Present" value="{{ $present }}" small="Confirmed Present for current view" icon="fa-user-check" color="green" />
-        <x-ui.summary-card label="Assigned Present" value="{{ $assignedPresent }}" small="Present drivers assigned to active trips" icon="fa-bus" color="blue" />
-        <x-ui.summary-card label="Unassigned Present" value="{{ $unassignedPresent }}" small="Present drivers without active trip assignments" icon="fa-user-clock" color="yellow" />
-        <x-ui.summary-card label="Attendance Records" value="{{ $attendanceRecords }}" small="All saved statuses for current view" icon="fa-clipboard-list" color="purple" />
+        <x-ui.summary-card label="Verified Drivers" value="{{ $verifiedDrivers }}" small="Unique drivers with DDR-confirmed attendance" icon="fa-user-check" color="green" />
+        <x-ui.summary-card label="Verified Attendance Records" value="{{ $attendanceRecords }}" small="Driver service dates confirmed by DDR" icon="fa-clipboard-list" color="blue" />
+        <x-ui.summary-card label="Verified Service Dates" value="{{ $verifiedTripDays }}" small="Distinct service dates with confirmed attendance" icon="fa-calendar-check" color="yellow" />
+        <x-ui.summary-card label="Latest Verified Date" value="{{ $lastVerifiedDate ? \Illuminate\Support\Carbon::parse($lastVerifiedDate)->format('M d, Y') : '—' }}" small="Latest service date with a DDR record" icon="fa-clock-rotate-left" color="purple" />
       </section>
 
       <section data-ajax-region="records" class="table-card attendance-card">
         <div class="section-header">
           <div>
-            <h2>Driver Attendance List</h2>
-            <p>Attendance is automatically verified by a valid DDR.</p>
+            <h2>DDR-Verified Attendance History</h2>
+            <p>Attendance is confirmed by submitted DDR records for each service date.</p>
           </div>
           <span class="gct-pill gct-pill--unassigned">Automatically verified from DDR</span>
 
         </div>
 
         <div class="attendance-record-controls">
-          <nav class="attendance-record-tabs" aria-label="Driver attendance record groups">
-            <a class="attendance-record-tab {{ $activeTab === 'today' ? 'is-active' : '' }}"
-               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'attendance_date', 'page']), ['tab' => 'today'])) }}"
-               @if($activeTab === 'today') aria-current="page" @endif>
-              <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Today's Attendance
-            </a>
-            <a class="attendance-record-tab {{ $activeTab === 'history' ? 'is-active' : '' }}"
-               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'attendance_date', 'page']), ['tab' => 'history'])) }}"
-               @if($activeTab === 'history') aria-current="page" @endif>
-              <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Attendance History
-            </a>
-          </nav>
-        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In', 'attendance_date' => 'Attendance Date']" default-sort="{{ $activeTab === 'history' ? 'attendance_date' : 'driver_name' }}">
-          <x-slot:hidden><input type="hidden" name="tab" value="{{ $activeTab }}"></x-slot:hidden>
+        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status') + (int) request()->filled('attendance_date')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'attendance_date' => 'Attendance Date']" default-sort="attendance_date">
+
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
-            @if($activeTab === 'history')
-              <x-ui.table-toolbar-field label="Attendance Date (optional)" name="attendance_date" type="date" :value="$summaryDate" />
-            @endif
+            <x-ui.table-toolbar-field label="Service Date (optional)" name="attendance_date" type="date" :value="$summaryDate" />
           </x-slot:filters>
         </x-ui.table-toolbar>
 
@@ -78,13 +64,13 @@
 
         <div class="table-wrap attendance-record-table-wrap gct-responsive-records gct-sticky-actions">
           <table class="attendance-table">
-            <colgroup><col style="width: 16%"><col style="width: 20%"><col style="width: 23%"><col style="width: 13%"><col style="width: 13%"><col style="width: 15%"></colgroup>
+            <colgroup><col style="width: 15%"><col style="width: 18%"><col style="width: 25%"><col style="width: 19%"><col style="width: 11%"><col style="width: 12%"></colgroup>
             <thead>
               <tr>
                 <th>Driver ID</th>
                 <th>Driver</th>
-                <th>Current Assignment</th>
-                <th>Time-in</th>
+                <th>Trip Assignment</th>
+                <th>Scheduled Date &amp; Time</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -102,16 +88,16 @@
                     default => 'present',
                   };
 
-                  $activeAssignments = $attendance
+                  $historicalAssignments = $attendance
                     ->displayTripAssignments
                     ->filter(function ($assignment) {
                       $trip = $assignment->tripSchedule;
-                      return $trip && ! in_array($trip->status, ['Cancelled', 'Completed'], true);
+                      return $trip && $trip->status !== 'Cancelled';
                     })
                     ->sortBy(fn ($assignment) => optional($assignment->tripSchedule)->departure_time)
                     ->values();
 
-                  $primaryAssignment = $activeAssignments->first();
+                  $primaryAssignment = $historicalAssignments->first();
                   $primaryTrip = $primaryAssignment?->tripSchedule;
                   $primaryBus = $primaryAssignment?->bus;
 
@@ -119,28 +105,37 @@
                     ? trim(($primaryBus?->bus_no ?? 'Bus unavailable') . ' | ' . ($primaryTrip?->trip_code ?? 'Trip unavailable'))
                     : 'Unassigned';
 
-                  if ($activeAssignments->count() > 1) {
-                    $assignmentSummary .= ' | ' . $activeAssignments->count() . ' assigned trips';
+                  if ($historicalAssignments->count() > 1) {
+                    $assignmentSummary .= ' | ' . $historicalAssignments->count() . ' assigned trips';
                   }
+
+                  // The modal receives the complete set of assignments for
+                  // this DDR-verified service date, not just the first trip.
+                  $modalTripAssignments = $historicalAssignments->map(function ($assignment) {
+                    $trip = $assignment->tripSchedule;
+                    return [
+                      'trip_id' => $trip?->trip_code ?? 'Trip unavailable',
+                      'bus' => $assignment->bus?->bus_no ?? 'Bus unavailable',
+                      'date' => $trip?->trip_date?->format('M d, Y') ?? 'Date unavailable',
+                      'departure' => $trip?->departureDateTime()?->format('g:i A') ?? '—',
+                      'arrival' => $trip?->estimatedArrivalDateTime()?->format('g:i A') ?? '—',
+                      'status' => $trip?->status ?? 'Unknown',
+                    ];
+                  })->values();
                 @endphp
 
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
-                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>{{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</small></span></div></td>
+                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong></span></div></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
                         <span class="current-assignment-bus">{{ $primaryBus?->bus_no ?? 'Bus unavailable' }}</span>
-                        <span class="current-assignment-trip">
-                          {{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}
-                          @if($primaryTrip)
-                            • {{ date('h:i A', strtotime($primaryTrip->departure_time)) }}
-                            – {{ date('h:i A', strtotime($primaryTrip->estimated_arrival_time)) }}
-                          @endif
-                        </span>
-                        @if($activeAssignments->count() > 1)
+                        <span class="current-assignment-trip" title="{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}">{{ $primaryTrip?->trip_code ?? 'Trip unavailable' }}</span>
+
+                        @if($historicalAssignments->count() > 1)
                           <small class="current-assignment-more">
-                            +{{ $activeAssignments->count() - 1 }} more assignment(s)
+                            +{{ $historicalAssignments->count() - 1 }} more assignment(s)
                           </small>
                         @endif
                       </div>
@@ -148,25 +143,35 @@
                       <span class="gct-pill gct-pill--unassigned">Unassigned</span>
                     @endif
                   </td>
-                  <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
-                  <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
+                  <td>
+                    <div class="attendance-trip-datetime">
+                      <span class="attendance-trip-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $attendance->attendance_date?->format('M d, Y') ?? 'Date unavailable' }}</span>
+                      @if($primaryTrip)
+                        <span class="attendance-trip-time"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $primaryTrip->departureDateTime()->format('g:i A') }} – {{ $primaryTrip->estimatedArrivalDateTime()->format('g:i A') }}</span>
+                      @else
+                        <span class="attendance-trip-time is-empty">No scheduled trip</span>
+                      @endif
+                    </div>
+                  </td>
+                  <td><div class="attendance-status-cell"><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></div></td>
                   <td>
                     <div class="actions">
                       @if($canEditOperation)
                       <button
                         type="button"
-                        class="action-btn view open-view-driver-attendance-modal"
-                        title="View"
+                        class="action-btn view attendance-view-action open-view-driver-attendance-modal"
+                        title="View attendance details"
+                        aria-label="View attendance for {{ $attendance->driver_name }} on {{ $attendance->attendance_date?->format('M d, Y') }}"
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"
-                        data-shift="{{ $attendance->shift }}"
                         data-bus-assignment="{{ $assignmentSummary }}"
+                        data-trip-assignments="{{ $modalTripAssignments->toJson() }}"
                         data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
                         data-time-in="{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}"
                         data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
                         data-status="{{ $attendance->status }}"
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
                       </button>
 
 
@@ -205,6 +210,21 @@
     close-id="closeViewDriverAttendanceModal"
   >
     <div class="attendance-details-grid" id="viewDriverAttendanceContent"></div>
+    <section class="attendance-modal-trips" aria-labelledby="attendanceModalTripsTitle">
+      <div class="attendance-modal-trips-heading">
+        <div>
+          <h3 id="attendanceModalTripsTitle"><i class="fa-solid fa-route" aria-hidden="true"></i> Trip Assignments</h3>
+          <p>Scheduled trips linked to this driver's verified service date.</p>
+        </div>
+        <span id="attendanceModalTripsCount" class="attendance-modal-trips-count">0 trips</span>
+      </div>
+      <div class="attendance-modal-trips-scroll" role="region" aria-label="Driver trip assignments table" tabindex="0">
+        <table class="attendance-modal-trips-table">
+          <thead><tr><th scope="col">Trip ID</th><th scope="col">Bus</th><th scope="col">Service Date</th><th scope="col">Scheduled Time</th><th scope="col">Status</th></tr></thead>
+          <tbody id="attendanceModalTripsBody"><tr><td colspan="5" class="attendance-modal-trips-empty">No trip assignments found for this date.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
     <div class="ui-form-actions">
       <button type="button" id="closeViewDriverAttendanceButton" class="ui-form-btn ui-form-btn-primary">
         <i class="fa-solid fa-check"></i>

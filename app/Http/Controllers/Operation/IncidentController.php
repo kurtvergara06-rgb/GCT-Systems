@@ -564,7 +564,7 @@ class IncidentController extends Controller
         $activeBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Reserve')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->when($busyBusIds !== [], fn ($query) => $query->whereNotIn('id', $busyBusIds))
             ->orderBy('bus_no')
             ->get();
@@ -757,9 +757,8 @@ class IncidentController extends Controller
             if ($replacementBus->status !== 'Active' || $replacementBus->fleet_purpose !== 'Reserve') {
                 return ['error' => 'The selected replacement bus is not an active Reserve bus.'];
             }
-            if (JobOrder::query()
+            if (JobOrder::query()->blocksDispatch()
                 ->where('bus_no', $replacementBus->bus_no)
-                ->where('status', '!=', 'Completed')
                 ->exists()) {
                 return ['error' => 'The selected replacement bus has an unresolved Maintenance Job Order.'];
             }

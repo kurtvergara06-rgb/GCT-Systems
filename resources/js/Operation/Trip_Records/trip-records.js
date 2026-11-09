@@ -27,17 +27,21 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
     const elActualArr = document.getElementById('modalActualArr');
     const elDuration = document.getElementById('modalDuration');
     const elNotes = document.getElementById('modalNotes');
+    const elRequiredSlots = document.getElementById('modalRequiredSlots');
+    const elAssignedSlots = document.getElementById('modalAssignedSlots');
+    const elAssignmentOutcome = document.getElementById('modalAssignmentOutcome');
 
-    let currentTrip = null;
-    const csvCell = (value) => {
-        const raw = String(value ?? '');
-        const safe = /^[\\s]*[=+@-]/.test(raw) ? "'" + raw : raw;
-        return '"' + safe.replaceAll('"', '""') + '"';
+    const displayTime = (value) => {
+        if (typeof value !== 'string') return value || '—';
+        // Keep date/time values untouched; only reformat plain HH:mm[:ss].
+        const match = value.trim().match(/^([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
+        if (!match) return value || '—';
+        const hour = Number(match[1]);
+        return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
     };
 
     const openModal = (data) => {
         if (!data) return;
-        currentTrip = data;
         const rows = modalOverlay.querySelector('#actualTripUnitRows');
         if (rows) {
             rows.replaceChildren();
@@ -51,16 +55,69 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
                 assignments.forEach((assignment, index) => {
                     const row = rows.insertRow();
                     [
-                        'Slot ' + (index + 1),
+                        'Slot ' + (assignment.slot_number || (index + 1)),
                         [assignment.bus_no, assignment.plate_no, assignment.bus_model].filter(Boolean).join(' • ') || '—',
                         [assignment.driver_name, assignment.driver_id].filter(Boolean).join(' • ') || '—',
-                        data.departure_time || '—',
+                        displayTime(data.departure_time),
                         data.status || '—',
                     ].forEach(value => { row.insertCell().textContent = value; });
                 });
             }
         }
 
+        if (elRequiredSlots) elRequiredSlots.textContent = data.required_buses ?? '—';
+        if (elAssignedSlots) elAssignedSlots.textContent = data.assigned_buses ?? '—';
+        if (elAssignmentOutcome) elAssignmentOutcome.textContent = data.assignment_outcome || '—';
+        // Primary trip summary uses saved schedule and assignment data only.
+        const overview = {
+            tripOverviewDate: data.trip_date || '—',
+            tripOverviewDeparture: displayTime(data.departure_time),
+            tripOverviewArrival: displayTime(data.estimated_arrival_time),
+            tripOverviewRoute: [data.route_code, data.route_name].filter(Boolean).join(' · ') || 'Route unavailable',
+            tripOverviewCorridor: [data.origin, data.destination].filter(Boolean).join(' → '),
+            tripOverviewSlots: `${data.assigned_buses ?? 0} / ${data.required_buses ?? 0} buses`,
+            tripOverviewOutcome: data.assignment_outcome || '—',
+        };
+        Object.entries(overview).forEach(([id, value]) => {
+            const node = modalOverlay.querySelector('#' + id);
+            if (node) node.textContent = value;
+        });
+        const assignedCount = modalOverlay.querySelector('#tripOverviewAssignedCount');
+        if (assignedCount) {
+            const count = Array.isArray(data.assignments) ? data.assignments.length : 0;
+            assignedCount.textContent = `${count} ${count === 1 ? 'unit' : 'units'}`;
+        }
+
+        const ddrBody = modalOverlay.querySelector('#modalDdrTimeRows');
+        if (ddrBody) {
+            ddrBody.replaceChildren();
+            const ddrTimes = Array.isArray(data.ddr_times) ? data.ddr_times : [];
+            const hasDdr = ddrTimes.length > 0;
+            const recordedSection = modalOverlay.querySelector('#tripDdrRecordedSection');
+            const emptySection = modalOverlay.querySelector('#tripDdrEmptyState');
+            const emptyText = modalOverlay.querySelector('#tripDdrEmptyText');
+            if (recordedSection) recordedSection.hidden = !hasDdr;
+            if (emptySection) emptySection.hidden = hasDdr;
+            if (!hasDdr) {
+                const status = String(data.status || '').toLowerCase();
+                const message = ['completed'].includes(status)
+                    ? 'This trip is marked Completed, but no linked DDR was found. Verification may be required.'
+                    : ['in progress', 'ongoing', 'dispatched', 'pending ddr'].includes(status)
+                        ? 'Awaiting driver-reported actual departure and arrival times.'
+                        : 'Actual trip times will be available after DDR submission.';
+                if (emptyText) emptyText.textContent = message;
+            } else {
+                ddrTimes.forEach(item => {
+                    const row = ddrBody.insertRow();
+                    [
+                        item.ddr_no || '—',
+                        [item.driver, item.bus, item.source].filter(Boolean).join(' • '),
+                        item.departure || '—',
+                        item.arrival || '—',
+                    ].forEach(value => { row.insertCell().textContent = value; });
+                });
+            }
+        }
         if (elTripCode) elTripCode.textContent = data.trip_code || '—';
         
         if (elStatus) {
@@ -82,8 +139,8 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         if (elDriverName) elDriverName.textContent = data.driver_name || '—';
         if (elDriverId) elDriverId.textContent = data.driver_id ? `ID: ${data.driver_id}` : '';
 
-        if (elSchedDept) elSchedDept.textContent = data.departure_time || '—';
-        if (elSchedArr) elSchedArr.textContent = data.estimated_arrival_time || '—';
+        if (elSchedDept) elSchedDept.textContent = displayTime(data.departure_time);
+        if (elSchedArr) elSchedArr.textContent = displayTime(data.estimated_arrival_time);
         if (elActualDept) elActualDept.textContent = data.actual_departure_time || '—';
         if (elActualArr) elActualArr.textContent = data.actual_arrival_time || '—';
         if (elDuration) elDuration.textContent = data.actual_duration_minutes ? `${data.actual_duration_minutes} mins` : '—';
@@ -101,6 +158,9 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         const searchInput = modalOverlay.querySelector('#unitRecordSearchInput');
         if (searchInput) {
             searchInput.value = '';
+            const numberOfUnits = Array.isArray(data.assignments) ? data.assignments.length : 0;
+            const searchControl = searchInput.closest('.unit-records-controls');
+            if (searchControl) searchControl.hidden = numberOfUnits < 5;
             filterDemoRows('');
         }
 
@@ -148,35 +208,11 @@ window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip
         }, { signal });
     }
 
-    // The modal lives outside <main>; handle its controls on the overlay.
+    // The modal lives outside <main>; close it only using explicit controls.
     modalOverlay.addEventListener('click', (event) => {
         if (event.target.closest('.trip-modal-close, .trip-modal-dismiss')) {
             closeModal();
-            return;
         }
-
-        const exportBtn = event.target.closest('#unitExportBtn');
-        if (exportBtn) {
-            const assignments = Array.isArray(currentTrip?.assignments) ? currentTrip.assignments : [];
-            const csvRows = [
-                ['Trip ID', 'Slot', 'Bus No.', 'Plate Number', 'Bus Model', 'Driver Name', 'Driver ID', 'Scheduled Departure', 'Trip Status'],
-                ...assignments.map((a, index) => [
-                    currentTrip.trip_code, index + 1, a.bus_no, a.plate_no, a.bus_model,
-                    a.driver_name, a.driver_id, currentTrip.departure_time, currentTrip.status,
-                ]),
-            ];
-            const blob = new Blob([String.fromCharCode(0xFEFF), csvRows.map(row => row.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = (currentTrip?.trip_code || 'trip') + '-units.csv';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-            return;
-        }
-
     }, { signal });
 
     page.addEventListener('click', (event) => {

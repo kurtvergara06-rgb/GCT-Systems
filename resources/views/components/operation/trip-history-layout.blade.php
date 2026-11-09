@@ -14,7 +14,7 @@
     <div class="app">
         <x-layout.sidebar department="Operation" />
         <main class="main trip-records-page">
-            <x-layout.topbar title="Trip History" subtitle="Scheduling outcomes and operational records" />
+            <x-layout.topbar title="Trip History" subtitle="Assignment and operational records in one read-only view" />
 
             <section data-ajax-region="summary" class="trip-summary-grid trip-history-kpis" aria-label="{{ $heading }} overview">
                 {{ $kpis }}
@@ -27,20 +27,12 @@
                 </div>
 
                 <div class="trip-history-controls">
-                    <nav class="trip-history-tabs" aria-label="Trip history views">
-                        <a href="{{ route('trip-records', ['view' => 'assignments'], false) }}" class="trip-history-tab {{ $activeView === 'assignments' ? 'is-active' : '' }}" @if($activeView === 'assignments') aria-current="page" @endif>
-                            <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Assignment History
-                        </a>
-                        <a href="{{ route('trip-records', ['view' => 'operations'], false) }}" class="trip-history-tab {{ $activeView === 'operations' ? 'is-active' : '' }}" @if($activeView === 'operations') aria-current="page" @endif>
-                            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Operational Records
-                        </a>
-                    </nav>
                     {{ $toolbar }}
                 </div>
 
                 @isset($helper)<div class="trip-history-helper">{{ $helper }}</div>@endisset
 
-                <div class="table-wrap trip-table-wrap trip-history-table-wrap">{{ $slot }}</div>
+                <div class="table-wrap trip-table-wrap trip-history-table-wrap gct-responsive-records gct-sticky-actions">{{ $slot }}</div>
                 {{ $pagination }}
             </section>
         </main>

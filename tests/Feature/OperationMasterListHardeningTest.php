@@ -139,6 +139,47 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertSame('M-001', $mechanic->fresh()->mechanic_id);
     }
 
+    public function test_driver_name_can_be_corrected_after_history_without_rewriting_snapshots(): void
+    {
+        $user = $this->operationUser();
+        $driver = $this->driver();
+        $oldName = $driver->driver_name;
+        $attendance = DriverAttendance::create([
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $oldName,
+            'shift' => $driver->shift,
+            'attendance_date' => now()->toDateString(),
+            'status' => 'Present',
+        ]);
+        $bus = $this->bus();
+        $trip = $this->trip(['status' => 'Completed']);
+        $assignment = TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $oldName,
+            'bus_id' => $bus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('operation.personnel.drivers.update', $driver),
+                $this->driverPayload('D-TAMPERED', 'Corrected Driver Name'))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('D-001', $driver->fresh()->driver_id);
+        $this->assertSame('Corrected Driver Name', $driver->fresh()->driver_name);
+        $this->assertSame('D-001', $attendance->fresh()->driver_id);
+        $this->assertSame($oldName, $attendance->fresh()->driver_name);
+        $this->assertSame('D-001', $assignment->fresh()->driver_id);
+        $this->assertSame($oldName, $assignment->fresh()->driver_name);
+
+        $script = file_get_contents(resource_path('js/Operation/Attendance/personnel-master-modal.js'));
+        $this->assertStringContainsString('nameInput.readOnly = false', $script);
+        $this->assertStringContainsString('idInput.readOnly = true', $script);
+    }
+
     public function test_duplicate_personnel_names_are_rejected_by_validation_and_the_database(): void
     {
         $user = $this->operationUser();
@@ -246,6 +287,45 @@ class OperationMasterListHardeningTest extends TestCase
             ->assertSessionHasErrors('employment_status');
 
         $this->assertSame('Active', $mechanic->fresh()->employment_status);
+    }
+
+    public function test_bus_id_is_immutable_without_history_but_other_details_remain_editable(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload('BUS-TAMPERED'),
+                ['plate_no' => 'NEW-1234']
+            ))
+            ->assertSessionHasErrors('bus_no');
+
+        $this->assertSame('BUS-001', $bus->fresh()->bus_no);
+        $this->assertSame('ABC-1001', $bus->fresh()->plate_no);
+
+        $this->actingAs($user)
+            ->from(route('bus-master-list'))
+            ->put(route('bus-master-list.update', $bus), array_merge(
+                $this->busPayload('BUS-001'),
+                ['plate_no' => 'NEW-1234', 'bus_model' => 'Corrected Bus Model', 'capacity' => 45]
+            ))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('BUS-001', $bus->fresh()->bus_no);
+        $this->assertSame('NEW-1234', $bus->fresh()->plate_no);
+        $this->assertSame('Corrected Bus Model', $bus->fresh()->bus_model);
+        $this->assertSame(45, $bus->fresh()->capacity);
+
+        $view = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-master-list.blade.php'));
+        $script = file_get_contents(resource_path('js/Operation/Shuttle_Bus_Management/bus-master-list.js'));
+
+        $this->assertMatchesRegularExpression('/id="edit_bus_no"[^>]*readonly[^>]*aria-readonly="true"/s', $view);
+        $this->assertStringContainsString('Bus ID (Body Number) is permanent', $view);
+        $this->assertStringContainsString('editBusNo.readOnly = true;', $script);
+        $this->assertStringNotContainsString("editBusNo.readOnly = button.dataset.busNoLocked === '1'", $script);
     }
 
     public function test_bus_history_blocks_rename_and_delete_and_maintenance_blocks_activation(): void
@@ -685,7 +765,7 @@ class OperationMasterListHardeningTest extends TestCase
         $template = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
         $this->assertStringNotContainsString('assignment-journey', $template);
         $this->assertStringContainsString("['Cancelled', 'Dispatched', 'Completed']", $template);
-        $this->assertStringContainsString('!$isLocked', $template);
+        $this->assertStringContainsString('! $isLocked', $template);
         $this->assertStringNotContainsString('resource-assign-bus', $template);
         $this->assertStringNotContainsString('resource-assign-driver', $template);
         $this->assertStringNotContainsString("'Night'", $template);

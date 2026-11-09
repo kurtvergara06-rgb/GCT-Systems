@@ -91,7 +91,7 @@ class BusController extends Controller
             ->groupBy('bus_id');
 
         $maintenanceLockedBusNumbers = JobOrder::query()
-            ->where('status', '!=', 'Completed')
+            ->blocksDispatch()
             ->whereIn('bus_no', $buses->getCollection()->pluck('bus_no'))
             ->pluck('bus_no')
             ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
@@ -460,9 +460,8 @@ class BusController extends Controller
                     ]);
                 }
 
-                if (JobOrder::query()
+                if (JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $lockedBus->bus_no)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null) {
                     throw ValidationException::withMessages([
@@ -485,21 +484,19 @@ class BusController extends Controller
             $oldBusNo = $lockedBus->bus_no;
             $newBusNo = strtoupper(trim($validated['bus_no']));
 
-            if (
-                strcasecmp($oldBusNo, $newBusNo) !== 0
-                && $this->hasHistoricalBusReferences($lockedBus)
-            ) {
+            // Bus ID (Body Number) is permanent after creation, even when the
+            // bus has no history yet. Never rename it through an edit request.
+            if (strcasecmp($oldBusNo, $newBusNo) !== 0) {
                 throw ValidationException::withMessages([
-                    'bus_no' => 'Bus Number cannot be changed after trip, GPS, fuel, purchase, or maintenance history exists.',
+                    'bus_no' => 'Bus ID (Body Number) is permanent and cannot be changed.',
                 ]);
             }
 
             if (
                 $validated['status'] === 'Active'
                 && $lockedBus->status !== 'Active'
-                && JobOrder::query()
+                && JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $oldBusNo)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null
             ) {
@@ -515,7 +512,6 @@ class BusController extends Controller
             }
 
             $lockedBus->update([
-                'bus_no' => $newBusNo,
                 'plate_no' => $validated['plate_no'] ?? null,
                 'bus_model' => $validated['bus_model'] ?? null,
                 'year_model' => $validated['year_model'] ?? null,
@@ -597,9 +593,8 @@ class BusController extends Controller
                 ]);
             }
 
-            if (JobOrder::query()
+            if (JobOrder::query()->blocksDispatch()
                 ->where('bus_no', $lockedBus->bus_no)
-                ->where('status', '!=', 'Completed')
                 ->lockForUpdate()
                 ->first() !== null) {
                 throw ValidationException::withMessages([
@@ -635,9 +630,8 @@ class BusController extends Controller
             }
 
             if (
-                JobOrder::query()
+                JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $lockedBus->bus_no)
-                    ->where('status', '!=', 'Completed')
                     ->lockForUpdate()
                     ->first() !== null
             ) {
@@ -815,9 +809,8 @@ class BusController extends Controller
 
     private function unresolvedJobOrderBusNumbers()
     {
-        return JobOrder::query()
-            ->select('bus_no')
-            ->where('status', '!=', 'Completed');
+        return JobOrder::query()->blocksDispatch()
+            ->select('bus_no');
     }
 
     private function hasTripBusHistory(Bus $bus, bool $lock = false): bool

@@ -3,6 +3,7 @@
 namespace App\Models\Maintenance;
 
 use App\Models\Operation\TripAssignment;
+use App\Models\TopbarNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -87,12 +88,35 @@ class Bus extends Model
             ? $this->status
             : null;
 
+        // Preserve assignments; only future, not-yet-departed trips need
+        // replacement coordination. Do not rewrite historical trip statuses.
+        $affectedTrips = $this->tripAssignments()
+            ->with('tripSchedule')
+            ->get()
+            ->pluck('tripSchedule')
+            ->filter(fn ($trip) => $trip
+                && in_array($trip->status, ['Ready', 'Scheduled'], true)
+                && ! $trip->hasDeparted())
+            ->unique('id')
+            ->values();
+
         $updated = $this->update([
             'pre_maintenance_status' => $this->pre_maintenance_status ?: $previousStatus,
             'status' => 'Under Maintenance',
         ]);
         if ($updated) {
             $this->syncFutureTripReadiness();
+            if ($affectedTrips->isNotEmpty()) {
+                TopbarNotification::create([
+                    'module' => 'Operation',
+                    'entity' => 'Bus',
+                    'action' => 'maintenance_replacement_required',
+                    'record_id' => $this->id,
+                    'message' => "Bus {$this->bus_no} is Under Maintenance. Operations must review future assignments: "
+                        .$affectedTrips->pluck('trip_code')->implode(', ').'.',
+                    'created_by' => auth()->id(),
+                ]);
+            }
         }
         return $updated;
     }

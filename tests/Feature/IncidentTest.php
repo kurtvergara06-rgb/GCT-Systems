@@ -767,6 +767,34 @@ class IncidentTest extends TestCase
         $this->assertSame(1, Incident::where('incident_type', 'Bus Breakdown')->count());
     }
 
+    public function test_history_incidents_have_only_a_read_only_view_action(): void
+    {
+        $incident = $this->createIncident('Traffic');
+        $incident->update(['status' => 'Resolved', 'resolved_at' => now()]);
+
+        $response = $this->actingAs($this->user)
+            ->get(route('incidents', ['tab' => 'history']))
+            ->assertOk()
+            ->assertSee($incident->incident_no);
+
+        $html = $response->getContent();
+        $this->assertMatchesRegularExpression('/data-incident-no="'.preg_quote($incident->incident_no, '/').'"/', $html);
+        preg_match('/<tr\\s+data-incident-record\\b[^>]*data-incident-no="'.preg_quote($incident->incident_no, '/').'".*?<\\/tr>/s', $html, $matches);
+        $this->assertNotEmpty($matches, 'Expected the resolved incident row in History.');
+        $row = $matches[0];
+        $this->assertStringContainsString('class="inc-history-view-action"', $row);
+        $this->assertStringContainsString('data-incident-modal-action="view"', $row);
+        $this->assertStringNotContainsString('inc-edit-action', $row);
+        $this->assertStringNotContainsString('inc-delete-action', $row);
+        $this->assertStringNotContainsString('data-incident-workflow-open', $row);
+
+        $active = $this->createIncident('Traffic');
+        $activeResponse = $this->actingAs($this->user)->get(route('incidents', ['tab' => 'active']))->assertOk();
+        $this->assertStringContainsString('inc-edit-action', $activeResponse->getContent());
+        $this->assertStringContainsString('inc-delete-action', $activeResponse->getContent());
+        $this->assertStringContainsString($active->incident_no, $activeResponse->getContent());
+    }
+
     public function test_index_page_renders_kpi_summary(): void
     {
         $this->createIncident('Bus Breakdown');

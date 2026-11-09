@@ -4549,13 +4549,6 @@ body.ai-modal-open {
     overflow-wrap: anywhere;
     vertical-align: top;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 22% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 14% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 16% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 12% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 14% !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -4659,13 +4652,6 @@ body.ai-modal-open {
     background: #f1f5f9 !important;
     font-weight: bold !important;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 12% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 22% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 15% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 16% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 11% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 11% !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table th:last-child,
   body:has(.auto-scheduling-page) .auto-schedule-table td:last-child { display: none !important; }
   body:has(.auto-scheduling-page) .auto-schedule-table tr { break-inside: avoid !important; }
@@ -5025,13 +5011,6 @@ body.ai-modal-open {
     border-radius: 0 !important; padding: 0 !important;
     font: inherit !important;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 21% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 13% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 15% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 14% !important; }
-  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 11% !important; }
   body:has(.auto-scheduling-page) .gct-auto-print-signatures {
     display: flex !important; justify-content: space-between;
     gap: 14mm; margin-top: 18mm;
@@ -5286,20 +5265,12 @@ body.ai-modal-open {
   }
 }
 
-/* Reuse the compact eight-column preview geometry. Avoid imposing an
-   oversized 1360px canvas just to make drag scrolling possible. */
+/* Keep the preview scroll canvas compact; semantic .auto-col-* classes
+   below own column widths for both Incoming and Outgoing tables. */
 @media screen {
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
     min-width: 1250px;
   }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(1) { width: 8% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(2) { width: 11% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(3) { width: 14% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(4) { width: 11% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(5) { width: 16% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(6) { width: 10% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(7) { width: 15% !important; }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(8) { width: 15% !important; }
 }
 @media screen and (pointer: fine) {
   .auto-scheduling-page .auto-table-wrap.gct-drag-scroll-ready,
@@ -5526,4 +5497,82 @@ body.ai-modal-open {
     width: 100%;
     max-width: none;
   }
+}
+
+
+/* Phase 3: shared visual contract for both generated schedule directions.
+   Column widths are defined once instead of repeated inline in each Blade table.
+   Dynamic row rendering, result logic, and Head-only actions are unchanged. */
+.auto-scheduling-page .auto-table-wrap {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.auto-scheduling-page .auto-schedule-table {
+    width: 100%;
+    min-width: 980px;
+    table-layout: fixed;
+}
+.auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-time { width: 11%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-route { width: 18%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-required { width: 13%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 14%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 14%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-result { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-action { width: 10%; }
+.auto-scheduling-page .auto-schedule-table th,
+.auto-scheduling-page .auto-schedule-table td {
+    overflow-wrap: anywhere;
+}
+.auto-scheduling-page .auto-schedule-table td:last-child {
+    white-space: normal;
+}
+.auto-scheduling-page .auto-schedule-table td:last-child button {
+    white-space: nowrap;
+}
+.auto-scheduling-page :is(.auto-table-wrap, .gct-conflict-table-scroll):focus-visible,
+.auto-scheduling-page .gct-conflict-table [data-gct-report-index]:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+.auto-scheduling-page .gct-conflict-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior: contain;
+}
+.auto-scheduling-page .gct-conflict-table {
+    min-width: 640px;
+}
+.auto-scheduling-page .gct-conflict-table [data-gct-report-index] {
+    cursor: pointer;
+}
+.auto-scheduling-page .gct-conflict-table [data-gct-report-index]:focus-visible td {
+    background: #eff6ff;
+}
+.auto-scheduling-page .gct-conflict-report-panel,
+.auto-scheduling-page .gct-conflict-report-body {
+    min-width: 0;
+}
+.auto-scheduling-page .gct-conflict-report-body :is(p, li, strong) {
+    overflow-wrap: anywhere;
+}
+.auto-scheduling-page .gct-conflict-sort:focus-visible,
+.auto-scheduling-page .gct-conflict-report-header button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+@media (max-width: 700px) {
+    .auto-scheduling-page .auto-schedule-table { min-width: 920px; }
+    .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-header {
+        gap: 8px;
+    }
+    .auto-scheduling-page .gct-conflict-workspace .gct-report-actions {
+        flex-wrap: wrap;
+    }
+    .auto-scheduling-page .gct-conflict-workspace .gct-report-actions .ai-resolution-btn {
+        flex: 1 1 145px;
+    }
 }

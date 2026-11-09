@@ -107,9 +107,8 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
-            ->whereNotIn('bus_no', JobOrder::query()
-                ->where('status', '!=', 'Completed')
-                ->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                                ->select('bus_no'))
             ->count();
 
         $unavailableDrivers =
@@ -168,6 +167,67 @@ class AutoSchedulingController extends Controller
                 'activeRoutes'
             )
         );
+    }
+
+    /**
+     * Read-only monthly trip summary for the Auto Scheduling calendar.
+     * Count trips, not bus slots. Only active routes and schedulable statuses
+     * appear; the pending bucket follows the same eligibility query as index().
+     */
+    public function calendar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+            'shuttle_route_id' => ['nullable'],
+        ]);
+
+        $month = Carbon::createFromFormat('!Y-m', $validated['month'], config('app.business_timezone', 'Asia/Manila'));
+        $start = $month->copy()->startOfMonth()->toDateString();
+        $end = $month->copy()->endOfMonth()->toDateString();
+        $route = $validated['shuttle_route_id'] ?? 'all';
+
+        $query = TripSchedule::query()
+            ->whereBetween('trip_date', [$start, $end])
+            ->whereIn('status', ['Scheduled', 'Ready'])
+            ->whereHas('shuttleRoute', fn ($builder) => $builder->where('status', 'Active'));
+
+        if ($route !== 'all') {
+            $query->where('shuttle_route_id', $route);
+        }
+
+        $totals = (clone $query)
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $assigned = (clone $query)
+            ->where('assignment_status', 'Assigned')
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $pending = (clone $query)
+            ->notDeparted()
+            ->where('assignment_status', '!=', 'Assigned')
+            ->selectRaw('trip_date, COUNT(*) as total')
+            ->groupBy('trip_date')
+            ->pluck('total', 'trip_date');
+
+        $days = [];
+        foreach ($month->copy()->startOfMonth()->daysUntil($month->copy()->endOfMonth()->addDay()) as $day) {
+            $date = $day->toDateString();
+            $days[] = [
+                'date' => $date,
+                'total' => (int) ($totals[$date] ?? 0),
+                'pending' => (int) ($pending[$date] ?? 0),
+                'assigned' => (int) ($assigned[$date] ?? 0),
+            ];
+        }
+
+        return response()->json([
+            'month' => $month->format('Y-m'),
+            'days' => $days,
+        ]);
     }
 
     /**
@@ -290,9 +350,8 @@ class AutoSchedulingController extends Controller
                 'status',
                 'Active'
             )
-            ->whereNotIn('bus_no', JobOrder::query()
-                ->where('status', '!=', 'Completed')
-                ->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                                ->select('bus_no'))
             ->orderBy('bus_no')
             ->get();
 
@@ -780,7 +839,7 @@ class AutoSchedulingController extends Controller
         $date = $trip->trip_date->toDateString();
         $drivers = $this->assumedPresentDrivers($date);
         $buses = Bus::query()->whereIn('fleet_purpose', ['Regular', 'Reserve'])->where('status', 'Active')
-            ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
             ->get(['id', 'bus_no', 'fleet_purpose'])
             ->filter(fn (Bus $bus) => $this->busMatchesTripClient($trip, $bus))
             // Regular first; each fleet group is ascending by body number.
@@ -1281,10 +1340,9 @@ class AutoSchedulingController extends Controller
                     $this->assertBusMatchesTripClient($trip, $bus, $field);
                 }
 
-                if ($bus && JobOrder::query()
+                if ($bus && JobOrder::query()->blocksDispatch()
                     ->where('bus_no', $bus->bus_no)
-                    ->where('status', '!=', 'Completed')
-                    ->exists()) {
+                                        ->exists()) {
                     throw ValidationException::withMessages([
                         $field => 'A selected bus has an unresolved Maintenance Job Order. Generate the schedule again.',
                     ]);
@@ -1301,8 +1359,8 @@ class AutoSchedulingController extends Controller
                     $regularCandidates = Bus::query()
                         ->where('fleet_purpose', 'Regular')
                         ->where('status', 'Active')
-                        ->whereNotIn('bus_no', JobOrder::query()
-                            ->where('status', '!=', 'Completed')->select('bus_no'))
+                        ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()
+                            ->select('bus_no'))
                         ->lockForUpdate()
                         ->get();
 
@@ -2255,7 +2313,7 @@ class AutoSchedulingController extends Controller
                         'status',
                         'Active'
                     )
-                    ->whereNotIn('bus_no', JobOrder::query()->where('status', '!=', 'Completed')->select('bus_no'))
+                    ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
                     ->orderBy('bus_no')
                     ->lockForUpdate()
                     ->get();

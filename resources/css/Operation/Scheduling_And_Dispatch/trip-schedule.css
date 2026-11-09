@@ -3612,12 +3612,21 @@
     flex: 0 0 auto;
     min-width: 0;
 }
+/* Same compact boxed date trigger as Driver & Bus Assignment.
+   Keep the existing calendar popover anchored to the selector. */
 .trip-schedule-page .trip-date-selector > .trip-selected-date {
     appearance: none;
-    border: 1px solid transparent;
-    border-radius: 11px;
-    background: transparent;
-    padding: 5px 9px 5px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dbe6f5;
+    border-radius: 10px;
+    background: #f8fbff;
+    padding: 6px 9px;
+    color: #173456;
     cursor: pointer;
     font: inherit;
     text-align: left;
@@ -3625,8 +3634,22 @@
 }
 .trip-schedule-page .trip-date-selector > .trip-selected-date:hover,
 .trip-schedule-page .trip-date-selector > .trip-selected-date[aria-expanded="true"] {
-    border-color: #dbe6f5;
-    background: #f5f9ff;
+    border-color: #b8d2fa;
+    background: #eaf3ff;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-icon {
+    width: 29px;
+    height: 29px;
+    border: 0;
+    border-radius: 8px;
+    background: #e8f1ff;
+    color: #155bb8;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-label {
+    font-size: 10px;
+}
+.trip-schedule-page .service-controls-card .trip-selected-date-copy strong {
+    font-size: 12px;
 }
 .trip-schedule-page .trip-date-selector > .trip-selected-date:focus-visible {
     outline: 2px solid #2563eb;
@@ -3740,7 +3763,7 @@
     background: #edf5ff;
 }
 .trip-schedule-page .trip-calendar-day.has-trips {
-    background: #f0faf4;
+    background: #f4f8fc;
     font-weight: 800;
 }
 .trip-schedule-page .trip-calendar-day.is-selected {
@@ -3755,13 +3778,71 @@
     outline: 2px solid #2563eb;
     outline-offset: 1px;
 }
+.trip-schedule-page .trip-calendar-status-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    max-width: 36px;
+    min-height: 6px;
+}
 .trip-schedule-page .trip-calendar-day-dot,
 .trip-schedule-page .trip-calendar-legend-dot {
     display: inline-block;
+    flex: 0 0 6px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #16a34a;
+    background: #94a3b8;
+}
+.trip-schedule-page .trip-calendar-day-dot.is-unassigned,
+.trip-schedule-page .trip-calendar-legend-dot.is-unassigned { background: #eab308; }
+.trip-schedule-page .trip-calendar-day-dot.is-partial,
+.trip-schedule-page .trip-calendar-legend-dot.is-partial { background: #f97316; }
+.trip-schedule-page .trip-calendar-day-dot.is-assigned,
+.trip-schedule-page .trip-calendar-legend-dot.is-assigned { background: #16a34a; }
+.trip-schedule-page .trip-calendar-day-dot.is-in_progress,
+.trip-schedule-page .trip-calendar-legend-dot.is-in_progress { background: #7c3aed; }
+.trip-schedule-page .trip-calendar-day-dot.is-pending_ddr,
+.trip-schedule-page .trip-calendar-legend-dot.is-pending_ddr { background: #2563eb; }
+.trip-schedule-page .trip-calendar-day-dot.is-completed,
+.trip-schedule-page .trip-calendar-legend-dot.is-completed { background: #16a34a; }
+.trip-schedule-page .trip-calendar-day-dot.is-missed,
+.trip-schedule-page .trip-calendar-legend-dot.is-missed { background: #dc2626; }
+.trip-schedule-page .trip-calendar-day-dot.is-cancelled,
+.trip-schedule-page .trip-calendar-legend-dot.is-cancelled { background: #dc2626; }
+.trip-schedule-page .trip-calendar-day-dot.is-delayed,
+.trip-schedule-page .trip-calendar-legend-dot.is-delayed { background: #8b5cf6; }
+.trip-schedule-page .trip-calendar-status-legend {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e8edf6;
+}
+.trip-schedule-page .trip-calendar-status-legend > strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: #173456;
+}
+.trip-schedule-page .trip-calendar-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 8px;
+}
+.trip-schedule-page .trip-calendar-legend-grid > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 10px;
+    line-height: 1.3;
+    color: #465a73;
+}
+.trip-schedule-page .trip-calendar-legend-grid .trip-calendar-legend-dot {
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
 }
 .trip-schedule-page .trip-calendar-footer {
     margin-top: 11px;
@@ -3821,6 +3902,64 @@
 .trip-schedule-page .trip-actions .cancel-service-trip:focus-visible {
     outline: 2px solid #ea580c;
     outline-offset: 2px;
+}
+/* Cancellation is a short confirmation form, not a full-width editor.
+   Scope the sizing here to avoid changing the shared modal component or
+   Create/Edit Trip. The original POST/PATCH, validation and close behavior
+   remain unchanged. */
+#cancelServiceTripModal.ui-form-overlay {
+    box-sizing: border-box;
+    padding: 16px;
+    align-items: center;
+    justify-content: center;
+}
+#cancelServiceTripModal .ui-form-modal.ui-form-modal-md {
+    box-sizing: border-box;
+    flex: 0 1 560px;
+    width: min(100%, 560px);
+    max-width: 560px;
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    overflow-y: auto;
+    border-radius: 16px;
+}
+#cancelServiceTripModal .ui-form-modal-header {
+    padding: 18px 20px 16px;
+    gap: 14px;
+}
+#cancelServiceTripModal .ui-form-heading {
+    min-width: 0;
+}
+#cancelServiceTripModal .ui-form-heading p {
+    line-height: 1.5;
+}
+#cancelServiceTripModal .ui-form-modal-body {
+    padding: 18px 20px 16px;
+}
+#cancelServiceTripModal .ui-form-modal-scrollable {
+    min-width: 0;
+}
+#cancelServiceTripModal .ui-form-actions {
+    margin-top: 16px;
+}
+@media (max-width: 600px) {
+    #cancelServiceTripModal.ui-form-overlay {
+        padding: 10px;
+    }
+    #cancelServiceTripModal .ui-form-modal.ui-form-modal-md {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 20px);
+        border-radius: 12px;
+    }
+    #cancelServiceTripModal .ui-form-modal-header,
+    #cancelServiceTripModal .ui-form-modal-body {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    #cancelServiceTripModal .ui-form-actions {
+        flex-wrap: wrap;
+    }
 }
 #cancelServiceTripModal .trip-cancellation-context {
     margin: 0 0 12px;

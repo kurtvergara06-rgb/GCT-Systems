@@ -847,13 +847,11 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
                 const idInput = form.querySelector('[name="driver_id"]');
                 if (idInput) idInput.readOnly = true;
             }
-            if (entity === 'Driver' && record.identity_locked) {
-                for (const name of ['driver_name']) {
-                    const input = form.querySelector(`[name="${name}"]`);
-                    if (input) {
-                        input.readOnly = true;
-                        input.title = 'Locked to preserve historical attendance and trip records';
-                    }
+            if (entity === 'Driver') {
+                const nameInput = form.querySelector('[name="driver_name"]');
+                if (nameInput) {
+                    nameInput.readOnly = false;
+                    nameInput.removeAttribute('title');
                 }
             }
             title.textContent = `Edit ${entity}`;

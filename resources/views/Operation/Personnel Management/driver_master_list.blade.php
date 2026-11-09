@@ -73,7 +73,7 @@
                     <tbody>
                     @forelse($drivers as $driver)
                         @php
-                            $driverRecord = e(json_encode([
+                            $driverRecord = json_encode([
                                 'driver_id' => $driver->driver_id,
                                 'identity_locked' => $driver->attendances_exists || \App\Models\Operation\TripAssignment::query()->where('driver_id', $driver->driver_id)->exists(),
                                 'driver_name' => $driver->driver_name,
@@ -81,7 +81,7 @@
                                 'contact_number' => $driver->contact_number,
                                 'employment_status' => $driver->employment_status,
                                 'bus_ids' => $driver->authorizedBuses->pluck('id')->all(),
-                            ], JSON_THROW_ON_ERROR));
+                            ], JSON_THROW_ON_ERROR);
                         @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
@@ -110,9 +110,9 @@
                             </td>
                             <td><x-ui.status-badge :status="$driver->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}" /></td>
                             <td><div class="actions">
-                                <button type="button" class="action-btn view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-eye"></i></button>
+                                <x-ui.action-button type="view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" :data-record="$driverRecord" />
                                 @if($canEditOperation)
-                                <button type="button" class="action-btn edit" title="Edit driver profile" aria-label="Edit {{ $driver->driver_name }}" data-personnel-action="edit" data-record-id="{{ $driver->id }}" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <x-ui.action-button type="edit" title="Edit driver profile" aria-label="Edit {{ $driver->driver_name }}" data-personnel-action="edit" data-record-id="{{ $driver->id }}" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" :data-record="$driverRecord" />
                                 @if($driver->employment_status === 'Active')
                                 <form method="POST" action="{{ route('operation.personnel.drivers.deactivate', $driver, false) }}" data-confirm-form data-confirm-title="Deactivate Driver?" data-confirm-message="This removes the driver from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">@csrf @method('PATCH')<button type="submit" class="action-btn delete" @if($driver->deactivation_locked) disabled aria-disabled="true" title="Locked: unresolved trip assignment" @else title="Deactivate and release assigned buses" @endif aria-label="Deactivate {{ $driver->driver_name }}"><i class="fa-solid fa-user-slash"></i></button></form>
                                 @endif

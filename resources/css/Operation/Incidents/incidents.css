@@ -3852,3 +3852,72 @@
     min-width: 0;
     max-width: 100%;
 }
+
+/* Historical incidents are immutable; show one DDR-style read-only View
+   action instead of disabled Edit and Archive controls. */
+.inc-page .inc-table .inc-record-actions.inc-history-actions {
+    min-width: 0;
+    justify-content: center;
+}
+.inc-page .inc-table .inc-record-actions.inc-history-actions button.inc-history-view-action {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 94px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 94px;
+    min-width: 94px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #c6daf9;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #175ac0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    white-space: nowrap;
+}
+.inc-page .inc-table .inc-record-actions.inc-history-actions button.inc-history-view-action:hover {
+    border-color: #175ac0;
+    background: #dbeafe;
+}
+.inc-page .inc-table .inc-record-actions.inc-history-actions button.inc-history-view-action:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.inc-page .inc-table .inc-history-view-action > i,
+.inc-page .inc-table .inc-history-view-action > span {
+    position: static;
+    display: inline-block;
+    flex: none;
+    width: auto;
+    margin: 0;
+    line-height: 1;
+}
+
+
+/* Operation final audit: avoid minimum-height clipping in incident dialogs. */
+.inc-record-modal-backdrop,
+.inc-workflow-overlay {
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+}
+.inc-record-modal-backdrop > .inc-record-modal,
+.inc-workflow-overlay > .inc-workflow-dialog {
+    flex-shrink: 0;
+    margin: auto;
+    max-width: 100%;
+}
+.inc-workflow-overlay > .inc-workflow-dialog {
+    box-sizing: border-box;
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    height: min(92dvh, 960px);
+}
