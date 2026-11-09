@@ -711,6 +711,16 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
   --gct-theme-placeholder: #879ab3;
   --gct-theme-border: #35465e;
   --gct-theme-focus: #8cb6ff;
+  --gct-id-background: #24354d;
+  --gct-id-foreground: #e6f0ff;
+  --gct-id-border: #536a88;
+  --gct-theme-accent: #9bc7ff;
+  --gct-theme-subtle: #26364c;
+  --gct-theme-control-border: #465a76;
+  --gct-sticky-actions-background: var(--gct-theme-surface);
+  --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+  --gct-sticky-actions-hover: var(--gct-theme-hover);
+
 
   /* Legacy Main-styles/main.css aliases (migration bridge). */
   --bg: var(--gct-theme-canvas);
