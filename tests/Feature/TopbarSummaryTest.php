@@ -188,4 +188,90 @@ class TopbarSummaryTest extends TestCase
             ->assertJsonPath('notifications.0.url', route('maintenance-referrals', [], false))
             ->assertJsonPath('notifications.0.message', 'Breakdown incident INC-001 was referred to Maintenance.');
     }
+
+    public function test_jo_review_is_separate_from_approved_active_work_in_topbar(): void
+    {
+        \App\Models\Admin\RolePermission::updateOrCreate(
+            ['role_key' => 'maintenance_head'],
+            [
+                'label' => 'Maintenance Head',
+                'department' => 'Maintenance',
+                'role_type' => 'head',
+                'permissions' => ['maintenance' => ['approve' => true]],
+            ]
+        );
+
+        $head = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        $staff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        foreach ([
+            ['JO-QA-REVIEW', 'On Going', 'For Review'],
+            ['JO-QA-APPROVED', 'On Going', 'Approved'],
+            ['JO-QA-HOLD', 'On Hold', 'Approved'],
+        ] as [$number, $status, $review]) {
+            DB::table('job_orders')->insert([
+                'job_order_no' => $number,
+                'bus_no' => 'QA-001',
+                'problem_issue' => 'Topbar QA',
+                'maintenance_type' => 'Corrective',
+                'status' => $status,
+                'review_status' => $review,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $headActions = collect(app(\App\Services\TopbarSummaryService::class)->summary($head)['pending_actions'])
+            ->pluck('count', 'label');
+        $this->assertSame(1, $headActions->get('Job orders awaiting Head review'));
+        $this->assertSame(1, $headActions->get('Job orders in progress'));
+        $this->assertSame(1, $headActions->get('Job orders on hold'));
+
+        $staffActions = collect(app(\App\Services\TopbarSummaryService::class)->summary($staff)['pending_actions'])
+            ->pluck('count', 'label');
+        $this->assertFalse($staffActions->has('Job orders awaiting Head review'));
+        $this->assertSame(1, $staffActions->get('Job orders in progress'));
+    }
+
+    public function test_submitted_jo_notification_is_maintenance_only_and_not_an_approval(): void
+    {
+        $maintenance = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        $operation = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        TopbarNotification::create([
+            'module' => 'Maintenance',
+            'entity' => 'JobOrder',
+            'action' => 'submitted_for_review',
+            'record_id' => 12,
+            'message' => 'JO-2026-0012 submitted for Maintenance Head review (not yet approved).',
+            'created_by' => $maintenance->id,
+        ]);
+
+        $this->actingAs($maintenance)
+            ->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonPath('notifications.0.action', 'submitted_for_review')
+            ->assertJsonPath('notifications.0.message', 'JO-2026-0012 submitted for Maintenance Head review (not yet approved).');
+
+        $this->actingAs($operation)
+            ->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonCount(0, 'notifications');
+    }
 }
