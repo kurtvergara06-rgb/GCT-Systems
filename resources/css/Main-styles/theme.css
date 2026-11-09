@@ -695,3 +695,28 @@ button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
 :is(.ir-active-tab,.warehouse-record-tab,.gct-record-tab).is-active .gct-record-tab-count{
   background:#dbeafe;color:#15549e;
 }
+
+/*
+ * Semantic dark palette. Deliberately gated by the Operation page marker
+ * until other departments are migrated. Light Mode keeps its original tokens.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+  --gct-theme-canvas: #0b1220;
+  --gct-theme-surface: #162235;
+  --gct-theme-surface-raised: #203047;
+  --gct-theme-hover: #293a52;
+  --gct-theme-input: #101b2b;
+  --gct-theme-fg: #edf3fc;
+  --gct-theme-muted: #b1bfd2;
+  --gct-theme-placeholder: #879ab3;
+  --gct-theme-border: #35465e;
+  --gct-theme-focus: #8cb6ff;
+
+  --bg-main: var(--gct-theme-canvas);
+  --surface: var(--gct-theme-surface);
+  --text-main: var(--gct-theme-fg);
+  --text-muted: var(--gct-theme-muted);
+  --border-soft: var(--gct-theme-border);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.24);
+  --shadow-card: 0 16px 36px rgba(0, 0, 0, 0.30);
+}
