@@ -746,9 +746,16 @@ class OperationMasterListHardeningTest extends TestCase
         $manual = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
         $automatic = file_get_contents(app_path('Http/Controllers/Operation/AutoSchedulingController.php'));
 
-        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $manual);
+        $jobOrderModel = file_get_contents(app_path('Models/Maintenance/JobOrder.php'));
+
+        // The single authoritative dispatch-blocking scope excludes completed work
+        // and allows planned PMS until actual work starts.
+        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $jobOrderModel);
+        $this->assertStringContainsString('scopeBlocksDispatch', $jobOrderModel);
+        $this->assertStringContainsString("->whereNotNull('actual_started_at')", $jobOrderModel);
+        $this->assertStringContainsString('->blocksDispatch()', $manual);
         $this->assertStringContainsString('unresolved Maintenance Job Order', $manual);
-        $this->assertStringContainsString("->where('status', '!=', 'Completed')", $automatic);
+        $this->assertStringContainsString('->blocksDispatch()', $automatic);
         $this->assertStringContainsString('unresolved Maintenance Job Order', $automatic);
     }
 
