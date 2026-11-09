@@ -3081,9 +3081,9 @@
     padding: 11px 15px !important;
     border-top: 2px solid #cbd9ec !important;
     border-bottom: 1px solid #cbd9ec !important;
-    background: #eaf1fb !important;
+    background: var(--gct-trip-group-heading-bg, #eaf1fb) !important;
     text-align: left !important;
-    color: #203957 !important;
+    color: var(--gct-trip-group-heading-fg, #203957) !important;
     font-size: 12px !important;
     font-weight: 600 !important;
 }
