@@ -154,15 +154,15 @@ html[data-gct-theme="dark"]:has(.account-page) .main :is(.gct-preference-section
    these semantic properties are supplied by the active department page.
    Do not recolor action buttons or status badges: their tones encode actions. */
 html[data-gct-theme="dark"] .routes-page {
-    --route-text: #e4ecf7;
-    --route-muted: #a9bbd3;
-    --route-border: #354761;
-    --route-soft-border: #354761;
-    --route-card: #1d2b40;
-    --route-table-head: #243750;
-    --gct-sticky-actions-background: #1d2b40;
-    --gct-sticky-actions-heading: #243750;
-    --gct-sticky-actions-hover: #293c56;
+    --route-text: var(--gct-theme-fg, #e4ecf7);
+    --route-muted: var(--gct-theme-muted, #a9bbd3);
+    --route-border: var(--gct-theme-border, #354761);
+    --route-soft-border: var(--gct-theme-border, #354761);
+    --route-card: var(--gct-theme-surface, #1d2b40);
+    --route-table-head: var(--gct-theme-surface-raised, #243750);
+    --gct-sticky-actions-background: var(--gct-theme-surface, #1d2b40);
+    --gct-sticky-actions-heading: var(--gct-theme-surface-raised, #243750);
+    --gct-sticky-actions-hover: var(--gct-theme-hover, #293c56);
 }
 html[data-gct-theme="dark"] .routes-page .routes-table thead,
 html[data-gct-theme="dark"] .routes-page .routes-table thead th {
