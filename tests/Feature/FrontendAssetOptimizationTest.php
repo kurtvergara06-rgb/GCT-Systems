@@ -192,7 +192,8 @@ class FrontendAssetOptimizationTest extends TestCase
         $script = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/trip-schedule.js'));
         $styles = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/trip-schedule.css'));
 
-        $this->assertStringContainsString("->groupBy('trip_date', 'status')", $controller);
+        $this->assertStringContainsString("->groupBy('trip_date', 'status', 'assignment_status')", $controller);
+        $this->assertStringContainsString("'Partially Assigned' => 'partial'", $controller);
         $this->assertStringContainsString("'Missed' => 'missed'", $controller);
         $this->assertStringContainsString("'Pending DDR' => 'pending_ddr'", $controller);
         $this->assertStringContainsString('trip-calendar-status-legend', $view);
@@ -230,7 +231,7 @@ class FrontendAssetOptimizationTest extends TestCase
 
         $this->assertStringContainsString('data-assignment-calendar', $view);
         $this->assertStringContainsString('driver-bus-assignment.calendar', $view);
-        $this->assertStringContainsString('Assignment Status Legend', $view);
+        $this->assertStringContainsString('Trip Status Legend', $view);
         $this->assertStringContainsString('name="trip_date"', $view);
         $this->assertStringContainsString("registerInitializer('operation-assignment-calendar'", $script);
         $this->assertStringContainsString("url.searchParams.set('trip_date', date)", $script);
