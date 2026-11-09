@@ -166,6 +166,16 @@ class TopbarSummaryService
             ],
         ];
 
+        // Review decisions are restricted to the Maintenance Head. They must
+        // not be presented as work already approved and in progress.
+        if ($department === 'maintenance'
+            && strtolower(trim((string) $user->role)) === 'head'
+            && $user->hasSystemPermission('maintenance', 'approve')) {
+            array_unshift($actionsByDepartment['maintenance'],
+                ['job_orders', 'review_status', ['For Review'], 'Job orders awaiting Head review', 'job-orders', 'fa-file-circle-question']
+            );
+        }
+
         return collect($actionsByDepartment[$department] ?? [])
             ->filter(function (array $definition): bool {
                 [$table, $column, , , $route] = $definition;
@@ -198,6 +208,15 @@ class TopbarSummaryService
                     $query->whereIn($column, $statuses);
                 }
 
+                // A draft JO may retain an operational status from legacy data.
+                // It is not active Maintenance work until Head approval.
+                if ($table === 'job_orders' && $column === 'status') {
+                    if (! Schema::hasColumn('job_orders', 'review_status')) {
+                        return null;
+                    }
+                    $query->where('review_status', 'Approved');
+                }
+
                 return [
                     'label' => $label,
                     'count' => $query->count(),
@@ -205,7 +224,7 @@ class TopbarSummaryService
                     'icon' => $icon,
                 ];
             })
-            ->filter(fn (array $action) => $action['count'] > 0)
+            ->filter(fn (?array $action) => $action !== null && $action['count'] > 0)
             ->values()
             ->all();
     }
