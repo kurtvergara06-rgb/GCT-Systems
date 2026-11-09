@@ -33,6 +33,27 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringNotContainsString('background: #000', $css);
     }
 
+    public function test_existing_dark_styles_are_scoped_and_identifiers_use_theme_tokens(): void
+    {
+        $preferencesCss = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+        $sharedUiCss = file_get_contents(resource_path('css/Main-styles/shared-ui-enhancements.css'));
+        $identifierCss = file_get_contents(resource_path('css/Main-styles/identifier-text.css'));
+        $themeCss = file_get_contents(resource_path('css/Main-styles/theme.css'));
+        $operationCss = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+        $tripCss = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/trip-schedule.css'));
+        $preferencesJs = file_get_contents(resource_path('js/Main-js/account-preferences.js'));
+
+        $this->assertStringContainsString('html[data-gct-theme="dark"]:has(.account-page)', $preferencesCss);
+        $this->assertStringNotContainsString('html[data-gct-theme="dark"] :is(body,.app,.main,.account-page,.account-main)', $preferencesCss);
+        $this->assertStringContainsString('var(--gct-id-background, #f8fbff)', $sharedUiCss);
+        $this->assertStringContainsString('var(--gct-id-foreground, #111827)', $identifierCss);
+        $this->assertStringContainsString('--gct-id-foreground: #e6f0ff', $themeCss);
+        $this->assertStringContainsString('var(--gct-trip-group-heading-bg, #eaf1fb) !important', $tripCss);
+        $this->assertStringContainsString('var(--gct-theme-surface)', $operationCss);
+        $this->assertStringContainsString("document.body.dataset.gctOperationPage === '1'", $preferencesJs);
+        $this->assertStringContainsString("root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light'", $preferencesJs);
+    }
+
     public function test_saved_theme_hydrates_before_vite_and_scope_tracks_partial_navigation(): void
     {
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
