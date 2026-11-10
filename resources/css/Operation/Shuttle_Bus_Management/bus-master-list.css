@@ -363,7 +363,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f1f5f9 !important;
+  background: var(--gct-screen-table-head, #f1f5f9) !important;
   padding: 13px 18px;
   color: #334155;
   font-size: 11px;

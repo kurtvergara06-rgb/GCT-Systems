@@ -315,7 +315,7 @@
                             <div class="trip-detail-grid">
                                 <div class="trip-detail-item full">
                                     <span class="trip-detail-label">Shuttle Route</span>
-                                    <span id="modalRouteName" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
+                                    <span id="modalRouteName" class="trip-detail-value" style="color: var(--gct-screen-accent, var(--trip-blue));">—</span>
                                 </div>
                                 <div class="trip-detail-item full">
                                     <span class="trip-detail-label">Origin & Destination</span>
@@ -338,13 +338,13 @@
                             <div class="trip-detail-grid">
                                 <div class="trip-detail-item">
                                     <span class="trip-detail-label">Assigned Plate Number</span>
-                                    <span id="modalBusNo" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
-                                    <small id="modalBusDetails" style="color: #64748b; font-size: 11px;">—</small>
+                                    <span id="modalBusNo" class="trip-detail-value" style="color: var(--gct-screen-accent, var(--trip-blue));">—</span>
+                                    <small id="modalBusDetails" style="color: var(--gct-screen-muted, #64748b); font-size: 11px;">—</small>
                                 </div>
                                 <div class="trip-detail-item">
                                     <span class="trip-detail-label">Assigned Driver</span>
                                     <span id="modalDriverName" class="trip-detail-value">—</span>
-                                    <small id="modalDriverId" style="color: #64748b; font-size: 11px;">—</small>
+                                    <small id="modalDriverId" style="color: var(--gct-screen-muted, #64748b); font-size: 11px;">—</small>
                                 </div>
                             </div>
                         </div>
@@ -380,7 +380,7 @@
                         <div class="trip-detail-section">
                             <h3 class="trip-detail-section-title">Operational Notes</h3>
                             <div class="trip-detail-item full" style="background: #ffffff; border: 1px dashed #cbd5e1;">
-                                <p id="modalNotes" style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">—</p>
+                                <p id="modalNotes" style="margin: 0; font-size: 13px; color: var(--gct-screen-fg, #334155); line-height: 1.5;">—</p>
                             </div>
                         </div>
                     </div>

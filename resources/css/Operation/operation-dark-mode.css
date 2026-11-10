@@ -563,3 +563,298 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     color: var(--gct-theme-fg);
 }
 /* Keep the designated yellow Export action and colored statuses unchanged. */
+
+/* Browser-audited legacy surfaces. Screen-only: printable records retain their
+   existing palette. Use background (not just background-color) on these shells
+   because the light dashboard and service headers also have background images. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+        --gct-screen-table-head: var(--gct-theme-surface-raised);
+        --gct-screen-fg: var(--gct-theme-fg);
+        --gct-screen-accent: var(--gct-theme-accent);
+        --gct-screen-muted: var(--gct-theme-muted);
+        --table-head: var(--gct-theme-surface-raised);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page {
+        --operation-card: var(--gct-theme-surface);
+        --operation-text: var(--gct-theme-fg);
+        --operation-muted: var(--gct-theme-muted);
+        --operation-border: var(--gct-theme-border);
+        --operation-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page {
+        --auto-card: var(--gct-theme-surface);
+        --auto-text: var(--gct-theme-fg);
+        --auto-muted: var(--gct-theme-muted);
+        --auto-border: var(--gct-theme-border);
+        --auto-soft-border: var(--gct-theme-border);
+        --auto-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page {
+        --ctt-text: var(--gct-theme-fg);
+        --ctt-muted: var(--gct-theme-muted);
+        --ctt-border: var(--gct-theme-border);
+        --ctt-soft-border: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-page {
+        --inc-text: var(--gct-theme-fg);
+        --inc-muted: var(--gct-theme-muted);
+        --inc-border: var(--gct-theme-border);
+        --inc-soft-border: var(--gct-theme-border);
+        --inc-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page {
+        --assign-text: var(--gct-theme-fg);
+        --assign-muted: var(--gct-theme-muted);
+        --assign-border: var(--gct-theme-border);
+        --assign-soft-border: var(--gct-theme-border);
+        --assign-table-head: var(--gct-theme-surface-raised);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .dashboard-card, .operation-command-header, .operation-date-filter,
+        .operation-trip-chart-card, .operation-incident-trend, .operation-activity-row,
+        .ctt-overview-card, .ctt-configurations-card, .ctt-client-card, .ctt-category-panel,
+        .service-panels-surface, .service-direction-panel, .service-direction-header,
+        .service-direction-footer, .resource-card, .assignment-table-wrap,
+        .auto-summary-card, .auto-card, .auto-calendar-grid-panel, .auto-calendar-detail,
+        .ddr-summary-card, .inc-summary-card, .inc-card,
+        .bus-master-list-page .table-wrap, .availability-table-wrap,
+        .ui-form-modal, .ui-form-modal-header, .ui-form-section, .ui-form-actions,
+        .route-modal.route-details-modal, .route-view-card, .route-map-active-field,
+        .ddr-record-dialog, .ddr-record-header, .ddr-record-footer,
+        .ddr-record-info > div, .ddr-primary-trip,
+        .trip-modal-header, .trip-overview-section, .trip-assigned-section,
+        .unit-records-card, .unit-records-table-wrap, .trip-execution-section,
+        .trip-database-telemetry-drawer, .trip-detail-item, .trip-modal-actions,
+        .batch-attendance-modal, .batch-control-btn, .batch-loading,
+        .bus-multi-client-entry, .bus-client-picker-trigger
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .stat-card h2, .trip-summary-card h2, .assignment-summary-card h2,
+        .ddr-summary-card h2, .inc-summary-card h2, .auto-summary-card h2,
+        .ctt-overview-card h2, .ctt-overview-card strong,
+        .ctt-configurations-card h2, .ctt-client-card h3,
+        .operation-dashboard-page .dashboard-card h2,
+        .operation-dashboard-page .dashboard-card h3,
+        .operation-chart-empty strong,
+        .resource-card h2, .assignment-card h2,
+        .service-direction-header h2, .service-direction-header h3,
+        .ddr-card h2, .inc-card h2,
+        .ui-form-modal h2, .ui-form-modal h3,
+        .ui-form-section-title, .ui-form-label, .ui-form-section > strong,
+        .route-modal h2, .route-modal h3,
+        .route-view-card strong, .route-view-card dt, .route-view-card dd,
+        .ddr-record-dialog h2, .ddr-record-dialog h3,
+        .ddr-record-info strong, .ddr-record-total strong,
+        .trip-modal h2, .trip-modal h3,
+        .trip-overview-section strong, .trip-assigned-section strong,
+        .trip-detail-item strong, .batch-attendance-modal h2
+    ) { color: var(--gct-theme-fg); }
+
+    /* Match the existing ID-scoped paper-DDR form rules without escalating to
+       important declarations. These are surfaces, never assignment/status tags. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-actions,
+        .ddr-report-meta-grid, .ddr-primary-trip, .ddr-extra-trip,
+        .ddr-extra-trip-body, .ddr-sched-panel, .ddr-sched-panel-compact,
+        .ddr-add-trip, .ddr-number-preview > span
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ddr-combo-input, .ddr-form-grid input, .ddr-modal-form-grid input,
+        .ddr-form-grid select, .ddr-extra-assignment, .ddr-combo-dropdown,
+        .ddr-route-note input
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ddr-report-heading strong, .ddr-multi-header strong,
+        .ddr-trip-one-heading strong, .ddr-sched-title,
+        .ddr-number-preview > label, .ddr-form-label
+    ) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .current-assignment-trip, .attendance-trip-date,
+        .assignment-table .schedule-cell strong, .assignment-table .route-cell strong,
+        .assignment-table .driver-info strong, .assignment-bus-info strong,
+        .unified-trip-date strong, .unified-trip-resource strong,
+        .ddr-table td > strong, .ddr-driver-cell > span, .ddr-route-cell > span,
+        .client-master-page .client-master-bus-count,
+        .gct-table-popover-heading strong, .gct-table-filter-field > span:first-child
+    ) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .operation-dashboard-page .section-eyebrow,
+        .operation-dashboard-page .fleet-legend-row > span,
+        .gct-table-popover-help, .gct-table-search-popover small,
+        .ui-form-modal-header p, .route-modal p, .ddr-record-header p,
+        .ddr-record-info span, .ctt-client-card p
+    ) { color: var(--gct-theme-muted); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ddr-table thead, .ddr-table th, .trip-table thead, .trip-table th,
+        .inc-table thead, .inc-table th, .availability-table thead,
+        .availability-table th, .assignment-table th,
+        .ddr-record-table th, .unit-records-table th
+    ) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-muted);
+        border-color: var(--gct-theme-border);
+    }
+
+    /* Form portals live outside main; give their controls their own scope. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ui-form-modal, .route-modal, .ddr-record-dialog, .batch-attendance-modal
+    ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .gct-picker-trigger, .ui-input-wrap, .ddr-combo-input,
+        .ddr-combo-dropdown, .driver-bus-picker-panel
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ui-form-modal, .route-modal, .ddr-record-dialog, .batch-attendance-modal
+    ) :is(label, .ui-form-label, .gct-picker-trigger-label) {
+        color: var(--gct-theme-fg);
+    }
+}
+
+@media screen {
+    /* Existing modal ID rules outrank class-only theme selectors. Match their
+       roots explicitly; all changes here remain palette-only. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal
+    ) :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body, .ui-form-actions,
+        .ui-form-section, .route-editor-section, .route-map-active-field,
+        .route-view-card, .route-view-modal,
+        .bus-details-modal, .bus-details-header, .bus-details-footer,
+        .bus-details-grid > div, .bus-details-route,
+        .client-master-form-section, .client-master-readonly-panel,
+        .trip-modal-header, .trip-overview-section, .trip-assigned-section,
+        .trip-execution-section, .trip-detail-item, .trip-modal-actions
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal
+    ) :is(h2, h3, label, dt, dd, .ui-form-section-title,
+        .bus-details-section strong, .ui-form-label) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #routeModal, #busModal, #editBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .ui-input-wrap, .gct-picker-trigger, .route-map-active-field
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-table .trip-group-heading span {
+        color: var(--gct-theme-muted);
+    }
+}
+
+@media screen {
+    /* Embedded incident pages already hydrate the account theme. Their legacy
+       workflow cards need the same semantic palette as the parent dialog. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-dialog, .inc-workflow-header, .inc-workflow-frame,
+        .inc-wf-identity, .inc-wf-tabs, .inc-wf-panel, .inc-wf-side-card,
+        .inc-wf-step-card, .inc-wf-details-grid > div, .inc-wf-update-card,
+        .inc-wf-records-grid article, .inc-context-panel
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-wf-details-highlight, .inc-wf-details-description,
+        .inc-wf-records-footnote, .inc-wf-update-context, .inc-wf-records-overview,
+        .inc-wf-parallel-heading, .inc-workflow-parallel-heading,
+        .inc-bus-trip-context, .inc-context-panel-head, .inc-context-panel-foot
+    ) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-header h2, .inc-wf-identity-copy h1,
+        .inc-wf-identity-copy strong, .inc-wf-panel h2, .inc-wf-panel h3,
+        .inc-wf-side-card h2, .inc-wf-side-card dd, .inc-wf-details-section-title,
+        .inc-wf-update-context strong, .inc-wf-records-overview strong,
+        .inc-wf-update-form-heading strong, .inc-wf-update-form label,
+        .inc-context-panel-head h3, .inc-bus-trip-context strong
+    ) { color: var(--gct-theme-fg); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-header p, .inc-wf-identity-copy p, .inc-wf-step-head p,
+        .inc-wf-side-card dt, .inc-wf-details-highlight p,
+        .inc-wf-details-eyebrow, .inc-wf-details-grid dt,
+        .inc-wf-details-grid dd small, .inc-wf-details-footnote,
+        .inc-wf-progress-caption, .inc-wf-parallel-heading small,
+        .inc-context-panel-head p, .inc-bus-trip-context small
+    ) { color: var(--gct-theme-muted); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-tabs button {
+        color: var(--gct-theme-muted);
+        background: transparent;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-tabs button:is(.is-active, :hover) {
+        color: var(--gct-theme-accent);
+        background: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.inc-wf-panel, .inc-context-panel) :is(input:not([type="checkbox"]), select, textarea) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+}
+
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.app.inc-embedded-workflow, .inc-workflow-board) {
+        background: var(--gct-theme-canvas);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-step-note:not(.is-success) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-inline-form > label {
+        color: var(--gct-theme-fg);
+    }
+}
+
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(h2, h3, .auto-calendar-month) {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .section-eyebrow:not(.warning) {
+        color: var(--gct-theme-accent);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(.auto-calendar-day:not(.is-selected), .auto-calendar-empty) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-day:not(.is-selected):hover {
+        background: var(--gct-theme-hover);
+    }
+}

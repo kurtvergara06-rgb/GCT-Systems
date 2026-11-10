@@ -98,4 +98,20 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("theme: 'light'", $preferences);
         $this->assertStringContainsString("['light', 'dark', 'system']", $preferences);
     }
+    public function test_screen_palette_covers_portals_and_preserves_print_fallbacks(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+        $ddrCss = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+        $ddrView = file_get_contents(resource_path('views/Operation/Daily_Driver_Reports/index.blade.php'));
+        $busJs = file_get_contents(resource_path('js/Operation/Shuttle_Bus_Management/bus-master-list.js'));
+
+        $this->assertStringContainsString('@media screen', $css);
+        foreach (['.inc-workflow-board', '.inc-wf-step-card', '#ddrEncodeModal', '#viewBusModal', '.operation-command-header'] as $selector) {
+            $this->assertStringContainsString($selector, $css);
+        }
+        $this->assertStringContainsString('var(--gct-screen-table-head, #f3f7fc)', $ddrCss);
+        $this->assertStringContainsString('var(--gct-screen-fg, var(--ddr-navy))', $ddrView);
+        $this->assertStringContainsString("(button.dataset.clientNames || 'Not allocated')", $busJs);
+        $this->assertStringNotContainsString('!important', $css);
+    }
 }

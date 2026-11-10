@@ -579,7 +579,7 @@
     z-index: 2;
     background: var(--ddr-table-head);
     z-index: 10;
-    background-color: #f3f7fc !important;
+    background-color: var(--gct-screen-table-head, #f3f7fc) !important;
 
     padding: 13px 14px;
 

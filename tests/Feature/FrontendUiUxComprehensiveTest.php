@@ -935,9 +935,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
         // The sticky-actions utility uses a light default background unless
         // its semantic dark-mode properties are explicitly provided.
         $this->assertStringContainsString('Routes dark-mode contrast contract', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-background: #1d2b40', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-heading: #243750', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-hover: #293c56', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-background: var(--gct-theme-surface, #1d2b40)', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-heading: var(--gct-theme-surface-raised, #243750)', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-hover: var(--gct-theme-hover, #293c56)', $styles);
         // Auto-ID badges use a global black-text !important rule. Their
         // narrow Routes dark-mode override must restore readable ID text.
         $this->assertStringContainsString('.routes-table tbody td:first-child .system-id-badge', $styles);

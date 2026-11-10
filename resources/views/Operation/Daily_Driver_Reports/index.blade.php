@@ -140,12 +140,12 @@
                                     </td>
 
                                     <td>
-                                        <strong style="font-size: 12px; color: var(--ddr-navy);">{{ $dateFormatted }}</strong>
+                                        <strong style="font-size: 12px; color: var(--gct-screen-fg, var(--ddr-navy));">{{ $dateFormatted }}</strong>
                                     </td>
 
                                     <td>
                                         <div style="display: flex; flex-direction: column; gap: 2px;">
-                                            <span style="font-weight: 700; color: var(--ddr-navy);">{{ $report->driver_name }}</span>
+                                            <span style="font-weight: 700; color: var(--gct-screen-fg, var(--ddr-navy));">{{ $report->driver_name }}</span>
                                             @if($report->driver_id)
                                                 <small style="color: var(--ddr-muted); font-size: 11px;">{{ $report->driver_id }}</small>
                                             @endif
@@ -171,7 +171,7 @@
                                     </td>
 
                                     <td>
-                                        <span style="font-weight: 700; color: var(--ddr-navy); font-size: 12px;">
+                                        <span style="font-weight: 700; color: var(--gct-screen-fg, var(--ddr-navy)); font-size: 12px;">
                                             {{ $departureFmt }} <span style="color: #94a3b8;">→</span> {{ $arrivalFmt }}
                                         </span>
                                         <br>
