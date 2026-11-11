@@ -182,7 +182,7 @@
   gap: 10px;
   margin-bottom: 14px;
   padding: 10px 12px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   border: 1px solid var(--bus-border, #dce5f2);
   border-radius: 12px;
   box-shadow: none;
@@ -212,7 +212,7 @@
   padding: 0 14px 0 40px;
   border: 1px solid #dce5f2;
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   color: var(--bus-text, #0f172a);
   font-size: 13px;
   font-weight: 500;
@@ -268,7 +268,7 @@
   padding: 0 34px 0 14px;
   border: 1px solid #dce5f2;
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   color: #1e293b;
   font-size: 13px;
   font-weight: 600;
@@ -402,7 +402,7 @@
 }
 
 .bus-table tbody tr:hover {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 .bus-table tbody tr:last-child td {
@@ -1451,11 +1451,11 @@
 #viewBusModal .bus-details-section strong { display: block; font-size: 14px; color: #142747; }
 #viewBusModal .bus-details-section p { margin: 3px 0 0; font-size: 12px; color: #64748b; }
 #viewBusModal .bus-details-grid { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 18px; }
-#viewBusModal .bus-details-grid > div { padding: 13px 15px; background: #f8fafc; border: 1px solid #dbe5f1; border-radius: 10px; min-width: 0; }
+#viewBusModal .bus-details-grid > div { padding: 13px 15px; background: var(--gct-ui-surface-hover, #f8fafc); border: 1px solid #dbe5f1; border-radius: 10px; min-width: 0; }
 #viewBusModal dt { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #687b97; margin-bottom: 8px; }
 #viewBusModal dd { margin: 0; color: #112a4b; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
 #viewBusModal .bus-details-route-heading { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e4ecf6; }
-#viewBusModal .bus-details-route { padding: 14px 16px; background: #f8fafc; border: 1px solid #dbe5f1; border-radius: 10px; color: #112a4b; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+#viewBusModal .bus-details-route { padding: 14px 16px; background: var(--gct-ui-surface-hover, #f8fafc); border: 1px solid #dbe5f1; border-radius: 10px; color: #112a4b; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
 #viewBusModal .bus-details-status { display: inline-flex; border-radius: 999px; padding: 5px 12px; background: #e5e7eb; color: #334155; }
 #viewBusModal .bus-details-status[data-status="Active"] { background: #dcfce7; color: #166534; }
 #viewBusModal .bus-details-status[data-status="Inactive"] { background: #fee2e2; color: #991b1b; }
@@ -1477,7 +1477,7 @@
 #busModal .ui-form-modal-scrollable > .form-group { margin: 0; min-width: 0; }
 #busModal .ui-form-modal-scrollable > .form-group.full-width { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid #e4edf7; }
 #busModal .form-group label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 800; color: #102649; }
-#busModal .form-group input, #busModal .form-group select { box-sizing: border-box; width: 100%; min-height: 45px; border: 1px solid #d8e4f3; border-radius: 10px; padding: 0 13px; background: #fff; color: #112a4b; font-size: 13px; }
+#busModal .form-group input, #busModal .form-group select { box-sizing: border-box; width: 100%; min-height: 45px; border: 1px solid #d8e4f3; border-radius: 10px; padding: 0 13px; background: var(--gct-ui-surface, #fff); color: #112a4b; font-size: 13px; }
 #busModal .form-group input:focus, #busModal .form-group select:focus { outline: 2px solid #bfdbfe; outline-offset: 1px; border-color: #2563eb; }
 #busModal .ui-form-actions { margin-top: 21px; padding-top: 17px; border-top: 1px solid #e4edf7; }
 #busModal .ui-form-btn-primary { background: #ffb900; color: #102649; border-color: #ffb900; font-weight: 800; }
@@ -1572,7 +1572,7 @@
 }
 
 /* Separate fleet-purpose tabs; operational status filters remain independent. */
-.bus-fleet-tabs { display:flex; gap:4px; width:max-content; max-width:100%; margin:0 0 14px; padding:4px; border:1px solid #d9e2ee; border-radius:12px; background:#f2f5fa; }
+.bus-fleet-tabs { display:flex; gap:4px; width:max-content; max-width:100%; margin:0 0 14px; padding:4px; border:1px solid #d9e2ee; border-radius:12px; background:var(--gct-ui-surface-raised, #f2f5fa); }
 .bus-fleet-tab { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:9px; font-size:12px; font-weight:600; text-decoration:none; color:#475569; white-space:nowrap; }
 .bus-fleet-tab.is-active { background:#fff; color:#112b50; box-shadow:0 1px 4px #0f172a17; }
 .bus-fleet-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
@@ -1592,7 +1592,7 @@
 #busModal .ui-form-modal-header,
 #editBusModal .bus-edit-design > .modal-header {
   padding: 22px 26px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-bottom: 1px solid #e6edf6;
 }
 #busModal .ui-form-modal-scrollable,
@@ -1634,7 +1634,7 @@
 #editBusModal .form-group select {
   border-radius: 9px;
   min-height: 47px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 #busModal .bus-purpose-note,
 #editBusModal .bus-purpose-note {
@@ -1675,7 +1675,7 @@
 #busModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
 #busModal .bus-modal-field-grid > .form-group, #busModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
 #busModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
-#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:15px 4px; background:#fff; }
+#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:15px 4px; background:var(--gct-ui-surface, #fff); }
 @media(max-width:640px) {
   #busModal .bus-modal-field-grid, #busModal .bus-modal-lower { grid-template-columns:1fr; }
   #busModal .ui-form-modal-body { padding:12px 14px 0; }
@@ -1695,7 +1695,7 @@
 #editBusModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
 #editBusModal .bus-no-lock-hint { margin:10px 0 0; }
 #editBusModal .bus-maintenance-lock-notice { margin:12px 0 0; }
-#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:16px 24px; background:#fff; border-top:1px solid #e6edf6; flex-shrink:0; }
+#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:16px 24px; background:var(--gct-ui-surface, #fff); border-top:1px solid #e6edf6; flex-shrink:0; }
 @media(max-width:640px) {
  #editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { grid-template-columns:1fr; }
  #editBusModal .bus-edit-scroll { padding:12px 14px; }
@@ -1766,7 +1766,7 @@
   padding: 4px;
   border: 1px solid #d9e2ee;
   border-radius: 12px;
-  background: #f2f5fa;
+  background: var(--gct-ui-surface-raised, #f2f5fa);
 }
 .bus-master-list-page .table-card > .bus-fleet-tabs .bus-fleet-tab {
   flex: 0 0 auto;
@@ -1801,7 +1801,7 @@
   padding: 0 15px;
   border: 1px solid #dce5f2;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   color: #102a4c;
   font: inherit;
   font-size: 12.5px;
@@ -1867,7 +1867,7 @@
 
 /* Sort button — clean white pill matching reference */
 .bus-master-list-page .bus-tool-trigger--sort {
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   border-color: #dce5f2;
   color: #1e293b;
 }
@@ -1878,7 +1878,7 @@
 .bus-master-list-page .bus-tool-trigger--sort:hover,
 .bus-master-list-page .bus-tool-trigger--sort[aria-expanded="true"],
 .bus-master-list-page .bus-tool-trigger--sort.bus-tool-active {
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
   border-color: #b8c9e0;
   color: #0f172a;
 }
@@ -1894,7 +1894,7 @@
   padding: 15px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   box-shadow:
     0 12px 32px rgba(15, 23, 42, 0.11),
     0 2px 6px rgba(15, 23, 42, 0.05);
@@ -1975,7 +1975,7 @@
   padding: 0 12px 0 36px;
   border: 1px solid #dbe3ef;
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   color: #0f172a;
   font-size: 12.5px;
   font-weight: 500;
@@ -2092,7 +2092,7 @@
   padding: 0 30px 0 32px;
   border: 1px solid #dbe3ef;
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
   color: #0f172a;
   font-size: 12px;
   font-weight: 500;
@@ -2188,7 +2188,7 @@
 
 /* Bus filter alignment and clean white default appearance. */
 .bus-master-list-page .bus-tool-trigger--filter:not(.bus-tool-active):not([aria-expanded="true"]) {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-color: #dce5f2;
   color: #102a4c;
 }
@@ -2196,7 +2196,7 @@
   color: #102a4c;
 }
 .bus-master-list-page .bus-tool-filter-panel {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid #dce5f2;
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
@@ -2222,7 +2222,7 @@
   margin: 0;
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
-  background-color: #fff;
+  background-color: var(--gct-ui-surface, #fff);
   width: 100%;
 }
 
@@ -2233,7 +2233,7 @@
   max-width: min(292px, calc(100vw - 32px));
   padding: 18px;
   border-radius: 14px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-popover-heading { margin-bottom: 5px; }
 .bus-master-list-page .bus-filter-helper {
@@ -2263,7 +2263,7 @@
   font-weight: 700;
   cursor: pointer;
 }
-.bus-master-list-page .bus-filter-clear { background: #fff; color: #5d6d85; }
+.bus-master-list-page .bus-filter-clear { background: var(--gct-ui-surface, #fff); color: #5d6d85; }
 .bus-master-list-page .bus-filter-clear:hover { background: #f5f7fa; }
 .bus-master-list-page .bus-filter-apply {
   border-color: #6d38d9 !important;
@@ -2303,7 +2303,7 @@
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
   border-color: #dce5f2;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   color: #102a4c;
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
@@ -2322,7 +2322,7 @@
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-clear {
   border-color: #dce5f2;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   color: #102a4c;
 }
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-apply {
@@ -2342,7 +2342,7 @@
   max-width: min(290px, calc(100vw - 32px));
   box-sizing: border-box;
   padding: 18px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-color: #dce5f2;
 }
 .bus-master-list-page .bus-tool-sort-panel .bus-popover-heading { margin-bottom: 5px; }
@@ -2357,7 +2357,7 @@
 .bus-master-list-page .bus-tool-sort-panel .bus-filter-group { margin-bottom: 14px; }
 .bus-master-list-page .bus-tool-sort-panel .bus-filter-label { margin-bottom: 5px; }
 .bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box { margin-left: 0; }
-.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box select { height: 40px; min-height: 40px; background: #fff; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box select { height: 40px; min-height: 40px; background: var(--gct-ui-surface, #fff); }
 .bus-master-list-page .bus-sort-hint {
   margin: 0 0 7px;
   color: #75849a;
@@ -2383,7 +2383,7 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.bus-master-list-page .bus-sort-reset { color: #102a4c; background: #fff; border: 1px solid #dce5f2; }
+.bus-master-list-page .bus-sort-reset { color: #102a4c; background: var(--gct-ui-surface, #fff); border: 1px solid #dce5f2; }
 .bus-master-list-page .bus-sort-reset:hover { background: #f5f7fa; }
 .bus-master-list-page .bus-sort-apply { color: #10213c; background: #ffb900; border: 1px solid #ffb900; }
 .bus-master-list-page .bus-sort-apply:hover { background: #f2ae00; }
@@ -2469,7 +2469,7 @@
 .bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter,
 .bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter.bus-tool-active,
 .bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter[aria-expanded="true"] {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-color: #dce5f2;
   color: #102a4c;
 }
@@ -2495,7 +2495,7 @@
 
 /* Final Bus Master List filter refinements: white field, colored text/dot, aligned badge. */
 .bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone] select {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-color: #dce5f2;
   box-shadow: none;
 }
@@ -2571,16 +2571,16 @@
 .bus-master-list-page .bus-table th,
 .bus-master-list-page .bus-table td { box-sizing: border-box; }
 .bus-master-list-page .bus-table thead th {
-    height: 41px; padding: 10px 12px; background: #f3f7fc;
+    height: 41px; padding: 10px 12px; background: var(--gct-ui-surface-raised, #f3f7fc);
     color: #435672; letter-spacing: .035em;
     font-size: 10px; font-weight: 750; vertical-align: middle; white-space: nowrap;
     border-bottom: 1px solid #dae4f2;
 }
 .bus-master-list-page .bus-table tbody td {
     padding: 11px 12px; height: 58px; vertical-align: middle;
-    background: #fff; border-bottom: 1px solid #e9eff8;
+    background: var(--gct-ui-surface, #fff); border-bottom: 1px solid #e9eff8;
 }
-.bus-master-list-page .bus-table tbody tr:hover td { background: #f8fbff; }
+.bus-master-list-page .bus-table tbody tr:hover td { background: var(--gct-ui-surface-hover, #f8fbff); }
 .bus-master-list-page .bus-table tbody tr:last-child td { border-bottom: 0; }
 .bus-master-list-page .bus-table th:nth-child(1) { width: 22%; }
 .bus-master-list-page .bus-table th:nth-child(2) { width: 12%; }
@@ -2602,7 +2602,7 @@
     display: inline-flex; width: fit-content; max-width: 100%;
     padding: 3px 7px; margin-bottom: 5px; border-radius: 6px;
     font-size: 10px; font-weight: 750; line-height: 1.3;
-    background: #f2f5fa; color: #63728a;
+    background: var(--gct-ui-surface-raised, #f2f5fa); color: #63728a;
 }
 .bus-master-list-page .bus-allocation-type.is-exclusive { color: #855b10; background: #fff4d9; }
 .bus-master-list-page .bus-allocation-type.is-shared { color: #2252a3; background: #e9f1ff; }
@@ -2807,7 +2807,7 @@
   padding: 7px;
   border: 1px solid #cfdcf0;
   border-radius: 9px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
@@ -2910,7 +2910,7 @@
   gap: 7px;
   border: 1px solid #cfdcf0;
   border-radius: 8px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry:focus-within {
   border-color: #7daaff;
@@ -2927,7 +2927,7 @@
 .bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger {
   display: flex; width: 100%; min-width: 0; height: 39px; align-items: center;
   justify-content: space-between; gap: 10px; padding: 0 11px;
-  border: 1px solid #cad9ed; border-radius: 8px; background: #fff;
+  border: 1px solid #cad9ed; border-radius: 8px; background: var(--gct-ui-surface, #fff);
   color: #3c5272; font: inherit; font-size: 12px; text-align: left;
   cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
 }
@@ -2942,7 +2942,7 @@
 .bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu {
   position: absolute; z-index: 60; left: 0; right: 0; bottom: calc(100% + 6px);
   max-height: 185px; overflow-y: auto; padding: 5px;
-  border: 1px solid #d3e0f3; border-radius: 10px; background: #fff;
+  border: 1px solid #d3e0f3; border-radius: 10px; background: var(--gct-ui-surface, #fff);
   box-shadow: 0 14px 35px rgba(24,55,100,.18);
 }
 .bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu[hidden] { display: none !important; }
@@ -2999,10 +2999,10 @@
   white-space: nowrap;
 }
 .bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr > td.bus-actions-cell {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 .bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr:hover > td.bus-actions-cell {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 
