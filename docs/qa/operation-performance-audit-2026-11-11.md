@@ -162,3 +162,31 @@ window.GCTRealtimeHealth
 ```
 
 Check Network → WS for the upgrade request, HTTP status, and failure response. For end-to-end acceptance, use two separate authenticated browser sessions and make a permitted record update. A `connected` state alone does not prove event delivery. If the public key is absent in the Vite build, `GCTRealtimeConfigurationReady` will be false; correct the configured environment and rebuild assets instead of inventing a key. This diagnostics change does not modify the Render deployment.
+
+### Live AI diagnosis from the local development machine
+
+The Python Engine's public endpoints could not be resolved from the audit environment. This is **not** proof of service downtime. Inspect from a machine with normal DNS/internet access:
+
+```powershell
+$base = 'https://gct-python-engine.onrender.com'
+Measure-Command { Invoke-RestMethod "$base/health" -TimeoutSec 60 }
+Invoke-RestMethod "$base/operation/auto-scheduling/ai/training/status" -TimeoutSec 60 |
+  Select-Object success,bus_model_ready,driver_model_ready,bus_source,driver_source,bus_sample_count,driver_sample_count,bus_reason,driver_reason
+```
+
+First check with a longer timeout to distinguish a free-instance cold start from a missing or broken deployment. Then check the same endpoint again to compare warmed response. Laravel currently caps its AI readiness request at **three seconds** and its connect timeout at **one second**; changing those caps globally would delay user-facing scheduling pages, so no such change was made. If the endpoint returns model readiness with `driver_source=data_fallback`, the service is available but the driver model legitimately lacks sufficient genuine data. Never change readiness thresholds or set training-state flags to force a passing indicator.
+
+### Local Vite verification
+
+```powershell
+# Confirm which URL is advertised by the existing hot file.
+if (Test-Path public/hot) { Get-Content public/hot }
+# Compare that URL against the actual running Vite process and its browser response.
+npm.cmd run build
+```
+
+Do not delete `public/hot` or restart the server until confirming that its advertised process is stopped and the file is stale. Use the local-only `?_gct_profile=1` compiled-asset mode to distinguish Vite network delays from application rendering time.
+
+### Current instrumentation status
+
+`window.GCTRealtimeHealth` now reports `disabled` when the Vite public Reverb key is absent, `initializing` before connection state is available, or the WebSocket library's actual connection state after startup. This is diagnostic instrumentation and does not guarantee broadcast delivery. Browser WebSocket upgrade and two-session broadcast remain unverified.
