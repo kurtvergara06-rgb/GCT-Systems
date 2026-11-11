@@ -586,7 +586,7 @@
     border-bottom: 1px solid var(--ddr-border);
     box-shadow: 0 1px 0 var(--ddr-border);
 
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
 
     font-size: 11px;
     font-weight: 700;
@@ -2036,7 +2036,7 @@ button.ddr-new-btn {
 .ddr-record-dialog-edit { width:min(650px,100%); }
 .ddr-record-header { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; border-bottom:1px solid #e2e8f0; padding:18px 22px; }
 .ddr-record-header h2 { font-size:17px; color:#122c4f; margin:0 0 3px; }
-.ddr-record-header p { font-size:12px; color:#64748b; margin:0; }
+.ddr-record-header p { font-size:12px; color: var(--gct-ui-muted, #64748b); margin:0; }
 .ddr-record-close { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; background:var(--gct-ui-surface, #fff); cursor:pointer; color:#193453; }
 .ddr-record-header .ddr-record-close { min-width:32px; padding:7px; }
 .ddr-record-body { padding:18px 22px; overflow-y:auto; min-height:0; }
@@ -2058,7 +2058,7 @@ button.ddr-new-btn {
 .ddr-record-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
 .ddr-record-fields label { display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:700; color:#183451; }
 .ddr-record-fields input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; color:#142c48; font:inherit; }
-.ddr-record-note { font-size:12px; color:#64748b; margin:0 0 15px; }
+.ddr-record-note { font-size:12px; color: var(--gct-ui-muted, #64748b); margin:0 0 15px; }
 @media(max-width:650px){ .ddr-record-info{grid-template-columns:repeat(2,minmax(0,1fr));}.ddr-record-fields{grid-template-columns:1fr;} }
 
 .ddr-record-dialog-edit > form { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
