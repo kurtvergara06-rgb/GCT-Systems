@@ -5,7 +5,7 @@
 
 .table-card,
 .attendance-card {
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -62,7 +62,7 @@
 
   gap: 10px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -100,7 +100,7 @@
 
   padding: 0 14px 0 40px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -148,7 +148,7 @@
 
   padding: 0 11px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -246,7 +246,7 @@
 }
 
 .attendance-table thead {
-  background: #f3f7fc;
+  background: var(--gct-ui-surface-raised, #f3f7fc);
 }
 
 .attendance-table th {
@@ -290,7 +290,7 @@
 }
 
 .attendance-table tbody tr:hover {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 .attendance-table tbody tr:last-child td {
@@ -963,7 +963,7 @@
 
   padding: 14px;
 
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
 
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1157,7 +1157,7 @@
   padding: 0 9px;
   border: 1px solid #d6e1ef;
   border-radius: 9px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   color: #183253;
   font: inherit;
   font-size: 12px;
@@ -1225,7 +1225,7 @@
 /* Keep Driver Attendance details aligned with Operation's refreshed modal layout. */
 #viewDriverAttendanceModal .ui-form-modal { width: min(660px, calc(100vw - 32px)); }
 #viewDriverAttendanceModal .attendance-details-grid { gap: 12px; }
-#viewDriverAttendanceModal .attendance-detail-card { border-color: #dbe5f1; background: #f8fafc; transition: border-color .15s ease; }
+#viewDriverAttendanceModal .attendance-detail-card { border-color: #dbe5f1; background: var(--gct-ui-surface-hover, #f8fafc); transition: border-color .15s ease; }
 #viewDriverAttendanceModal .attendance-detail-card label { font-size: 10px; letter-spacing: .06em; }
 #viewDriverAttendanceModal .attendance-detail-value { color: #10213e; }
 #viewDriverAttendanceModal .ui-form-actions { border-top: 1px solid #e8eef5; padding-top: 17px; }
