@@ -6,6 +6,17 @@ use Tests\TestCase;
 
 class OperationDarkModeFoundationTest extends TestCase
 {
+    public function test_realtime_frontend_does_not_initialize_echo_without_public_key(): void
+    {
+        $js = file_get_contents(resource_path('js/echo.js'));
+
+        $this->assertStringContainsString("String(import.meta.env.VITE_REVERB_APP_KEY || '').trim()", $js);
+        $this->assertStringContainsString('window.GCTRealtimeConfigurationReady = reverbAppKey.length > 0;', $js);
+        $this->assertStringContainsString('if (!window.GCTRealtimeConfigurationReady)', $js);
+        $this->assertStringContainsString('window.Echo = window.Echo || new Echo({', $js);
+        $this->assertStringContainsString('key: reverbAppKey,', $js);
+    }
+
     public function test_navigation_initializer_releases_resources_when_initialization_fails(): void
     {
         $js = file_get_contents(resource_path('js/Main-js/partial-navigation.js'));
