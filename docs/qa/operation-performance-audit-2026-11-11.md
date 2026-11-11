@@ -114,3 +114,37 @@ git pull --ff-only origin feature/global-dark-mode
 ```
 
 The targeted patch is ready for review. AI/Reverb service connectivity and the broader live acceptance checks listed above remain separate work; this audit does not certify the whole system as production-ready.
+## Infrastructure follow-up — 2026-11-11 (read-only Render inspection)
+
+This follow-up inspected the three connected Render services and the feature-branch source without changing production environment variables, restarting services, or deploying to `main`.
+
+| Service | Render role | Branch configured | Observed evidence | Remaining verification |
+| --- | --- | --- | --- | --- |
+| `GCT-Systems` | Laravel web app | `main` | Existing scheduler app logs show the missed-trip and trip-status jobs completing; no independent realtime delivery test | Authenticated web request and broadcast from a separate session |
+| `GCT-Web_Socket` | Reverb server | `main` | Render logged successful deployment (Nov 9) and `Starting server on 0.0.0.0:10000`; this proves startup, not a successful WebSocket upgrade | Browser WebSocket handshake/status code, allowed origin, public key, server-side signing credentials and end-to-end delivery |
+| `gct-python-engine` | FastAPI | `main` | Last visible successful deploy was Nov 2; no recent Python logs/metrics returned for this inspection | Request `/health` and `/operation/auto-scheduling/ai/training/status` from a networked environment; examine instance logs and HTTP response |
+
+All three services deploy from `main`, **not** from `feature/global-dark-mode`. Source fixes on the feature branch are not evidence that Render production uses them.
+
+### Reverb troubleshooting
+
+- The server-side binding port `PORT=10000` seen in Render startup logs is separate from the externally advertised HTTPS/WSS port (normally 443).
+- On the frontend inspect `window.GCTRealtimeConfig` (public host/port/scheme only) and `window.GCTRealtimeConfigurationReady`; inspect the Network → WS request and its response, not merely the `connected` console string.
+- Compare the *names* and presence (never print secret values) of `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, `REVERB_HOST`, `REVERB_PORT`, `REVERB_SCHEME`, `REVERB_ALLOWED_ORIGINS`, `BROADCAST_CONNECTION`, and the compiled `VITE_REVERB_*` values for each service.
+- Public Reverb browser host should resolve to the socket service, not the Laravel web service. External HTTPS/WSS traffic must use the externally exposed port and TLS scheme. The `REVERB_SERVER_HOST`/`REVERB_SERVER_PORT` bind the process internally.
+- The feature branch now avoids constructing an invalid Echo instance when the public Reverb application key is absent. This prevents one configuration-related failure mode, **not** all connection errors. It does not replace a true two-browser broadcast test.
+
+### AI availability
+
+- The checked-in Operation AI state lists **367 bus samples and 6 driver samples**. The driver readiness code requires **10** distinct driver samples and intentionally returns `data_fallback` below this threshold; do not force `driver_model_ready=true` or fabricate data.
+- The service-wide `/health` response primarily reports required NLP module readiness. It is **not** equivalent to Operation AI model readiness.
+- An unavailable Python request/timeout is different from a reachable AI service that honestly reports `driver_model_ready=false`. Check the endpoint and Laravel's configured `OPERATION_AI_BASE_URL` and timeout separately.
+- Render's Python service has no recent logs/metric samples in the inspected time window; deployment and live API readiness remain **unverified**.
+
+### Local Vite
+
+- The prior audit reproduced a stale `public/hot` pointing at an unresponsive development server. This is an environment issue, not evidence that large CSS files caused the delay.
+- For local development, verify the Vite process and hot-file target against the same host/port; after stopping the server, remove a **stale** `public/hot` only after confirming its process is not running. Do not delete or change unrelated files.
+- `?_gct_profile=1` is a local-only compiled-asset profiling mode from the previous audit, not a production performance fix.
+
+**Readiness remains pending:** no successful production WebSocket handshake, two-session event propagation, or Python readiness request was verified in this follow-up.
