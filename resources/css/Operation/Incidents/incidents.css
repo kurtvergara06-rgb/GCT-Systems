@@ -1983,7 +1983,7 @@
 
 /* Incident report: optional context fields and readable inline errors. */
 .inc-page .inc-optional-label,
-#incidentReportModal .inc-optional-label { color:#64748b; font-size:11px; font-weight:500; }
+#incidentReportModal .inc-optional-label { color: var(--gct-ui-muted, #64748b); font-size:11px; font-weight:500; }
 #incidentReportModal .inc-inline-error { display:block; color:#b91c1c; font-size:11px; font-weight:650; margin-top:3px; }
 #incidentReportModal [aria-invalid="true"] { border-color:#dc2626 !important; box-shadow:0 0 0 2px rgba(220,38,38,.08); }
 
@@ -2016,7 +2016,7 @@
 }
 #incidentReportModal .inc-modal-form-grid .inc-form-group > input:disabled {
     background: #f1f5f9;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
 }
 #incidentReportModal .inc-modal-form-grid .ui-input-wrap.has-icon input {
     padding-left: 44px;
@@ -2317,7 +2317,7 @@
 .inc-page .inc-record-actions .inc-action-disabled,
 .inc-page .inc-record-actions .inc-action-disabled:hover {
     opacity:.5; cursor:not-allowed; border-color:#dbe2eb;
-    background:#f1f5f9; color:#64748b;
+    background:#f1f5f9; color: var(--gct-ui-muted, #64748b);
 }
 /* Keep the existing colored status pills but remove the leading dot. */
 .inc-page .inc-table td .badge[data-ui-component="status-badge"]::before {
@@ -3678,7 +3678,7 @@
 .inc-wf-details-grid dt {display:flex;align-items:center;gap:7px;color:#637a96;font-size:11px;}
 .inc-wf-details-grid dt i {width:13px;text-align:center;color:#3670c9;}
 .inc-wf-details-grid dd {font-size:13px;font-weight:750;overflow-wrap:anywhere;}
-.inc-wf-details-grid dd small {display:block;font-weight:500;color:#64748b;margin-top:3px;}
+.inc-wf-details-grid dd small {display:block;font-weight:500;color: var(--gct-ui-muted, #64748b);margin-top:3px;}
 .inc-wf-details-description {border:1px solid #dce5f2;border-radius:9px;background:var(--gct-ui-surface-hover, #f8fafc);
   padding:14px 16px;color:#233e5b;font-size:12px;line-height:1.7;white-space:pre-line;overflow-wrap:anywhere;}
 .inc-wf-details-replacement {display:flex;align-items:center;gap:10px;padding:12px 14px;
@@ -3704,7 +3704,7 @@
 .inc-wf-update-form-heading{display:flex;align-items:center;gap:10px;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid #e5edf6;}
 .inc-wf-update-form-heading>i{display:grid;place-items:center;width:33px;height:33px;border-radius:8px;background:#edf5ff;color:#1b61c7;}
 .inc-wf-update-form-heading strong{font-size:13px;color:#102b4c;display:block;}
-.inc-wf-update-form-heading small{display:block;margin-top:3px;font-size:11px;color:#64748b;}
+.inc-wf-update-form-heading small{display:block;margin-top:3px;font-size:11px;color: var(--gct-ui-muted, #64748b);}
 .inc-wf-update-field{margin-bottom:15px;}
 .inc-wf-update-form .inc-wf-update-field label{display:block;margin-bottom:7px;font-size:12px;font-weight:700;color:#334d6f;}
 .inc-wf-update-form .inc-wf-update-field select,.inc-wf-update-form .inc-wf-update-field textarea{width:100%;margin-bottom:0;background:var(--gct-ui-surface, #fff);border:1px solid #cbd9e9;border-radius:8px;padding:11px 12px;color:#173450;font-size:12px;line-height:1.6;}
@@ -3717,7 +3717,7 @@
 .inc-wf-records-grid article>i{grid-row:1 / 4;width:40px;height:40px;border-radius:10px;font-size:15px;}
 .inc-wf-records-grid article>span{font-size:11px;font-weight:650;}
 .inc-wf-records-grid article>strong{font-size:14px;overflow-wrap:anywhere;margin-top:4px;}
-.inc-wf-records-grid article>small{font-size:10px;color:#64748b;margin-top:4px;line-height:1.5;}
+.inc-wf-records-grid article>small{font-size:10px;color: var(--gct-ui-muted, #64748b);margin-top:4px;line-height:1.5;}
 .inc-wf-records-footnote{display:flex;align-items:flex-start;gap:8px;color:#617892;font-size:11px;line-height:1.5;margin-top:16px;padding:11px 12px;background:var(--gct-ui-surface-hover, #f8fafc);border:1px solid #e2e8f0;border-radius:8px;}
 @media(max-width:700px){.inc-wf-update-card{padding:12px;}.inc-wf-update-footer .inc-wf-primary-btn{width:100%;justify-content:center;}.inc-wf-records-grid{grid-template-columns:1fr;}}
 
