@@ -31,7 +31,13 @@ class TripAssignmentController extends Controller
             ->with([
                 'shuttleRoute',
                 'externalRentals',
-                'incidents' => fn ($incidentQuery) => $incidentQuery->where('incident_type', 'Bus Breakdown')->with('replacement'),
+                'incidents' => fn ($incidentQuery) => $incidentQuery
+                    ->where('incident_type', 'Bus Breakdown')
+                    ->with('replacement')
+                    ->withExists([
+                        'responses as has_oic_response' => fn ($responseQuery) => $responseQuery
+                            ->where('notes', '!=', 'Incident reported by driver.'),
+                    ]),
                 'assignments.bus',
                 'assignments.driverAttendance',
                 'assignments.reserveApproval',
