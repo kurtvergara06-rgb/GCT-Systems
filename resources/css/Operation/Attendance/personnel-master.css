@@ -2290,6 +2290,44 @@
 }
 
 
+/*
+ * Driver employment badge: keep the canonical component, but preserve the
+ * readable mint-green Active treatment against the dark records table.
+ * Legacy .badge.active and theme rules must not turn it dark green with
+ * low-contrast green text. Scope to Driver Master; do not change statuses in
+ * Attendance, Mechanics, or other departments.
+ */
+.personnel-master-page .driver-master-records-table [data-ui-component="status-badge"].driver-employment-status {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.personnel-master-page .driver-master-records-table [data-ui-component="status-badge"].driver-employment-status:is(
+  [data-status="positive"], [data-status="success"]
+) {
+  --gct-status-bg: #eaf9f0;
+  --gct-status-border: #c4ebd3;
+  --gct-status-text: #176c42;
+  background: var(--gct-status-bg);
+  border-color: var(--gct-status-border);
+  color: var(--gct-status-text);
+}
+.personnel-master-page .driver-master-records-table [data-ui-component="status-badge"].driver-employment-status[data-status="negative"] {
+  --gct-status-bg: #fff0f2;
+  --gct-status-border: #f6cbd1;
+  --gct-status-text: #ad3346;
+  background: var(--gct-status-bg);
+  border-color: var(--gct-status-border);
+  color: var(--gct-status-text);
+}
+.personnel-master-page .driver-master-records-table [data-ui-component="status-badge"].driver-employment-status :is(
+  .status-badge__icon, .status-badge__label
+) {
+  color: inherit;
+}
+
 /* Driver Master List only: keep column headers and cells on the same grid. */
 .personnel-master-page .driver-master-records-table {
     width: 100%;
