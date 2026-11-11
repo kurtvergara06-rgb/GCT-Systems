@@ -25,6 +25,12 @@ window.GCTRealtimeConfig = Object.freeze({
 // repeated connection errors and may interrupt unrelated page JavaScript).
 const reverbAppKey = String(import.meta.env.VITE_REVERB_APP_KEY || '').trim();
 window.GCTRealtimeConfigurationReady = reverbAppKey.length > 0;
+// Always expose diagnostic status, even when configuration is incomplete and
+// no Echo connection can be constructed.
+window.GCTRealtimeHealth = {
+    state: window.GCTRealtimeConfigurationReady ? 'initializing' : 'disabled',
+    changedAt: new Date().toISOString(),
+};
 if (!window.GCTRealtimeConfigurationReady) {
     console.warn('Realtime is disabled: VITE_REVERB_APP_KEY is not configured in the built assets.');
 } else {
