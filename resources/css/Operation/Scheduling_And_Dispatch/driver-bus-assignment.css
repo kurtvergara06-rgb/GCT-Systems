@@ -444,7 +444,7 @@
     border-bottom: 1px solid var(--assign-border);
     box-shadow: 0 1px 0 var(--assign-border);
 
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
 
     font-size: 11px;
     font-weight: 700;
@@ -1140,14 +1140,14 @@
 #assignmentModal .assignment-pair-trip { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #bfdbfe; border-radius: 9px; background: #eff6ff; padding: 13px 15px; margin-top: 12px; }
 #assignmentModal .assignment-pair-trip-main { display: grid; gap: 5px; min-width: 0; }
 #assignmentModal .assignment-pair-trip-main strong { color: #132b4d; font-size: 13px; }
-#assignmentModal .assignment-pair-trip-main span { color: #64748b; font-size: 11px; overflow-wrap: anywhere; }
+#assignmentModal .assignment-pair-trip-main span { color: var(--gct-ui-muted, #64748b); font-size: 11px; overflow-wrap: anywhere; }
 #assignmentModal #assignmentPairSlot { flex-shrink: 0; background: #e9f1ff; color: #1d4ed8; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 700; }
 #assignmentModal .assignment-pair-picker[hidden] { display: none; }
 #assignmentModal .assignment-pair-picker { margin: 12px 0 16px; min-width: 0; }
 #assignmentModal .assignment-pair-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
 #assignmentModal .assignment-pair-header div { display: grid; gap: 3px; }
 #assignmentModal .assignment-pair-header strong { font-size: 13px; color: #132b4d; }
-#assignmentModal .assignment-pair-header small { font-size: 11px; color: #64748b; }
+#assignmentModal .assignment-pair-header small { font-size: 11px; color: var(--gct-ui-muted, #64748b); }
 #assignmentModal .assignment-pair-header > span { flex-shrink: 0; font-size: 11px; color: #1d4ed8; font-weight: 700; background: #eff6ff; border-radius: 6px; padding: 6px 9px; }
 #assignmentModal #assignmentPairSearch { box-sizing: border-box; width: 100%; height: 40px; border: 1px solid #dce5f2; border-radius: 8px; background: var(--gct-ui-surface, #fff); padding: 0 12px; font: inherit; font-size: 12px; margin-bottom: 10px; }
 #assignmentModal .assignment-pair-list { display: grid; gap: 9px; max-height: min(42vh, 350px); overflow-y: auto; padding: 2px; overscroll-behavior: contain; }
@@ -1158,9 +1158,9 @@
 #assignmentModal .assignment-pair-driver > i, #assignmentModal .assignment-pair-bus > i { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 7px; background: #eaf2ff; color: #1751aa; }
 #assignmentModal .assignment-pair-driver span, #assignmentModal .assignment-pair-bus span { display: grid; min-width: 0; gap: 3px; }
 #assignmentModal .assignment-pair-card strong { font-size: 12px; overflow-wrap: anywhere; }
-#assignmentModal .assignment-pair-card small { font-size: 10px; color: #64748b; overflow-wrap: anywhere; }
+#assignmentModal .assignment-pair-card small { font-size: 10px; color: var(--gct-ui-muted, #64748b); overflow-wrap: anywhere; }
 #assignmentModal .assignment-pair-check { color: #2563eb; font-size: 16px; }
-#assignmentModal .assignment-pair-empty { padding: 18px; text-align: center; color: #64748b; font-size: 12px; }
+#assignmentModal .assignment-pair-empty { padding: 18px; text-align: center; color: var(--gct-ui-muted, #64748b); font-size: 12px; }
 @media (max-width: 650px) { #assignmentModal .assignment-pair-card { grid-template-columns: 1fr auto; } #assignmentModal .assignment-pair-bus { grid-column: 1; } #assignmentModal .assignment-pair-check { grid-column: 2; grid-row: 1 / 3; } }
 
 .assignment-validation {
@@ -1786,7 +1786,7 @@
 .assignment-page .resource-card .resource-record .resource-mobile-detail { display: none; font-weight: 800; }
 .assignment-page .resource-card .resource-record .resource-row-detail {
     min-width: 0;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 11px;
     font-weight: 800;
     overflow: hidden;
@@ -2524,7 +2524,7 @@
 .assignment-page .assignment-replacement-event strong { color: #142e50; }
 .assignment-page .assignment-replacement-event span { font-weight: 750; }
 .assignment-page .assignment-replacement-event p { margin: 0; }
-.assignment-page .assignment-replacement-event small { color: #64748b; }
+.assignment-page .assignment-replacement-event small { color: var(--gct-ui-muted, #64748b); }
 
 
 /* The sidebar reduces the actual assignment pane width: auto-fit summary
