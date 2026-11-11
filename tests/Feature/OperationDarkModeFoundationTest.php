@@ -65,6 +65,21 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light'", $preferencesJs);
     }
 
+    public function test_driver_master_original_css_uses_theme_tokens_for_legacy_controls(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Attendance/personnel-master.css'));
+
+        $this->assertStringContainsString('background: var(--gct-ui-surface, #fff);', $css);
+        $this->assertStringContainsString('background: linear-gradient(110deg, var(--gct-ui-surface, #fff)', $css);
+        $this->assertStringContainsString('color: var(--gct-ui-text, #112b50);', $css);
+        $this->assertStringContainsString('background: var(--gct-ui-input, #fdfefe)', $css);
+        $this->assertStringContainsString('-webkit-text-fill-color: var(--gct-ui-text, #2d405c)', $css);
+        $this->assertStringContainsString('border: 1px solid var(--gct-ui-border, #d3e0f1)', $css);
+        $this->assertStringContainsString('.personnel-modal-driver .driver-bus-picker-trigger', $css);
+        $this->assertStringNotContainsString('background: linear-gradient(110deg, #fff 65%', $css);
+        $this->assertDoesNotMatchRegularExpression('/^(?:<{7}|={7}|>{7})(?:[ \\t].*)?\\r?$/m', $css);
+    }
+
     public function test_operation_master_lists_and_sticky_action_columns_use_dark_tokens(): void
     {
         $css = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
