@@ -81,6 +81,23 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString('Keep the designated yellow Export action', $css);
     }
 
+    public function test_command_center_reference_table_and_fleet_cards_are_dark_themed(): void
+    {
+        $styles = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+        $dashboard = file_get_contents(resource_path('views/Operation/dashboard-operation.blade.php'));
+
+        $this->assertStringContainsString('Dashboard contrast repair.', $styles);
+        $this->assertStringContainsString('.operation-dashboard-page .operation-reference-table tbody tr > td', $styles);
+        $this->assertStringContainsString('.operation-dashboard-page .operation-reference-table tbody tr:hover > td', $styles);
+        $this->assertStringContainsString('.operation-dashboard-page .operation-reference-table tbody tr > td:last-child', $styles);
+        $this->assertStringContainsString('.operation-dashboard-page .operation-fleet-status-stack .fleet-status-item', $styles);
+        $this->assertStringContainsString('.operation-client-name, .operation-driver-info strong', $styles);
+        $this->assertStringContainsString('var(--gct-theme-fg)', $styles);
+        $this->assertStringContainsString('var(--gct-theme-surface)', $styles);
+        $this->assertStringContainsString('operation-reference-table', $dashboard);
+        $this->assertStringContainsString('fleet-status-item', $dashboard);
+    }
+
     public function test_saved_theme_hydrates_before_vite_and_scope_tracks_partial_navigation(): void
     {
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
