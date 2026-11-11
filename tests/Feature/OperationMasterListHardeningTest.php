@@ -24,6 +24,18 @@ class OperationMasterListHardeningTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_assignment_breakdown_oic_response_lookup_is_batched(): void
+    {
+        $controller = file_get_contents(app_path('Http/Controllers/Operation/TripAssignmentController.php'));
+        $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+
+        $this->assertStringContainsString("'responses as has_oic_response'", $controller);
+        $this->assertStringContainsString("->where('notes', '!=', 'Incident reported by driver.')", $controller);
+        $this->assertStringContainsString('(bool) $slotBreakdown->has_oic_response', $view);
+        $this->assertStringNotContainsString('$slotBreakdown->responses()->where(', $view);
+        $this->assertStringContainsString('slotBreakdown->status', $view);
+    }
+
     public function test_driver_master_identity_locks_are_batched_before_rendering(): void
     {
         $controller = file_get_contents(app_path('Http/Controllers/Operation/PersonnelController.php'));
