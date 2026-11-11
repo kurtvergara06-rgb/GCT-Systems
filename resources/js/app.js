@@ -76,3 +76,7 @@ const initializePageOnlyControls = () => {
 
 document.addEventListener('DOMContentLoaded', initializePageOnlyControls);
 window.addEventListener('gct:navigation-ready', initializePageOnlyControls);
+
+if (document.body.dataset.gctPerformanceProfile === '1') {
+    import('./Diagnostics/performance-profile.js');
+}

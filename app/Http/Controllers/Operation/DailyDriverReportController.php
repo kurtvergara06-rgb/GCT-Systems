@@ -86,37 +86,29 @@ class DailyDriverReportController extends Controller
             ->withQueryString();
 
         $totalReports = DailyDriverReport::query()->count();
-
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
-        $reportsToday = DailyDriverReport::query()
+        // Count and sum each source in one query. Additional DDR entries remain
+        // separate trips, and summaries stay independent of table filters.
+        $primarySummary = DailyDriverReport::query()
             ->whereDate('report_date', $today)
-            ->count();
-
-        $passengersToday = DailyDriverReport::query()
-            ->whereDate('report_date', $today)
-            ->sum('passengers')
-            + DailyDriverReportTripEntry::query()
-                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))
-                ->sum('passengers');
-
-        $tripsToday = DailyDriverReport::query()->whereDate('report_date', $today)->count()
-            + DailyDriverReportTripEntry::query()
-                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))->count();
-
-        $passengerCount = $tripsToday > 0
-            ? $passengersToday / $tripsToday
-            : 0;
+            ->selectRaw('COUNT(*) AS trip_count, COALESCE(SUM(passengers), 0) AS passenger_total')
+            ->first();
+        $additionalSummary = DailyDriverReportTripEntry::query()
+            ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))
+            ->selectRaw('COUNT(*) AS trip_count, COALESCE(SUM(passengers), 0) AS passenger_total')
+            ->first();
+        $reportsToday = (int) $primarySummary->trip_count;
+        $passengersToday = (int) $primarySummary->passenger_total + (int) $additionalSummary->passenger_total;
+        $tripsToday = $reportsToday + (int) $additionalSummary->trip_count;
+        $passengerCount = $tripsToday > 0 ? $passengersToday / $tripsToday : 0;
 
         $drivers = Driver::query()
             ->orderBy('driver_name')
             ->get(['driver_id', 'driver_name', 'shift', 'employment_status']);
 
-        $buses = Bus::query()
-            ->orderBy('bus_no')
-            ->get(['id', 'bus_no', 'plate_no', 'status']);
-
         [$activeBuses, $tripTicketSuggestions] = $this->encodeLookups();
+        $buses = $activeBuses; // Both controls use the same historical bus list.
 
         return view(
             'Operation.Daily_Driver_Reports.index',

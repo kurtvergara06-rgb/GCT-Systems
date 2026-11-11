@@ -102,7 +102,9 @@ const runInitializer = (key, rootSelector, initializer) => {
     if (!root) return;
 
     const controller = new AbortController();
+    const initializationStartedAt = window.GCTNavigationDiagnostics === true ? performance.now() : null;
     const observers = [];
+    const externalListenerCleanups = [];
     const intervals = [];
     const timeouts = [];
     const nativeAddEventListener = EventTarget.prototype.addEventListener;
@@ -112,6 +114,9 @@ const runInitializer = (key, rootSelector, initializer) => {
 
     EventTarget.prototype.addEventListener = function (type, listener, options) {
         if (options?.signal) {
+            // Preserve the caller's cancellation semantics, but do not let an
+            // explicit signal bypass page teardown or failed-init cleanup.
+            externalListenerCleanups.push(() => this.removeEventListener(type, listener, options));
             return nativeAddEventListener.call(this, type, listener, options);
         }
 
@@ -144,6 +149,7 @@ const runInitializer = (key, rootSelector, initializer) => {
 
     const cleanup = () => {
         controller.abort();
+        externalListenerCleanups.forEach(removeListener => removeListener());
         observers.forEach((observer) => observer.disconnect());
         intervals.forEach((id) => window.clearInterval(id));
         timeouts.forEach((id) => window.clearTimeout(id));
@@ -163,6 +169,10 @@ const runInitializer = (key, rootSelector, initializer) => {
         window.MutationObserver = NativeMutationObserver;
         window.setInterval = nativeSetInterval;
         window.setTimeout = nativeSetTimeout;
+        if (initializationStartedAt !== null) {
+            window.GCTInitializationTimings = (window.GCTInitializationTimings || []).slice(-29);
+            window.GCTInitializationTimings.push({ key, ms: Math.round((performance.now() - initializationStartedAt) * 10) / 10 });
+        }
     }
 };
 
@@ -666,6 +676,7 @@ const navigate = async (url, options = {}) => {
         await exitPromise;
         navClock?.checkpoint('exit animation');
         const response = await responsePromise;
+        if (controller.signal.aborted || activeRequest !== controller) return;
         navClock?.checkpoint('server response');
 
         const contentType = response.headers.get('content-type') || '';
@@ -675,6 +686,7 @@ const navigate = async (url, options = {}) => {
         }
 
         const html = await response.text();
+        if (controller.signal.aborted || activeRequest !== controller) return;
         const nextDocument = new DOMParser().parseFromString(html, 'text/html');
         navClock?.checkpoint('HTML parsed');
         if (!isCompatibleDocument(nextDocument)) {
@@ -692,6 +704,7 @@ const navigate = async (url, options = {}) => {
         navClock?.checkpoint('page initialized');
         navClock?.finish(response.url || targetUrl);
     } catch (error) {
+        if (controller.signal.aborted || activeRequest !== controller) return;
         if (error.name === 'AbortError') {
             if (activeRequest === controller) {
                 cleanupTransitionState();

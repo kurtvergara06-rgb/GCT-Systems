@@ -614,6 +614,37 @@ class DailyDriverReportTest extends TestCase
             ->assertDontSee('id="ddrEdit-', false);
     }
 
+    public function test_daily_summaries_include_additional_trips_and_ignore_table_filters(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-09-15 12:00:00', 'Asia/Manila'));
+        $payload = $this->validPayload();
+        $payload['additional_trips'] = [[
+            'trip_ticket' => 'TT-10002', 'from_location' => 'Lipa', 'to_location' => 'Tanauan',
+            'departure_time' => '07:00', 'arrival_time' => '07:45', 'passengers' => 17,
+        ]];
+        $this->actingAs($this->user)->post(route('daily-driver-reports.store'), $payload)
+            ->assertSessionHasNoErrors();
+        $yesterday = $this->validPayload();
+        $yesterday['report_date'] = '2026-09-14';
+        $this->post(route('daily-driver-reports.store'), $yesterday)->assertSessionHasNoErrors();
+        $this->get(route('daily-driver-reports', ['search' => 'no-matching-report']))
+            ->assertOk()->assertViewHas('totalReports', 2)->assertViewHas('reportsToday', 1)
+            ->assertViewHas('passengersToday', 42)->assertViewHas('passengerCount', 21);
+        $this->get(route('driver-attendance'))
+            ->assertOk()->assertViewHas('verifiedDrivers', 1)->assertViewHas('verifiedTripDays', 2)
+            ->assertViewHas('attendanceRecords', 2)->assertViewHas('lastVerifiedDate', '2026-09-15');
+        $this->get(route('driver-attendance', ['attendance_date' => '2026-09-14']))
+            ->assertOk()->assertViewHas('verifiedDrivers', 1)->assertViewHas('verifiedTripDays', 1)
+            ->assertViewHas('attendanceRecords', 1)->assertViewHas('lastVerifiedDate', '2026-09-14');
+    }
+
+    public function test_historical_bus_filters_and_encode_lookups_keep_inactive_buses(): void
+    {
+        $this->bus->update(['status' => 'Inactive']);
+        $this->actingAs($this->user)->get(route('daily-driver-reports'))->assertOk()
+            ->assertViewHas('buses', fn ($buses) => $buses->contains('id', $this->bus->id))
+            ->assertViewHas('activeBuses', fn ($buses) => $buses->contains('id', $this->bus->id));
+    }
     private function validPayload(): array
     {
         return [

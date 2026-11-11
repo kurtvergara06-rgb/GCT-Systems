@@ -863,21 +863,21 @@ function initDdrRecordModals() {
         modal.hidden = true;
         modal.classList.remove('is-open');
     };
-    document.querySelectorAll('.ddr-open-modal').forEach((button) => {
-        button.addEventListener('click', () => {
-            const modal = document.getElementById(button.dataset.ddrModal);
+    // Pagination and server filtering add rows and modal portals after init.
+    // One page-scoped delegate covers those records without rebinding handlers.
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest?.('.ddr-open-modal');
+        if (trigger) {
+            const modal = document.getElementById(trigger.dataset.ddrModal);
             if (!modal) return;
             modal.hidden = false;
             modal.classList.add('is-open');
             modal.querySelector('.ddr-record-close')?.focus();
-        });
-    });
-    document.querySelectorAll('.ddr-record-overlay').forEach((modal) => {
-        modal.querySelectorAll('.ddr-record-close').forEach((button) =>
-            button.addEventListener('click', () => close(modal)));
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) return; // Backdrop must not close the modal.
-        });
+            return;
+        }
+        const closeButton = event.target.closest?.('.ddr-record-close');
+        if (closeButton) close(closeButton.closest('.ddr-record-overlay'));
+        // A backdrop click intentionally does nothing.
     });
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;

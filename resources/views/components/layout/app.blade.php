@@ -9,6 +9,7 @@
   $operationThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Operation/')
   );
+  $performanceProfile = app()->environment('local') && request()->boolean('_gct_profile');
   $viteAssets = array_values(array_unique(array_merge([
     'resources/css/Main-styles/theme.css',
     'resources/css/Main-styles/main.css',
@@ -100,11 +101,21 @@
     </script>
   @endif
 
-  @vite($viteAssets)
+  @if($performanceProfile)
+    <script>window.GCTNavigationDiagnostics = true;</script>
+  @endif
+
+  @if($performanceProfile)
+    {{-- Use the production dependency graph for comparable local measurements,
+         without touching another developer's running Vite server or hot file. --}}
+    {{ (clone app(\Illuminate\Foundation\Vite::class))->useHotFile(storage_path('framework/profile-built-only.hot'))($viteAssets) }}
+  @else
+    @vite($viteAssets)
+  @endif
   @stack('styles')
 </head>
 
-<body @if($operationThemePage) data-gct-operation-page="1" @endif>
+<body @if($operationThemePage) data-gct-operation-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
   {{ $slot }}
 
   <x-ui.action-buttom-modal

@@ -206,6 +206,17 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     }) || null;
   };
 
+  const syncDdrRecordModals = (toolbar, parsed) => {
+    if (!toolbar.closest('.ddr-page')) return;
+    // Filtered rows can reference records absent from the original page.
+    // Replace this page's details portals too, keeping repeated searches bounded.
+    document.querySelectorAll('.ddr-record-overlay').forEach(modal => modal.remove());
+    parsed.querySelectorAll('.ddr-record-overlay[id]').forEach(modal => {
+      const replacement = document.importNode(modal, true);
+      replacement.dataset.pageOwned = 'true';
+      document.body.appendChild(replacement);
+    });
+  };
   const replaceServerFilteredTable = (toolbar, parsedToolbar, parsed) => {
     // Driver & Bus Assignment has two separate direction tables and a
     // date-specific print button. Updating only the first tbody mixes dates
@@ -280,6 +291,8 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
         document.importNode(parsedContext.footer, true)
       );
     }
+
+    syncDdrRecordModals(toolbar, parsed);
 
     toolbar.querySelectorAll('[data-table-tool-trigger]').forEach((trigger) => {
       const toolType = trigger.getAttribute('data-table-tool-trigger');

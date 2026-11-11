@@ -212,7 +212,7 @@
                     </table>
                 </div>
 
-                <x-ui.table-footer :items="$reports" />
+                <x-ui.table-footer :items="$reports" data-lazy-pagination="true" />
             </section>
 
         {{-- Saved DDRs expose view-only details; no edit or delete controls. --}}
