@@ -107,13 +107,13 @@
 }
 
 .personnel-search-btn {
-  background: #fff;
-  border: 1px solid #d8e2f0;
-  color: #0b2a4a;
+  background: var(--gct-ui-surface, #fff);
+  border: 1px solid var(--gct-ui-border, #d8e2f0);
+  color: var(--gct-ui-text, #0b2a4a);
 }
 
 .personnel-search-btn:hover {
-  background: #f1f5f9;
+  background: var(--gct-ui-surface-hover, #f1f5f9);
 }
 
 .personnel-add-btn {
@@ -1758,7 +1758,7 @@
   min-height: 103px;
   padding: 21px 26px;
   background: linear-gradient(110deg, var(--gct-ui-surface, #fff) 65%, var(--gct-ui-surface-raised, #f5f9ff) 100%);
-  border-bottom: 1px solid #e0e8f3;
+  border-bottom: 1px solid var(--gct-ui-border, #e0e8f3);
 }
 
 .personnel-modal-driver .driver-modal-icon {
@@ -1798,7 +1798,7 @@
   height: 36px;
   border-color: #dce6f1;
   border-radius: 9px;
-  color: #667e98;
+  color: var(--gct-ui-muted, #667e98);
   font-size: 15px;
 }
 
@@ -1827,7 +1827,7 @@
   gap: 12px;
   margin-top: 3px;
   padding: 11px 14px;
-  border: 1px solid #e4ecf6;
+  border: 1px solid var(--gct-ui-border, #e4ecf6);
   border-radius: 10px;
   background: var(--gct-ui-surface-hover, #f8fbff);
 }
@@ -1869,7 +1869,7 @@
   min-width: 0;
   min-height: 44px;
   overflow: hidden;
-  border: 1px solid #d7e2ef;
+  border: 1px solid var(--gct-ui-border, #d7e2ef);
   border-radius: 10px;
   background: var(--gct-ui-surface, #fff);
   transition: border-color .18s ease, box-shadow .18s ease;
@@ -1886,9 +1886,9 @@
   width: 42px;
   flex: 0 0 42px;
   align-self: stretch;
-  border-right: 1px solid #e8eef6;
+  border-right: 1px solid var(--gct-ui-border, #e8eef6);
   background: var(--gct-ui-surface-raised, #f8faff);
-  color: #6583aa;
+  color: var(--gct-ui-muted, #6583aa);
   font-size: 13px;
 }
 
@@ -1916,7 +1916,7 @@
 }
 
 .personnel-driver-form .driver-input-shell > input::placeholder {
-  color: #9aabc0;
+  color: var(--gct-ui-muted, #9aabc0);
   font-weight: 450;
 }
 
@@ -1925,10 +1925,10 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #315b96;
-  background: #edf5ff;
+  color: var(--gct-ui-text, #315b96);
+  background: var(--gct-ui-surface-raised, #edf5ff);
   padding: 11px 13px;
-  border: 1px solid #d3e4fc;
+  border: 1px solid var(--gct-ui-border, #d3e4fc);
   border-radius: 9px;
   font-size: 11px;
   font-weight: 650;
@@ -1939,7 +1939,7 @@
 }
 
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
-  border-color: #e3eaf3;
+  border-color: var(--gct-ui-border, #e3eaf3);
   background: var(--gct-ui-surface-hover, #f8fafc);
 }
 
@@ -1959,7 +1959,7 @@
   gap: 10px;
   margin: 2px -26px 0;
   padding: 15px 26px;
-  border-top: 1px solid #e4ebf4;
+  border-top: 1px solid var(--gct-ui-border, #e4ebf4);
   background: var(--gct-ui-surface, #fff);
   box-shadow: 0 -8px 22px rgba(15, 35, 71, .035);
 }
@@ -1983,8 +1983,8 @@
 
 .personnel-driver-form .driver-modal-actions .secondary-btn {
   background: var(--gct-ui-surface, #fff);
-  border: 1px solid #d5e1ef;
-  color: #224d82;
+  border: 1px solid var(--gct-ui-border, #d5e1ef);
+  color: var(--gct-ui-text, #224d82);
 }
 
 .personnel-driver-form .driver-modal-actions .primary-btn {
