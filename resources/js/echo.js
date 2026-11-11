@@ -309,10 +309,31 @@ window.listenForSystemUpdates = function () {
 
     if (!window.systemUpdatesConnectionBindingsStarted) {
         window.systemUpdatesConnectionBindingsStarted = true;
-        window.Echo.connector.pusher.connection.bind('connected', () => {
-            console.log('Realtime connected to Reverb.', window.GCTRealtimeConfig);
+        const connection = window.Echo.connector?.pusher?.connection;
+        // Public diagnostics only: never include the app secret, auth headers,
+        // private channels, event payloads, or signed connection parameters.
+        window.GCTRealtimeHealth = {
+            state: connection?.state || 'unavailable',
+            changedAt: new Date().toISOString(),
+        };
+        connection?.bind('state_change', ({ current }) => {
+            window.GCTRealtimeHealth = {
+                state: current,
+                changedAt: new Date().toISOString(),
+            };
         });
-        window.Echo.connector.pusher.connection.bind('error', (error) => console.error('Realtime Reverb connection error:', error));
+        connection?.bind('connected', () => {
+            console.info('Realtime connected to Reverb.', window.GCTRealtimeConfig);
+        });
+        connection?.bind('error', (error) => {
+            // The original error remains visible for troubleshooting, while
+            // GCTRealtimeHealth provides a safe, persistent state indicator.
+            console.error('Realtime Reverb connection error:', error);
+            window.GCTRealtimeHealth = {
+                state: connection?.state || 'error',
+                changedAt: new Date().toISOString(),
+            };
+        });
     }
 
     window.Echo.channel('system-updates').listen('.SystemDataUpdated', (payload) => {
