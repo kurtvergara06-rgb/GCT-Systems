@@ -108,7 +108,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td><x-ui.status-badge :status="$driver->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}" /></td>
+                            <td><x-ui.status-badge :status="$driver->employment_status" class="driver-employment-status" /></td>
                             <td><div class="actions">
                                 <x-ui.action-button type="view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" :data-record="$driverRecord" />
                                 @if($canEditOperation)
