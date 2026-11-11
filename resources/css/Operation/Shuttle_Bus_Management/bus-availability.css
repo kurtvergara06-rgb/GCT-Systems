@@ -8,8 +8,8 @@
 /* Bus Availability mirrors the official Bus Master List design. */
 .bus-availability-page .availability-stats{margin:0 0 18px;gap:14px}
 .bus-availability-page .availability-panel{margin-top:0;padding:14px;border-radius:14px;box-shadow:none}
-.bus-availability-page .availability-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 160px 160px;gap:10px;align-items:center;padding:10px 12px;background:#fff;border:1px solid #d9e4f0;border-radius:10px}
-.bus-availability-page .availability-toolbar .availability-search{min-width:0;width:100%;height:40px;background:#fff;border:1px solid #d9e4f0;border-radius:9px;padding:0 12px}
+.bus-availability-page .availability-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 160px 160px;gap:10px;align-items:center;padding:10px 12px;background:var(--gct-ui-surface, #fff);border:1px solid #d9e4f0;border-radius:10px}
+.bus-availability-page .availability-toolbar .availability-search{min-width:0;width:100%;height:40px;background:var(--gct-ui-surface, #fff);border:1px solid #d9e4f0;border-radius:9px;padding:0 12px}
 .bus-availability-page .availability-toolbar .availability-search input{height:38px;border:none!important}
 .bus-availability-page .availability-toolbar .availability-select{width:100%;min-width:0;max-width:none}
 .bus-availability-page .availability-toolbar .availability-select select{height:40px;min-height:40px;border-radius:9px;border-color:#d9e4f0}
@@ -47,7 +47,7 @@
   padding:0 14px 0 40px !important;
   border:1px solid #d9e4f0 !important;
   border-radius:9px;
-  background:#fff;
+  background:var(--gct-ui-surface, #fff);
   box-shadow:none;
 }
 .bus-availability-page .availability-toolbar .availability-search input:focus{
@@ -217,7 +217,7 @@
   border-radius: 8px;
   text-decoration: none;
   color: #385474;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 .bus-availability-page .availability-footer nav [aria-current="page"] > span {
   color: #0b56b2;
