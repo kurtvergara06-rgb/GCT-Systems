@@ -930,3 +930,85 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         color: var(--gct-theme-accent);
     }
 }
+
+/*
+ * Dashboard contrast repair. The Command Center uses its own reference-table,
+ * fulfillment and fleet classes; generic .table-card rules cannot reach them.
+ * Match the exact dashboard descendants rather than overriding global tables.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-fulfillment-banner, .operation-reference-table-wrap,
+    .operation-fleet-status-stack .fleet-status-item,
+    .operation-scheduling-alert, .operation-trip-item
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr > td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr:hover > td {
+    background: var(--gct-theme-hover);
+}
+/* Keep action cells synchronized with the row's actual background. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr > td:last-child {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr:hover > td:last-child {
+    background: var(--gct-theme-hover);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-client-name, .operation-driver-info strong,
+    .operation-time-chip, .fulfillment-metric__value strong,
+    .operation-trip-route strong, .operation-fleet-details-title,
+    .fleet-status-item__title-row strong
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-route-subtitle, .operation-bus-plate,
+    .operation-reference-footer, .fulfillment-metric__label,
+    .fulfillment-metric__total, .fleet-status-item__body small,
+    .operation-trip-meta
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-trip-code-chip, .operation-reference-view:not(.is-cta)
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-view:not(.is-cta):hover {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-focus);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-fleet-status-stack .fleet-status-item:hover {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-fleet-visual, .fleet-status-item__progress, .operation-slot-progress-bar
+) {
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .fleet-status-item__progress {
+    background: var(--gct-theme-surface-raised);
+}
+/* Semantic incoming/outgoing and ready/maintenance badges retain their own
+ * meaning, while their surroundings use the dark palette. */
