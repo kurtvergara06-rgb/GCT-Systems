@@ -255,7 +255,7 @@
   border-bottom:
     1px solid var(--border);
 
-  color: #475569;
+  color: var(--gct-ui-muted, #475569);
 
   font-size: 11px;
   font-weight: 700;
@@ -975,7 +975,7 @@
 
   margin-bottom: 5px;
 
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
 
   font-size: 11px;
   font-weight: 700;
@@ -1585,7 +1585,7 @@
 .driver-attendance-page .attendance-trip-time.is-empty {
     font-weight: 500;
     font-style: italic;
-    color: #94a3b8;
+    color: var(--gct-ui-muted, #94a3b8);
 }
 .driver-attendance-page .attendance-table th:last-child,
 .driver-attendance-page .attendance-table td:last-child:not([colspan]) {
