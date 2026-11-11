@@ -142,21 +142,28 @@ const runInitializer = (key, rootSelector, initializer) => {
         return id;
     };
 
+    const cleanup = () => {
+        controller.abort();
+        observers.forEach((observer) => observer.disconnect());
+        intervals.forEach((id) => window.clearInterval(id));
+        timeouts.forEach((id) => window.clearTimeout(id));
+    };
+
     try {
         initializer(root);
+        // Only a successfully initialized page may retain its resources.
+        initializerCleanups.set(key, cleanup);
+    } catch (error) {
+        // An initializer can throw after registering some handlers or timers.
+        // Release those resources now, instead of leaking them on each revisit.
+        cleanup();
+        throw error;
     } finally {
         EventTarget.prototype.addEventListener = nativeAddEventListener;
         window.MutationObserver = NativeMutationObserver;
         window.setInterval = nativeSetInterval;
         window.setTimeout = nativeSetTimeout;
     }
-
-    initializerCleanups.set(key, () => {
-        controller.abort();
-        observers.forEach((observer) => observer.disconnect());
-        intervals.forEach((id) => window.clearInterval(id));
-        timeouts.forEach((id) => window.clearTimeout(id));
-    });
 };
 
 const registerInitializer = (key, rootSelector, initializer) => {
