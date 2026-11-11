@@ -6,6 +6,19 @@ use Tests\TestCase;
 
 class OperationDarkModeFoundationTest extends TestCase
 {
+    public function test_partial_navigation_timings_are_opt_in_and_sidebar_remains_safe(): void
+    {
+        $js = file_get_contents(resource_path('js/Main-js/partial-navigation.js'));
+
+        $this->assertStringContainsString('window.GCTNavigationDiagnostics !== true', $js);
+        $this->assertStringContainsString("navClock?.checkpoint('server response')", $js);
+        $this->assertStringContainsString("navClock?.checkpoint('assets ready')", $js);
+        $this->assertStringContainsString("navClock?.checkpoint('page initialized')", $js);
+        $this->assertStringContainsString('navClock?.finish(response.url || targetUrl)', $js);
+        $this->assertStringContainsString("if (link.closest('#appSidebar')) return false;", $js);
+        $this->assertStringContainsString('cleanupAllInitializers();', $js);
+    }
+
     public function test_operation_stylesheet_has_no_unresolved_merge_markers(): void
     {
         $styles = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
