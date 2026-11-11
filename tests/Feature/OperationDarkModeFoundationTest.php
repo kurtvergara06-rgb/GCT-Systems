@@ -6,6 +6,17 @@ use Tests\TestCase;
 
 class OperationDarkModeFoundationTest extends TestCase
 {
+    public function test_realtime_frontend_exposes_only_public_connection_state_for_diagnostics(): void
+    {
+        $js = file_get_contents(resource_path('js/echo.js'));
+
+        $this->assertStringContainsString('window.GCTRealtimeHealth = {', $js);
+        $this->assertStringContainsString("connection?.bind('state_change'", $js);
+        $this->assertStringContainsString('changedAt: new Date().toISOString()', $js);
+        $this->assertStringContainsString("state: connection?.state || 'error'", $js);
+        $this->assertStringContainsString('window.GCTRealtimeConfig', $js);
+    }
+
     public function test_realtime_frontend_does_not_initialize_echo_without_public_key(): void
     {
         $js = file_get_contents(resource_path('js/echo.js'));
