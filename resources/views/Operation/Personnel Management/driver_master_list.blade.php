@@ -75,7 +75,7 @@
                         @php
                             $driverRecord = json_encode([
                                 'driver_id' => $driver->driver_id,
-                                'identity_locked' => $driver->attendances_exists || \App\Models\Operation\TripAssignment::query()->where('driver_id', $driver->driver_id)->exists(),
+                                'identity_locked' => $driver->identity_locked,
                                 'driver_name' => $driver->driver_name,
                                 'shift' => $driver->shift,
                                 'contact_number' => $driver->contact_number,
