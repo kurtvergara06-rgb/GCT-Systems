@@ -1,5 +1,5 @@
 /*
- * Operation dark theme — phase 1.
+ * Operation dark theme.
  * Scoped to server-marked Operation pages. Keep all other modules and Light
  * Mode untouched; never recolor workflow/status indicators globally.
  *
@@ -664,7 +664,8 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .ui-form-modal, .ui-form-modal-header, .ui-form-actions,
         .ddr-report-meta-grid, .ddr-primary-trip, .ddr-extra-trip,
         .ddr-extra-trip-body, .ddr-sched-panel, .ddr-sched-panel-compact,
-        .ddr-add-trip, .ddr-number-preview > span
+        .ddr-add-trip, .ddr-number-preview > span,
+        .ddr-exception-choice, .ddr-form-note
     ) {
         background: var(--gct-theme-surface);
         color: var(--gct-theme-fg);
@@ -684,6 +685,17 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .ddr-trip-one-heading strong, .ddr-sched-title,
         .ddr-number-preview > label, .ddr-form-label
     ) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal .ddr-exception-choice:has(input:checked) {
+        background: var(--gct-theme-hover);
+        border-color: var(--gct-theme-accent);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal .ddr-form-note strong {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(.ddr-exception-choice-copy small, .ddr-form-note span) {
+        color: var(--gct-theme-muted);
+    }
 
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .current-assignment-trip, .attendance-trip-date,
@@ -738,7 +750,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
         #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
-        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
     ) :is(
         .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body, .ui-form-actions,
         .ui-form-section, .route-editor-section, .route-map-active-field,
@@ -747,7 +759,10 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .bus-details-grid > div, .bus-details-route,
         .client-master-form-section, .client-master-readonly-panel,
         .trip-modal-header, .trip-overview-section, .trip-assigned-section,
-        .trip-execution-section, .trip-detail-item, .trip-modal-actions
+        .trip-execution-section, .trip-detail-item, .trip-modal-actions,
+        .inc-record-modal, .inc-record-modal-header, .inc-modal-section,
+        .inc-modal-kpis > div, .inc-modal-timeline, .inc-record-full-details,
+        .inc-record-modal-cancel, .inc-record-modal-close
     ) {
         background: var(--gct-theme-surface);
         color: var(--gct-theme-fg);
@@ -756,9 +771,14 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
         #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
-        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
     ) :is(h2, h3, label, dt, dd, .ui-form-section-title,
-        .bus-details-section strong, .ui-form-label) { color: var(--gct-theme-fg); }
+        .bus-details-section strong, .ui-form-label,
+        .inc-modal-kpis strong, .inc-modal-timeline strong) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #incidentRecordModal :is(
+        .inc-modal-kpis small, .inc-modal-timeline small, .inc-record-modal-header p
+    ) { color: var(--gct-theme-muted); }
 
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         #routeModal, #busModal, #editBusModal,
@@ -856,5 +876,57 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-day:not(.is-selected):hover {
         background: var(--gct-theme-hover);
+    }
+}
+
+/* Shared date/time pickers are body portals, outside the parent form modal.
+   Keep the bridge on Operation screens so other departments and print retain
+   their existing palette, positioning, selected days and yellow primary action. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-popover, .gct-calendar-panel, .gct-time-panel,
+        .gct-picker-close, .gct-picker-secondary, .gct-period-toggle,
+        .gct-time-preview
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-heading, .gct-picker-footer, .gct-datetime-layout > * + *
+    ) { border-color: var(--gct-theme-border); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-heading span, .gct-time-column label,
+        .gct-calendar-weekdays span, .gct-period-toggle button:not(.is-active)
+    ) { color: var(--gct-theme-muted); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-calendar-nav-btn, .gct-time-preview i
+    ) { color: var(--gct-theme-accent); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-time-select {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-calendar-day:not(.is-selected) {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-calendar-day.is-outside:not(.is-selected) {
+        color: var(--gct-theme-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-calendar-day:not(.is-selected):hover:not(:disabled),
+        .gct-calendar-nav-btn:hover, .gct-picker-close:hover,
+        .gct-picker-secondary:hover
+    ) {
+        background: var(--gct-theme-hover);
+        color: var(--gct-theme-fg);
+    }
+}
+
+@media screen {
+    /* The legacy under-maintenance badge uses dark blue text on a translucent
+       blue fill. Keep its state/icon and blue treatment; brighten only its text. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .bus-availability-page .availability-status[data-status-key="under-maintenance"] {
+        color: var(--gct-theme-accent);
     }
 }

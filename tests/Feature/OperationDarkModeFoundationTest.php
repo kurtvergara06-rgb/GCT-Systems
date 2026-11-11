@@ -114,4 +114,20 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("(button.dataset.clientNames || 'Not allocated')", $busJs);
         $this->assertStringNotContainsString('!important', $css);
     }
+
+    public function test_body_portal_date_and_time_pickers_have_an_operation_screen_palette(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+        $bridge = substr($css, strpos($css, '/* Shared date/time pickers'));
+
+        $this->assertStringContainsString('@media screen', $bridge);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] body[data-gct-operation-page="1"]', $bridge);
+        foreach (['.gct-picker-popover', '.gct-calendar-panel', '.gct-time-panel', '.gct-time-select', '.gct-picker-secondary'] as $selector) {
+            $this->assertStringContainsString($selector, $bridge);
+        }
+        $this->assertStringContainsString('background: var(--gct-theme-surface)', $bridge);
+        $this->assertStringContainsString('.gct-calendar-day:not(.is-selected)', $bridge);
+        $this->assertStringNotContainsString('.gct-picker-primary', $bridge);
+        $this->assertStringNotContainsString('!important', $bridge);
+    }
 }

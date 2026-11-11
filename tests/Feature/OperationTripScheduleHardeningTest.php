@@ -337,9 +337,12 @@ class OperationTripScheduleHardeningTest extends TestCase
 
     public function test_configured_client_departure_accepts_only_an_enabled_slot(): void
     {
+        // Exercise the UTC/Manila date boundary without letting the fixture's
+        // 07:00 departure become past-dated in the business timezone.
+        $this->travelTo(Carbon::parse('2026-11-10 23:30:00', 'UTC'));
         $user = $this->operationUser();
         $route = $this->route();
-        $tripDate = now()->addDay()->toDateString();
+        $tripDate = now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString();
         $client = OperationClient::create([
             'name' => 'Configured Trip Client',
             'status' => 'Active',
