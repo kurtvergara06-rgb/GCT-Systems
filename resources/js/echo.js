@@ -20,15 +20,24 @@ window.GCTRealtimeConfig = Object.freeze({
     event: 'SystemDataUpdated',
 });
 
-window.Echo = window.Echo || new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: reverbHost,
-    wsPort: reverbPort,
-    wssPort: reverbPort,
-    forceTLS: reverbUsesTls,
-    enabledTransports: ['ws', 'wss'],
-});
+// A missing public app key is a configuration problem, not a socket outage.
+// Avoid initializing Pusher with an empty key (which otherwise produces
+// repeated connection errors and may interrupt unrelated page JavaScript).
+const reverbAppKey = String(import.meta.env.VITE_REVERB_APP_KEY || '').trim();
+window.GCTRealtimeConfigurationReady = reverbAppKey.length > 0;
+if (!window.GCTRealtimeConfigurationReady) {
+    console.warn('Realtime is disabled: VITE_REVERB_APP_KEY is not configured in the built assets.');
+} else {
+    window.Echo = window.Echo || new Echo({
+        broadcaster: 'reverb',
+        key: reverbAppKey,
+        wsHost: reverbHost,
+        wsPort: reverbPort,
+        wssPort: reverbPort,
+        forceTLS: reverbUsesTls,
+        enabledTransports: ['ws', 'wss'],
+    });
+}
 
 window.realtimePageRouteMap = {
     'Warehouse:PurchaseRequest': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/stock-movements','/purchase-requests','/job-orders','/maintenance-requests','/maintenance-dashboard','/purchase-orders','/admin/dashboard'],
