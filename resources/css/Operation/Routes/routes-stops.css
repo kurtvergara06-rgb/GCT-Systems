@@ -359,7 +359,7 @@
 
     border-bottom: 1px solid var(--route-border);
 
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
 
     font-size: 11px;
     font-weight: 700;
@@ -848,7 +848,7 @@
     display: block;
     margin-bottom: 6px;
 
-    color: #0f172a;
+    color: var(--gct-ui-text, #0f172a);
 
     font-size: 11px;
     font-weight: 700;
@@ -1629,7 +1629,7 @@
     align-items: center;
     border: 1px solid #dbe4f0;
     border-radius: 9px;
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
     background: var(--gct-ui-surface-hover, #f8fafc);
     font-size: 10px;
     font-weight: 600;
@@ -3575,7 +3575,7 @@
     border-radius: 9px;
     background: transparent;
     box-shadow: none;
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
     font-size: 12px;
     font-weight: 600;
     line-height: 1;
