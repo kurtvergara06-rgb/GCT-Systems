@@ -6,6 +6,21 @@ use Tests\TestCase;
 
 class OperationDarkModeFoundationTest extends TestCase
 {
+    public function test_navigation_initializer_releases_resources_when_initialization_fails(): void
+    {
+        $js = file_get_contents(resource_path('js/Main-js/partial-navigation.js'));
+
+        $this->assertStringContainsString('const cleanup = () => {', $js);
+        $this->assertStringContainsString('controller.abort();', $js);
+        $this->assertStringContainsString('observers.forEach((observer) => observer.disconnect());', $js);
+        $this->assertStringContainsString('intervals.forEach((id) => window.clearInterval(id));', $js);
+        $this->assertStringContainsString('timeouts.forEach((id) => window.clearTimeout(id));', $js);
+        $this->assertStringContainsString('initializerCleanups.set(key, cleanup);', $js);
+        $this->assertStringContainsString("} catch (error) {\n        // An initializer can throw", $js);
+        $this->assertStringContainsString("cleanup();\n        throw error;", $js);
+        $this->assertStringContainsString('EventTarget.prototype.addEventListener = nativeAddEventListener;', $js);
+    }
+
     public function test_partial_navigation_timings_are_opt_in_and_sidebar_remains_safe(): void
     {
         $js = file_get_contents(resource_path('js/Main-js/partial-navigation.js'));
