@@ -697,6 +697,23 @@ button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
 }
 
 /*
+ * Operation semantic surface contract (source-level migration).
+ * Defaults preserve the existing light palette; only Operation dark pages
+ * replace these values. Status chips, print sheets and brand colors are not
+ * part of the generic surface contract.
+ */
+:root {
+  --gct-ui-canvas: #f4f7fb;
+  --gct-ui-surface: #ffffff;
+  --gct-ui-surface-raised: #f3f7fc;
+  --gct-ui-surface-hover: #f8fbff;
+  --gct-ui-input: #ffffff;
+  --gct-ui-text: #0f172a;
+  --gct-ui-muted: #64748b;
+  --gct-ui-border: #dce5f2;
+}
+
+/*
  * Semantic dark palette. Deliberately gated by the Operation page marker
  * until other departments are migrated. Light Mode keeps its original tokens.
  */
@@ -711,6 +728,14 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
   --gct-theme-placeholder: #879ab3;
   --gct-theme-border: #35465e;
   --gct-theme-focus: #8cb6ff;
+  --gct-ui-canvas: var(--gct-theme-canvas);
+  --gct-ui-surface: var(--gct-theme-surface);
+  --gct-ui-surface-raised: var(--gct-theme-surface-raised);
+  --gct-ui-surface-hover: var(--gct-theme-hover);
+  --gct-ui-input: var(--gct-theme-input);
+  --gct-ui-text: var(--gct-theme-fg);
+  --gct-ui-muted: var(--gct-theme-muted);
+  --gct-ui-border: var(--gct-theme-border);
   --gct-id-background: #24354d;
   --gct-id-foreground: #e6f0ff;
   --gct-id-border: #536a88;
