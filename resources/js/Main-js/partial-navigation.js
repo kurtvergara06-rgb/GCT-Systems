@@ -58,6 +58,29 @@ const PERSISTENT_OVERLAY_SELECTOR = [
     '[data-gct-persistent-ui]',
 ].join(', ');
 
+// Opt-in navigation diagnostics: set window.GCTNavigationDiagnostics = true in
+// DevTools. No timing/logging overhead is added to normal user navigation.
+const getNavigationClock = () => {
+    if (window.GCTNavigationDiagnostics !== true) return null;
+    const startedAt = performance.now();
+    const checkpoints = [];
+    return {
+        checkpoint(stage) {
+            checkpoints.push({ stage, elapsedMs: Math.round((performance.now() - startedAt) * 10) / 10 });
+        },
+        finish(url) {
+            // Limit output to the pathname, not query values or record identifiers.
+            const pathname = new URL(url, window.location.href).pathname;
+            console.table(checkpoints.map((point, i) => ({
+                stage: point.stage,
+                elapsedMs: point.elapsedMs,
+                stepMs: Math.round((point.elapsedMs - (checkpoints[i - 1]?.elapsedMs ?? 0)) * 10) / 10,
+            })));
+            console.info('[GCT navigation diagnostics]', pathname, 'total ms:', Math.round((performance.now() - startedAt) * 10) / 10);
+        },
+    };
+};
+
 let activeRequest = null;
 
 const cleanupInitializer = (key) => {
@@ -613,6 +636,7 @@ const navigate = async (url, options = {}) => {
     activeRequest?.abort();
     const controller = new AbortController();
     activeRequest = controller;
+    const navClock = getNavigationClock();
     const currentMain = document.querySelector(MAIN_SELECTOR);
     if (!currentMain) {
         fallback(targetUrl);
@@ -633,7 +657,9 @@ const navigate = async (url, options = {}) => {
         });
 
         await exitPromise;
+        navClock?.checkpoint('exit animation');
         const response = await responsePromise;
+        navClock?.checkpoint('server response');
 
         const contentType = response.headers.get('content-type') || '';
         if (!response.ok || !contentType.includes('text/html')) {
@@ -643,13 +669,17 @@ const navigate = async (url, options = {}) => {
 
         const html = await response.text();
         const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+        navClock?.checkpoint('HTML parsed');
         if (!isCompatibleDocument(nextDocument)) {
             fallback(response.url || targetUrl);
             return;
         }
 
         await loadDocumentAssets(nextDocument, response.url || targetUrl);
+        navClock?.checkpoint('assets ready');
         await replaceMain(nextDocument, response.url || targetUrl, options);
+        navClock?.checkpoint('page initialized');
+        navClock?.finish(response.url || targetUrl);
     } catch (error) {
         if (error.name === 'AbortError') {
             if (activeRequest === controller) {
