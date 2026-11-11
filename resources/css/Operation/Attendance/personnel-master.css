@@ -149,7 +149,7 @@
 .personnel-master-table th {
   padding: 13px 14px;
   border-bottom: 1px solid var(--border);
-  color: #475569;
+  color: var(--gct-ui-muted, #475569);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .055em;
@@ -561,7 +561,7 @@
 
 .personnel-page-hero p {
   margin: 5px 0 0;
-  color: #718198;
+  color: var(--gct-ui-muted, #718198);
   font-size: 13px;
 }
 
@@ -1779,7 +1779,7 @@
 }
 
 .personnel-modal-driver .personnel-modal-title h2 {
-  color: #122947;
+  color: var(--gct-ui-text, #122947);
   font-size: 21px;
   line-height: 1.2;
   letter-spacing: -.02em;
@@ -1788,7 +1788,7 @@
 .personnel-modal-driver .personnel-modal-title p {
   margin-top: 6px;
   font-size: 11px;
-  color: #6c7e95;
+  color: var(--gct-ui-muted, #6c7e95);
   line-height: 1.5;
 }
 
@@ -2166,7 +2166,7 @@
 
 /* Compact assigned-bus summary with disclosure for remaining buses. */
 .personnel-master-page .driver-bus-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
-.personnel-master-page .driver-bus-primary { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 700; color: #223b61; }
+.personnel-master-page .driver-bus-primary { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--gct-ui-text, #223b61); }
 .personnel-master-page .driver-bus-primary i { color: #2563eb; }
 .personnel-master-page .driver-bus-none { color: #78869a; font-size: 12px; }
 .personnel-master-page .driver-bus-more { position: relative; }
@@ -2346,11 +2346,11 @@
     display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.15;
 }
 .personnel-master-page .driver-master-records-table .driver-bus-details strong {
-    font-size: 12px; font-weight: 700; color: #1e3556; white-space: nowrap;
+    font-size: 12px; font-weight: 700; color: var(--gct-ui-text, #1e3556); white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis;
 }
 .personnel-master-page .driver-master-records-table .driver-bus-details small {
-    font-size: 10px; color: #8290a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 10px; color: var(--gct-ui-muted, #8290a6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .personnel-master-page .driver-master-records-table .driver-bus-primary .driver-bus-avatar i {
     color: inherit;
