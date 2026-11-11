@@ -1291,7 +1291,7 @@
     display: block;
     font-size: 13px;
     font-weight: 750;
-    color: #1e293b;
+    color: var(--gct-ui-text, #1e293b);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2511,7 +2511,7 @@
 .operation-reference-table th {
   padding: 11px 14px;
   background: var(--gct-ui-surface-raised, #f1f5fa);
-  color: #475569;
+  color: var(--gct-ui-muted, #475569);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -2523,7 +2523,7 @@
 .operation-reference-table td {
   padding: 13px 14px;
   border-bottom: 1px solid #edf2f7;
-  color: #1e293b;
+  color: var(--gct-ui-text, #1e293b);
   font-size: 12.5px;
   vertical-align: middle;
 }
@@ -2565,7 +2565,7 @@
 
 .operation-route-subtitle {
   font-size: 11px;
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   font-weight: 500;
 }
 
@@ -2649,7 +2649,7 @@
 .operation-driver-info strong {
   font-size: 12px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--gct-ui-text, #1e293b);
   white-space: nowrap;
 }
 
@@ -2658,7 +2658,7 @@
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   font-weight: 600;
 }
 
@@ -2839,7 +2839,7 @@
 .operation-fleet-details-title {
   font-size: 11px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 10px;
