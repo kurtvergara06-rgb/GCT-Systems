@@ -109,6 +109,39 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString('fleet-status-item', $dashboard);
     }
 
+    public function test_operation_source_stylesheets_use_semantic_surface_tokens(): void
+    {
+        $theme = file_get_contents(resource_path('css/Main-styles/theme.css'));
+        $this->assertStringContainsString('--gct-ui-surface: #ffffff', $theme);
+        $this->assertStringContainsString('--gct-ui-text: #0f172a', $theme);
+        $this->assertStringContainsString('--gct-ui-surface: var(--gct-theme-surface)', $theme);
+        $this->assertStringContainsString('--gct-ui-text: var(--gct-theme-fg)', $theme);
+
+        $migrated = [
+            'dashboard-operation.css',
+            'Attendance/personnel-master.css',
+            'Attendance/driver-attendance.css',
+            'Attendance/batch-attendance.css',
+            'Clients/client-master-list.css',
+            'Daily_Driver_Reports/daily-driver-reports.css',
+            'Incidents/incidents.css',
+            'Routes/routes-stops.css',
+            'Scheduling_And_Dispatch/auto-dispatch.css',
+            'Scheduling_And_Dispatch/client-trip-times.css',
+            'Scheduling_And_Dispatch/driver-bus-assignment.css',
+            'Scheduling_And_Dispatch/trip-schedule.css',
+            'Shuttle_Bus_Management/bus-master-list.css',
+            'Trip_Records/trip-records.css',
+        ];
+
+        foreach ($migrated as $path) {
+            $css = file_get_contents(resource_path('css/Operation/'.$path));
+            $this->assertStringContainsString('var(--gct-ui-surface', $css, $path);
+            $this->assertStringNotContainsString('<<<<<<< HEAD', $css, $path);
+            $this->assertStringNotContainsString('>>>>>>>', $css, $path);
+        }
+    }
+
     public function test_saved_theme_hydrates_before_vite_and_scope_tracks_partial_navigation(): void
     {
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
