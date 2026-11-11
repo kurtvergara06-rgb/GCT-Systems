@@ -9,7 +9,7 @@
   margin-bottom: 20px;
   padding: 18px;
   overflow: hidden;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
@@ -54,7 +54,7 @@
   width: 100%;
   margin-bottom: 14px;
   padding: 10px 12px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid var(--border);
   border-radius: 12px;
 }
@@ -78,7 +78,7 @@
   width: 100%;
   height: 40px;
   padding: 0 14px 0 40px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid var(--border);
   border-radius: 9px;
   color: var(--text);
@@ -143,7 +143,7 @@
 }
 
 .personnel-master-table thead {
-  background: #f3f7fc;
+  background: var(--gct-ui-surface-raised, #f3f7fc);
 }
 
 .personnel-master-table th {
@@ -172,7 +172,7 @@
 }
 
 .personnel-master-table tbody tr:hover {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 .personnel-master-table tbody tr:last-child td {
@@ -291,7 +291,7 @@
   width: min(760px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow: auto;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 24px 70px rgba(6, 31, 61, .28);
@@ -306,7 +306,7 @@
   justify-content: space-between;
   gap: 18px;
   padding: 20px 22px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border-bottom: 1px solid var(--border);
 }
 
@@ -357,7 +357,7 @@
   display: grid;
   place-items: center;
   padding: 0;
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: #64748b;
@@ -386,7 +386,7 @@
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid var(--border);
   border-radius: 9px;
   color: var(--text);
@@ -576,7 +576,7 @@
   grid-template-columns: minmax(260px, 1fr) 142px minmax(175px, 210px) 142px auto auto;
   gap: 9px;
   padding: 10px;
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
   border-color: var(--personnel-panel-border);
 }
 
@@ -584,7 +584,7 @@
 .personnel-master-toolbar .personnel-filter select {
   height: 42px;
   min-height: 42px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid #d9e4f0;
   border-radius: 10px;
 }
@@ -631,7 +631,7 @@
 
 .personnel-master-table-wrap {
   border: 1px solid #e3ebf4;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 
 .personnel-master-table {
@@ -639,7 +639,7 @@
 }
 
 .personnel-master-table thead {
-  background: #f5f8fc;
+  background: var(--gct-ui-surface-raised, #f5f8fc);
 }
 
 .personnel-master-table th {
@@ -753,7 +753,7 @@
   display: grid;
   gap: 10px;
   padding: 14px;
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
   border: 1px solid #dfe8f2;
   border-radius: 12px;
 }
@@ -1144,7 +1144,7 @@
   min-height: 94px;
   align-items: center;
   padding: 18px 24px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 
 .personnel-modal-header-mechanic .personnel-modal-title {
@@ -1586,7 +1586,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid #d9e4f0;
   border-radius: 12px;
 }
@@ -1616,7 +1616,7 @@
   min-height: 40px;
   border-radius: 9px;
   border-color: #d9e4f0;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 
 .personnel-master-page .personnel-master-toolbar .filter-group,
@@ -1815,7 +1815,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px 20px;
   padding: 20px 26px 0;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
 }
 
 .personnel-driver-form .driver-modal-group-heading {
@@ -1829,7 +1829,7 @@
   padding: 11px 14px;
   border: 1px solid #e4ecf6;
   border-radius: 10px;
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 .personnel-driver-form .driver-modal-group-heading strong,
@@ -1871,7 +1871,7 @@
   overflow: hidden;
   border: 1px solid #d7e2ef;
   border-radius: 10px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 
@@ -1902,7 +1902,7 @@
   padding: 0 13px;
   border: 0;
   border-radius: 0;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   box-shadow: none;
   color: #1d304a;
   font-size: 12px;
@@ -1940,14 +1940,14 @@
 
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
   border-color: #e3eaf3;
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
 }
 
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > input:disabled,
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > select:disabled {
   opacity: 1;
   -webkit-text-fill-color: #2d405c;
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
   color: #2d405c;
 }
 
@@ -1960,7 +1960,7 @@
   margin: 2px -26px 0;
   padding: 15px 26px;
   border-top: 1px solid #e4ebf4;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   box-shadow: 0 -8px 22px rgba(15, 35, 71, .035);
 }
 
@@ -2039,7 +2039,7 @@
     padding: 4px;
     border: 1px solid #d9e2ee;
     border-radius: 12px;
-    background: #f2f5fa;
+    background: var(--gct-ui-surface-raised, #f2f5fa);
 }
 .personnel-master-page .personnel-record-tab {
     display: inline-flex;
@@ -2081,7 +2081,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     width: 100%; min-height: 42px; padding: 9px 12px;
     border: 1px solid #d6e1f0; border-radius: 9px;
-    background: #fff; color: #172b4d; text-align: left; font: inherit; cursor: pointer;
+    background: var(--gct-ui-surface, #fff); color: #172b4d; text-align: left; font: inherit; cursor: pointer;
 }
 .driver-bus-picker-trigger:hover { border-color: #93b9f5; }
 .driver-bus-picker-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
@@ -2089,7 +2089,7 @@
 .driver-bus-picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .driver-bus-picker-panel {
     position: relative; width: 100%; margin-top: 5px; z-index: 1;
-    padding: 8px; background: white; border: 1px solid #d6e1f0;
+    padding: 8px; background: var(--gct-ui-surface, white); border: 1px solid #d6e1f0;
     border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 35, 75, .16);
 }
 .driver-bus-picker-panel[hidden], .driver-bus-picker-option[hidden], .driver-bus-picker-empty[hidden] { display: none !important; }
@@ -2097,7 +2097,7 @@
 .personnel-modal-driver .driver-bus-picker-option[hidden] { display: none !important; }
 .driver-bus-picker-search {
     width: 100%; height: 36px; padding: 8px 10px; border: 1px solid #d6e1f0;
-    border-radius: 7px; background: #fff; font: inherit;
+    border-radius: 7px; background: var(--gct-ui-surface, #fff); font: inherit;
 }
 .driver-bus-picker-options { max-height: 174px; overflow-y: auto; margin-top: 7px; }
 .driver-bus-picker-option {
@@ -2182,7 +2182,7 @@
 .personnel-master-page .driver-bus-more[open] summary i { transform: rotate(180deg); }
 .driver-bus-more-panel {
     margin-top: 6px; padding: 10px; min-width: 195px; max-width: 245px;
-    background: #fff; border: 1px solid #d7e4f6; border-radius: 10px;
+    background: var(--gct-ui-surface, #fff); border: 1px solid #d7e4f6; border-radius: 10px;
     box-shadow: 0 8px 24px rgba(20, 45, 88, .10);
 }
 .driver-bus-more-panel > strong { display: block; padding: 3px 5px 8px; font-size: 11px; color: #526c90; }
@@ -2389,14 +2389,14 @@
 
 /* Maintenance Catalog: isolated modal design, retaining the existing personnel UI. */
 .personnel-master-page .personnel-catalog-header-actions {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.personnel-master-page .personnel-catalog-open {display:inline-flex;gap:7px;align-items:center;justify-content:center;padding:10px 13px;background:#fff;border:1px solid #d4dfeb;border-radius:9px;color:#183153;font-size:12px;font-weight:700;cursor:pointer}
+.personnel-master-page .personnel-catalog-open {display:inline-flex;gap:7px;align-items:center;justify-content:center;padding:10px 13px;background:var(--gct-ui-surface, #fff);border:1px solid #d4dfeb;border-radius:9px;color:#183153;font-size:12px;font-weight:700;cursor:pointer}
 .personnel-master-page .personnel-catalog-open:hover {border-color:#9cb8df;background:#f5f9ff}
-.personnel-catalog-dialog {position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(1050px,calc(100vw - 36px));height:min(83dvh,780px);max-height:calc(100dvh - 28px);overflow:hidden;border:1px solid #d6e2f1;border-radius:16px;padding:0;background:#fff;color:#162e50;box-shadow:0 24px 70px #112b4960}
+.personnel-catalog-dialog {position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(1050px,calc(100vw - 36px));height:min(83dvh,780px);max-height:calc(100dvh - 28px);overflow:hidden;border:1px solid #d6e2f1;border-radius:16px;padding:0;background:var(--gct-ui-surface, #fff);color:#162e50;box-shadow:0 24px 70px #112b4960}
 .personnel-catalog-dialog::backdrop {background:#14284288;backdrop-filter:blur(5px)}
 .personnel-catalog-dialog {display:none;flex-direction:column}
 .personnel-catalog-dialog[open] {display:flex}
 .personnel-catalog-dialog:has([data-catalog-panel="skills"]:not([hidden])) {height:auto;max-height:min(76dvh,760px)}
-.personnel-catalog-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 24px;background:#fff;color:#152b49;border-bottom:1px solid #dce6f2;flex-shrink:0}
+.personnel-catalog-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 24px;background:var(--gct-ui-surface, #fff);color:#152b49;border-bottom:1px solid #dce6f2;flex-shrink:0}
 .personnel-catalog-heading-brand {display:flex;align-items:center;gap:14px;min-width:0}
 .personnel-catalog-heading-icon {display:grid;place-items:center;width:44px;height:44px;border-radius:11px;background:#fff5ce;color:#a76500;font-size:18px}
 .personnel-catalog-heading h2 {margin:0;font-size:20px;font-weight:800;color:#152b49}
@@ -2410,7 +2410,7 @@
 .personnel-catalog-dialog [data-catalog-panel="jobs"] {overflow:hidden}
 .personnel-catalog-workspace {display:grid;grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr);gap:18px;height:100%;min-height:0}
 .personnel-catalog-browser,.personnel-catalog-editor {min-width:0;min-height:0;display:flex;flex-direction:column}
-.personnel-catalog-browser {border:1px solid #dfe8f4;border-radius:12px;padding:16px;background:#fff;gap:12px}
+.personnel-catalog-browser {border:1px solid #dfe8f4;border-radius:12px;padding:16px;background:var(--gct-ui-surface, #fff);gap:12px}
 .personnel-catalog-editor {overflow-y:auto;border:1px solid #dbe7f5;background:#f7faff;border-radius:12px;padding:0}
 .personnel-catalog-list-heading {display:flex;align-items:center;justify-content:space-between;gap:12px}
 .personnel-catalog-list-heading h3 {margin:0;font-size:15px}
@@ -2494,7 +2494,7 @@
 .personnel-catalog-dialog .personnel-catalog-list-heading p {font-size:12px}
 .personnel-catalog-dialog .personnel-catalog-job-entry strong {font-size:12px;line-height:1.4;font-weight:750}
 .personnel-catalog-dialog .personnel-catalog-job-entry small {font-size:11px;line-height:1.5}
-.personnel-catalog-dialog .personnel-catalog-edit-job {display:grid;place-items:center;min-width:32px;min-height:32px;border:1px solid #dce5ef;border-radius:8px;background:#fff;color:#285885}
+.personnel-catalog-dialog .personnel-catalog-edit-job {display:grid;place-items:center;min-width:32px;min-height:32px;border:1px solid #dce5ef;border-radius:8px;background:var(--gct-ui-surface, #fff);color:#285885}
 .personnel-catalog-dialog .personnel-catalog-edit-job:hover {background:#f0f5fd;border-color:#9fbce5}
 .personnel-catalog-dialog .personnel-catalog-editor-title h3 {font-size:15px;font-weight:800}
 .personnel-catalog-dialog .personnel-catalog-editor-title p {font-size:12px;line-height:1.5}
@@ -2506,7 +2506,7 @@
 .personnel-catalog-dialog .personnel-catalog-job-details {flex:1;min-width:0}
 .personnel-catalog-dialog .personnel-catalog-status {display:inline-flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0;border-radius:7px;border:1px solid #bceacf;padding:6px 9px;font-size:10px;line-height:1;white-space:nowrap}
 .personnel-catalog-dialog .personnel-catalog-status.is-inactive {border-color:#d4deeb;background:#f1f4f8;color:#66758b}
-.personnel-catalog-dialog .personnel-catalog-edit-job {display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:auto;min-width:64px;min-height:32px;padding:6px 10px;border:1px solid #ccdbef;border-radius:8px;background:#fff;color:#154f91;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
+.personnel-catalog-dialog .personnel-catalog-edit-job {display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:auto;min-width:64px;min-height:32px;padding:6px 10px;border:1px solid #ccdbef;border-radius:8px;background:var(--gct-ui-surface, #fff);color:#154f91;font-size:11px;font-weight:700;line-height:1;white-space:nowrap}
 .personnel-catalog-dialog .personnel-catalog-edit-job:hover {background:#edf5ff;border-color:#9bbbe4}
 .personnel-catalog-dialog .personnel-catalog-edit-job[aria-pressed="true"] {background:#e7f0fe;border-color:#94b8e9}
 @media(max-width:920px){.personnel-catalog-dialog .personnel-catalog-job-entry {flex-wrap:wrap}.personnel-catalog-dialog .personnel-catalog-job-details {flex-basis:100%}}
@@ -2524,7 +2524,7 @@
 .personnel-catalog-dialog .personnel-catalog-skill-toolbar .personnel-catalog-new-job {background:#1765c6;color:#fff;min-height:36px;font-size:12px;padding:9px 14px}
 .personnel-catalog-dialog [data-catalog-panel="skills"]>.personnel-catalog-search-label {min-height:42px;margin-bottom:14px}
 .personnel-catalog-dialog .personnel-catalog-skills-grid {grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:0}
-.personnel-catalog-dialog .personnel-catalog-skill-card {min-height:62px;gap:9px;padding:9px 10px;border-color:#d7e3f3;background:#fff;border-radius:10px}
+.personnel-catalog-dialog .personnel-catalog-skill-card {min-height:62px;gap:9px;padding:9px 10px;border-color:#d7e3f3;background:var(--gct-ui-surface, #fff);border-radius:10px}
 .personnel-catalog-dialog .personnel-catalog-skill-icon {display:grid;place-items:center;width:31px;height:31px;flex-shrink:0;border-radius:9px;background:#e7f1ff;color:#185fb7}
 .personnel-catalog-dialog .personnel-catalog-skill-icon i {color:inherit;font-size:13px}
 .personnel-catalog-dialog .personnel-catalog-skill-card strong {font-size:12px;line-height:1.35;font-weight:750}
@@ -2589,15 +2589,15 @@
   position: sticky;
   right: 0;
   z-index: 3;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   box-shadow: -1px 0 #dbe5f0, -8px 0 14px -13px rgba(15, 23, 42, .36);
 }
 .personnel-master-page .driver-master-table-scroll .driver-master-records-table thead th:nth-child(6) {
   z-index: 7;
-  background: #f3f7fc;
+  background: var(--gct-ui-surface-raised, #f3f7fc);
 }
 .personnel-master-page .driver-master-table-scroll .driver-master-records-table tbody tr:hover td:nth-child(6) {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 
