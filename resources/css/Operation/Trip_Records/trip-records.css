@@ -486,7 +486,7 @@
     border-bottom: 1px solid var(--trip-border);
     box-shadow: 0 1px 0 var(--trip-border);
 
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
 
     font-size: 11px;
     font-weight: 700;
@@ -1090,7 +1090,7 @@
 }
 
 .trip-detail-body::-webkit-scrollbar-thumb:hover {
-    background-color: #94a3b8;
+    background-color: var(--gct-ui-muted, #94a3b8);
 }
 
 /* =========================================================
@@ -1890,13 +1890,13 @@
 .trip-detail-label {
     font-size: 11px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
 }
 
 .trip-detail-value {
     font-size: 13px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--gct-ui-text, #0f172a);
 }
 
 /* Modal Actions Footer */
@@ -1914,7 +1914,7 @@
 
 .trip-modal-footer-caption {
     font-size: 12px;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -2353,7 +2353,7 @@
 .trip-history-table tbody tr:nth-child(even) { background:#fbfdff; }
 .trip-history-table tbody td:nth-child(4) { line-height:1.7; }
 .trip-history-table tbody td:nth-child(2) small { display:block; color:#7186a1; margin-top:3px; }
-.trip-history-slots { display:inline-block; padding:5px 9px; border-radius:7px; font-weight:800; background:#f1f5fa; color:#64748b; }
+.trip-history-slots { display:inline-block; padding:5px 9px; border-radius:7px; font-weight:800; background:#f1f5fa; color: var(--gct-ui-muted, #64748b); }
 .trip-history-slots.is-full { background:#e4f8ed; color:#16824c; }
 .trip-history-slots.is-partial { background:#fff3da; color:#a76510; }
 .trip-history-table .trip-history-outcome { white-space:nowrap; padding:5px 9px; min-height:25px; font-size:12px; }
@@ -2447,7 +2447,7 @@
     border-radius: 10px;
     background: #f5f9ff;
 }
-#tripDetailModal .unified-trip-modal-summary small { font-size: 11px; color: #64748b; }
+#tripDetailModal .unified-trip-modal-summary small { font-size: 11px; color: var(--gct-ui-muted, #64748b); }
 #tripDetailModal .unified-trip-modal-summary strong { font-size: 14px; color: #0f2a4d; }
 @media (max-width: 600px) {
     #tripDetailModal .unified-trip-modal-summary { grid-template-columns: 1fr; }
@@ -2465,7 +2465,7 @@
 #tripDetailModal .unified-trip-ddr-times tr:last-child td { border-bottom: 0; }
 .trip-records-page .unified-trip-actual-times strong,
 .trip-records-page .unified-trip-actual-times small { display: block; }
-.trip-records-page .unified-trip-actual-times small { margin-top: 4px; color: #64748b; font-size: 10px; }
+.trip-records-page .unified-trip-actual-times small { margin-top: 4px; color: var(--gct-ui-muted, #64748b); font-size: 10px; }
 
 /* Unified history: keep the last View control visible while the record cells
    scroll horizontally. Override the shared 132px Actions footprint because
