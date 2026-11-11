@@ -148,3 +148,17 @@ All three services deploy from `main`, **not** from `feature/global-dark-mode`. 
 - `?_gct_profile=1` is a local-only compiled-asset profiling mode from the previous audit, not a production performance fix.
 
 **Readiness remains pending:** no successful production WebSocket handshake, two-session event propagation, or Python readiness request was verified in this follow-up.
+
+### Browser-side Reverb diagnostic (feature branch only)
+
+The frontend now exposes `window.GCTRealtimeHealth` with a Pusher/Reverb connection `state` and `changedAt` timestamp, populated when `listenForSystemUpdates()` starts. The object deliberately contains no credentials or event payloads.
+
+After pulling and rebuilding this branch, open DevTools on an authenticated GCT page:
+
+```javascript
+window.GCTRealtimeConfigurationReady
+window.GCTRealtimeConfig
+window.GCTRealtimeHealth
+```
+
+Check Network → WS for the upgrade request, HTTP status, and failure response. For end-to-end acceptance, use two separate authenticated browser sessions and make a permitted record update. A `connected` state alone does not prove event delivery. If the public key is absent in the Vite build, `GCTRealtimeConfigurationReady` will be false; correct the configured environment and rebuild assets instead of inventing a key. This diagnostics change does not modify the Render deployment.
