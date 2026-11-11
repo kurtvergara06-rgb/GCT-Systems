@@ -1757,7 +1757,7 @@
   gap: 18px;
   min-height: 103px;
   padding: 21px 26px;
-  background: linear-gradient(110deg, #fff 65%, #f5f9ff 100%);
+  background: linear-gradient(110deg, var(--gct-ui-surface, #fff) 65%, var(--gct-ui-surface-raised, #f5f9ff) 100%);
   border-bottom: 1px solid #e0e8f3;
 }
 
@@ -1803,7 +1803,7 @@
 }
 
 .personnel-modal-driver .personnel-modal-close:hover {
-  background: #edf3fa;
+  background: var(--gct-ui-surface-hover, #edf3fa);
   color: #173a68;
 }
 
@@ -1838,14 +1838,14 @@
 }
 
 .personnel-driver-form .driver-modal-group-heading strong {
-  color: #1b3554;
+  color: var(--gct-ui-text, #1b3554);
   font-size: 12px;
   font-weight: 800;
 }
 
 .personnel-driver-form .driver-modal-group-heading small {
   margin-top: 2px;
-  color: #8190a4;
+  color: var(--gct-ui-muted, #8190a4);
   font-size: 10px;
   font-weight: 500;
 }
@@ -1858,7 +1858,7 @@
 .personnel-driver-form .driver-input-field {
   min-width: 0;
   gap: 8px;
-  color: #243b57;
+  color: var(--gct-ui-text, #243b57);
   font-size: 11px;
   font-weight: 750;
 }
@@ -1887,7 +1887,7 @@
   flex: 0 0 42px;
   align-self: stretch;
   border-right: 1px solid #e8eef6;
-  background: #f8faff;
+  background: var(--gct-ui-surface-raised, #f8faff);
   color: #6583aa;
   font-size: 13px;
 }
@@ -1904,7 +1904,7 @@
   border-radius: 0;
   background: var(--gct-ui-surface, #fff);
   box-shadow: none;
-  color: #1d304a;
+  color: var(--gct-ui-text, #1d304a);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1946,9 +1946,9 @@
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > input:disabled,
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > select:disabled {
   opacity: 1;
-  -webkit-text-fill-color: #2d405c;
+  -webkit-text-fill-color: var(--gct-ui-text, #2d405c);
   background: var(--gct-ui-surface-hover, #f8fafc);
-  color: #2d405c;
+  color: var(--gct-ui-text, #2d405c);
 }
 
 .personnel-driver-form .driver-modal-actions {
@@ -1968,7 +1968,7 @@
   flex: 1;
   min-width: 0;
   margin-right: auto;
-  color: #7e8da4;
+  color: var(--gct-ui-muted, #7e8da4);
   font-size: 10px;
 }
 
@@ -1982,7 +1982,7 @@
 }
 
 .personnel-driver-form .driver-modal-actions .secondary-btn {
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   border: 1px solid #d5e1ef;
   color: #224d82;
 }
@@ -2037,10 +2037,10 @@
     gap: 4px;
     max-width: 100%;
     padding: 4px;
-    border: 1px solid #d9e2ee;
+    border: 1px solid var(--gct-ui-border, #d9e2ee);
     border-radius: 12px;
     background: var(--gct-ui-surface-raised, #f2f5fa);
-}
+
 .personnel-master-page .personnel-record-tab {
     display: inline-flex;
     align-items: center;
@@ -2048,22 +2048,22 @@
     gap: 8px;
     padding: 9px 14px;
     border-radius: 9px;
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
     font-size: 12px;
     font-weight: 600;
     line-height: 1.25;
     text-decoration: none;
     white-space: nowrap;
-}
+
 .personnel-master-page .personnel-record-tab.is-active {
-    background: #fff;
-    color: #112b50;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #112b50);
     box-shadow: 0 1px 4px #0f172a17;
-}
+
 .personnel-master-page .personnel-record-tab:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
-}
+
 .personnel-master-page .personnel-record-controls > .gct-table-toolbar {
     margin-left: auto;
     width: auto;
@@ -2076,37 +2076,37 @@
 
 
 /* Driver authorized-bus picker: compact, searchable, and keyboard accessible. */
-.driver-bus-picker { position: relative; width: 100%; min-width: 0; }
+.driver-bus-picker { position: relative; width: 100%; min-width: 0; 
 .driver-bus-picker-trigger {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     width: 100%; min-height: 42px; padding: 9px 12px;
-    border: 1px solid #d6e1f0; border-radius: 9px;
-    background: var(--gct-ui-surface, #fff); color: #172b4d; text-align: left; font: inherit; cursor: pointer;
-}
-.driver-bus-picker-trigger:hover { border-color: #93b9f5; }
-.driver-bus-picker-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-.driver-bus-picker-trigger:disabled { cursor: default; background: #f4f7fb; }
-.driver-bus-picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    border: 1px solid var(--gct-ui-border, #d6e1f0); border-radius: 9px;
+    background: var(--gct-ui-surface, #fff); color: var(--gct-ui-text, #172b4d); text-align: left; font: inherit; cursor: pointer;
+
+.driver-bus-picker-trigger:hover { border-color: #93b9f5; 
+.driver-bus-picker-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; 
+.driver-bus-picker-trigger:disabled { cursor: default; background: var(--gct-ui-surface-raised, #f4f7fb); 
+.driver-bus-picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
 .driver-bus-picker-panel {
     position: relative; width: 100%; margin-top: 5px; z-index: 1;
-    padding: 8px; background: var(--gct-ui-surface, white); border: 1px solid #d6e1f0;
+    padding: 8px; background: var(--gct-ui-surface, white); border: 1px solid var(--gct-ui-border, #d6e1f0);
     border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 35, 75, .16);
-}
-.driver-bus-picker-panel[hidden], .driver-bus-picker-option[hidden], .driver-bus-picker-empty[hidden] { display: none !important; }
+
+.driver-bus-picker-panel[hidden], .driver-bus-picker-option[hidden], .driver-bus-picker-empty[hidden] { display: none !important; 
 /* Higher specificity than the modal's display:flex!important declaration below. */
-.personnel-modal-driver .driver-bus-picker-option[hidden] { display: none !important; }
+.personnel-modal-driver .driver-bus-picker-option[hidden] { display: none !important; 
 .driver-bus-picker-search {
-    width: 100%; height: 36px; padding: 8px 10px; border: 1px solid #d6e1f0;
+    width: 100%; height: 36px; padding: 8px 10px; border: 1px solid var(--gct-ui-border, #d6e1f0);
     border-radius: 7px; background: var(--gct-ui-surface, #fff); font: inherit;
-}
-.driver-bus-picker-options { max-height: 174px; overflow-y: auto; margin-top: 7px; }
+
+.driver-bus-picker-options { max-height: 174px; overflow-y: auto; margin-top: 7px; 
 .driver-bus-picker-option {
     display: flex; align-items: center; gap: 10px; padding: 9px 10px;
     border-radius: 7px; cursor: pointer; font-size: 12px;
-}
-.driver-bus-picker-option:hover { background: #eff5ff; }
-.driver-bus-picker-option input[type="checkbox"] { flex: none; width: 16px; height: 16px; accent-color: #2563eb; }
-.driver-bus-picker-empty { display: block; padding: 12px; color: #64748b; font-size: 12px; }
+
+.driver-bus-picker-option:hover { background: var(--gct-ui-surface-hover, #eff5ff); 
+.driver-bus-picker-option input[type="checkbox"] { flex: none; width: 16px; height: 16px; accent-color: #2563eb; 
+.driver-bus-picker-empty { display: block; padding: 12px; color: var(--gct-ui-muted, #64748b); font-size: 12px; 
 
 /* Phase 1: ensure each bus option remains one compact horizontal row. */
 .personnel-modal-driver .driver-bus-field { display: block; }
@@ -2121,7 +2121,7 @@
     padding: 7px 10px;
     margin: 0;
     box-sizing: border-box;
-}
+
 .personnel-modal-driver .driver-bus-picker-option input[type="checkbox"] {
     flex: 0 0 16px !important;
     display: block !important;
@@ -2131,7 +2131,7 @@
     width: 16px !important;
     min-height: 0 !important;
     border-radius: 4px;
-}
+
 .personnel-modal-driver .driver-bus-option-text {
     display: flex !important;
     flex-direction: column !important;
@@ -2142,8 +2142,8 @@
     line-height: 1.25;
 }
 .personnel-modal-driver .driver-bus-option-text strong { font-size: 12px; font-weight: 700; }
-.personnel-modal-driver .driver-bus-option-text small { color: #64748b; font-size: 11px; }
-.personnel-modal-driver .driver-bus-picker-options { max-height: 208px; }
+.personnel-modal-driver .driver-bus-option-text small { color: var(--gct-ui-muted, #64748b); font-size: 11px; }
+.personnel-modal-driver .driver-bus-picker-options { max-height: 208px; 
 .personnel-modal-driver .driver-bus-chips {
     display: flex; flex-wrap: wrap; align-items: center;
     gap: 6px; margin-top: 8px;
@@ -2152,7 +2152,7 @@
 .personnel-modal-driver .driver-bus-chip {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 8px; border: 1px solid #cfddf1;
-    border-radius: 999px; background: #f0f5ff;
+    border-radius: 999px; background: var(--gct-ui-surface-raised, #f0f5ff);
     color: #234e92; font-size: 11px; font-weight: 650;
 }
 .personnel-modal-driver .driver-bus-chip-remove {
@@ -2168,29 +2168,29 @@
 .personnel-master-page .driver-bus-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .personnel-master-page .driver-bus-primary { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--gct-ui-text, #223b61); }
 .personnel-master-page .driver-bus-primary i { color: #2563eb; }
-.personnel-master-page .driver-bus-none { color: #78869a; font-size: 12px; }
-.personnel-master-page .driver-bus-more { position: relative; }
+.personnel-master-page .driver-bus-none { color: var(--gct-ui-muted, #78869a); font-size: 12px; }
+.personnel-master-page .driver-bus-more { position: relative; 
 .personnel-master-page .driver-bus-more summary {
     display: inline-flex; align-items: center; gap: 7px; list-style: none;
-    cursor: pointer; padding: 5px 9px; border: 1px solid #d4e3fb;
-    border-radius: 7px; background: #eef5ff; color: #2357a5; font: inherit;
+    cursor: pointer; padding: 5px 9px; border: 1px solid var(--gct-ui-border, #d4e3fb);
+    border-radius: 7px; background: var(--gct-ui-surface-raised, #eef5ff); color: var(--gct-ui-text, #2357a5); font: inherit;
     font-size: 11px; font-weight: 650; white-space: nowrap;
-}
-.personnel-master-page .driver-bus-more summary::-webkit-details-marker { display: none; }
-.personnel-master-page .driver-bus-more summary:hover { background: #e0edff; }
-.personnel-master-page .driver-bus-more summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-.personnel-master-page .driver-bus-more[open] summary i { transform: rotate(180deg); }
+
+.personnel-master-page .driver-bus-more summary::-webkit-details-marker { display: none; 
+.personnel-master-page .driver-bus-more summary:hover { background: var(--gct-ui-surface-hover, #e0edff); 
+.personnel-master-page .driver-bus-more summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; 
+.personnel-master-page .driver-bus-more[open] summary i { transform: rotate(180deg); 
 .driver-bus-more-panel {
     margin-top: 6px; padding: 10px; min-width: 195px; max-width: 245px;
-    background: var(--gct-ui-surface, #fff); border: 1px solid #d7e4f6; border-radius: 10px;
+    background: var(--gct-ui-surface, #fff); border: 1px solid var(--gct-ui-border, #d7e4f6); border-radius: 10px;
     box-shadow: 0 8px 24px rgba(20, 45, 88, .10);
-}
-.driver-bus-more-panel > strong { display: block; padding: 3px 5px 8px; font-size: 11px; color: #526c90; }
-.driver-bus-more-row { display: flex; align-items: center; gap: 9px; padding: 7px 5px; border-top: 1px solid #edf2f9; color: #253c5d; }
-.driver-bus-more-row i { color: #2563eb; }
-.driver-bus-more-row span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.driver-bus-more-row b { font-size: 11px; }
-.driver-bus-more-row small { font-size: 10px; color: #71819b; }
+
+.driver-bus-more-panel > strong { display: block; padding: 3px 5px 8px; font-size: 11px; color: var(--gct-ui-muted, #526c90); 
+.driver-bus-more-row { display: flex; align-items: center; gap: 9px; padding: 7px 5px; border-top: 1px solid #edf2f9; color: var(--gct-ui-text, #253c5d); 
+.driver-bus-more-row i { color: #2563eb; 
+.driver-bus-more-row span { display: flex; flex-direction: column; gap: 2px; min-width: 0; 
+.driver-bus-more-row b { font-size: 11px; 
+.driver-bus-more-row small { font-size: 10px; color: var(--gct-ui-muted, #71819b); 
 
 /* Driver modal: compact assigned-bus control alongside contact number. */
 .personnel-modal-driver .driver-bus-field { display: flex; flex-direction: column; min-width: 0; gap: 5px; }
@@ -2198,22 +2198,22 @@
 .personnel-modal-driver .driver-bus-field > span i { color: #2563eb; }
 .personnel-modal-driver .driver-bus-picker-trigger {
     min-height: 40px; height: 40px; padding: 8px 11px; font-size: 12px;
-    border: 1px solid #d3e0f1; border-radius: 8px; background: #fdfefe;
-}
-.personnel-modal-driver .driver-bus-picker-trigger:hover { background: #f7faff; }
-.personnel-modal-driver .driver-bus-picker-panel { margin-top: 5px; padding: 7px; border-radius: 9px; }
-.personnel-modal-driver .driver-bus-picker-options { max-height: 144px; }
-.personnel-modal-driver .driver-bus-picker-option { min-height: 39px; padding: 6px 8px; }
+    border: 1px solid var(--gct-ui-border, #d3e0f1); border-radius: 8px; background: var(--gct-ui-input, #fdfefe);
+
+.personnel-modal-driver .driver-bus-picker-trigger:hover { background: var(--gct-ui-surface-hover, #f7faff); 
+.personnel-modal-driver .driver-bus-picker-panel { margin-top: 5px; padding: 7px; border-radius: 9px; 
+.personnel-modal-driver .driver-bus-picker-options { max-height: 144px; 
+.personnel-modal-driver .driver-bus-picker-option { min-height: 39px; padding: 6px 8px; 
 .personnel-modal-driver .driver-bus-option-text strong { font-size: 11px; }
 .personnel-modal-driver .driver-bus-option-text small { font-size: 10px; }
 .personnel-modal-driver .driver-bus-chips { gap: 5px; margin-top: 2px; }
 .personnel-modal-driver .driver-bus-chip { padding: 3px 7px; font-size: 10px; }
-.personnel-modal-driver .driver-bus-help { font-size: 10px; color: #7285a3; margin-top: 2px; }
+.personnel-modal-driver .driver-bus-help { font-size: 10px; color: var(--gct-ui-muted, #7285a3); margin-top: 2px; }
 
 /* Keep Assigned Buses dropdown out of the driver form grid flow. */
 .personnel-modal-driver .driver-bus-field,
-.personnel-modal-driver .driver-bus-picker { min-height: 0; }
-.personnel-modal-driver .driver-bus-picker { position: relative; isolation: isolate; }
+.personnel-modal-driver .driver-bus-picker { min-height: 0; 
+.personnel-modal-driver .driver-bus-picker { position: relative; isolation: isolate; 
 .personnel-modal-driver .driver-bus-picker-panel,
 .personnel-modal-driver .driver-bus-picker-panel:not([hidden]) {
     position: absolute !important;
@@ -2224,9 +2224,9 @@
     margin: 0 !important;
     z-index: 200 !important;
     box-sizing: border-box;
-}
-.personnel-modal-driver .driver-bus-picker:has(.driver-bus-picker-panel:not([hidden])) { z-index: 201; }
-.personnel-modal-driver .driver-bus-picker-option { flex-direction: row !important; }
+
+.personnel-modal-driver .driver-bus-picker:has(.driver-bus-picker-panel:not([hidden])) { z-index: 201; 
+.personnel-modal-driver .driver-bus-picker-option { flex-direction: row !important; 
 
 /* Driver modal: keep the contact control aligned with the bus selector,
    without stretching it to match the selected-chip stack. */
@@ -2355,7 +2355,7 @@
 .personnel-master-page .driver-master-records-table .driver-bus-primary .driver-bus-avatar i {
     color: inherit;
 }
-.personnel-master-page .driver-master-records-table .driver-bus-more { flex: 0 0 auto; }
+.personnel-master-page .driver-master-records-table .driver-bus-more { flex: 0 0 auto; 
 .personnel-master-page .driver-master-records-table .driver-bus-none { display: inline-block; padding-left: 4px; }
 
 
@@ -2370,8 +2370,8 @@
     padding: 9px 16px;
     font-size: 12px;
     font-weight: 700;
-}
-.personnel-master-page .personnel-record-tabs { min-height: 44px; }
+
+.personnel-master-page .personnel-record-tabs { min-height: 44px; 
 
 /* Custom mechanic specialization edit mode */
 .personnel-specialization-option.is-pending-deletion {
