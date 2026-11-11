@@ -65,6 +65,19 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light'", $preferencesJs);
     }
 
+    public function test_driver_master_employment_badges_preserve_readable_semantic_colors(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Personnel Management/driver_master_list.blade.php'));
+        $css = file_get_contents(resource_path('css/Operation/Attendance/personnel-master.css'));
+
+        $this->assertStringContainsString('class="driver-employment-status"', $view);
+        $this->assertStringContainsString('[data-ui-component="status-badge"].driver-employment-status', $css);
+        $this->assertStringContainsString('--gct-status-bg: #eaf9f0', $css);
+        $this->assertStringContainsString('--gct-status-text: #176c42', $css);
+        $this->assertStringContainsString('--gct-status-bg: #fff0f2', $css);
+        $this->assertStringContainsString('.status-badge__icon, .status-badge__label', $css);
+    }
+
     public function test_driver_master_uses_single_canonical_status_badge_and_theme_identifiers(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Personnel Management/driver_master_list.blade.php'));
