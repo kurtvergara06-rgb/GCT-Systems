@@ -401,7 +401,7 @@
                                                     $slotStatusTooltip = $trip->status === 'Ready' ? 'Ready — Replacement Assigned' : 'In Progress — Reserve Deployed';
                                                 } elseif (! $slotBreakdown->replacement && in_array($trip->status, ['Ready', 'Scheduled', 'Dispatched', 'Pending DDR'], true)) {
                                                     $oicResponseRecorded = $slotBreakdown->status !== 'Reported'
-                                                        || $slotBreakdown->responses()->where('notes', '!=', 'Incident reported by driver.')->exists();
+                                                        || (bool) $slotBreakdown->has_oic_response;
                                                     $slotDisplayStatus = $oicResponseRecorded ? 'Awaiting Reserve' : (in_array($trip->status, ['Dispatched', 'Pending DDR'], true) ? 'Breakdown' : 'OIC Review');
                                                     $slotStatusTooltip = $oicResponseRecorded
                                                         ? ($trip->status === 'Dispatched' ? 'In Progress — Awaiting Replacement' : 'Incident — Awaiting Replacement')
