@@ -684,6 +684,10 @@ const navigate = async (url, options = {}) => {
 
         await loadDocumentAssets(nextDocument, response.url || targetUrl);
         navClock?.checkpoint('assets ready');
+        // Fetch abortion alone does not stop an already-parsed response while
+        // its CSS and scripts are loading. Never let a superseded navigation
+        // replace the newer page after those asynchronous asset loads.
+        if (controller.signal.aborted || activeRequest !== controller) return;
         await replaceMain(nextDocument, response.url || targetUrl, options);
         navClock?.checkpoint('page initialized');
         navClock?.finish(response.url || targetUrl);
