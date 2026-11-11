@@ -32,6 +32,7 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString('navClock?.finish(response.url || targetUrl)', $js);
         $this->assertStringContainsString("if (link.closest('#appSidebar')) return false;", $js);
         $this->assertStringContainsString('cleanupAllInitializers();', $js);
+        $this->assertStringContainsString('if (controller.signal.aborted || activeRequest !== controller) return;', $js);
     }
 
     public function test_operation_stylesheet_has_no_unresolved_merge_markers(): void
