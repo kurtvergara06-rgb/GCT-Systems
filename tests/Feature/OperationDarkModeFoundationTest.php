@@ -11,6 +11,7 @@ class OperationDarkModeFoundationTest extends TestCase
         $js = file_get_contents(resource_path('js/echo.js'));
 
         $this->assertStringContainsString('window.GCTRealtimeHealth = {', $js);
+        $this->assertStringContainsString("state: window.GCTRealtimeConfigurationReady ? 'initializing' : 'disabled'", $js);
         $this->assertStringContainsString("connection?.bind('state_change'", $js);
         $this->assertStringContainsString('changedAt: new Date().toISOString()', $js);
         $this->assertStringContainsString("state: connection?.state || 'error'", $js);
