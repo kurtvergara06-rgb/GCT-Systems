@@ -1,20 +1,8 @@
 window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '.client-trip-times-page', () => {
     const baseUrl = '/operation/client-trip-times';
 
-    const configModal = document.getElementById('cttConfigModal');
     const slotModal = document.getElementById('cttSlotModal');
-    const configForm = document.getElementById('cttConfigForm');
     const slotForm = document.getElementById('cttSlotForm');
-
-    const configClientId = document.getElementById('cttConfigClientId');
-    const configCategory = document.getElementById('cttConfigCategory');
-    const configClientName = document.getElementById('cttConfigClientName');
-    const configCategoryLabel = document.getElementById('cttConfigCategoryLabel');
-    const configStart = document.getElementById('cttConfigStart');
-    const configEnd = document.getElementById('cttConfigEnd');
-    const configActive = document.getElementById('cttConfigActive');
-    const configTitle = document.getElementById('cttConfigTitle');
-    const configSubmitText = document.getElementById('cttConfigSubmitText');
 
     const slotId = document.getElementById('cttSlotId');
     const slotTime = document.getElementById('cttSlotTime');
@@ -30,7 +18,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     const searchEmpty = document.getElementById('cttSearchEmpty');
 
     let activeSlotContainer = null;
-    let configUpdateUrl = null;
+    let activeRangeEditor = null;
 
     const categoryLabels = {
         incoming_am: 'Incoming AM',
@@ -40,7 +28,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     };
 
     function getCsrfToken() {
-        return configForm?.querySelector('[name="_token"]')?.value
+        return document.querySelector('meta[name="csrf-token"]')?.content
             || slotForm?.querySelector('[name="_token"]')?.value
             || '';
     }
@@ -218,74 +206,84 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
     }
 
-    function openConfigModal({ clientId, clientName, category, startTime, endTime, isActive, updateUrl }) {
-        if (!configForm) return;
-
-        clearErrors(configForm);
-        configUpdateUrl = updateUrl || null;
-
-        configClientId.value = clientId || '';
-        configCategory.value = category || '';
-        configClientName.textContent = clientName || '—';
-        configCategoryLabel.textContent = categoryLabels[category] || category || '—';
-        const isAm = String(category || '').endsWith('_am');
-        configStart.min = isAm ? '00:00' : '12:00';
-        configStart.max = isAm ? '11:59' : '23:59';
-        configEnd.min = configStart.min;
-        configEnd.max = configStart.max;
-        configStart.value = startTime || '';
-        configEnd.value = endTime || '';
-        configActive.checked = isActive !== false;
-
-        if (configTitle) {
-            configTitle.textContent = updateUrl ? 'Edit Trip Time Range' : 'New Trip Time Range';
-        }
-
-        if (configSubmitText) {
-            configSubmitText.textContent = updateUrl ? 'Save Configuration' : 'Create Configuration';
-        }
-
-        configForm.setAttribute('action', updateUrl || baseUrl);
-        openModal(configModal);
+    function closeRangeEditor(editor) {
+        if (!editor) return;
+        editor.hidden = true;
+        editor.reset();
+        clearErrors(editor);
+        const panel = panelContainerFor(editor);
+        const trigger = panel?.querySelector('.ctt-add-config');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        panel?.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+        if (activeRangeEditor === editor) activeRangeEditor = null;
     }
 
-    configForm?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        clearErrors(configForm);
-
-        const payload = {
-            start_time: configStart.value,
-            end_time: configEnd.value,
-            is_active: configActive.checked ? 1 : 0,
-        };
-
-        if (!configUpdateUrl) {
-            payload.operation_client_id = configClientId.value;
-            payload.category = configCategory.value;
+    function openRangeEditor(panel) {
+        const editor = panel?.querySelector('[data-ctt-range-editor]');
+        if (!editor) return;
+        if (activeRangeEditor && activeRangeEditor !== editor) closeRangeEditor(activeRangeEditor);
+        if (!editor.hidden) {
+            closeRangeEditor(editor);
+            return;
         }
+        editor.reset();
+        clearErrors(editor);
+        editor.hidden = false;
+        activeRangeEditor = editor;
+        panel.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'true');
+        panel.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'true'));
+        editor.querySelector('input[name="start_time"]')?.focus();
+    }
 
+    document.addEventListener('submit', async (event) => {
+        const editor = event.target.closest('[data-ctt-range-editor]');
+        if (!editor) return;
+        event.preventDefault();
+        if (editor.hidden || !editor.reportValidity()) return;
+        clearErrors(editor);
+        const button = editor.querySelector('button[type="submit"]');
+        if (button?.disabled) return;
+        const start = editor.querySelector('input[name="start_time"]')?.value || '';
+        const end = editor.querySelector('input[name="end_time"]')?.value || '';
+        const category = editor.dataset.category;
+        const minimum = category.endsWith('_am') ? '00:00' : '12:00';
+        const maximum = category.endsWith('_am') ? '11:59' : '23:59';
+        if (start < minimum || end > maximum || start >= end) {
+            renderErrors(editor, { end_time: ['Select a valid time range within this category. End Time must be later than Start Time.'] });
+            return;
+        }
+        const updateUrl = editor.dataset.updateUrl;
+        const payload = {
+            start_time: start,
+            end_time: end,
+            is_active: editor.querySelector('[name="is_active"]')?.checked ? 1 : 0,
+        };
+        if (!updateUrl) {
+            payload.operation_client_id = editor.dataset.clientId;
+            payload.category = category;
+        }
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+        }
         try {
-            const data = await postJson(
-                configUpdateUrl
-                    ? `${configUpdateUrl}`
-                    : baseUrl,
-                configUpdateUrl
-                    ? { ...payload, _method: 'PUT' }
-                    : payload
-            );
-
-            closeModal(configModal);
+            const data = await postJson(updateUrl || baseUrl, updateUrl ? { ...payload, _method: 'PUT' } : payload);
+            const panel = panelContainerFor(editor);
             await refreshPanelByUrl(data.panel_url);
+            // The refreshed server-side card replaces the inline editor and reflects saved settings.
+            if (activeRangeEditor === editor) activeRangeEditor = null;
+            if (panel && editor.isConnected) await refreshPanel(panel);
         } catch (error) {
             if (error.errors && Object.keys(error.errors).length) {
-                renderErrors(configForm, error.errors);
-                return;
+                renderErrors(editor, error.errors);
+            } else {
+                renderErrors(editor, { start_time: [error.message || 'The configuration could not be saved.'] });
             }
-
-            renderErrors(configForm, {
-                start_time: [error.message || 'The configuration could not be saved.'],
-            });
+        } finally {
+            if (button?.isConnected) {
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+            }
         }
     });
 
@@ -344,14 +342,13 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
 
     document.addEventListener('click', async (event) => {
         const addConfigButton = event.target.closest('.ctt-add-config');
-
         if (addConfigButton) {
-            openConfigModal({
-                clientId: addConfigButton.dataset.clientId,
-                clientName: addConfigButton.dataset.clientName,
-                category: addConfigButton.dataset.category,
-                isActive: true,
-            });
+            openRangeEditor(panelContainerFor(addConfigButton));
+            return;
+        }
+        const rangeCancel = event.target.closest('[data-ctt-range-cancel]');
+        if (rangeCancel) {
+            closeRangeEditor(rangeCancel.closest('[data-ctt-range-editor]'));
             return;
         }
 
@@ -381,19 +378,8 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
 
         const editRangeButton = event.target.closest('.ctt-edit-range');
-
         if (editRangeButton) {
-            const container = panelContainerFor(editRangeButton);
-            openConfigModal({
-                clientId: container?.dataset.clientId,
-                clientName: container?.closest('.ctt-client-card')
-                    ?.querySelector('.ctt-client-heading h3')?.textContent?.trim(),
-                category: container?.dataset.category,
-                startTime: editRangeButton.dataset.startTime,
-                endTime: editRangeButton.dataset.endTime,
-                isActive: editRangeButton.dataset.isActive === '1',
-                updateUrl: `${baseUrl}/${editRangeButton.dataset.configId}`,
-            });
+            openRangeEditor(panelContainerFor(editRangeButton));
             return;
         }
 
@@ -488,7 +474,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
     });
 
-    [configModal, slotModal].forEach((modal) => {
+    [slotModal].forEach((modal) => {
         modal?.querySelectorAll('[data-ui-modal-close]').forEach((button) => {
             button.addEventListener('click', () => closeModal(modal));
         });
@@ -496,7 +482,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-        closeModal(configModal);
+        if (activeRangeEditor) closeRangeEditor(activeRangeEditor);
         closeModal(slotModal);
     });
 

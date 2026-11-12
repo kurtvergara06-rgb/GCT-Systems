@@ -90,6 +90,7 @@
                 <button
                     type="button"
                     class="ctt-btn ctt-btn-ghost ctt-edit-range"
+                    aria-expanded="false"
                     data-config-id="{{ $configuration->id }}"
                     data-start-time="{{ \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->startMinutes()) }}"
                     data-end-time="{{ \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->endMinutes()) }}"
@@ -113,6 +114,7 @@
             <button
                 type="button"
                 class="ctt-btn ctt-add-config"
+                aria-expanded="false"
                 data-client-id="{{ $client->id }}"
                 data-client-name="{{ $client->name }}"
                 data-category="{{ $category }}"
@@ -121,4 +123,45 @@
             </button>
         @endif
     </div>
+@endif
+
+@if($canEditOperation)
+    <form class="ctt-inline-range-editor" data-ctt-range-editor
+        data-client-id="{{ $client->id }}"
+        data-category="{{ $category }}"
+        @if($hasConfiguration) data-update-url="/operation/client-trip-times/{{ $configuration->id }}" @endif
+        autocomplete="off" hidden>
+        <div class="ctt-inline-range-heading">
+            <strong><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ $hasConfiguration ? 'Edit time range' : 'Set time range' }}</strong>
+            <span>Changes are saved only when you select Save.</span>
+        </div>
+        <div class="ctt-inline-time-fields">
+            <label class="ctt-inline-time-field">
+                <span>Start Time <span class="ui-required">*</span></span>
+                <input type="time" name="start_time" required
+                    min="{{ \App\Support\ClientTripTimes::isAmCategory($category) ? '00:00' : '12:00' }}"
+                    max="{{ \App\Support\ClientTripTimes::isAmCategory($category) ? '11:59' : '23:59' }}"
+                    value="{{ $hasConfiguration ? \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->startMinutes()) : '' }}">
+                <span class="ctt-field-error" data-error-for="start_time" role="alert"></span>
+            </label>
+            <label class="ctt-inline-time-field">
+                <span>End Time <span class="ui-required">*</span></span>
+                <input type="time" name="end_time" required
+                    min="{{ \App\Support\ClientTripTimes::isAmCategory($category) ? '00:00' : '12:00' }}"
+                    max="{{ \App\Support\ClientTripTimes::isAmCategory($category) ? '11:59' : '23:59' }}"
+                    value="{{ $hasConfiguration ? \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->endMinutes()) : '' }}">
+                <span class="ctt-field-error" data-error-for="end_time" role="alert"></span>
+            </label>
+        </div>
+        <label class="ctt-inline-active">
+            <input type="checkbox" name="is_active" value="1" @checked(! $hasConfiguration || $configuration->is_active)>
+            <span><strong>Active configuration</strong><small>Disabled ranges cannot be used for new trips.</small></span>
+        </label>
+        <span class="ctt-field-error" data-error-for="is_active" role="alert"></span>
+        <p class="ctt-inline-help">AM: 12:00 AM–11:59 AM. PM: 12:00 PM–11:59 PM. Ranges cannot cross midnight. Add individual time slots after saving the range.</p>
+        <div class="ctt-inline-range-actions">
+            <button type="button" class="ctt-btn ctt-btn-ghost" data-ctt-range-cancel>Cancel</button>
+            <button type="submit" class="ctt-btn ctt-btn-primary">{{ $hasConfiguration ? 'Save Changes' : 'Create Configuration' }}</button>
+        </div>
+    </form>
 @endif

@@ -502,95 +502,6 @@
    MODALS
 ========================================================= */
 
-.client-trip-times-page .ctt-modal-context {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
-.client-trip-times-page .ctt-modal-context-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid var(--ctt-soft-border);
-    border-radius: 10px;
-    background: #f8fafd;
-    color: var(--ctt-navy);
-    font-size: 12px;
-}
-
-.client-trip-times-page .ctt-modal-context-item i {
-    color: var(--ctt-blue);
-}
-
-.client-trip-times-page .ctt-modal-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.client-trip-times-page .ctt-modal-grid input[type="time"] {
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 42px;
-    height: 42px;
-    padding: 0 12px 0 40px;
-    border: 1px solid #dbe5f2;
-    border-radius: 9px;
-    background: var(--gct-ui-surface, #fff);
-    color: var(--ctt-text);
-    font-size: 12.5px;
-}
-
-.client-trip-times-page .ctt-checkbox-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.client-trip-times-page .ctt-checkbox-row input[type="checkbox"] {
-    width: 17px;
-    height: 17px;
-    min-height: 17px;
-    margin-top: 2px;
-    accent-color: var(--ctt-blue);
-}
-
-.client-trip-times-page .ctt-checkbox-row strong {
-    display: block;
-    color: var(--ctt-text);
-    font-size: 12.5px;
-}
-
-.client-trip-times-page .ctt-checkbox-row small {
-    display: block;
-    margin-top: 3px;
-    color: var(--ctt-muted);
-    font-size: 11px;
-    line-height: 1.5;
-}
-
-.client-trip-times-page .ctt-modal-help {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin: 14px 0 0;
-    padding: 10px 12px;
-    border: 1px solid #cfe0f8;
-    border-radius: 10px;
-    background: #f4f8ff;
-    color: #1c4276;
-    font-size: 11px;
-    line-height: 1.55;
-}
-
-.client-trip-times-page .ctt-modal-help i {
-    margin-top: 2px;
-}
-
 .client-trip-times-page .ctt-field-error {
     display: block;
     margin-top: 6px;
@@ -2335,6 +2246,63 @@
     font-size: 12px;
 }
 
+
+/* Client Trip Times range editor is in its category card; no range modal. */
+.client-trip-times-page .ctt-inline-range-editor[hidden] { display: none !important; }
+.client-trip-times-page .ctt-inline-range-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    margin-top: 9px;
+    padding: 12px;
+    border: 1px solid var(--gct-ui-border, #d2e1f4);
+    border-radius: 10px;
+    background: var(--gct-ui-surface-raised, #f6f9ff);
+}
+.client-trip-times-page .ctt-inline-range-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 9px;
+}
+.client-trip-times-page .ctt-inline-range-heading strong { color: var(--gct-ui-text, #123457); font-size: 12px; }
+.client-trip-times-page .ctt-inline-range-heading span { color: var(--gct-ui-muted, #687f9d); font-size: 10px; }
+.client-trip-times-page .ctt-inline-time-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+.client-trip-times-page .ctt-inline-time-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 5px;
+    color: var(--gct-ui-text, #123457);
+    font-size: 11px;
+    font-weight: 700;
+}
+.client-trip-times-page .ctt-inline-time-field input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 39px;
+    padding: 7px 9px;
+    border: 1px solid var(--gct-ui-border, #cddcf0);
+    border-radius: 8px;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #172e4d);
+    font: inherit;
+}
+.client-trip-times-page .ctt-inline-active { display: flex; align-items: flex-start; gap: 9px; font-size: 11px; color: var(--gct-ui-text, #163555); cursor: pointer; }
+.client-trip-times-page .ctt-inline-active input { margin-top: 3px; accent-color: #0b40b5; }
+.client-trip-times-page .ctt-inline-active strong, .client-trip-times-page .ctt-inline-active small { display: block; }
+.client-trip-times-page .ctt-inline-active small { margin-top: 2px; color: var(--gct-ui-muted, #6b7f9c); line-height: 1.4; }
+.client-trip-times-page .ctt-inline-help { margin: 0; color: var(--gct-ui-muted, #697f9c); font-size: 10px; line-height: 1.5; }
+.client-trip-times-page .ctt-inline-range-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.client-trip-times-page .ctt-inline-range-actions .ctt-btn { min-height: 34px; font-size: 11px; }
+@media (max-width: 500px) {
+    .client-trip-times-page .ctt-inline-time-fields { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* Client-level bus allocation summary — read-only; allocations remain owned by Bus Master List. */
 .client-trip-times-page .ctt-client-buses {
