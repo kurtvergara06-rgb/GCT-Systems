@@ -1586,19 +1586,19 @@
 /* 2026 Bus Master List: unified Add/Edit modal visual refresh. */
 #busModal .ui-form-modal,
 #editBusModal .bus-edit-design {
-  width: min(900px, calc(100vw - 32px));
+  width: min(800px, calc(100vw - 32px));
   border-radius: 20px;
   box-shadow: 0 24px 75px rgba(12, 34, 65, .25);
 }
 #busModal .ui-form-modal-header,
 #editBusModal .bus-edit-design > .modal-header {
-  padding: 22px 26px;
+  padding: 14px 20px;
   background: var(--gct-ui-surface, #fff);
   border-bottom: 1px solid #e6edf6;
 }
 #busModal .ui-form-modal-scrollable,
 #editBusModal .job-form.wide-form {
-  gap: 16px 20px;
+  gap: 10px 14px;
 }
 #busModal .ui-form-modal-scrollable > .bus-form-section,
 #editBusModal .job-form > .bus-form-section {
@@ -1606,8 +1606,8 @@
   border: 1px solid #e4ebf6;
   background: #f3f7fe;
   border-radius: 12px;
-  padding: 12px 16px;
-  margin: 5px 0 0;
+  padding: 9px 12px;
+  margin: 3px 0 0;
 }
 #busModal .ui-form-modal-scrollable > .bus-route-section,
 #editBusModal .job-form > .bus-route-section {
@@ -1619,9 +1619,9 @@
   color: #2467db;
   border: 1px solid #cfe0ff;
   border-radius: 10px;
-  width: 40px;
-  height: 40px;
-  flex-basis: 40px;
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
 }
 #busModal .form-group label,
 #editBusModal .form-group label {
@@ -1634,14 +1634,14 @@
 #editBusModal .form-group input,
 #editBusModal .form-group select {
   border-radius: 9px;
-  min-height: 47px;
+  min-height: 40px;
   background: var(--gct-ui-surface, #fff);
 }
 #busModal .bus-purpose-note,
 #editBusModal .bus-purpose-note {
-  margin: 10px 0 0;
+  margin: 7px 0 0;
   border-radius: 9px;
-  padding: 10px 12px;
+  padding: 7px 10px;
   font-size: 11px;
   line-height: 1.5;
   color: #244677;
@@ -1652,7 +1652,7 @@
 #busModal .ui-form-actions,
 #editBusModal .modal-actions {
   border-top: 1px solid #e6edf6;
-  padding-top: 18px;
+  padding-top: 12px;
 }
 #busModal .ui-form-btn-primary,
 #editBusModal .save-btn { background: #ffba08; color: #102649; border-radius: 10px; }
@@ -1664,19 +1664,19 @@
 }
 
 /* Structured Add Bus modal: actual two-column cards, with a reachable footer. */
-#busModal .ui-form-modal { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#busModal .ui-form-modal { display:flex; flex-direction:column; max-height:calc(100dvh - 48px); }
 #busModal .ui-form-content { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
-#busModal .ui-form-modal-body { display:flex; flex-direction:column; min-height:0; overflow:hidden; padding:16px 24px 0; }
-#busModal .ui-form-modal-scrollable { display:block; min-height:0; overflow-y:auto; padding:0 2px 16px; }
-#busModal .bus-modal-basic, #busModal .bus-modal-panel, #editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:16px; border:1px solid var(--gct-ui-border, #e4ebf6); border-radius:13px; background:var(--gct-ui-surface-raised, #f4f7fc); }
-#busModal .bus-modal-field-grid, #busModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
-#busModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#busModal .ui-form-modal-body { display:flex; flex-direction:column; min-height:0; overflow:hidden; padding:10px 18px 0; }
+#busModal .ui-form-modal-scrollable { display:block; min-height:0; overflow-y:auto; padding:0 2px 10px; }
+#busModal .bus-modal-basic, #busModal .bus-modal-panel, #editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:12px; border:1px solid var(--gct-ui-border, #e4ebf6); border-radius:13px; background:var(--gct-ui-surface-raised, #f4f7fc); }
+#busModal .bus-modal-field-grid, #busModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 14px; }
+#busModal .bus-modal-lower { margin-top:10px; gap:10px; }
 #busModal .bus-modal-panel { min-width:0; }
 #busModal .bus-modal-basic > .bus-form-section,
-#busModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#busModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 10px; padding:0; border:0; background:transparent; }
 #busModal .bus-modal-field-grid > .form-group, #busModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
 #busModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
-#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:15px 4px; background:var(--gct-ui-surface, #fff); }
+#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:10px 4px; background:var(--gct-ui-surface, #fff); }
 @media(max-width:640px) {
   #busModal .bus-modal-field-grid, #busModal .bus-modal-lower { grid-template-columns:1fr; }
   #busModal .ui-form-modal-body { padding:12px 14px 0; }
@@ -1684,18 +1684,18 @@
 }
 
 /* Edit Bus now follows exactly the Add Bus card structure, with a fixed footer. */
-#editBusModal .bus-edit-design { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#editBusModal .bus-edit-design { display:flex; flex-direction:column; max-height:calc(100dvh - 48px); }
 #editBusModal .job-form.wide-form { display:flex; flex-direction:column; gap:0; padding:0; min-height:0; max-height:none; overflow:hidden; }
-#editBusModal .bus-edit-scroll { overflow-y:auto; min-height:0; flex:1 1 auto; padding:16px 24px; }
-#editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
-#editBusModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#editBusModal .bus-edit-scroll { overflow-y:auto; min-height:0; flex:1 1 auto; padding:10px 18px; }
+#editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 14px; }
+#editBusModal .bus-modal-lower { margin-top:10px; gap:10px; }
 #editBusModal .bus-modal-panel { min-width:0; }
-#editBusModal .bus-modal-basic > .bus-form-section, #editBusModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#editBusModal .bus-modal-basic > .bus-form-section, #editBusModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 10px; padding:0; border:0; background:transparent; }
 #editBusModal .bus-modal-field-grid > .form-group, #editBusModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
 #editBusModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
 #editBusModal .bus-no-lock-hint { margin:10px 0 0; }
 #editBusModal .bus-maintenance-lock-notice { margin:12px 0 0; }
-#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:16px 24px; background:var(--gct-ui-surface, #fff); border-top:1px solid #e6edf6; flex-shrink:0; }
+#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:10px 18px; background:var(--gct-ui-surface, #fff); border-top:1px solid #e6edf6; flex-shrink:0; }
 @media(max-width:640px) {
  #editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { grid-template-columns:1fr; }
  #editBusModal .bus-edit-scroll { padding:12px 14px; }
