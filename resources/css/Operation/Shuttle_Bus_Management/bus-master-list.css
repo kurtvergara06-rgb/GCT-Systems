@@ -2564,23 +2564,17 @@
 .bus-master-list-page .bus-table th,
 .bus-master-list-page .bus-table td { box-sizing: border-box; }
 .bus-master-list-page .bus-table thead th {
-    height: 41px; padding: 10px 12px; background: var(--gct-ui-surface-raised, #f3f7fc);
+    height: 41px; padding: 10px 9px; background: var(--gct-ui-surface-raised, #f3f7fc);
     color: #435672; letter-spacing: .035em;
     font-size: 10px; font-weight: 750; vertical-align: middle; white-space: nowrap;
     border-bottom: 1px solid #dae4f2;
 }
 .bus-master-list-page .bus-table tbody td {
-    padding: 11px 12px; height: 58px; vertical-align: middle;
+    padding: 11px 9px; height: 58px; vertical-align: middle;
     background: var(--gct-ui-surface, #fff); border-bottom: 1px solid #e9eff8;
 }
 .bus-master-list-page .bus-table tbody tr:hover td { background: var(--gct-ui-surface-hover, #f8fbff); }
 .bus-master-list-page .bus-table tbody tr:last-child td { border-bottom: 0; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(1) { width: 15%; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(2) { width: 12%; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(3) { width: 20%; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(4) { width: 20%; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(5) { width: 20%; }
-.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(6) { width: 13%; text-align: center; }
 .bus-master-list-page .bus-id-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .bus-master-list-page .bus-id-text {
     display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis;
@@ -2737,11 +2731,11 @@
   text-align: left;
 }
 
-/* Client column: align its company avatar beneath the header label,
-   just as the driver avatar aligns beneath Authorized Drivers. */
+/* Use the cell's normal padding for the company avatar and name.
+   An extra left indent previously truncated client names unnecessarily. */
 .bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-summary {
   box-sizing: border-box;
-  padding-left: 35px;
+  padding-left: 0;
 }
 
 /* Client / Company now occupies the second lower modal panel. */
@@ -2948,7 +2942,7 @@
 
 /* Operations / Bus Master List responsive records.
    Keep one horizontal scrollbar and avoid the inherited 480/520px
-   nested vertical viewport. Reserve uses five columns, Regular seven. */
+   nested vertical viewport. Reserve uses four columns, Regular six. */
 .bus-master-list-page .table-wrap.gct-responsive-records {
   width: 100%;
   min-width: 0;
@@ -2963,12 +2957,12 @@
   min-width: 940px;
   table-layout: fixed;
 }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(1) { width: 15%; }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(2) { width: 12%; }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(3) { width: 20%; }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(4) { width: 20%; }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(5) { width: 20%; }
-.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(6) { width: 13%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(1) { width: 14%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(2) { width: 11%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(3) { width: 18%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(4) { width: 27%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(5) { width: 18%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(6) { width: 12%; }
 .bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve {
   min-width: 760px;
 }
