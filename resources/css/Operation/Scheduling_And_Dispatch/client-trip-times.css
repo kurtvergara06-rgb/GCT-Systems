@@ -2176,18 +2176,18 @@
 /* Category content alignment — match the reference card's top spacing. */
 .client-trip-times-page .ctt-category-grid {
     align-items: stretch;
-    row-gap: 10px;
+    row-gap: 8px;
 }
 .client-trip-times-page .ctt-category-panel {
     justify-content: flex-start;
     align-items: stretch;
     align-content: start;
-    gap: 7px;
-    padding: 10px 15px 12px;
+    gap: 6px;
+    padding: 9px 12px 10px;
 }
 .client-trip-times-page .ctt-category-panel > .ctt-panel-header {
     flex: 0 0 auto;
-    min-height: 36px;
+    min-height: 34px;
     margin: 0 0 2px;
     padding: 0;
     align-self: stretch;
@@ -2338,8 +2338,8 @@
 
 /* Client-level bus allocation summary — read-only; allocations remain owned by Bus Master List. */
 .client-trip-times-page .ctt-client-buses {
-    margin: 12px 0 3px;
-    padding: 12px 14px;
+    margin: 8px 0 6px;
+    padding: 10px 12px;
     border: 1px solid #dfe8f4;
     border-radius: 11px;
     background: var(--gct-ui-surface-hover, #f8fbff);
@@ -2374,18 +2374,52 @@
 .client-trip-times-page .ctt-client-bus-chips {
     display: flex;
     flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.client-trip-times-page .ctt-client-bus-extra[hidden] { display: none; }
+.client-trip-times-page .ctt-client-bus-remaining {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border: 1px dashed var(--gct-ui-border, #cbd9ed);
+    border-radius: 8px;
+    color: var(--gct-ui-muted, #526987);
+    font-size: 11px;
+    font-weight: 750;
+}
+.client-trip-times-page .ctt-client-buses-toggle {
+    display: inline-flex;
+    align-items: center;
     gap: 7px;
-    margin-top: 10px;
+    margin-top: 9px;
+    padding: 6px 10px;
+    border: 1px solid var(--gct-ui-border, #cbdcf4);
+    border-radius: 8px;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #174f9e);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+}
+.client-trip-times-page .ctt-client-buses-toggle:hover,
+.client-trip-times-page .ctt-client-buses-toggle:focus-visible {
+    border-color: #8bb4ed;
+    background: var(--gct-ui-surface-hover, #edf4ff);
+}
+.client-trip-times-page .ctt-client-buses-toggle[aria-expanded="true"] > i {
+    transform: rotate(180deg);
 }
 .client-trip-times-page .ctt-client-bus-chip {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 7px 10px;
-    border: 1px solid #d4e3f5;
+    padding: 5px 8px;
+    border: 1px solid var(--gct-ui-border, #d4e3f5);
     border-radius: 8px;
-    background: #fff;
-    color: #143d74;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #143d74);
     font-size: 11px;
     font-weight: 700;
 }

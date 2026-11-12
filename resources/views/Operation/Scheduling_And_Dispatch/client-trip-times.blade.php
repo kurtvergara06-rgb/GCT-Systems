@@ -184,22 +184,42 @@
                         </summary>
 
                         <section class="ctt-client-buses" aria-label="Allocated buses for {{ $client->name }}">
+                            @php
+                                $allocatedBuses = $client->buses->sortBy('bus_no')->values();
+                                $remainingBusCount = max(0, $allocatedBuses->count() - 4);
+                            @endphp
                             <div class="ctt-client-buses-heading">
                                 <div>
                                     <strong><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Allocated Buses</strong>
-                                    <span>{{ $client->buses->count() }} {{ \Illuminate\Support\Str::plural('bus', $client->buses->count()) }}</span>
+                                    <span>{{ $allocatedBuses->count() }} {{ \Illuminate\Support\Str::plural('bus', $allocatedBuses->count()) }}</span>
                                 </div>
                                 <a href="{{ route('bus-master-list') }}" class="ctt-client-buses-link">
                                     Manage in Bus Master List <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                                 </a>
                             </div>
                             <div class="ctt-client-bus-chips">
-                                @forelse($client->buses as $bus)
+                                @forelse($allocatedBuses->take(4) as $bus)
                                     <span class="ctt-client-bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus {{ $bus->bus_no }}</span>
                                 @empty
                                     <span class="ctt-client-no-buses">No buses allocated to this client.</span>
                                 @endforelse
+                                @if($remainingBusCount > 0)
+                                    <span class="ctt-client-bus-remaining">+{{ $remainingBusCount }} more</span>
+                                @endif
                             </div>
+                            @if($remainingBusCount > 0)
+                                <div class="ctt-client-bus-chips ctt-client-bus-extra" id="cttClientBuses-{{ $client->id }}" hidden>
+                                    @foreach($allocatedBuses->skip(4) as $bus)
+                                        <span class="ctt-client-bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus {{ $bus->bus_no }}</span>
+                                    @endforeach
+                                </div>
+                                <button type="button" class="ctt-client-buses-toggle" data-ctt-buses-toggle
+                                    aria-controls="cttClientBuses-{{ $client->id }}" aria-expanded="false"
+                                    data-collapsed-label="View all {{ $allocatedBuses->count() }} buses">
+                                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    <span>View all {{ $allocatedBuses->count() }} buses</span>
+                                </button>
+                            @endif
                         </section>
 
                         <div class="ctt-category-grid" role="group" aria-label="Trip time categories for {{ $client->name }}">

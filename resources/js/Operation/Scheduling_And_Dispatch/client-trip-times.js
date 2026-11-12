@@ -549,6 +549,19 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
     }
 
+    // Expand large allocation lists only when requested; leave the client card open.
+    document.querySelectorAll('[data-ctt-buses-toggle]').forEach((button) => {
+        const list = document.getElementById(button.getAttribute('aria-controls') || '');
+        if (!list) return;
+        button.addEventListener('click', () => {
+            const expanding = list.hidden;
+            list.hidden = !expanding;
+            button.setAttribute('aria-expanded', String(expanding));
+            const label = button.querySelector('span');
+            if (label) label.textContent = expanding ? 'Show fewer buses' : button.dataset.collapsedLabel;
+        });
+    });
+
     const toggleAllButton = document.getElementById('cttToggleAllClients');
     const clientCards = Array.from(document.querySelectorAll('.ctt-client-card'));
 
