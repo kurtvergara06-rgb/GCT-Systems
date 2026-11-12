@@ -138,12 +138,6 @@
                                 </th>
                                 <th>
                                     <div class="th-content">
-                                        <span>Model</span>
-                                        <i class="fa-solid fa-up-down sort-icon" aria-hidden="true"></i>
-                                    </div>
-                                </th>
-                                <th>
-                                    <div class="th-content">
                                         <span>Status</span>
                                         <i class="fa-solid fa-up-down sort-icon" aria-hidden="true"></i>
                                     </div>
@@ -172,10 +166,6 @@
                                     </td>
                                     <td>
                                         <span class="bus-plate-text">{{ $bus->plate_no ?: '—' }}</span>
-                                    </td>
-
-                                    <td>
-                                        <span class="bus-model-text" title="{{ $bus->bus_model ?: 'Not specified' }}">{{ $bus->bus_model ?: '—' }}</span>
                                     </td>
 
                                     <td>
@@ -287,7 +277,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="{{ request('fleet_purpose') === 'Reserve' ? 5 : 7 }}"
+                                    colspan="{{ request('fleet_purpose') === 'Reserve' ? 4 : 6 }}"
                                     icon="fa-bus"
                                     message="No Bus Records Found"
                                     description="There are no buses matching the selected fleet and filters."
