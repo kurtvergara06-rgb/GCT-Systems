@@ -923,6 +923,93 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
 }
 
 /*
+ * Command Center workforce and workspace palette. The page-specific CSS uses
+ * light background shorthands and gradients; override those surfaces here
+ * instead of adding !important rules to the light-mode stylesheet.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .attendance-capacity-summary,
+    .operation-attendance-card .attendance-stat-box,
+    .workspace-link-item
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .capacity-label, .capacity-val small, .attendance-capacity-legend,
+    .attendance-stat-box__top, .attendance-stat-box__top small,
+    .workspace-link-text small
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .capacity-val, .attendance-stat-box > strong,
+    .workspace-link-title-row strong, .link-chevron
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .attendance-capacity-bar {
+    background: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-tile {
+    background: linear-gradient(120deg, var(--gct-theme-surface-raised), var(--gct-theme-surface));
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .workspace-featured-title strong, .workspace-featured-text p
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-action {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-tile:hover .workspace-featured-action {
+    background: var(--gct-theme-hover);
+    border-color: var(--gct-theme-focus);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span {
+    background: var(--gct-theme-surface-raised);
+    color: #c7ddff;
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(2) {
+    background: #153c30;
+    color: #a6ebc9;
+    border-color: #326752;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(3) {
+    background: #44252e;
+    color: #ffc0cb;
+    border-color: #784351;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(4) {
+    background: #302547;
+    color: #dbc2ff;
+    border-color: #5d4a83;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item:hover {
+    background: var(--gct-theme-hover);
+    border-color: var(--gct-theme-focus);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item :is(.workspace-status-chip, .workspace-link-icon) {
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item .workspace-status-chip:not(.is-green):not(.is-blue):not(.is-purple):not(.is-red):not(.is-ai) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .attendance-capacity-summary .capacity-badge.is-full {
+    background: #153c30;
+    color: #a6ebc9;
+    border-color: #326752;
+}
+/* Attendance tags and semantic status chips keep their original meaning. */
+
+/*
  * Dashboard contrast repair. The Command Center uses its own reference-table,
  * fulfillment and fleet classes; generic .table-card rules cannot reach them.
  * Match the exact dashboard descendants rather than overriding global tables.
