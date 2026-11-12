@@ -1938,6 +1938,65 @@
   display: none !important;
 }
 
+/* Read-only Driver Details: use a compact profile presentation.
+   Keep Add/Edit form sizing and the authorized-bus selector unchanged. */
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver {
+  width: min(700px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-header {
+  min-height: 0;
+  padding: 14px 20px;
+  gap: 12px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-icon {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .personnel-modal-title h2 {
+  font-size: 19px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .personnel-modal-title p {
+  margin-top: 3px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form {
+  flex: 0 1 auto;
+  max-height: calc(100dvh - 110px);
+  gap: 11px 14px;
+  padding: 14px 20px 16px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-modal-group-heading {
+  gap: 8px;
+  margin-top: 0;
+  padding: 8px 11px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-field,
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-contact-field {
+  gap: 5px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell,
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-contact-field .driver-input-shell {
+  height: 40px;
+  min-height: 40px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > input,
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > select {
+  min-height: 38px;
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-modal-view-notice {
+  padding: 8px 11px;
+}
+@media (max-width: 680px) {
+  .personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-header {
+    padding: 12px 14px;
+  }
+  .personnel-modal-overlay[data-mode="view"] .personnel-driver-form {
+    padding: 12px 14px 14px;
+    gap: 10px;
+  }
+}
+
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
   border-color: var(--gct-ui-border, #e3eaf3);
   background: var(--gct-ui-surface-hover, #f8fafc);
