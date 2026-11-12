@@ -91,6 +91,7 @@
                     type="button"
                     class="ctt-btn ctt-btn-ghost ctt-edit-range"
                     aria-expanded="false"
+                    aria-controls="cttInlineRange-{{ $client->id }}-{{ $category }}"
                     data-config-id="{{ $configuration->id }}"
                     data-start-time="{{ \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->startMinutes()) }}"
                     data-end-time="{{ \App\Support\ClientTripTimes::inputTimeFromMinutes($configuration->endMinutes()) }}"
@@ -115,6 +116,7 @@
                 type="button"
                 class="ctt-btn ctt-add-config"
                 aria-expanded="false"
+                aria-controls="cttInlineRange-{{ $client->id }}-{{ $category }}"
                 data-client-id="{{ $client->id }}"
                 data-client-name="{{ $client->name }}"
                 data-category="{{ $category }}"
@@ -126,7 +128,8 @@
 @endif
 
 @if($canEditOperation)
-    <form class="ctt-inline-range-editor" data-ctt-range-editor
+    <form class="ctt-inline-range-editor" id="cttInlineRange-{{ $client->id }}-{{ $category }}" data-ctt-range-editor
+        role="region" aria-label="Time range settings for {{ $categoryLabel }}"
         data-client-id="{{ $client->id }}"
         data-category="{{ $category }}"
         @if($hasConfiguration) data-update-url="/operation/client-trip-times/{{ $configuration->id }}" @endif

@@ -209,6 +209,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     function closeRangeEditor(editor) {
         if (!editor) return;
         editor.hidden = true;
+        panelContainerFor(editor)?.classList.remove('is-range-editor-open');
         editor.reset();
         clearErrors(editor);
         const panel = panelContainerFor(editor);
@@ -229,11 +230,22 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         editor.reset();
         clearErrors(editor);
         editor.hidden = false;
+        panel.classList.add('is-range-editor-open');
         activeRangeEditor = editor;
         panel.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'true');
         panel.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'true'));
         editor.querySelector('input[name="start_time"]')?.focus();
     }
+
+    // Dismiss the anchored editor when a different part of the page is selected.
+    // The editor's own controls and its Add/Edit triggers stay interactive.
+    document.addEventListener('click', (event) => {
+        if (!activeRangeEditor) return;
+        if (activeRangeEditor.contains(event.target)) return;
+        const clickedTrigger = event.target.closest('.ctt-add-config, .ctt-edit-range');
+        if (clickedTrigger) return;
+        closeRangeEditor(activeRangeEditor);
+    });
 
     document.addEventListener('submit', async (event) => {
         const editor = event.target.closest('[data-ctt-range-editor]');
