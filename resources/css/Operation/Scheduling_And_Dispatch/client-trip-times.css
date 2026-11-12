@@ -652,11 +652,6 @@
     content: "";
 }
 
-.client-trip-times-page .ctt-client-card[open] > .ctt-client-header {
-    margin-bottom: 14px;
-    border-bottom: 1px solid var(--ctt-soft-border);
-}
-
 .client-trip-times-page .ctt-client-card:not([open]) > .ctt-client-header {
     margin-bottom: 0;
     padding-bottom: 15px;
@@ -885,14 +880,6 @@
 .client-trip-times-page .ctt-overview-icon-amber {
     color: #a96808;
     background: #fff4d9;
-}
-
-.client-trip-times-page .ctt-overview-copy {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
 }
 
 .client-trip-times-page .ctt-overview-label {
@@ -1820,7 +1807,6 @@
     }
 }
 @media (max-width: 700px) {
-    .client-trip-times-page .ctt-configurations-card { padding: 12px; }
     .client-trip-times-page .ctt-clients { overflow: visible; }
     .client-trip-times-page .ctt-client-card { padding: 0 11px; }
     .client-trip-times-page .ctt-panel-empty {

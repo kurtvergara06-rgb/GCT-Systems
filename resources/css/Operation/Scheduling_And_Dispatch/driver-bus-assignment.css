@@ -495,10 +495,6 @@
    COLUMN WIDTHS
 ========================================================= */
 
-.assignment-table th:nth-child(1) {
-    width: 8%;
-}
-
 
 .assignment-table th:nth-child(2) {
     width: 14%;
@@ -1399,7 +1395,6 @@
     margin-top: 12px; padding-top: 12px;
     border-top: 1px solid var(--assign-soft-border);
 }
-.resource-pagination .table-footer { margin: 0; }
 
 
 /* =========================================================

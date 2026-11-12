@@ -2333,9 +2333,7 @@
 .trip-records-page .trip-toolbar .trip-search { flex-grow: 1; }
 
 /* Unified Trip History — compact reference-matched records presentation. */
-.trip-records-page .trip-history-kpis { margin: 0 0 18px; }
 .trip-records-page .trip-history-kpis .trip-summary-card { box-sizing: border-box; height: 112px; min-height: 112px; }
-.trip-records-page .trip-history-card { margin-top: 0; padding: 16px; border-radius: 16px; }
 .trip-history-header { min-height: 44px; margin-bottom: 12px; }
 .trip-history-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .trip-history-controls .gct-table-toolbar { margin-left: auto; }

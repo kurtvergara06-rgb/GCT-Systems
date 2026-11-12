@@ -752,24 +752,6 @@
   transform: translateY(-1px);
 }
 
-.fuel-page .fuel-action-btn.view {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #0b40b5;
-}
-
-.fuel-page .fuel-action-btn.edit {
-  border-color: #fde68a;
-  background: #fffbeb;
-  color: #a16207;
-}
-
-.fuel-page .fuel-action-btn.delete {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #dc2626;
-}
-
 
 /* =========================================================
    GPS LOOKUP STATUS

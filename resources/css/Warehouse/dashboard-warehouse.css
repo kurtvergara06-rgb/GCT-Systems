@@ -701,11 +701,6 @@
   width: 36%;
 }
 
-[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(3),
-[data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(3) {
-  width: 12%;
-}
-
 [data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table th:nth-child(4),
 [data-ajax-region="dashboard-incoming-deliveries"] .warehouse-dashboard-table td:nth-child(4) {
   width: 18%;
@@ -745,10 +740,6 @@
 }
 
 /* 3. Recent Stock Movements (Audit) */
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(1),
-[data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(1) {
-  width: 38%;
-}
 
 [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table th:nth-child(2),
 [data-ajax-region="recent-stock-movements"] .warehouse-dashboard-table td:nth-child(2) {
@@ -927,10 +918,6 @@
   .warehouse-bottom-grid {
     grid-template-columns: 1fr 1fr;
   }
-
-  .warehouse-bottom-grid > .warehouse-panel:last-child {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 1024px) {
@@ -943,10 +930,6 @@
   }
 
   .warehouse-overview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .warehouse-bottom-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1426,9 +1409,6 @@
 }
 
 @media (max-width: 1024px) {
-  .warehouse-reference-overview {
-    grid-template-columns: 1fr;
-  }
 
   .warehouse-reference-overview > .warehouse-panel {
     height: auto;
@@ -1822,10 +1802,6 @@
 .warehouse-usage-panel::before,
 .warehouse-trend-panel::before {
   display: none;
-}
-
-.warehouse-bottom-grid {
-  align-items: stretch;
 }
 
 .warehouse-bottom-grid > .warehouse-panel {
@@ -2733,11 +2709,6 @@
 
 .warehouse-reference-title h2 {
   font-size: 18px;
-}
-
-.warehouse-reference-title p {
-  margin-top: 4px;
-  font-size: 11.5px;
 }
 
 .warehouse-category-filter {

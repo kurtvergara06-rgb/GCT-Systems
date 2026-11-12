@@ -1188,11 +1188,6 @@
 .driver-attendance-page .attendance-table td:nth-child(n+3) {
   text-align: center;
 }
-.driver-attendance-page .attendance-table td:nth-child(4),
-.driver-attendance-page .attendance-table td:nth-child(5),
-.driver-attendance-page .attendance-table td:nth-child(6) {
-  white-space: nowrap;
-}
 .driver-attendance-page .attendance-table td:last-child .actions {
   display: flex;
   justify-content: center;

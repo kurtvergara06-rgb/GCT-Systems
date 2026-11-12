@@ -2249,7 +2249,6 @@ button.ddr-new-btn {
     border-radius: 11px; background: var(--gct-ui-surface-hover, #f8fafc);
 }
 #ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
-#ddrEncodeModal .ddr-report-meta-grid > * { min-width: 0; }
 #ddrEncodeModal .ddr-report-meta-grid .ui-form-group,
 #ddrEncodeModal .ddr-report-meta-grid .ddr-form-group,
 #ddrEncodeModal .ddr-report-meta-grid .ddr-combo { width: 100%; min-width: 0; }
