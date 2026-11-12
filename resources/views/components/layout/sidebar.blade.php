@@ -387,7 +387,7 @@
 
     <div class="brand">
         <div class="brand-icon">
-            <i class="fa-solid {{ $icon }}"></i>
+            <img src="{{ asset('img/gct_logo.png') }}" alt="GCT logo" class="brand-logo" width="46" height="46">
         </div>
         <div class="brand-text">
             <h2>{{ $department }}</h2>

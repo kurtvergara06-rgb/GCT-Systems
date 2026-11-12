@@ -51,6 +51,22 @@
     0 10px 24px rgba(255, 193, 7, 0.25);
 }
 
+.brand-icon .brand-logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* The same logo is used when department navigation is collapsed. */
+.sidebar.collapsed .brand-icon .brand-logo {
+  width: 44px;
+  height: 44px;
+}
+
 .brand h2 {
   font-size: 19px;
   line-height: 1.1;
