@@ -1999,6 +1999,7 @@
 
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
   border-color: var(--gct-ui-border, #e3eaf3);
+  border-radius: 9px;
   background: var(--gct-ui-surface-hover, #f8fafc);
 }
 
@@ -2008,6 +2009,7 @@
   -webkit-text-fill-color: var(--gct-ui-text, #2d405c);
   background: var(--gct-ui-surface-hover, #f8fafc);
   color: var(--gct-ui-text, #2d405c);
+  font-weight: 700;
 }
 
 .personnel-driver-form .driver-modal-actions {
