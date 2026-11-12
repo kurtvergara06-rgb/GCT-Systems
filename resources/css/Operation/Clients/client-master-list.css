@@ -42,7 +42,7 @@
   .client-master-record-tabs { flex-wrap:wrap; }
 }
 .client-master-table-wrap { border:1px solid #dfe8f3;border-radius:11px;max-height:none!important;overflow-x:auto; }
-.client-master-table { width:100%;min-width:1020px;table-layout:fixed;border-collapse:separate;border-spacing:0; }
+.client-master-table { width:100%;min-width:960px;table-layout:fixed;border-collapse:separate;border-spacing:0; }
 .client-master-table th { padding:13px 12px;background:var(--gct-ui-surface-raised, #f4f8fd);text-align:left;font-size:10px;font-weight:800;letter-spacing:.04em;color:#4c6683;white-space:nowrap;border-bottom:1px solid #dfe8f3; }
 .client-master-table td { padding:12px;border-bottom:1px solid #e6edf6;background:var(--gct-ui-surface, #fff);color: var(--gct-ui-text, #26415f);font-size:12px;vertical-align:middle; }
 .client-master-table tbody tr:last-child td { border-bottom:0; }
@@ -54,13 +54,12 @@
 .client-master-name-text strong { max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#162e4e;font-size:12px; }
 .client-master-name-text small { color: var(--gct-ui-muted, #7b8da5);font-size:10px; }
 .client-master-count,.client-master-coverage,.client-master-status { display:inline-flex;align-items:center;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap; }
-.client-master-count { color:#274c78; }
+.client-master-count { color:var(--gct-ui-text, #274c78); }
 .client-master-coverage { padding:6px 9px;background:#fff7e5;color:#996000; }
 .client-master-coverage.is-complete { background:#e8f9ef;color:#167145; }
 .client-master-status { padding:6px 9px;border:1px solid transparent; }
 .client-master-status.is-active { background:#e9f9ef;border-color:#b8eacb;color:#147140; }
 .client-master-status.is-inactive { background:#f1f5f9;border-color:#dde5ed;color:#64748b; }
-.client-master-page .gct-sticky-actions .client-master-actions { min-width:220px; }
 .client-master-action-row { display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap; }
 .client-master-action-row form { margin:0; }
 .client-master-action { min-height:32px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 9px;border:1px solid #cdddff;border-radius:7px;background:#eff6ff;color:#1655a5;font-size:11px;font-weight:700;text-decoration:none;cursor:pointer; }

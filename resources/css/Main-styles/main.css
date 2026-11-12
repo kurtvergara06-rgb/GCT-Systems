@@ -82,47 +82,18 @@ a {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 26px;
-  border-bottom: none !important;
-  box-shadow: none !important;
-}
-
-.topbar::after,
-.topbar::before,
-.topbar-heading::after,
-.topbar-heading::before,
-.page-header::after,
-.page-header::before,
-.dashboard-header::after,
-.dashboard-header::before,
-header.topbar::after,
-header.topbar::before {
-  display: none !important;
-  content: none !important;
-  border: none !important;
-  border-bottom: none !important;
-  height: 0 !important;
-}
-
-.topbar-heading,
-.page-header,
-.dashboard-header,
-header.topbar {
-  border-bottom: none !important;
-  box-shadow: none !important;
 }
 
 .topbar h1 {
   font-size: 32px;
   font-weight: 800;
   color: var(--text);
-  border-bottom: none !important;
 }
 
 .topbar p {
   font-size: 15px;
   color: var(--muted);
   margin-top: 4px;
-  border-bottom: none !important;
 }
 
 .top-actions {
@@ -659,60 +630,60 @@ tbody tr:last-child td {
   line-height: 1;
 }
 
-.badge.hold,
-.badge.submitted,
-.badge.pending,
-.badge.pending-purchase,
-.badge.high,
-.badge.progress {
+.badge.hold:not([data-ui-component="status-badge"]),
+.badge.submitted:not([data-ui-component="status-badge"]),
+.badge.pending:not([data-ui-component="status-badge"]),
+.badge.pending-purchase:not([data-ui-component="status-badge"]),
+.badge.high:not([data-ui-component="status-badge"]),
+.badge.progress:not([data-ui-component="status-badge"]) {
   background: #fff3cd;
 
   color: #b77900;
 }
 
-.badge.ongoing,
-.badge.normal,
-.badge.open,
-.badge.issued,
-.badge.for-purchase {
+.badge.ongoing:not([data-ui-component="status-badge"]),
+.badge.normal:not([data-ui-component="status-badge"]),
+.badge.open:not([data-ui-component="status-badge"]),
+.badge.issued:not([data-ui-component="status-badge"]),
+.badge.for-purchase:not([data-ui-component="status-badge"]) {
   background: #e7f0ff;
 
   color: #0057f8;
 }
 
-.badge.completed,
-.badge.approved,
-.badge.available,
-.badge.low,
-.badge.delivered,
-.badge.in-stock {
+.badge.completed:not([data-ui-component="status-badge"]),
+.badge.approved:not([data-ui-component="status-badge"]),
+.badge.available:not([data-ui-component="status-badge"]),
+.badge.low:not([data-ui-component="status-badge"]),
+.badge.delivered:not([data-ui-component="status-badge"]),
+.badge.in-stock:not([data-ui-component="status-badge"]) {
   background: #ddf8e7;
 
   color: #16a34a;
 }
 
-.badge.draft {
+.badge.draft:not([data-ui-component="status-badge"]) {
   background: #eef1f6;
 
   color: #64748b;
 }
 
-.badge.critical,
-.badge.not-available,
-.badge.rejected,
-.badge.urgent {
+.badge.critical:not([data-ui-component="status-badge"]),
+.badge.not-available:not([data-ui-component="status-badge"]),
+.badge.rejected:not([data-ui-component="status-badge"]),
+.badge.urgent:not([data-ui-component="status-badge"]) {
   background: #ffe2e2;
 
   color: #dc2626;
 }
 
-.badge.delivering {
+.badge.delivering:not([data-ui-component="status-badge"]) {
   background: #ede9fe;
 
   color: #6d28d9;
 }
 
-.badge.low-stock {
+.badge.low-stock:not([data-ui-component="status-badge"]) {
   background: #fff3cd;
 
   color: #b77900;
@@ -2268,9 +2239,11 @@ tr.empty-row > td.empty-row {
   gap: 10px;
   margin: 0 auto;
   max-width: 440px;
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   line-height: 1.5;
   text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .gct-empty-content .gct-empty-icon {
   font-size: 32px;
@@ -2278,14 +2251,14 @@ tr.empty-row > td.empty-row {
   line-height: 1;
 }
 .gct-empty-content .gct-empty-title {
-  color: #0b2344;
+  color: var(--gct-ui-text, #0b2344);
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 .gct-empty-content .gct-empty-description {
   font-size: 13px;
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   max-width: 420px;
   line-height: 1.5;
   margin: 0 auto;

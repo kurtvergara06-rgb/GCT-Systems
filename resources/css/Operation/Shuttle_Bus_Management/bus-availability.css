@@ -68,14 +68,14 @@
 #availabilityBusModal .bus-details-header { display: flex; align-items: center; gap: 16px; padding: 25px 28px; border-bottom: 1px solid #e5edf8; }
 #availabilityBusModal .bus-details-heading { flex: 1; min-width: 0; }
 #availabilityBusModal .bus-details-heading h2 { color: #102649; font-size: 21px; font-weight: 800; margin: 0; }
-#availabilityBusModal .bus-details-heading p { color: #64748b; font-size: 12px; margin: 6px 0 0; }
+#availabilityBusModal .bus-details-heading p { color: var(--gct-ui-muted, #64748b); font-size: 12px; margin: 6px 0 0; }
 #availabilityBusModal .bus-details-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 13px; background: #e7efff; color: #1452c7; font-size: 22px; }
 #availabilityBusModal .bus-details-header .close-btn { align-self: flex-start; }
 #availabilityBusModal .bus-details-body { padding: 23px 28px; max-height: 65vh; overflow: auto; }
 #availabilityBusModal .bus-details-section { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 #availabilityBusModal .bus-details-section > i { display: grid; place-items: center; width: 34px; height: 34px; color: #155bd6; background: #f4f8ff; border: 1px solid #dce8fa; border-radius: 9px; }
 #availabilityBusModal .bus-details-section strong { display: block; font-size: 14px; color: #142747; }
-#availabilityBusModal .bus-details-section p { margin: 3px 0 0; font-size: 12px; color: #64748b; }
+#availabilityBusModal .bus-details-section p { margin: 3px 0 0; font-size: 12px; color: var(--gct-ui-muted, #64748b); }
 #availabilityBusModal .bus-details-grid { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 18px; }
 #availabilityBusModal .bus-details-grid > div { padding: 13px 15px; background: #f8fafc; border: 1px solid #dbe5f1; border-radius: 10px; min-width: 0; }
 #availabilityBusModal dt { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #687b97; margin-bottom: 8px; }

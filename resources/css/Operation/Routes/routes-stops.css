@@ -3745,34 +3745,10 @@
 
 /* Route Details read-only viewer: same two-column hierarchy as New/Edit Route. */
 @media (min-width: 1100px) {
-    .route-view-overlay .route-view-modal {
-        width: min(1360px, calc(100vw - 48px));
-        max-width: min(1360px, calc(100vw - 48px));
-        max-height: calc(100dvh - 48px);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
     .route-view-overlay .route-view-header { flex: 0 0 auto; }
-    .route-view-overlay .route-view-body {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        display: grid;
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-        grid-template-areas: "info map" "path map";
-        align-items: start;
-        gap: 14px;
-        padding: 16px 18px 20px;
-    }
     .route-view-overlay .route-view-information { grid-area: info; }
     .route-view-overlay .route-view-map-card { grid-area: map; min-width: 0; }
     .route-view-overlay .route-view-path-card { grid-area: path; min-width: 0; }
-    .route-view-overlay .route-view-map {
-        height: clamp(410px, 50vh, 590px);
-        min-height: 410px;
-        width: 100%;
-    }
     .route-view-overlay .route-view-grid { min-width: 0; }
     .route-view-overlay .route-view-field { min-width: 0; }
     .route-view-overlay .route-view-field strong { overflow-wrap: anywhere; }
@@ -3791,12 +3767,12 @@
 }
 
 
-/* Override legacy #routeDetailsModal 900px rule: genuinely wide View modal. */
+/* Route Details desktop sizing: one bounded two-column layout. */
 @media (min-width: 1100px) {
     #routeDetailsModal.route-view-overlay .route-view-modal {
-        width: min(1380px, calc(100vw - 48px));
-        max-width: min(1380px, calc(100vw - 48px));
-        max-height: calc(100dvh - 40px);
+        width: min(1120px, calc(100vw - 48px));
+        max-width: min(1120px, calc(100vw - 48px));
+        max-height: 88dvh;
     }
     #routeDetailsModal .route-view-body {
         display: grid;
@@ -3806,12 +3782,13 @@
         gap: 14px;
         padding: 16px 18px 20px;
         overflow: auto;
+        grid-template-rows: max-content max-content;
     }
     #routeDetailsModal .route-view-information { grid-area: info; }
     #routeDetailsModal .route-view-map-card { grid-area: map; }
     #routeDetailsModal .route-view-path-card { grid-area: path; }
     #routeDetailsModal .route-view-card { min-width: 0; margin: 0; }
-    #routeDetailsModal .route-view-map { height: clamp(430px, 53vh, 620px); min-height: 430px; }
+    #routeDetailsModal .route-view-map { height: clamp(300px, 42vh, 440px); min-height: 300px; }
 }
 
 

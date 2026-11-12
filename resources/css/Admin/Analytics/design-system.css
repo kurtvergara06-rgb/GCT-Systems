@@ -2096,51 +2096,6 @@ tr.gct-highlight-pulse td,
     animation: gctHighlightRowPulseAnim 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
 }
 
-/* Ensure clean page header/topbar across analytics with no horizontal divider */
-.analytics-stage-page > .topbar,
-.analytics-overview-page > .topbar,
-.topbar,
-.topbar-heading {
-    border-bottom: none !important;
-    box-shadow: none !important;
-}
-
-.analytics-stage-page > .topbar::after,
-.analytics-stage-page > .topbar::before,
-.analytics-overview-page > .topbar::after,
-.analytics-overview-page > .topbar::before,
-.topbar::after,
-.topbar::before,
-.topbar-heading::after,
-.topbar-heading::before {
-    display: none !important;
-    content: none !important;
-    border: none !important;
-    border-bottom: none !important;
-    height: 0 !important;
-}
-
-/* Ensure Bell Shake Animation rule exists in design-system as well */
-@keyframes bellRingingShake {
-    0% { transform: rotate(0); }
-    12% { transform: rotate(14deg); }
-    24% { transform: rotate(-12deg); }
-    36% { transform: rotate(10deg); }
-    48% { transform: rotate(-8deg); }
-    60% { transform: rotate(6deg); }
-    72% { transform: rotate(-4deg); }
-    84% { transform: rotate(2deg); }
-    92% { transform: rotate(-1deg); }
-    100% { transform: rotate(0); }
-}
-
-.icon-btn.notification.is-ringing i,
-.topbar .icon-btn.notification.is-ringing i {
-    display: inline-block;
-    animation: bellRingingShake 2.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) 1 both !important;
-    transform-origin: top center;
-}
-
 @media (max-width: 540px) {
     .analytics-insight-toast-container {
         top: 70px;

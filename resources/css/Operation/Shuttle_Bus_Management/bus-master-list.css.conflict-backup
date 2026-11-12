@@ -1,0 +1,3055 @@
+/* =========================================================
+   BUS MASTER LIST PAGE
+   Based on Job Order visual styling
+========================================================= */
+
+:root {
+  --bus-blue: #0b40b5;
+  --bus-blue-dark: #07338f;
+  --bus-navy: #061f3d;
+  --bus-yellow: #ffc400;
+  --bus-yellow-dark: #f5a800;
+
+  --bus-card: #ffffff;
+  --bus-text: #0f172a;
+  --bus-muted: #64748b;
+  --bus-border: #dce5f2;
+  --bus-table-head: #f3f7fc;
+
+  --bus-soft-shadow:
+    0 4px 16px rgba(6, 31, 61, 0.07);
+
+  --bus-hover-shadow:
+    0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.main .topbar {
+  margin-bottom: 20px;
+}
+
+.main .topbar h1 {
+  color: var(--bus-navy);
+  letter-spacing: -0.02em;
+}
+
+.main .topbar p {
+  color: var(--bus-muted);
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.stats-grid {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stats-grid .stat-card,
+.stats-grid .stat-card-link {
+  min-height: 112px;
+
+  padding: 18px 20px;
+
+  border: 1px solid var(--bus-border);
+  border-radius: 16px;
+
+  background: var(--bus-card);
+
+  box-shadow: var(--bus-soft-shadow);
+
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 14px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.stats-grid .stat-card:hover,
+.stats-grid .stat-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--bus-hover-shadow);
+}
+
+.stats-grid .stat-icon {
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 48px;
+
+  border-radius: 14px;
+
+  font-size: 18px;
+}
+
+.stats-grid .stat-card p,
+.stats-grid .stat-card-link p {
+  margin: 0;
+
+  color: var(--bus-muted);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stats-grid .stat-card h2,
+.stats-grid .stat-card-link h2 {
+  margin: 3px 0 2px;
+
+  color: var(--bus-navy);
+
+  font-size: 25px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.stats-grid .stat-card small,
+.stats-grid .stat-card-link small {
+  color: var(--bus-muted);
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.table-card {
+  padding: 16px;
+
+  border: 1px solid var(--bus-border);
+  border-radius: 16px;
+
+  background: var(--bus-card);
+
+  box-shadow: var(--bus-soft-shadow);
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.section-header {
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  margin: 0;
+
+  color: var(--bus-navy);
+
+  font-size: 18px;
+  font-weight: 800;
+
+  letter-spacing: -0.01em;
+}
+
+.section-header p {
+  margin-top: 3px;
+
+  color: var(--bus-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.bus-toolbar,
+.bus-master-list-page .bus-toolbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--gct-ui-surface, #ffffff);
+  border: 1px solid var(--bus-border, #dce5f2);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.bus-toolbar input[type="hidden"] {
+  display: none !important;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.bus-toolbar .search-box,
+.bus-master-list-page .bus-toolbar .search-box {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 240px;
+}
+
+.bus-toolbar .search-box input,
+.bus-master-list-page .bus-toolbar .search-box input {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 14px 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: var(--gct-ui-surface, #ffffff);
+  color: var(--bus-text, #0f172a);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bus-toolbar .search-box input::placeholder {
+  color: #8a98ac;
+  font-weight: 400;
+}
+
+.bus-toolbar .search-box input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.bus-toolbar .search-box i,
+.bus-master-list-page .bus-toolbar .search-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2563eb;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   STATUS FILTER
+========================================================= */
+
+.bus-toolbar .filter-group,
+.bus-master-list-page .bus-toolbar .filter-group {
+  margin: 0;
+  flex-shrink: 0;
+  min-width: 150px;
+}
+
+.bus-toolbar .filter-group label,
+.bus-master-list-page .bus-toolbar .filter-group label {
+  display: none;
+}
+
+.bus-toolbar .filter-group select,
+.bus-master-list-page .bus-toolbar .filter-group select {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 34px 0 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: var(--gct-ui-surface, #ffffff);
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bus-toolbar .filter-group select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+
+/* =========================================================
+   ADD BUS BUTTON
+========================================================= */
+
+.bus-toolbar .primary-btn,
+.bus-master-list-page .bus-toolbar .primary-btn {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  color: #061f3d;
+  box-shadow: 0 4px 12px rgba(255, 196, 0, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bus-toolbar .primary-btn:hover,
+.bus-master-list-page .bus-toolbar .primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.table-wrap {
+  width: 100%;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(6, 31, 61, 0.05);
+  overflow-x: auto;
+}
+
+.table-wrap::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+
+/* =========================================================
+   BUS TABLE
+========================================================= */
+
+.bus-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bus-table thead {
+  background: #f1f5f9;
+}
+
+.bus-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--gct-screen-table-head, #f1f5f9) !important;
+  padding: 13px 18px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1.5px solid #cbd5e1;
+  box-shadow: 0 1px 0 #cbd5e1;
+}
+
+.bus-table th .th-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bus-table th .sort-icon {
+  font-size: 10px;
+  color: #94a3b8;
+  opacity: 0.75;
+}
+
+.bus-table td {
+  padding: 13px 18px;
+  color: var(--bus-text);
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #cbd5e1;
+  vertical-align: middle;
+}
+
+.bus-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.bus-table tbody tr:hover {
+  background: var(--gct-ui-surface-hover, #f8fbff);
+}
+
+.bus-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   TABLE ALIGNMENT
+========================================================= */
+
+.bus-table th,
+.bus-table td {
+  text-align: left;
+}
+
+.bus-table th:last-child,
+.bus-table td.bus-actions-cell {
+  text-align: center;
+}
+
+
+/* =========================================================
+   BUS ID CELL & BADGE
+========================================================= */
+
+.bus-id-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bus-icon-badge {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.bus-icon-badge.is-active {
+  background: #e0f2fe;
+  color: #2563eb;
+}
+
+.bus-icon-badge.is-muted {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+/* =========================================================
+   PLATE & MODEL CELLS
+========================================================= */
+
+
+/* =========================================================
+   BUS STATUS BADGES / PILLS
+========================================================= */
+
+.bus-status-pill,
+.bus-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ACTIVE */
+.bus-status-pill.status-active,
+.bus-status.status-active {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.bus-status-pill.status-active i,
+.bus-status.status-active i {
+  color: #16a34a;
+  font-size: 12px;
+}
+
+/* UNDER MAINTENANCE */
+.bus-master-list-page .bus-status-pill[data-status-key="under-maintenance"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid #f3d194;
+  border-radius: 8px;
+  background: #fff5e5;
+  color: #92500b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.bus-master-list-page .bus-status-pill[data-status-key="under-maintenance"] .status-badge__icon {
+  flex: 0 0 auto;
+  color: #b96b13;
+  font-size: 11px;
+}
+
+.bus-master-list-page .bus-status-pill[data-status-key="under-maintenance"] .status-badge__label {
+  min-width: 0;
+}
+
+[data-theme="dark"] .bus-master-list-page .bus-status-pill[data-status-key="under-maintenance"] {
+  background: #4b351e;
+  border-color: #96662f;
+  color: #ffe2af;
+}
+
+[data-theme="dark"] .bus-master-list-page .bus-status-pill[data-status-key="under-maintenance"] .status-badge__icon {
+  color: #f5c475;
+}
+
+/* INACTIVE */
+.bus-status-pill.status-inactive,
+.bus-status.status-inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.bus-status-pill.status-inactive i,
+.bus-status.status-inactive i {
+  color: #dc2626;
+  font-size: 12px;
+}
+
+/* DEFAULT */
+.bus-status-pill.status-default,
+.bus-status.status-default {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.bus-table .actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.bus-table .actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.bus-table .actions .action-btn,
+.bus-table .actions > button,
+.bus-table .actions form > button {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* VIEW BUTTON */
+.bus-table .actions .view {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.bus-table .actions .view:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* EDIT BUTTON */
+.bus-table .actions .edit {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.bus-table .actions .edit:not(:disabled):hover {
+  background: #0b40b5;
+  border-color: #0b40b5;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(11, 64, 181, 0.25);
+}
+
+/* DEACTIVATE BUTTON */
+.bus-table .actions .deactivate {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.bus-table .actions .deactivate:not(:disabled):hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* ACTIVATE BUTTON */
+.bus-table .actions .activate {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.bus-table .actions .activate:not(:disabled):hover {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.25);
+}
+
+/* DELETE BUTTON */
+.bus-table .actions .delete {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.bus-table .actions .delete:not(:disabled):hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* DISABLED STATE (e.g. Under Maintenance) */
+.bus-table .actions .action-btn:disabled,
+.bus-table .actions .action-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+
+/* =========================================================
+   TABLE FOOTER
+========================================================= */
+
+.table-footer {
+  margin-top: 14px;
+
+  padding-top: 14px;
+
+  border-top:
+    1px solid #e7edf5;
+}
+
+.table-footer p,
+.page-number {
+  color: var(--bus-muted);
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-btn {
+  min-height: 34px;
+
+  padding: 0 12px;
+
+  border:
+    1px solid var(--bus-border);
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--bus-navy);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  box-shadow: none;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.page-btn:not(.disabled):hover {
+  border-color: var(--bus-blue);
+
+  color: var(--bus-blue);
+
+  background: #f5f8ff;
+}
+
+.page-btn.disabled {
+  background: #f8fafc;
+
+  color: #94a3b8;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.modal-overlay,
+.delete-modal-overlay {
+  display: none;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: var(--modal-backdrop-z-index, 99999);
+
+  box-sizing: border-box;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 20px;
+}
+
+.modal-overlay.show,
+.modal-overlay.active,
+.delete-modal-overlay.show,
+.delete-modal-overlay.active {
+  display: flex;
+}
+
+
+/* =========================================================
+   MODAL BOX
+========================================================= */
+
+.modal-box {
+  width: 520px;
+
+  max-width: 92%;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 24px;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.18);
+
+  animation:
+    busModalPop 0.25s ease;
+}
+
+.modal-box.wide-modal {
+  width: 720px;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.modal-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+
+  color: var(--bus-navy);
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.modal-header p {
+  margin-top: 4px;
+
+  color: var(--bus-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   MODAL CLOSE
+========================================================= */
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #f1f5f9;
+
+  color: var(--bus-navy);
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.job-form {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.job-form.wide-form {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+}
+
+.form-group {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.form-group.full-width,
+.form-section-title.full-width,
+.modal-actions.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  color: var(--bus-navy);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+
+  height: 42px;
+
+  padding: 0 12px;
+
+  border:
+    1px solid var(--bus-border);
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: var(--bus-text);
+
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--bus-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+.form-group input[type="file"] {
+  height: auto;
+
+  min-height: 44px;
+
+  padding: 9px 12px;
+}
+
+.form-group small {
+  display: block;
+
+  color: var(--bus-muted);
+
+  font-size: 12px;
+
+  margin-top: 3px;
+}
+
+
+/* =========================================================
+   FORM SECTION
+========================================================= */
+
+.form-section-title {
+  padding-bottom: 10px;
+
+  border-bottom:
+    1px solid #e7edf5;
+}
+
+.form-section-title h3 {
+  margin: 0;
+
+  color: var(--bus-navy);
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.form-section-title p {
+  margin: 4px 0 0;
+
+  color: var(--bus-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
+.modal-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 6px;
+}
+
+
+/* CANCEL */
+
+.modal-actions .cancel-btn,
+.modal-actions .secondary-btn {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border:
+    1px solid var(--bus-border);
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: var(--bus-navy);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.modal-actions .cancel-btn:hover,
+.modal-actions .secondary-btn:hover {
+  background: #f1f5f9;
+
+  border-color: #cbd5e1;
+}
+
+
+/* SAVE */
+
+.modal-actions .save-btn,
+.modal-actions .primary-btn {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border:
+    1px solid var(--bus-yellow-dark);
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--bus-yellow),
+      var(--bus-yellow-dark)
+    );
+
+  color: var(--bus-navy);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 12px rgba(255, 196, 0, 0.22);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.modal-actions .save-btn:hover,
+.modal-actions .primary-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+
+/* =========================================================
+   DELETE MODAL
+========================================================= */
+
+.delete-modal-box {
+  width: 420px;
+
+  max-width: 92%;
+
+  padding: 30px;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  text-align: center;
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.18);
+
+  animation:
+    busModalPop 0.25s ease;
+}
+
+.delete-icon {
+  width: 70px;
+  height: 70px;
+
+  margin:
+    0 auto 16px;
+
+  border-radius: 50%;
+
+  background: #fee2e2;
+
+  color: #dc2626;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 30px;
+}
+
+.delete-modal-box h2 {
+  margin: 0 0 8px;
+
+  color: var(--bus-navy);
+}
+
+.delete-modal-box p {
+  margin-bottom: 22px;
+
+  color: #475569;
+
+  line-height: 1.5;
+}
+
+.delete-modal-actions {
+  display: flex;
+
+  justify-content: center;
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   DELETE MODAL BUTTONS
+========================================================= */
+
+.danger-btn {
+  min-width: 90px;
+
+  min-height: 40px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: #dc2626;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.danger-btn:hover {
+  background: #b91c1c;
+}
+
+.cancel-delete-btn {
+  min-width: 90px;
+
+  min-height: 40px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: #f1f5f9;
+
+  color: #0f172a;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.cancel-delete-btn:hover {
+  background: #e2e8f0;
+}
+
+
+/* =========================================================
+   ALERTS
+========================================================= */
+
+.alert-success {
+  margin-bottom: 20px;
+
+  padding: 14px 18px;
+
+  border-radius: 12px;
+
+  background: #dcfce7;
+
+  color: #166534;
+
+  font-weight: 600;
+}
+
+.alert-error {
+  margin-bottom: 20px;
+
+  padding: 14px 18px;
+
+  border-radius: 12px;
+
+  background: #fee2e2;
+
+  color: #991b1b;
+
+  font-weight: 600;
+}
+
+.alert-error ul {
+  margin: 0;
+
+  padding-left: 20px;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.pagination svg {
+  width: 18px !important;
+
+  height: 18px !important;
+}
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes busModalPop {
+
+  from {
+    opacity: 0;
+
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: scale(1);
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .bus-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .bus-toolbar .search-box {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .table-card {
+    padding: 12px;
+  }
+
+
+  .bus-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+
+  .bus-toolbar .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+
+
+  .bus-toolbar .filter-group,
+  .bus-toolbar .filter-select-wrap,
+  .bus-toolbar .filter-select-wrap select {
+    width: 100%;
+    max-width: none;
+  }
+
+
+  .bus-toolbar .primary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+
+  .bus-table {
+    min-width: 850px;
+  }
+
+
+  .modal-box,
+  .delete-modal-box {
+    width: 95%;
+
+    padding: 22px;
+  }
+
+
+  .job-form,
+  .job-form.wide-form {
+    grid-template-columns: 1fr;
+  }
+
+
+  .form-group.full-width,
+  .form-section-title.full-width,
+  .modal-actions.full-width {
+    grid-column: auto;
+  }
+
+
+  .modal-actions,
+  .delete-modal-actions {
+    flex-direction: column;
+  }
+
+
+  .modal-actions .cancel-btn,
+  .modal-actions .secondary-btn,
+  .modal-actions .save-btn,
+  .modal-actions .primary-btn,
+  .danger-btn,
+  .cancel-delete-btn {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+}
+
+.bus-filter-loading {
+  margin: -2px 0 10px;
+  padding: 7px 10px;
+  color: #55708e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bus-filter-loading i {
+  margin-right: 6px;
+  color: #0b40b5;
+}
+
+/* Secondary vehicle identification in the Bus Master List. */
+.bus-master-list-page .bus-plate-detail {
+    margin-top: 4px;
+    color: var(--gct-ui-muted, #64748b);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+/* Operation bus details: matched to Add New Bus modal, without editable controls. */
+#viewBusModal .bus-details-modal { width: min(740px, calc(100vw - 32px)); max-width: calc(100vw - 32px); padding: 0; border: 1px solid #e1eaf5; border-radius: 18px; overflow: hidden; }
+#viewBusModal .bus-details-header { display: flex; align-items: center; gap: 16px; padding: 25px 28px; border-bottom: 1px solid #e5edf8; }
+#viewBusModal .bus-details-heading { flex: 1; min-width: 0; }
+#viewBusModal .bus-details-heading h2 { color: #102649; font-size: 21px; font-weight: 800; margin: 0; }
+#viewBusModal .bus-details-heading p { color: var(--gct-ui-muted, #64748b); font-size: 12px; margin: 6px 0 0; }
+#viewBusModal .bus-details-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 13px; background: #e7efff; color: #1452c7; font-size: 22px; }
+#viewBusModal .bus-details-header .close-btn { align-self: flex-start; }
+#viewBusModal .bus-details-body { padding: 23px 28px; max-height: 65vh; overflow: auto; }
+#viewBusModal .bus-details-section { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+#viewBusModal .bus-details-section > i { display: grid; place-items: center; width: 34px; height: 34px; color: #155bd6; background: #f4f8ff; border: 1px solid #dce8fa; border-radius: 9px; }
+#viewBusModal .bus-details-section strong { display: block; font-size: 14px; color: #142747; }
+#viewBusModal .bus-details-section p { margin: 3px 0 0; font-size: 12px; color: var(--gct-ui-muted, #64748b); }
+#viewBusModal .bus-details-grid { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 18px; }
+#viewBusModal .bus-details-grid > div { padding: 13px 15px; background: var(--gct-ui-surface-hover, #f8fafc); border: 1px solid #dbe5f1; border-radius: 10px; min-width: 0; }
+#viewBusModal dt { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #687b97; margin-bottom: 8px; }
+#viewBusModal dd { margin: 0; color: #112a4b; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+#viewBusModal .bus-details-route-heading { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e4ecf6; }
+#viewBusModal .bus-details-route { padding: 14px 16px; background: var(--gct-ui-surface-hover, #f8fafc); border: 1px solid #dbe5f1; border-radius: 10px; color: #112a4b; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+#viewBusModal .bus-details-status { display: inline-flex; border-radius: 999px; padding: 5px 12px; background: #e5e7eb; color: #334155; }
+#viewBusModal .bus-details-status[data-status="Active"] { background: #dcfce7; color: #166534; }
+#viewBusModal .bus-details-status[data-status="Inactive"] { background: #fee2e2; color: #991b1b; }
+#viewBusModal .bus-details-status[data-status="Under Maintenance"] { background: #fef3c7; color: #92400e; }
+#viewBusModal .bus-details-footer { display: flex; justify-content: flex-end; padding: 17px 28px 23px; border-top: 1px solid #e4ecf6; }
+#viewBusModal .bus-details-footer .primary-btn { border-radius: 9px; padding: 11px 25px; color: #13203c; background: #ffb900; border: 1px solid #ffb900; font-weight: 800; cursor: pointer; }
+@media (max-width: 600px) { #viewBusModal .bus-details-grid { grid-template-columns: 1fr; } #viewBusModal .bus-details-header, #viewBusModal .bus-details-body { padding: 18px; } }
+
+/* Add New Bus: coordinated with read-only Bus Details design. */
+#busModal .ui-form-modal { width: min(760px, calc(100vw - 32px)); max-width: calc(100vw - 32px); border-radius: 18px; overflow: hidden; border: 1px solid #e3eaf4; box-shadow: 0 25px 65px rgba(6, 27, 59, .25); }
+#busModal .ui-form-modal-header { padding: 24px 28px; border-bottom: 1px solid #e4edf7; }
+#busModal .ui-form-title-icon { display: grid; place-items: center; width: 52px; height: 52px; background: #e8f0ff; color: #1554c8; border-radius: 13px; }
+#busModal .ui-form-heading h2 { color: #102649; font-size: 22px; font-weight: 800; }
+#busModal .ui-form-modal-body { padding: 23px 28px 22px; }
+#busModal .ui-form-intro { margin-bottom: 21px; padding-bottom: 17px; border-bottom: 1px solid #e4edf7; }
+#busModal .ui-form-intro h3 { color: #112a4b; font-size: 15px; font-weight: 800; }
+#busModal .ui-form-intro p { font-size: 12px; color: #64748b; }
+#busModal .ui-form-modal-scrollable { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 18px; }
+#busModal .ui-form-modal-scrollable > .form-group { margin: 0; min-width: 0; }
+#busModal .ui-form-modal-scrollable > .form-group.full-width { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid #e4edf7; }
+#busModal .form-group label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 800; color: #102649; }
+#busModal .form-group input, #busModal .form-group select { box-sizing: border-box; width: 100%; min-height: 45px; border: 1px solid #d8e4f3; border-radius: 10px; padding: 0 13px; background: var(--gct-ui-surface, #fff); color: #112a4b; font-size: 13px; }
+#busModal .form-group input:focus, #busModal .form-group select:focus { outline: 2px solid #bfdbfe; outline-offset: 1px; border-color: #2563eb; }
+#busModal .ui-form-actions { margin-top: 21px; padding-top: 17px; border-top: 1px solid #e4edf7; }
+#busModal .ui-form-btn-primary { background: #ffb900; color: #102649; border-color: #ffb900; font-weight: 800; }
+@media (max-width: 600px) { #busModal .ui-form-modal-scrollable { grid-template-columns: 1fr; } #busModal .ui-form-modal-header, #busModal .ui-form-modal-body { padding-left: 18px; padding-right: 18px; } }
+
+
+/* Screenshot-matched Bus Master List form design, scoped to bus dialogs. */
+#busModal .ui-form-intro { display: none; }
+#busModal .ui-form-title-icon, #editBusModal .bus-header-icon { position: relative; flex-shrink: 0; display:grid; place-items:center; width:56px; height:56px; border-radius:14px; background:#e8f0ff; color:#1451cb; font-size:24px; }
+#editBusModal .bus-header-icon::after, #busModal .ui-form-title-icon::after { content:""; position:absolute; right:-6px; top:-5px; width:22px; height:22px; border-radius:50%; background:rgba(255,185,0,.21); z-index:-1; }
+#busModal .ui-form-heading h2 { font-size:23px; }
+#busModal .ui-form-heading p { font-size:12px; }
+#busModal .bus-form-section, #editBusModal .bus-form-section { display:flex; align-items:center; gap:12px; margin-bottom:2px; }
+#busModal .bus-form-section:first-child, #editBusModal .bus-form-section:first-child { border-top:1px solid #e3ebf6; padding-top:18px; }
+#busModal .bus-form-section strong, #editBusModal .bus-form-section strong { font-size:14px; font-weight:800; color:var(--gct-ui-text, #102649); }
+#busModal .bus-form-section p, #editBusModal .bus-form-section p { margin:5px 0 0; color:var(--gct-ui-muted, #71829a); font-size:12px; }
+#busModal .bus-section-icon, #editBusModal .bus-section-icon { width:33px; height:33px; flex:0 0 33px; display:grid; place-items:center; border:1px solid #dce8fb; border-radius:9px; background:#f7faff; color:#1c5ed5; }
+#busModal .bus-route-section, #editBusModal .bus-route-section { margin-top:8px; padding-top:18px; border-top:1px solid #e3ebf6; }
+#busModal .bus-form-section + .form-group label, #editBusModal .bus-form-section + .form-group label { font-weight:800; }
+#busModal .form-group input, #busModal .form-group select, #editBusModal .form-group input, #editBusModal .form-group select { min-height:46px; border-radius:10px; border-color:#d8e4f3; }
+#busModal .ui-form-btn-primary, #editBusModal .save-btn { background:#ffb900; color:#102649; border-color:#ffb900; box-shadow:0 4px 12px rgba(255,185,0,.16); }
+#editBusModal .bus-edit-design { width:min(740px,calc(100vw - 32px)); max-width:calc(100vw - 32px); padding:0; overflow:hidden; border:1px solid #e3eaf4; border-radius:18px; }
+#editBusModal .bus-edit-design > .modal-header { margin:0; padding:24px 28px; align-items:center; justify-content:flex-start; gap:16px; border-bottom:1px solid #e4edf7; }
+#editBusModal .bus-edit-heading { flex:1; }
+#editBusModal .bus-edit-heading h2 { font-size:22px; }
+#editBusModal .job-form { padding:22px 28px 24px; gap:16px 18px; max-height:70vh; overflow:auto; }
+#editBusModal .modal-actions { border-top:1px solid #e4edf7; padding-top:17px; margin-top:2px; }
+#editBusModal .form-group label { font-size:12px; font-weight:800; color:#102649; }
+#editBusModal .form-group input, #editBusModal .form-group select { box-sizing:border-box; padding:0 13px; }
+@media(max-width:600px) { #editBusModal .bus-edit-design > .modal-header { padding:18px; } #editBusModal .job-form { grid-template-columns:1fr; padding:18px; } }
+
+/* Immutable master identifier: visibly locked without omitting its form value. */
+#editBusModal #edit_bus_no.bus-locked-input,
+#editBusModal #edit_bus_no[readonly] {
+  background: #e9edf3 !important;
+  color: #526176 !important;
+  border-color: #cbd5e1 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+#editBusModal .bus-no-lock-hint:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -7px 0 0;
+  color: #64748b;
+  font-size: 11px;
+}
+#editBusModal .bus-no-lock-hint[hidden] { display: none !important; }
+
+/* Maintenance owns buses in maintenance state: Operation edit is display-only. */
+#editBusModal .bus-maintenance-locked,
+#editBusModal .bus-maintenance-locked:disabled {
+  background: #e9edf3 !important;
+  border-color: #cbd5e1 !important;
+  color: #526176 !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+#editBusModal .bus-maintenance-lock-notice:not([hidden]) {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #f1d68a;
+  background: #fff8e6;
+  color: #855d12;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+#editBusModal .bus-maintenance-lock-notice[hidden] { display: none !important; }
+
+/* Maintenance-locked actions override the Bus Master List's red/blue hover styles. */
+.bus-master-list-page .bus-table .actions button.open-edit-bus:disabled,
+.bus-master-list-page .bus-table .actions button.open-delete-bus:disabled,
+.bus-master-list-page .bus-table .actions button.open-edit-bus:disabled:hover,
+.bus-master-list-page .bus-table .actions button.open-delete-bus:disabled:hover {
+  display: inline-flex !important;
+  background: #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #64748b !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: not-allowed !important;
+}
+.bus-master-list-page .bus-table .actions button.open-edit-bus:disabled i,
+.bus-master-list-page .bus-table .actions button.open-delete-bus:disabled i {
+  color: inherit !important;
+}
+
+/* Separate fleet-purpose tabs; operational status filters remain independent. */
+.bus-fleet-tabs { display:flex; gap:4px; width:max-content; max-width:100%; margin:0 0 14px; padding:4px; border:1px solid #d9e2ee; border-radius:12px; background:var(--gct-ui-surface-raised, #f2f5fa); }
+.bus-fleet-tab { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:9px; font-size:12px; font-weight:600; text-decoration:none; color:#475569; white-space:nowrap; }
+.bus-fleet-tab.is-active { background:#fff; color:#112b50; box-shadow:0 1px 4px #0f172a17; }
+.bus-fleet-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+
+/* Keep fleet tabs aligned with the Registered Buses heading. */
+.bus-master-list-page .table-card > .section-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.bus-master-list-page .section-header > .bus-fleet-tabs { margin:0 0 0 auto; flex-shrink:0; }
+@media (max-width:640px) { .bus-master-list-page .section-header > .bus-fleet-tabs { margin-left:0; } }
+
+/* 2026 Bus Master List: unified Add/Edit modal visual refresh. */
+#busModal .ui-form-modal,
+#editBusModal .bus-edit-design {
+  width: min(900px, calc(100vw - 32px));
+  border-radius: 20px;
+  box-shadow: 0 24px 75px rgba(12, 34, 65, .25);
+}
+#busModal .ui-form-modal-header,
+#editBusModal .bus-edit-design > .modal-header {
+  padding: 22px 26px;
+  background: var(--gct-ui-surface, #fff);
+  border-bottom: 1px solid #e6edf6;
+}
+#busModal .ui-form-modal-scrollable,
+#editBusModal .job-form.wide-form {
+  gap: 16px 20px;
+}
+#busModal .ui-form-modal-scrollable > .bus-form-section,
+#editBusModal .job-form > .bus-form-section {
+  grid-column: 1 / -1;
+  border: 1px solid #e4ebf6;
+  background: #f3f7fe;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 5px 0 0;
+}
+#busModal .ui-form-modal-scrollable > .bus-route-section,
+#editBusModal .job-form > .bus-route-section {
+  margin-top: 10px;
+}
+#busModal .bus-form-section .bus-section-icon,
+#editBusModal .bus-form-section .bus-section-icon {
+  background: #e8f1ff;
+  color: #2467db;
+  border: 1px solid #cfe0ff;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+#busModal .form-group label,
+#editBusModal .form-group label {
+  font-weight: 800;
+  letter-spacing: .015em;
+  color: #11274b;
+}
+#busModal .form-group input,
+#busModal .form-group select,
+#editBusModal .form-group input,
+#editBusModal .form-group select {
+  border-radius: 9px;
+  min-height: 47px;
+  background: var(--gct-ui-surface, #fff);
+}
+#busModal .bus-purpose-note,
+#editBusModal .bus-purpose-note {
+  margin: 10px 0 0;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #244677;
+  background: #eaf2ff;
+}
+#busModal .bus-purpose-note i,
+#editBusModal .bus-purpose-note i { margin-right: 6px; color: #2670e8; }
+#busModal .ui-form-actions,
+#editBusModal .modal-actions {
+  border-top: 1px solid #e6edf6;
+  padding-top: 18px;
+}
+#busModal .ui-form-btn-primary,
+#editBusModal .save-btn { background: #ffba08; color: #102649; border-radius: 10px; }
+@media (max-width: 600px) {
+  #busModal .ui-form-modal,
+  #editBusModal .bus-edit-design { width: calc(100vw - 20px); }
+  #busModal .ui-form-modal-header,
+  #editBusModal .bus-edit-design > .modal-header { padding: 16px; }
+}
+
+/* Structured Add Bus modal: actual two-column cards, with a reachable footer. */
+#busModal .ui-form-modal { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#busModal .ui-form-content { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+#busModal .ui-form-modal-body { display:flex; flex-direction:column; min-height:0; overflow:hidden; padding:16px 24px 0; }
+#busModal .ui-form-modal-scrollable { display:block; min-height:0; overflow-y:auto; padding:0 2px 16px; }
+#busModal .bus-modal-basic, #busModal .bus-modal-panel, #editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:16px; border:1px solid var(--gct-ui-border, #e4ebf6); border-radius:13px; background:var(--gct-ui-surface-raised, #f4f7fc); }
+#busModal .bus-modal-field-grid, #busModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
+#busModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#busModal .bus-modal-panel { min-width:0; }
+#busModal .bus-modal-basic > .bus-form-section,
+#busModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#busModal .bus-modal-field-grid > .form-group, #busModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
+#busModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
+#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:15px 4px; background:var(--gct-ui-surface, #fff); }
+@media(max-width:640px) {
+  #busModal .bus-modal-field-grid, #busModal .bus-modal-lower { grid-template-columns:1fr; }
+  #busModal .ui-form-modal-body { padding:12px 14px 0; }
+  #busModal .bus-modal-basic, #busModal .bus-modal-panel { padding:12px; }
+}
+
+/* Edit Bus now follows exactly the Add Bus card structure, with a fixed footer. */
+#editBusModal .bus-edit-design { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#editBusModal .job-form.wide-form { display:flex; flex-direction:column; gap:0; padding:0; min-height:0; max-height:none; overflow:hidden; }
+#editBusModal .bus-edit-scroll { overflow-y:auto; min-height:0; flex:1 1 auto; padding:16px 24px; }
+#editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
+#editBusModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#editBusModal .bus-modal-panel { min-width:0; }
+#editBusModal .bus-modal-basic > .bus-form-section, #editBusModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#editBusModal .bus-modal-field-grid > .form-group, #editBusModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
+#editBusModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
+#editBusModal .bus-no-lock-hint { margin:10px 0 0; }
+#editBusModal .bus-maintenance-lock-notice { margin:12px 0 0; }
+#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:16px 24px; background:var(--gct-ui-surface, #fff); border-top:1px solid #e6edf6; flex-shrink:0; }
+@media(max-width:640px) {
+ #editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { grid-template-columns:1fr; }
+ #editBusModal .bus-edit-scroll { padding:12px 14px; }
+ #editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:12px; }
+ #editBusModal .modal-actions.full-width { padding:12px 14px; }
+}
+
+/* Matching field icons in Create and Edit Bus modals. */
+#busModal .bus-icon-input,
+#editBusModal .bus-icon-input { position:relative; display:block; min-width:0; }
+#busModal .bus-icon-input > i,
+#editBusModal .bus-icon-input > i {
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  color:#597297; font-size:14px; z-index:1; pointer-events:none;
+}
+#busModal .bus-icon-input > input,
+#busModal .bus-icon-input > select,
+#editBusModal .bus-icon-input > input,
+#editBusModal .bus-icon-input > select {
+  padding-left:42px !important; box-sizing:border-box; width:100%;
+}
+#busModal .bus-icon-input > select,
+#editBusModal .bus-icon-input > select { padding-right:34px; }
+
+/* Keep the available Deactivate action visibly red; disabled Maintenance actions stay neutral. */
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled):hover,
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled):focus-visible {
+  background: #dc2626;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+<<<<<<< Updated upstream
+/* Final Bus Master List action palette. */
+=======
+/* Final Bus Master List action palette and regular-weight model labels. */
+>>>>>>> Stashed changes
+.bus-master-list-page .bus-table tbody .actions .action-btn.deactivate:not(:disabled) {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+}
+.bus-master-list-page .bus-table tbody .actions .action-btn.deactivate:not(:disabled):hover {
+  background-color: #dc2626 !important;
+  border-color: #b91c1c !important;
+  color: #fff !important;
+}
+
+
+/* Keep fleet tabs compact on their own row; shared record-tab rules must not stretch them. */
+.bus-master-list-page .table-card > .bus-fleet-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid #d9e2ee;
+  border-radius: 12px;
+  background: var(--gct-ui-surface-raised, #f2f5fa);
+}
+.bus-master-list-page .table-card > .bus-fleet-tabs .bus-fleet-tab {
+  flex: 0 0 auto;
+}
+
+
+/* Compact Bus Master List toolbar — Search / Filter / Sort only. */
+.bus-master-list-page .bus-compact-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 12px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.bus-master-list-page .bus-tool {
+  position: relative;
+  flex: 0 0 auto;
+}
+.bus-master-list-page .bus-tool-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: var(--gct-ui-surface, #ffffff);
+  color: #102a4c;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Search button — soft blue pill matching reference */
+.bus-master-list-page .bus-tool-trigger--search {
+  background: #eff6ff;
+  border-color: #c7dcf9;
+  color: #103778;
+}
+.bus-master-list-page .bus-tool-trigger--search > i {
+  color: #1d4ed8;
+  font-size: 13px;
+}
+.bus-master-list-page .bus-tool-trigger--search:hover,
+.bus-master-list-page .bus-tool-trigger--search[aria-expanded="true"],
+.bus-master-list-page .bus-tool-trigger--search.bus-tool-active {
+  background: #e4f0ff;
+  border-color: #9ec5f8;
+  color: #0c2e69;
+}
+
+/* Filter button — soft purple pill with count badge matching reference */
+.bus-master-list-page .bus-tool-trigger--filter,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger.bus-tool-active,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger[aria-expanded="true"] {
+  background: #f5f0ff;
+  border-color: #d8c7fc;
+  color: #6425d0;
+}
+.bus-master-list-page .bus-tool-trigger--filter > i {
+  color: #6425d0;
+  font-size: 12.5px;
+}
+.bus-master-list-page .bus-tool-trigger--filter:hover,
+.bus-master-list-page .bus-tool-trigger--filter[aria-expanded="true"] {
+  background: #ede4ff;
+  border-color: #c4b5fd;
+}
+.bus-master-list-page .bus-filter-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #6425d0;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Sort button — clean white pill matching reference */
+.bus-master-list-page .bus-tool-trigger--sort {
+  background: var(--gct-ui-surface, #ffffff);
+  border-color: #dce5f2;
+  color: #1e293b;
+}
+.bus-master-list-page .bus-tool-trigger--sort > i {
+  color: #1e293b;
+  font-size: 13px;
+}
+.bus-master-list-page .bus-tool-trigger--sort:hover,
+.bus-master-list-page .bus-tool-trigger--sort[aria-expanded="true"],
+.bus-master-list-page .bus-tool-trigger--sort.bus-tool-active {
+  background: var(--gct-ui-surface-hover, #f8fafc);
+  border-color: #b8c9e0;
+  color: #0f172a;
+}
+
+/* Popover card container */
+.bus-master-list-page .bus-tool-popover {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 255px;
+  max-width: calc(100vw - 36px);
+  padding: 15px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: var(--gct-ui-surface, #ffffff);
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.11),
+    0 2px 6px rgba(15, 23, 42, 0.05);
+}
+.bus-master-list-page .bus-tool-popover[hidden] {
+  display: none !important;
+}
+.bus-master-list-page .bus-tool-search-panel {
+  width: 292px;
+  right: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 245px;
+  left: auto;
+  right: 0;
+  box-sizing: border-box;
+}
+.bus-master-list-page .bus-tool-sort-panel {
+  width: 245px;
+  right: 0;
+}
+
+/* Popover header */
+.bus-master-list-page .bus-popover-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bus-master-list-page .bus-popover-heading strong {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+.bus-master-list-page .bus-popover-close {
+  border: 0;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-master-list-page .bus-popover-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Search Buses input box with inner icon */
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > i {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 13.5px;
+  pointer-events: none;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input {
+  display: block;
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px 0 36px;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  background: var(--gct-ui-surface, #ffffff);
+  color: #0f172a;
+  font-size: 12.5px;
+  font-weight: 500;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input::placeholder {
+  color: #64748b;
+  font-weight: 400;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.bus-master-list-page .bus-tool-search-panel small {
+  display: block;
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Filter & Sort groups */
+.bus-master-list-page .bus-filter-group {
+  margin-bottom: 12px;
+}
+.bus-master-list-page .bus-filter-group:last-child {
+  margin-bottom: 0;
+}
+.bus-master-list-page .bus-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bus-master-list-page .bus-filter-label label {
+  margin: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.2;
+}
+.bus-master-list-page .bus-filter-label-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+.bus-master-list-page .bus-filter-label-icon.is-status-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: #15803d;
+}
+.bus-master-list-page .bus-filter-label-icon.is-route-pin,
+.bus-master-list-page .bus-filter-label-icon.is-sort-field {
+  color: #2563eb;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-filter-label-icon.is-sort-order {
+  color: #15803d;
+  font-size: 12px;
+}
+
+/* Indented select box with inner prefix icon and right chevron */
+.bus-master-list-page .bus-filter-select-box {
+  position: relative;
+  margin-left: 18px;
+}
+.bus-master-list-page .bus-select-prefix-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+.bus-master-list-page .bus-select-prefix-icon.is-status {
+  width: 10px;
+  height: 10px;
+  left: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow:
+    inset 0 0 0 2px #1d4ed8,
+    0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+.bus-master-list-page .bus-select-prefix-icon.is-route,
+.bus-master-list-page .bus-select-prefix-icon.is-sort,
+.bus-master-list-page .bus-select-prefix-icon.is-order {
+  color: #2563eb;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-filter-select-box select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: block;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 30px 0 32px;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  background: var(--gct-ui-surface, #ffffff);
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.bus-master-list-page .bus-filter-select-box select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.bus-master-list-page .bus-select-arrow {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #475569;
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* Final Bus Master List layout: fleet tabs left, compact controls right. */
+.bus-master-list-page .table-card > .bus-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  width: 100%;
+  margin: 0 0 12px;
+  overflow: visible;
+}
+.bus-master-list-page .table-card .bus-record-controls > .bus-fleet-tabs {
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px;
+  border-bottom: 1px solid #d9e2ee;
+}
+.bus-master-list-page .table-card .bus-record-controls > .bus-compact-toolbar {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  justify-content: flex-end;
+}
+@media (max-width: 740px) {
+  .bus-master-list-page .table-card .bus-record-controls > .bus-compact-toolbar {
+    margin-left: auto;
+  }
+}
+@media (max-width: 600px) {
+  .bus-master-list-page .bus-compact-toolbar {
+    justify-content: flex-start;
+  }
+  .bus-master-list-page .bus-tool:first-of-type .bus-tool-popover {
+    left: 0;
+    right: auto;
+  }
+  .bus-master-list-page .bus-tool-filter-panel {
+    left: auto;
+    right: 0;
+  }
+}
+
+
+/* Minimal single-purpose Status filter panel for Bus Master List. */
+.bus-master-list-page .bus-filter-count[hidden] { display: none !important; }
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 252px;
+  max-width: min(252px, calc(100vw - 32px));
+  padding: 16px;
+  box-sizing: border-box;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading { margin-bottom: 14px; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-group { margin: 0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  margin-bottom: 9px;
+  gap: 8px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box { margin-left: 0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  min-height: 40px;
+  height: 40px;
+  padding-left: 34px;
+  padding-right: 30px;
+}
+
+
+/* Bus filter alignment and clean white default appearance. */
+.bus-master-list-page .bus-tool-trigger--filter:not(.bus-tool-active):not([aria-expanded="true"]) {
+  background: var(--gct-ui-surface, #fff);
+  border-color: #dce5f2;
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-trigger--filter:not(.bus-tool-active):not([aria-expanded="true"]) > i {
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel {
+  background: var(--gct-ui-surface, #fff);
+  border: 1px solid #dce5f2;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label-icon.is-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  display: inline-block !important;
+  margin: 0 !important;
+  line-height: 1.3;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box {
+  width: 100%;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  background-color: var(--gct-ui-surface, #fff);
+  width: 100%;
+}
+
+
+/* Approved Bus Master List status filter card. */
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 292px;
+  max-width: min(292px, calc(100vw - 32px));
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--gct-ui-surface, #fff);
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading { margin-bottom: 5px; }
+.bus-master-list-page .bus-filter-helper {
+  margin: 0 0 15px;
+  color: #718098;
+  font-size: 11px;
+  line-height: 1.5;
+  border-bottom: 1px solid #e9edf4;
+  padding-bottom: 13px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select { height: 42px; min-height: 42px; }
+.bus-master-list-page .bus-filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+.bus-master-list-page .bus-filter-actions button {
+  min-height: 37px;
+  border-radius: 8px;
+  border: 1px solid #dce5f2;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bus-master-list-page .bus-filter-clear { background: var(--gct-ui-surface, #fff); color: #5d6d85; }
+.bus-master-list-page .bus-filter-clear:hover { background: #f5f7fa; }
+.bus-master-list-page .bus-filter-apply {
+  border-color: #6d38d9 !important;
+  background: #6d38d9;
+  color: #fff;
+}
+.bus-master-list-page .bus-filter-apply:hover { background: #5b2fba; }
+
+
+/* GCT theme and balanced spacing for the Bus Master List status filter only. */
+.bus-master-list-page .bus-tool-filter-panel {
+  padding: 17px 18px 18px;
+  border-color: #dce5f2;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading {
+  align-items: center;
+  min-height: 22px;
+  margin-bottom: 5px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading strong {
+  color: #102a4c;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-helper {
+  margin: 0 0 14px;
+  padding: 0 0 13px;
+  color: #64748b;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  border-color: #dce5f2;
+  background: var(--gct-ui-surface, #fff);
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  gap: 10px;
+  margin-top: 16px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  min-height: 38px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-clear {
+  border-color: #dce5f2;
+  background: var(--gct-ui-surface, #fff);
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-apply {
+  border-color: #ffb900 !important;
+  background: #ffb900;
+  color: #10213c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-apply:hover {
+  background: #f3af00;
+  border-color: #f3af00 !important;
+}
+
+
+/* Approved GCT Bus Master List Sort panel — compact navy/white/yellow. */
+.bus-master-list-page .bus-tool-sort-panel {
+  width: 290px;
+  max-width: min(290px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 18px;
+  background: var(--gct-ui-surface, #fff);
+  border-color: #dce5f2;
+}
+.bus-master-list-page .bus-tool-sort-panel .bus-popover-heading { margin-bottom: 5px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-popover-heading strong { color: #102a4c; }
+.bus-master-list-page .bus-sort-helper {
+  margin: 0 0 14px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #e9edf4;
+  color: #64748b;
+  font-size: 11px;
+}
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-group { margin-bottom: 14px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-label { margin-bottom: 5px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box { margin-left: 0; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box select { height: 40px; min-height: 40px; background: var(--gct-ui-surface, #fff); }
+.bus-master-list-page .bus-sort-hint {
+  margin: 0 0 7px;
+  color: #75849a;
+  font-size: 10px;
+}
+.bus-master-list-page .bus-sort-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  border-top: 1px solid #e9edf4;
+  padding-top: 14px;
+}
+.bus-master-list-page .bus-sort-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bus-master-list-page .bus-sort-reset { color: #102a4c; background: var(--gct-ui-surface, #fff); border: 1px solid #dce5f2; }
+.bus-master-list-page .bus-sort-reset:hover { background: #f5f7fa; }
+.bus-master-list-page .bus-sort-apply { color: #10213c; background: #ffb900; border: 1px solid #ffb900; }
+.bus-master-list-page .bus-sort-apply:hover { background: #f2ae00; }
+
+
+/* GCT bus status filter: reflect the selected status and separate actions. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 14px;
+  margin-top: 20px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions button {
+  min-width: 0;
+  padding: 0 8px;
+  gap: 7px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] select {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] select {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] select {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] .bus-select-prefix-icon.is-status { background: #16a34a; box-shadow: 0 0 0 3px #bbf7d0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] .bus-select-prefix-icon.is-status { background: #d97706; box-shadow: 0 0 0 3px #fde68a; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] .bus-select-prefix-icon.is-status { background: #64748b; box-shadow: 0 0 0 3px #e2e8f0; }
+
+
+/* Align only the Status label and its contextual indicator. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 10px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label .is-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  margin: 0;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="active"] .is-status-dot { background: #16a34a; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="maintenance"] .is-status-dot { background: #d97706; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="inactive"] .is-status-dot { background: #64748b; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  display: inline-block !important;
+  margin: 0 !important;
+  line-height: 18px !important;
+  font-size: 11px !important;
+  color: #102a4c !important;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 16px !important;
+  margin-top: 20px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions > button {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  padding: 0 5px;
+}
+
+
+/* GCT-native filter button: count means applied filters, not purple decoration. */
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter.bus-tool-active,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter[aria-expanded="true"] {
+  background: var(--gct-ui-surface, #fff);
+  border-color: #dce5f2;
+  color: #102a4c;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter > i {
+  color: #102a4c;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter.bus-tool-active {
+  background: #fff9e6;
+  border-color: #ffc837;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter[aria-expanded="true"] {
+  border-color: #91b7ee;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count {
+  background: #102a4c;
+  color: #fff;
+  margin-left: 3px;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count[hidden] {
+  display: none !important;
+}
+
+
+/* Final Bus Master List filter refinements: white field, colored text/dot, aligned badge. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone] select {
+  background: var(--gct-ui-surface, #fff);
+  border-color: #dce5f2;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] select { color: #15803d; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] select { color: #a16207; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] select { color: #64748b; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  gap: 12px;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count:not([hidden]) {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 4px;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phase 1: client selection and compact reverse driver allocation display. */
+.bus-client-editor { padding: 12px 16px; min-width: 0; display: grid; gap: 8px; }
+.bus-client-editor > label { font-weight: 650; font-size: 12px; color: #273f64; }
+.bus-client-editor > select, .bus-client-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 41px; border: 1px solid #d8e2f1; background: white; border-radius: 9px; padding: 9px 12px; color: #243b60; font: inherit; font-size: 12px; }
+.bus-client-trigger { text-align: left; cursor: pointer; gap: 12px; }
+.bus-client-trigger:hover { border-color: #98b9eb; }
+.bus-client-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.bus-client-picker { position: relative; min-width: 0; }
+.bus-client-options-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 400; padding: 8px; border: 1px solid #d8e2f1; border-radius: 9px; background: white; box-shadow: 0 10px 24px #18335624; }
+.bus-client-options-panel[hidden], .bus-client-option[hidden], .bus-client-add[hidden] { display: none !important; }
+.bus-client-options-panel input[type="search"] { display: block; width: 100%; min-height: 36px; padding: 8px; border: 1px solid #d8e2f1; border-radius: 7px; font: inherit; }
+.bus-client-options { max-height: 165px; overflow-y: auto; margin-top: 6px; }
+.bus-client-option { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; gap: 10px; min-height: 34px; margin: 0; padding: 6px 8px; cursor: pointer; font-size: 12px; }
+.bus-client-option:hover { background: #eef5ff; border-radius: 7px; }
+.bus-client-option input[type="checkbox"] { display: block !important; width: 16px !important; height: 16px !important; min-height: 0 !important; flex: 0 0 16px; padding: 0 !important; margin: 0 !important; accent-color: #2563eb; }
+.bus-client-add { padding: 8px; border: 0; border-radius: 6px; background: #eef5ff; color: #2253a5; cursor: pointer; text-align: left; width: 100%; }
+.bus-client-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bus-client-chips:empty { display: none; }
+.bus-client-chip { display: inline-flex; gap: 8px; align-items: center; border-radius: 999px; padding: 4px 8px; border: 1px solid #cedef5; background: #eef5ff; color: #234c89; font-size: 11px; }
+.bus-client-chip button { border: 0; background: transparent; cursor: pointer; font-size: 15px; color: inherit; }
+.bus-client-editor > small { font-size: 10px; color: #73839b; }
+.bus-table .bus-allocation-type { display: block; font-size: 10px; color: #586f90; }
+.bus-table .bus-table-disclosure { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; min-width: 0; }
+.bus-table .bus-more-trigger { padding: 4px 7px; border: 1px solid #d0e1fa; border-radius: 6px; background: #eff5ff; color: #2453a0; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.bus-table .bus-no-drivers { color: #75849b; font-size: 11px; }
+.bus-more-source[hidden] { display: none !important; }
+.bus-floating-popover { position: fixed; z-index: 10050; padding: 8px; max-height: min(260px, 55vh); overflow-y: auto; background: white; border: 1px solid #d7e3f5; border-radius: 10px; box-shadow: 0 12px 28px #162e562a; }
+.bus-more-entry { display: flex; align-items: center; gap: 9px; padding: 8px 5px; font-size: 11px; border-bottom: 1px solid #e8eef8; color: #28436c; }
+.bus-more-entry:last-child { border-bottom: 0; }
+.bus-more-entry i { color: #2563eb; }
+
+/* Bus Master List visual refinement — page-scoped and non-destructive. */
+.bus-master-list-page .stats-grid { gap: 14px; margin-bottom: 16px; }
+.bus-master-list-page .stats-grid .stat-card,
+.bus-master-list-page .stats-grid .stat-card-link {
+  min-height: 104px; border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 2px 9px rgba(21, 47, 82, .035);
+}
+.bus-master-list-page .stats-grid .stat-card:hover,
+.bus-master-list-page .stats-grid .stat-card-link:hover { transform: none; box-shadow: 0 3px 12px rgba(21,47,82,.08); }
+.bus-master-list-page .table-card { border-radius: 14px; padding: 16px; box-shadow: 0 2px 10px rgba(21,47,82,.035); }
+.bus-master-list-page .section-header { align-items: center; gap: 16px; }
+.bus-master-list-page .section-header p { line-height: 1.55; }
+.bus-master-list-page .bus-record-controls { gap: 12px; }
+.bus-master-list-page .bus-fleet-tabs { max-width: 100%; }
+.bus-master-list-page .table-wrap { border-radius: 11px; border: 1px solid #d9e4f3; }
+.bus-master-list-page .bus-table {
+    width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0;
+}
+.bus-master-list-page .bus-table th,
+.bus-master-list-page .bus-table td { box-sizing: border-box; }
+.bus-master-list-page .bus-table thead th {
+    height: 41px; padding: 10px 12px; background: var(--gct-ui-surface-raised, #f3f7fc);
+    color: #435672; letter-spacing: .035em;
+    font-size: 10px; font-weight: 750; vertical-align: middle; white-space: nowrap;
+    border-bottom: 1px solid #dae4f2;
+}
+.bus-master-list-page .bus-table tbody td {
+    padding: 11px 12px; height: 58px; vertical-align: middle;
+    background: var(--gct-ui-surface, #fff); border-bottom: 1px solid #e9eff8;
+}
+.bus-master-list-page .bus-table tbody tr:hover td { background: var(--gct-ui-surface-hover, #f8fbff); }
+.bus-master-list-page .bus-table tbody tr:last-child td { border-bottom: 0; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(1) { width: 15%; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(2) { width: 12%; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(3) { width: 20%; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(4) { width: 20%; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(5) { width: 20%; }
+.bus-master-list-page .bus-table:not(.bus-table--reserve) th:nth-child(6) { width: 13%; text-align: center; }
+.bus-master-list-page .bus-id-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bus-master-list-page .bus-id-text {
+    display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-weight: 750; font-size: 12px; color: var(--bus-text); letter-spacing: -0.01em;
+}
+.bus-master-list-page .bus-plate-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bus-text); font-size: 13px; font-weight: 600; line-height: 1.45; }
+.bus-master-list-page .bus-model-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bus-text); font-size: 13px; line-height: 1.45; font-weight: 400; }
+.bus-master-list-page .bus-allocation-cell,
+.bus-master-list-page .bus-drivers-cell { overflow: visible; }
+.bus-master-list-page .bus-allocation-type {
+    display: inline-flex; width: fit-content; max-width: 100%;
+    padding: 3px 7px; margin-bottom: 5px; border-radius: 6px;
+    font-size: 10px; font-weight: 750; line-height: 1.3;
+    background: var(--gct-ui-surface-raised, #f2f5fa); color: #63728a;
+}
+.bus-master-list-page .bus-allocation-type.is-exclusive { color: #855b10; background: #fff4d9; }
+.bus-master-list-page .bus-allocation-type.is-shared { color: #2252a3; background: #e9f1ff; }
+.bus-master-list-page .bus-allocation-type.is-unallocated { background: #f5f7fa; color: #738198; }
+.bus-master-list-page .bus-table .bus-table-disclosure { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; max-width: 100%; }
+.bus-master-list-page .bus-disclosure-primary { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 11px; }
+.bus-master-list-page .bus-more-trigger { flex-shrink: 0; }
+.bus-master-list-page .bus-actions-cell .actions { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 5px; }
+.bus-master-list-page .bus-actions-cell .actions form { display: contents; }
+.bus-master-list-page .bus-actions-cell .action-btn { width: 29px; height: 29px; min-width: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.bus-master-list-page .bus-actions-cell .action-btn:disabled { opacity: .65; cursor: not-allowed; }
+@media (max-width: 1250px) {
+  .bus-master-list-page .bus-table { min-width: 940px; }
+  .bus-master-list-page .table-wrap { overflow-x: auto; }
+}
+@media (max-width: 760px) {
+  .bus-master-list-page .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .bus-master-list-page .bus-record-controls { flex-wrap: wrap; }
+  .bus-master-list-page .bus-fleet-tabs { overflow-x: auto; }
+}
+
+/* Readability: bus plate, status, client allocation and authorized drivers. */
+.bus-master-list-page .bus-table thead th:nth-child(2),
+.bus-master-list-page .bus-table thead th:nth-child(3),
+.bus-master-list-page .bus-table thead th:nth-child(4),
+.bus-master-list-page .bus-table thead th:nth-child(5) {
+  font-size: 11px;
+  font-weight: 800;
+}
+.bus-master-list-page .bus-allocation-type { font-size: 11px; }
+.bus-master-list-page .bus-disclosure-primary,
+.bus-master-list-page .bus-no-drivers { font-size: 12px; line-height: 1.4; }
+.bus-master-list-page .bus-more-trigger { font-size: 11px; }
+
+/* Simple client field and calmer, more coherent bus modal composition. */
+.bus-master-list-page .bus-client-editor--simple,
+.bus-client-editor--simple {
+    display: grid; gap: 9px; margin: 14px 0 16px; padding: 15px 16px;
+    border: 1px solid #e0e8f3; border-radius: 12px; background: #f7faff;
+}
+.bus-client-section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.bus-client-section-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 34px; height: 34px; border-radius: 9px; background: #e6efff; color: #235dbe; }
+.bus-client-section-heading strong { display: block; font-size: 13px; color: var(--gct-ui-text, #18345f); }
+.bus-client-section-heading small { display: block; font-size: 11px; color: var(--gct-ui-muted, #667b9a); margin-top: 2px; }
+.bus-client-editor--simple > label { margin-top: 3px; font-size: 12px; font-weight: 700; color: #2a4163; }
+.bus-client-input-shell { display: flex; align-items: center; gap: 10px; min-height: 42px; width: 100%; padding: 0 12px; border: 1px solid #d7e2f1; border-radius: 9px; background: #fff; box-sizing: border-box; }
+.bus-client-input-shell:focus-within { border-color: #5a91e9; box-shadow: 0 0 0 3px rgba(59,130,246,.11); }
+.bus-client-input-shell > i { font-size: 13px; color: #6c84a6; }
+.bus-client-input-shell > input[type="text"] { width: 100%; min-width: 0; height: 40px; min-height: 40px; padding: 0; border: 0; outline: 0; background: transparent; box-shadow: none; color: #1d3659; font-size: 13px; }
+.bus-client-input-shell > input[type="text"]:focus { outline: 0; box-shadow: none; }
+.bus-client-editor--simple > small, .bus-client-existing-note { margin: 0; font-size: 11px; line-height: 1.5; color: #667b99; }
+.bus-client-existing-note[hidden] { display: none !important; }
+.bus-client-existing-note { border-left: 3px solid #5089db; padding: 6px 10px; background: #eaf2ff; border-radius: 4px; }
+#editBusModal .bus-edit-scroll, #busModal .modal-body { scrollbar-gutter: stable; }
+#editBusModal .bus-modal-basic, #busModal .bus-modal-basic { border-radius: 12px; }
+#editBusModal .bus-modal-lower, #busModal .bus-modal-lower { gap: 12px; }
+#editBusModal .bus-modal-panel, #busModal .bus-modal-panel { border-radius: 12px; }
+#editBusModal .bus-modal-field-grid, #busModal .bus-modal-field-grid { gap: 13px 16px; }
+@media (max-width: 720px) {
+  .bus-client-editor--simple { margin: 10px 0 12px; padding: 12px; }
+}
+
+/* Authorized driver identity — consistent with Driver Master List. */
+.bus-master-list-page .bus-table .bus-driver-summary { display: flex; align-items: center; gap: 9px; min-width: 0; flex-wrap: nowrap; }
+.bus-master-list-page .bus-driver-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #cfe0ff; background: #e9f1ff; border-radius: 9px; color: #2363d5; font-size: 13px; }
+.bus-master-list-page .bus-driver-details { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; }
+.bus-master-list-page .bus-driver-details strong { font-size: 12px; font-weight: 750; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bus-master-list-page .bus-driver-details small { color: #72839e; font-size: 10px; line-height: 1.2; }
+.bus-master-list-page .bus-driver-summary .bus-more-trigger { align-self: center; }
+
+/* Phase 1: matching compact company and driver identity cells. */
+.bus-master-list-page .bus-table .bus-identity-summary { display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; min-width: 0; width: 100%; }
+.bus-master-list-page .bus-identity-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; box-sizing: border-box; border: 1px solid #cfe0ff; background: #e9f1ff; border-radius: 9px; color: #2363d5; font-size: 13px; }
+.bus-master-list-page .bus-company-avatar { border-color: #d9e4f0; background: #eef3f8; color: #42658b; }
+.bus-master-list-page .bus-identity-details { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.bus-master-list-page .bus-identity-details strong { display: block; min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--gct-ui-text, #1b365b); font-size: 12px; font-weight: 750; line-height: 1.3; }
+.bus-master-list-page .bus-identity-details small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gct-ui-muted, #72839e); font-size: 10px; line-height: 1.2; }
+.bus-master-list-page .bus-identity-empty { display: inline-block; color: #75849b; font-size: 12px; line-height: 1.4; }
+.bus-master-list-page .bus-table .bus-identity-summary .bus-more-trigger { flex: 0 0 auto; align-self: center; padding: 4px 6px; font-size: 10px; }
+.bus-floating-popover .bus-identity-entry { padding: 8px 6px; min-width: 0; }
+.bus-floating-popover .bus-identity-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; box-sizing: border-box; border: 1px solid #cfe0ff; border-radius: 9px; color: #2363d5; background: #e9f1ff; }
+.bus-floating-popover .bus-company-avatar { border-color: #d9e4f0; background: #eef3f8; color: #42658b; }
+.bus-floating-popover .bus-identity-details { display: flex; flex-direction: column; min-width: 0; gap: 3px; flex: 1; overflow: hidden; }
+.bus-floating-popover .bus-identity-details strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--gct-ui-text, #1b365b); }
+.bus-floating-popover .bus-identity-details small { font-size: 10px; color: var(--gct-ui-muted, #72839e); }
+
+/* Keep the company avatar and name adjacent, matching Authorized Drivers. */
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary > .bus-company-avatar {
+  flex: 0 0 32px;
+  margin: 0;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary > .bus-identity-details {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-details > strong,
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-details > small {
+  width: 100%;
+  text-align: left;
+}
+
+/* Match empty and allocated client rows to the driver's left-aligned identity cells. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell {
+  text-align: left;
+}
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+/* Empty labels line up with the name after each 32px avatar + 9px gap. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty,
+.bus-master-list-page .bus-table tbody td.bus-drivers-cell > .bus-identity-empty {
+  display: block;
+  box-sizing: border-box;
+  padding-left: 41px;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Client column: align its company avatar beneath the header label,
+   just as the driver avatar aligns beneath Authorized Drivers. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-summary {
+  box-sizing: border-box;
+  padding-left: 35px;
+}
+
+/* Client / Company now occupies the second lower modal panel. */
+.bus-modal-lower .bus-modal-client-panel { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.bus-modal-lower .bus-modal-client-panel .bus-client-section-heading { margin-bottom: 4px; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-input-shell { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple > small {
+  line-height: 1.45;
+}
+
+/* Reserve units are a shared standby pool, not permanently owned. */
+.bus-master-list-page .bus-table--reserve thead th:nth-child(1) { width: 25%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(2) { width: 20%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(3) { width: 35%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(4) { width: 20%; text-align: center; }
+.bus-master-list-page .bus-table--reserve tbody td:nth-child(4) { text-align: center; }
+
+
+/* Multi-client chip editor in Add/Edit Bus modals. */
+.bus-multi-client { min-width: 0; }
+.bus-multi-client-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.bus-multi-client-tags:empty { display: none; }
+.bus-client-tag { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 100%; padding: 5px 7px 5px 10px; border: 1px solid #c9daf8; border-radius: 7px; background: #edf4ff; color: #183963; font-size: 12px; font-weight: 600; }
+.bus-client-tag > span { overflow-wrap: anywhere; }
+.bus-client-tag > button { border: 0; border-radius: 5px; background: transparent; color: #485f82; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 3px; }
+.bus-client-tag > button:hover { background: #dae6fa; color: #a52525; }
+.bus-multi-client-entry { display: flex; gap: 7px; min-width: 0; }
+.bus-multi-client-entry input { flex: 1; min-width: 0; width: 100%; padding: 10px 11px; border: 1px solid #d3e0f4; border-radius: 7px; background: white; font: inherit; }
+.bus-multi-client-entry input:focus { outline: 2px solid #86b4ff; outline-offset: 0; }
+.bus-multi-client-entry button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 0 12px; border: 1px solid #b9d1fb; border-radius: 7px; background: #eaf2ff; color: #174785; font: inherit; font-weight: 700; cursor: pointer; }
+.bus-multi-client-entry button:hover { background: #dce9fe; }
+
+
+/* Unified multi-client field: chips and input share one clean control. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  min-height: 46px;
+  padding: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 9px;
+  background: var(--gct-ui-surface, #fff);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags:empty {
+  display: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag {
+  min-height: 27px;
+  padding: 3px 6px 3px 9px;
+  gap: 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag > button {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 0;
+  height: 33px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button {
+  min-height: 33px;
+  padding: 0 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > label {
+  display: block;
+  margin: 12px 0 6px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > small {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+@media (max-width: 520px) {
+  .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button { padding: 0 9px; }
+}
+
+
+/* Keep selected client chips OUTSIDE the client-name fill-up field. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 8px;
+  min-height: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border: 0;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  box-sizing: border-box;
+  min-height: 43px;
+  padding: 5px;
+  gap: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 8px;
+  background: var(--gct-ui-surface, #fff);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  height: 32px;
+}
+
+
+/* Registered client picker: tailored to the bus modal, not the browser's OS menu. */
+.bus-master-list-page .bus-modal-client-panel .bus-client-native-select { display: none !important; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker { position: relative; flex: 1 1 auto; min-width: 0; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger {
+  display: flex; width: 100%; min-width: 0; height: 39px; align-items: center;
+  justify-content: space-between; gap: 10px; padding: 0 11px;
+  border: 1px solid #cad9ed; border-radius: 8px; background: var(--gct-ui-surface, #fff);
+  color: #3c5272; font: inherit; font-size: 12px; text-align: left;
+  cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger:hover { border-color: #8bb3ec; background: #fafdff; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger:focus-visible,
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker.is-open .bus-client-picker-trigger {
+  outline: none; border-color: #548cea; box-shadow: 0 0 0 3px rgba(65,128,224,.13);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-label { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-trigger .fa-chevron-down { font-size: 10px; color: #6885ae; transition: transform .15s ease; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker.is-open .fa-chevron-down { transform: rotate(180deg); }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu {
+  position: absolute; z-index: 60; left: 0; right: 0; bottom: calc(100% + 6px);
+  max-height: 185px; overflow-y: auto; padding: 5px;
+  border: 1px solid #d3e0f3; border-radius: 10px; background: var(--gct-ui-surface, #fff);
+  box-shadow: 0 14px 35px rgba(24,55,100,.18);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-menu[hidden] { display: none !important; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 10px 11px; border: 0; border-radius: 7px;
+  background: transparent; color: #19365d; text-align: left;
+  font: inherit; font-size: 12px; cursor: pointer;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option i { color: #598fe3; font-size: 12px; }
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option:hover,
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-option:focus-visible {
+  outline: none; background: #eaf3ff; color: #1559ac;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-picker-empty { margin: 0; padding: 12px; color: #6c7f99; font-size: 12px; }
+
+
+/* Operations / Bus Master List responsive records.
+   Keep one horizontal scrollbar and avoid the inherited 480/520px
+   nested vertical viewport. Reserve uses five columns, Regular seven. */
+.bus-master-list-page .table-wrap.gct-responsive-records {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  max-height: none !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: auto;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table {
+  width: 100%;
+<<<<<<< Updated upstream
+  min-width: 1100px;
+  table-layout: fixed;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(1) { width: 15%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(2) { width: 12%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(3) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(4) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(5) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(6) { width: 13%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve {
+  min-width: 760px;
+=======
+  min-width: 940px;
+  table-layout: fixed;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(1) { width: 12%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(2) { width: 11%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(3) { width: 13%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(4) { width: 14%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(5) { width: 16%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(6) { width: 19%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table:not(.bus-table--reserve) thead th:nth-child(7) { width: 15%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve {
+  min-width: 820px;
+>>>>>>> Stashed changes
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(1) { width: 25%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(2) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(3) { width: 35%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table.bus-table--reserve thead th:nth-child(4) { width: 20%; }
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > thead > tr > th:last-child,
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr > td.bus-actions-cell {
+<<<<<<< Updated upstream
+  min-width: 124px;
+=======
+  min-width: 0;
+>>>>>>> Stashed changes
+  width: auto;
+  white-space: nowrap;
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr > td.bus-actions-cell {
+  background: var(--gct-ui-surface, #fff);
+}
+.bus-master-list-page .table-wrap.gct-responsive-records > .bus-table > tbody > tr:hover > td.bus-actions-cell {
+  background: var(--gct-ui-surface-hover, #f8fbff);
+}
+
+
+/* Four fixed KPI columns become unreadable beside the expanded sidebar.
+   Let card count respond to the actual Bus Master List content width. */
+.bus-master-list-page .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.bus-master-list-page .stats-grid .stat-card,
+.bus-master-list-page .stats-grid .stat-card-link {
+    box-sizing: border-box;
+    min-width: 0;
+}
+.bus-master-list-page .stats-grid .stat-card small,
+.bus-master-list-page .stats-grid .stat-card-link small {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+.bus-master-list-page .table-card,
+.bus-master-list-page .table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Bus Master List: ten visible records, using the dynamically measured
+   viewport supplied by master-list-scroll.js. Keep native horizontal scrolling
+   and the shared sticky Actions column. */
+main .bus-master-list-page .table-wrap.gct-responsive-records.gct-master-scroll-10.is-master-scrollable {
+  box-sizing: border-box;
+  max-height: var(--gct-master-scroll-height) !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+main .bus-master-list-page .table-wrap.gct-master-scroll-10.is-master-scrollable > .bus-table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+main .bus-master-list-page .table-wrap.gct-master-scroll-10.is-master-scrollable.gct-sticky-actions > .bus-table > thead > tr > th:last-child {
+  z-index: 10;
+}

@@ -510,22 +510,6 @@
 }
 
 
-.trip-table th:nth-child(4),
-.trip-table td:nth-child(4),
-.trip-table th:nth-child(5),
-.trip-table td:nth-child(5),
-.trip-table th:nth-child(6),
-.trip-table td:nth-child(6),
-.trip-table th:nth-child(7),
-.trip-table td:nth-child(7),
-.trip-table th:nth-child(8),
-.trip-table td:nth-child(8),
-.trip-table th:nth-child(9),
-.trip-table td:nth-child(9) {
-    text-align: center;
-}
-
-
 /* =========================================================
    ROUTE
 ========================================================= */
@@ -900,7 +884,7 @@
 
 #tripModal .ui-form-group label,
 #viewTripModal .ui-form-group label {
-    color: #334155;
+    color: var(--gct-ui-text, #334155);
 
     font-size: 12px;
     font-weight: 700;
@@ -917,7 +901,7 @@
 #tripModal .ui-input-wrap input[readonly] {
     background: var(--gct-ui-surface-hover, #f8fafc);
 
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
 }
 
 
@@ -1173,11 +1157,6 @@
     }
 
 
-    .trip-toolbar {
-        grid-template-columns: 1fr;
-    }
-
-
     .trip-table-footer {
         align-items: flex-start;
         flex-direction: column;
@@ -1375,9 +1354,6 @@
 }
 
 @media (max-width: 700px) {
-    .trip-toolbar {
-        grid-template-columns: 1fr;
-    }
 
     .trip-toolbar .trip-toolbar-action.generate,
     .trip-toolbar .trip-toolbar-action:not(.generate) {
@@ -1566,7 +1542,6 @@
 
 #tripModal .ui-form-group > label {
     margin-bottom: 6px;
-    color: #172d4d;
     font-size: 11.5px;
     font-weight: 750;
 }
@@ -1584,8 +1559,8 @@
 }
 
 #tripModal .ui-input-wrap input[readonly] {
-    color: #536982;
-    background: #f6f8fb;
+    color: var(--gct-ui-muted, #536982);
+    background: var(--gct-ui-surface-raised, #f6f8fb);
 }
 
 #tripModal #tripRoute {
@@ -1615,7 +1590,7 @@
     left: 14px;
     z-index: 2;
 
-    color: #315b91;
+    color: var(--gct-ui-text, #315b91);
     font-size: 12px;
 }
 
@@ -1646,7 +1621,7 @@
     justify-content: space-between;
     gap: 12px;
 
-    color: #8798ad;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 9.5px;
 }
 
@@ -1755,11 +1730,6 @@
     border-radius: 10px;
 
     font-size: 14px;
-}
-
-#viewTripModal .trip-detail-copy {
-    min-width: 0;
-    flex: 1;
 }
 
 #viewTripModal .trip-detail-card label {
@@ -1915,7 +1885,6 @@
 }
 @media (max-width: 760px) {
     .trip-schedule-page .trip-card-header { flex-wrap: wrap; }
-    .trip-schedule-page .trip-toolbar { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Scheduling filter standard: Date and Status use matching dimensions. */
@@ -2870,7 +2839,7 @@
 #tripModal .trip-service-mode legend{font-size:12px;font-weight:800;color:#183253;margin-bottom:9px}
 #tripModal .trip-service-mode-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #tripModal label.trip-service-mode-choice{display:flex;align-items:center;gap:11px;min-width:0;padding:13px 14px;border:1px solid #dce5f2;border-radius:11px;background:var(--gct-ui-surface, #fff);cursor:pointer;transition:border-color .15s ease,background .15s ease}
-#tripModal label.trip-service-mode-choice:has(input:checked){border-color:#1165db;background:#edf5ff;box-shadow:0 0 0 1px #1165db}
+#tripModal label.trip-service-mode-choice:has(input:checked){border-color:#1165db;background:var(--gct-ui-surface-raised, #edf5ff);box-shadow:0 0 0 1px #1165db}
 #tripModal .trip-service-mode-choice input{accent-color:#1165db;width:17px;height:17px;flex:none}
 #tripModal .trip-service-mode-choice>i{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:8px;background:#e8f0ff;color:#155bc5}
 #tripModal .trip-service-mode-choice span{display:flex;flex-direction:column;min-width:0;gap:2px}
@@ -2882,7 +2851,7 @@
 #tripModal .trip-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:13px}
 #tripModal .trip-editor-grid .trip-service-planning-fields{display:contents}
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group{min-width:0}
-#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group label{display:block;margin-bottom:7px;font-size:11px;font-weight:800;color:#183253}
+#tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group label{display:block;margin-bottom:7px;font-size:11px;font-weight:800}
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group select,
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group input{width:100%;min-height:40px;height:40px;border-radius:9px;border:1px solid #dbe5f2;background:var(--gct-ui-surface, #fff);padding:0 12px;font-size:12px;box-sizing:border-box}
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group small{font-size:10px;line-height:1.4;color:#6d7f98;margin-top:5px}
@@ -3182,13 +3151,13 @@
 #tripModal .trip-editor-grid .ui-input-wrap>select,
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group input,
 #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group select{min-height:39px;height:39px;border-radius:9px}
-#tripModal #tripClientName{min-width:0;width:100%;padding-right:26px;color:#173354;background-color:var(--gct-ui-surface, #fff);cursor:pointer}
+#tripModal #tripClientName{min-width:0;width:100%;padding-right:26px;color:var(--gct-ui-text, #173354);background-color:var(--gct-ui-surface, #fff);cursor:pointer}
 #tripModal #tripClientName:focus{outline:2px solid rgba(37,99,235,.16);outline-offset:0;border-color:#4e86ee}
 #tripModal .trip-notes-group{grid-column:1/-1}
 #tripModal .trip-notes-group textarea{min-height:56px;height:56px;resize:vertical}
 #tripModal .trip-form-note{margin-top:10px}
 #tripModal .ui-form-actions{padding:9px 0 11px}
-@media(max-width:580px){#tripModal .trip-editor-grid{grid-template-columns:1fr}#tripModal .trip-notes-group{grid-column:auto}}
+@media(max-width:580px){#tripModal .trip-notes-group{grid-column:auto}}
 
 /* Compact two-column layout after removing the redundant Trip Period field. */
 @media(min-width:581px){
@@ -3302,7 +3271,7 @@
 .trip-schedule-page .service-endpoint-name {
     min-width: 0;
     overflow-wrap: anywhere;
-    color: #203b5b;
+    color: var(--gct-ui-text, #203b5b);
     font-size: 11px;
     font-weight: 650;
 }
@@ -3459,7 +3428,6 @@
 #tripModal .trip-notes-group > label {
     display: block;
     margin-bottom: 6px;
-    color: #203957;
     font-size: 11.5px;
     font-weight: 700;
 }
@@ -3485,7 +3453,7 @@
     color: #526b87;
 }
 #tripModal .trip-label-auto {
-    color: #7389a0;
+    color: var(--gct-ui-muted, #7389a0);
     font-size: 10px;
     font-weight: 500;
 }
@@ -3493,7 +3461,7 @@
     padding: 0 12px;
     border: 1px solid #d8e2ef;
     background: var(--gct-ui-surface, #fff);
-    color: #173354;
+    color: var(--gct-ui-text, #173354);
 }
 #tripModal .trip-notes-group .trip-textarea-wrap {
     min-height: 70px;
@@ -4068,7 +4036,7 @@
 #tripModal .trip-type-field legend {
     margin-bottom: 7px;
     padding: 0;
-    color: #203957;
+    color: var(--gct-ui-text, #203957);
     font-size: 11.5px;
     font-weight: 750;
 }
@@ -4100,7 +4068,7 @@
 }
 #tripModal .trip-mode-choice:has(input:checked) {
     border-color: #2563eb;
-    background: #ecf4ff;
+    background: var(--gct-ui-surface-raised, #ecf4ff);
     box-shadow: 0 0 0 1px #2563eb;
 }
 #tripModal .trip-mode-choice:focus-within {
@@ -4145,12 +4113,12 @@
 #tripModal .trip-mode-copy strong {
     font-size: 12px;
     font-weight: 800;
-    color: #183458;
+    color: var(--gct-ui-text, #183458);
 }
 #tripModal .trip-mode-copy small {
     font-size: 10px;
     line-height: 1.35;
-    color: #72829b;
+    color: var(--gct-ui-muted, #72829b);
 }
 #tripModal #tripCodeDisplay[readonly] {
     background: var(--gct-ui-surface-raised, #f5f8fc);

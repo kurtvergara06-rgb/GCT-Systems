@@ -380,16 +380,16 @@ class FrontendUiUxComprehensiveTest extends TestCase
 
     public function test_topbar_has_no_horizontal_divider_across_modules(): void
     {
-        // 1. Verify CSS files enforce no topbar bottom border or pseudo divider
+        // One shared theme contract prevents dividers; page styles must not duplicate it.
         $mainCss = file_get_contents(resource_path('css/Main-styles/main.css'));
         $designCss = file_get_contents(resource_path('css/Admin/Analytics/design-system.css'));
         $themeCss = file_get_contents(resource_path('css/Main-styles/theme.css'));
         $enhancementsCss = file_get_contents(resource_path('css/Main-styles/shared-ui-enhancements.css'));
 
-        $this->assertStringContainsString('border-bottom: none !important', $mainCss);
-        $this->assertStringContainsString('border-bottom: none !important', $designCss);
+        $this->assertStringNotContainsString('.topbar::after', $mainCss);
+        $this->assertStringNotContainsString('.topbar::after', $designCss);
         $this->assertStringContainsString('border-bottom: none !important', $themeCss);
-        $this->assertStringContainsString('border-bottom: none !important', $enhancementsCss);
+        $this->assertStringNotContainsString('.topbar::after', $enhancementsCss);
 
         // 2. Verify all five departments render topbar without <hr> or hardcoded divider markup
         $modulePages = [

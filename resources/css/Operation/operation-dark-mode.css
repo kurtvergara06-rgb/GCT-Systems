@@ -26,7 +26,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
 }
 
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-    .topbar, .section-header, .topbar-dropdown,
+    .section-header, .topbar-dropdown,
     .topbar-dropdown-header, .topbar-list-item,
     .sidebar-profile-menu
 ) {
@@ -169,7 +169,6 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     .operation-incident-chart-shell,
     .operation-fleet-visual,
     .operation-fleet-donut-center,
-    .operation-fleet-chart__center,
     .operation-command-links a:not(.command-link-highlight),
     .operation-reference-view
 ) {
@@ -920,14 +919,6 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     ) {
         background: var(--gct-theme-hover);
         color: var(--gct-theme-fg);
-    }
-}
-
-@media screen {
-    /* The legacy under-maintenance badge uses dark blue text on a translucent
-       blue fill. Keep its state/icon and blue treatment; brighten only its text. */
-    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .bus-availability-page .availability-status[data-status-key="under-maintenance"] {
-        color: var(--gct-theme-accent);
     }
 }
 

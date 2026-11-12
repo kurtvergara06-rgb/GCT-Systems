@@ -3471,14 +3471,14 @@
 }
 
 .inc-bus-identity strong {
-    color: #142b4c;
+    color: var(--gct-ui-text, #142b4c);
     font-size: 12px;
     font-weight: 750;
     overflow-wrap: anywhere;
 }
 
 .inc-bus-identity small {
-    color: #677995;
+    color: var(--gct-ui-muted, #677995);
     font-size: 11px;
     line-height: 1.25;
     overflow-wrap: anywhere;
@@ -3501,8 +3501,6 @@
 }
 .inc-workflow-dialog {
     width: min(1320px, 96vw);
-    height: min(92vh, 960px);
-    min-height: 480px;
     background: #ffffff;
     border: 1px solid #dbe4ef;
     border-radius: 16px;
@@ -3591,7 +3589,6 @@
 }
 @media (max-width: 700px) {
     .inc-workflow-overlay { padding: 8px; }
-    .inc-workflow-dialog { height: 96vh; }
     .inc-workflow-header { padding: 14px 16px; }
 }
 

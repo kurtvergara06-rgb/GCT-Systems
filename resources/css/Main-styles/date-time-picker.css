@@ -71,7 +71,7 @@
 }
 
 .gct-picker-trigger.is-empty .gct-picker-trigger-value {
-  color: #94a3b8;
+  color: var(--gct-ui-muted, #64748b);
   font-weight: 500;
 }
 

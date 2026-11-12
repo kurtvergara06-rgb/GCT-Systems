@@ -2589,7 +2589,7 @@
 }
 .personnel-master-page .driver-master-table-scroll > .driver-master-records-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 960px;
   table-layout: fixed;
 }
 .personnel-master-page .driver-master-records-table .driver-col-id { width: 12%; }

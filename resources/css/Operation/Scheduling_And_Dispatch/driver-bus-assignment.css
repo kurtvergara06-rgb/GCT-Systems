@@ -1634,7 +1634,7 @@
     grid-template-columns: minmax(0,1fr) minmax(155px,180px) minmax(145px,160px);
 }
 .assignment-page .assignment-table-wrap { border: 1px solid #e2eaf4; border-radius: 10px; }
-.assignment-page .assignment-table { min-width: 900px; }
+.assignment-page .assignment-table { }
 .assignment-page .assignment-table th { padding: 12px 11px; font-size: 10px; letter-spacing: .035em; }
 .assignment-page .assignment-table td { padding: 11px; font-size: 12px; }
 .assignment-page .assignment-table tbody tr:hover { background: #f7faff; }
@@ -1813,7 +1813,7 @@
 
 /* Approved fleet-dispatch layout: journey column and paired resource tables. */
 .assignment-page .assignment-table-wrap{overflow-x:auto}
-.assignment-page .assignment-table{min-width:1060px;table-layout:fixed}
+.assignment-page .assignment-table{table-layout:fixed}
 .assignment-page .assignment-table th:nth-child(1){width:8%}
 .assignment-page .assignment-table th:nth-child(2){width:12%}
 .assignment-page .assignment-table th:nth-child(3){width:13%}
@@ -1928,7 +1928,7 @@
 @media(max-width:460px){.assignment-page .resource-filter-bar{grid-template-columns:1fr}}
 
 /* Simplified resource tables — three aligned data columns, no action buttons. */
-.assignment-page .assignment-table { min-width: 0; }
+.assignment-page .assignment-table { }
 .assignment-page .assignment-table th:nth-child(1) { width: 9%; }
 .assignment-page .assignment-table th:nth-child(2) { width: 13%; }
 .assignment-page .assignment-table th:nth-child(3) { width: 18%; }
@@ -1980,7 +1980,7 @@
 /* Seven-column Trip Assignments table: header and body use matching alignment. */
 .assignment-page .assignment-table {
     width: 100%;
-    min-width: 1120px;
+    min-width: 960px;
     table-layout: fixed;
     border-collapse: collapse;
 }

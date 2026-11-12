@@ -1204,9 +1204,6 @@
   .driver-attendance-page .table-wrap {
     overflow-x: auto;
   }
-  .driver-attendance-page .attendance-table {
-    min-width: 900px;
-  }
 }
 
 /* Driver attendance editor: match native status/shift selects to the visible
@@ -1486,11 +1483,6 @@
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
-@media (max-width: 900px) {
-    .driver-attendance-page .attendance-table {
-        min-width: 960px;
-    }
-}
 
 /* Five-column DDR-verified attendance history.
    The former Time-In column is now only shown in the View modal. */
@@ -1526,11 +1518,6 @@
     min-width: 88px;
     max-width: 88px;
     overflow: visible;
-}
-@media (max-width: 900px) {
-    .driver-attendance-page .attendance-table {
-        min-width: 880px;
-    }
 }
 
 /* Six columns: separate scheduled service date/time from bus and trip IDs.
@@ -1593,7 +1580,7 @@
         overflow-x: auto;
     }
     .driver-attendance-page .attendance-table {
-        min-width: 1020px;
+        min-width: 880px;
     }
 }
 

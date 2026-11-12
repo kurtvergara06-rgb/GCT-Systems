@@ -323,15 +323,15 @@
 /* Driver-only batch attendance composition: date, actions and search on one row.
    Scope carefully so Mechanic Attendance retains its original shift controls. */
 .batch-attendance-driver .batch-attendance-modal {
-  width: min(1440px, calc(100vw - 48px));
-  height: min(860px, calc(100dvh - 48px));
-  max-height: calc(100dvh - 48px);
+  width: min(1180px, calc(100vw - 48px));
+  height: auto;
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
 }
 .batch-attendance-driver .batch-attendance-header {
   flex: 0 0 auto;
-  padding: 22px 24px 14px;
+  padding: 16px 24px 12px;
 }
 .batch-attendance-driver .batch-attendance-header h2 { font-size: 24px; }
 .batch-attendance-driver .batch-attendance-controls {
