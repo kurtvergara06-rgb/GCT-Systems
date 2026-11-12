@@ -106,7 +106,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     .modal-card, .modal-box, .delete-modal-box, .feedback-modal,
     .batch-feedback-modal, .ui-form-modal, .trip-modal,
-    .personnel-modal, .route-modal, .route-details-modal,
+    .personnel-modal,
     .schedule-modal, .records-modal
 ) {
     background-color: var(--gct-theme-surface);
@@ -621,7 +621,6 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .ddr-summary-card, .inc-summary-card, .inc-card,
         .bus-master-list-page .table-wrap, .availability-table-wrap,
         .ui-form-modal, .ui-form-modal-header, .ui-form-section, .ui-form-actions,
-        .route-modal.route-details-modal, .route-view-card, .route-map-active-field,
         .ddr-record-dialog, .ddr-record-header, .ddr-record-footer,
         .ddr-record-info > div, .ddr-primary-trip,
         .trip-modal-header, .trip-overview-section, .trip-assigned-section,
@@ -648,8 +647,6 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .ddr-card h2, .inc-card h2,
         .ui-form-modal h2, .ui-form-modal h3,
         .ui-form-section-title, .ui-form-label, .ui-form-section > strong,
-        .route-modal h2, .route-modal h3,
-        .route-view-card strong, .route-view-card dt, .route-view-card dd,
         .ddr-record-dialog h2, .ddr-record-dialog h3,
         .ddr-record-info strong, .ddr-record-total strong,
         .trip-modal h2, .trip-modal h3,
@@ -727,7 +724,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
 
     /* Form portals live outside main; give their controls their own scope. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-        .ui-form-modal, .route-modal, .ddr-record-dialog, .batch-attendance-modal
+        .ui-form-modal, .ddr-record-dialog, .batch-attendance-modal
     ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
         .gct-picker-trigger, .ui-input-wrap, .ddr-combo-input,
         .ddr-combo-dropdown, .driver-bus-picker-panel
@@ -737,7 +734,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         border-color: var(--gct-theme-control-border);
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-        .ui-form-modal, .route-modal, .ddr-record-dialog, .batch-attendance-modal
+        .ui-form-modal, .ddr-record-dialog, .batch-attendance-modal
     ) :is(label, .ui-form-label, .gct-picker-trigger-label) {
         color: var(--gct-theme-fg);
     }
@@ -747,13 +744,12 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     /* Existing modal ID rules outrank class-only theme selectors. Match their
        roots explicitly; all changes here remain palette-only. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-        #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
+        #busModal, #editBusModal, #viewBusModal,
         #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
         #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
     ) :is(
         .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body, .ui-form-actions,
-        .ui-form-section, .route-editor-section, .route-map-active-field,
-        .route-view-card, .route-view-modal,
+        .ui-form-section,
         .bus-details-modal, .bus-details-header, .bus-details-footer,
         .bus-details-grid > div, .bus-details-route,
         .client-master-form-section, .client-master-readonly-panel,
@@ -768,7 +764,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         border-color: var(--gct-theme-border);
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-        #routeModal, #routeDetailsModal, #busModal, #editBusModal, #viewBusModal,
+        #busModal, #editBusModal, #viewBusModal,
         #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
         #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
     ) :is(h2, h3, label, dt, dd, .ui-form-section-title,
@@ -780,10 +776,10 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     ) { color: var(--gct-theme-muted); }
 
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
-        #routeModal, #busModal, #editBusModal,
+        #busModal, #editBusModal,
         #clientMasterCreateModal, #clientMasterDetailModal
     ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
-        .ui-input-wrap, .gct-picker-trigger, .route-map-active-field
+        .ui-input-wrap, .gct-picker-trigger
     ) {
         background: var(--gct-theme-input);
         color: var(--gct-theme-fg);
@@ -792,6 +788,109 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-table .trip-group-heading span {
         color: var(--gct-theme-muted);
     }
+}
+
+/* Shared dark appearance for New, Edit and View Route. Layout and semantic
+   route status/map messages remain defined in the Route component stylesheet. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) {
+        --route-dialog-bg: var(--gct-theme-surface);
+        --route-dialog-raised: var(--gct-theme-surface-raised);
+        --route-dialog-border: var(--gct-theme-border);
+        --route-dialog-fg: var(--gct-theme-fg);
+        --route-dialog-muted: var(--gct-theme-muted);
+    }
+    /* Common shell and section backgrounds: override legacy light gradients. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body,
+        .ui-form-content, .ui-form-actions, .route-editor-section,
+        .route-view-modal, .route-view-header, .route-view-body, .route-view-card,
+        .route-editor-section > .ui-form-section-header,
+        .route-view-card-header, .route-view-path-scroll,
+        .route-editor-summary, .route-editor-summary-item,
+        .route-stop-item, .ui-form-repeater-row, .route-map-active-field,
+        .route-form-map-active-field, .route-view-map-source
+    ) {
+        background: var(--route-dialog-bg);
+        border-color: var(--route-dialog-border);
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-editor-section > .ui-form-section-header, .route-view-card-header,
+        .route-view-path-scroll, .route-editor-summary,
+        .route-stop-item, .ui-form-repeater-row, .route-view-map-source
+    ) {
+        background: var(--route-dialog-raised);
+    }
+    /* Shared headings and field labels */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-heading h2, .ui-form-section-header h3, .ui-form-group > label,
+        .ui-form-section-title, .ui-form-label,
+        .route-view-header h2, .route-view-card-header h3,
+        .route-view-field > span, .route-view-field > strong,
+        .route-view-field .route-detail-value, .route-view-path-scroll strong,
+        .horizontal-route-content strong, .route-editor-summary strong
+    ) {
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-heading p, .ui-form-section-header p, .route-view-header p,
+        .route-view-card-header p, .route-view-map-note,
+        .route-name-guidance, .route-form-map-note, .route-view-field > span i,
+        .route-editor-summary small, .horizontal-route-content span
+    ) {
+        color: var(--route-dialog-muted);
+    }
+    /* Shared inputs and view-only value fields */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .ui-input-wrap, .gct-picker-trigger,
+        .route-view-field > strong, .route-view-field .route-detail-value,
+        #viewRouteStatus
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--route-dialog-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        input[readonly], input:disabled, select:disabled
+    ) {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-muted);
+        border-color: var(--route-dialog-border);
+        opacity: 1;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(input, textarea)::placeholder {
+        color: var(--gct-theme-placeholder);
+    }
+    /* Buttons without semantic warning/success roles. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-close, .route-view-close,
+        .route-form-map-tool-btn, .route-form-fit-map-btn,
+        .gps-fit-map-btn, .route-stops-section .ui-form-section-action .ui-btn-small
+    ) {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-fg);
+        border-color: var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-close, .route-view-close,
+        .route-form-map-tool-btn, .route-form-fit-map-btn, .gps-fit-map-btn
+    ):disabled {
+        color: var(--route-dialog-muted);
+        opacity: .6;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-editor-section > .ui-form-section-header .ui-form-section-icon,
+        .route-view-section-icon, .ui-form-repeater-number
+    ) {
+        background: #203d61;
+        color: #b5d4ff;
+        border-color: #36577e;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-view-eyebrow, .route-view-map-source i
+    ) { color: #b5d4ff; }
 }
 
 @media screen {
