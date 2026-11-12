@@ -14,10 +14,12 @@ import '../css/Main-styles/spinner.css';
 import '../css/Main-styles/topbar.css';
 import '../css/Main-styles/page-transitions.css';
 import '../css/Main-styles/account-preferences.css';
+import '../css/Main-styles/session-guard.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
 import '../css/Maintenance/purchase-request-modal-cleanup.css';
 
 import './Main-js/account-preferences.js';
+import './Main-js/session-guard.js';
 import './Main-js/master-list-scroll.js';
 import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-animations.js';

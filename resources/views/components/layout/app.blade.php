@@ -58,6 +58,7 @@
 
   @auth
     <meta name="gct-account-id" content="{{ auth()->id() }}">
+    <meta name="gct-session-lifetime-seconds" content="{{ max(1, (int) config('session.lifetime', 120)) * 60 }}">
     <meta
       name="gct-force-password-change"
       content="{{ auth()->user()->must_change_password ? '1' : '0' }}"

@@ -68,6 +68,15 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
 Route::middleware('auth')->group(function () {
+    // Activity-triggered renewal. Auth middleware, CSRF, and throttling remain enforced.
+    Route::post('/session/renew', function (\Illuminate\Http\Request $request) {
+        return response()->json([
+            'authenticated' => true,
+            'account_id' => (string) $request->user()->getAuthIdentifier(),
+            'lifetime_seconds' => max(1, (int) config('session.lifetime', 120)) * 60,
+        ])->header('Cache-Control', 'no-store');
+    })->middleware('throttle:30,1')->name('session.renew');
+
     Route::get('/topbar/summary', [TopbarController::class, 'summary'])
         ->name('topbar.summary');
 
