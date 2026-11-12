@@ -1938,65 +1938,6 @@
   display: none !important;
 }
 
-/* Read-only Driver Details: use a compact profile presentation.
-   Keep Add/Edit form sizing and the authorized-bus selector unchanged. */
-.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver {
-  width: min(700px, calc(100vw - 32px));
-  max-height: calc(100dvh - 40px);
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-header {
-  min-height: 0;
-  padding: 14px 20px;
-  gap: 12px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-icon {
-  width: 40px;
-  height: 40px;
-  flex-basis: 40px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .personnel-modal-title h2 {
-  font-size: 19px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .personnel-modal-title p {
-  margin-top: 3px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form {
-  flex: 0 1 auto;
-  max-height: calc(100dvh - 110px);
-  gap: 11px 14px;
-  padding: 14px 20px 16px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-modal-group-heading {
-  gap: 8px;
-  margin-top: 0;
-  padding: 8px 11px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-field,
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-contact-field {
-  gap: 5px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell,
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-contact-field .driver-input-shell {
-  height: 40px;
-  min-height: 40px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > input,
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > select {
-  min-height: 38px;
-}
-.personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-modal-view-notice {
-  padding: 8px 11px;
-}
-@media (max-width: 680px) {
-  .personnel-modal-overlay[data-mode="view"] .personnel-modal-driver .driver-modal-header {
-    padding: 12px 14px;
-  }
-  .personnel-modal-overlay[data-mode="view"] .personnel-driver-form {
-    padding: 12px 14px 14px;
-    gap: 10px;
-  }
-}
-
 .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell {
   border-color: var(--gct-ui-border, #e3eaf3);
   border-radius: 9px;
@@ -2073,6 +2014,122 @@
   }
   .personnel-driver-form .driver-modal-helper { flex-basis: 100%; }
   .personnel-driver-form .driver-modal-actions button { flex: 1; }
+}
+
+/* Dedicated read-only Driver Details view. The existing form remains Add/Edit only. */
+.personnel-modal-driver .driver-profile-view[hidden] { display: none !important; }
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver {
+  width: min(760px, calc(100vw - 32px));
+}
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-driver > .personnel-driver-form { display: none; }
+.personnel-modal-driver .driver-profile-view {
+  overflow-y: auto;
+  min-height: 0;
+  padding: 15px 20px 0;
+  color: var(--gct-ui-text, #102947);
+}
+.personnel-modal-driver .driver-profile-view-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: var(--gct-ui-surface-raised, #f4f8fd);
+  border: 1px solid var(--gct-ui-border, #dce6f1);
+  border-radius: 10px;
+}
+.personnel-modal-driver .driver-profile-view-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px;
+  background: #e8f1ff;
+  color: #2467db;
+}
+.personnel-modal-driver .driver-profile-view-heading strong,
+.personnel-modal-driver .driver-profile-view-heading small { display: block; }
+.personnel-modal-driver .driver-profile-view-heading strong { font-size: 13px; }
+.personnel-modal-driver .driver-profile-view-heading small { margin-top: 2px; font-size: 10px; color: var(--gct-ui-muted, #72839e); }
+.personnel-modal-driver .driver-profile-view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.personnel-modal-driver .driver-profile-view-item {
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--gct-ui-border, #dce6f1);
+  border-radius: 10px;
+  background: var(--gct-ui-surface-hover, #f8fafc);
+}
+.personnel-modal-driver .driver-profile-view-item dt {
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  color: var(--gct-ui-muted, #667b99);
+}
+.personnel-modal-driver .driver-profile-view-item dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.personnel-modal-driver .driver-profile-buses { grid-column: 1 / -1; }
+.personnel-modal-driver .driver-profile-bus-list { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.personnel-modal-driver .driver-profile-bus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid #cfe0ff;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #1e56a7;
+  font-size: 11px;
+  font-weight: 750;
+}
+.personnel-modal-driver .driver-profile-status {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--gct-ui-surface-raised, #e5e7eb);
+}
+.personnel-modal-driver .driver-profile-status[data-status="Active"] { color: #166534; background: #dcfce7; }
+.personnel-modal-driver .driver-profile-status[data-status="Inactive"] { color: #991b1b; background: #fee2e2; }
+.personnel-modal-driver .driver-profile-view-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px -20px 0;
+  padding: 11px 20px;
+  background: var(--gct-ui-surface, #fff);
+  border-top: 1px solid var(--gct-ui-border, #dce6f1);
+}
+.personnel-modal-driver .driver-profile-view-footer > span { color: var(--gct-ui-muted, #667b99); font-size: 11px; }
+.personnel-modal-driver .driver-profile-view-footer button {
+  padding: 9px 19px;
+  border: 1px solid var(--gct-ui-border, #d3e0f1);
+  border-radius: 8px;
+  background: var(--gct-ui-surface, #fff);
+  color: var(--gct-ui-text, #1b3554);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+@media (max-width: 560px) {
+  .personnel-modal-driver .driver-profile-view { padding: 12px 14px 0; }
+  .personnel-modal-driver .driver-profile-view-grid { grid-template-columns: minmax(0, 1fr); }
+  .personnel-modal-driver .driver-profile-buses { grid-column: auto; }
+  .personnel-modal-driver .driver-profile-view-footer { margin-left: -14px; margin-right: -14px; padding: 10px 14px; }
 }
 
 /* Make Default Shift values clearly emphasized in both personnel master lists. */

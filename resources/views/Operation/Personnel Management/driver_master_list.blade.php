@@ -153,6 +153,35 @@
             </button>
         </div>
 
+
+        <section class="driver-profile-view" data-driver-profile-view hidden aria-label="Driver profile details">
+            <div class="driver-profile-view-heading">
+                <span class="driver-profile-view-icon"><i class="fa-solid fa-address-card" aria-hidden="true"></i></span>
+                <div><strong>Driver Information</strong><small>Permanent driver profile and authorized fleet</small></div>
+            </div>
+            <dl class="driver-profile-view-grid">
+                <div class="driver-profile-view-item">
+                    <dt>Driver ID</dt><dd data-driver-profile="driver_id">—</dd>
+                </div>
+                <div class="driver-profile-view-item">
+                    <dt>Driver Name</dt><dd data-driver-profile="driver_name">—</dd>
+                </div>
+                <div class="driver-profile-view-item">
+                    <dt>Contact Number</dt><dd data-driver-profile="contact_number">—</dd>
+                </div>
+                <div class="driver-profile-view-item">
+                    <dt>Employment Status</dt><dd><span class="driver-profile-status" data-driver-profile="employment_status">—</span></dd>
+                </div>
+                <div class="driver-profile-view-item driver-profile-buses">
+                    <dt>Assigned Buses</dt><dd class="driver-profile-bus-list" data-driver-profile-buses>—</dd>
+                </div>
+            </dl>
+            <div class="driver-profile-view-footer">
+                <span><i class="fa-solid fa-eye" aria-hidden="true"></i> View-only profile</span>
+                <button type="button" class="secondary-btn" data-close-personnel-modal>Close</button>
+            </div>
+        </section>
+
         <form method="POST" action="{{ route('operation.personnel.drivers.store', [], false) }}" data-personnel-form data-store-url="{{ route('operation.personnel.drivers.store', [], false) }}" class="personnel-modal-form personnel-driver-form">
             @csrf
             <input type="hidden" name="_method" value="POST" data-method-field>
