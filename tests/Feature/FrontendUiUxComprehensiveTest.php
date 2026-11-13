@@ -1080,4 +1080,26 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('data-personnel-modal', $html);
         $this->assertStringContainsString('data-personnel-view-notice', $html);
     }
+    public function test_incident_management_dark_mode_covers_form_and_workflow_cards(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        foreach ([
+            '.inc-page .inc-table thead :is(th, td)',
+            '#incidentReportModal .inc-bus-trip-summary',
+            '#incidentReportModal .inc-summary-detail strong',
+            '#incidentReportModal .inc-form-note',
+            '.inc-wf-details-grid dd',
+            '.inc-wf-records-grid article > strong',
+            '.inc-wf-details-description',
+        ] as $selector) {
+            $this->assertStringContainsString($selector, $css);
+        }
+
+        $this->assertStringContainsString(
+            'html[data-gct-theme="dark"] body[data-gct-operation-page="1"]',
+            $css
+        );
+    }
+
 }
