@@ -5735,3 +5735,217 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
         display: none !important;
     }
 }
+
+
+/* AI Conflict Review: compact, selectable queue beside the detailed report.
+   Shared by one or many conflicts; preserves existing filters/sorting/actions. */
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    gap: 14px;
+  }
+  .auto-scheduling-page .gct-conflict-queue {
+    max-height: 470px;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overscroll-behavior: contain;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    text-align: left;
+    font: inherit;
+    color: #172e4c;
+    background: #fff;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item:is(:hover, .is-selected) {
+    background: #eef5ff;
+    border-color: #83b4f7;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item.is-selected {
+    box-shadow: inset 3px 0 #2563eb;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item:focus-visible,
+  .auto-scheduling-page .gct-conflict-sort-menu summary:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item :is(.gct-queue-head, .gct-queue-meta, .gct-queue-foot) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .auto-scheduling-page .gct-queue-head > strong {
+    font-size: 13px;
+    color: inherit;
+  }
+  .auto-scheduling-page .gct-queue-head > strong small {
+    display: inline;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .auto-scheduling-page .gct-queue-meta {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    color: #475569;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .gct-queue-route,
+  .auto-scheduling-page .gct-queue-issue {
+    display: block;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .auto-scheduling-page .gct-queue-route { font-weight: 650; }
+  .auto-scheduling-page .gct-queue-issue { color: #52657d; }
+  .auto-scheduling-page .gct-queue-foot { margin-top: 2px; }
+  .auto-scheduling-page .gct-conflict-queue-empty {
+    margin: 0;
+    padding: 18px 12px;
+    color: #64748b;
+    font-size: 12px;
+    text-align: center;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu {
+    position: relative;
+    padding: 7px 12px;
+    border-bottom: 1px solid #dce5f2;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    color: #315987;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu summary::-webkit-details-marker { display: none; }
+  .auto-scheduling-page .gct-conflict-sort-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 9px;
+  }
+  .auto-scheduling-page .gct-conflict-sort-options .gct-conflict-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid #d6e3f2;
+    border-radius: 7px;
+    background: #f6f9fd;
+    color: #315987;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .auto-scheduling-page .gct-conflict-report-panel { width: 100%; }
+}
+@media screen and (max-width: 1250px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auto-scheduling-page .gct-conflict-queue { max-height: 320px; }
+}
+@media screen and (max-width: 520px) {
+  .auto-scheduling-page .gct-conflict-toolbar { flex-direction: column; align-items: stretch; }
+  .auto-scheduling-page .gct-conflict-tabs { flex-wrap: wrap; }
+  .auto-scheduling-page .gct-conflict-toolbar [data-gct-conflict-search] { width: 100%; max-width: none; min-width: 0; }
+}
+
+/* Readable dark surfaces, including the selected AI report and empty states. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-list, .gct-conflict-report-panel, .gct-conflict-report-body, .gct-report, .gct-report-trip, .gct-report-recommendations, .gct-report-tabs, .gct-report-explanation, .gct-report-findings) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-toolbar, .gct-conflict-sort-menu, .gct-conflict-count, .gct-report-actions) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-queue-item {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-queue-item:is(:hover, .is-selected) {
+    background: #28466b;
+    border-color: #83b4f7;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-queue-head > strong small, .gct-queue-meta, .gct-queue-issue, .gct-conflict-queue-empty,
+    .gct-report-trip > div > span, .gct-report-empty, .gct-report-findings li, .gct-report-safety) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-queue-route, .gct-report-trip strong, .gct-report-meta strong, .gct-report-option-copy strong,
+    .gct-report-explanation strong, .gct-report-findings > strong) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-sort-menu summary, .gct-conflict-sort-options .gct-conflict-sort) {
+    color: var(--gct-theme-accent);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-sort-options .gct-conflict-sort {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-report-meta > div, .gct-report-empty, .gct-report-time-option, .gct-report-options .gct-report-option) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-tabs button {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-tabs button.active {
+    color: var(--gct-theme-accent);
+    border-bottom-color: var(--gct-theme-accent);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-alert {
+    background: #3b2d17;
+    border-color: #bb832a;
+    color: #ffcf89;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-alert :is(strong, span, p) { color: #ffcf89; }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-report-explanation, .gct-report-findings) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+}
