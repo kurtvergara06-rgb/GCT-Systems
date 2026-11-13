@@ -174,7 +174,7 @@
   @endif
 
   @stack('scripts')
-  <script>
+  <script data-gct-full-load-only>
     (() => {
       const root = document.documentElement;
       let released = false;
