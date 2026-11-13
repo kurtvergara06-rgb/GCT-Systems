@@ -2681,16 +2681,26 @@
     transform: none;
 }
 
-/* Keep full Trip ID readable: no badge overflow into the Schedule column. */
-.assignment-page .assignment-table tbody td:first-child { min-width: 0; }
-.assignment-page .assignment-table tbody td:first-child .system-id-badge {
-    display: inline-block;
-    max-width: 100%;
-    box-sizing: border-box;
-    white-space: normal;
-    overflow-wrap: anywhere;
+/* Shared .system-id-badge declares width:max-content and nowrap with !important.
+   Override those ONLY inside assignment Trip ID cells to prevent overlap. */
+.assignment-page .assignment-direction-section .assignment-table > tbody > tr:not(.assignment-client-route-group) > td:first-child {
+    min-width: 0;
+    padding-inline: 7px;
+    overflow: hidden;
+}
+.assignment-page .assignment-direction-section .assignment-table > tbody > tr:not(.assignment-client-route-group) > td:first-child .system-id-badge {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    height: auto;
+    padding: 5px 4px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
     word-break: break-word;
-    line-height: 1.25;
+    text-align: center;
+    line-height: 1.25 !important;
+    font-size: 10px !important;
 }
 @media (max-width: 760px) {
     .assignment-page .assignment-table { min-width: 1010px; }
