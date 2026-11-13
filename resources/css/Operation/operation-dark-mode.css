@@ -472,7 +472,8 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
     > tbody > tr.auto-preview-trip-row > td:last-child:not([colspan]) {
     background: var(--gct-theme-surface);
     box-shadow: none;
-    border-left: 0;
+    border: 0;
+    background-clip: padding-box;
   }
   html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
     .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
