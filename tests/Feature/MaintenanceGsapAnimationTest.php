@@ -132,4 +132,21 @@ class MaintenanceGsapAnimationTest extends TestCase
         $this->assertStringContainsString('background: rgba(11, 18, 32, 0.985);', $styles);
     }
 
+    public function test_shared_navigation_loader_covers_full_page_and_sidebar_transitions(): void
+    {
+        $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
+        $transitions = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+        $partial = file_get_contents(resource_path('js/Main-js/partial-navigation.js'));
+
+        $this->assertStringContainsString("document.documentElement.classList.add('gct-page-booting')", $layout);
+        $this->assertStringContainsString('id="gctBootLoader"', $layout);
+        $this->assertStringContainsString('data-gct-full-load-only', $layout);
+        $this->assertStringContainsString("window.addEventListener('load', afterPaint, { once: true })", $layout);
+        $this->assertStringContainsString('window.setTimeout(release, 10000)', $layout);
+        $this->assertStringContainsString("link.closest('#appSidebar')", $transitions);
+        $this->assertStringContainsString('isFullPageNavigationLink(event)', $transitions);
+        $this->assertStringContainsString("!script.hasAttribute('data-gct-full-load-only')", $partial);
+        $this->assertStringContainsString("window.dispatchEvent(new CustomEvent(BEFORE_NAVIGATION_EVENT))", $partial);
+    }
+
 }
