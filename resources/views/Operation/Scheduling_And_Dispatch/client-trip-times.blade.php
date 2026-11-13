@@ -131,6 +131,7 @@
                         data-client-name="{{ mb_strtolower($client->name) }}"
                         data-configured-count="{{ $configuredCategoryCount }}"
                         data-total-categories="{{ $totalCategoryCount }}"
+                        @if(request()->integer('focus_client') === $client->id) open @endif
                     >
                         <summary class="ctt-client-header">
                             <span class="ctt-client-icon">
@@ -188,6 +189,44 @@
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                             </span>
                         </summary>
+
+                        @if($canEditOperation)
+                            <section class="ctt-client-logo-settings" aria-label="Client logo settings for {{ $client->name }}">
+                                <span class="ctt-client-logo-preview">
+                                    @if($client->logo_path)
+                                        <img src="{{ $client->logoUrl() }}" alt="{{ $client->name }} logo" loading="lazy">
+                                    @else
+                                        <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                    @endif
+                                </span>
+                                <div class="ctt-client-logo-copy">
+                                    <strong>Client Logo</strong>
+                                    <small>Show your client's brand on this page and in Client Master List.</small>
+                                </div>
+                                <form class="ctt-client-logo-form" method="POST"
+                                    action="{{ route('operation.clients.logo', $client) }}"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    <label class="ctt-logo-file-label">
+                                        <span class="visually-hidden">Upload a logo for {{ $client->name }}</span>
+                                        <input type="file" name="logo" accept="image/png,image/jpeg,image/webp"
+                                            aria-label="Choose logo for {{ $client->name }}">
+                                    </label>
+                                    @if($client->logo_path)
+                                        <label class="ctt-logo-remove">
+                                            <input type="checkbox" name="remove_logo" value="1">
+                                            Remove
+                                        </label>
+                                    @endif
+                                    <button type="submit" class="ctt-logo-save">
+                                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Logo
+                                    </button>
+                                </form>
+                            </section>
+                        @endif
+                        @if(request()->integer('focus_client') === $client->id && session('success'))
+                            <p class="ctt-logo-success" role="status">{{ session('success') }}</p>
+                        @endif
 
                         <section class="ctt-client-buses" aria-label="Allocated buses for {{ $client->name }}">
                             @php
