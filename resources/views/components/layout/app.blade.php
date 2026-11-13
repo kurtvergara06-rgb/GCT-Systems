@@ -5,9 +5,14 @@
 ])
 
 @php
-  // Theme rollout is Operation-only for now. Other modules retain their CSS.
+  // Dark page-specific components are enabled in Operation and Account.
   $operationThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Operation/')
+  );
+  // Account pages share the saved appearance preference and already have
+  // dark CSS. Resolve their theme before the first-paint loading cover too.
+  $accountThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Account/')
   );
   $performanceProfile = app()->environment('local') && request()->boolean('_gct_profile');
   $viteAssets = array_values(array_unique(array_merge([
@@ -81,7 +86,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
-  @if($operationThemePage && auth()->check())
+  @if(($operationThemePage || $accountThemePage) && auth()->check())
     {{-- Resolve the saved browser theme before styles paint to avoid a light flash. --}}
     <script>
       (() => {
