@@ -3072,3 +3072,175 @@
         max-height: calc(100dvh - clamp(20px, 5vh, 44px));
     }
 }
+
+
+/* Unified Trip History: compact inspection dialog (presentation only).
+   Keep the scrollable body, read-only DDR data and backdrop-close rules intact. */
+@media screen {
+    #tripDetailModal.trip-modal-overlay > .trip-modal {
+        width: min(800px, calc(100vw - 32px));
+        max-width: 800px;
+        max-height: min(82dvh, 740px);
+    }
+    #tripDetailModal .trip-modal-header {
+        padding: 11px 16px;
+    }
+    #tripDetailModal .trip-modal-header h2 {
+        font-size: 17px;
+    }
+    #tripDetailModal .trip-detail-body {
+        padding: 10px 14px 14px;
+        gap: 9px;
+    }
+    #tripDetailModal :is(.trip-overview-section, .trip-assigned-section, .trip-execution-section) {
+        padding: 11px;
+        border-radius: 10px;
+    }
+    #tripDetailModal .trip-details-section-heading {
+        margin-bottom: 8px;
+        gap: 7px;
+    }
+    #tripDetailModal .trip-details-section-icon {
+        width: 26px;
+        height: 26px;
+        flex-basis: 26px;
+    }
+    #tripDetailModal .trip-details-section-heading h3 {
+        font-size: 12px;
+    }
+    #tripDetailModal .trip-overview-grid {
+        gap: 6px;
+    }
+    #tripDetailModal .trip-overview-grid > div {
+        padding: 8px 10px;
+        gap: 3px;
+    }
+    #tripDetailModal .trip-overview-grid strong {
+        font-size: 12px;
+    }
+    #tripDetailModal .trip-overview-grid small {
+        font-size: 10px;
+    }
+    #tripDetailModal .trip-assigned-section .unit-records-card {
+        gap: 7px;
+    }
+    #tripDetailModal .trip-ddr-empty-state {
+        padding: 10px 12px;
+    }
+    #tripDetailModal .trip-modal-actions {
+        min-height: 50px;
+        padding: 8px 14px;
+    }
+    #tripDetailModal .trip-database-telemetry-drawer > summary {
+        min-height: 44px;
+        padding: 9px 12px;
+    }
+}
+@media screen and (max-width: 720px) {
+    #tripDetailModal.trip-modal-overlay > .trip-modal {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+    #tripDetailModal .trip-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media screen and (max-width: 480px) {
+    #tripDetailModal .trip-overview-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Trip History modal & Filter popup: complete dark appearance.
+   Color only record surfaces; preserve semantic badges and action states. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.trip-modal, .trip-modal-header, .trip-detail-body, .trip-modal-actions,
+          .trip-overview-section, .trip-assigned-section, .trip-execution-section,
+          .unit-records-card, .unit-records-header, .unit-records-table-wrap,
+          .unified-trip-ddr-table-wrap, .trip-database-telemetry-drawer,
+          .telemetry-drawer-content) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.trip-overview-grid > div, .trip-ddr-empty-state,
+          .trip-detail-item, .trip-database-telemetry-drawer > summary) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.trip-modal-header h2, .trip-details-section-heading h3,
+          .trip-overview-grid strong, .unit-records-title-group h3,
+          .trip-ddr-recorded-heading strong, .trip-detail-value,
+          .telemetry-drawer-summary-left strong) {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.trip-modal-header p, .trip-overview-grid small,
+          .trip-overview-grid span, .unit-records-title-group p,
+          .trip-ddr-recorded-heading small, .trip-ddr-empty-state,
+          .trip-modal-footer-caption, .trip-detail-label,
+          .telemetry-drawer-summary-left span) {
+        color: var(--gct-theme-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.unit-records-table th, .unified-trip-ddr-table-wrap th) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-muted);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.unit-records-table td, .unified-trip-ddr-table-wrap td,
+          .unit-records-table tbody tr) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      :is(.unit-records-search input, .trip-detail-body input) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      .trip-details-section-icon {
+        background: #28466b;
+        color: #a9cbff;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      .trip-assigned-count {
+        background: #28466b;
+        color: #d7e7ff;
+        border-color: #6688b5;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      .trip-modal-close {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      .trip-modal-dismiss {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripDetailModal
+      .trip-modal-dismiss:hover {
+        background: var(--gct-theme-hover);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-records-page
+      .gct-table-filter-popover .gct-table-filter-field :is(input[type="date"], select) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+        color-scheme: dark;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-records-page
+      .gct-table-filter-popover .gct-table-filter-field input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+}
