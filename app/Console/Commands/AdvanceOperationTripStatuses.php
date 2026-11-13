@@ -119,7 +119,7 @@ class AdvanceOperationTripStatuses extends Command
                     : "The statuses of {$updated} trips were automatically updated based on their schedules."
             );
         }
-        $this->info("Advanced {$updated} trip status(es).");
+        $this->info($updated === 1 ? 'Updated 1 trip status.' : "Updated {$updated} trip statuses.");
 
         return self::SUCCESS;
     }
