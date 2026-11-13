@@ -1460,6 +1460,15 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
   ) {
     color: var(--gct-theme-muted);
   }
+  /* Scheduling Rules cards use fixed light-mode ink in auto-dispatch.css.
+     Keep the existing cards and check indicators; only restore readable text
+     in the Operation dark theme without affecting Light Mode or print. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .scheduling-rules-card .rule-item strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .scheduling-rules-card .rule-item span {
+    color: var(--gct-theme-muted);
+  }
   /* The light metric tiles need dark semantic text in either theme. */
   html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span {
     color: #c5d3e6;
