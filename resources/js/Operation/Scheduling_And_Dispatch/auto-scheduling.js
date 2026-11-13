@@ -324,6 +324,16 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
             } finally {
                 draftRestoreInProgress = false;
             }
+            // Restored draft alternatives are historical; recheck each removed
+            // slot against the current eligible resources without changing data.
+            for (const conflict of schedulingConflicts) {
+                if (conflict.issue_type !== 'recommendation_removed') continue;
+                try {
+                    await refreshRemovedConflictAlternatives(conflict);
+                } catch (error) {
+                    console.warn('Could not refresh restored slot alternatives:', error);
+                }
+            }
             setDraftSaveStatus('Draft restored', 'saved');
             if (footerMessage) footerMessage.textContent = 'Saved draft restored. Availability will be revalidated before confirmation.';
         } catch (error) {
@@ -453,6 +463,38 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         const data = await response.json();
         if (!response.ok) throw new Error(getErrorMessage(data));
         return data;
+    }
+    async function refreshRemovedConflictAlternatives(item) {
+        if (!item || item.issue_type !== 'recommendation_removed') return;
+        const scopeAtRequest = currentScope();
+        const key = conflictIdentity(item);
+        const refreshed = await previewEditRequest({
+            trip_schedule_id: item.trip_schedule_id,
+            list_alternative_pairs: true,
+            recommendations: recommendations.map((recommendation) => ({
+                trip_schedule_id: recommendation.trip_schedule_id,
+                driver_attendance_id: recommendation.driver_attendance_id,
+                driver_reference_type: recommendation.driver_reference_type,
+                bus_id: recommendation.bus_id,
+            })),
+        });
+        if (scopeAtRequest !== currentScope()) return;
+        const current = schedulingConflicts.find((conflict) =>
+            conflictIdentity(conflict) === key && conflict.issue_type === 'recommendation_removed'
+        );
+        if (!current) return;
+        const pairs = Array.isArray(refreshed.valid_pairs) ? refreshed.valid_pairs : [];
+        current.ai = {
+            ...(current.ai || {}),
+            valid_pairs: pairs,
+            alternative_drivers: Array.isArray(refreshed.alternative_drivers)
+                ? refreshed.alternative_drivers : [],
+            alternative_buses: Array.isArray(refreshed.alternative_buses)
+                ? refreshed.alternative_buses : [],
+        };
+        current.missing_driver = !pairs.length;
+        current.missing_bus = !pairs.length;
+        renderConflicts(schedulingConflicts);
     }
     const conflictIdentity = (conflict) => [
         Number(conflict?.trip_schedule_id || 0),
@@ -1583,6 +1625,7 @@ function updateMlStatus(conflicts) {
                     ...removed,
                     result: 'Conflict',
                     issue_type: 'recommendation_removed',
+                    ai: { ...(removed.ai || {}), valid_pairs: [], alternative_drivers: [], alternative_buses: [] },
                     missing_driver: true,
                     missing_bus: true,
                     driver_attendance_id: null,
@@ -1607,26 +1650,7 @@ function updateMlStatus(conflicts) {
                 // the server after Remove, without regenerating the whole draft.
                 const removedKey = conflictIdentity(removed);
                 try {
-                    const refreshed = await previewEditRequest({
-                        trip_schedule_id: removed.trip_schedule_id,
-                        list_alternative_pairs: true,
-                        recommendations: otherPreviewAssignments(),
-                    });
-                    const current = schedulingConflicts.find((conflict) =>
-                        conflictIdentity(conflict) === removedKey
-                        && conflict.issue_type === 'recommendation_removed'
-                    );
-                    if (!current) return;
-                    const pairs = Array.isArray(refreshed.valid_pairs) ? refreshed.valid_pairs : [];
-                    current.ai = {
-                        ...(current.ai || {}),
-                        valid_pairs: pairs,
-                        alternative_drivers: refreshed.alternative_drivers || [],
-                        alternative_buses: refreshed.alternative_buses || [],
-                    };
-                    current.missing_driver = !pairs.length;
-                    current.missing_bus = !pairs.length;
-                    renderConflicts(schedulingConflicts);
+                    await refreshRemovedConflictAlternatives(removed);
                 } catch (error) {
                     window.showSystemToast?.(
                         'Alternative check unavailable. Regenerate or review the slot manually.',
