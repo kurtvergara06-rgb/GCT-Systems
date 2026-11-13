@@ -537,30 +537,181 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
     }
 
-    // Keep branding controls compact until the user selects a file or removal.
-    document.querySelectorAll('.ctt-client-logo-form').forEach((form) => {
-        const file = form.querySelector('input[type="file"][name="logo"]');
-        const remove = form.querySelector('input[name="remove_logo"]');
-        const filename = form.querySelector('.ctt-logo-file-name');
-        const save = form.querySelector('.ctt-logo-save');
-        const pick = form.querySelector('.ctt-logo-pick span');
-        const originalLabel = pick?.textContent || 'Change';
+    // One reusable crop editor for all client logos. Upload occurs only after Save.
+    const cropModal = document.getElementById('cttLogoCropModal');
+    const cropCanvas = document.getElementById('cttLogoCropCanvas');
+    const cropContext = cropCanvas?.getContext('2d');
+    const cropZoom = document.getElementById('cttLogoCropZoom');
+    const cropError = cropModal?.querySelector('.ctt-logo-crop-error');
+    const cropSave = cropModal?.querySelector('.ctt-logo-crop-save');
+    let cropSession = null;
+    let previousFocus = null;
 
-        function syncLogoActions() {
-            const selected = file?.files?.[0];
-            const removing = Boolean(remove?.checked) && !selected;
-            if (filename) {
-                filename.textContent = selected?.name || '';
-                filename.hidden = !selected;
-                filename.title = selected?.name || '';
-            }
-            if (save) save.hidden = !(selected || removing);
-            if (pick) pick.textContent = selected ? 'Change file' : originalLabel;
-            if (remove) remove.disabled = Boolean(selected);
+    function cropRender() {
+        if (!cropSession || !cropContext) return;
+        const { image, zoom, x, y } = cropSession;
+        const side = cropCanvas.width;
+        const scale = Math.max(side / image.naturalWidth, side / image.naturalHeight) * zoom;
+        const dw = image.naturalWidth * scale;
+        const dh = image.naturalHeight * scale;
+        const dx = (side - dw) / 2 + x;
+        const dy = (side - dh) / 2 + y;
+        cropContext.clearRect(0, 0, side, side);
+        cropContext.fillStyle = '#ffffff';
+        cropContext.fillRect(0, 0, side, side);
+        cropContext.drawImage(image, dx, dy, dw, dh);
+    }
+
+    function clampCrop() {
+        if (!cropSession) return;
+        const { image, zoom } = cropSession;
+        const side = cropCanvas.width;
+        const scale = Math.max(side / image.naturalWidth, side / image.naturalHeight) * zoom;
+        const maxX = Math.max(0, (image.naturalWidth * scale - side) / 2);
+        const maxY = Math.max(0, (image.naturalHeight * scale - side) / 2);
+        cropSession.x = Math.min(maxX, Math.max(-maxX, cropSession.x));
+        cropSession.y = Math.min(maxY, Math.max(-maxY, cropSession.y));
+    }
+
+    function closeCrop() {
+        if (!cropModal) return;
+        cropModal.hidden = true;
+        cropModal.classList.remove('is-open');
+        if (cropSession?.url) URL.revokeObjectURL(cropSession.url);
+        if (cropSession?.input && !cropSession.saving) cropSession.input.value = '';
+        cropSession = null;
+        if (cropError) { cropError.hidden = true; cropError.textContent = ''; }
+        previousFocus?.focus?.();
+        previousFocus = null;
+    }
+
+    function openCrop(input, file) {
+        if (!cropModal || !cropCanvas || !cropContext) return;
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+            input.value = '';
+            window.alert('Choose a PNG, JPG, or WebP image under 2 MB.');
+            return;
         }
-        file?.addEventListener('change', syncLogoActions);
-        remove?.addEventListener('change', syncLogoActions);
-        syncLogoActions();
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        const form = input.closest('.ctt-client-logo-form');
+        image.onload = () => {
+            if (cropSession?.url) URL.revokeObjectURL(cropSession.url);
+            cropSession = { input, form, image, url, zoom: 1, x: 0, y: 0, dragging: false, saving: false };
+            previousFocus = document.activeElement;
+            cropZoom.value = '100';
+            cropModal.hidden = false;
+            cropModal.classList.add('is-open');
+            cropRender();
+            cropModal.querySelector('.ctt-logo-crop-close')?.focus();
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(url);
+            input.value = '';
+            window.alert('This image could not be opened. Please choose another file.');
+        };
+        image.src = url;
+    }
+
+    cropCanvas?.addEventListener('pointerdown', (event) => {
+        if (!cropSession) return;
+        cropSession.dragging = true;
+        cropSession.lastX = event.clientX;
+        cropSession.lastY = event.clientY;
+        cropCanvas.setPointerCapture(event.pointerId);
+    });
+    cropCanvas?.addEventListener('pointermove', (event) => {
+        if (!cropSession?.dragging) return;
+        const factor = cropCanvas.width / cropCanvas.getBoundingClientRect().width;
+        cropSession.x += (event.clientX - cropSession.lastX) * factor;
+        cropSession.y += (event.clientY - cropSession.lastY) * factor;
+        cropSession.lastX = event.clientX;
+        cropSession.lastY = event.clientY;
+        clampCrop();
+        cropRender();
+    });
+    for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        cropCanvas?.addEventListener(eventName, () => {
+            if (cropSession) cropSession.dragging = false;
+        });
+    }
+    cropZoom?.addEventListener('input', () => {
+        if (!cropSession) return;
+        cropSession.zoom = Number(cropZoom.value) / 100;
+        clampCrop();
+        cropRender();
+    });
+    cropModal?.querySelectorAll('.ctt-logo-crop-close, .ctt-logo-crop-cancel').forEach((button) => {
+        button.addEventListener('click', closeCrop);
+    });
+    cropModal?.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeCrop();
+        }
+        if (event.key === 'Tab') {
+            const controls = Array.from(cropModal.querySelectorAll('button:not(:disabled), input:not(:disabled)'));
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first?.focus();
+            }
+        }
+    });
+
+    cropSave?.addEventListener('click', async () => {
+        if (!cropSession || cropSession.saving) return;
+        cropSession.saving = true;
+        cropSave.disabled = true;
+        if (cropError) cropError.hidden = true;
+        try {
+            const blob = await new Promise((resolve) => cropCanvas.toBlob(resolve, 'image/webp', 0.9));
+            if (!blob) throw new Error('Unable to crop this image.');
+            if (blob.size > 2 * 1024 * 1024) throw new Error('Cropped logo exceeds 2 MB.');
+            const file = new File([blob], 'client-logo.webp', { type: 'image/webp' });
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            cropSession.input.files = dt.files;
+            const form = cropSession.form;
+            cropSession.input.dispatchEvent(new Event('change', { bubbles: false, composed: false }));
+            cropSession.saving = true;
+            cropModal.hidden = true;
+            cropModal.classList.remove('is-open');
+            form.requestSubmit();
+        } catch (error) {
+            cropSession.saving = false;
+            if (cropError) {
+                cropError.textContent = error.message || 'Unable to save the cropped logo.';
+                cropError.hidden = false;
+            }
+        } finally {
+            cropSave.disabled = false;
+        }
+    });
+
+    // Removal continues to use the existing validated server endpoint.
+    document.querySelectorAll('.ctt-client-logo-form').forEach((form) => {
+        const input = form.querySelector('input[type="file"][name="logo"]');
+        const removal = form.querySelector('input[name="remove_logo"]');
+        const save = form.querySelector('.ctt-logo-save');
+        const filename = form.querySelector('.ctt-logo-file-name');
+        if (save) save.hidden = true;
+        input?.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            if (cropSession?.saving) return;
+            openCrop(input, file);
+        });
+        removal?.addEventListener('change', () => {
+            if (save) save.hidden = !removal.checked;
+        });
+        form.addEventListener('submit', (event) => {
+            if (removal?.checked && input?.files?.length) removal.checked = false;
+        });
+        if (filename) filename.hidden = true;
     });
 
     // Expand large allocation lists only when requested; leave the client card open.
