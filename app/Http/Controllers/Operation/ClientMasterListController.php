@@ -8,6 +8,8 @@ use App\Models\Operation\TripSchedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -60,6 +62,7 @@ class ClientMasterListController extends Controller
             'contact_number' => [$request->input('return_to') === 'client-master-list' ? 'required' : 'nullable', 'string', 'max:30', 'regex:/^[0-9+()\\s.-]{7,30}$/'],
             'contact_email' => ['nullable', 'email', 'max:254'],
             'service_start_date' => ['nullable', 'date'],
+            'logo' => ['nullable', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('2mb')],
             'return_to' => ['sometimes', 'in:client-master-list'],
         ]);
 
@@ -71,8 +74,13 @@ class ClientMasterListController extends Controller
             ]);
         }
 
+        $logoPath = $request->hasFile('logo')
+            ? $request->file('logo')->store('operation/client-logos', 'public')
+            : null;
+
         OperationClient::create([
             'name' => $name,
+            'logo_path' => $logoPath,
             'company_address' => $validated['company_address'] ?? null,
             'contact_person' => $validated['contact_person'] ?? null,
             'contact_position' => $validated['contact_position'] ?? null,
@@ -94,9 +102,16 @@ class ClientMasterListController extends Controller
             'contact_position' => ['nullable', 'string', 'max:150'],
             'contact_number' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\\s.-]{7,30}$/'],
             'contact_email' => ['nullable', 'email', 'max:254'],
+            'logo' => ['nullable', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('2mb')],
+            'remove_logo' => ['sometimes', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($operationClient, $validated): void {
+        $newLogoPath = $request->hasFile('logo')
+            ? $request->file('logo')->store('operation/client-logos', 'public')
+            : null;
+
+        try {
+            $previousLogoPath = DB::transaction(function () use ($operationClient, $validated, $newLogoPath): ?string {
             $client = OperationClient::query()->lockForUpdate()->findOrFail($operationClient->id);
             $newName = trim($validated['name']);
             $renaming = $newName !== $client->name;
@@ -127,15 +142,25 @@ class ClientMasterListController extends Controller
                 }
             }
 
+            $previousLogoPath = $client->logo_path;
             $client->update([
                 'name' => $newName,
+                'logo_path' => $newLogoPath ?? (($validated['remove_logo'] ?? false) ? null : $previousLogoPath),
                 'company_address' => $validated['company_address'] ?? null,
                 'contact_person' => $validated['contact_person'] ?? null,
                 'contact_position' => $validated['contact_position'] ?? null,
                 'contact_number' => $validated['contact_number'] ?? null,
                 'contact_email' => $validated['contact_email'] ?? null,
             ]);
+            return $previousLogoPath;
         }, 5);
+        } catch (\Throwable $exception) {
+            if ($newLogoPath) Storage::disk('public')->delete($newLogoPath);
+            throw $exception;
+        }
+        if ($previousLogoPath && ($newLogoPath || ($validated['remove_logo'] ?? false))) {
+            Storage::disk('public')->delete($previousLogoPath);
+        }
 
         return redirect()->route('operation.clients.index')
             ->with('success', 'Client details updated successfully.');
