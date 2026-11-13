@@ -606,6 +606,72 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttenda
     color: #d8e9ff;
 }
 
+/* Client Trip Times: readable dark client configuration cards and controls.
+   Only color/surface rules here; leave grids, modal placement and logic intact. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page {
+    --ctt-navy: var(--gct-theme-fg);
+    --ctt-text: var(--gct-theme-fg);
+    --ctt-muted: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-panel-title, .ctt-client-buses-heading strong,
+    .ctt-client-config-count strong,
+    .ctt-inline-range-heading strong, .ctt-inline-time-field,
+    .ctt-inline-active, .ctt-client-buses-toggle,
+    .ctt-client-bus-chip
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-heading > div > span, .ctt-client-no-buses,
+    .ctt-client-config-count > span,
+    .ctt-client-config-count strong small,
+    .ctt-client-bus-remaining, .ctt-inline-range-heading span,
+    .ctt-inline-active small, .ctt-inline-help
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses, .ctt-inline-range-editor
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-toggle, .ctt-client-bus-chip,
+    .ctt-inline-time-field input
+) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-buses-toggle:is(:hover, :focus-visible) {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-link, .ctt-client-buses-toggle > i
+) {
+    color: #9dc5ff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-progress-track {
+    background: #314661;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-category-indicator:not(.is-configured) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-status-none {
+    background: #293b52;
+    color: #d4e2f5;
+    border-color: #455a75;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-section-header > .ctt-client-count {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+
 /* Keep the designated yellow Export action and colored statuses unchanged. */
 
 /* Browser-audited legacy surfaces. Screen-only: printable records retain their
