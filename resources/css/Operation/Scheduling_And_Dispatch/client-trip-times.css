@@ -2247,37 +2247,36 @@
 }
 
 
-/* Floating time-range overlay. Its form is portaled to the page root and
-   does not change the size of the client category cards. */
+/* Trigger-anchored time-range dropdown. Portaled outside the card grid so
+   it overlays nearby content without expanding rows or clipping. */
 .client-trip-times-page .ctt-range-overlay-backdrop[hidden],
 .client-trip-times-page .ctt-inline-range-editor[hidden] { display: none !important; }
 .client-trip-times-page .ctt-range-overlay-backdrop {
     position: fixed;
     inset: 0;
     z-index: 11990;
-    background: rgba(5, 14, 28, .76);
-    backdrop-filter: blur(4px);
+    background: rgba(6, 16, 32, .22);
 }
 .client-trip-times-page .ctt-inline-range-editor {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 0;
+    left: 0;
     z-index: 12000;
-    transform: translate(-50%, -50%);
+    transform: none;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    width: min(520px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    gap: 10px;
+    width: min(460px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
     margin: 0;
-    padding: 18px;
+    padding: 13px;
     overflow-y: auto;
     overscroll-behavior: contain;
     border: 1px solid var(--gct-ui-border, #d2e1f4);
-    border-radius: 16px;
+    border-radius: 12px;
     background: var(--gct-ui-surface, #fff);
-    box-shadow: 0 24px 65px rgba(0, 0, 0, .34);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, .3);
 }
 @media (max-width: 700px) {
     .client-trip-times-page .ctt-inline-range-editor {
