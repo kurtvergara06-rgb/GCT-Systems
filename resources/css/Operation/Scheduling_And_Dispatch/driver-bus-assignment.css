@@ -2898,3 +2898,59 @@ html[data-gct-theme="dark"] .assignment-page .assignment-date-trigger:is(:hover,
 @media (max-width: 760px) {
     .assignment-page .assignment-direction-section .assignment-table { min-width: 920px; }
 }
+
+
+/* Ready-trip replacement: preserve amber warning / green validation semantics
+   while making both panels legible in the Operation dark theme. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup {
+    background: #362c1e;
+    border-color: #a47b32;
+    color: #f7d7a3;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup label {
+    color: #ffe1aa;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup textarea {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: #826739;
+    color-scheme: dark;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup textarea::placeholder {
+    color: var(--gct-theme-placeholder, #879ab3);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup textarea:focus-visible {
+    outline: 2px solid var(--gct-theme-focus, #8cb6ff);
+    outline-offset: 1px;
+    border-color: var(--gct-theme-focus, #8cb6ff);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal #readyReplacementReasonGroup small {
+    color: #f4c67d;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal .assignment-validation {
+    background: #17382f;
+    border-color: #376d58;
+    color: #d6f8e6;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal .assignment-validation strong {
+    color: #a5f2c9;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal .assignment-validation span {
+    color: #c0e7d3;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #assignmentModal .assignment-validation > i {
+    color: #80e2b2;
+  }
+}
