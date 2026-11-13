@@ -1102,4 +1102,24 @@ class FrontendUiUxComprehensiveTest extends TestCase
         );
     }
 
+    public function test_incident_records_dark_mode_overrides_legacy_light_table_and_badges(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        $this->assertStringContainsString('Incident Records Active/History — verified dark table selectors', $css);
+        $this->assertStringContainsString('background-color: #22324a !important;', $css);
+        foreach ([
+            '.inc-page .inc-table td .inc-type-pill.breakdown',
+            '.inc-page .inc-table td .inc-type-pill.accident',
+            '.inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"]',
+            '[data-status-key="resolved"]',
+            '.inc-page .inc-table .inc-record-actions .inc-action:not(:disabled):not(.inc-action-disabled)',
+            '.inc-page .inc-table .inc-history-actions button.inc-history-view-action',
+            '.inc-page .inc-table .inc-incident-id-cell .system-id-badge',
+        ] as $selector) {
+            $this->assertStringContainsString($selector, $css);
+        }
+        $this->assertStringContainsString('html[data-gct-theme="dark"] body[data-gct-operation-page="1"]', $css);
+    }
+
 }
