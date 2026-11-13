@@ -885,7 +885,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("profileMenu.setAttribute('aria-hidden', 'false')", $sidebarScript);
         $this->assertStringContainsString('Compact account menu: GCT', $sidebarStyles);
 
-        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure" open>', $profile);
+        $this->assertStringContainsString('class="account-card account-activity-card"', $profile);
         $this->assertStringContainsString('account-profile-grid', $profile);
         $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
@@ -895,10 +895,14 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('account-nav-tabs', $profile);
         $this->assertStringContainsString('account-profile-metrics', $profile);
         $this->assertStringContainsString('account-profile-photo-fields', $profile);
-        $this->assertStringContainsString('Critical profile-header geometry', $profile);
-        $this->assertStringContainsString('width="80" height="80"', $profile);
-        $this->assertStringContainsString('object-fit:cover;border-radius:50%', $profile);
-        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $profile);
+        $this->assertStringContainsString('account-quick-actions', $profile);
+        $this->assertStringContainsString('account-activity-timeline', $profile);
+        $this->assertStringContainsString("route('account.settings')", $profile);
+        $this->assertStringNotContainsString('Changed password</strong>', $profile);
+        $this->assertStringContainsString('aria-label="Profile summary"', $profile);
+        $this->assertStringContainsString('width="96" height="96"', $profile);
+        $this->assertStringNotContainsString('style="display:grid;place-items:center;', $profile);
+        $this->assertStringContainsString('account-profile-primary', $profile);
         $this->assertStringContainsString('data-avatar-change-button', $profile);
         $this->assertSame(1, substr_count($profile, 'data-avatar-upload-form'));
         $this->assertSame(1, substr_count($profile, 'action="{{ route(\'account.profile.update\', [], false) }}"'));
@@ -907,7 +911,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('System Access', $profile);
         $this->assertStringContainsString('Account History', $profile);
         $this->assertStringContainsString('Member Since', $profile);
-        $this->assertStringContainsString('Last Login Recorded', $profile);
+        $this->assertStringContainsString('Last recorded sign-in', $profile);
         $this->assertStringContainsString("route('account.personalization')", $profile);
         $this->assertStringContainsString("route('account.preferences')", $profile);
         $this->assertStringNotContainsString('<input type="text" value="{{ $department }}" readonly>', $profile);
