@@ -102,6 +102,42 @@
     </script>
   @endif
 
+  {{-- Critical first-paint cover for full document navigation.
+       Sidebar links intentionally reload the document to reinitialize page scripts.
+       Keep all page content covered until CSS, scripts and layout have loaded. --}}
+  <style>
+    #gctBootLoader { display: none; }
+    html.gct-page-booting #gctBootLoader {
+      display: flex; position: fixed; inset: 0; z-index: 2147483000;
+      align-items: center; justify-content: center;
+      background: #f4f7fb; color: #334155; pointer-events: auto;
+      font: 700 13px 'Poppins', Arial, sans-serif;
+    }
+    #gctBootLoader .gct-navigation-loader__content {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px; min-height: 56px;
+      border-radius: 12px; border: 1px solid #dce5f2;
+      background: #fff; box-shadow: 0 10px 28px #0f172a14;
+    }
+    #gctBootLoader .gct-navigation-loader__spinner {
+      display: block; width: 30px; height: 30px; flex: 0 0 30px;
+      box-sizing: border-box; border: 3px solid #dbe4f0;
+      border-top-color: #f9b817; border-right-color: #061f3d;
+      border-radius: 50%; animation: gctNavigationSpin 620ms linear infinite;
+    }
+    html[data-gct-theme="dark"].gct-page-booting #gctBootLoader {
+      background: #0b1220; color: #edf3fc;
+    }
+    html[data-gct-theme="dark"] #gctBootLoader .gct-navigation-loader__content {
+      background: #162235; border-color: #35465e; color: #edf3fc;
+    }
+    html[data-gct-theme="dark"] #gctBootLoader .gct-navigation-loader__spinner {
+      border-color: #35465e; border-top-color: #f9b817; border-right-color: #9bc7ff;
+    }
+    @keyframes gctNavigationSpin { to { transform: rotate(360deg); } }
+  </style>
+  <script>document.documentElement.classList.add('gct-page-booting');</script>
+
   @if($performanceProfile)
     <script>window.GCTNavigationDiagnostics = true;</script>
   @endif
@@ -117,6 +153,12 @@
 </head>
 
 <body @if($operationThemePage) data-gct-operation-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
+  <div id="gctBootLoader" role="status" aria-live="polite" aria-label="Loading page">
+    <div class="gct-navigation-loader__content">
+      <span class="gct-navigation-loader__spinner" aria-hidden="true"></span>
+      <span class="gct-navigation-loader__label">Loading...</span>
+    </div>
+  </div>
   {{ $slot }}
 
   <x-ui.action-buttom-modal
@@ -132,5 +174,25 @@
   @endif
 
   @stack('scripts')
+  <script>
+    (() => {
+      const root = document.documentElement;
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        root.classList.remove('gct-page-booting');
+        document.getElementById('gctBootLoader')?.remove();
+      };
+      const afterPaint = () => requestAnimationFrame(() => requestAnimationFrame(release));
+      if (document.readyState === 'complete') afterPaint();
+      else window.addEventListener('load', afterPaint, { once: true });
+      // Never trap the user behind a loader if a third-party asset stalls.
+      window.setTimeout(release, 10000);
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) release();
+      });
+    })();
+  </script>
 </body>
 </html>
