@@ -265,6 +265,95 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     background-color: var(--gct-theme-hover);
 }
 
+/* Trip Schedule dark-mode readability: calendar, details, form and cancellation.
+   Preserve semantic trip-state pills and date status dots. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading strong, .trip-calendar-month strong,
+    .trip-calendar-status-legend > strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-hint, .trip-calendar-weekdays,
+    .trip-calendar-legend-grid > span, .trip-calendar-footer
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading button, .trip-calendar-month button,
+    .trip-calendar-footer button
+) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading button, .trip-calendar-month button,
+    .trip-calendar-footer button
+):hover {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day {
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day.is-selected {
+    background: #294a71;
+    color: #f6faff;
+    border-color: #77aaf2;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day.is-today:not(.is-selected) {
+    border-color: #7194bf;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-status-legend, .trip-calendar-footer
+) { border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero, .trip-detail-card
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero strong, .trip-detail-card .trip-detail-value
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero span, .trip-detail-card label
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-editor-intro, .trip-service-mode-choice
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-service-mode-choice strong, .trip-editor-grid .ui-form-group label,
+    .trip-editor-intro strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-service-mode-choice small, .trip-editor-intro span
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group :is(select, input) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal :is(
+    .trip-cancellation-context, .trip-cancellation-context strong,
+    .ui-form-modal-body .ui-form-group > label
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal :is(
+    .ui-form-actions, .ui-form-modal-body, .ui-form-modal-header
+) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal #cancellationReason {
+    background: var(--gct-theme-input);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal #cancellationReason::placeholder {
+    color: var(--gct-theme-muted);
+}
+
 /* Driver & Bus Assignment: preserve green/red business indicators. */
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     .assignment-page .assignment-date-picker,
