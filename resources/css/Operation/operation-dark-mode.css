@@ -482,6 +482,30 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
   }
 }
 
+/* Auto Scheduling preview group header: override the light-only grouped-row
+   declarations in auto-dispatch.css for Incoming and Outgoing schedules. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-schedule-table .auto-preview-group-row th {
+    background: var(--gct-theme-surface-raised) !important;
+    border-top: 1px solid var(--gct-theme-border) !important;
+    border-bottom: 1px solid var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-group-client {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-group-route {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-trip-time .auto-trip-main-id {
+    color: var(--gct-theme-accent);
+  }
+}
+
 /* The Driver Master List uses personnel-specific wrappers, not the generic
    .table-wrap used by the original theme implementation. */
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page {
