@@ -495,7 +495,8 @@ const syncBodyScripts = async (nextDocument, baseUrl) => {
 
     const nextMain = nextDocument.querySelector(MAIN_SELECTOR);
     const scripts = Array.from(nextDocument.body.querySelectorAll('script'))
-        .filter((script) => !nextMain?.contains(script));
+        .filter((script) => !nextMain?.contains(script)
+            && !script.hasAttribute('data-gct-full-load-only'));
 
     for (const source of scripts) {
         if (source.src) {
