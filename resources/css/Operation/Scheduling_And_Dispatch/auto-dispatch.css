@@ -5680,6 +5680,8 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td {
         padding: 9px 10px;
         background: var(--gct-ui-surface, #fff);
+        border-top: 0;
+        border-bottom: 0;
     }
     .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row:hover > td {
         background: var(--gct-ui-surface-hover, #f8fbff);
@@ -5721,7 +5723,8 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
         padding-left: 8px;
         padding-right: 8px;
         box-shadow: none;
-        border-left: 0;
+        border: 0;
+        background: var(--gct-ui-surface, #fff);
     }
     .auto-scheduling-page .auto-schedule-table .schedule-action-btn.remove:has(.schedule-remove-label) {
         min-width: 0;
