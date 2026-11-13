@@ -53,6 +53,12 @@ const showLoader = () => {
     }
 
     const loader = ensureLoader();
+    // Snapshot the visible theme before partial navigation can replace the
+    // page scope. Keep the cover dark for the entire transition.
+    loader.dataset.gctLoaderTheme = document.documentElement.dataset.gctTheme === 'dark'
+        && document.body.dataset.gctOperationPage === '1'
+        ? 'dark'
+        : 'light';
     syncLoaderOffset();
     loaderShownAt = performance.now();
     loader.classList.remove('is-hiding');
