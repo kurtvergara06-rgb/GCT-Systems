@@ -3244,3 +3244,84 @@
         filter: invert(1);
     }
 }
+
+
+/* Trip Details > Assigned Resources: never force a horizontal scroll inside
+   the compact View modal. Keep every saved slot, bus, driver, time and status. */
+@media screen {
+    #tripDetailModal .unit-records-table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+    #tripDetailModal .unit-records-table-wrap > .unit-records-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+    }
+    #tripDetailModal .unit-records-table th,
+    #tripDetailModal .unit-records-table td {
+        box-sizing: border-box;
+        padding: 9px 8px;
+        font-size: 11px;
+        line-height: 1.45;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        white-space: normal;
+    }
+    #tripDetailModal .unit-records-table th:nth-child(1) { width: 11%; }
+    #tripDetailModal .unit-records-table th:nth-child(2) { width: 26%; }
+    #tripDetailModal .unit-records-table th:nth-child(3) { width: 26%; }
+    #tripDetailModal .unit-records-table th:nth-child(4) { width: 20%; }
+    #tripDetailModal .unit-records-table th:nth-child(5) { width: 17%; }
+    #tripDetailModal .unit-records-footer {
+        margin-top: 5px;
+        font-size: 11px;
+    }
+}
+/* Small viewports: vertical key/value records instead of sideways scrolling. */
+@media screen and (max-width: 620px) {
+    #tripDetailModal .unit-records-table,
+    #tripDetailModal .unit-records-table tbody,
+    #tripDetailModal .unit-records-table tbody tr {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    #tripDetailModal .unit-records-table thead {
+        display: none;
+    }
+    #tripDetailModal .unit-records-table tbody tr {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--gct-theme-border, #dce5f2);
+    }
+    #tripDetailModal .unit-records-table tbody tr:last-child {
+        border-bottom: 0;
+    }
+    #tripDetailModal .unit-records-table tbody td {
+        display: grid;
+        grid-template-columns: minmax(90px, 37%) minmax(0, 1fr);
+        gap: 8px;
+        align-items: start;
+        width: 100%;
+        padding: 5px 0;
+        border: 0;
+        text-align: left;
+    }
+    #tripDetailModal .unit-records-table tbody td:not([colspan]):nth-child(1)::before { content: "Slot"; }
+    #tripDetailModal .unit-records-table tbody td:not([colspan]):nth-child(2)::before { content: "Bus / Plate"; }
+    #tripDetailModal .unit-records-table tbody td:not([colspan]):nth-child(3)::before { content: "Driver"; }
+    #tripDetailModal .unit-records-table tbody td:not([colspan]):nth-child(4)::before { content: "Departure"; }
+    #tripDetailModal .unit-records-table tbody td:not([colspan]):nth-child(5)::before { content: "Trip Status"; }
+    #tripDetailModal .unit-records-table tbody td:not([colspan])::before {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--trip-muted, #64748b);
+    }
+    #tripDetailModal .unit-records-table tbody td[colspan] {
+        display: block;
+    }
+}
