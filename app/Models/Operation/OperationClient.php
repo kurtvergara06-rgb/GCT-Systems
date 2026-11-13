@@ -11,12 +11,19 @@ class OperationClient extends Model
 {
     protected $fillable = [
         'name', 'status', 'company_address', 'contact_person', 'contact_position',
-        'contact_number', 'contact_email', 'service_start_date',
+        'contact_number', 'contact_email', 'service_start_date', 'logo_path',
     ];
 
     protected function casts(): array
     {
         return ['service_start_date' => 'date'];
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->logo_path)
+            : null;
     }
 
     public function isActive(): bool
