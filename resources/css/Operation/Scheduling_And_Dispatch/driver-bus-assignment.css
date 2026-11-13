@@ -2716,3 +2716,37 @@
     #assignmentModal .ui-form-modal-body,
     #viewAssignmentModal .ui-form-modal-body { padding: 10px 12px; }
 }
+/* Assignment-specific dark accents: avoid bright primary blue and yellow.
+   Semantic trip status chips remain unchanged. */
+html[data-gct-theme="dark"] .assignment-page {
+    --assign-blue: #477bb9;
+    --assign-blue-dark: #315f99;
+    --assign-yellow: #b78220;
+    --assign-yellow-dark: #956711;
+}
+html[data-gct-theme="dark"] .assignment-page .assign-now-btn {
+    background: #a97716;
+    border-color: #c3963a;
+    color: #fff5dc;
+}
+html[data-gct-theme="dark"] .assignment-page .assign-now-btn:hover {
+    background: #bd8b28;
+    color: #fff;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action.view,
+html[data-gct-theme="dark"] .assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action.edit {
+    background: #203b5d;
+    border-color: #527eac;
+    color: #c9e3ff;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action:is(.view, .edit):hover {
+    background: #315c8d;
+    color: #fff;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-date-trigger {
+    background: #20364f;
+    border-color: #4a6687;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-date-trigger:is(:hover, :focus-visible) {
+    background: #294466;
+}
