@@ -66,6 +66,26 @@ window.GCTPartialNavigation?.registerInitializer('operation-client-master-list',
             if (element) element.textContent = value || '—';
         }
 
+        const logoInput = detailForm.elements.namedItem('logo');
+        if (logoInput) logoInput.value = '';
+        const removeLogo = detailForm.elements.namedItem('remove_logo');
+        if (removeLogo) {
+            removeLogo.checked = false;
+            removeLogo.closest('.client-logo-remove').hidden = !editing || !button.dataset.clientLogo;
+        }
+        const logoPreview = detailModal.querySelector('#clientViewLogo');
+        const logoFallback = detailModal.querySelector('#clientViewLogoFallback');
+        if (logoPreview) {
+            if (button.dataset.clientLogo) {
+                logoPreview.src = button.dataset.clientLogo;
+                logoPreview.hidden = false;
+            } else {
+                logoPreview.removeAttribute('src');
+                logoPreview.hidden = true;
+            }
+        }
+        if (logoFallback) logoFallback.hidden = Boolean(button.dataset.clientLogo);
+
         const editFields = detailModal.querySelector('.client-profile-edit-fields');
         const viewProfile = detailModal.querySelector('.client-profile-view');
         if (editFields) editFields.hidden = !editing;
