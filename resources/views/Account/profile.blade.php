@@ -60,51 +60,6 @@
         $profilePhotoUrl = $user->profilePhotoUrl();
     @endphp
 
-    {{-- Critical profile-header geometry: safe even when a previous Vite CSS bundle is cached. --}}
-    <style>
-        .account-page .account-hero-card {
-            width: 100%; max-width: none; display: flex; flex-wrap: wrap;
-            align-items: center; justify-content: space-between; gap: 20px;
-            padding: 20px 24px; min-height: 128px;
-        }
-        .account-page .account-hero-identity {
-            display: flex; flex: 1 1 315px; align-items: center;
-            gap: 18px; min-width: 0;
-        }
-        .account-page .account-hero-copy { flex: 1; min-width: 0; }
-        .account-page .account-hero-avatar,
-        .account-page .account-hero-avatar img { aspect-ratio: 1 / 1; }
-        .account-page .account-profile-metrics {
-            display: grid; flex: 1 1 450px; min-width: 0;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0; padding: 14px 8px;
-            border-radius: 13px; background: #f4f8fe;
-        }
-        .account-page .account-profile-metrics > div {
-            display: flex; align-items: center; gap: 10px;
-            min-width: 0; padding: 0 12px; border-left: 1px solid #d5e1f1;
-        }
-        .account-page .account-profile-metrics > div:first-child { border-left: 0; }
-        .account-page .account-profile-metrics i { color: #0b40b5; font-size: 17px; flex-shrink: 0; }
-        .account-page .account-profile-metrics span { display: grid; gap: 4px; min-width: 0; }
-        .account-page .account-profile-metrics small {
-            font-size: 10px; color: #687c97; font-weight: 800;
-            text-transform: uppercase; letter-spacing: .035em;
-        }
-        .account-page .account-profile-metrics strong {
-            color: #102948; font-size: 12px; font-weight: 800;
-            line-height: 1.4; overflow-wrap: anywhere;
-        }
-        @media (max-width: 1250px) {
-            .account-page .account-profile-metrics { flex-basis: 100%; }
-        }
-        @media (max-width: 740px) {
-            .account-page .account-hero-card { padding: 16px; }
-            .account-page .account-profile-metrics { grid-template-columns: 1fr; gap: 12px; }
-            .account-page .account-profile-metrics > div { padding: 0; border-left: 0; }
-        }
-    </style>
-
     <div class="app account-page">
         <x-layout.sidebar
             :department="$department"
@@ -121,11 +76,11 @@
 
             <section class="account-content">
                 {{-- Compact employee identity header. Photo crop and upload are unchanged. --}}
-                <div class="account-hero-card">
+                <div class="account-hero-card" aria-label="Profile summary">
                     <div class="account-hero-identity">
-                        <span class="account-hero-avatar" aria-hidden="true" style="display:grid;place-items:center;flex:0 0 88px;width:88px;height:88px;max-width:88px;max-height:88px;min-width:88px;min-height:88px;overflow:hidden;border-radius:50%;border:4px solid #fff;background:#0b40b5;color:#fff;box-shadow:0 0 0 2px #cbdcf1">
+                        <span class="account-hero-avatar" aria-hidden="true">
                             @if ($profilePhotoUrl)
-                                <img src="{{ $profilePhotoUrl }}" alt="" width="80" height="80" style="display:block;width:80px;height:80px;max-width:80px;max-height:80px;min-width:80px;min-height:80px;object-fit:cover;border-radius:50%">
+                                <img src="{{ $profilePhotoUrl }}" alt="" width="96" height="96">
                             @else
                                 <span>{{ $initials }}</span>
                             @endif
@@ -219,16 +174,17 @@
                 </nav>
 
                 <div class="account-grid account-profile-grid">
+                    <div class="account-profile-primary">
                     {{-- Personal Information Form --}}
-                    <section class="account-card">
+                    <section class="account-card" id="accountPersonalInformation" aria-labelledby="personalInformationHeading">
                         <div class="account-card-header">
                             <div class="account-card-header-copy">
-                                <h3>Personal Information</h3>
+                                <h3 id="personalInformationHeading">Personal Information</h3>
                                 <p>Update your personal identity details connected to your system profile.</p>
                             </div>
-                            <div class="account-card-icon">
-                                <i class="fa-regular fa-id-card"></i>
-                            </div>
+                            <a class="account-profile-edit-link" href="#accountName" aria-label="Edit your profile information">
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i> Edit Profile
+                            </a>
                         </div>
 
                         <div class="account-profile-photo-fields">
@@ -355,6 +311,18 @@
                             </div>
                         </div>
                     </section>
+                    <section class="account-card account-quick-actions" aria-labelledby="accountQuickActionsHeading">
+                        <div class="account-quick-actions-heading">
+                            <span class="account-section-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+                            <div><h3 id="accountQuickActionsHeading">Quick Actions</h3><p>Manage your existing account settings.</p></div>
+                        </div>
+                        <div class="account-quick-action-links">
+                            <a href="{{ route('account.settings') }}"><i class="fa-solid fa-lock" aria-hidden="true"></i><span>Security &amp; Password</span></a>
+                            <a href="#accountHistory"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>Account History</span></a>
+                            <a href="{{ route('account.personalization') }}"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Personalization</span></a>
+                        </div>
+                    </section>
+                    </div>
 
                     <aside class="account-profile-aside" aria-label="Account access and history">
                         <section class="account-access-section" aria-labelledby="accountAccessHeading">
@@ -371,42 +339,35 @@
                                 <div><dt><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Account Status</dt><dd>{{ $user->status ?: 'Active' }}</dd></div>
                             </dl>
                         </section>
-                        {{-- Account history stays expandable and read-only. --}}
-                        <details class="account-card account-summary-card account-details-disclosure" open>
-                        <summary class="account-details-summary">
-                            <span class="account-details-heading">
-                                <i class="fa-solid fa-id-badge" aria-hidden="true"></i>
-                                <span>
-                                    <strong>Account History</strong>
-                                    <small>Membership and last recorded sign-in</small>
-                                </span>
-                            </span>
-                            <i class="fa-solid fa-chevron-down account-details-chevron" aria-hidden="true"></i>
-                        </summary>
-
-                        <div class="account-tile-list">
-                            <div class="account-meta-tile">
-                                <div class="account-meta-tile-icon">
-                                    <i class="fa-regular fa-calendar-check"></i>
-                                </div>
-                                <div class="account-meta-tile-copy">
-                                    <span>Member Since</span>
-                                    <strong>{{ $user->created_at?->format('M d, Y') ?? 'System Setup' }}</strong>
+                        {{-- Only persisted membership and last-login timestamps are displayed.
+                             Never infer password changes or fabricate activity records. --}}
+                        <section id="accountHistory" class="account-card account-activity-card" aria-labelledby="accountHistoryHeading">
+                            <div class="account-activity-heading">
+                                <span class="account-section-icon"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i></span>
+                                <div>
+                                    <h3 id="accountHistoryHeading">Account Activity</h3>
+                                    <p>Recorded membership and sign-in information.</p>
                                 </div>
                             </div>
-
-                            <div class="account-meta-tile">
-                                <div class="account-meta-tile-icon">
-                                    <i class="fa-solid fa-clock-rotate-left"></i>
-                                </div>
-                                <div class="account-meta-tile-copy">
-                                    <span>Last Login Recorded</span>
-                                    <strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Not recorded' }}</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        </details>
+                            <ol class="account-activity-timeline">
+                                @if ($user->last_login_at)
+                                    <li class="account-activity-entry is-recent">
+                                        <span class="account-activity-marker" aria-hidden="true"></span>
+                                        <div><strong>Last recorded sign-in</strong><small>{{ $user->last_login_at->format('M d, Y \a\t h:i A') }}</small></div>
+                                    </li>
+                                @endif
+                                @if ($user->created_at)
+                                    <li class="account-activity-entry">
+                                        <span class="account-activity-marker" aria-hidden="true"></span>
+                                        <div><strong>Account created</strong><small>{{ $user->created_at->format('M d, Y') }}</small></div>
+                                    </li>
+                                @endif
+                                @if (! $user->last_login_at && ! $user->created_at)
+                                    <li class="account-activity-empty">No account activity timestamps are recorded.</li>
+                                @endif
+                            </ol>
+                            <p class="account-activity-note">Only available account timestamps are shown. This is not a complete audit log.</p>
+                        </section>
                     </aside>
                 </div>
             </section>
