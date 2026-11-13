@@ -330,12 +330,12 @@
 
     padding: 0 12px 0 36px;
 
-    background: #ffffff;
+    background: var(--gct-ui-input, #ffffff);
 
-    border: 1px solid var(--auto-border);
+    border: 1px solid var(--gct-ui-border, var(--auto-border));
     border-radius: 9px;
 
-    color: var(--auto-text);
+    color: var(--gct-ui-text, var(--auto-text));
 
     font-size: 13px;
 
@@ -4069,6 +4069,35 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-conflict-report-header [data-gct-close-report]:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .auto-scheduling-page .gct-conflict-report-header [data-gct-close-report] i { color: inherit; font-size: 13px; }
 
+/* The scheduling form uses theme surfaces rather than a white input
+   with inherited white Dark Mode text. Keep the date picker legible. */
+html[data-gct-theme="dark"] .auto-scheduling-page #autoScheduleDate {
+    color: #edf3fc;
+    background: #101b2b;
+    border-color: #465a76;
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page #autoScheduleDate::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: .85;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary {
+    background: #203047;
+    border-color: #35465e;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary-item span {
+    color: #c1d0e5;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary-item strong {
+    color: #f4f7ff;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-arrow {
+    color: #a9c2ea;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-label {
+    color: #d3e5ff;
+}
+
 /* Persistent, readable ranking-source status in Scheduling Setup. */
 .auto-scheduling-page .ai-ml-status {
     display: flex;
@@ -4086,7 +4115,7 @@ body.ai-modal-open {
     align-items: center;
     gap: 8px;
     margin-right: 4px;
-    color: #1e40af;
+    color: var(--gct-ui-text, #1e40af);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: .015em;
