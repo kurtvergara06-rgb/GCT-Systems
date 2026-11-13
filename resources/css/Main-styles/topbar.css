@@ -23,6 +23,22 @@
 
 
 
+/* Brief list entrance for newly rendered notifications, without continuous motion. */
+@keyframes gctTopbarItemEnter {
+  from { opacity: .65; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.topbar .topbar-dropdown.is-open .topbar-list-item {
+  animation: gctTopbarItemEnter 150ms ease-out both;
+}
+.topbar .topbar-dropdown.is-open .topbar-list-item:nth-child(2) { animation-delay: 25ms; }
+.topbar .topbar-dropdown.is-open .topbar-list-item:nth-child(3) { animation-delay: 50ms; }
+.topbar .topbar-dropdown.is-open .topbar-list-item:nth-child(4) { animation-delay: 75ms; }
+.topbar .topbar-dropdown.is-open .topbar-list-item:nth-child(5) { animation-delay: 100ms; }
+@media (prefers-reduced-motion: reduce) {
+  .topbar .topbar-dropdown.is-open .topbar-list-item { animation: none !important; }
+}
+
 /* System-wide Topbar notification center (all five departments).
    Semantic accents are shared; surfaces adapt to the active site theme. */
 .topbar .topbar-dropdown {
