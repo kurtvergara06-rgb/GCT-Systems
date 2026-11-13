@@ -2700,23 +2700,27 @@
     #tripModal .ui-form-actions{padding:8px 0 10px}
 }
 
-/* Incoming / Outgoing: reserve enough width for readable assignment status
-   and three action buttons instead of squeezing or clipping their contents. */
+/* Keep service columns readable without forcing a 1280px horizontal scroll.
+   Narrow screens retain the original 950px scroll fallback. */
 .trip-schedule-page .service-table{
     table-layout:fixed;
     width:100%;
-    min-width:1280px;
+    min-width:950px;
 }
 .trip-schedule-page .service-col-expand{width:3%}
-.trip-schedule-page .service-col-time{width:8%}
-.trip-schedule-page .service-col-route{width:24%}
+.trip-schedule-page .service-col-time{width:9%}
+.trip-schedule-page .service-col-route{width:23%}
 .trip-schedule-page .service-col-point{width:19%}
-.trip-schedule-page .service-col-required{width:10%}
-.trip-schedule-page .service-col-assigned{width:11%}
+.trip-schedule-page .service-col-required{width:9%}
+.trip-schedule-page .service-col-assigned{width:12%}
 .trip-schedule-page .service-col-status{width:13%}
 .trip-schedule-page .service-col-actions{width:12%}
 .trip-schedule-page .service-table th,
-.trip-schedule-page .service-table td{box-sizing:border-box;padding:10px 8px;vertical-align:middle}
+.trip-schedule-page .service-table td{box-sizing:border-box;padding:9px 6px;vertical-align:middle}
+.trip-schedule-page .service-table thead th{
+    white-space:normal;
+    line-height:1.3;
+}
 .trip-schedule-page .service-table td:nth-child(3),
 .trip-schedule-page .service-table td:nth-child(4){overflow-wrap:anywhere}
 .trip-schedule-page .service-table td:nth-child(5),
@@ -3526,7 +3530,7 @@
     position: sticky;
     right: 0;
     box-sizing: border-box;
-    min-width: 145px;
+    min-width: 120px;
     width: 12%;
     text-align: center;
     white-space: nowrap;
@@ -3548,7 +3552,7 @@
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
-    gap: 7px;
+    gap: 5px;
   }
   .trip-schedule-page .service-table-scroll.gct-sticky-actions .trip-actions form {
     flex: 0 0 auto;
@@ -3983,7 +3987,8 @@
     max-width: none;
     min-width: 0;
     width: 100%;
-    gap: 8px;
+    gap: 5px 7px;
+    flex-wrap: wrap;
 }
 .trip-schedule-page .service-table .service-route-cell > .service-route-title {
     min-width: 0;
