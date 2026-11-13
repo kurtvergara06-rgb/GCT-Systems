@@ -4977,19 +4977,6 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
   }
 }
 
-/* With one conflict, let the detailed report use the available width. */
-@media screen and (min-width: 1101px) {
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict:not(.is-report-closed) {
-    grid-template-columns: minmax(0, 0.95fr) minmax(430px, 1.25fr);
-  }
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-report-panel {
-    width: 100%;
-  }
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-list {
-    align-self: stretch;
-  }
-}
-
 
 /* Formal Auto Scheduling draft sheet: paper-only styling. */
 .gct-auto-print-header,
@@ -5433,11 +5420,11 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
 }
 
 
-/* AI Conflict Review: keep the queue readable and the side report compact.
-   Presentation-only; conflict sorting, calculations and actions are unchanged. */
+/* AI Conflict Review: one consistent queue/report layout regardless of
+   conflict count. Keep the report prominent and list independently scrollable. */
 @media screen and (min-width: 1251px) {
-  .auto-scheduling-page .gct-conflict-workspace:not(.is-single-conflict):not(.is-report-closed) {
-    grid-template-columns: minmax(0, 1.75fr) minmax(380px, .95fr);
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr);
     gap: 14px;
   }
 }
