@@ -4081,6 +4081,19 @@ html[data-gct-theme="dark"] .auto-scheduling-page #autoScheduleDate::-webkit-cal
     filter: invert(1);
     opacity: .85;
 }
+/* The shared date picker hides the source and renders a separate trigger. */
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger {
+    background: #101b2b;
+    color: #edf3fc;
+    border-color: #465a76;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger :is(.gct-picker-trigger-value, .gct-picker-trigger-icon, .gct-picker-trigger-chevron) {
+    color: #edf3fc;
+    opacity: 1;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: #b1bfd2;
+}
 html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary {
     background: #203047;
     border-color: #35465e;
