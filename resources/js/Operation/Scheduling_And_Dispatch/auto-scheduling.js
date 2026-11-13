@@ -3444,23 +3444,23 @@ function updateMlStatus(conflicts) {
             const departure = item.departure_display || displayTime(item.departure_time);
             return `
                 <button type="button"
-                    class="gct-conflict-queue-item #{index === selectedConflictIndex ? 'is-selected' : ''}"
-                    data-gct-report-index="#{index}"
-                    aria-pressed="#{index === selectedConflictIndex}"
-                    aria-label="View AI conflict report for #{escapeHtml(trip)}, bus slot #{slot}">
+                    class="gct-conflict-queue-item ${index === selectedConflictIndex ? 'is-selected' : ''}"
+                    data-gct-report-index="${index}"
+                    aria-pressed="${index === selectedConflictIndex}"
+                    aria-label="View AI conflict report for ${escapeHtml(trip)}, bus slot ${slot}">
                     <span class="gct-queue-head">
-                        <strong>#{escapeHtml(trip)} <small>· Slot #{slot} of #{required}</small></strong>
-                        <span class="gct-conflict-severity #{severity.key}">
-                            <i class="fa-solid #{severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}" aria-hidden="true"></i>
-                            #{severity.label}
+                        <strong>${escapeHtml(trip)} <small>· Slot ${slot} of ${required}</small></strong>
+                        <span class="gct-conflict-severity ${severity.key}">
+                            <i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}" aria-hidden="true"></i>
+                            ${severity.label}
                         </span>
                     </span>
                     <span class="gct-queue-meta">
-                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> #{escapeHtml(departure)}</span>
-                        <span class="gct-conflict-dir #{direction === 'Incoming' ? 'in' : 'out'}">#{escapeHtml(direction)}</span>
+                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${escapeHtml(departure)}</span>
+                        <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${escapeHtml(direction)}</span>
                     </span>
-                    <span class="gct-queue-route">#{escapeHtml(item.route_code || '—')} · #{escapeHtml(item.route_name || 'Route')}</span>
-                    <span class="gct-queue-issue" title="#{escapeHtml(issue)}">#{escapeHtml(issuePreview)}</span>
+                    <span class="gct-queue-route">${escapeHtml(item.route_code || '—')} · ${escapeHtml(item.route_name || 'Route')}</span>
+                    <span class="gct-queue-issue" title="${escapeHtml(issue)}">${escapeHtml(issuePreview)}</span>
                     <span class="gct-queue-foot"><span class="gct-conflict-state"><i class="fa-regular fa-clock" aria-hidden="true"></i> Needs Review</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
                 </button>
             `;
