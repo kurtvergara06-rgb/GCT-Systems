@@ -4319,3 +4319,86 @@
     vertical-align: middle;
   }
 }
+
+
+/* Compact Incident Records in both Active / History. Preserve every field,
+   avoid tall status pills, and let Action share the row background. */
+@media screen {
+  .inc-page .inc-table {
+    width: 100%;
+    min-width: 1050px;
+    table-layout: fixed;
+  }
+  .inc-page .inc-table :is(th, td):nth-child(1) { width: 14%; }
+  .inc-page .inc-table :is(th, td):nth-child(2) { width: 14%; }
+  .inc-page .inc-table :is(th, td):nth-child(3) { width: 20%; }
+  .inc-page .inc-table :is(th, td):nth-child(4) { width: 11%; }
+  .inc-page .inc-table :is(th, td):nth-child(5) { width: 15%; }
+  .inc-page .inc-table :is(th, td):nth-child(6) { width: 13%; }
+  .inc-page .inc-table :is(th, td):nth-child(7) { width: 13%; }
+  .inc-page .inc-table th {
+    padding: 10px 9px;
+    white-space: normal;
+    vertical-align: middle;
+    line-height: 1.3;
+  }
+  .inc-page .inc-table td {
+    padding: 9px 9px;
+    min-width: 0;
+    vertical-align: middle;
+  }
+  .inc-page .inc-table .inc-route-cell,
+  .inc-page .inc-table .inc-driver-cell,
+  .inc-page .inc-table .inc-bus-cell {
+    min-width: 0;
+  }
+  .inc-page .inc-table .inc-type-pill {
+    padding: 5px 8px;
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+  .inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"] {
+    min-height: 27px;
+    padding: 5px 7px;
+    line-height: 1.25;
+    font-size: 10px;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+  .inc-page .inc-table .inc-record-actions {
+    gap: 5px;
+  }
+  .inc-page .inc-table .inc-record-actions .inc-action {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+  }
+  .inc-page .inc-table .inc-history-actions button.inc-history-view-action {
+    min-width: 78px;
+    width: 78px;
+    flex-basis: 78px;
+    height: 34px;
+  }
+  /* Prevent sticky Action cell from producing a different striped-row color
+     even when the roster is wider than the available viewport. */
+  .inc-page .inc-table-wrap.gct-sticky-actions > .inc-table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none !important;
+    border-left: 0 !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-wrap.gct-sticky-actions > .inc-table > tbody > tr:not(.inc-expanded-row) > td:last-child:not([colspan]) {
+    background: #162235;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-wrap.gct-sticky-actions > .inc-table > tbody > tr:not(.inc-expanded-row):nth-child(even) > td:last-child:not([colspan]) {
+    background: #1b2a40;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-wrap.gct-sticky-actions > .inc-table > tbody > tr:not(.inc-expanded-row):hover > td:last-child:not([colspan]) {
+    background: #263a55;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-wrap.gct-sticky-actions > .inc-table > thead > tr > th:last-child {
+    background: #22324a !important;
+  }
+}
