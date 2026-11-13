@@ -2291,6 +2291,37 @@
 }
 .assignment-direction-outgoing .assignment-direction-heading { background: #fff9ed; }
 .assignment-direction-other .assignment-direction-heading { background: #f7f8fb; }
+/* Dark mode changes the complete section header, not its controls or badges. */
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading {
+    background: #193b60;
+    border-bottom-color: #355b81;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-outgoing .assignment-direction-heading {
+    background: #61471e;
+    border-bottom-color: #8c692b;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-other .assignment-direction-heading {
+    background: #263649;
+    border-bottom-color: #44566d;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-title h3 {
+    color: #f5f8ff;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-title p {
+    color: #cedbed;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-icon {
+    background: #165d94;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-outgoing .assignment-direction-icon {
+    background: #956714;
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-count {
+    background: #142438;
+    color: #eaf1fb;
+    border-color: #49627f;
+}
+
 .assignment-direction-icon {
     display: inline-flex;
     flex: 0 0 36px;
