@@ -1648,7 +1648,6 @@ function updateMlStatus(conflicts) {
 
                 // Recheck eligible regular/reserve driver-bus combinations on
                 // the server after Remove, without regenerating the whole draft.
-                const removedKey = conflictIdentity(removed);
                 try {
                     await refreshRemovedConflictAlternatives(removed);
                 } catch (error) {
