@@ -200,6 +200,37 @@
                                     @endif
                                 </span>
                                 <div class="ctt-client-logo-copy">
+                                    <strong>Client Logo</strong>
+                                    <small>PNG, JPG or WebP · Max 2 MB</small>
+                                </div>
+                                <form class="ctt-client-logo-form" method="POST"
+                                    action="{{ route('operation.clients.logo', $client) }}"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="ctt-logo-upload-control">
+                                        <input id="ctt-logo-file-{{ $client->id }}" type="file" name="logo"
+                                            accept="image/png,image/jpeg,image/webp" class="ctt-logo-file-input"
+                                            aria-label="Choose logo for {{ $client->name }}">
+                                        <label for="ctt-logo-file-{{ $client->id }}" class="ctt-logo-pick">
+                                            <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+                                            <span>{{ $client->logo_path ? 'Change' : 'Upload' }}</span>
+                                        </label>
+                                        <span class="ctt-logo-file-name" role="status" aria-live="polite" hidden></span>
+                                    </div>
+                                    @if($client->logo_path)
+                                        <label class="ctt-logo-remove">
+                                            <input type="checkbox" name="remove_logo" value="1">
+                                            Remove
+                                        </label>
+                                    @endif
+                                    <button type="submit" class="ctt-logo-save" hidden>
+                                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save
+                                    </button>
+                                </form>
+                            </section>
+                        @endif
+                                </span>
+                                <div class="ctt-client-logo-copy">
                                     <span class="ctt-logo-eyebrow"><i class="fa-solid fa-image" aria-hidden="true"></i> CLIENT BRANDING</span>
                                     <strong>Client Logo</strong>
                                     <small>{{ $client->logo_path ? 'Your logo appears on this client card and in Client Master List.' : 'Add a logo so your team can recognize this client at a glance.' }}</small>
