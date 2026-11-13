@@ -123,4 +123,21 @@ JS,
         $this->assertStringContainsString("'.inc-workflow-overlay'", $backdrop);
     }
 
+    public function test_assignment_and_replacement_share_compact_driver_bus_layout(): void
+    {
+        $blade = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'));
+        $css = file_get_contents(resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css'));
+        $js = file_get_contents(resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js'));
+
+        $this->assertStringContainsString('class="assignment-driver-bus-grid"', $blade);
+        $this->assertStringContainsString('id="assignmentDriverFirstList"', $blade);
+        $this->assertStringContainsString('id="assignmentPairList"', $blade);
+        $this->assertStringContainsString('id="readyReplacementReasonGroup"', $blade);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $css);
+        $this->assertStringContainsString('@media screen and (max-width: 700px)', $css);
+        $this->assertStringContainsString('grid-template-columns: minmax(0, 1fr);', $css);
+        $this->assertStringContainsString("assignmentModalTitle.textContent = readyReplacement ? 'Replace Driver / Bus' : 'Edit Assignment';", $js);
+        $this->assertStringContainsString('renderPairCards();', $js);
+    }
+
 }
