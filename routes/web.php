@@ -80,6 +80,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/topbar/summary', [TopbarController::class, 'summary'])
         ->name('topbar.summary');
 
+    Route::get('/topbar/notifications/history', [TopbarController::class, 'notificationHistory'])
+        ->middleware('throttle:60,1')
+        ->name('topbar.notifications.history');
+
     Route::post(
         '/topbar/notifications/read-all',
         [TopbarController::class, 'markAllNotificationsRead']
