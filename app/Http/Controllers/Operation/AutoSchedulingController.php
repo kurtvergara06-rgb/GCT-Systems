@@ -850,16 +850,14 @@ class AutoSchedulingController extends Controller
                 return $fleet ?: (strnatcasecmp((string) $a->bus_no, (string) $b->bus_no)
                     ?: ($a->id <=> $b->id));
             })->values();
-        // First request without both selections supplies allowed choices.
-        if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
-            if (! empty($validated['list_alternative_pairs'])) {
-                // Continue through the shared preview overlap context below.
-            } else {
+        // Legacy edit requests still return the driver and bus choices.
+        // Alternative refresh requests continue to read-only pair validation.
+        if (empty($validated['list_alternative_pairs'])
+            && (empty($validated['driver_attendance_id']) || empty($validated['bus_id']))) {
             return response()->json([
                 'drivers' => $drivers->map(fn ($d) => ['id' => $d->id, 'name' => $d->driver_name, 'status' => $d->status])->values(),
                 'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — Head assignment only)' : ''), 'purpose' => $b->fleet_purpose])->values(),
             ]);
-            }
         }
         $driver = $drivers->firstWhere('id', (int) ($validated['driver_attendance_id'] ?? 0));
         $bus = $buses->firstWhere('id', (int) ($validated['bus_id'] ?? 0));
