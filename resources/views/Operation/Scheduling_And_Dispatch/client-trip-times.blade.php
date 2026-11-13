@@ -192,35 +192,45 @@
 
                         @if($canEditOperation)
                             <section class="ctt-client-logo-settings" aria-label="Client logo settings for {{ $client->name }}">
-                                <span class="ctt-client-logo-preview">
+                                <span class="ctt-client-logo-preview" aria-hidden="true">
                                     @if($client->logo_path)
-                                        <img src="{{ $client->logoUrl() }}" alt="{{ $client->name }} logo" loading="lazy">
+                                        <img src="{{ $client->logoUrl() }}" alt="" loading="lazy">
                                     @else
-                                        <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-building"></i>
                                     @endif
                                 </span>
                                 <div class="ctt-client-logo-copy">
+                                    <span class="ctt-logo-eyebrow"><i class="fa-solid fa-image" aria-hidden="true"></i> CLIENT BRANDING</span>
                                     <strong>Client Logo</strong>
-                                    <small>Show your client's brand on this page and in Client Master List.</small>
+                                    <small>{{ $client->logo_path ? 'Your logo appears on this client card and in Client Master List.' : 'Add a logo so your team can recognize this client at a glance.' }}</small>
                                 </div>
                                 <form class="ctt-client-logo-form" method="POST"
                                     action="{{ route('operation.clients.logo', $client) }}"
                                     enctype="multipart/form-data">
                                     @csrf
-                                    <label class="ctt-logo-file-label">
-                                        <span class="visually-hidden">Upload a logo for {{ $client->name }}</span>
-                                        <input type="file" name="logo" accept="image/png,image/jpeg,image/webp"
-                                            aria-label="Choose logo for {{ $client->name }}">
-                                    </label>
-                                    @if($client->logo_path)
-                                        <label class="ctt-logo-remove">
-                                            <input type="checkbox" name="remove_logo" value="1">
-                                            Remove
+                                    <div class="ctt-logo-upload-control">
+                                        <label for="ctt-logo-file-{{ $client->id }}">
+                                            <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+                                            {{ $client->logo_path ? 'Replace logo' : 'Choose logo' }}
                                         </label>
-                                    @endif
-                                    <button type="submit" class="ctt-logo-save">
-                                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Logo
-                                    </button>
+                                        <input id="ctt-logo-file-{{ $client->id }}" type="file" name="logo"
+                                            accept="image/png,image/jpeg,image/webp"
+                                            aria-label="Choose logo for {{ $client->name }}"
+                                            aria-describedby="ctt-logo-help-{{ $client->id }}">
+                                        <small id="ctt-logo-help-{{ $client->id }}">PNG, JPG or WebP · Max 2 MB</small>
+                                    </div>
+                                    <div class="ctt-logo-form-actions">
+                                        @if($client->logo_path)
+                                            <label class="ctt-logo-remove">
+                                                <input type="checkbox" name="remove_logo" value="1">
+                                                Remove existing
+                                            </label>
+                                        @endif
+                                        <button type="submit" class="ctt-logo-save">
+                                            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                                            Save Logo
+                                        </button>
+                                    </div>
                                 </form>
                             </section>
                         @endif
