@@ -114,7 +114,9 @@ class AdvanceOperationTripStatuses extends Command
             $this->broadcastSystemDataUpdated(
                 'Operation', 'TripSchedule', 'updated',
                 'trip-time-advance:'.$now->format('Y-m-d H:i'),
-                "{$updated} trip status(es) advanced by scheduled times."
+                $updated === 1
+                    ? 'The status of 1 trip was automatically updated based on its schedule.'
+                    : "The statuses of {$updated} trips were automatically updated based on their schedules."
             );
         }
         $this->info("Advanced {$updated} trip status(es).");
