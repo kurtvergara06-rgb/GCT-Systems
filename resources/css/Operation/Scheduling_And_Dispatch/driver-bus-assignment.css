@@ -2756,13 +2756,14 @@ html[data-gct-theme="dark"] .assignment-page {
     --assign-yellow-dark: #956711;
 }
 html[data-gct-theme="dark"] .assignment-page .assign-now-btn {
-    background: #a97716;
-    border-color: #c3963a;
-    color: #fff5dc;
+    background: #d9a126;
+    border-color: #e5b54a;
+    color: #172338;
 }
 html[data-gct-theme="dark"] .assignment-page .assign-now-btn:hover {
-    background: #bd8b28;
-    color: #fff;
+    background: #e8b63f;
+    border-color: #f0c765;
+    color: #172338;
 }
 html[data-gct-theme="dark"] .assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action.view,
 html[data-gct-theme="dark"] .assignment-page .assignment-table .assignment-actions .gct-record-action.assignment-action.edit {
