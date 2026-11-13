@@ -214,7 +214,28 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     rangeBackdrop.hidden = true;
     rangeOverlayHost?.appendChild(rangeBackdrop);
     let rangeEditorReturnFocus = null;
-    let rangePreviousOverflow = '';
+    let rangeAnchor = null;
+
+    function positionRangeDropdown() {
+        if (!activeRangeEditor || !rangeAnchor?.isConnected) return;
+        const editor = activeRangeEditor;
+        const anchor = rangeAnchor.getBoundingClientRect();
+        const margin = 12;
+        const gap = 8;
+        const width = Math.min(460, window.innerWidth - margin * 2);
+        editor.style.width = `${width}px`;
+        editor.style.maxHeight = `${Math.max(170, window.innerHeight - margin * 2)}px`;
+        const height = editor.getBoundingClientRect().height;
+        const below = window.innerHeight - anchor.bottom - gap - margin;
+        const above = anchor.top - gap - margin;
+        // Open above the trigger when there isn't enough room below.
+        const openAbove = below < Math.min(height, 260) && above > below;
+        const wantedTop = openAbove ? anchor.top - gap - height : anchor.bottom + gap;
+        const top = Math.max(margin, Math.min(wantedTop, window.innerHeight - height - margin));
+        const left = Math.max(margin, Math.min(anchor.right - width, window.innerWidth - width - margin));
+        editor.style.top = `${top}px`;
+        editor.style.left = `${left}px`;
+    }
 
     function closeRangeEditor(editor, restoreFocus = true) {
         if (!editor) return;
@@ -230,13 +251,17 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
             delete editor._cttOwnerPanel;
         }
         if (rangeBackdrop) rangeBackdrop.hidden = true;
-        document.documentElement.style.overflow = rangePreviousOverflow;
+        editor.style.removeProperty('top');
+        editor.style.removeProperty('left');
+        editor.style.removeProperty('width');
+        editor.style.removeProperty('max-height');
+        rangeAnchor = null;
         if (activeRangeEditor === editor) activeRangeEditor = null;
         if (restoreFocus && rangeEditorReturnFocus?.isConnected) rangeEditorReturnFocus.focus();
         rangeEditorReturnFocus = null;
     }
 
-    function openRangeEditor(panel) {
+    function openRangeEditor(panel, trigger) {
         const editor = panel?.querySelector('[data-ctt-range-editor]');
         if (!editor || !rangeOverlayHost) return;
         if (activeRangeEditor && activeRangeEditor !== editor) closeRangeEditor(activeRangeEditor, false);
@@ -244,21 +269,29 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
             closeRangeEditor(editor);
             return;
         }
-        rangeEditorReturnFocus = document.activeElement;
-        rangePreviousOverflow = document.documentElement.style.overflow;
+        rangeEditorReturnFocus = trigger || document.activeElement;
+        rangeAnchor = trigger || panel.querySelector('.ctt-add-config, .ctt-edit-range');
         editor.reset();
         clearErrors(editor);
         editor._cttOwnerPanel = panel;
         rangeOverlayHost.appendChild(editor);
         editor.hidden = false;
         rangeBackdrop.hidden = false;
-        document.documentElement.style.overflow = 'hidden';
         panel.classList.add('is-range-editor-open');
         activeRangeEditor = editor;
+        positionRangeDropdown();
         panel.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'true');
         panel.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'true'));
         editor.querySelector('input[name="start_time"]')?.focus();
     }
+
+    window.addEventListener('resize', positionRangeDropdown);
+    // Close if scrolling moves the trigger; reopening anchors to its new position.
+    window.addEventListener('scroll', (event) => {
+        if (!activeRangeEditor) return;
+        if (activeRangeEditor.contains(event.target)) return;
+        positionRangeDropdown();
+    }, true);
 
     document.addEventListener('submit', async (event) => {
         const editor = event.target.closest('[data-ctt-range-editor]');
@@ -368,7 +401,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     document.addEventListener('click', async (event) => {
         const addConfigButton = event.target.closest('.ctt-add-config');
         if (addConfigButton) {
-            openRangeEditor(panelContainerFor(addConfigButton));
+            openRangeEditor(panelContainerFor(addConfigButton), addConfigButton);
             return;
         }
         const rangeCancel = event.target.closest('[data-ctt-range-cancel]');
@@ -404,7 +437,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
 
         const editRangeButton = event.target.closest('.ctt-edit-range');
         if (editRangeButton) {
-            openRangeEditor(panelContainerFor(editRangeButton));
+            openRangeEditor(panelContainerFor(editRangeButton), editRangeButton);
             return;
         }
 
@@ -511,19 +544,6 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
                 event.preventDefault();
                 closeRangeEditor(activeRangeEditor);
                 return;
-            }
-            if (event.key === 'Tab') {
-                const focusables = Array.from(activeRangeEditor.querySelectorAll('input:not(:disabled), button:not(:disabled)'))
-                    .filter((element) => element.getClientRects().length > 0);
-                const first = focusables[0];
-                const last = focusables[focusables.length - 1];
-                if (event.shiftKey && document.activeElement === first) {
-                    event.preventDefault();
-                    last?.focus();
-                } else if (!event.shiftKey && document.activeElement === last) {
-                    event.preventDefault();
-                    first?.focus();
-                }
             }
             return;
         }
