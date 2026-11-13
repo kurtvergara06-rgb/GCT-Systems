@@ -2713,3 +2713,25 @@ button.ddr-new-btn {
     color: #ffcd72;
   }
 }
+
+
+/* DDR Encode: the scheduled-trip Bus field is readonly and its legacy
+   light-only declaration was bypassing the normal dark form input palette. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal [data-combo][data-field="bus"] [data-combo-input][readonly],
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal :is(input[name="from_location"][readonly],
+                       input[name="to_location"][readonly]) {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+    opacity: 1;
+    -webkit-text-fill-color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-combo-input::placeholder {
+    color: var(--gct-theme-placeholder, #879ab3);
+    opacity: 1;
+  }
+}
