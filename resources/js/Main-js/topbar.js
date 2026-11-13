@@ -90,6 +90,25 @@ window.GCTPartialNavigation.registerInitializer('shared-topbar', '.topbar', func
     container.innerHTML = items.slice(0, 5).map(item => renderNotificationItem(item, isActivity)).join('');
   }
 
+  function pendingDescription(item) {
+    const count = Math.max(0, Number(item.count) || 0);
+    const single = count === 1;
+    const label = String(item.label || '').toLowerCase();
+    if (label.includes('trips awaiting assignment'))
+      return single ? '1 scheduled trip requires driver and bus assignments.' : `${count} scheduled trips require driver and bus assignments.`;
+    if (label.includes('buses under maintenance'))
+      return single ? '1 bus is currently undergoing maintenance.' : `${count} buses are currently undergoing maintenance.`;
+    if (label.includes('active incidents'))
+      return single ? '1 incident requires operational attention.' : `${count} incidents require operational attention.`;
+    if (label.includes('pending user accounts'))
+      return single ? '1 user account requires review.' : `${count} user accounts require review.`;
+    if (label.includes('low-stock inventory'))
+      return single ? '1 inventory item has reached its reorder level.' : `${count} inventory items have reached their reorder levels.`;
+    if (label.includes('review') || label.includes('approval'))
+      return single ? `1 item requires review: ${item.label}.` : `${count} items require review: ${item.label}.`;
+    return single ? `1 record requires attention: ${item.label}.` : `${count} records require attention: ${item.label}.`;
+  }
+
   function renderPendingActions(items) {
     if (!pendingActionsList) return;
     pendingItems = Array.isArray(items) ? items : [];
@@ -102,7 +121,7 @@ window.GCTPartialNavigation.registerInitializer('shared-topbar', '.topbar', func
     pendingActionsList.innerHTML = pendingItems.slice(0, pendingExpanded ? undefined : 5).map(function (item) {
       const tone = /maintenance|review|low.stock|hold|pending|incident/i.test(item.label) ? 'warning' : 'info';
       const count = Number(item.count) || 0;
-      const message = count === 1 ? `1 record requires attention: ${item.label}.` : `${count} records require attention: ${item.label}.`;
+      const message = pendingDescription(item);
       return `<a href="${escapeHtml(item.url)}" class="topbar-list-item" data-tone="${tone}">
         <span class="topbar-list-icon"><i class="fa-solid ${escapeHtml(item.icon)}" aria-hidden="true"></i></span>
         <span class="topbar-list-content"><span class="topbar-list-heading">${escapeHtml(item.label)}</span>
