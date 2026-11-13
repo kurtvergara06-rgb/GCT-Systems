@@ -140,4 +140,23 @@ JS,
         $this->assertStringContainsString('renderPairCards();', $js);
     }
 
+    public function test_operation_dark_dropdowns_use_shared_contrast_tokens(): void
+    {
+        $ddr = file_get_contents(resource_path('css/Operation/Daily_Driver_Reports/daily-driver-reports.css'));
+        $dark = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+
+        $this->assertStringContainsString('#ddrEncodeModal .ddr-combo-list', $ddr);
+        $this->assertStringContainsString('#ddrEncodeModal .ddr-combo-list li :is(strong, b)', $ddr);
+        foreach ([
+            '.attendance-combobox-menu',
+            '.assignment-combobox-menu',
+            '.inc-bus-lookup-results',
+            '.location-suggestion-panel',
+        ] as $selector) {
+            $this->assertStringContainsString($selector, $dark);
+        }
+        $this->assertStringContainsString('Operation dropdown surface audit:', $dark);
+        $this->assertStringContainsString('var(--gct-theme-surface-raised, #203047)', $dark);
+    }
+
 }
