@@ -3464,7 +3464,7 @@ function updateMlStatus(conflicts) {
         const previousReportScroll = container.querySelector('.gct-conflict-report-body')?.scrollTop ?? 0;
         const previousTableScroll = container.querySelector('.gct-conflict-table-scroll')?.scrollTop ?? 0;
         container.innerHTML = `
-            <div class="gct-conflict-workspace ${conflicts.length === 1 ? 'is-single-conflict' : ''} ${conflictReportClosed ? 'is-report-closed' : ''}">
+            <div class="gct-conflict-workspace ${conflictReportClosed ? 'is-report-closed' : ''}">
                 <div class="gct-conflict-list">
                     <div class="gct-conflict-toolbar">
                         <div class="gct-conflict-tabs">
