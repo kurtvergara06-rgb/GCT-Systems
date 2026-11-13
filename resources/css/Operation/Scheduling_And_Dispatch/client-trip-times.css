@@ -2450,3 +2450,51 @@
 
 .client-trip-times-page .ctt-client-icon { overflow: hidden; }
 .client-trip-times-page .ctt-client-icon img { display: block; width: 100%; height: 100%; object-fit: contain; background: #fff; border-radius: inherit; }
+
+/* Compact client branding editor within each expanded Client Trip Times card. */
+.client-trip-times-page .ctt-client-logo-settings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    border: 1px solid var(--gct-ui-border, #d6e2f0);
+    border-radius: 12px;
+    background: var(--gct-ui-surface, #f8fbff);
+}
+.client-trip-times-page .ctt-client-logo-preview {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border: 1px solid var(--gct-ui-border, #d6e2f0);
+    border-radius: 11px;
+    background: #fff;
+    color: #1d57af;
+    overflow: hidden;
+}
+.client-trip-times-page .ctt-client-logo-preview img { width: 100%; height: 100%; object-fit: contain; }
+.client-trip-times-page .ctt-client-logo-copy { display: flex; flex-direction: column; gap: 3px; min-width: 175px; flex: 1 1 175px; }
+.client-trip-times-page .ctt-client-logo-copy strong { color: var(--gct-ui-text, #1d3557); font-size: 12px; }
+.client-trip-times-page .ctt-client-logo-copy small { color: var(--gct-ui-muted, #64748b); font-size: 11px; }
+.client-trip-times-page .ctt-client-logo-form { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex: 1 1 320px; justify-content: flex-end; }
+.client-trip-times-page .ctt-logo-file-label { min-width: 0; flex: 1 1 170px; max-width: 250px; }
+.client-trip-times-page .ctt-logo-file-label input { display: block; width: 100%; max-width: 100%; font-size: 11px; color: var(--gct-ui-text, #1d3557); }
+.client-trip-times-page .ctt-logo-remove { display: inline-flex; align-items: center; gap: 5px; color: var(--gct-ui-text, #1d3557); font-size: 11px; white-space: nowrap; }
+.client-trip-times-page .ctt-logo-save { border: 1px solid #2d63bf; border-radius: 8px; background: #eaf2ff; color: #10499b; padding: 9px 12px; font-weight: 700; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.client-trip-times-page .ctt-logo-save:hover { background: #d5e6ff; }
+.client-trip-times-page .ctt-logo-success { padding: 9px 12px; color: #047444; font-size: 12px; }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-client-logo-settings { background: var(--gct-theme-surface-raised); border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-client-logo-copy strong,
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-file-label input,
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-remove { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-client-logo-copy small { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-save { background: #213d60; color: #cfe3ff; border-color: #486b98; }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-save:hover { background: #2d4c73; }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-success { color: #a6ebc9; }
+@media(max-width: 780px) {
+    .client-trip-times-page .ctt-client-logo-form { flex-basis: 100%; justify-content: flex-start; }
+    .client-trip-times-page .ctt-logo-file-label { max-width: 100%; }
+}
