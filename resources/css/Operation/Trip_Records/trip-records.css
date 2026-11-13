@@ -2562,18 +2562,16 @@
    Explicit column tracks keep the View button fully inside that cell. */
 .trip-records-page .unified-trip-history-table {
     width: 100%;
-    min-width: 1210px;
+    min-width: 1030px;
     table-layout: fixed;
 }
-.trip-records-page .unified-trip-history-table col.history-col-trip { width: 155px; }
-.trip-records-page .unified-trip-history-table col.history-col-schedule { width: 130px; }
-.trip-records-page .unified-trip-history-table col.history-col-route { width: 175px; }
-.trip-records-page .unified-trip-history-table col.history-col-resources { width: 160px; }
-.trip-records-page .unified-trip-history-table col.history-col-slots { width: 75px; }
-.trip-records-page .unified-trip-history-table col.history-col-assignment { width: 145px; }
-.trip-records-page .unified-trip-history-table col.history-col-status { width: 125px; }
-.trip-records-page .unified-trip-history-table col.history-col-actual { width: 145px; }
-.trip-records-page .unified-trip-history-table col.history-col-action { width: 100px; }
+.trip-records-page .unified-trip-history-table col.history-col-trip-schedule { width: 20%; }
+.trip-records-page .unified-trip-history-table col.history-col-route { width: 17%; }
+.trip-records-page .unified-trip-history-table col.history-col-resources { width: 17%; }
+.trip-records-page .unified-trip-history-table col.history-col-slots { width: 7%; }
+.trip-records-page .unified-trip-history-table col.history-col-assignment { width: 15%; }
+.trip-records-page .unified-trip-history-table col.history-col-status { width: 14%; }
+.trip-records-page .unified-trip-history-table col.history-col-action { width: 10%; }
 /* Unified history fits the desktop viewport: no independent pinned
    Actions panel or vertical seam. Retain top-sticky headers and allow
    horizontal scrolling only at narrower viewport widths. */
@@ -2617,6 +2615,50 @@
     padding: 0 10px;
     gap: 7px;
     overflow: visible;
+}
+
+
+/* Seven-column Unified Trip History: ID/date/time share one compact cell.
+   All original status and DDR values remain in the read-only View dialog. */
+.trip-records-page .unified-trip-history-table .unified-trip-schedule {
+    min-width: 0;
+    text-align: left;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-schedule .id-badge {
+    max-width: 100%;
+}
+.trip-records-page .unified-trip-history-table .unified-trip-schedule :is(strong, small) {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--trip-text);
+}
+.trip-records-page .unified-trip-history-table .unified-trip-schedule small {
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--trip-muted);
+    font-weight: 400;
+}
+.trip-records-page .unified-trip-history-table tbody td:nth-child(2) {
+    overflow-wrap: anywhere;
+}
+.trip-records-page .unified-trip-history-table tbody td:nth-child(5),
+.trip-records-page .unified-trip-history-table tbody td:nth-child(6) {
+    text-align: center;
+}
+.trip-records-page .unified-trip-history-table .trip-history-outcome,
+.trip-records-page .unified-trip-history-table .trip-history-operational-status {
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+}
+.trip-records-page .unified-trip-history-table > tbody > tr > td:last-child:not([colspan]) {
+    background: transparent;
+}
+@media (max-width: 1100px) {
+    .trip-records-page .unified-trip-history-table { min-width: 1030px; }
 }
 
 /* Trip History View button: mirror DDR's labeled action exactly.
