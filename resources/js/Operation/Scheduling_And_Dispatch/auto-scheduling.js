@@ -190,7 +190,9 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 || data.success !== true
                 || typeof data.bus_source !== 'string'
                 || typeof data.driver_source !== 'string') {
-                throw new Error(data.message || 'Invalid readiness response.');
+                const statusError = new Error(data.message || 'Invalid readiness response.');
+                statusError.status = response.status;
+                throw statusError;
             }
 
             if (!pageRoot?.isConnected) return;
@@ -200,9 +202,11 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         } catch (error) {
             if (error.name === 'AbortError' || !pageRoot?.isConnected) return;
             mlReadiness = null;
-            mlReadinessState = 'unavailable';
+            mlReadinessState = error?.status === 401 || error?.status === 403
+                ? 'unavailable'
+                : 'offline';
             updateMlStatus(schedulingConflicts);
-            console.warn('Auto Scheduling ranking source could not be loaded:', error);
+            console.warn('Auto Scheduling AI/ML engine status could not be loaded:', error);
         }
     }
     // Drafts persist preview decisions, but never reserve a vehicle.
@@ -922,82 +926,54 @@ function renderMlProvenance(ai) {
 
 
 function updateMlStatus(conflicts) {
-    if (!aiMlStatus) {
-        return;
-    }
+    if (!aiMlStatus) return;
 
-    let busReady = mlReadiness?.bus_model_ready === true;
-    let driverReady = mlReadiness?.driver_model_ready === true;
-    let busSource = mlReadiness?.bus_source || 'rule_fallback';
-    let driverSource = mlReadiness?.driver_source || 'rule_fallback';
-    let found = mlReadinessState === 'ready' && mlReadiness !== null;
+    // A successful training-status response is authoritative for engine
+    // connectivity. Conflict provenance may describe model scoring, but it
+    // must never turn an unreachable service into an "Online" service.
+    const online = mlReadinessState === 'ready' && mlReadiness !== null;
+    const checking = mlReadinessState === 'loading';
+    const engineLabel = checking ? 'Checking' : online ? 'Online'
+        : mlReadinessState === 'offline' ? 'Offline' : 'Unavailable';
+    const engineClass = checking ? 'is-pending' : online ? 'is-ready'
+        : mlReadinessState === 'offline' ? 'is-offline' : 'is-pending';
 
-    for (const item of conflicts) {
-        const ml = item?.ai?.ml || {};
-
-        if (typeof ml.bus_ready !== 'boolean'
-            && typeof ml.driver_ready !== 'boolean') {
-            continue;
-        }
-
-        if (found) {
-            continue;
-        }
-
-        found = true;
-        busReady = Boolean(ml.bus_ready);
-        driverReady = Boolean(ml.driver_ready);
-
-        if (ml.bus_source) {
-            busSource = ml.bus_source;
-        }
-
-        if (ml.driver_source) {
-            driverSource = ml.driver_source;
-        }
-    }
-
-    if (!found) {
-        const pendingLabel = mlReadinessState === 'unavailable'
-            ? 'Unavailable'
-            : 'Checking...';
-        aiMlStatus.innerHTML = `
-            <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Ranking Source</span>
-            <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: ${pendingLabel}</span>
-            <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: ${pendingLabel}</span>
-        `;
-        return;
-    }
-
-    const sourceLabel = (source) => {
-        if (source === 'ml') return 'ML';
+    const sourceLabel = (source, ready) => {
+        if (ready && source === 'ml') return 'ML Ready';
         if (source === 'data' || source === 'data_fallback') return 'Data Fallback';
         return 'Rule Fallback';
     };
-    const badge = (ready, source, label, sampleCount, reason) => {
+    const modelBadge = (label, icon, ready, source, samples, reason) => {
+        if (!online) {
+            return `<span class="ai-status-badge is-pending">
+                <i class="fa-solid fa-${icon}" aria-hidden="true"></i>
+                ${label}: ${checking ? 'Checking...' : 'Unavailable'}
+            </span>`;
+        }
         const details = [
-            Number.isFinite(Number(sampleCount)) ? `${Number(sampleCount)} training samples` : '',
+            Number.isFinite(Number(samples)) ? `${Number(samples)} training samples` : '',
             reason || '',
         ].filter(Boolean).join(' - ');
-
-        return `
-        <span class="ai-status-badge ${
-            ready ? 'is-ready' : 'is-fallback'
-        }"${details ? ` title="${escapeHtml(details)}"` : ''}>
-            <i class="fa-solid fa-microchip"></i>
-            ${escapeHtml(label)}:
-            ${escapeHtml(sourceLabel(source))}
-        </span>
-    `;
+        return `<span class="ai-status-badge ${ready && source === 'ml' ? 'is-ready' : 'is-fallback'}"
+            ${details ? `title="${escapeHtml(details)}"` : ''}>
+            <i class="fa-solid fa-${icon}" aria-hidden="true"></i>
+            ${label}: ${escapeHtml(sourceLabel(source, ready))}
+        </span>`;
     };
 
     aiMlStatus.innerHTML = `
         <span class="ai-status-label">
-            <i class="fa-solid fa-microchip"></i>
-            Ranking Source
+            <i class="fa-solid fa-microchip" aria-hidden="true"></i>
+            AI / ML Engine
         </span>
-        ${badge(busReady, busSource, 'Bus', mlReadiness?.bus_sample_count, mlReadiness?.bus_reason)}
-        ${badge(driverReady, driverSource, 'Driver', mlReadiness?.driver_sample_count, mlReadiness?.driver_reason)}
+        <span class="ai-status-badge ${engineClass}" aria-label="AI engine ${engineLabel}">
+            <i class="fa-solid fa-${online ? 'circle-check' : checking ? 'spinner fa-spin' : 'circle-exclamation'}" aria-hidden="true"></i>
+            ${engineLabel}
+        </span>
+        ${modelBadge('Bus Model', 'bus', mlReadiness?.bus_model_ready === true,
+            mlReadiness?.bus_source, mlReadiness?.bus_sample_count, mlReadiness?.bus_reason)}
+        ${modelBadge('Driver Model', 'user', mlReadiness?.driver_model_ready === true,
+            mlReadiness?.driver_source, mlReadiness?.driver_sample_count, mlReadiness?.driver_reason)}
     `;
 }
 
