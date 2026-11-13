@@ -5254,6 +5254,7 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
     background: var(--gct-ui-surface, #fff);
+    border-left: 0;
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr:hover > td:last-child:not([colspan]) {
     background: var(--gct-ui-surface-hover, #f8fbff);
@@ -5303,7 +5304,8 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     width: 124px;
     box-sizing: border-box;
     background: var(--gct-ui-surface, #fff);
-    box-shadow: -1px 0 0 #d6e1ef, -8px 0 13px -12px rgba(15, 23, 42, .3);
+    box-shadow: none;
+    border-left: 0;
     z-index: 6;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
@@ -5668,16 +5670,19 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     }
     .auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 15%; }
     .auto-scheduling-page .auto-schedule-table .auto-col-required { width: 14%; }
-    .auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 20%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 22%; }
     .auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 13%; }
     .auto-scheduling-page .auto-schedule-table .auto-col-result { width: 23%; }
-    .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 15%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 13%; }
     .auto-scheduling-page .auto-schedule-table thead th:first-child::after {
         content: " / TIME";
     }
     .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td {
-        padding-top: 9px;
-        padding-bottom: 9px;
+        padding: 9px 10px;
+        background: var(--gct-ui-surface, #fff);
+    }
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row:hover > td {
+        background: var(--gct-ui-surface-hover, #f8fbff);
     }
     .auto-scheduling-page .auto-preview-trip-time {
         display: flex;
@@ -5707,8 +5712,19 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     }
     .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
     .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-        min-width: 124px;
-        width: 124px;
+        min-width: 112px;
+        width: 112px;
+        padding-left: 8px;
+        padding-right: 8px;
+        box-shadow: none;
+        border-left: 0;
+    }
+    .auto-scheduling-page .auto-schedule-table .schedule-action-btn.remove:has(.schedule-remove-label) {
+        min-width: 0;
+        min-height: 34px;
+        padding: 0 9px;
+        gap: 5px;
+        font-size: 11px;
     }
 }
 
