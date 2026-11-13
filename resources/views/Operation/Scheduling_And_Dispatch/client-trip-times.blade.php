@@ -133,7 +133,13 @@
                         data-total-categories="{{ $totalCategoryCount }}"
                     >
                         <summary class="ctt-client-header">
-                            <span class="ctt-client-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                            <span class="ctt-client-icon">
+                                @if($client->logo_path)
+                                    <img src="{{ $client->logoUrl() }}" alt="{{ $client->name }} logo" loading="lazy">
+                                @else
+                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                @endif
+                            </span>
                             <div class="ctt-client-heading">
                                 <h3>{{ $client->name }}
                                     <span class="ctt-client-status {{ $client->isActive() ? 'is-active' : 'is-inactive' }}">
