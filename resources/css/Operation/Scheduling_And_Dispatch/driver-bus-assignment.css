@@ -1929,13 +1929,13 @@
 
 /* Simplified resource tables — three aligned data columns, no action buttons. */
 .assignment-page .assignment-table { }
-.assignment-page .assignment-table th:nth-child(1) { width: 14%; }
-.assignment-page .assignment-table th:nth-child(2) { width: 12%; }
-.assignment-page .assignment-table th:nth-child(3) { width: 18%; }
-.assignment-page .assignment-table th:nth-child(4) { width: 18%; }
+/* Six-column layout: Trip ID is grouped below its departure time. */
+.assignment-page .assignment-table th:nth-child(1) { width: 19%; }
+.assignment-page .assignment-table th:nth-child(2) { width: 21%; }
+.assignment-page .assignment-table th:nth-child(3) { width: 19%; }
+.assignment-page .assignment-table th:nth-child(4) { width: 16%; }
 .assignment-page .assignment-table th:nth-child(5) { width: 14%; }
-.assignment-page .assignment-table th:nth-child(6) { width: 13%; }
-.assignment-page .assignment-table th:nth-child(7) { width: 11%; }
+.assignment-page .assignment-table th:nth-child(6) { width: 11%; }
 .assignment-page .resource-card .resource-list-head--drivers,
 .assignment-page .resource-card .resource-list-head--buses {
     display: grid;
@@ -2789,4 +2789,96 @@ html[data-gct-theme="dark"] .assignment-page .assignment-date-trigger {
 }
 html[data-gct-theme="dark"] .assignment-page .assignment-date-trigger:is(:hover, :focus-visible) {
     background: #294466;
+}
+
+/* Compact Trip Schedule-inspired assignment rows (one time/ID column). */
+.assignment-page .assignment-direction-section .assignment-table {
+    min-width: 920px;
+}
+.assignment-page .assignment-direction-section .assignment-table thead th {
+    padding: 11px 9px;
+}
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td {
+    padding: 11px 9px;
+}
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(1),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(1) {
+    text-align: left;
+}
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(2),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(2),
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(3),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(3) {
+    text-align: left;
+}
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(4),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(4),
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(5),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(5),
+.assignment-page .assignment-direction-section .assignment-table thead th:nth-child(6),
+.assignment-page .assignment-direction-section .assignment-table tbody tr:not(.assignment-client-route-group) > td:nth-child(6) {
+    text-align: center;
+}
+.assignment-page .assignment-direction-section .assignment-table .assignment-trip-schedule {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+.assignment-page .assignment-direction-section .assignment-table .assignment-trip-schedule .schedule-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+}
+.assignment-page .assignment-direction-section .assignment-table .assignment-trip-schedule .schedule-cell strong {
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.assignment-page .assignment-direction-section .assignment-table .assignment-trip-reference {
+    min-width: 0;
+    max-width: 100%;
+}
+.assignment-page .assignment-direction-section .assignment-table .assignment-trip-reference .system-id-badge {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    font-size: 9px !important;
+    text-align: left;
+    padding: 3px 6px !important;
+}
+.assignment-page .assignment-direction-section .assignment-table tbody td:nth-child(4) .assignment-bus-cell,
+.assignment-page .assignment-direction-section .assignment-table tbody td:nth-child(4) .assignment-resource-empty,
+.assignment-page .assignment-direction-section .assignment-table tbody td:nth-child(6) .assignment-actions {
+    justify-content: center;
+}
+.assignment-page .assignment-direction-section .assignment-table tbody td:nth-child(5) .assignment-status {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 6px 8px;
+    margin-inline: auto;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > thead > tr > th:last-child,
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions > .assignment-table > tbody > tr > td:last-child:not([colspan]) {
+    min-width: 112px;
+    width: 11%;
+}
+.assignment-page .assignment-direction-section .assignment-table-wrap.gct-sticky-actions .assignment-actions {
+    justify-content: center;
+    gap: 5px;
+}
+@media (max-width: 760px) {
+    .assignment-page .assignment-direction-section .assignment-table { min-width: 920px; }
 }
