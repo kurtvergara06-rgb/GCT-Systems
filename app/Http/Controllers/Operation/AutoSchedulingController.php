@@ -825,6 +825,7 @@ class AutoSchedulingController extends Controller
             // generated previews now carry a Driver master id, not attendance.
             'driver_attendance_id' => ['nullable', 'integer', 'exists:drivers,id'],
             'bus_id' => ['nullable', 'integer', 'exists:buses,id'],
+            'list_alternative_pairs' => ['sometimes', 'boolean'],
             'recommendations' => ['sometimes', 'array', 'max:200'],
             'recommendations.*.trip_schedule_id' => ['required', 'integer'],
             'recommendations.*.driver_attendance_id' => ['required', 'integer'],
@@ -851,26 +852,17 @@ class AutoSchedulingController extends Controller
             })->values();
         // First request without both selections supplies allowed choices.
         if (empty($validated['driver_attendance_id']) || empty($validated['bus_id'])) {
+            if (! empty($validated['list_alternative_pairs'])) {
+                // Continue through the shared preview overlap context below.
+            } else {
             return response()->json([
                 'drivers' => $drivers->map(fn ($d) => ['id' => $d->id, 'name' => $d->driver_name, 'status' => $d->status])->values(),
                 'buses' => $buses->map(fn ($b) => ['id' => $b->id, 'name' => $b->bus_no.($b->fleet_purpose === 'Reserve' ? ' (Reserve — Head assignment only)' : ''), 'purpose' => $b->fleet_purpose])->values(),
             ]);
-        }
-        $driver = $drivers->firstWhere('id', (int) $validated['driver_attendance_id']);
-        $bus = $buses->firstWhere('id', (int) $validated['bus_id']);
-        if (! $driver || ! $bus) {
-            throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
-        }
-        if ($bus->fleet_purpose === 'Reserve') {
-            $actor = auth()->user();
-            if (! $actor?->canAssignReserveBus()) {
-                throw ValidationException::withMessages([
-                    'bus_id' => 'Only Operations Head may select a Reserve Bus.',
-                ]);
             }
         }
-        $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
-        $this->assertBusMatchesTripClient($trip, $bus, 'assignment');
+        $driver = $drivers->firstWhere('id', (int) ($validated['driver_attendance_id'] ?? 0));
+        $bus = $buses->firstWhere('id', (int) ($validated['bus_id'] ?? 0));
         $others = collect($validated['recommendations'] ?? []);
         $tripIds = $others->pluck('trip_schedule_id')->push($trip->id)->unique();
         $otherTrips = TripSchedule::query()->whereIn('id', $tripIds)->get()->keyBy('id');
@@ -897,6 +889,74 @@ class AutoSchedulingController extends Controller
                 'trip_date' => $otherTrip?->trip_date?->toDateString(),
             ];
         });
+        if (! empty($validated['list_alternative_pairs'])) {
+            // Read-only suggestions after a preview Remove: do not modify any
+            // assignments or draft records. Prefer eligible Regular pairs.
+            $capacity = max(1, (int) $trip->required_buses);
+            if ($trip->assignments()->count() + 1
+                + $others->where('trip_schedule_id', $trip->id)->count() > $capacity) {
+                return response()->json(['valid_pairs' => [], 'alternative_drivers' => [],
+                    'alternative_buses' => []]);
+            }
+            $authorized = Driver::query()->whereIn('driver_id', $drivers->pluck('driver_id'))
+                ->with('authorizedBuses:id')->get()->keyBy('driver_id');
+            $pairs = collect();
+            foreach ($buses as $candidateBus) {
+                if ($this->busHasConflict($trip, (int) $candidateBus->id, $existing, $generated)) {
+                    continue;
+                }
+                foreach ($drivers as $candidateDriver) {
+                    if ($this->driverHasConflict($trip, $candidateDriver->driver_id, $existing, $generated)) {
+                        continue;
+                    }
+                    if ($candidateBus->fleet_purpose !== 'Reserve'
+                        && ! $authorized->get($candidateDriver->driver_id)?->authorizedBuses
+                            ?->contains('id', (int) $candidateBus->id)) {
+                        continue;
+                    }
+                    $pairs->push([
+                        'driver_attendance_id' => (int) $candidateDriver->id,
+                        'driver_label' => (string) $candidateDriver->driver_name,
+                        'bus_id' => (int) $candidateBus->id,
+                        'bus_label' => (string) $candidateBus->bus_no
+                            .($candidateBus->fleet_purpose === 'Reserve' ? ' (Reserve)' : ''),
+                        'eligibility_source' => 'laravel_rules',
+                        'reason' => 'Eligible at preview refresh; apply and confirm are revalidated by Laravel.',
+                    ]);
+                    if ($pairs->count() >= 20) {
+                        break 2;
+                    }
+                }
+            }
+            // Do not advertise Reserve as assignable while a Regular pair is
+            // available; confirmation always enforces Regular-first priority.
+            if ($pairs->contains(fn ($pair) => ! str_contains($pair['bus_label'], '(Reserve)'))) {
+                $pairs = $pairs->reject(fn ($pair) => str_contains($pair['bus_label'], '(Reserve)'))->values();
+            }
+            return response()->json([
+                'valid_pairs' => $pairs->all(),
+                'alternative_drivers' => $pairs->unique('driver_attendance_id')
+                    ->map(fn ($pair) => ['id' => $pair['driver_attendance_id'],
+                        'label' => $pair['driver_label']])->values()->all(),
+                'alternative_buses' => $pairs->unique('bus_id')
+                    ->map(fn ($pair) => ['id' => $pair['bus_id'],
+                        'label' => $pair['bus_label']])->values()->all(),
+            ]);
+        }
+
+        if (! $driver || ! $bus) {
+            throw ValidationException::withMessages(['assignment' => 'Selected driver or bus is not eligible for this trip.']);
+        }
+        if ($bus->fleet_purpose === 'Reserve') {
+            $actor = auth()->user();
+            if (! $actor?->canAssignReserveBus()) {
+                throw ValidationException::withMessages([
+                    'bus_id' => 'Only Operations Head may select a Reserve Bus.',
+                ]);
+            }
+        }
+        $this->assertAuthorizedBusPair($driver->driver_id, (int) $bus->id, 'assignment');
+        $this->assertBusMatchesTripClient($trip, $bus, 'assignment');
         if ($this->driverHasConflict($trip, $driver->driver_id, $existing, $generated)
             || $this->busHasConflict($trip, (int) $bus->id, $existing, $generated)) {
             throw ValidationException::withMessages(['assignment' => 'This driver or bus overlaps another existing or preview assignment.']);
