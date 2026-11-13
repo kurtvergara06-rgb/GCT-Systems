@@ -1140,5 +1140,21 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('border-left: 0 !important;', $shared);
         $this->assertStringNotContainsString('box-shadow: -1px 0 0 #dce5ef', $shared);
     }
+    public function test_read_only_incident_details_modal_uses_compact_responsive_cards(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Incidents/index.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        $this->assertStringContainsString('data-incident-view-panel', $view);
+        $this->assertStringContainsString('data-incident-edit-panel', $view);
+        $this->assertStringContainsString('Compact read-only Incident Details: balanced desktop cards', $styles);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $styles);
+        $this->assertStringContainsString('@media screen and (max-width: 760px)', $styles);
+        $this->assertStringContainsString(
+            '#incidentRecordModal [data-incident-view-panel]:not([hidden])',
+            $styles
+        );
+    }
+
 
 }
