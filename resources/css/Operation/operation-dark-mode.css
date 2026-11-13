@@ -1436,6 +1436,65 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     }
 }
 
+/* Auto Scheduling: dark panel/empty-state readability and controls.
+   Scoped to the interactive app so the paper print stylesheet stays light. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state, .auto-calendar-detail, .auto-calendar-grid-panel,
+    .auto-calendar-progress-label, .auto-calendar-legend,
+    .auto-calendar-note, .resource-card
+  ) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state strong, .auto-empty-state > i,
+    .resource-count, .auto-calendar-progress-label strong,
+    .auto-calendar-progress-label span, .auto-calendar-month,
+    .resource-info strong, .auto-calendar-detail-heading h3,
+    .auto-calendar-metric strong
+  ) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state span, .resource-info span, .auto-calendar-note,
+    .auto-calendar-legend, .auto-calendar-detail-heading p
+  ) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-schedule-table :is(th, td) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-schedule-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-table-wrap .auto-schedule-table tbody tr:has(.auto-empty-state) td {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-sticky-actions {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-sticky-actions :is(p, span, small) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-calendar-metric, .auto-scheduling-assurance, .auto-scheduling-summary,
+    .auto-calendar-date-trigger
+  ) {
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-scheduling-summary, .auto-calendar-date-trigger, .auto-scheduling-assurance
+  ) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+  }
+}
+
 /* Shared date/time pickers are body portals, outside the parent form modal.
    Keep the bridge on Operation screens so other departments and print retain
    their existing palette, positioning, selected days and yellow primary action. */
