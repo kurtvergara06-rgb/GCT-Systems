@@ -2599,3 +2599,117 @@ button.ddr-new-btn {
     max-width: 100%;
     max-height: calc(100dvh - 36px);
 }
+
+
+/* DDR read-only Details: cohesive dark surfaces and legible trip entry cells.
+   Scoped to the existing view dialogs; does not recolor editable DDR forms. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) {
+    background: var(--gct-theme-surface, #162235);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit)
+    :is(.ddr-record-header, .ddr-record-footer, .ddr-record-table-wrap,
+        .ddr-record-total, .ddr-record-compare) {
+    background: var(--gct-theme-surface, #162235);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info > div {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit)
+    :is(.ddr-record-header h2, .ddr-record-body h3, .ddr-record-info strong,
+        .ddr-record-total strong, .ddr-record-compare h3, .ddr-record-note strong) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit)
+    :is(.ddr-record-info small, .ddr-record-header p, .ddr-record-total > div > span,
+        .ddr-record-compare p, .ddr-record-note) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-table {
+    background: var(--gct-theme-surface, #162235);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-table thead th {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-muted, #b1bfd2);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-table tbody tr,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-table tbody td {
+    background: var(--gct-theme-surface, #162235);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-table tbody tr:hover td {
+    background: var(--gct-theme-hover, #293a52);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-total > div + div {
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-close {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-close:hover {
+    background: var(--gct-theme-hover, #293a52);
+  }
+
+  /* Category accents: use accessible light icons on muted, dark color tiles. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic .ddr-info-icon {
+    background: #243b61;
+    color: #a6c9ff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(2) .ddr-info-icon,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(7) .ddr-info-icon {
+    background: #183f3c;
+    color: #86e4c3;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(3) .ddr-info-icon,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(8) .ddr-info-icon {
+    background: #3f3324;
+    color: #ffd08a;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(4) .ddr-info-icon,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(5) .ddr-info-icon {
+    background: #342c50;
+    color: #d2b4ff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info-iconic > div:nth-child(6) .ddr-info-icon {
+    background: #23404b;
+    color: #9ce5f1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-total > div > i {
+    color: #9bc7ff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-compare h3 i {
+    color: #ffcd72;
+  }
+}
