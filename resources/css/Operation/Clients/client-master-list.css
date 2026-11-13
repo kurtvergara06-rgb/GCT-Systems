@@ -499,3 +499,12 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Registered client logos preserve the building icon fallback. */
+.client-master-avatar, .client-profile-identity-icon { overflow: hidden; }
+.client-master-avatar img, .client-profile-identity-icon img { display: block; width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.client-profile-identity-icon img[hidden] { display: none !important; }
+.client-logo-field input[type="file"] { width: 100%; max-width: 100%; font: inherit; font-size: 12px; }
+.client-logo-field > small { display: block; margin-top: 5px; color: var(--gct-ui-muted, #64748b); }
+.client-logo-remove { display: flex; gap: 7px; align-items: center; margin-top: 7px; }
+.client-logo-remove[hidden] { display: none !important; }
