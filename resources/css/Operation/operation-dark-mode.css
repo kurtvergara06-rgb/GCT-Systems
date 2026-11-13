@@ -1901,3 +1901,97 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
     .assignment-driver-choice:hover, .assignment-bus-choice:hover
 ) { background: var(--gct-theme-hover); }
+
+
+/* Operation dropdown surface audit: standalone legacy searchable menus.
+   Unlike the shared Search/Filter/Sort toolbar, these lists were hardcoded
+   white. Scope to Operation Dark Mode; preserve hidden/display and workflow
+   state classes, reserve semantics, and native Light Mode styling. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-menu,
+    .assignment-combobox-menu,
+    .inc-bus-lookup-results,
+    .location-suggestion-panel
+  ) {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+    scrollbar-color: #536a88 transparent;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ) {
+    background: transparent;
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ):is(:hover, :focus-visible, .active) {
+    background: var(--gct-theme-hover, #293a52);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option
+  ).selected {
+    background: #28466b;
+    color: #f2f7ff;
+    box-shadow: inset 0 0 0 1px #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ) strong {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-results,
+    .location-suggestion-item
+  ) :is(small, p) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-empty,
+    .assignment-combobox-empty,
+    .inc-bus-lookup-results > p
+  ) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-search input,
+    .assignment-combobox-search input
+  ) {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-search input,
+    .assignment-combobox-search input
+  )::placeholder {
+    color: var(--gct-theme-placeholder, #879ab3);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-bus-trip-context {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-bus-trip-context small {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+}
