@@ -5248,8 +5248,8 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-    min-width: 190px;
-    width: 190px;
+    min-width: 124px;
+    width: 124px;
     text-align: center;
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
@@ -5276,7 +5276,7 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
     width: 100%;
-    min-width: 1120px;
+    min-width: 1100px;
     table-layout: fixed;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar {
@@ -5299,8 +5299,8 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
     position: sticky;
     right: 0;
-    min-width: 190px;
-    width: 190px;
+    min-width: 124px;
+    width: 124px;
     box-sizing: border-box;
     background: var(--gct-ui-surface, #fff);
     box-shadow: -1px 0 0 #d6e1ef, -8px 0 13px -12px rgba(15, 23, 42, .3);
@@ -5330,11 +5330,11 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
   }
 }
 
-/* Keep the preview scroll canvas compact; semantic .auto-col-* classes
-   below own column widths for both Incoming and Outgoing tables. */
+/* Keep all eight preview columns visible on regular desktop widths.
+   Narrower viewports retain native horizontal scrolling and pinned Actions. */
 @media screen {
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
-    min-width: 1250px;
+    min-width: 1100px;
   }
 }
 @media screen and (pointer: fine) {
@@ -5580,13 +5580,13 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     min-width: 980px;
     table-layout: fixed;
 }
-.auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 10%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-time { width: 11%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-route { width: 18%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-required { width: 13%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 14%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 14%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-result { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 9%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-time { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-route { width: 19%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-required { width: 12%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 17%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 12%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-result { width: 11%; }
 .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 10%; }
 .auto-scheduling-page .auto-schedule-table th,
 .auto-scheduling-page .auto-schedule-table td {
