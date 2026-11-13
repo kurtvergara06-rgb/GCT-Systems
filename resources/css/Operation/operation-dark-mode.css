@@ -1661,3 +1661,90 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboa
 
 /* Semantic incoming/outgoing and ready/maintenance badges retain their own
  * meaning, while their surroundings use the dark palette. */
+
+/* Driver & Bus Assignment: readable content in calendar and assignment modals. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-trigger, .assignment-date-trigger:hover,
+    .assignment-date-trigger[aria-expanded="true"]
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-copy small, .assignment-calendar-hint,
+    .assignment-calendar-weekdays, .assignment-calendar-legend-grid > span,
+    .assignment-calendar-footer
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-copy strong, .assignment-calendar-heading strong,
+    .assignment-calendar-month strong, .assignment-calendar-legend > strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-calendar-heading button, .assignment-calendar-month button,
+    .assignment-calendar-footer button
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-calendar-day {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-calendar-day.is-selected {
+    background: #28466b;
+    border-color: #79aaff;
+    color: #fff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-calendar-legend, .assignment-calendar-footer
+) { border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-client-route-group th, .assignment-client-route-group span
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-card {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-card label {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-value {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip, .assignment-fleet-tab,
+    .assignment-driver-choice, .assignment-bus-choice
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-fleet-tab.is-active,
+    .assignment-driver-choice.is-selected, .assignment-bus-choice.is-selected
+) {
+    background: #28466b;
+    border-color: #77aaff;
+    color: #fff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip-main strong, .assignment-pair-header strong,
+    .assignment-step-heading strong, .assignment-driver-choice strong,
+    .assignment-bus-choice strong, .assignment-fleet-tab,
+    .assignment-driver-first-step .assignment-step-heading strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip-main span, .assignment-pair-header small,
+    .assignment-step-heading span, .assignment-driver-choice small,
+    .assignment-bus-choice small, .assignment-fleet-note
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .ui-form-actions, .ui-form-modal-body
+) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-driver-choice:hover, .assignment-bus-choice:hover
+) { background: var(--gct-theme-hover); }
