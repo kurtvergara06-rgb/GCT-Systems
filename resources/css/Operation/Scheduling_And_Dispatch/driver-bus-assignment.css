@@ -2683,7 +2683,7 @@
 
 /* Keep full Trip ID readable: no badge overflow into the Schedule column. */
 .assignment-page .assignment-table tbody td:first-child { min-width: 0; }
-.assignment-page .assignment-table tbody td:first-child :is(.trip-id, .trip-id-badge, .assignment-trip-id, code, strong) {
+.assignment-page .assignment-table tbody td:first-child .system-id-badge {
     display: inline-block;
     max-width: 100%;
     box-sizing: border-box;
