@@ -4111,3 +4111,211 @@
     color: var(--gct-theme-muted, #b1bfd2);
   }
 }
+
+
+/* Incident Records Active/History — verified dark table selectors.
+   The base incident header uses background-color !important; explicitly
+   override that declaration without affecting other modules or Light Mode. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-wrap {
+    background: #162235;
+    border-color: #35465e;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table thead,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table thead th {
+    background: #22324a;
+    background-color: #22324a !important;
+    color: #b8cbe5;
+    border-color: #40536d;
+    box-shadow: none;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table tbody tr:not(.inc-expanded-row) {
+    background: #162235;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table tbody tr:not(.inc-expanded-row):nth-child(even) {
+    background: #1b2a40;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table tbody tr:not(.inc-expanded-row):hover {
+    background: #263a55;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table tbody tr:not(.inc-expanded-row) > td {
+    color: #edf3fc;
+    border-color: #35465e;
+    background: transparent;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-route-cell > span,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-driver-info strong,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-bus-identity strong {
+    color: #edf3fc;
+    overflow-wrap: anywhere;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table :is(.inc-route-cell small,
+      .inc-driver-info small, .inc-bus-identity small) {
+    color: #b1bfd2;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table :is(.inc-driver-icon, .inc-bus-avatar) {
+    background: #28466b;
+    color: #a9cbff;
+    border-color: #5276a4;
+  }
+
+  /* Semantic incident types: muted dark fills, not pale Light Mode pills. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill {
+    background: #253650;
+    border: 1px solid #4a6282;
+    color: #e3ecfb;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill.breakdown {
+    background: #233a59;
+    color: #d4e7ff;
+    border-color: #4b78aa;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill.accident {
+    background: #49272e;
+    color: #ffd6dc;
+    border-color: #a75565;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill.traffic {
+    background: #45361f;
+    color: #ffe2a7;
+    border-color: #98783c;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill:is(.route-deviation, .other) {
+    background: #382d51;
+    color: #e6d7ff;
+    border-color: #7960a3;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-type-pill i {
+    color: currentColor;
+    flex-shrink: 0;
+  }
+
+  /* These are the real status selectors emitted by x-ui.status-badge. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"] {
+    background: #293c55;
+    border-color: #526b8c;
+    color: #d8e8ff;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-status-dot-pill[data-status-key="reported"] {
+    background: #213b60;
+    color: #b8d8ff;
+    border-color: #527fb5;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-status-dot-pill:is(
+      [data-status-key="monitoring"], [data-status-key="responding"]) {
+    background: #42331e;
+    color: #ffda98;
+    border-color: #9d7839;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-status-dot-pill:is(
+      [data-status-key="resolved"], [data-status-key="replacement-bus-dispatched"]) {
+    background: #1c3d32;
+    color: #acf1ce;
+    border-color: #49886c;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table td .inc-status-dot-pill[data-status-key="cancelled"] {
+    background: #303a4a;
+    color: #d2d9e5;
+    border-color: #66758a;
+  }
+
+  /* Actual Active action buttons and History's labeled View action. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-action:not(:disabled):not(.inc-action-disabled) {
+    background: #263b58;
+    color: #c3ddff;
+    border-color: #5274a1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-action:not(:disabled):not(.inc-action-disabled):hover {
+    background: #315277;
+    color: #ffffff;
+    border-color: #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-delete-action:not(:disabled):not(.inc-action-disabled) {
+    background: #48272e;
+    color: #ffc0c7;
+    border-color: #a85d6b;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-delete-action:not(:disabled):not(.inc-action-disabled):hover {
+    background: #63313c;
+    color: #ffe1e5;
+    border-color: #d18793;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-action:disabled,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-record-actions .inc-action.inc-action-disabled {
+    background: #293548;
+    color: #97a7be;
+    border-color: #45556b;
+    opacity: 1;
+    cursor: not-allowed;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-history-actions button.inc-history-view-action {
+    background: #263b58;
+    color: #c3ddff;
+    border-color: #5274a1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table .inc-history-actions button.inc-history-view-action:hover {
+    background: #315277;
+    color: #ffffff;
+    border-color: #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table-footer {
+    color: #b1bfd2;
+  }
+
+  /* Prevent long incident identifiers and status labels from overlapping. */
+  .inc-page .inc-table td { min-width: 0; }
+  .inc-page .inc-table .inc-incident-id-cell {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .inc-page .inc-table .inc-incident-id-cell .system-id-badge {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+}
