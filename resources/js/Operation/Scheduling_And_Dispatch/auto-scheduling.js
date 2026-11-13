@@ -1568,7 +1568,7 @@ function updateMlStatus(conflicts) {
 
 
         document.querySelectorAll('[data-remove-index]').forEach((button) => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const index = Number(button.dataset.removeIndex);
 
                 if (
@@ -1602,6 +1602,38 @@ function updateMlStatus(conflicts) {
                 updateMlStatus(schedulingConflicts);
 
                 updateReadyBadgeOnly();
+
+                // Recheck eligible regular/reserve driver-bus combinations on
+                // the server after Remove, without regenerating the whole draft.
+                const removedKey = conflictIdentity(removed);
+                try {
+                    const refreshed = await previewEditRequest({
+                        trip_schedule_id: removed.trip_schedule_id,
+                        list_alternative_pairs: true,
+                        recommendations: otherPreviewAssignments(),
+                    });
+                    const current = schedulingConflicts.find((conflict) =>
+                        conflictIdentity(conflict) === removedKey
+                        && conflict.issue_type === 'recommendation_removed'
+                    );
+                    if (!current) return;
+                    const pairs = Array.isArray(refreshed.valid_pairs) ? refreshed.valid_pairs : [];
+                    current.ai = {
+                        ...(current.ai || {}),
+                        valid_pairs: pairs,
+                        alternative_drivers: refreshed.alternative_drivers || [],
+                        alternative_buses: refreshed.alternative_buses || [],
+                    };
+                    current.missing_driver = !pairs.length;
+                    current.missing_bus = !pairs.length;
+                    renderConflicts(schedulingConflicts);
+                } catch (error) {
+                    window.showSystemToast?.(
+                        'Alternative check unavailable. Regenerate or review the slot manually.',
+                        'warning',
+                        'Could not refresh alternatives'
+                    );
+                }
             });
         });
 
@@ -3215,10 +3247,12 @@ function updateMlStatus(conflicts) {
             </button>`;
         };
         const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'));
+        const reservePairs = validPairs.filter(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const recommendedPair = regularPairs[0] || null;
-        const alternativePairs = validPairs.filter(pair => pair !== recommendedPair);
-        const activeTab = recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative');
-        const hasReservePair = validPairs.some(pair => String(pair.bus_label || '').includes('(Reserve)'));
+        const alternativePairs = regularPairs.slice(1);
+        const activeTab = recommendationTabs.get(index)
+            || (recommendedPair ? 'recommended' : reservePairs.length ? 'reserve' : 'alternative');
+        const hasReservePair = reservePairs.length > 0;
         const reserveOnlyOptions = validPairs.length > 0 && validPairs.every(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const issueTitle = reserveOnlyOptions
             ? 'No automatic Regular Bus assignment available.'
@@ -3303,9 +3337,13 @@ function updateMlStatus(conflicts) {
                         data-gct-conflict-index="${index}" class="${activeTab === 'recommended' ? 'active' : ''}">
                         Recommended Assignments (${recommendedPair ? 1 : 0})
                     </button>
+                    <button type="button" role="tab" data-gct-option-tab="reserve"
+                        data-gct-conflict-index="${index}" class="${activeTab === 'reserve' ? 'active' : ''}">
+                        Reserve Options (${reservePairs.length})
+                    </button>
                     <button type="button" role="tab" data-gct-option-tab="alternative"
                         data-gct-conflict-index="${index}" class="${activeTab === 'alternative' ? 'active' : ''}">
-                        Alternative Options (${alternativePairs.length})
+                        Other Alternatives (${alternativePairs.length})
                     </button>
                 </div>
                 <section class="gct-compact-pair-selector">
@@ -3313,9 +3351,13 @@ function updateMlStatus(conflicts) {
                         ? (recommendedPair
                             ? `<header><strong>Best eligible Regular Bus assignment</strong></header><div class="gct-compact-pair-list">${renderPairCard(recommendedPair)}</div>`
                             : '<div class="gct-report-empty">No eligible Regular Bus pair. Review alternatives for Head-approved Reserve options or defer this slot.</div>')
-                        : (alternativePairs.length
-                            ? `<header><strong>Other eligible pairs · Reserve requires Head review</strong><span>${alternativePairs.length} choices</span></header><div class="gct-compact-pair-list">${alternativePairs.map(renderPairCard).join('')}</div>`
-                            : '<div class="gct-report-empty">No additional eligible pair is available.</div>')}
+                        : activeTab === 'reserve'
+                            ? (reservePairs.length
+                                ? `<header><strong>Reserve buses · Operations Head only</strong><span>${reservePairs.length} choices</span></header><div class="gct-compact-pair-list">${reservePairs.map(renderPairCard).join('')}</div>`
+                                : '<div class="gct-report-empty">No eligible Reserve Bus–Driver pair is available.</div>')
+                            : (alternativePairs.length
+                                ? `<header><strong>Other eligible Regular Bus pairs</strong><span>${alternativePairs.length} choices</span></header><div class="gct-compact-pair-list">${alternativePairs.map(renderPairCard).join('')}</div>`
+                                : '<div class="gct-report-empty">No additional eligible Regular Bus pair is available.</div>')}
                 </section>
                                 <details class="gct-compact-details">
                     <summary>Detailed explanation and AI findings</summary>
