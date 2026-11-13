@@ -790,6 +790,56 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     }
 }
 
+/* Client Master shared Add/Edit/View dark palette. Keep compact layouts in
+   client-master-list.css; theme every read-only profile surface here. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) {
+        --client-dialog-surface: var(--gct-theme-surface);
+        --client-dialog-raised: var(--gct-theme-surface-raised);
+        --client-dialog-fg: var(--gct-theme-fg);
+        --client-dialog-muted: var(--gct-theme-muted);
+        --client-dialog-border: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary > div,
+        .client-profile-identity, .client-profile-detail-grid > div,
+        .client-master-form-section
+    ) {
+        background: var(--client-dialog-raised);
+        border-color: var(--client-dialog-border);
+        color: var(--client-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary strong, .client-profile-identity-text strong,
+        .client-profile-section-header strong, .client-profile-detail-grid dd,
+        .client-master-form-section h3
+    ) {
+        color: var(--client-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary small, .client-profile-identity-text small,
+        .client-profile-section-header small, .client-profile-detail-grid dt,
+        .client-profile-view-footnote, .client-master-form-note
+    ) {
+        color: var(--client-dialog-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(.client-profile-identity-icon, .client-profile-section-icon) {
+        background: #203d61;
+        color: #b5d4ff;
+        border-color: #36577e;
+    }
+}
+
 /* Shared Route palette for New/Edit (#routeModal) and read-only View
    (#routeDetailsModal). Keep sizes, layouts, map tiles and semantic messages
    in routes-stops.css; this is the one dark-only presentation layer. */
