@@ -5641,3 +5641,82 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
         flex: 1 1 145px;
     }
 }
+
+
+/* Compact six-column SCREEN preview; retain all eight source cells for the
+   existing eight-column Print Draft layout and its independent print rules.
+   Route remains visible in the client/route group header; time is repeated
+   beneath each Trip ID so each bus assignment stays one readable table row. */
+@media screen {
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions {
+        max-height: 440px;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
+        min-width: 980px;
+        width: 100%;
+        table-layout: fixed;
+    }
+    .auto-scheduling-page .auto-schedule-table .auto-col-time,
+    .auto-scheduling-page .auto-schedule-table .auto-col-route,
+    .auto-scheduling-page .auto-schedule-table thead th:nth-child(2),
+    .auto-scheduling-page .auto-schedule-table thead th:nth-child(3),
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td:nth-child(2),
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td:nth-child(3) {
+        display: none;
+    }
+    .auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 15%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-required { width: 14%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 20%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 13%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-result { width: 23%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 15%; }
+    .auto-scheduling-page .auto-schedule-table thead th:first-child::after {
+        content: " / TIME";
+    }
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td {
+        padding-top: 9px;
+        padding-bottom: 9px;
+    }
+    .auto-scheduling-page .auto-preview-trip-time {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+        gap: 2px;
+        line-height: 1.3;
+    }
+    .auto-scheduling-page .auto-preview-trip-time .auto-trip-main-id {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+    .auto-scheduling-page .auto-preview-departure {
+        color: var(--gct-ui-text, #1e293b);
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .auto-scheduling-page .auto-preview-arrival {
+        color: var(--gct-ui-muted, #64748b);
+        font-size: 10px;
+    }
+    .auto-scheduling-page .auto-schedule-table .schedule-status {
+        white-space: normal;
+        max-width: 100%;
+        overflow-wrap: break-word;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+        min-width: 124px;
+        width: 124px;
+    }
+}
+
+/* The print version already includes dedicated Time and Route cells. Avoid
+   repeating the compact on-screen time there. */
+@media print {
+    body:has(.auto-scheduling-page) .auto-schedule-table .auto-preview-departure,
+    body:has(.auto-scheduling-page) .auto-schedule-table .auto-preview-arrival {
+        display: none !important;
+    }
+}
