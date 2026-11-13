@@ -237,16 +237,6 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         editor.querySelector('input[name="start_time"]')?.focus();
     }
 
-    // Dismiss the anchored editor when a different part of the page is selected.
-    // The editor's own controls and its Add/Edit triggers stay interactive.
-    document.addEventListener('click', (event) => {
-        if (!activeRangeEditor) return;
-        if (activeRangeEditor.contains(event.target)) return;
-        const clickedTrigger = event.target.closest('.ctt-add-config, .ctt-edit-range');
-        if (clickedTrigger) return;
-        closeRangeEditor(activeRangeEditor);
-    });
-
     document.addEventListener('submit', async (event) => {
         const editor = event.target.closest('[data-ctt-range-editor]');
         if (!editor) return;
@@ -546,6 +536,32 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
             searchEmpty.hidden = !(visible === 0 && cards.length > 0);
         }
     }
+
+    // Keep branding controls compact until the user selects a file or removal.
+    document.querySelectorAll('.ctt-client-logo-form').forEach((form) => {
+        const file = form.querySelector('input[type="file"][name="logo"]');
+        const remove = form.querySelector('input[name="remove_logo"]');
+        const filename = form.querySelector('.ctt-logo-file-name');
+        const save = form.querySelector('.ctt-logo-save');
+        const pick = form.querySelector('.ctt-logo-pick span');
+        const originalLabel = pick?.textContent || 'Change';
+
+        function syncLogoActions() {
+            const selected = file?.files?.[0];
+            const removing = Boolean(remove?.checked) && !selected;
+            if (filename) {
+                filename.textContent = selected?.name || '';
+                filename.hidden = !selected;
+                filename.title = selected?.name || '';
+            }
+            if (save) save.hidden = !(selected || removing);
+            if (pick) pick.textContent = selected ? 'Change file' : originalLabel;
+            if (remove) remove.disabled = Boolean(selected);
+        }
+        file?.addEventListener('change', syncLogoActions);
+        remove?.addEventListener('change', syncLogoActions);
+        syncLogoActions();
+    });
 
     // Expand large allocation lists only when requested; leave the client card open.
     document.querySelectorAll('[data-ctt-buses-toggle]').forEach((button) => {
