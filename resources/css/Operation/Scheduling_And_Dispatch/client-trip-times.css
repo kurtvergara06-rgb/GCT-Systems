@@ -2247,7 +2247,7 @@
 }
 
 
-/* Popover time editor anchored to a category; opening it does not stretch the card grid. */
+/* Inline editor expands within its own category card; no floating overlay. */
 .client-trip-times-page .ctt-category-panel {
     position: relative;
 }
@@ -2256,31 +2256,24 @@
 }
 .client-trip-times-page .ctt-inline-range-editor[hidden] { display: none !important; }
 .client-trip-times-page .ctt-inline-range-editor {
-    position: absolute;
-    top: calc(100% - 12px);
-    left: 12px;
-    right: 12px;
-    z-index: 21;
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
-    max-height: min(420px, calc(100dvh - 140px));
-    margin: 0;
-    padding: 14px;
-    overflow-y: auto;
+    max-height: none;
+    margin: 8px 0 0;
+    padding: 11px;
+    overflow: visible;
     overscroll-behavior: contain;
     border: 1px solid var(--gct-ui-border, #d2e1f4);
     border-radius: 12px;
     background: var(--gct-ui-surface, #fff);
-    box-shadow: 0 16px 36px rgba(16, 40, 77, .20);
+    box-shadow: none;
 }
 @media (max-width: 700px) {
     .client-trip-times-page .ctt-inline-range-editor {
-        left: 4px;
-        right: 4px;
-        max-height: min(420px, calc(100dvh - 110px));
-        padding: 12px;
+        padding: 10px;
     }
 }
 .client-trip-times-page .ctt-inline-range-heading {
@@ -2294,7 +2287,7 @@
 .client-trip-times-page .ctt-inline-time-fields {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
+    gap: 7px;
 }
 .client-trip-times-page .ctt-inline-time-field {
     display: flex;
@@ -2308,8 +2301,8 @@
 .client-trip-times-page .ctt-inline-time-field input {
     box-sizing: border-box;
     width: 100%;
-    min-height: 39px;
-    padding: 7px 9px;
+    min-height: 35px;
+    padding: 6px 8px;
     border: 1px solid var(--gct-ui-border, #cddcf0);
     border-radius: 8px;
     background: var(--gct-ui-surface, #fff);
@@ -2451,29 +2444,30 @@
 .client-trip-times-page .ctt-client-icon { overflow: hidden; }
 .client-trip-times-page .ctt-client-icon img { display: block; width: 100%; height: 100%; object-fit: contain; background: #fff; border-radius: inherit; }
 
-/* Client branding editor — compact, responsive and theme-aware. */
+/* Compact client branding control: a single row until an upload is selected. */
 .client-trip-times-page .ctt-client-logo-settings {
-    display: grid;
-    grid-template-columns: 60px minmax(190px, 1fr) minmax(300px, 1.1fr);
+    display: flex;
     align-items: center;
-    gap: 14px;
-    margin: 12px 0;
-    padding: 15px 17px;
+    gap: 11px;
+    min-height: 62px;
+    margin: 8px 0;
+    padding: 9px 12px;
     border: 1px solid var(--gct-ui-border, #d6e2f0);
-    border-radius: 14px;
+    border-radius: 11px;
     background: var(--gct-ui-surface, #f8fbff);
 }
 .client-trip-times-page .ctt-client-logo-preview {
-    width: 60px;
-    height: 60px;
     display: grid;
     place-items: center;
-    border: 1px solid #d6e4f6;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
     overflow: hidden;
+    border: 1px solid #d6e4f6;
+    border-radius: 9px;
     background: #fff;
     color: #1759bb;
-    font-size: 23px;
+    font-size: 17px;
 }
 .client-trip-times-page .ctt-client-logo-preview img {
     display: block;
@@ -2484,173 +2478,162 @@
 .client-trip-times-page .ctt-client-logo-copy {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
-}
-.client-trip-times-page .ctt-logo-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--gct-ui-muted, #64748b);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: .09em;
+    flex: 1 1 auto;
 }
 .client-trip-times-page .ctt-client-logo-copy strong {
     color: var(--gct-ui-text, #1d3557);
-    font-size: 14px;
-    line-height: 1.3;
+    font-size: 12px;
 }
 .client-trip-times-page .ctt-client-logo-copy small {
     color: var(--gct-ui-muted, #64748b);
-    font-size: 11px;
-    line-height: 1.45;
+    font-size: 10px;
 }
 .client-trip-times-page .ctt-client-logo-form {
     display: flex;
-    align-items: end;
+    align-items: center;
     justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
 }
 .client-trip-times-page .ctt-logo-upload-control {
-    flex: 1 1 190px;
-    min-width: 0;
-}
-.client-trip-times-page .ctt-logo-upload-control > label {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    margin-bottom: 6px;
-    color: var(--gct-ui-text, #1d3557);
-    font-size: 11px;
-    font-weight: 750;
-    cursor: pointer;
-}
-.client-trip-times-page .ctt-logo-upload-control input[type="file"] {
-    box-sizing: border-box;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    padding: 5px 8px;
-    border: 1px solid var(--gct-ui-border, #cbd9ed);
-    border-radius: 9px;
-    background: var(--gct-ui-surface, #fff);
-    color: var(--gct-ui-text, #1d3557);
-    font: inherit;
-    font-size: 11px;
-}
-.client-trip-times-page .ctt-logo-upload-control input[type="file"]::file-selector-button {
-    margin-right: 9px;
-    padding: 7px 10px;
-    border: 0;
-    border-radius: 6px;
-    background: #e7f0ff;
-    color: #174e9a;
-    font: inherit;
-    font-weight: 750;
-    cursor: pointer;
-}
-.client-trip-times-page .ctt-logo-upload-control input[type="file"]:focus-visible {
-    outline: 2px solid #5a9dff;
-    outline-offset: 2px;
-}
-.client-trip-times-page .ctt-logo-upload-control small {
-    display: block;
-    margin-top: 5px;
-    color: var(--gct-ui-muted, #64748b);
-    font-size: 10px;
-}
-.client-trip-times-page .ctt-logo-form-actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 7px;
+    min-width: 0;
 }
-.client-trip-times-page .ctt-logo-remove {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--gct-ui-text, #1d3557);
-    font-size: 11px;
+.client-trip-times-page .ctt-logo-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
     white-space: nowrap;
-    cursor: pointer;
 }
+.client-trip-times-page .ctt-logo-pick,
 .client-trip-times-page .ctt-logo-save {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
-    min-height: 40px;
-    padding: 9px 13px;
-    border: 1px solid #1755b6;
-    border-radius: 9px;
-    background: #1555b8;
-    color: #fff;
+    min-height: 34px;
+    padding: 7px 11px;
+    border-radius: 8px;
     font-size: 11px;
     font-weight: 750;
-    cursor: pointer;
     white-space: nowrap;
-    transition: background .15s ease, border-color .15s ease;
+    cursor: pointer;
 }
-.client-trip-times-page .ctt-logo-save:hover {
-    background: #0c408f;
-    border-color: #0c408f;
+.client-trip-times-page .ctt-logo-pick {
+    border: 1px solid var(--gct-ui-border, #cbd9ed);
+    background: #edf4ff;
+    color: #1555b8;
 }
-.client-trip-times-page .ctt-logo-save:focus-visible {
-    outline: 2px solid #79aafa;
+.client-trip-times-page .ctt-logo-file-input:focus-visible + .ctt-logo-pick {
+    outline: 2px solid #69a8ff;
     outline-offset: 2px;
 }
-.client-trip-times-page .ctt-logo-success {
-    padding: 9px 12px;
-    color: #047444;
-    font-size: 12px;
+.client-trip-times-page .ctt-logo-save {
+    border: 1px solid #1656b1;
+    background: #1656b1;
+    color: #fff;
 }
+.client-trip-times-page .ctt-logo-pick:hover { background: #dfeaff; }
+.client-trip-times-page .ctt-logo-save:hover { background: #10418e; }
+.client-trip-times-page .ctt-logo-file-name {
+    display: inline-block;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--gct-ui-muted, #64748b);
+    font-size: 10px;
+}
+.client-trip-times-page .ctt-logo-file-name[hidden],
+.client-trip-times-page .ctt-logo-save[hidden] { display: none !important; }
+.client-trip-times-page .ctt-logo-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gct-ui-muted, #64748b);
+    font-size: 10px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.client-trip-times-page .ctt-logo-success { padding: 7px 10px; color: #047444; font-size: 11px; }
 html[data-gct-theme="dark"] .client-trip-times-page .ctt-client-logo-settings {
     background: var(--gct-theme-surface-raised);
     border-color: var(--gct-theme-border);
 }
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-client-logo-copy strong {
+    color: var(--gct-theme-fg);
+}
 html[data-gct-theme="dark"] .client-trip-times-page :is(
-    .ctt-client-logo-copy strong, .ctt-logo-upload-control > label,
-    .ctt-logo-remove, .ctt-logo-upload-control input[type="file"]
-) { color: var(--gct-theme-fg); }
-html[data-gct-theme="dark"] .client-trip-times-page :is(
-    .ctt-logo-eyebrow, .ctt-client-logo-copy small, .ctt-logo-upload-control small
+    .ctt-client-logo-copy small, .ctt-logo-remove, .ctt-logo-file-name
 ) { color: var(--gct-theme-muted); }
-html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-upload-control input[type="file"] {
-    background: var(--gct-theme-input);
-    border-color: var(--gct-theme-border);
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-pick {
+    background: #243b59;
+    color: #dceaff;
+    border-color: #45658c;
 }
-html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-upload-control input[type="file"]::file-selector-button {
-    background: #284769;
-    color: #dbeaff;
-}
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-pick:hover { background: #315177; }
 html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-save {
-    background: #2b61af;
-    border-color: #3b78c9;
-    color: #fff;
+    background: #2a61b2;
+    border-color: #3d79c9;
 }
-html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-save:hover {
-    background: #397bd2;
-}
+html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-save:hover { background: #397bd2; }
 html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-success { color: #a6ebc9; }
-@media (max-width: 1100px) {
-    .client-trip-times-page .ctt-client-logo-settings {
-        grid-template-columns: 60px minmax(0, 1fr);
-    }
-    .client-trip-times-page .ctt-client-logo-form { grid-column: 1 / -1; }
+
+/* Compact time-category cards. The expanded editor grows only its own card. */
+.client-trip-times-page .ctt-category-grid { gap: 8px; }
+.client-trip-times-page .ctt-category-panel {
+    min-height: 0;
+    padding: 10px 11px;
+    gap: 5px;
+    align-self: start;
 }
-@media (max-width: 600px) {
-    .client-trip-times-page .ctt-client-logo-settings {
-        grid-template-columns: 48px minmax(0, 1fr);
-        gap: 10px;
-        padding: 12px;
-    }
-    .client-trip-times-page .ctt-client-logo-preview { width: 48px; height: 48px; }
-    .client-trip-times-page .ctt-client-logo-form { justify-content: stretch; }
-    .client-trip-times-page .ctt-logo-form-actions { width: 100%; justify-content: space-between; }
+.client-trip-times-page .ctt-category-panel > .ctt-panel-header {
+    min-height: 30px;
+    margin: 0;
+}
+.client-trip-times-page .ctt-direction-icon {
+    width: 34px;
+    height: 34px;
+}
+.client-trip-times-page .ctt-category-panel > .ctt-panel-empty {
+    display: flex;
+    min-height: 27px;
+    margin: 2px 0 0;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.client-trip-times-page .ctt-panel-empty > span { flex: 1 1 auto; }
+.client-trip-times-page .ctt-panel-empty .ctt-btn {
+    min-height: 30px;
+    padding: 5px 9px;
+    font-size: 11px;
+}
+.client-trip-times-page .ctt-inline-range-editor {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    max-height: none;
+    padding: 10px;
+    margin: 8px 0 0;
+    overflow: visible;
+    box-shadow: none;
+}
+@media (max-width: 780px) {
+    .client-trip-times-page .ctt-client-logo-settings { flex-wrap: wrap; }
+    .client-trip-times-page .ctt-client-logo-form { flex-basis: 100%; justify-content: flex-start; }
+}
+@media (max-width: 500px) {
+    .client-trip-times-page .ctt-client-logo-settings { padding: 9px; }
+    .client-trip-times-page .ctt-logo-file-name { max-width: 100px; }
+    .client-trip-times-page .ctt-category-panel > .ctt-panel-empty { align-items: flex-start; }
 }
