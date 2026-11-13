@@ -985,15 +985,17 @@
                 <button type="button" class="assignment-fleet-tab" data-assignment-fleet="Reserve" aria-pressed="false">Reserve Buses</button>
             </div>
             <p class="assignment-fleet-note" id="assignmentFleetNote">Regular buses require driver authorization and a matching client.</p>
-            <div class="assignment-driver-first-step">
-                <div class="assignment-step-heading"><strong>1. Select Driver</strong><span id="assignmentDriverCount"></span></div>
-                <input type="search" id="assignmentPairSearch" placeholder="Search driver name or ID..." aria-label="Search eligible drivers">
-                <div class="assignment-driver-first-list" id="assignmentDriverFirstList" role="group" aria-label="Eligible drivers"></div>
-            </div>
-            <div class="assignment-driver-first-step">
-                <div class="assignment-step-heading"><strong>2. Select Bus</strong><span id="assignmentSelectedDriverSummary">Choose a driver above</span></div>
-                <div class="assignment-driver-first-buses" id="assignmentPairList" role="group" aria-label="Eligible buses for selected driver" aria-live="polite">
-                    <p class="assignment-pair-empty">Select a driver to see available buses.</p>
+            <div class="assignment-driver-bus-grid">
+                <div class="assignment-driver-first-step">
+                    <div class="assignment-step-heading"><strong>1. Select Driver</strong><span id="assignmentDriverCount"></span></div>
+                    <input type="search" id="assignmentPairSearch" placeholder="Search driver name or ID..." aria-label="Search eligible drivers">
+                    <div class="assignment-driver-first-list" id="assignmentDriverFirstList" role="group" aria-label="Eligible drivers"></div>
+                </div>
+                <div class="assignment-driver-first-step">
+                    <div class="assignment-step-heading"><strong>2. Select Bus</strong><span id="assignmentSelectedDriverSummary" aria-live="polite">Choose a driver above</span></div>
+                    <div class="assignment-driver-first-buses" id="assignmentPairList" role="group" aria-label="Eligible buses for selected driver" aria-live="polite">
+                        <p class="assignment-pair-empty">Select a driver to see available buses.</p>
+                    </div>
                 </div>
             </div>
         </section>
