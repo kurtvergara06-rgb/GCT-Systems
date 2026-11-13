@@ -202,7 +202,7 @@ class ClientMasterListController extends Controller
 
                 return $oldPath;
             }, 5);
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($newPath) Storage::disk('public')->delete($newPath);
             throw $exception;
         }
