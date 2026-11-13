@@ -197,9 +197,10 @@
                         aria-live="polite"
                         data-status-url="{{ route('auto-scheduling.ai.training-status') }}"
                     >
-                        <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Alternative Score Sources</span>
-                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: Checking...</span>
-                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: Checking...</span>
+                        <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> AI / ML Engine</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Checking</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus Model: Checking...</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver Model: Checking...</span>
                     </div>
 
                     <button
