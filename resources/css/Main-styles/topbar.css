@@ -21,3 +21,173 @@
   transform-origin: top center;
 }
 
+
+
+/* System-wide Topbar notification center (all five departments).
+   Semantic accents are shared; surfaces adapt to the active site theme. */
+.topbar .topbar-dropdown {
+  width: min(420px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+}
+.topbar .topbar-dropdown.is-open {
+  animation: gctTopbarReveal 180ms cubic-bezier(.2,.7,.25,1) both;
+  transform-origin: top right;
+}
+@keyframes gctTopbarReveal {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.topbar .topbar-dropdown-body { max-height: 380px; scrollbar-width: thin; }
+.topbar .topbar-list-item { align-items: flex-start; gap: 12px; padding: 12px 15px; }
+.topbar .topbar-list-heading {
+  display: block; margin-bottom: 2px; font-size: 12px; font-weight: 800;
+  line-height: 1.35; color: #102a4c;
+}
+.topbar .topbar-list-title {
+  font-size: 12px; font-weight: 500; line-height: 1.5;
+  color: #334155; overflow-wrap: anywhere;
+}
+.topbar .topbar-list-item.is-unread .topbar-list-title { font-weight: 650; }
+.topbar .topbar-unread-dot {
+  flex: 0 0 7px; height: 7px; width: 7px; margin-top: 8px;
+  border-radius: 50%; background: #2563eb;
+}
+.topbar .topbar-list-icon { background: #dbeafe; color: #1d4ed8; }
+.topbar .topbar-list-item[data-tone="success"] .topbar-list-icon { background: #dcfce7; color: #166534; }
+.topbar .topbar-list-item[data-tone="warning"] .topbar-list-icon { background: #fef3c7; color: #92400e; }
+.topbar .topbar-list-item[data-tone="critical"] .topbar-list-icon { background: #fee2e2; color: #b91c1c; }
+.topbar .topbar-list-item:not(.is-unread) { background: #fff; }
+.topbar .topbar-list-item.is-unread { background: #eef5ff; }
+.topbar .topbar-list-item:hover { background: #e8f1ff; }
+.topbar .topbar-dropdown-footer {
+  display: flex; justify-content: center; padding: 9px 12px;
+  background: #f8fafc; border-top: 1px solid #e2e8f0;
+}
+.topbar .topbar-view-all {
+  border: 0; padding: 7px 13px; border-radius: 8px;
+  background: transparent; color: #175ac0; font-size: 12px;
+  font-weight: 750; cursor: pointer;
+}
+.topbar .topbar-view-all:hover { background: #e8f1ff; }
+.topbar .topbar-view-all[hidden] { display: none; }
+.topbar-history-backdrop[hidden] { display: none !important; }
+.topbar-history-backdrop {
+  position: fixed; inset: 0; z-index: 11000; padding: 20px;
+  display: grid; place-items: center; background: rgba(5,14,28,.70);
+  box-sizing: border-box;
+}
+body.topbar-history-open { overflow: hidden; }
+.topbar-history-panel {
+  display: flex; flex-direction: column; width: min(670px, 100%);
+  max-height: min(85dvh, 760px); overflow: hidden;
+  background: #fff; color: #102a4c; border: 1px solid #dce5f2;
+  border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.25);
+}
+.topbar-history-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+}
+.topbar-history-header h2 { font-size: 18px; margin: 0; font-weight: 800; color: inherit; }
+.topbar-history-header p { margin: 5px 0 0; font-size: 12px; color: #64748b; }
+.topbar-history-close {
+  flex: 0 0 36px; height: 36px; border-radius: 9px;
+  background: #f1f5f9; color: #102a4c; border: 1px solid #dce5f2; cursor: pointer;
+}
+.topbar-history-controls { display: flex; gap: 8px; padding: 10px 20px; border-bottom: 1px solid #e2e8f0; }
+.topbar-history-controls[hidden] { display: none; }
+.topbar-history-controls button {
+  padding: 7px 15px; border-radius: 8px; cursor: pointer;
+  color: #334155; background: #f1f5f9; border: 1px solid #dce5f2;
+}
+.topbar-history-controls button.is-active { color: #175ac0; background: #e8f1ff; border-color: #a8cbf7; }
+.topbar-history-list { overflow: auto; flex: 1; min-height: 100px; scrollbar-width: thin; }
+.topbar-history-list .topbar-list-item { display: flex; }
+.topbar-history-list .topbar-list-item { text-decoration: none; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; gap: 12px; }
+.topbar-history-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 12px 20px; border-top: 1px solid #e2e8f0;
+  font-size: 11px; color: #64748b;
+}
+.topbar-history-footer > div { display: flex; gap: 6px; }
+.topbar-history-nav {
+  padding: 7px 11px; border: 1px solid #cbd5e1; border-radius: 8px;
+  background: #f8fafc; color: #102a4c; font-weight: 700; cursor: pointer;
+}
+.topbar-history-nav:disabled { opacity: .45; cursor: not-allowed; }
+.topbar-history-backdrop .topbar-list-icon { display: flex; }
+.topbar-history-backdrop .topbar-list-heading { display: block; font-size: 12px; font-weight: 800; color: #102a4c; }
+.topbar-history-backdrop .topbar-list-title { display: block; font-size: 12px; color: #334155; line-height: 1.45; }
+.topbar-history-backdrop .topbar-list-meta { display: block; color: #64748b; margin-top: 4px; font-size: 11px; }
+.topbar-history-backdrop .topbar-list-content { flex: 1; min-width: 0; }
+.topbar-history-backdrop .topbar-list-item { align-items: flex-start; background: #fff; color: #102a4c; }
+.topbar-history-backdrop .topbar-list-item.is-unread { background: #eef5ff; }
+.topbar-history-backdrop .topbar-list-item:hover { background: #e8f1ff; }
+.topbar-history-backdrop .topbar-list-icon { width: 36px; height: 36px; flex: 0 0 36px; align-items: center; justify-content: center; border-radius: 9px; background: #dbeafe; color: #1d4ed8; }
+.topbar-history-backdrop .topbar-list-item[data-tone="success"] .topbar-list-icon { background: #dcfce7; color: #166534; }
+.topbar-history-backdrop .topbar-list-item[data-tone="warning"] .topbar-list-icon { background: #fef3c7; color: #92400e; }
+.topbar-history-backdrop .topbar-list-item[data-tone="critical"] .topbar-list-icon { background: #fee2e2; color: #b91c1c; }
+.topbar-history-backdrop .topbar-unread-dot { flex: 0 0 7px; width: 7px; height: 7px; margin-top: 9px; border-radius: 50%; background: #2563eb; }
+
+/* Applies wherever the user has enabled Dark Mode, not only Operation. */
+html[data-gct-theme="dark"] .topbar .topbar-dropdown,
+html[data-gct-theme="dark"] .topbar-history-panel {
+  background: #162235; color: #edf3fc; border-color: #35465e;
+}
+html[data-gct-theme="dark"] .topbar :is(.topbar-dropdown-header, .topbar-dropdown-footer) {
+  background: #203047; border-color: #35465e;
+}
+html[data-gct-theme="dark"] .topbar .topbar-dropdown-header :is(h3, strong) { color: #edf3fc; }
+html[data-gct-theme="dark"] .topbar .topbar-dropdown-header p { color: #b1bfd2; }
+html[data-gct-theme="dark"] .topbar .topbar-text-button,
+html[data-gct-theme="dark"] .topbar .topbar-view-all { color: #a9cbff; }
+html[data-gct-theme="dark"] .topbar .topbar-text-button:disabled { color: #91a3bc; }
+html[data-gct-theme="dark"] .topbar .topbar-view-all:hover { background: #28466b; }
+html[data-gct-theme="dark"] .topbar :is(.topbar-list-item, .topbar-list-item:not(.is-unread)),
+html[data-gct-theme="dark"] .topbar-history-backdrop :is(.topbar-list-item, .topbar-list-item:not(.is-unread)) {
+  background: #162235; color: #edf3fc; border-color: #35465e;
+}
+html[data-gct-theme="dark"] .topbar .topbar-list-item.is-unread,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-item.is-unread { background: #213b59; }
+html[data-gct-theme="dark"] .topbar .topbar-list-item:hover,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-item:hover { background: #293a52; }
+html[data-gct-theme="dark"] .topbar .topbar-list-heading,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-heading { color: #edf3fc; }
+html[data-gct-theme="dark"] .topbar .topbar-list-title,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-title { color: #dce6f4; }
+html[data-gct-theme="dark"] .topbar .topbar-list-meta,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-meta { color: #b1bfd2; }
+html[data-gct-theme="dark"] .topbar .topbar-list-icon,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-icon { background: #213b60; color: #a9cbff; }
+html[data-gct-theme="dark"] .topbar .topbar-list-item[data-tone="success"] .topbar-list-icon,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-item[data-tone="success"] .topbar-list-icon { background: #1c3d32; color: #acf1ce; }
+html[data-gct-theme="dark"] .topbar .topbar-list-item[data-tone="warning"] .topbar-list-icon,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-item[data-tone="warning"] .topbar-list-icon { background: #42331e; color: #ffda98; }
+html[data-gct-theme="dark"] .topbar .topbar-list-item[data-tone="critical"] .topbar-list-icon,
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-list-item[data-tone="critical"] .topbar-list-icon { background: #49272e; color: #ffc0c7; }
+html[data-gct-theme="dark"] .topbar-history-header,
+html[data-gct-theme="dark"] .topbar-history-controls,
+html[data-gct-theme="dark"] .topbar-history-footer { border-color: #35465e; }
+html[data-gct-theme="dark"] .topbar-history-header p,
+html[data-gct-theme="dark"] .topbar-history-footer { color: #b1bfd2; }
+html[data-gct-theme="dark"] .topbar-history-close,
+html[data-gct-theme="dark"] .topbar-history-nav,
+html[data-gct-theme="dark"] .topbar-history-controls button { background: #203047; color: #edf3fc; border-color: #465a76; }
+html[data-gct-theme="dark"] .topbar-history-controls button.is-active { background: #28466b; color: #a9cbff; border-color: #8bbaff; }
+html[data-gct-theme="dark"] .topbar :is(.topbar-empty-state strong, .topbar-empty-state p),
+html[data-gct-theme="dark"] .topbar-history-backdrop :is(.topbar-empty-state strong, .topbar-empty-state p) { color: #dce6f4; }
+html[data-gct-theme="dark"] .topbar :is(.topbar-empty-icon, .topbar-list-count),
+html[data-gct-theme="dark"] .topbar-history-backdrop .topbar-empty-icon { background: #28466b; color: #a9cbff; }
+@media (max-width: 700px) {
+  .topbar .topbar-dropdown { right: 14px; left: 14px; width: auto; max-width: none; }
+  .topbar-history-backdrop { padding: 10px; }
+  .topbar-history-panel { max-height: calc(100dvh - 20px); }
+  .topbar-history-header, .topbar-history-footer { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar .topbar-dropdown.is-open,
+  .icon-btn.notification.is-ringing i,
+  .topbar .icon-btn.notification.is-ringing i {
+    animation: none !important;
+  }
+  .topbar .topbar-list-item { transition: none; }
+}
