@@ -51,16 +51,20 @@ window.GCTPartialNavigation.registerInitializer('shared-topbar', '.topbar', func
   }
 
   function notificationTitle(item, isActivity = false) {
-    if (isActivity) return 'System Activity';
     const action = String(item.action || '').toLowerCase();
+    const entity = String(item.entity || '').toLowerCase();
+    const module = String(item.module || '').toLowerCase();
     const message = String(item.message || '').toLowerCase();
-    if (/cancel/.test(action + ' ' + message)) return 'Trip Cancelled';
-    if (/status.*updat|status.*advanc/.test(action + ' ' + message)) return 'Trip Status Updated';
+    const trip = entity === 'tripschedule' || (module === 'operation' && /\btrip\b/.test(message));
+    if (/cancel/.test(action + ' ' + message)) return trip ? 'Trip Cancelled' : 'Record Cancelled';
+    if (trip && /status.*updat|status.*advanc/.test(action + ' ' + message)) return 'Trip Status Updated';
     if (/breakdown|incident/.test(action + ' ' + message)) return 'Incident Update';
     if (/approv/.test(action + ' ' + message)) return 'Request Approved';
     if (/reject/.test(action + ' ' + message)) return 'Request Rejected';
     if (/review|pending/.test(action + ' ' + message)) return 'Action Required';
-    return 'System Update';
+    if (/created|added/.test(action + ' ' + message)) return isActivity ? 'Record Created' : 'New Record';
+    if (/update|change/.test(action)) return 'Record Updated';
+    return isActivity ? 'Recorded Activity' : 'System Update';
   }
 
   function renderNotificationItem(item, isActivity = false) {
