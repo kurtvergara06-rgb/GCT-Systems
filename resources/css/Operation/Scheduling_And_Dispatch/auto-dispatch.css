@@ -3277,7 +3277,29 @@ body.ai-modal-open {
 .auto-scheduling-page .scheduling-rules-card .rules-grid[hidden] { display: none !important; }
 .auto-scheduling-page .generated-schedule-card { min-height: 390px; }
 .auto-scheduling-page .auto-table-wrap { min-height: 0; }
-.auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) { min-height: 0; }
+/* Empty preview tables use the panel width; no phantom horizontal scrollbar. */
+.auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) {
+    min-height: 0;
+    overflow-x: hidden;
+}
+@media screen {
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: auto;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table thead {
+        display: none;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table tbody > tr > td[colspan] {
+        display: table-cell;
+        width: 100%;
+        padding: 0;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table tbody > tr > td[colspan] .auto-empty-state {
+        min-height: 130px;
+    }
+}
 .auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) .auto-empty-state {
     min-height: 114px;
     padding: 14px 12px;
