@@ -194,8 +194,7 @@
                     <table class="assignment-table">
                         <thead>
                             <tr>
-                                <th>Trip ID</th>
-                                <th>Schedule</th>
+                                <th>Time / Trip ID</th>
                                 <th>Route</th>
                                 <th>Driver</th>
                                 <th>Bus</th>
@@ -275,7 +274,7 @@
 
                                 @if($showClientRouteHeading)
                                     <tr class="assignment-client-route-group">
-                                        <th colspan="7" scope="rowgroup">
+                                        <th colspan="6" scope="rowgroup">
                                             <span>Client: {{ $clientLabel }}</span>
                                             <strong>Route {{ $routeLabel }} · {{ $routeNameLabel }}</strong>
                                         </th>
@@ -284,8 +283,10 @@
 
                                 @if($tripAssignments->isEmpty() && $assignedRentals->isEmpty())
                                     <tr class="unassigned-row">
-                                        <td>
-                                            <x-ui.id-badge :value="$trip->trip_code" />
+                                        <td class="assignment-trip-schedule-cell"><div class="assignment-trip-schedule"><div class="schedule-cell">
+                                                <strong>{{ $departureDateTime->format('g:i A') }}</strong>
+                                                <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
+                                            </div><div class="assignment-trip-reference"><x-ui.id-badge :value="$trip->trip_code" />
                                             @if($requiredCount > 1)
                                                 <span class="assignment-slot-badge" style="display: block; font-size: 0.725rem; color: var(--assign-muted); margin-top: 2px;">
                                                     0/{{ $requiredCount }} Buses
@@ -296,15 +297,7 @@
                                                     <i class="fa-solid {{ ($externalRental || $pendingSlotDecision?->decision === 'external_bus') ? 'fa-building' : 'fa-user-gear' }}" aria-hidden="true"></i>
                                                     {{ $pendingDecisionLabel }}
                                                 </span>
-                                            @endif
-                                        </td>
-
-                                        <td>
-                                            <div class="schedule-cell">
-                                                <strong>{{ $departureDateTime->format('g:i A') }}</strong>
-                                                <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
-                                            </div>
-                                        </td>
+                                            @endif</div></div></td>
 
                                         <td>
                                             <div class="route-cell">
@@ -453,21 +446,15 @@
                                             ];
                                         @endphp
                                         <tr>
-                                            <td>
-                                                <x-ui.id-badge :value="$trip->trip_code" />
+                                            <td class="assignment-trip-schedule-cell"><div class="assignment-trip-schedule"><div class="schedule-cell">
+                                                    <strong>{{ $departureDateTime->format('g:i A') }}</strong>
+                                                    <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
+                                                </div><div class="assignment-trip-reference"><x-ui.id-badge :value="$trip->trip_code" />
                                                 @if($requiredCount > 1)
                                                     <span class="assignment-slot-badge" style="display: block; font-size: 0.725rem; color: var(--assign-muted); margin-top: 2px;">
                                                         Slot {{ $assignment->slot_number ?? ($index + 1) }} of {{ $requiredCount }}
                                                     </span>
-                                                @endif
-                                            </td>
-
-                                            <td>
-                                                <div class="schedule-cell">
-                                                    <strong>{{ $departureDateTime->format('g:i A') }}</strong>
-                                                    <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
-                                                </div>
-                                            </td>
+                                                @endif</div></div></td>
 
                                             <td>
                                                 <div class="route-cell">
@@ -628,8 +615,7 @@
 
                                     @foreach($assignedRentals as $external)
                                         <tr>
-                                            <td><x-ui.id-badge :value="$trip->trip_code" /><div class="assignment-slot-badge">Slot {{ $external->slot_number }} of {{ $requiredCount }}</div></td>
-                                            <td><div class="schedule-cell"><strong>{{ $departureDateTime->format('g:i A') }}</strong><span>{{ $trip->trip_date?->format('M d, Y') }}</span></div></td>
+                                            <td class="assignment-trip-schedule-cell"><div class="assignment-trip-schedule"><div class="schedule-cell"><strong>{{ $departureDateTime->format('g:i A') }}</strong><span>{{ $trip->trip_date?->format('M d, Y') }}</span></div><div class="assignment-trip-reference"><x-ui.id-badge :value="$trip->trip_code" /><div class="assignment-slot-badge">Slot {{ $external->slot_number }} of {{ $requiredCount }}</div></div></div></td>
                                             <td><div class="route-cell"><strong>{{ $route?->route_code ?? '—' }}</strong><span>{{ $route?->route_name ?? '—' }}</span></div></td>
                                             <td><strong>{{ $external->driver_name }}</strong><div>External driver</div></td>
                                             <td><strong>{{ $external->plate_number }}</strong><div>{{ $external->company_name }} · Rented Bus</div></td>
@@ -641,19 +627,13 @@
 
                                     @if($assignedCount < $requiredCount && $canEditOperation && !$tripLocked && in_array($trip->status, ['Scheduled', 'Ready'], true))
                                         <tr class="unassigned-row">
-                                            <td>
-                                                <x-ui.id-badge :value="$trip->trip_code" />
-                                                <span class="assignment-slot-badge" style="display: block; font-size: 0.725rem; color: #b45309; font-weight: 600; margin-top: 2px;">
-                                                    Slot {{ $nextOpenSlot }} of {{ $requiredCount }} ({{ $pendingDecisionLabel ?? 'Pending' }})
-                                                </span>
-                                            </td>
-
-                                            <td>
-                                                <div class="schedule-cell">
+                                            <td class="assignment-trip-schedule-cell"><div class="assignment-trip-schedule"><div class="schedule-cell">
                                                     <strong>{{ $departureDateTime->format('g:i A') }}</strong>
                                                     <span>{{ $trip->trip_date?->format('M d, Y') }}</span>
-                                                </div>
-                                            </td>
+                                                </div><div class="assignment-trip-reference"><x-ui.id-badge :value="$trip->trip_code" />
+                                                <span class="assignment-slot-badge" style="display: block; font-size: 0.725rem; color: #b45309; font-weight: 600; margin-top: 2px;">
+                                                    Slot {{ $nextOpenSlot }} of {{ $requiredCount }} ({{ $pendingDecisionLabel ?? 'Pending' }})
+                                                </span></div></div></td>
 
                                             <td>
                                                 <div class="route-cell">
@@ -704,7 +684,7 @@
                                 @endif
                             @empty
                                 <x-ui.empty-row
-                                    colspan="7"
+                                    colspan="6"
                                     icon="fa-route"
                                     message="No Trip Schedules Found"
                                     description="No scheduled services match the selected date or filters."
