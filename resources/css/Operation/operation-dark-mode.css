@@ -790,107 +790,117 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     }
 }
 
-/* Shared dark appearance for New, Edit and View Route. Layout and semantic
-   route status/map messages remain defined in the Route component stylesheet. */
+/* Shared Route palette for New/Edit (#routeModal) and read-only View
+   (#routeDetailsModal). Keep sizes, layouts, map tiles and semantic messages
+   in routes-stops.css; this is the one dark-only presentation layer. */
 @media screen {
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) {
         --route-dialog-bg: var(--gct-theme-surface);
         --route-dialog-raised: var(--gct-theme-surface-raised);
+        --route-dialog-input: var(--gct-theme-input);
         --route-dialog-border: var(--gct-theme-border);
         --route-dialog-fg: var(--gct-theme-fg);
         --route-dialog-muted: var(--gct-theme-muted);
     }
-    /* Common shell and section backgrounds: override legacy light gradients. */
+
+    /* Modal chrome, section panels, and legacy white gradient headers. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body,
-        .ui-form-content, .ui-form-actions, .route-editor-section,
-        .route-view-modal, .route-view-header, .route-view-body, .route-view-card,
+        .ui-form-content, .ui-form-actions, .ui-form-section,
+        .route-editor-section, .route-view-modal, .route-view-header,
+        .route-view-body, .route-view-information, .route-view-map-card,
+        .route-view-path-card, .route-view-card, .route-view-card-header,
         .route-editor-section > .ui-form-section-header,
-        .route-view-card-header, .route-view-path-scroll,
-        .route-editor-summary, .route-editor-summary-item,
-        .route-stop-item, .ui-form-repeater-row, .route-map-active-field,
-        .route-form-map-active-field, .route-view-map-source
+        .route-view-path-scroll, .horizontal-route-card, .route-editor-summary,
+        .route-editor-summary-item, .route-stop-item, .ui-form-repeater-row,
+        .route-form-map-active-field, .route-map-active-field,
+        .route-view-map-source, .route-detail-value, .gps-detail-card
     ) {
-        background: var(--route-dialog-bg);
-        border-color: var(--route-dialog-border);
+        background: var(--route-dialog-bg) !important;
         color: var(--route-dialog-fg);
+        border-color: var(--route-dialog-border);
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         .route-editor-section > .ui-form-section-header, .route-view-card-header,
-        .route-view-path-scroll, .route-editor-summary,
-        .route-stop-item, .ui-form-repeater-row, .route-view-map-source
+        .route-view-path-scroll, .horizontal-route-card, .route-editor-summary,
+        .route-editor-summary-item, .route-stop-item, .ui-form-repeater-row,
+        .route-view-map-source, .gps-detail-card
     ) {
-        background: var(--route-dialog-raised);
+        background: var(--route-dialog-raised) !important;
     }
-    /* Shared headings and field labels */
+
+    /* Titles and field labels formerly hardcoded navy in the view dialog. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
-        .ui-form-heading h2, .ui-form-section-header h3, .ui-form-group > label,
-        .ui-form-section-title, .ui-form-label,
+        .ui-form-heading h2, .ui-form-section-header h3, .ui-form-section-title,
+        .ui-form-group > label, .ui-form-label,
         .route-view-header h2, .route-view-card-header h3,
         .route-view-field > span, .route-view-field > strong,
         .route-view-field .route-detail-value, .route-view-path-scroll strong,
-        .horizontal-route-content strong, .route-editor-summary strong
-    ) {
-        color: var(--route-dialog-fg);
-    }
+        .horizontal-route-content strong, .route-editor-summary strong,
+        .route-editor-summary-item strong, .gps-detail-card strong
+    ) { color: var(--route-dialog-fg) !important; }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
-        .ui-form-heading p, .ui-form-section-header p, .route-view-header p,
-        .route-view-card-header p, .route-view-map-note,
-        .route-name-guidance, .route-form-map-note, .route-view-field > span i,
-        .route-editor-summary small, .horizontal-route-content span
-    ) {
-        color: var(--route-dialog-muted);
-    }
-    /* Shared inputs and view-only value fields */
+        .ui-form-heading p, .ui-form-section-header p,
+        .route-view-header p, .route-view-card-header p, .route-view-map-note,
+        .route-name-guidance, .route-form-map-note,
+        .route-editor-summary small, .route-editor-summary-item small,
+        .horizontal-route-content span, .gps-detail-card span
+    ) { color: var(--route-dialog-muted) !important; }
+
+    /* Inputs, read-only values and ordinary toolbars (not warning/success). */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         input:not([type="checkbox"]):not([type="radio"]), select, textarea,
-        .ui-input-wrap, .gct-picker-trigger,
-        .route-view-field > strong, .route-view-field .route-detail-value,
-        #viewRouteStatus
+        .ui-input-wrap, .route-stop-location-field,
+        .gct-picker-trigger, .route-view-field > strong,
+        .route-view-field .route-detail-value, #viewRouteStatus
     ) {
-        background: var(--gct-theme-input);
-        color: var(--route-dialog-fg);
-        border-color: var(--gct-theme-control-border);
+        background: var(--route-dialog-input) !important;
+        border-color: var(--route-dialog-border);
+        color: var(--route-dialog-fg) !important;
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         input[readonly], input:disabled, select:disabled
     ) {
-        background: var(--route-dialog-raised);
-        color: var(--route-dialog-muted);
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
         border-color: var(--route-dialog-border);
         opacity: 1;
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(input, textarea)::placeholder {
         color: var(--gct-theme-placeholder);
     }
-    /* Buttons without semantic warning/success roles. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
-        .ui-form-close, .route-view-close,
+        .route-view-map-source, .route-form-map-active-field, .route-map-active-field,
         .route-form-map-tool-btn, .route-form-fit-map-btn,
-        .gps-fit-map-btn, .route-stops-section .ui-form-section-action .ui-btn-small
+        .gps-fit-map-btn, .ui-form-close, .route-view-close,
+        .route-stops-section .ui-form-section-action .ui-btn-small
     ) {
-        background: var(--route-dialog-raised);
-        color: var(--route-dialog-fg);
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
         border-color: var(--route-dialog-border);
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
-        .ui-form-close, .route-view-close,
-        .route-form-map-tool-btn, .route-form-fit-map-btn, .gps-fit-map-btn
-    ):disabled {
-        color: var(--route-dialog-muted);
-        opacity: .6;
-    }
+        .route-form-map-tool-btn, .route-form-fit-map-btn, .gps-fit-map-btn,
+        .ui-form-close, .route-view-close
+    ):disabled { color: var(--route-dialog-muted) !important; opacity: .6; }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         .route-editor-section > .ui-form-section-header .ui-form-section-icon,
-        .route-view-section-icon, .ui-form-repeater-number
+        .route-view-section-icon, .ui-form-repeater-number, .route-editor-summary-icon
     ) {
-        background: #203d61;
-        color: #b5d4ff;
+        background: #203d61 !important;
+        color: #b5d4ff !important;
         border-color: #36577e;
     }
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
         .route-view-eyebrow, .route-view-map-source i
-    ) { color: #b5d4ff; }
+    ) { color: #b5d4ff !important; }
+
+    /* Keep the light legend readable without recoloring geographic map tiles. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .route-editor-map-legend {
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
+        border-color: var(--route-dialog-border);
+    }
 }
 
 @media screen {
