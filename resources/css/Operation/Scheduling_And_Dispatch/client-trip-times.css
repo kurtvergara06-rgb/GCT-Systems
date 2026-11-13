@@ -2247,29 +2247,37 @@
 }
 
 
-/* Inline editor expands within its own category card; no floating overlay. */
-.client-trip-times-page .ctt-category-panel {
-    position: relative;
-}
-.client-trip-times-page .ctt-category-panel.is-range-editor-open {
-    z-index: 20;
-}
+/* Floating time-range overlay. Its form is portaled to the page root and
+   does not change the size of the client category cards. */
+.client-trip-times-page .ctt-range-overlay-backdrop[hidden],
 .client-trip-times-page .ctt-inline-range-editor[hidden] { display: none !important; }
+.client-trip-times-page .ctt-range-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 11990;
+    background: rgba(5, 14, 28, .76);
+    backdrop-filter: blur(4px);
+}
 .client-trip-times-page .ctt-inline-range-editor {
-    position: relative;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 12000;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-    max-height: none;
-    margin: 8px 0 0;
-    padding: 11px;
-    overflow: visible;
+    gap: 12px;
+    width: min(520px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: 0;
+    padding: 18px;
+    overflow-y: auto;
     overscroll-behavior: contain;
     border: 1px solid var(--gct-ui-border, #d2e1f4);
-    border-radius: 12px;
+    border-radius: 16px;
     background: var(--gct-ui-surface, #fff);
-    box-shadow: none;
+    box-shadow: 0 24px 65px rgba(0, 0, 0, .34);
 }
 @media (max-width: 700px) {
     .client-trip-times-page .ctt-inline-range-editor {
@@ -2618,16 +2626,7 @@ html[data-gct-theme="dark"] .client-trip-times-page .ctt-logo-success { color: #
     padding: 5px 9px;
     font-size: 11px;
 }
-.client-trip-times-page .ctt-inline-range-editor {
-    position: static;
-    width: 100%;
-    box-sizing: border-box;
-    max-height: none;
-    padding: 10px;
-    margin: 8px 0 0;
-    overflow: visible;
-    box-shadow: none;
-}
+/* The range editor is a fixed overlay; card-size overrides are intentionally omitted. */
 @media (max-width: 780px) {
     .client-trip-times-page .ctt-client-logo-settings { flex-wrap: wrap; }
     .client-trip-times-page .ctt-client-logo-form { flex-basis: 100%; justify-content: flex-start; }
