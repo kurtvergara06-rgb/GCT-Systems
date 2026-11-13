@@ -5951,6 +5951,88 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
 }
 
 
+/* AI Conflict Report dark-mode legibility.
+   The original pair cards and disclosure retain light-mode ink (#1e3a5f,
+   #52677f, #334155), which becomes unreadable on dark surfaces. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair-selector {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair-selector > header :is(strong, span) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair small {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:not(:disabled):hover {
+    background: var(--gct-theme-hover);
+    border-color: #83b4f7;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair.is-selected,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair[aria-pressed="true"] {
+    background: #28466b;
+    border-color: #8bbaff;
+    box-shadow: inset 0 0 0 1px #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:focus-visible {
+    outline: 2px solid #8bbaff;
+    outline-offset: 2px;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:disabled {
+    opacity: .75;
+    cursor: not-allowed;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details summary {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content :is(p, li, span) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-report-actions .ai-resolution-btn[disabled] {
+    color: #c2d3e8;
+    background: #29415f;
+    border-color: #415d7c;
+    opacity: .78;
+    cursor: not-allowed;
+  }
+}
+
 /* The report now separates recommended Regular, Reserve, and other Regular
    choices. Keep all three tabs readable across desktop and mobile widths. */
 @media screen {
