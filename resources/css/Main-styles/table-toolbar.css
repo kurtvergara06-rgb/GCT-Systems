@@ -16,3 +16,92 @@
   outline: 2px solid #64748b;
   outline-offset: 2px;
 }
+
+
+/* Unified Search / Filter / Sort dark controls.
+   Shared component styling: all departments using the shared toolbar inherit
+   it whenever the site is in Dark Mode. Light Mode remains unchanged. */
+@media screen {
+  html[data-gct-theme="dark"] .gct-table-toolbar {
+    --gct-toolbar-dark-surface: var(--gct-theme-surface-raised, #203047);
+    --gct-toolbar-dark-input: var(--gct-theme-input, #101b2b);
+    --gct-toolbar-dark-text: var(--gct-theme-fg, #edf3fc);
+    --gct-toolbar-dark-muted: var(--gct-theme-muted, #b1bfd2);
+    --gct-toolbar-dark-border: var(--gct-theme-control-border, #465a76);
+    --gct-toolbar-dark-hover: var(--gct-theme-hover, #293a52);
+    --gct-toolbar-dark-focus: var(--gct-theme-focus, #8cb6ff);
+    color-scheme: dark;
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-tool-trigger,
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-tool-trigger.is-active,
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-tool-popover {
+    background: var(--gct-toolbar-dark-surface);
+    color: var(--gct-toolbar-dark-text);
+    border-color: var(--gct-toolbar-dark-border);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-tool-trigger:is(:hover, [aria-expanded="true"]),
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-tool-trigger.is-active:is(:hover, [aria-expanded="true"]) {
+    background: var(--gct-toolbar-dark-hover);
+    color: var(--gct-toolbar-dark-text);
+    border-color: var(--gct-toolbar-dark-focus);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-popover-heading strong, .gct-table-filter-field > span:first-child
+  ) {
+    color: var(--gct-toolbar-dark-text);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-popover-help, .gct-table-search-popover small,
+    .gct-table-search-field > i, .gct-table-popover-heading button
+  ) {
+    color: var(--gct-toolbar-dark-muted);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-popover-help, .gct-table-popover-actions
+  ) {
+    border-color: var(--gct-toolbar-dark-border);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-popover-heading button:hover {
+    background: var(--gct-toolbar-dark-hover);
+    color: var(--gct-toolbar-dark-text);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-search-field input, .gct-table-filter-field input,
+    .gct-table-filter-field select, .gct-table-filter-field .gct-picker-trigger
+  ) {
+    background: var(--gct-toolbar-dark-input);
+    color: var(--gct-toolbar-dark-text);
+    border-color: var(--gct-toolbar-dark-border);
+    color-scheme: dark;
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-search-field input, .gct-table-filter-field input
+  )::placeholder {
+    color: var(--gct-toolbar-dark-muted);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-filter-field
+    .gct-picker-trigger :is(.gct-picker-trigger-icon, .gct-picker-trigger-chevron) {
+    color: var(--gct-toolbar-dark-muted);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-filter-field
+    .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: var(--gct-toolbar-dark-muted);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar :is(
+    .gct-table-search-field input, .gct-table-filter-field input,
+    .gct-table-filter-field select, .gct-table-filter-field .gct-picker-trigger
+  ):focus-visible {
+    border-color: var(--gct-toolbar-dark-focus);
+    outline: 2px solid var(--gct-toolbar-dark-focus);
+    outline-offset: 1px;
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-popover-actions .is-secondary {
+    background: var(--gct-toolbar-dark-input);
+    color: var(--gct-toolbar-dark-text);
+    border-color: var(--gct-toolbar-dark-border);
+  }
+  html[data-gct-theme="dark"] .gct-table-toolbar .gct-table-popover-actions .is-secondary:hover {
+    background: var(--gct-toolbar-dark-hover);
+  }
+}
