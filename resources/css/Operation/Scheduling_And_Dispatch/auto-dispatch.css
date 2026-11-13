@@ -4148,6 +4148,25 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-label
     border: 1px solid #cbd5e1;
     background: #f1f5f9;
 }
+.auto-scheduling-page .ai-ml-status .ai-status-badge.is-offline {
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status {
+    background: #203047;
+    border-color: #465a76;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge.is-pending {
+    color: #dce4f0;
+    border-color: #54657c;
+    background: #293a50;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge.is-offline {
+    color: #fecaca;
+    border-color: #8c454f;
+    background: #572d38;
+}
 
 /* Keep bus slot position and ready/required counts visually distinct. */
 .auto-scheduling-page .gct-conflict-trip-meta { display:flex;flex-direction:column;align-items:flex-start;gap:4px; }
