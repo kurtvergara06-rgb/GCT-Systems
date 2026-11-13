@@ -949,6 +949,34 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         color: #ffc2c9;
     }
 
+    /* Read-only Route Details: restore contrast on semantic badges, count and
+       close control. These were overridden by generic dark foreground rules. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal #viewRouteStatus .route-status.active {
+        background: #173d2a !important;
+        border-color: #347b51 !important;
+        color: #c0f4d0 !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal #viewRouteStatus .route-status.inactive {
+        background: #49242b !important;
+        border-color: #884657 !important;
+        color: #ffc1c9 !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-path-count {
+        background: #203d61 !important;
+        border-color: #456999 !important;
+        color: #d8e9ff !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-modal-close {
+        background: var(--route-dialog-raised) !important;
+        border-color: var(--route-dialog-border) !important;
+        color: var(--route-dialog-fg) !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-modal-close:hover {
+        background: #49242b !important;
+        border-color: #884657 !important;
+        color: #ffc1c9 !important;
+    }
+
     /* Keep the light legend readable without recoloring geographic map tiles. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .route-editor-map-legend {
         background: var(--route-dialog-raised) !important;
