@@ -1450,8 +1450,7 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     .auto-empty-state strong, .auto-empty-state > i,
     .resource-count, .auto-calendar-progress-label strong,
     .auto-calendar-progress-label span, .auto-calendar-month,
-    .resource-info strong, .auto-calendar-detail-heading h3,
-    .auto-calendar-metric strong
+    .resource-info strong, .auto-calendar-detail-heading h3
   ) {
     color: var(--gct-theme-fg);
   }
@@ -1460,6 +1459,34 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     .auto-calendar-legend, .auto-calendar-detail-heading p
   ) {
     color: var(--gct-theme-muted);
+  }
+  /* Calendar month is a data-bound <strong>, not .auto-calendar-month.
+     Metric tiles deliberately stay light in both themes, so their values
+     must use each tile's dark semantic color rather than global white text. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-controls [data-calendar-month] {
+    color: #eef4ff;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span {
+    color: #c5d3e6;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span:first-child {
+    color: #ff7777;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span:last-child {
+    color: #79aaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-total :is(strong, span) {
+    color: #174ea7;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-pending :is(strong, span) {
+    color: #8e5900;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-assigned :is(strong, span) {
+    color: #10743a;
+    opacity: 1;
   }
   html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-schedule-table :is(th, td) {
     color: var(--gct-theme-fg);
