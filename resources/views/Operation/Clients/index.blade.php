@@ -95,7 +95,13 @@
                                     <td><span class="client-master-id">CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}</span></td>
                                     <td>
                                         <span class="client-master-name">
-                                            <span class="client-master-avatar"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                                            <span class="client-master-avatar">
+                                                @if($client->logo_path)
+                                                    <img src="{{ $client->logoUrl() }}" alt="{{ $client->name }} logo" loading="lazy">
+                                                @else
+                                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                                @endif
+                                            </span>
                                             <span class="client-master-name-text">
                                                 <strong title="{{ $client->name }}">{{ $client->name }}</strong>
                                                 <small>{{ $client->contact_person ?: 'No contact person yet' }}@if($client->contact_number) · {{ $client->contact_number }}@endif</small>
@@ -113,7 +119,7 @@
                                         <div class="client-master-action-row">
                                             <button type="button" class="client-master-action" data-client-detail-open data-client-mode="view"
                                                 data-client-id="CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}"
-                                                data-client-name="{{ $client->name }}"
+                                                data-client-name="{{ $client->name }}" data-client-logo="{{ $client->logoUrl() }}"
                                                 data-client-address="{{ $client->company_address }}"
                                                 data-client-contact-person="{{ $client->contact_person }}"
                                                 data-client-contact-position="{{ $client->contact_position }}"
@@ -128,7 +134,7 @@
                                             @if($canEditOperation)
                                                 <button type="button" class="client-master-action" data-client-detail-open data-client-mode="edit" data-client-record-id="{{ $client->id }}"
                                                     data-client-id="CL-{{ str_pad((string) $client->id, 4, '0', STR_PAD_LEFT) }}"
-                                                    data-client-name="{{ $client->name }}"
+                                                    data-client-name="{{ $client->name }}" data-client-logo="{{ $client->logoUrl() }}"
                                                     data-client-address="{{ $client->company_address }}"
                                                     data-client-contact-person="{{ $client->contact_person }}"
                                                     data-client-contact-position="{{ $client->contact_position }}"
@@ -198,7 +204,7 @@
                 data-old-client-contact-number="{{ old('contact_number') }}"
                 data-old-client-contact-email="{{ old('contact_email') }}"
                 icon="fa-building" description="Client profile details; trip times and bus allocations are managed separately."
-                size="wide" form-id="clientMasterDetailForm" action="#" method="PUT"
+                size="wide" form-id="clientMasterDetailForm" action="#" method="PUT" enctype="multipart/form-data"
                 submit-text="Update Client" submit-id="clientMasterDetailSubmit" cancel-text="Close">
                 <input type="hidden" name="editing_client_id" id="clientDetailEditingId">
                 <div class="client-master-detail-summary" aria-label="Client reference and allocation overview">
@@ -209,7 +215,7 @@
                 </div>
                 <section class="client-profile-view" aria-label="Read-only client information" hidden>
                     <div class="client-profile-identity">
-                        <span class="client-profile-identity-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+                        <span class="client-profile-identity-icon" aria-hidden="true"><img id="clientViewLogo" alt="" hidden><i class="fa-solid fa-building" id="clientViewLogoFallback"></i></span>
                         <div class="client-profile-identity-text">
                             <strong id="clientViewCompany">—</strong>
                             <small id="clientViewAddress">No company address recorded</small>
@@ -234,6 +240,12 @@
                         <div class="ui-form-group client-master-form-wide">
                             <label for="clientDetailName">Company / Client Name <span class="ui-required">*</span></label>
                             <input id="clientDetailName" name="name" type="text" required minlength="2" maxlength="150" autocomplete="organization">
+                        </div>
+                        <div class="ui-form-group client-master-form-wide client-logo-field">
+                            <label for="clientDetailLogo">Client Logo (optional)</label>
+                            <input id="clientDetailLogo" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+                            <label class="client-logo-remove"><input type="checkbox" name="remove_logo" value="1"> Remove current logo</label>
+                            <small>PNG, JPG, or WebP · maximum 2 MB</small>
                         </div>
                         <div class="ui-form-group client-master-form-wide">
                             <label for="clientDetailAddress">Company Address</label>
@@ -270,7 +282,7 @@
                 <x-ui.form-modal
                     id="clientMasterCreateModal" title="Add Client" icon="fa-building"
                     description="Register a shuttle service client. Trip times can be configured separately."
-                    size="wide" form-id="clientMasterCreateForm"
+                    size="wide" form-id="clientMasterCreateForm" enctype="multipart/form-data"
                     :action="route('operation.clients.store')" submit-text="Save Client"
                 >
                     <input type="hidden" name="return_to" value="client-master-list">
@@ -281,6 +293,12 @@
                                 <label for="clientMasterName">Company / Client Name <span class="ui-required">*</span></label>
                                 <input id="clientMasterName" type="text" name="name" minlength="2" maxlength="150" required autocomplete="organization" value="{{ old('name') }}" placeholder="Enter registered company name">
                                 @error('name')<small class="client-master-field-error">{{ $message }}</small>@enderror
+                            </div>
+                            <div class="ui-form-group client-master-form-wide client-logo-field">
+                                <label for="clientMasterLogo">Client Logo (optional)</label>
+                                <input id="clientMasterLogo" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+                                <small>PNG, JPG, or WebP · maximum 2 MB</small>
+                                @error('logo')<small class="client-master-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="ui-form-group client-master-form-wide">
                                 <label for="clientMasterAddress">Company Address</label>
