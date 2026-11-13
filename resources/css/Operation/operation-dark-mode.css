@@ -573,6 +573,18 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance-page .attendance-trip-time.is-empty {
     color: var(--gct-theme-muted);
 }
+/* The summary values use a hard-coded navy color in driver-attendance.css.
+   Override both global and modal-specific styles without touching status badges. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-card {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-card label {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-value:not(.attendance-detail-status) {
+    color: var(--gct-theme-fg);
+}
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal :is(
     .attendance-modal-trip-time, .attendance-modal-trips-table td,
     .attendance-modal-trip-id
