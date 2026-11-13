@@ -21,6 +21,24 @@ class TopbarController extends Controller
         return response()->json($service->summary($user));
     }
 
+    public function notificationHistory(Request $request, TopbarSummaryService $service): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1', 'max:10000'],
+            'state' => ['sometimes', 'in:all,unread'],
+        ]);
+
+        return response()->json(
+            $service->notificationHistory(
+                $user,
+                (int) ($validated['page'] ?? 1),
+                ($validated['state'] ?? 'all') === 'unread'
+            )
+        )->header('Cache-Control', 'no-store');
+    }
+
     public function markAllNotificationsRead(Request $request): JsonResponse
     {
         $userId = (int) $request->user()->id;
