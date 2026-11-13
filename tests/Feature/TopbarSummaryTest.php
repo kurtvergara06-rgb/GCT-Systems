@@ -354,4 +354,40 @@ class TopbarSummaryTest extends TestCase
         $this->assertStringContainsString('items.slice(0, 5)', $js);
     }
 
+    public function test_paginated_history_respects_each_of_the_five_departments(): void
+    {
+        $departments = [
+            'Operation' => 'Operation',
+            'Maintenance' => 'Maintenance',
+            'Warehouse' => 'Warehouse',
+            'Purchase' => 'Purchase',
+        ];
+        $creator = User::factory()->create([
+            'department' => 'Administration',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+        foreach ($departments as $department => $module) {
+            TopbarNotification::create([
+                'module' => $module, 'entity' => 'TripSchedule',
+                'action' => 'created', 'record_id' => 1,
+                'message' => "{$module} scoped message.",
+                'created_by' => $creator->id,
+            ]);
+        }
+
+        foreach ($departments as $department => $module) {
+            $user = User::factory()->create([
+                'department' => $department, 'role' => 'staff', 'status' => 'Active',
+            ]);
+            $history = $this->actingAs($user)->getJson(route('topbar.notifications.history'))
+                ->assertOk()
+                ->assertJsonCount(1, 'items')
+                ->assertJsonPath('items.0.module', $module);
+        }
+
+        $this->actingAs($creator)->getJson(route('topbar.notifications.history'))
+            ->assertOk()->assertJsonCount(4, 'items');
+    }
+
 }
