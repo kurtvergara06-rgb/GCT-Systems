@@ -413,3 +413,73 @@
     flex: 1;
   }
 }
+
+
+/* Shared date/time picker dark surfaces, including popovers portalled to
+   document.body from Search/Filter/Sort controls. */
+@media screen {
+  html[data-gct-theme="dark"] :is(.gct-picker-trigger, .gct-picker-popover) {
+    color-scheme: dark;
+  }
+  html[data-gct-theme="dark"] .gct-picker-trigger {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+  }
+  html[data-gct-theme="dark"] .gct-picker-trigger:is(:hover, [aria-expanded="true"]) {
+    background: var(--gct-theme-hover, #293a52);
+    border-color: var(--gct-theme-focus, #8cb6ff);
+  }
+  html[data-gct-theme="dark"] .gct-picker-trigger :is(.gct-picker-trigger-icon, .gct-picker-trigger-chevron) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover,
+  html[data-gct-theme="dark"] .gct-picker-popover :is(.gct-calendar-panel, .gct-time-panel) {
+    background: var(--gct-theme-surface, #162235);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover :is(
+    .gct-picker-heading, .gct-picker-footer, .gct-datetime-layout > * + *
+  ) {
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover :is(
+    .gct-picker-heading span, .gct-calendar-weekdays span, .gct-time-column label
+  ) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover :is(
+    .gct-calendar-day:not(.is-selected), .gct-calendar-nav-btn, .gct-calendar-current,
+    .gct-picker-heading strong, .gct-time-separator
+  ) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover .gct-calendar-day.is-outside:not(.is-selected) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover .gct-calendar-day:is(:hover, :focus-visible):not(:disabled):not(.is-selected),
+  html[data-gct-theme="dark"] .gct-picker-popover .gct-calendar-nav-btn:hover {
+    background: var(--gct-theme-hover, #293a52);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover :is(
+    .gct-time-preview, .gct-picker-close, .gct-time-select,
+    .gct-period-toggle, .gct-picker-secondary
+  ) {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover :is(
+    .gct-time-preview i, .gct-period-toggle button:not(.is-active)
+  ) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] .gct-picker-popover .gct-picker-secondary:hover {
+    background: var(--gct-theme-hover, #293a52);
+  }
+}
