@@ -715,6 +715,27 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     color: var(--gct-theme-fg);
     border-color: var(--gct-theme-border);
 }
+/* Client accordion action: the existing light-mode [open]/hover rules use a
+   white background and blue text. Keep both states readable in dark mode. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-expand {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-card[open] .ctt-client-expand {
+    background: #294467;
+    color: #e5f0ff;
+    border-color: #6187b9;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-header:hover .ctt-client-expand,
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-header:focus-visible .ctt-client-expand {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+    border-color: #7196c3;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-expand i {
+    color: inherit;
+}
 
 /* Keep the designated yellow Export action and colored statuses unchanged. */
 
