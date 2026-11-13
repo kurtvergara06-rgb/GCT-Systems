@@ -3669,7 +3669,7 @@ body.ai-modal-open {
 }
 .auto-scheduling-page .gct-report-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -5947,5 +5947,27 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
     background: var(--gct-theme-surface-raised);
     color: var(--gct-theme-fg);
     border-color: var(--gct-theme-border);
+  }
+}
+
+
+/* The report now separates recommended Regular, Reserve, and other Regular
+   choices. Keep all three tabs readable across desktop and mobile widths. */
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs button {
+    min-width: 0;
+    padding: 10px 6px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+}
+@media screen and (max-width: 560px) {
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
