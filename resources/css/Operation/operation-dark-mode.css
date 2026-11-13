@@ -895,6 +895,60 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
         .route-view-eyebrow, .route-view-map-source i
     ) { color: #b5d4ff !important; }
 
+    /* OpenStreetMap autocomplete is a native Route popup. Match the modal's
+       palette and keep the result list inside a compact scrollable region. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-panel {
+        box-sizing: border-box;
+        max-height: min(228px, 30dvh);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--route-dialog-bg);
+        color: var(--route-dialog-fg);
+        border-color: var(--route-dialog-border);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, .32);
+        scrollbar-color: #58708f var(--route-dialog-bg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-heading {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-muted);
+        border-bottom: 1px solid var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-item {
+        background: var(--route-dialog-bg);
+        color: var(--route-dialog-fg);
+        border-bottom-color: var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-item:is(:hover, :focus-visible, .active) {
+        background: var(--gct-theme-hover);
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy strong {
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy small,
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal :is(
+        .location-suggestion-loading, .location-suggestion-empty
+    ) {
+        color: var(--route-dialog-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy mark {
+        color: #a8ccff;
+        background: transparent;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-icon {
+        background: #213c60;
+        color: #b5d4ff;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-source-badge {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-muted);
+        border: 1px solid var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-error {
+        background: #41252c;
+        color: #ffc2c9;
+    }
+
     /* Keep the light legend readable without recoloring geographic map tiles. */
     html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .route-editor-map-legend {
         background: var(--route-dialog-raised) !important;
