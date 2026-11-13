@@ -1447,3 +1447,68 @@ body.sidebar-collapsed .main {
 @media (prefers-reduced-motion: reduce) {
   #appSidebar .sidebar-profile-menu.show { animation: none; }
 }
+
+/* Shared sidebar theme states. Light uses a readable slate-blue surface;
+   dark uses deep navy with muted gold selected navigation. */
+html:not([data-gct-theme="dark"]) #appSidebar {
+  background: linear-gradient(180deg, #eaf2fc, #dce8f7);
+  color: #183553;
+  border-right: 1px solid #c4d4e9;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.brand h2, .user-box, .menu-item, .submenu-item) { color: #213c5c; }
+html:not([data-gct-theme="dark"]) #appSidebar :is(.brand p, .user-box-text p) { color: #536d8c; }
+html:not([data-gct-theme="dark"]) #appSidebar :is(.brand, .sidebar-profile-wrap) { border-color: #c4d4e9; }
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item, .submenu-item):hover,
+html:not([data-gct-theme="dark"]) #appSidebar .menu-dropdown.open > .menu-item:not(.active) {
+  background: #d4e3f5;
+  color: #163b67;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item.active, .menu-dropdown > .menu-item.active, .menu-dropdown.open > .menu-item.active, .submenu-item.active) {
+  background: #e9bb40;
+  color: #192f4d;
+  box-shadow: none;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item.active, .submenu-item.active) :is(i, span) { color: inherit; }
+html:not([data-gct-theme="dark"]) #appSidebar .submenu { border-color: #bdcfe5; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-collapse-btn {
+  background: #ffffff;
+  color: #23496d;
+  border-color: #c4d4e9;
+}
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu {
+  background: #ffffff;
+  border-color: #c4d4e9;
+  color: #213c5c;
+}
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu :is(.profile-menu-header h4, .profile-menu-item, .profile-menu-item.logout) { color: #213c5c; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu :is(.profile-menu-header p, .profile-menu-department) { color: #526c8b; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu .profile-menu-item i { color: #446587; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu .profile-menu-divider { background: #dce6f3; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu .profile-menu-item:hover { background: #e8f0fa; color: #163b67; }
+
+html[data-gct-theme="dark"] #appSidebar {
+  background: linear-gradient(180deg, #0c2038, #081526);
+  color: #f1f5fc;
+  border-right: 1px solid #304762;
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item, .submenu-item) { color: #c5d4e7; }
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item, .submenu-item):hover,
+html[data-gct-theme="dark"] #appSidebar .menu-dropdown.open > .menu-item:not(.active) {
+  background: #203853;
+  color: #f5f8ff;
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .menu-dropdown > .menu-item.active, .menu-dropdown.open > .menu-item.active, .submenu-item.active) {
+  background: #8e651a;
+  color: #fff3d7;
+  box-shadow: none;
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .submenu-item.active) :is(i, span) { color: inherit; }
+html[data-gct-theme="dark"] #appSidebar .sidebar-collapse-btn {
+  background: #203853;
+  color: #f0f6ff;
+  border-color: #456180;
+}
+html[data-gct-theme="dark"] #appSidebar .brand-icon {
+  background: #a97918;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+}
