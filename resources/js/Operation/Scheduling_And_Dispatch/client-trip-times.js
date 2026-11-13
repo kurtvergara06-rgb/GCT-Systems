@@ -64,7 +64,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     }
 
     function panelContainerFor(element) {
-        return element?.closest?.('.ctt-category-panel') || null;
+        return element?._cttOwnerPanel || element?.closest?.('.ctt-category-panel') || null;
     }
 
     async function refreshPanel(container) {
@@ -206,30 +206,53 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
     }
 
-    function closeRangeEditor(editor) {
+    // Portal the range editor into the page overlay so it cannot resize the
+    // four-card grid or be clipped by an accordion's scroll container.
+    const rangeOverlayHost = document.querySelector('.client-trip-times-page');
+    const rangeBackdrop = document.createElement('div');
+    rangeBackdrop.className = 'ctt-range-overlay-backdrop';
+    rangeBackdrop.hidden = true;
+    rangeOverlayHost?.appendChild(rangeBackdrop);
+    let rangeEditorReturnFocus = null;
+    let rangePreviousOverflow = '';
+
+    function closeRangeEditor(editor, restoreFocus = true) {
         if (!editor) return;
+        const panel = panelContainerFor(editor);
         editor.hidden = true;
-        panelContainerFor(editor)?.classList.remove('is-range-editor-open');
+        panel?.classList.remove('is-range-editor-open');
         editor.reset();
         clearErrors(editor);
-        const panel = panelContainerFor(editor);
-        const trigger = panel?.querySelector('.ctt-add-config');
-        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        panel?.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'false');
         panel?.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+        if (editor._cttOwnerPanel) {
+            editor._cttOwnerPanel.appendChild(editor);
+            delete editor._cttOwnerPanel;
+        }
+        if (rangeBackdrop) rangeBackdrop.hidden = true;
+        document.documentElement.style.overflow = rangePreviousOverflow;
         if (activeRangeEditor === editor) activeRangeEditor = null;
+        if (restoreFocus && rangeEditorReturnFocus?.isConnected) rangeEditorReturnFocus.focus();
+        rangeEditorReturnFocus = null;
     }
 
     function openRangeEditor(panel) {
         const editor = panel?.querySelector('[data-ctt-range-editor]');
-        if (!editor) return;
-        if (activeRangeEditor && activeRangeEditor !== editor) closeRangeEditor(activeRangeEditor);
+        if (!editor || !rangeOverlayHost) return;
+        if (activeRangeEditor && activeRangeEditor !== editor) closeRangeEditor(activeRangeEditor, false);
         if (!editor.hidden) {
             closeRangeEditor(editor);
             return;
         }
+        rangeEditorReturnFocus = document.activeElement;
+        rangePreviousOverflow = document.documentElement.style.overflow;
         editor.reset();
         clearErrors(editor);
+        editor._cttOwnerPanel = panel;
+        rangeOverlayHost.appendChild(editor);
         editor.hidden = false;
+        rangeBackdrop.hidden = false;
+        document.documentElement.style.overflow = 'hidden';
         panel.classList.add('is-range-editor-open');
         activeRangeEditor = editor;
         panel.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'true');
@@ -271,9 +294,9 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         try {
             const data = await postJson(updateUrl || baseUrl, updateUrl ? { ...payload, _method: 'PUT' } : payload);
             const panel = panelContainerFor(editor);
+            closeRangeEditor(editor, false);
             await refreshPanelByUrl(data.panel_url);
-            // The refreshed server-side card replaces the inline editor and reflects saved settings.
-            if (activeRangeEditor === editor) activeRangeEditor = null;
+            // The refreshed server-side card reflects saved settings.
             if (panel && editor.isConnected) await refreshPanel(panel);
         } catch (error) {
             if (error.errors && Object.keys(error.errors).length) {
@@ -483,9 +506,28 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        if (activeRangeEditor) closeRangeEditor(activeRangeEditor);
-        closeModal(slotModal);
+        if (activeRangeEditor) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeRangeEditor(activeRangeEditor);
+                return;
+            }
+            if (event.key === 'Tab') {
+                const focusables = Array.from(activeRangeEditor.querySelectorAll('input:not(:disabled), button:not(:disabled)'))
+                    .filter((element) => element.getClientRects().length > 0);
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last?.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first?.focus();
+                }
+            }
+            return;
+        }
+        if (event.key === 'Escape') closeModal(slotModal);
     });
 
     function applyClientSearch() {
