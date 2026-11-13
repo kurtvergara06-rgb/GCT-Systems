@@ -5298,18 +5298,18 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-    position: sticky;
-    right: 0;
+    position: static;
+    right: auto;
     min-width: 124px;
     width: 124px;
     box-sizing: border-box;
     background: var(--gct-ui-surface, #fff);
     box-shadow: none;
     border-left: 0;
-    z-index: 6;
+    z-index: auto;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
-    z-index: 12;
+    z-index: 5;
     background: var(--auto-table-head, #f3f7fc);
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
@@ -5724,7 +5724,9 @@ html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge
         padding-right: 8px;
         box-shadow: none;
         border: 0;
-        background: var(--gct-ui-surface, #fff);
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
+        background: var(--auto-table-head, #f3f7fc);
     }
     .auto-scheduling-page .auto-schedule-table .schedule-action-btn.remove:has(.schedule-remove-label) {
         min-width: 0;
