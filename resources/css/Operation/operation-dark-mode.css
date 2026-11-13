@@ -161,6 +161,58 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
     --gct-sticky-actions-hover: var(--gct-theme-hover);
 }
 
+/* Trip Schedule: the service tables still contain legacy fixed light backgrounds.
+   Scope the repair to this page so other tables and status chips are unchanged. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll .service-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: #c6d6eb;
+    border-color: var(--gct-theme-border);
+    box-shadow: 0 1px 0 var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table tbody tr:not(.service-client-route-heading, .service-details-row) > td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table tbody tr:not(.service-client-route-heading, .service-details-row):hover > td {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table .service-client-route-heading th {
+    background: var(--gct-trip-group-heading-bg) !important;
+    color: var(--gct-trip-group-heading-fg) !important;
+    border-color: var(--gct-theme-border) !important;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table .service-client-route-heading th :is(span, strong) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table :is(
+    .trip-time-badge, .trip-time-badge i,
+    .service-route-title, .service-endpoint-name,
+    .service-assigned-value
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table :is(
+    .service-endpoint-label, .service-pickup
+) {
+    color: var(--gct-theme-muted);
+}
+/* Match sticky Actions to the same backgrounds as its neighboring cells. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > thead > tr > th:last-child {
+    background: var(--gct-theme-surface-raised);
+    color: #c6d6eb;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+
 /* Dashboard: chart shells and the analytics panels formerly used #fff. */
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     .operation-analytics-card > .dashboard-card-header,
