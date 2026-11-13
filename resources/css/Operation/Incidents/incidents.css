@@ -3918,3 +3918,143 @@
     max-height: calc(100dvh - 48px);
     height: min(92dvh, 960px);
 }
+
+
+/* Incident Management — Dark Mode contrast completion.
+   Covers the register, Report Incident form and embedded Details / Workflow.
+   Preserve status badges, route maps, button semantics and Light Mode. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-table thead :is(th, td) {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-muted, #b1bfd2);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-segmented-tabs {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-segmented-tabs .inc-tab-pill {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-page .inc-segmented-tabs .inc-tab-pill:is(.is-active, :hover) {
+    background: #28466b;
+    color: #e8f2ff;
+    border-color: #668bbb;
+  }
+
+  /* Create Incident: form fields and the auto-filled Matched Trip context. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.inc-form-group > label, .ui-form-group > label,
+      .inc-modal-form-grid label) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.inc-modal-form-grid select,
+      .inc-modal-form-grid input:not([type="checkbox"]),
+      .inc-modal-form-grid textarea,
+      .inc-bus-search-shell > input[data-incident-bus-search]) {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+    color-scheme: dark;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal .inc-context-panel,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal .inc-bus-trip-context {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.inc-context-panel-head, .inc-context-panel-body,
+      .inc-context-panel-foot, .inc-context-panel-body > div) {
+    background: transparent;
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.inc-context-panel h3, .inc-context-panel strong,
+      .inc-bus-trip-context strong, .inc-context-panel-body b) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.inc-context-panel p, .inc-context-panel small,
+      .inc-context-panel span, .inc-bus-trip-context small) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal .inc-form-note {
+    background: #20334f;
+    border-color: #406394;
+    color: #d6e7ff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal .inc-form-note strong {
+    color: #dceaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal .inc-form-note span {
+    color: #b9d1ed;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #incidentReportModal :is(.ui-form-actions, .ui-form-modal-footer) {
+    background: var(--gct-theme-surface, #162235);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+
+  /* Details/Workflow iframe: values must never inherit dark light-mode ink. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog) :is(
+      .inc-wf-details-grid dd, .inc-wf-details-grid dd > strong,
+      .inc-wf-details-highlight h3, .inc-wf-details-highlight strong,
+      .inc-wf-records-grid article > strong, .inc-wf-records-grid article > span,
+      .inc-wf-records-overview strong, .inc-wf-side-card strong,
+      .inc-wf-side-card td, .inc-wf-side-card th,
+      .inc-wf-identity-copy strong) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog) :is(
+      .inc-wf-details-grid dt, .inc-wf-details-grid dd small,
+      .inc-wf-records-grid article > small, .inc-wf-records-overview p,
+      .inc-wf-details-highlight p, .inc-wf-side-card small,
+      .inc-wf-side-card dt, .inc-wf-side-card p) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog) :is(
+      .inc-wf-details-grid > div, .inc-wf-records-grid article,
+      .inc-wf-details-highlight, .inc-wf-records-overview,
+      .inc-wf-records-footnote, .inc-wf-side-card) {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog)
+    .inc-wf-side-card :is(table, td, th, tr) {
+    border-color: var(--gct-theme-border, #35465e);
+    background: transparent;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog)
+    .inc-wf-records-grid article > i {
+    background: #28466b;
+    color: #a9cbff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog)
+    .inc-workflow-information-note {
+    background: #382e1c;
+    border-color: #a27b33;
+    color: #ffd99c;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    :is(.inc-embedded-workflow, .inc-workflow-dialog)
+    :is(.inc-wf-records-footnote, .inc-wf-details-footnote) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+}
