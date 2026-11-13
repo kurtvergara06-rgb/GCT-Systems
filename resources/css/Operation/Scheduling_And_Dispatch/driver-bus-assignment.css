@@ -2285,68 +2285,84 @@
     background: var(--gct-ui-surface, #fff);
 }
 .assignment-direction-section + .assignment-direction-section { margin-top: 18px; }
+/* Match the Trip Schedule panel heading proportions and icon treatment. */
 .assignment-direction-heading {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 13px 16px;
+    gap: 14px;
+    padding: 16px 20px;
     border-bottom: 1px solid #e0e8f3;
-    background: #f0f8ff;
+    background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
 }
-.assignment-direction-outgoing .assignment-direction-heading { background: #fff9ed; }
-.assignment-direction-other .assignment-direction-heading { background: #f7f8fb; }
-/* Dark mode changes the complete section header, not its controls or badges. */
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading {
-    background: #193b60;
-    border-bottom-color: #355b81;
+.assignment-direction-outgoing .assignment-direction-heading {
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
 }
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-outgoing .assignment-direction-heading {
-    background: #61471e;
-    border-bottom-color: #8c692b;
+.assignment-direction-other .assignment-direction-heading {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
 }
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-other .assignment-direction-heading {
-    background: #263649;
-    border-bottom-color: #44566d;
-}
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-title h3 {
-    color: #f5f8ff;
-}
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-title p {
-    color: #cedbed;
-}
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-icon {
-    background: #165d94;
-}
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-outgoing .assignment-direction-icon {
-    background: #956714;
-}
-html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading .assignment-direction-count {
-    background: #142438;
-    color: #eaf1fb;
-    border-color: #49627f;
-}
-
 .assignment-direction-icon {
-    display: inline-flex;
-    flex: 0 0 36px;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    display: inline-grid;
+    flex: 0 0 42px;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 15px;
     color: #fff;
     background: #0284c7;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, .3);
 }
-.assignment-direction-outgoing .assignment-direction-icon { background: #f59e0b; }
+.assignment-direction-outgoing .assignment-direction-icon {
+    background: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, .3);
+}
 .assignment-direction-other .assignment-direction-icon { background: #64748b; }
 .assignment-direction-title { min-width: 0; flex: 1; }
-.assignment-direction-title h3 { margin: 0; color: #142c4f; font-size: 14px; font-weight: 800; }
-.assignment-direction-title p { margin: 3px 0 0; color: #64748b; font-size: 11px; }
-.assignment-direction-count { flex-shrink: 0; padding: 5px 9px; border-radius: 8px; background: var(--gct-ui-surface, #fff); border: 1px solid #dce5f2; color: #334b68; font-size: 11px; font-weight: 700; }
+.assignment-direction-title h3 {
+    margin: 0;
+    color: var(--gct-ui-text, #0f172a);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+.assignment-direction-title p {
+    margin: 3px 0 0;
+    color: var(--gct-ui-muted, #64748b);
+    font-size: 12px;
+}
+.assignment-direction-count {
+    flex-shrink: 0;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: var(--gct-ui-surface, #fff);
+    border: 1px solid #dce5f2;
+    color: #334b68;
+    font-size: 11px;
+    font-weight: 700;
+}
+/* In dark mode, the full heading stays navy; only the direction icon uses
+   blue or amber, exactly as on the Trip Schedule page. */
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-heading,
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-outgoing .assignment-direction-heading,
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-other .assignment-direction-heading {
+    background: var(--gct-theme-surface, #162235);
+    border-bottom-color: var(--gct-theme-border, #33445d);
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-title h3 {
+    color: var(--gct-theme-fg, #f5f8ff);
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-title p {
+    color: var(--gct-theme-muted, #c3d1e4);
+}
+html[data-gct-theme="dark"] .assignment-page .assignment-direction-count {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-fg, #eaf1fb);
+    border-color: var(--gct-theme-border, #49627f);
+}
 .assignment-direction-section .assignment-table-wrap { margin-top: 0 !important; border: 0; border-radius: 0; }
 @media (max-width: 640px) {
-    .assignment-direction-heading { padding: 12px; gap: 8px; }
-    .assignment-direction-title h3 { font-size: 13px; }
+    .assignment-direction-heading { padding: 12px; gap: 10px; }
+    .assignment-direction-title h3 { font-size: 15px; }
 }
 
 
