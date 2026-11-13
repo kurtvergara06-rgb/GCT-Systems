@@ -274,4 +274,84 @@ class TopbarSummaryTest extends TestCase
             ->assertOk()
             ->assertJsonCount(0, 'notifications');
     }
+    public function test_notification_previews_are_five_and_history_is_paginated_by_department(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        foreach (range(1, 22) as $number) {
+            TopbarNotification::create([
+                'module' => 'Operation',
+                'entity' => 'TripSchedule',
+                'action' => 'updated',
+                'record_id' => $number,
+                'message' => "Trip update {$number}.",
+                'created_by' => $user->id,
+            ]);
+        }
+        TopbarNotification::create([
+            'module' => 'Maintenance',
+            'entity' => 'JobOrder',
+            'action' => 'created',
+            'record_id' => 99,
+            'message' => 'Maintenance-only event.',
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonCount(5, 'notifications')
+            ->assertJsonCount(5, 'recent_activity')
+            ->assertJsonPath('unread_count', 22);
+
+        $this->actingAs($user)->getJson(route('topbar.notifications.history', ['page' => 1]))
+            ->assertOk()->assertJsonCount(20, 'items')
+            ->assertJsonPath('total', 22)
+            ->assertJsonPath('last_page', 2);
+
+        $this->actingAs($user)->getJson(route('topbar.notifications.history', ['page' => 2]))
+            ->assertOk()->assertJsonCount(2, 'items')
+            ->assertJsonPath('total', 22);
+
+        $this->actingAs($user)->postJson(route('topbar.notifications.read-all'))->assertOk();
+        $this->actingAs($user)->getJson(route('topbar.notifications.history', ['state' => 'unread']))
+            ->assertOk()->assertJsonPath('total', 0)->assertJsonCount(0, 'items');
+    }
+
+    public function test_legacy_scheduler_notification_uses_professional_plural_text(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        TopbarNotification::create([
+            'module' => 'Operation', 'entity' => 'TripSchedule',
+            'action' => 'updated', 'record_id' => 1,
+            'message' => '1 trip status(es) advanced by scheduled times.',
+            'created_by' => $user->id,
+        ]);
+        $this->actingAs($user)->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonPath('notifications.0.message', 'The status of 1 trip was automatically updated based on its schedule.');
+    }
+
+    public function test_shared_topbar_has_history_and_semantic_theme_styles(): void
+    {
+        $blade = file_get_contents(resource_path('views/components/layout/topbar.blade.php'));
+        $css = file_get_contents(resource_path('css/Main-styles/topbar.css'));
+        $js = file_get_contents(resource_path('js/Main-js/topbar.js'));
+
+        $this->assertStringContainsString('topbarHistoryDialog', $blade);
+        $this->assertStringContainsString("route('topbar.notifications.history'", $blade);
+        $this->assertStringContainsString('data-topbar-history="activity"', $blade);
+        $this->assertStringContainsString('data-topbar-history="notifications"', $blade);
+        $this->assertStringContainsString('prefers-reduced-motion: reduce', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"]', $css);
+        $this->assertStringContainsString('items.slice(0, 5)', $js);
+    }
+
 }
