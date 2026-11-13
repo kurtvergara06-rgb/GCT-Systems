@@ -2735,3 +2735,43 @@ button.ddr-new-btn {
     opacity: 1;
   }
 }
+
+
+/* Encode New DDR: scheduled-trip picker must stay navy in dark mode.
+   The shared .ddr-sched-select.is-selected uses a light-blue background;
+   override its whole card, including nested title and description, without
+   altering Pending DDR status badges or Light Mode. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select:is(:hover, :focus-visible) {
+    background: var(--gct-theme-hover, #293a52);
+    border-color: #7faeff;
+    outline-color: #7faeff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select.is-selected {
+    background: #28466b;
+    border-color: #8bbaff;
+    color: #f2f7ff;
+    box-shadow: inset 0 0 0 1px #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select :is(strong, b) {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select :is(span, small) {
+    color: #c7d7ed;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    #ddrEncodeModal .ddr-sched-panel-compact .ddr-sched-select:focus-visible {
+    outline: 2px solid #8bbaff;
+    outline-offset: 2px;
+  }
+}
