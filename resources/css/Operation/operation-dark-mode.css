@@ -644,6 +644,27 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     color: var(--gct-theme-fg);
     border-color: var(--gct-theme-border);
 }
+/* Client Trip Times uses the shared GCT time-picker enhancement. The
+   native input is visually hidden and the visible control is a button. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger {
+    background: #101e32;
+    color: #edf4ff;
+    border-color: #47617e;
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger:is(:hover, :focus-visible, [aria-expanded="true"]) {
+    background: #172b45;
+    color: #ffffff;
+    border-color: #76aaff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor :is(
+    .gct-picker-trigger-icon, .gct-picker-trigger-chevron
+) {
+    color: #acc9ed;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: #adc3e1;
+}
 /* The range editor is portaled to the Client Trip Times page, so target its
    native time controls directly instead of relying on generic form styling. */
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor {
