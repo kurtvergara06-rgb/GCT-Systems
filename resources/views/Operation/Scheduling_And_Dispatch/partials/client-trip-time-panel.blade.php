@@ -110,7 +110,7 @@
 @else
     <div class="ctt-panel-empty">
         <i class="fa-regular fa-clock" aria-hidden="true"></i>
-        <span>No {{ $categoryLabel }} trip times are configured for this client.</span>
+        <span>No time range</span>
         @if($canEditOperation)
             <button
                 type="button"
@@ -121,7 +121,7 @@
                 data-client-name="{{ $client->name }}"
                 data-category="{{ $category }}"
             >
-                <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Configuration
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Add
             </button>
         @endif
     </div>
@@ -164,7 +164,7 @@
         <p class="ctt-inline-help">AM: 12:00 AM–11:59 AM. PM: 12:00 PM–11:59 PM. Ranges cannot cross midnight. Add individual time slots after saving the range.</p>
         <div class="ctt-inline-range-actions">
             <button type="button" class="ctt-btn ctt-btn-ghost" data-ctt-range-cancel>Cancel</button>
-            <button type="submit" class="ctt-btn ctt-btn-primary">{{ $hasConfiguration ? 'Save Changes' : 'Create Configuration' }}</button>
+            <button type="submit" class="ctt-btn ctt-btn-primary">{{ $hasConfiguration ? 'Save Changes' : 'Save' }}</button>
         </div>
     </form>
 @endif
