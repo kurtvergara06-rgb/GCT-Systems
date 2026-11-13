@@ -221,9 +221,30 @@ html:has(body.modal-open) {
   main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
     box-shadow: none !important;
   }
+  /* Seamless Action columns throughout GCT: never draw the artificial
+     divider/shadow. Sticky remains functional only when horizontal overflow
+     requires it; when the table fits, Action behaves like a normal column. */
+  main .gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+    box-shadow: none !important;
+    border-left: 0 !important;
+  }
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child {
+    right: auto;
+    /* Retain sticky top headers where the page uses them. */
+    background: inherit;
+  }
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    position: static;
+    right: auto;
+    background: inherit;
+  }
+  /* An opaque Action cell is still needed while horizontally scrolling,
+     otherwise other columns would show through it. */
   main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
   main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
-    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+    box-shadow: none !important;
+    border-left: 0 !important;
   }
 
   main .gct-drag-scroll-ready { cursor: grab; }
