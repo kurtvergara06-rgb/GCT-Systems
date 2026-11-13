@@ -1122,4 +1122,19 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('html[data-gct-theme="dark"] body[data-gct-operation-page="1"]', $css);
     }
 
+    public function test_incident_records_compact_table_and_shared_action_cells_have_no_divider(): void
+    {
+        $incident = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+        $shared = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
+
+        $this->assertStringContainsString('Compact Incident Records in both Active / History', $incident);
+        $this->assertStringContainsString('.inc-page .inc-table :is(th, td):nth-child(6) { width: 13%; }', $incident);
+        $this->assertStringContainsString('.inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"]', $incident);
+        $this->assertStringContainsString('background: #1b2a40;', $incident);
+        $this->assertStringContainsString('Seamless Action columns throughout GCT', $shared);
+        $this->assertStringContainsString('box-shadow: none !important;', $shared);
+        $this->assertStringContainsString('border-left: 0 !important;', $shared);
+        $this->assertStringNotContainsString('box-shadow: -1px 0 0 #dce5ef', $shared);
+    }
+
 }
