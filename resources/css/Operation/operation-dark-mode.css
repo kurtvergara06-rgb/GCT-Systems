@@ -453,6 +453,34 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
     background: var(--gct-theme-hover);
 }
 
+/* Schedule Preview: the generic sticky-cell surface was visually splitting
+   the Action cell from the rest of its trip row. Give every cell the same
+   dark surface; preserve state badges, grouped route headers and scrolling. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row > td {
+    background: var(--gct-theme-surface);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row:hover > td {
+    background: var(--gct-theme-hover);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+    box-shadow: none;
+    border-left: 0;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+  }
+}
+
 /* The Driver Master List uses personnel-specific wrappers, not the generic
    .table-wrap used by the original theme implementation. */
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page {
