@@ -638,12 +638,35 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times
     border-color: var(--gct-theme-border);
 }
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
-    .ctt-client-buses-toggle, .ctt-client-bus-chip,
-    .ctt-inline-time-field input
+    .ctt-client-buses-toggle, .ctt-client-bus-chip
 ) {
     background: var(--gct-theme-input);
     color: var(--gct-theme-fg);
     border-color: var(--gct-theme-border);
+}
+/* The range editor is portaled to the Client Trip Times page, so target its
+   native time controls directly instead of relying on generic form styling. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor {
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"] {
+    color-scheme: dark;
+    background-color: #101e32 !important;
+    color: #edf4ff !important;
+    border-color: #47617e !important;
+    box-shadow: none;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]:is(:hover, :focus-visible) {
+    background-color: #172b45 !important;
+    border-color: #76aaff !important;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: .82;
+    cursor: pointer;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]::-webkit-datetime-edit {
+    color: #edf4ff;
 }
 html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-buses-toggle:is(:hover, :focus-visible) {
     background: var(--gct-theme-hover);
