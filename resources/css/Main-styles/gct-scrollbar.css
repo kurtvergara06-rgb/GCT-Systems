@@ -231,8 +231,8 @@ html:has(body.modal-open) {
   }
   main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child {
     right: auto;
-    /* Retain sticky top headers where the page uses them. */
-    background: inherit;
+    /* Match the other header cells while preserving vertical stickiness. */
+    background: var(--gct-sticky-actions-heading, #f3f7fc);
   }
   main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
     position: static;
