@@ -78,16 +78,21 @@ class ClientMasterListController extends Controller
             ? $request->file('logo')->store('operation/client-logos', 'public')
             : null;
 
-        OperationClient::create([
-            'name' => $name,
-            'logo_path' => $logoPath,
-            'company_address' => $validated['company_address'] ?? null,
-            'contact_person' => $validated['contact_person'] ?? null,
-            'contact_position' => $validated['contact_position'] ?? null,
-            'contact_number' => $validated['contact_number'] ?? null,
-            'contact_email' => $validated['contact_email'] ?? null,
-            'service_start_date' => $validated['service_start_date'] ?? null,
-        ]);
+        try {
+            OperationClient::create([
+                'name' => $name,
+                'logo_path' => $logoPath,
+                'company_address' => $validated['company_address'] ?? null,
+                'contact_person' => $validated['contact_person'] ?? null,
+                'contact_position' => $validated['contact_position'] ?? null,
+                'contact_number' => $validated['contact_number'] ?? null,
+                'contact_email' => $validated['contact_email'] ?? null,
+                'service_start_date' => $validated['service_start_date'] ?? null,
+            ]);
+        } catch (\Throwable $exception) {
+            if ($logoPath) Storage::disk('public')->delete($logoPath);
+            throw $exception;
+        }
 
         return redirect()->route(($validated['return_to'] ?? '') === 'client-master-list' ? 'operation.clients.index' : 'client-trip-times')
             ->with('success', 'Client created successfully.');
@@ -112,48 +117,48 @@ class ClientMasterListController extends Controller
 
         try {
             $previousLogoPath = DB::transaction(function () use ($operationClient, $validated, $newLogoPath): ?string {
-            $client = OperationClient::query()->lockForUpdate()->findOrFail($operationClient->id);
-            $newName = trim($validated['name']);
-            $renaming = $newName !== $client->name;
-
-            if ($renaming) {
-                if (OperationClient::query()
-                    ->whereKeyNot($client->id)
-                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($newName)])
-                    ->exists()) {
-                    throw ValidationException::withMessages(['name' => 'A client with this name already exists.']);
+                $client = OperationClient::query()->lockForUpdate()->findOrFail($operationClient->id);
+                $newName = trim($validated['name']);
+                $renaming = $newName !== $client->name;
+    
+                if ($renaming) {
+                    if (OperationClient::query()
+                        ->whereKeyNot($client->id)
+                        ->whereRaw('LOWER(name) = ?', [mb_strtolower($newName)])
+                        ->exists()) {
+                        throw ValidationException::withMessages(['name' => 'A client with this name already exists.']);
+                    }
+    
+                    // Trip schedules currently store a client-name snapshot. A
+                    // rename during active scheduling would break lookups that
+                    // guard deactivation and unfinished trip operations.
+                    $hasUnfinishedTrips = TripSchedule::query()
+                        ->whereRaw('LOWER(client_name) = ?', [mb_strtolower($client->name)])
+                        ->where(function ($query): void {
+                            $query->where(function ($upcoming): void {
+                                $upcoming->notDeparted()
+                                    ->whereNotIn('status', ['Cancelled', 'Completed']);
+                            })->orWhereIn('status', ['Dispatched', 'Ongoing', 'In Progress', 'Pending DDR']);
+                        })->exists();
+                    if ($hasUnfinishedTrips) {
+                        throw ValidationException::withMessages([
+                            'name' => 'Complete or cancel this client’s unfinished trips before changing the company name. Contact details may still be updated.',
+                        ]);
+                    }
                 }
-
-                // Trip schedules currently store a client-name snapshot. A
-                // rename during active scheduling would break lookups that
-                // guard deactivation and unfinished trip operations.
-                $hasUnfinishedTrips = TripSchedule::query()
-                    ->whereRaw('LOWER(client_name) = ?', [mb_strtolower($client->name)])
-                    ->where(function ($query): void {
-                        $query->where(function ($upcoming): void {
-                            $upcoming->notDeparted()
-                                ->whereNotIn('status', ['Cancelled', 'Completed']);
-                        })->orWhereIn('status', ['Dispatched', 'Ongoing', 'In Progress', 'Pending DDR']);
-                    })->exists();
-                if ($hasUnfinishedTrips) {
-                    throw ValidationException::withMessages([
-                        'name' => 'Complete or cancel this client’s unfinished trips before changing the company name. Contact details may still be updated.',
-                    ]);
-                }
-            }
-
-            $previousLogoPath = $client->logo_path;
-            $client->update([
-                'name' => $newName,
-                'logo_path' => $newLogoPath ?? (($validated['remove_logo'] ?? false) ? null : $previousLogoPath),
-                'company_address' => $validated['company_address'] ?? null,
-                'contact_person' => $validated['contact_person'] ?? null,
-                'contact_position' => $validated['contact_position'] ?? null,
-                'contact_number' => $validated['contact_number'] ?? null,
-                'contact_email' => $validated['contact_email'] ?? null,
-            ]);
-            return $previousLogoPath;
-        }, 5);
+    
+                $previousLogoPath = $client->logo_path;
+                $client->update([
+                    'name' => $newName,
+                    'logo_path' => $newLogoPath ?? (($validated['remove_logo'] ?? false) ? null : $previousLogoPath),
+                    'company_address' => $validated['company_address'] ?? null,
+                    'contact_person' => $validated['contact_person'] ?? null,
+                    'contact_position' => $validated['contact_position'] ?? null,
+                    'contact_number' => $validated['contact_number'] ?? null,
+                    'contact_email' => $validated['contact_email'] ?? null,
+                ]);
+                return $previousLogoPath;
+            }, 5);
         } catch (\Throwable $exception) {
             if ($newLogoPath) Storage::disk('public')->delete($newLogoPath);
             throw $exception;
