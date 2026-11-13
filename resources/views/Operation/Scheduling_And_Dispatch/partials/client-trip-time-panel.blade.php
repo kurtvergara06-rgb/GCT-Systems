@@ -9,7 +9,7 @@
 <div class="ctt-panel-header ctt-ref-panel-header" data-client-id="{{ $client->id }}" data-category="{{ $category }}">
     <span class="ctt-panel-title">
         <span class="ctt-direction-icon ctt-direction-{{ $category }}">
-            <i class="fa-solid {{ str_contains($category, 'incoming') ? 'fa-sun' : 'fa-moon' }}" aria-hidden="true"></i>
+            <i class="fa-solid {{ \App\Support\ClientTripTimes::isAmCategory($category) ? 'fa-sun' : 'fa-moon' }}" aria-hidden="true"></i>
         </span>
         <span>{{ $categoryLabel }}</span>
     </span>
