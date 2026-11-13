@@ -329,6 +329,44 @@
             </section>
             </section>
 
+            {{-- One shared crop dialog for all Client Logo forms. The upload is
+                 submitted only after the user confirms the cropped image. --}}
+            <div class="ctt-logo-crop-overlay" id="cttLogoCropModal" role="presentation" hidden>
+                <section class="ctt-logo-crop-dialog" role="dialog" aria-modal="true"
+                    aria-labelledby="cttLogoCropTitle" aria-describedby="cttLogoCropDescription">
+                    <header class="ctt-logo-crop-header">
+                        <span class="ctt-logo-crop-heading">
+                            <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
+                            <span>
+                                <strong id="cttLogoCropTitle">Edit Client Logo</strong>
+                                <small id="cttLogoCropDescription">Drag the image to reposition and zoom to fit.</small>
+                            </span>
+                        </span>
+                        <button type="button" class="ctt-logo-crop-close" aria-label="Cancel image editing">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </header>
+                    <div class="ctt-logo-crop-body">
+                        <div class="ctt-logo-crop-stage">
+                            <canvas id="cttLogoCropCanvas" width="360" height="360"
+                                role="img" aria-label="Square logo crop preview"></canvas>
+                        </div>
+                        <label class="ctt-logo-crop-zoom" for="cttLogoCropZoom">
+                            <span><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i> Zoom</span>
+                            <input id="cttLogoCropZoom" type="range" min="100" max="300" value="100" step="1">
+                        </label>
+                        <p class="ctt-logo-crop-hint">The saved logo will be cropped to a square. Maximum upload: 2 MB.</p>
+                        <span class="ctt-logo-crop-error" role="alert" hidden></span>
+                    </div>
+                    <footer class="ctt-logo-crop-actions">
+                        <button type="button" class="ctt-logo-crop-cancel">Cancel</button>
+                        <button type="button" class="ctt-logo-crop-save">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i> Save Logo
+                        </button>
+                    </footer>
+                </section>
+            </div>
+
             <x-ui.form-modal
                 id="cttSlotModal"
                 title="Edit Time Slot"
