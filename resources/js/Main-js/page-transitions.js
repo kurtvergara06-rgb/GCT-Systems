@@ -165,6 +165,34 @@ const normalizeSidebarActiveState = () => {
     });
 };
 
+// The partial-navigation runtime intentionally excludes sidebar links so
+// destination pages can run their own DOMContentLoaded initialization.
+// Show the same cover on those full-document navigations before the browser
+// leaves the old page; the destination layout owns the first-paint cover.
+const isFullPageNavigationLink = (event) => {
+    if (event.defaultPrevented || event.button !== 0
+        || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    const link = event.target.closest?.('a[href]');
+    if (!link || link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')
+        || link.hasAttribute('data-confirm-action') || link.closest('form')
+        || link.getAttribute('role') === 'button') return false;
+    const target = (link.getAttribute('target') || '').toLowerCase();
+    if (target && target !== '_self') return false;
+    const href = link.getAttribute('href')?.trim();
+    if (!href || href.startsWith('#') || href.toLowerCase().startsWith('javascript:')) return false;
+    let url;
+    try { url = new URL(href, window.location.href); } catch { return false; }
+    if (url.origin !== window.location.origin) return false;
+    if (url.href === window.location.href) return false;
+    return Boolean(link.closest('#appSidebar')
+        || link.hasAttribute('data-no-partial-navigation')
+        || url.pathname === '/operation/trip-schedule');
+};
+
+document.addEventListener('click', (event) => {
+    if (isFullPageNavigationLink(event)) showLoader();
+}, { capture: true });
+
 window.addEventListener('gct:navigation-before', () => {
     navigationSequence += 1;
     showLoader();
