@@ -171,6 +171,50 @@ class ClientMasterListController extends Controller
             ->with('success', 'Client details updated successfully.');
     }
 
+    /**
+     * Update client branding without requiring edits to company/contact fields.
+     * Only image files are accepted and original filenames are never used.
+     */
+    public function updateLogo(Request $request, OperationClient $operationClient): RedirectResponse
+    {
+        $validated = $request->validate([
+            'logo' => ['nullable', File::image()->types(['jpg', 'jpeg', 'png', 'webp'])->max('2mb')],
+            'remove_logo' => ['sometimes', 'boolean'],
+        ]);
+
+        if (! $request->hasFile('logo') && ! ($validated['remove_logo'] ?? false)) {
+            throw ValidationException::withMessages([
+                'logo' => 'Choose a logo to upload, or select Remove current logo.',
+            ]);
+        }
+
+        $newPath = $request->hasFile('logo')
+            ? $request->file('logo')->store('operation/client-logos', 'public')
+            : null;
+
+        try {
+            $oldPath = DB::transaction(function () use ($operationClient, $newPath, $validated): ?string {
+                $client = OperationClient::query()->lockForUpdate()->findOrFail($operationClient->id);
+                $oldPath = $client->logo_path;
+                $client->update([
+                    'logo_path' => $newPath ?? (($validated['remove_logo'] ?? false) ? null : $oldPath),
+                ]);
+
+                return $oldPath;
+            }, 5);
+        } catch (\\Throwable $exception) {
+            if ($newPath) Storage::disk('public')->delete($newPath);
+            throw $exception;
+        }
+
+        if ($oldPath && ($newPath || ($validated['remove_logo'] ?? false))) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return redirect()->route('client-trip-times', ['focus_client' => $operationClient->id])
+            ->with('success', 'Client logo updated successfully.');
+    }
+
     public function updateStatus(Request $request, OperationClient $operationClient): RedirectResponse
     {
         $validated = $request->validate([
