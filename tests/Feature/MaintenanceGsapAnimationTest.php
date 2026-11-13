@@ -120,4 +120,16 @@ class MaintenanceGsapAnimationTest extends TestCase
         );
     }
 
+    public function test_shared_navigation_loader_keeps_dark_theme_during_operation_navigation(): void
+    {
+        $script = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+        $styles = file_get_contents(resource_path('css/Main-styles/page-transitions.css'));
+
+        $this->assertStringContainsString("loader.dataset.gctLoaderTheme = document.documentElement.dataset.gctTheme === 'dark'", $script);
+        $this->assertStringContainsString("document.body.dataset.gctOperationPage === '1'", $script);
+        $this->assertStringContainsString('.gct-navigation-loader[data-gct-loader-theme="dark"]', $styles);
+        $this->assertStringContainsString('.gct-navigation-loader__spinner::after', $styles);
+        $this->assertStringContainsString('background: rgba(11, 18, 32, 0.985);', $styles);
+    }
+
 }
