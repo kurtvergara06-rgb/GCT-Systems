@@ -561,6 +561,33 @@ html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
     border-color: var(--gct-theme-border);
     color: var(--gct-theme-fg);
 }
+/* Driver Attendance: visible scheduled windows and read-only trip details.
+   The light-mode component CSS uses fixed blue-gray text that has insufficient
+   contrast on dark surfaces; keep these values tied to theme tokens. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance-page :is(
+    .attendance-trip-time, .attendance-trip-date,
+    .attendance-assignment-schedule
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance-page .attendance-trip-time.is-empty {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal :is(
+    .attendance-modal-trip-time, .attendance-modal-trips-table td,
+    .attendance-modal-trip-id
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-modal-trips-table tbody tr:nth-child(even) td {
+    background: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-modal-trip-bus {
+    background: #203d61;
+    border-color: #36577e;
+    color: #d8e9ff;
+}
+
 /* Keep the designated yellow Export action and colored statuses unchanged. */
 
 /* Browser-audited legacy surfaces. Screen-only: printable records retain their
