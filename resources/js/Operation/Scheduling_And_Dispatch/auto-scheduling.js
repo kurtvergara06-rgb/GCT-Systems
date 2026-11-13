@@ -3432,8 +3432,6 @@ function updateMlStatus(conflicts) {
             const direction = item.direction || 'Incoming';
             const issue = String(item.reason || 'Resources unavailable')
                 .replace(/\s*\(Bus\s+\d+\/\d+\)\.?\s*$/i, '.');
-            // Keep the queue scannable; the full reason remains available in
-            // the cell tooltip and the selected AI Conflict Report.
             const driverUnavailable = /no eligible driver is available/i.test(issue);
             const busUnavailable = /no active bus is available/i.test(issue);
             const issuePreview = driverUnavailable && busUnavailable
@@ -3442,22 +3440,30 @@ function updateMlStatus(conflicts) {
             const trip = item.base_trip_code || item.trip_code || 'Trip';
             const severity = getConflictSeverity(item);
             const required = Math.max(1, Number(item.required_buses || 1));
-            const tripKey = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
-            const ready = Math.min(required, Math.max(0,
-                Number(readyCountsByTrip.get(tripKey) ?? item.ready_buses ?? 0)));
             const slot = Math.min(required, Math.max(1, Number(item.slot || 1)));
-            const slotLabel = `Bus Slot ${slot}`;
-            return `<tr class="${index === selectedConflictIndex ? 'is-selected' : ''}" data-gct-report-index="${index}" tabindex="0" role="button" aria-selected="${index === selectedConflictIndex}" aria-label="View AI conflict report for ${escapeHtml(trip)}, ${escapeHtml(item.slot_label || '')}">
-                <td><span class="gct-conflict-trip-cell">
-                    <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${direction === 'Incoming' ? 'IN' : 'OUT'}</span>
-                    <span class="gct-conflict-trip-meta"><strong>${escapeHtml(trip)}</strong><span class="gct-conflict-slot-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(slotLabel)}</span></span>
-                </span></td>
-                <td><strong>${escapeHtml(item.route_code || '—')}</strong><small>${escapeHtml(item.route_name || '')}</small></td>
-                <td>${escapeHtml(item.departure_display || displayTime(item.departure_time))}</td>
-                <td class="gct-conflict-issue" title="${escapeHtml(issue)}">${escapeHtml(issuePreview)}</td>
-                <td><span class="gct-conflict-severity ${severity.key}"><i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}"></i> ${severity.label}</span></td>
-                <td><span class="gct-conflict-state"><i class="fa-regular fa-clock"></i> Needs Review</span></td>
-            </tr>`;
+            const departure = item.departure_display || displayTime(item.departure_time);
+            return `
+                <button type="button"
+                    class="gct-conflict-queue-item #{index === selectedConflictIndex ? 'is-selected' : ''}"
+                    data-gct-report-index="#{index}"
+                    aria-pressed="#{index === selectedConflictIndex}"
+                    aria-label="View AI conflict report for #{escapeHtml(trip)}, bus slot #{slot}">
+                    <span class="gct-queue-head">
+                        <strong>#{escapeHtml(trip)} <small>· Slot #{slot} of #{required}</small></strong>
+                        <span class="gct-conflict-severity #{severity.key}">
+                            <i class="fa-solid #{severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}" aria-hidden="true"></i>
+                            #{severity.label}
+                        </span>
+                    </span>
+                    <span class="gct-queue-meta">
+                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> #{escapeHtml(departure)}</span>
+                        <span class="gct-conflict-dir #{direction === 'Incoming' ? 'in' : 'out'}">#{escapeHtml(direction)}</span>
+                    </span>
+                    <span class="gct-queue-route">#{escapeHtml(item.route_code || '—')} · #{escapeHtml(item.route_name || 'Route')}</span>
+                    <span class="gct-queue-issue" title="#{escapeHtml(issue)}">#{escapeHtml(issuePreview)}</span>
+                    <span class="gct-queue-foot"><span class="gct-conflict-state"><i class="fa-regular fa-clock" aria-hidden="true"></i> Needs Review</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
+                </button>
+            `;
         }).join('');
         // Rebuilding the report must not move the page or reset its independent scroll.
         const previousPageScroll = window.scrollY;
@@ -3474,17 +3480,20 @@ function updateMlStatus(conflicts) {
                         </div>
                         <input type="search" data-gct-conflict-search placeholder="Search trip, route or issue..." value="${escapeHtml(conflictSearch)}" aria-label="Search scheduling conflicts">
                     </div>
-                    <div class="gct-conflict-table-scroll"><table class="gct-conflict-table">
-                        <thead><tr>
-                            <th>${renderConflictSortHeader('Trip / Slot', 'trip')}</th>
-                            <th>${renderConflictSortHeader('Route', 'route')}</th>
-                            <th>${renderConflictSortHeader('Time', 'time')}</th>
-                            <th>${renderConflictSortHeader('Issue', 'issue')}</th>
-                            <th>${renderConflictSortHeader('Severity', 'severity')}</th>
-                            <th>${renderConflictSortHeader('Status', 'status')}</th>
-                        </tr></thead>
-                        <tbody>${rows || '<tr><td colspan="6">No conflicts match your filters.</td></tr>'}</tbody>
-                    </table></div>
+                    <details class="gct-conflict-sort-menu">
+                        <summary><i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i> Sort conflicts <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                        <div class="gct-conflict-sort-options">
+                            ${renderConflictSortHeader('Trip / Slot', 'trip')}
+                            ${renderConflictSortHeader('Route', 'route')}
+                            ${renderConflictSortHeader('Time', 'time')}
+                            ${renderConflictSortHeader('Issue', 'issue')}
+                            ${renderConflictSortHeader('Severity', 'severity')}
+                            ${renderConflictSortHeader('Status', 'status')}
+                        </div>
+                    </details>
+                    <div class="gct-conflict-table-scroll gct-conflict-queue" role="group" aria-label="Select scheduling conflict">
+                        ${rows || '<p class="gct-conflict-queue-empty">No conflicts match your filters.</p>'}
+                    </div>
                     <p class="gct-conflict-count">Showing ${shown.length} of ${conflicts.length} conflicts</p>
                 </div>
                 ${conflictReportClosed ? '' : `
