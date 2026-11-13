@@ -138,8 +138,8 @@ class MaintenanceGsapAnimationTest extends TestCase
         $transitions = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
         $styles = file_get_contents(resource_path('css/Main-styles/page-transitions.css'));
 
-        $this->assertStringContainsString("$accountThemePage = collect($assets)->contains(", $layout);
-        $this->assertStringContainsString("str_starts_with($asset, 'resources/css/Account/')", $layout);
+        $this->assertStringContainsString("\$accountThemePage = collect(\$assets)->contains(", $layout);
+        $this->assertStringContainsString("str_starts_with(\$asset, 'resources/css/Account/')", $layout);
         $this->assertStringContainsString('@if(($operationThemePage || $accountThemePage) && auth()->check())', $layout);
         $this->assertStringContainsString("document.querySelector('.account-page') !== null", $transitions);
         $this->assertStringContainsString('&& darkEnabledOnPage', $transitions);
