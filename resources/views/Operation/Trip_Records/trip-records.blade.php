@@ -67,26 +67,22 @@
 
                     <table class="trip-table trip-history-table unified-trip-history-table">
                         <colgroup>
-                            <col class="history-col-trip">
-                            <col class="history-col-schedule">
+                            <col class="history-col-trip-schedule">
                             <col class="history-col-route">
                             <col class="history-col-resources">
                             <col class="history-col-slots">
                             <col class="history-col-assignment">
                             <col class="history-col-status">
-                            <col class="history-col-actual">
                             <col class="history-col-action">
                         </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Trip ID</th>
-                                <th scope="col">Schedule</th>
+                                <th scope="col">Trip / Schedule</th>
                                 <th scope="col">Route</th>
-                                <th scope="col">Assigned Resources</th>
+                                <th scope="col">Driver / Bus</th>
                                 <th scope="col">Bus Slots</th>
                                 <th scope="col">Assignment Outcome</th>
-                                <th scope="col">Operational Status</th>
-                                <th scope="col">Actual Times</th>
+                                <th scope="col">Trip Status</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -157,8 +153,11 @@
                                     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
                                 @endphp
                                 <tr>
-                                    <td><x-ui.id-badge :value="$trip->trip_code" /></td>
-                                    <td class="unified-trip-date"><strong>{{ $trip->trip_date?->format('M d, Y') }}</strong><small>{{ $trip->departureDateTime()->format('g:i A') }} – {{ $trip->estimatedArrivalDateTime()->format('g:i A') }}</small></td>
+                                    <td class="unified-trip-schedule">
+                                        <x-ui.id-badge :value="$trip->trip_code" />
+                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong>
+                                        <small>{{ $trip->departureDateTime()->format('g:i A') }} – {{ $trip->estimatedArrivalDateTime()->format('g:i A') }}</small>
+                                    </td>
                                     <td><strong>{{ $trip->route_name_snapshot ?: ($route?->route_name ?? 'Route unavailable') }}</strong></td>
                                     <td class="unified-trip-resource">
                                         @if($firstUnit)
@@ -171,17 +170,6 @@
                                     <td><span class="trip-history-slots {{ $assignedCount >= $requiredCount ? 'is-full' : ($assignedCount > 0 ? 'is-partial' : 'is-empty') }}">{{ $assignedCount }}/{{ $requiredCount }}</span></td>
                                     <td><x-ui.status-badge class="trip-history-outcome" :status="$assignmentOutcome" :title="'Assignment fulfillment; not proof of completed transportation'" /></td>
                                     <td><x-ui.status-badge :status="$trip->status === 'Dispatched' ? 'In Progress' : $trip->status" class="trip-history-operational-status" /></td>
-                                    <td class="unified-trip-actual-times">
-                                        @if($singleDdrTime)
-                                            <strong>{{ $singleDdrTime['departure'] ?: '—' }} → {{ $singleDdrTime['arrival'] ?: '—' }}</strong>
-                                            <small>DDR {{ $singleDdrTime['ddr_no'] }}</small>
-                                        @elseif($ddrTimes->isNotEmpty())
-                                            <strong>{{ $ddrTimes->count() }} DDR trip records</strong>
-                                            <small>View individual driver/bus times</small>
-                                        @else
-                                            <span class="trip-resource-empty">{{ $trip->status === 'Pending DDR' ? 'Awaiting DDR' : 'No DDR recorded' }}</span>
-                                        @endif
-                                    </td>
                                     <td>
                                         <x-ui.table-action
                                             variant="view"
@@ -195,7 +183,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row colspan="9" icon="fa-route" message="No Trip History Found" description="No historical trips matched the selected filters." />
+                                <x-ui.empty-row colspan="7" icon="fa-route" message="No Trip History Found" description="No historical trips matched the selected filters." />
                             @endforelse
                         </tbody>
                     </table>
