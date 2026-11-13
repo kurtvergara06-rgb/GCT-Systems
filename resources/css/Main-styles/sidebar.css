@@ -1487,9 +1487,10 @@ html[data-gct-theme="dark"] #appSidebar .menu-dropdown.open > .menu-item:not(.ac
   color: #f5f8ff;
 }
 html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .menu-dropdown > .menu-item.active, .menu-dropdown.open > .menu-item.active, .submenu-item.active) {
-  background: #8e651a;
-  color: #fff3d7;
-  box-shadow: none;
+  /* The current sidebar destination uses GCT yellow in both themes. */
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 8px 20px rgba(255, 196, 0, 0.16);
 }
 html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .submenu-item.active) :is(i, span) { color: inherit; }
 html[data-gct-theme="dark"] #appSidebar .sidebar-collapse-btn {
