@@ -129,7 +129,7 @@
 
 @if($canEditOperation)
     <form class="ctt-inline-range-editor" id="cttInlineRange-{{ $client->id }}-{{ $category }}" data-ctt-range-editor
-        role="region" aria-label="Time range settings for {{ $categoryLabel }}"
+        role="dialog" aria-modal="true" aria-label="Time range settings for {{ $categoryLabel }}"
         data-client-id="{{ $client->id }}"
         data-category="{{ $category }}"
         @if($hasConfiguration) data-update-url="/operation/client-trip-times/{{ $configuration->id }}" @endif
