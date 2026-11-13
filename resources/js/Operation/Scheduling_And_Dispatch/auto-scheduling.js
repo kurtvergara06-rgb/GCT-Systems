@@ -1753,14 +1753,18 @@ function updateMlStatus(conflicts) {
         const required = Math.max(1, Number(item.required_buses || 1));
         const slotNumber = Math.max(1, Number(item.slot || 1));
         const assigned = Math.min(required, Math.max(0, Number(item.tripAssignedCount || 0)));
-        const slotLabel = `Bus Slot ${slotNumber}`;
+        const slotLabel = `Slot ${slotNumber} of ${required}`;
 
         const isConflict = item.result === 'Conflict';
 
         return `
             <tr class="auto-preview-trip-row ${isContinuation ? 'auto-trip-continuation' : 'auto-trip-first'} ${isConflict ? 'conflict-row' : ''}">
                 <td>
-                    ${isContinuation ? `<span class="auto-trip-continuation-label" aria-label="Additional slot for trip ${cleanTripCode}"><i class="fa-solid fa-turn-down" aria-hidden="true"></i> Same trip</span>` : `<strong class="auto-trip-main-id">${cleanTripCode}</strong>`}
+                    <div class="auto-preview-trip-time">
+                        <strong class="auto-trip-main-id">${cleanTripCode}</strong>
+                        <span class="auto-preview-departure">${escapeHtml(item.departure_display || formatDisplayTime(item.departure_time))}</span>
+                        <small class="auto-preview-arrival">to ${escapeHtml(item.arrival_display || formatDisplayTime(item.estimated_arrival_time))}</small>
+                    </div>
                 </td>
 
                 <td>
