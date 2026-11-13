@@ -132,6 +132,21 @@ class MaintenanceGsapAnimationTest extends TestCase
         $this->assertStringContainsString('background: rgba(11, 18, 32, 0.985);', $styles);
     }
 
+    public function test_account_pages_initialize_dark_loader_before_first_paint(): void
+    {
+        $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
+        $transitions = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
+        $styles = file_get_contents(resource_path('css/Main-styles/page-transitions.css'));
+
+        $this->assertStringContainsString("$accountThemePage = collect($assets)->contains(", $layout);
+        $this->assertStringContainsString("str_starts_with($asset, 'resources/css/Account/')", $layout);
+        $this->assertStringContainsString('@if(($operationThemePage || $accountThemePage) && auth()->check())', $layout);
+        $this->assertStringContainsString("document.querySelector('.account-page') !== null", $transitions);
+        $this->assertStringContainsString('&& darkEnabledOnPage', $transitions);
+        $this->assertStringContainsString('html[data-gct-theme="dark"].gct-page-booting #gctBootLoader', $layout);
+        $this->assertStringContainsString('.gct-navigation-loader[data-gct-loader-theme="dark"]', $styles);
+    }
+
     public function test_shared_navigation_loader_covers_full_page_and_sidebar_transitions(): void
     {
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
