@@ -1157,4 +1157,27 @@ class FrontendUiUxComprehensiveTest extends TestCase
     }
 
 
+    public function test_security_settings_dashboard_preserves_password_form_and_theme_navigation(): void
+    {
+        $blade = file_get_contents(resource_path('views/Account/settings.blade.php'));
+        $css = file_get_contents(resource_path('css/Account/account.css'));
+
+        $this->assertStringContainsString('account-security-hero', $blade);
+        $this->assertStringContainsString('account-security-grid', $blade);
+        $this->assertStringContainsString('account-security-tabs', $blade);
+        $this->assertStringContainsString("route('account.personalization', [], false)", $blade);
+        $this->assertStringNotContainsString('Coming soon', $blade);
+        $this->assertStringContainsString("route('account.password.update', [], false)", $blade);
+        foreach (['currentPassword', 'newPassword', 'confirmPassword', 'pwStrengthBar', 'pwMatchFeedback'] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $blade);
+        }
+        $this->assertStringContainsString('data-target="currentPassword"', $blade);
+        $this->assertStringContainsString('data-target="newPassword"', $blade);
+        $this->assertStringContainsString('data-target="confirmPassword"', $blade);
+        $this->assertStringContainsString('data-rbac-preview', $blade);
+        $this->assertStringContainsString('Account Security Center: compact, distinct from My Profile', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page:has(.account-security-hero)', $css);
+        $this->assertStringContainsString('@media (max-width: 730px)', $css);
+    }
+
 }
