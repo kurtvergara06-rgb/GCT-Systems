@@ -1540,3 +1540,91 @@
         justify-content: flex-start;
     }
 }
+
+/* Read-only clean data modal */
+.clean-data-modal {
+    width: min(1750px, 97vw);
+    padding: 16px 20px 18px;
+}
+
+.clean-data-tools {
+    align-items: center;
+}
+
+.read-only-badge {
+    margin-left: auto;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #eaf2ff;
+    color: #0b40b5;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.clean-data-note {
+    background: #f4f7fe;
+    color: #64748b;
+}
+
+.clean-data-table td {
+    min-width: 145px;
+    color: #1e293b;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.clean-data-table td:last-child {
+    min-width: 220px;
+    white-space: normal;
+}
+
+.clean-data-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+@media (max-width: 760px) {
+    .clean-data-tools {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .read-only-badge {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+    }
+}
+
+
+/* Final clean-data processing layout */
+.clean-data-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.clean-data-process-form {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.clean-data-process-form .confirm-batch-btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .clean-data-tools {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .clean-data-process-form {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

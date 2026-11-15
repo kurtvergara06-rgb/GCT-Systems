@@ -1456,9 +1456,8 @@ class BatchFileProcessingController extends Controller
     {
         $busNumbers = $batchUpload->tripRecords()
             ->whereNotNull('bus_no')
-            ->whereNotNull('mileage_km')
             ->pluck('bus_no')
-            ->map(fn ($busNo) => strtoupper(trim($busNo)))
+            ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
             ->filter()
             ->unique()
             ->values();
@@ -1469,19 +1468,39 @@ class BatchFileProcessingController extends Controller
     private function refreshBusesLatestGps($busNumbers): void
     {
         foreach ($busNumbers as $busNo) {
-            $bus = Bus::whereRaw('UPPER(TRIM(bus_no)) = ?', [$busNo])->first();
+            $normalizedBusNo = strtoupper(trim((string) $busNo));
+
+            $bus = Bus::query()
+                ->whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [$normalizedBusNo]
+                )
+                ->first();
 
             /*
-             | Do not create buses automatically from GPS data.
-             | Operations owns the official Bus Master List.
-             */
+            |------------------------------------------------------------------
+            | Do not create buses automatically from GPS records.
+            | Operation owns the official Bus Master List.
+            |------------------------------------------------------------------
+            */
             if (! $bus) {
                 continue;
             }
 
+            /*
+            |------------------------------------------------------------------
+            | Get the latest processed GPS record for this bus.
+            |
+            | This record supplies:
+            | - Latest GPS mileage
+            | - Route / grouping
+            |------------------------------------------------------------------
+            */
             $latestRecord = GpsTripRecord::query()
-                ->whereRaw('UPPER(TRIM(bus_no)) = ?', [$busNo])
-                ->whereNotNull('mileage_km')
+                ->whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [$normalizedBusNo]
+                )
                 ->whereHas('batchUpload', function ($query) {
                     $query->where('status', 'Processed');
                 })
@@ -1489,6 +1508,12 @@ class BatchFileProcessingController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
+            /*
+            |------------------------------------------------------------------
+            | No remaining processed GPS data exists for this bus.
+            | Keep manually maintained model and route information unchanged.
+            |------------------------------------------------------------------
+            */
             if (! $latestRecord) {
                 $bus->update([
                     'latest_gps_km' => null,
@@ -1498,11 +1523,29 @@ class BatchFileProcessingController extends Controller
                 continue;
             }
 
-            $bus->update([
+            $updates = [
                 'latest_gps_km' => $latestRecord->mileage_km,
                 'latest_gps_at' => $latestRecord->beginning_at
                     ?? $latestRecord->created_at,
-            ]);
+            ];
+
+            /*
+            |------------------------------------------------------------------
+            | Copy the cleaned GPS grouping into the Bus Master List route.
+            | Never replace an existing route with an empty GPS value.
+            |------------------------------------------------------------------
+            */
+            if (
+                $latestRecord->grouping !== null &&
+                trim((string) $latestRecord->grouping) !== ''
+            ) {
+                $updates['route_grouping'] = trim(
+                    (string) $latestRecord->grouping
+                );
+            }
+
+            $bus->update($updates);
         }
     }
+
 }
