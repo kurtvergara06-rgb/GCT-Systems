@@ -104,7 +104,7 @@ RUN composer install \
 # Create Laravel writable directories.
 RUN mkdir -p \
     storage/app/public \
-    storage/framework/cache \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
