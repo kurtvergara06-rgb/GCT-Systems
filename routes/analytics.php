@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AnalyticsStageController;
+use App\Http\Controllers\Admin\DelayPredictionController;
 use App\Http\Controllers\Admin\DescriptiveAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,9 @@ Route::middleware('auth')->prefix('analytics')->group(function (): void {
 
     Route::redirect('/recommendations', '/analytics/prescriptive')
         ->name('analytics.recommendations');
+
+    Route::get('/delay-predictions', [DelayPredictionController::class, 'index'])
+        ->name('analytics.delay-predictions');
 
     Route::get('/{stage}', [AnalyticsStageController::class, 'show'])
         ->whereIn('stage', ['diagnostic', 'predictive', 'prescriptive'])

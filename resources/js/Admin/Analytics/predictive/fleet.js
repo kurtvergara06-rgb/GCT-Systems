@@ -4,6 +4,8 @@
    ========================================================= */
 
 import Chart from 'chart.js/auto';
+import './delay-model.js';
+import '../../../../css/Admin/Analytics/predictive/delay-model.css';
 
 const data = window.predictiveChartData || {};
 
