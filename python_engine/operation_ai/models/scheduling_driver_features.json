@@ -1,9 +1,0 @@
-{
-  "features": [
-    "shift_encoded",
-    "attendance_rate",
-    "late_rate",
-    "total_attendance",
-    "distinct_dates"
-  ]
-}

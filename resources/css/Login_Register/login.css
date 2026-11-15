@@ -1,0 +1,490 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+:root {
+  --blue: #0057f8;
+  --navy: #001f4d;
+  --yellow: #ffc400;
+  --text: #17233f;
+  --muted: #75809b;
+  --border: #d8dfeb;
+  --white: #fff;
+}
+
+body {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 40% 60%;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  position: relative;
+  color: var(--white);
+  overflow: hidden;
+  background:
+    linear-gradient(130deg, rgba(0, 25, 75, .96), rgba(0, 62, 150, .9)),
+    radial-gradient(circle at top left, rgba(0, 92, 255, .45), transparent 35%);
+  border-bottom: 8px solid var(--yellow);
+}
+
+.left-panel::before,
+.left-panel::after {
+  content: "";
+  position: absolute;
+}
+
+.left-panel::before {
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 35%, rgba(255,255,255,.05) 36%, transparent 58%),
+    linear-gradient(150deg, transparent 60%, rgba(255,196,0,.25) 61%, transparent 63%);
+}
+
+.left-panel::after {
+  width: 750px;
+  height: 260px;
+  left: -180px;
+  bottom: 40px;
+  border: 1px solid rgba(255,196,0,.35);
+  border-radius: 50%;
+  transform: rotate(-12deg);
+}
+
+.left-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 55px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.company-logo {
+  width: 155px;
+  height: 155px;
+  object-fit: contain;
+  margin-bottom: 28px;
+}
+
+.left-content h1 {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.left-content h3 {
+  color: var(--yellow);
+  font-size: 17px;
+  line-height: 1.45;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.service-list {
+  list-style: none;
+  margin-bottom: 40px;
+}
+
+.service-list li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 24px;
+  font-size: 16px;
+}
+
+.service-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--yellow);
+  font-size: 24px;
+}
+
+.bus-image {
+  margin-top: 5px;
+  height: 170px;
+  font-size: 150px;
+  color: var(--yellow);
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
+}
+
+.security-box {
+  margin-top: auto;
+  width: 100%;
+  max-width: 390px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.security-icon {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255,255,255,.55);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+}
+
+.security-box h4 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.security-box p {
+  font-size: 14px;
+  opacity: .86;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+  min-height: 100vh;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 35px;
+  background:
+    radial-gradient(circle at top, rgba(0,87,248,.08), transparent 35%),
+    linear-gradient(135deg, #fff, #f5f8ff);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 580px;
+  padding: 40px;
+  background: rgba(255,255,255,.92);
+  border-radius: 14px;
+  box-shadow: 0 25px 55px rgba(23,47,77,.12);
+}
+
+.user-icon {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: #dce7ff;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+}
+
+.login-card h2 {
+  text-align: center;
+  font-size: 30px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 42px;
+}
+
+.form-group {
+  margin-bottom: 28px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.input-box {
+  height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  transition: .25s;
+}
+
+.input-box:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(0,87,248,.12);
+}
+
+.input-box i {
+  color: #8792ac;
+  margin-right: 16px;
+  font-size: 17px;
+}
+
+.input-box input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.input-box input::placeholder {
+  color: #8b96ad;
+}
+
+.toggle-password {
+  margin-right: 0 !important;
+  cursor: pointer;
+}
+
+/* REMEMBER ME + FORGOT PASSWORD */
+.login-options {
+  width: 100%;
+  margin-bottom: 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.login-options label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+}
+
+.login-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+
+.login-options a {
+  margin-left: auto;
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-options a:hover {
+  text-decoration: underline;
+}
+
+/* SIGN IN BUTTON */
+.login-btn {
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,87,248,.28);
+  transition: .25s;
+}
+
+.login-btn:hover {
+  background: #004be0;
+  transform: translateY(-2px);
+}
+
+/* REGISTER BOX */
+.register-box {
+  width: 100%;
+  margin-top: 28px;
+  padding: 14px 16px;
+  background: #f5f8ff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.register-box a {
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-box a:hover {
+  text-decoration: underline;
+}
+
+/* FOOTER */
+.login-footer {
+  text-align: center;
+  color: #7d88a3;
+  font-size: 14px;
+}
+
+.login-footer p {
+  margin-bottom: 12px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.footer-links a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Make the registration side scrollable */
+.right-panel {
+  overflow-y: auto;
+  justify-content: flex-start;
+  padding-top: 35px;
+  padding-bottom: 35px;
+}
+
+/* Make registration card smaller and fit better */
+.register-card {
+  max-width: 640px;
+  padding: 28px 38px;
+  margin: auto 0;
+}
+
+/* Make the top icon smaller */
+.register-card .user-icon {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+/* Make title area smaller */
+.register-card h2 {
+  font-size: 27px;
+  margin-bottom: 6px;
+}
+
+.register-card .subtitle {
+  margin-bottom: 24px;
+}
+
+/* Better spacing for registration inputs */
+.register-card .form-group {
+  margin-bottom: 18px;
+}
+
+.register-card .input-box {
+  height: 52px;
+}
+
+/* Better select design */
+.input-box select {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Add custom dropdown arrow */
+.select-box {
+  position: relative;
+}
+
+.select-box::after {
+  content: "\f107";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  position: absolute;
+  right: 16px;
+  color: #8792ac;
+  pointer-events: none;
+}
+
+/* Fix icon spacing inside select */
+.select-box i {
+  margin-right: 16px;
+}
+
+/* Create account button spacing */
+.register-card .login-btn {
+  margin-top: 4px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1000px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .left-content,
+  .right-panel {
+    min-height: auto;
+    padding: 40px 25px;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-card {
+    padding: 30px 22px;
+  }
+
+  .left-content h1 {
+    font-size: 24px;
+  }
+
+  .company-logo {
+    width: 125px;
+    height: 125px;
+  }
+
+  .bus-image {
+    height: 120px;
+    font-size: 110px;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .login-options a {
+    margin-left: 0;
+  }
+
+  .register-box {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

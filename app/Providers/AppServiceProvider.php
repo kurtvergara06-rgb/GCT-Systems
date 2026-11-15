@@ -2,79 +2,23 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Admin\ActivityLogController;
-use App\Http\Controllers\Admin\FuelAnalyticsController;
-use App\Http\Controllers\Admin\NotificationCenterController;
-use App\Http\Controllers\Purchase\PurchaseDashboardController;
-use App\Mail\Transport\BrevoTransport;
-use App\Models\Maintenance\JobOrder;
-use App\Services\AdminDashboardService;
-use App\Services\RolePermissionService;
-use Illuminate\Http\Client\Factory as HttpFactory;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Validation\ValidationException;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register(): void
     {
         //
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        Mail::extend('brevo', function (): BrevoTransport {
-            return new BrevoTransport(
-                app(HttpFactory::class),
-                (string) config('services.brevo.key', ''),
-                (string) config('services.brevo.endpoint'),
-                (int) config('services.brevo.timeout', 10),
-                (int) config('services.brevo.connect_timeout', 3),
-            );
-        });
-
-        View::composer('Admin.admin-dashboard', function ($view): void {
-            $view->with(app(AdminDashboardService::class)->data());
-        });
-
-        View::composer('Admin.User_Management.permissions', function ($view): void {
-            $view->with(
-                app(RolePermissionService::class)->data(request()->query('role'))
-            );
-        });
-
-        View::composer('Admin.System_Monitoring.activity-logs', function ($view): void {
-            $view->with(app(ActivityLogController::class)->data(request()));
-        });
-
-        View::composer('Admin.System_Monitoring.notifications', function ($view): void {
-            $view->with(app(NotificationCenterController::class)->data(request()));
-        });
-
-        View::composer('Admin.Analytics.fuel', function ($view): void {
-            $view->with(app(FuelAnalyticsController::class)->data(request()));
-        });
-
-        View::composer('Purchase.dashboard-purchase', function ($view): void {
-            $view->with(app(PurchaseDashboardController::class)->data());
-        });
-
-        JobOrder::updating(function (JobOrder $jobOrder): void {
-            $isBeingCompleted =
-                $jobOrder->isDirty('status')
-                && $jobOrder->status === 'Completed';
-
-            $hasRequestedParts = filled($jobOrder->part_needed);
-            $partsWereRejected = $jobOrder->part_status === 'Rejected';
-
-            if ($isBeingCompleted && $hasRequestedParts && $partsWereRejected) {
-                throw ValidationException::withMessages([
-                    'part_status' =>
-                        'This Job Order cannot be finished because its Purchase Request was rejected. Revise and resubmit the request, then wait until the required parts are issued.',
-                ]);
-            }
-        });
+        //
     }
 }

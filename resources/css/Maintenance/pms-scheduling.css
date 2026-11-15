@@ -1,2152 +1,261 @@
-/* =========================================================
-   PMS SCHEDULING
-   Page-specific styles only
+/* PMS SCHEDULING PAGE ONLY */
 
-   IMPORTANT:
-   Add/Edit form styling comes from:
-   resources/css/Main-styles/form-components.css
-========================================================= */
-
-.pms-page {
-    --pms-blue: #0b40b5;
-    --pms-blue-dark: #07338f;
-
-    --pms-navy: #061f3d;
-
-    --pms-yellow: #ffc400;
-    --pms-yellow-dark: #f5a800;
-
-    --pms-card: #ffffff;
-
-    --pms-text: #0f172a;
-    --pms-muted: #64748b;
-
-    --pms-border: #dce5f2;
-    --pms-soft-border: #e7edf5;
-
-    --pms-table-head: #f3f7fc;
-
-    --pms-red: #dc2626;
-    --pms-green: #15803d;
-
-    --pms-shadow:
-        0 4px 16px rgba(6, 31, 61, 0.07);
-
-    --pms-shadow-hover:
-        0 10px 24px rgba(6, 31, 61, 0.11);
-}
-
-
-/* =========================================================
-   TOPBAR
-========================================================= */
-
-.pms-page .topbar {
-    margin-bottom: 20px;
-}
-
-.pms-page .topbar h1 {
-    color: var(--pms-navy);
-    letter-spacing: -0.02em;
-}
-
-.pms-page .topbar p {
-    color: var(--pms-muted);
-}
-
-
-/* =========================================================
-   SUMMARY CARDS
-========================================================= */
-
-.pms-page .pms-stats-grid {
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.pms-page .pms-stats-grid .stat-card,
-.pms-page .pms-stats-grid .stat-card-link {
-    min-height: 112px;
-
-    padding: 18px 20px;
-
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-
-    align-items: center;
-    gap: 14px;
-
-    background: var(--pms-card);
-
-    border: 1px solid var(--pms-border);
-    border-radius: 16px;
-
-    box-shadow: var(--pms-shadow);
-
-    transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
-}
-
-.pms-page .pms-stats-grid .stat-card:hover,
-.pms-page .pms-stats-grid .stat-card-link:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--pms-shadow-hover);
-}
-
-.pms-page .pms-stats-grid .stat-icon {
-    width: 48px;
-    height: 48px;
-
-    flex: 0 0 48px;
-
-    border-radius: 14px;
-
-    font-size: 18px;
-}
-
-.pms-page .pms-stats-grid .stat-card p,
-.pms-page .pms-stats-grid .stat-card-link p {
-    margin: 0;
-
-    color: var(--pms-muted);
-
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.pms-page .pms-stats-grid .stat-card h2,
-.pms-page .pms-stats-grid .stat-card-link h2 {
-    margin: 3px 0 2px;
-
-    color: var(--pms-navy);
-
-    font-size: 25px;
-    font-weight: 800;
-
-    line-height: 1;
-}
-
-.pms-page .pms-stats-grid .stat-card small,
-.pms-page .pms-stats-grid .stat-card-link small {
-    color: var(--pms-muted);
-
-    font-size: 11px;
-    font-weight: 500;
-}
-
-
-/* =========================================================
-   MAIN CARD
-========================================================= */
-
-.pms-page .pms-table-card {
-    margin-bottom: 20px;
-
-    padding: 16px;
-
-    overflow: hidden;
-
-    background: var(--pms-card);
-
-    border: 1px solid var(--pms-border);
-    border-radius: 16px;
-
-    box-shadow: var(--pms-shadow);
-}
-
-
-/* =========================================================
-   SECTION HEADER
-========================================================= */
-
-.pms-page .pms-header {
-    margin-bottom: 12px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 16px;
-}
-
-.pms-page .pms-header h2 {
-    margin: 0;
-
-    color: var(--pms-navy);
-
-    font-size: 18px;
-    font-weight: 800;
-
-    letter-spacing: -0.01em;
-}
-
-.pms-page .pms-header p {
-    margin: 3px 0 0;
-
-    color: var(--pms-muted);
-
-    font-size: 12px;
-
-    line-height: 1.45;
-}
-
-
-/* =========================================================
-   ADD PMS BUTTON
-========================================================= */
-
-.pms-page .pms-add-btn {
-    min-height: 40px;
-
-    padding: 0 15px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 7px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--pms-yellow),
-            var(--pms-yellow-dark)
-        );
-
-    border: 1px solid var(--pms-yellow-dark);
-    border-radius: 9px;
-
-    color: var(--pms-navy);
-
-    font-size: 12px;
-    font-weight: 800;
-
-    white-space: nowrap;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 5px 12px rgba(255, 196, 0, 0.22);
-
-    transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease;
-}
-
-.pms-page .pms-add-btn:hover {
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 8px 18px rgba(255, 196, 0, 0.32);
-}
-
-
-/* =========================================================
-   TOOLBAR
-========================================================= */
-
-.pms-page .pms-toolbar {
-    width: 100%;
-
-    margin-bottom: 14px;
-
-    padding: 10px 12px;
-
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 1fr)
-        150px;
-
-    align-items: end;
-
-    gap: 10px;
-
-    background: #ffffff;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 12px;
-}
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
-
-.pms-page .pms-toolbar .search-box {
-    min-width: 0;
-}
-
-.pms-page .pms-toolbar .search-box input {
-    width: 100%;
-    height: 40px;
-
-    padding: 0 14px 0 40px;
-
-    background: #ffffff;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 9px;
-
-    color: var(--pms-text);
-
-    font-size: 13px;
-
-    outline: none;
-}
-
-.pms-page .pms-toolbar .search-box input::placeholder {
-    color: #8a98ac;
-}
-
-.pms-page .pms-toolbar .search-box i {
-    left: 14px;
-
-    color: var(--pms-blue);
-
-    font-size: 13px;
-}
-
-.pms-page .pms-toolbar .search-box input:focus {
-    border-color: var(--pms-blue);
-
-    box-shadow:
-        0 0 0 3px rgba(11, 64, 181, 0.12);
-}
-
-
-/* =========================================================
-   FILTER
-========================================================= */
-
-.pms-page .pms-toolbar .filter-group {
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 5px;
-}
-
-.pms-page .pms-toolbar .filter-group label {
-    color: var(--pms-muted);
-
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.pms-page .pms-toolbar .filter-group select {
-    width: 100%;
-    height: 40px;
-
-    padding: 0 34px 0 11px;
-
-    background: #ffffff;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 9px;
-
-    color: var(--pms-text);
-
-    font-size: 12px;
-    font-weight: 600;
-
-    outline: none;
-
-    cursor: pointer;
-}
-
-.pms-page .pms-toolbar .filter-group select:focus {
-    border-color: var(--pms-blue);
-
-    box-shadow:
-        0 0 0 3px rgba(11, 64, 181, 0.12);
-}
-
-
-/* =========================================================
-   TABLE WRAPPER
-========================================================= */
-
-.pms-page .table-wrap {
-    width: 100%;
-
-    overflow-x: auto;
-
-    border-radius: 10px;
-}
-
-
-/* =========================================================
-   MAIN PMS TABLE
-========================================================= */
-
-.pms-page .pms-table {
-    width: 100%;
-
-    min-width: 980px;
-
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.pms-page .pms-table thead {
-    background: var(--pms-table-head);
-}
-
-.pms-page .pms-table th {
-    padding: 13px 14px;
-
-    color: #475569;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    letter-spacing: 0.055em;
-
-    line-height: 1.25;
-
-    text-align: left;
-    text-transform: uppercase;
-
-    white-space: nowrap;
-
-    border-bottom:
-        1px solid var(--pms-border);
-}
-
-.pms-page .pms-table td {
-    padding: 13px 14px;
-
-    color: var(--pms-text);
-
-    font-size: 13px;
-    font-weight: 500;
-
-    vertical-align: middle;
-
-    border-bottom:
-        1px solid var(--pms-soft-border);
-}
-
-.pms-page .pms-table tbody tr {
-    transition:
-        background-color 0.18s ease;
-}
-
-.pms-page .pms-table tbody tr:hover {
-    background: #f8fbff;
-}
-
-.pms-page .pms-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-
-/* =========================================================
-   TABLE ALIGNMENT
-========================================================= */
-
-.pms-page .pms-table .status-col {
-    text-align: center;
-}
-
-.pms-page .pms-table th:last-child,
-.pms-page .pms-table td:last-child {
-    text-align: center;
-}
-
-
-/* =========================================================
-   STATUS BADGES
-========================================================= */
-
-.pms-page .pms-table .badge {
-    min-width: 90px;
-    min-height: 26px;
-
-    padding: 0 11px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border: 1px solid transparent;
-    border-radius: 999px;
-
-    font-size: 11px;
-    font-weight: 700;
-
-    line-height: 1;
-
-    white-space: nowrap;
-}
-
-.pms-page .pms-table .badge.upcoming {
-    background: #dcfce7;
-
-    border-color: #b7efca;
-
-    color: #15803d;
-}
-
-.pms-page .pms-table .badge.due-soon {
-    background: #fff3cd;
-
-    border-color: #f8dd82;
-
-    color: #9a6700;
-}
-
-.pms-page .pms-table .badge.overdue {
-    background: #fee2e2;
-
-    border-color: #fecaca;
-
-    color: #c62828;
-    border-radius: 6px;
-}
-
-
-/* =========================================================
-   VIEW TASKS BUTTON
-========================================================= */
-
-.pms-page .pms-view-tasks-btn {
-    width: 34px;
-    min-width: 34px;
-
-    height: 34px;
-    min-height: 34px;
-
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #eaf2ff;
-
-    border: 1px solid #d4e3ff;
-    border-radius: 8px;
-
-    color: var(--pms-blue);
-
-    font-size: 13px;
-
-    cursor: pointer;
-
-    box-shadow: none;
-
-    transition:
-        transform 0.18s ease,
-        background-color 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease;
-}
-
-.pms-page .pms-view-tasks-btn:hover {
-    background: var(--pms-blue);
-
-    border-color: var(--pms-blue);
-
-    color: #ffffff;
-
-    transform: translateY(-1px);
-}
-
-
-/* =========================================================
-   VIEW PMS TASKS MODAL OVERLAY
-========================================================= */
-
-.pms-modal-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: var(--modal-backdrop-z-index, 99999);
-
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-    box-sizing: border-box;
-
-    overflow-y: auto;
-    overscroll-behavior: contain;
-
-    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
-    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-}
-
-.pms-modal-overlay.show,
-.pms-modal-overlay.active {
-    display: flex;
-}
-
-
-/* =========================================================
-   VIEW PMS TASKS MODAL
-========================================================= */
-
-.pms-modal {
-    box-sizing: border-box;
-
-    width: min(720px, calc(100vw - 40px));
-
-    max-height: calc(100vh - 40px);
-
-    padding: 22px;
-
-    overflow-y: auto;
-
-    background: #ffffff;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 18px;
-
-    box-shadow:
-        0 24px 70px rgba(6, 31, 61, 0.28);
-}
-
-
-/* =========================================================
-   WIDE VIEW TASK LIST
-========================================================= */
-
-.pms-wide-modal {
-    width: min(1280px, 97vw);
-
-    max-height: calc(100vh - 40px);
-
-    overflow-y: auto;
-}
-
-
-/* =========================================================
-   VIEW MODAL HEADER
-========================================================= */
-
-.pms-modal-header {
-    margin-bottom: 18px;
-
-    padding-bottom: 14px;
-
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 18px;
-
-    border-bottom:
-        1px solid var(--pms-soft-border);
-}
-
-.pms-modal-header h2 {
-    margin: 0;
-
-    color: var(--pms-navy);
-
-    font-size: 20px;
-    font-weight: 800;
-}
-
-.pms-modal-header p {
-    margin: 5px 0 0;
-
-    color: var(--pms-muted);
-
-    font-size: 12px;
-
-    line-height: 1.5;
-}
-
-
-/* =========================================================
-   VIEW MODAL CLOSE BUTTON
-========================================================= */
-
-.pms-close-btn {
-    width: 36px;
-    height: 36px;
-
-    flex: 0 0 36px;
-
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #f8fafc;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 9px;
-
-    color: var(--pms-navy);
-
-    font-size: 13px;
-
-    cursor: pointer;
-
-    transition:
-        background-color 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease;
-}
-
-.pms-close-btn:hover {
-    background: #fee2e2;
-
-    border-color: #fecaca;
-
-    color: #dc2626;
-}
-
-
-/* =========================================================
-   PMS TASK POPUP TABLE WRAPPER
-========================================================= */
-
-.pms-popup-table-wrap {
-    width: 100%;
-
-    margin-top: 4px;
-
-    overflow-x: visible;
-}
-
-
-/* =========================================================
-   PMS TASK POPUP TABLE
-========================================================= */
-
-.pms-tasks-popup .pms-table {
-    width: 100%;
-
-    min-width: 0;
-
-    table-layout: fixed;
-}
-
-
-/* =========================================================
-   POPUP COLUMN WIDTHS
-========================================================= */
-
-.pms-tasks-popup .pms-table th:nth-child(1),
-.pms-tasks-popup .pms-table td:nth-child(1) {
-    width: 14%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(2),
-.pms-tasks-popup .pms-table td:nth-child(2) {
-    width: 14%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(3),
-.pms-tasks-popup .pms-table td:nth-child(3) {
-    width: 13%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(4),
-.pms-tasks-popup .pms-table td:nth-child(4) {
-    width: 14%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(5),
-.pms-tasks-popup .pms-table td:nth-child(5) {
-    width: 18%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(6),
-.pms-tasks-popup .pms-table td:nth-child(6) {
-    width: 13%;
-}
-
-.pms-tasks-popup .pms-table th:nth-child(7),
-.pms-tasks-popup .pms-table td:nth-child(7) {
-    width: 14%;
-}
-
-
-/* =========================================================
-   POPUP TABLE TEXT
-========================================================= */
-
-.pms-tasks-popup .pms-table th {
-    padding: 12px 9px;
-
-    font-size: 10px;
-
-    white-space: nowrap;
-}
-
-.pms-tasks-popup .pms-table td {
-    padding: 12px 9px;
-
-    font-size: 12px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-}
-
-
-/* =========================================================
-   POPUP STATUS BADGES
-========================================================= */
-
-.pms-tasks-popup .pms-table .badge {
-    min-width: unset;
-    min-height: 24px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    text-transform: capitalize;
-    letter-spacing: normal;
-}
-
-.pms-tasks-popup .pms-table .badge.upcoming {
-    background: #dcfce7 !important;
-    border: 1px solid #bbf7d0 !important;
-    color: #15803d !important;
-}
-
-.pms-tasks-popup .pms-table .badge.due-soon {
-    background: #fef3c7 !important;
-    border: 1px solid #fde68a !important;
-    color: #b45309 !important;
-}
-
-.pms-tasks-popup .pms-table .badge.overdue {
-    background: #fee2e2 !important;
-    border: 1px solid #fecaca !important;
-    color: #dc2626 !important;
-}
-
-
-/* =========================================================
-   POPUP ACTIONS LAYOUT
-========================================================= */
-
-.pms-page .actions {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 6px;
-
-    white-space: nowrap;
-}
-
-.pms-page .actions form {
-    display: inline-flex;
-
-    margin: 0;
-}
-
-.pms-tasks-popup .actions {
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 6px;
-}
-
-
-/* =========================================================
-   SHARED POPUP ACTION BUTTON
-========================================================= */
-
-.pms-tasks-popup .create-pms-jo-btn,
-.pms-tasks-popup .pms-edit-task-btn,
-.pms-tasks-popup .actions .delete,
-.pms-tasks-popup .pms-action-placeholder {
-    width: 34px;
-    min-width: 34px;
-
-    height: 34px;
-    min-height: 34px;
-
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    font-size: 13px;
-
-    line-height: 1;
-
-    text-decoration: none;
-
-    transition:
-        transform 0.18s ease,
-        background-color 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease,
-        box-shadow 0.18s ease;
-}
-
-
-/* =========================================================
-   ACTION ICON ALIGNMENT
-========================================================= */
-
-.pms-tasks-popup .actions i {
-    display: block;
-
-    margin: 0;
-
-    font-size: 13px;
-
-    line-height: 1;
-
-    color: inherit;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   CREATE JOB ORDER ACTION
-   YELLOW
-========================================================= */
-
-.pms-tasks-popup .create-pms-jo-btn {
-    background: #fff4c7;
-
-    border: 1px solid #f8dd82;
-
-    color: #9a6700;
-
-    cursor: pointer;
-}
-
-.pms-tasks-popup .create-pms-jo-btn:hover {
-    background: var(--pms-yellow);
-
-    border-color: var(--pms-yellow-dark);
-
-    color: var(--pms-navy);
-
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 4px 10px rgba(255, 196, 0, 0.24);
-}
-
-
-/* =========================================================
-   EDIT ACTION
-   BLUE
-========================================================= */
-
-.pms-tasks-popup .pms-edit-task-btn {
-    background: #eaf2ff;
-
-    border: 1px solid #cfe0ff;
-
-    color: var(--pms-blue);
-
-    cursor: pointer;
-}
-
-.pms-tasks-popup .pms-edit-task-btn:hover {
-    background: var(--pms-blue);
-
-    border-color: var(--pms-blue);
-
-    color: #ffffff;
-
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 4px 10px rgba(11, 64, 181, 0.20);
-}
-
-
-/* =========================================================
-   DELETE ACTION
-   RED
-========================================================= */
-
-.pms-tasks-popup .actions .delete {
-    background: #fff0f0;
-
-    border: 1px solid #fecaca;
-
-    color: var(--pms-red);
-
-    cursor: pointer;
-}
-
-.pms-tasks-popup .actions .delete:hover {
-    background: var(--pms-red);
-
-    border-color: var(--pms-red);
-
-    color: #ffffff;
-
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 4px 10px rgba(220, 38, 38, 0.18);
-}
-
-
-/* =========================================================
-   DISABLED CREATE JO PLACEHOLDER
-========================================================= */
-
-.pms-tasks-popup .pms-action-placeholder {
-    background: #f8fafc;
-
-    border: 1px solid #e2e8f0;
-
-    color: #94a3b8;
-
-    cursor: default;
-}
-
-
-/* =========================================================
-   EMPTY ROW
-========================================================= */
-
-.pms-page .pms-empty-row {
-    padding: 32px !important;
-
-    color: var(--pms-muted);
-
-    font-size: 13px;
-    font-weight: 500;
-
-    text-align: center;
-}
-
-
-/* =========================================================
-   VIEW MODAL FOOTER
-========================================================= */
-
-.pms-view-footer {
-    margin-top: 16px;
-
-    padding-top: 16px;
-
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    border-top:
-        1px solid var(--pms-soft-border);
-}
-
-
-/* =========================================================
-   PREDICTED STATUS
-========================================================= */
-
-#pmsStatusPreview[value="Upcoming"] {
-    color: #15803d;
-}
-
-#pmsStatusPreview[value="Due Soon"] {
-    color: #9a6700;
-}
-
-#pmsStatusPreview[value="Overdue"] {
-    color: #dc2626;
-}
-
-
-/* =========================================================
-   TABLE FOOTER
-========================================================= */
-
-.pms-page .table-footer {
-    margin-top: 14px;
-
-    padding-top: 14px;
-
-    border-top:
-        1px solid var(--pms-soft-border);
-}
-
-.pms-page .table-footer p,
-.pms-page .page-number {
-    color: var(--pms-muted);
-
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.pms-page .page-btn {
-    min-height: 34px;
-
-    padding: 0 12px;
-
-    background: #ffffff;
-
-    border: 1px solid var(--pms-border);
-    border-radius: 8px;
-
-    color: var(--pms-navy);
-
-    font-size: 12px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    box-shadow: none;
-}
-
-.pms-page .page-btn:not(.disabled):hover {
-    background: #f5f8ff;
-
-    border-color: var(--pms-blue);
-
-    color: var(--pms-blue);
-}
-
-.pms-page .page-btn.disabled {
-    background: #f8fafc;
-
-    color: #94a3b8;
-
-    cursor: not-allowed;
-}
-
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 1100px) {
-
-    .pms-page .pms-toolbar {
-        grid-template-columns: 1fr;
-    }
-
-    .pms-page .pms-header {
-        align-items: flex-start;
-    }
-
-    .pms-wide-modal {
-        width: 96vw;
-    }
-
-    .pms-popup-table-wrap {
-        overflow-x: auto;
-    }
-
-    .pms-tasks-popup .pms-table {
-        min-width: 950px;
-
-        table-layout: auto;
-    }
-
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 768px) {
-
-    .pms-page .pms-stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .pms-page .pms-header {
-        flex-direction: column;
-
-        align-items: stretch;
-    }
-
-    .pms-page .pms-add-btn {
-        width: 100%;
-
-        justify-content: center;
-    }
-
-    .pms-page .pms-table-card {
-        padding: 12px;
-    }
-
-    .pms-modal-overlay {
-        padding: 12px;
-    }
-
-    .pms-modal,
-    .pms-wide-modal {
-        width: 100%;
-    }
-
-    .pms-view-footer .ui-form-btn {
-        width: 100%;
-    }
-
-}
-
-/* =========================================================
-   PMS ACTION BUTTONS
-========================================================= */
-
-.pms-tasks-popup .actions {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.pms-tasks-popup .actions form {
-    margin: 0;
-    display: inline-flex;
-}
-
-.pms-tasks-popup .create-pms-jo-btn,
-.pms-tasks-popup .pms-edit-task-btn,
-.pms-tasks-popup .actions .delete,
-.pms-tasks-popup .pms-action-placeholder {
-    width: 36px;
-    min-width: 36px;
-    height: 36px;
-    min-height: 36px;
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 10px;
-    border: 1px solid transparent;
-
-    text-decoration: none;
-    cursor: pointer;
-
-    transition: all 0.18s ease;
-}
-
-.pms-tasks-popup .create-pms-jo-btn i,
-.pms-tasks-popup .pms-edit-task-btn i,
-.pms-tasks-popup .actions .delete i,
-.pms-tasks-popup .pms-action-placeholder i {
-    font-size: 14px;
-    line-height: 1;
-    color: inherit;
-    pointer-events: none;
-}
-
-/* =========================================================
-   ADD TO JO BUTTON - YELLOW
-========================================================= */
-
-.pms-tasks-popup .create-pms-jo-btn {
-    background: #fff7db;
-    border-color: #f6d66b;
-    color: #d89b00;
-}
-
-.pms-tasks-popup .create-pms-jo-btn:hover {
-    background: #ffe79a;
-    border-color: #e0b200;
-    color: #a87400;
-    transform: translateY(-1px);
-}
-
-/* =========================================================
-   EDIT / VIEW BUTTON - BLUE
-========================================================= */
-
-.pms-tasks-popup .pms-edit-task-btn,
-.pms-tasks-popup .pms-view-task-btn {
-    background: #edf4ff;
-    border-color: #cfe0ff;
-    color: #1556d6;
-}
-
-.pms-tasks-popup .pms-edit-task-btn:hover,
-.pms-tasks-popup .pms-view-task-btn:hover {
-    background: #dbe9ff;
-    border-color: #aecaef;
-    color: #0f49b5;
-    transform: translateY(-1px);
-}
-
-/* =========================================================
-   DELETE BUTTON - RED
-========================================================= */
-
-.pms-tasks-popup .actions .delete,
-.pms-tasks-popup .pms-delete-task-btn {
-    background: #fff1f1;
-    border-color: #f7caca;
-    color: #e53935;
-}
-
-.pms-tasks-popup .actions .delete:hover,
-.pms-tasks-popup .pms-delete-task-btn:hover {
-    background: #ffe1e1;
-    border-color: #f0b2b2;
-    color: #c62828;
-    transform: translateY(-1px);
-}
-
-/* =========================================================
-   CONSOLIDATED: resources/css/Maintenance/pms-table-scroll.css
-========================================================= */
-/* PMS Scheduling: keep page controls visible while only the table records scroll. */
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
-  position: relative;
-  width: 100%;
-  max-height: clamp(340px, 48vh, 560px);
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  border: 1px solid var(--pms-border, #dce5f2);
-  border-radius: 10px;
-  background: #fff;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table {
-  margin: 0;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table thead {
-  position: sticky;
-  top: 0;
-  z-index: 6;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table th {
-  position: sticky;
-  top: 0;
-  z-index: 7;
-  background: var(--pms-table-head, #f3f7fc);
-  box-shadow: 0 1px 0 var(--pms-border, #dce5f2);
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-track {
-  background: #f3f6fa;
-  border-radius: 999px;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb {
-  background: #c5d1df;
-  border: 2px solid #f3f6fa;
-  border-radius: 999px;
-}
-
-.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb:hover {
-  background: #9faec0;
-}
-
-.pms-page .pms-table-card > .table-footer {
-  margin-top: 14px;
-}
-
-@media (max-width: 1024px) {
-  .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
-    max-height: clamp(320px, 52vh, 500px);
-  }
-}
-
-@media (max-width: 640px) {
-  .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
-    max-height: 430px;
-  }
+/* TABLE CARD */
+.table-card,
+.panel-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  overflow-x: auto;
+  margin-bottom: 20px;
 }
-
-
-/* =========================================================
-   PMS MODAL REDESIGN
-   Add / Edit / Task List
-========================================================= */
 
-#addPmsModal.pms-form-modal-overlay,
-#editPmsModal.pms-form-modal-overlay {
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 24px !important;
+/* CARD HEADER */
+.section-header {
+  margin-bottom: 12px;
 }
 
-#addPmsModal.pms-form-modal-overlay > .ui-form-modal,
-#editPmsModal.pms-form-modal-overlay > .ui-form-modal {
-  width: min(980px, calc(100vw - 48px)) !important;
-  max-width: 980px !important;
-  max-height: calc(100vh - 48px);
-  margin: auto !important;
+.pms-header {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid #dce5f2;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 28px 78px rgba(6, 31, 61, .26);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-#editPmsModal.pms-form-modal-overlay > .ui-form-modal {
-  width: min(900px, calc(100vw - 48px)) !important;
-  max-width: 900px !important;
-}
-
-#addPmsModal .ui-form-modal-header,
-#editPmsModal .ui-form-modal-header {
-  flex: 0 0 auto;
-  padding: 20px 24px 17px;
-  border-bottom: 1px solid #e5ebf3;
-  background: #ffffff;
-}
-
-#addPmsModal .ui-form-title-wrap,
-#editPmsModal .ui-form-title-wrap {
-  gap: 13px;
-}
-
-#addPmsModal .ui-form-title-icon,
-#editPmsModal .ui-form-title-icon {
-  width: 50px;
-  height: 50px;
-  flex: 0 0 50px;
-  border: 1px solid #f5d66f;
-  border-radius: 14px;
-  background: #fff5d7;
-  color: #e7a500;
-  font-size: 19px;
-}
-
-#addPmsModal .ui-form-heading h2,
-#editPmsModal .ui-form-heading h2 {
-  color: #061f3d;
-  font-size: 23px;
+.section-header h2,
+.record-header h2 {
+  font-size: 18px;
   font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -.015em;
+  color: var(--text);
 }
 
-#addPmsModal .ui-form-heading p,
-#editPmsModal .ui-form-heading p {
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 12.5px;
-  line-height: 1.5;
+.section-header p,
+.record-subtitle {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
 }
 
-#addPmsModal .ui-form-close,
-#editPmsModal .ui-form-close {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
-  border: 1px solid #dce5f2;
-  border-radius: 11px;
-  background: #f8fafc;
-  color: #061f3d;
-}
-
-#addPmsModal .ui-form-content,
-#editPmsModal .ui-form-content,
-#addPmsModal .ui-form-modal-body,
-#editPmsModal .ui-form-modal-body {
-  min-height: 0;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-#addPmsModal .ui-form-modal-body,
-#editPmsModal .ui-form-modal-body {
-  padding: 18px 20px 18px;
-}
-
-#addPmsModal .ui-form-modal-scrollable,
-#editPmsModal .ui-form-modal-scrollable {
-  min-height: 0;
-  max-height: none;
-  flex: 1 1 auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 5px;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-}
-
-#addPmsModal .pms-form-layout,
-#editPmsModal .pms-form-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-#addPmsModal .pms-form-section,
-#editPmsModal .pms-form-section {
-  overflow: hidden;
-  border: 1px solid #dce5f2;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 7px 20px rgba(6, 31, 61, .035);
-}
-
-#addPmsModal .pms-form-section-header,
-#editPmsModal .pms-form-section-header {
-  min-height: 62px;
-  padding: 12px 15px;
+/* STATUS LEGEND */
+.status-legend {
   display: flex;
   align-items: center;
-  gap: 11px;
-  border-bottom: 1px solid #e8eef5;
-  background: #f8fbff;
+  gap: 22px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 6px;
 }
 
-#addPmsModal .pms-section-green .pms-form-section-header {
-  background: linear-gradient(180deg, #f2fcf9 0%, #eef9f5 100%);
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 7px;
 }
 
-#addPmsModal .pms-section-purple .pms-form-section-header {
-  background: linear-gradient(180deg, #f8f6ff 0%, #f4f2ff 100%);
+.green {
+  background: #16a34a;
 }
 
-#addPmsModal .pms-form-section-icon,
-#editPmsModal .pms-form-section-icon {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  border: 1px solid #d4e4ff;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #eaf2ff;
-  color: #1456d5;
-  font-size: 14px;
+.yellow {
+  background: #f5b400;
 }
 
-#addPmsModal .pms-section-green .pms-form-section-icon {
-  border-color: #ccefe4;
-  background: #dff7ef;
-  color: #0b8a6d;
+.red {
+  background: #dc2626;
 }
 
-#addPmsModal .pms-section-purple .pms-form-section-icon {
-  border-color: #ddd7ff;
-  background: #ebe7ff;
-  color: #6547d9;
-}
-
-#addPmsModal .pms-form-section-header h3,
-#editPmsModal .pms-form-section-header h3 {
-  margin: 0;
-  color: #061f3d;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-#addPmsModal .pms-form-section-header p,
-#editPmsModal .pms-form-section-header p {
-  margin: 3px 0 0;
-  color: #64748b;
-  font-size: 11.5px;
-  line-height: 1.4;
-}
-
-#addPmsModal .pms-form-section-body,
-#editPmsModal .pms-form-section-body {
-  padding: 14px 15px;
-}
-
-#addPmsModal .pms-form-grid-2,
-#editPmsModal .pms-form-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 16px;
-  align-items: end;
-}
-
-#addPmsModal .pms-form-bottom-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-  gap: 15px;
-  align-items: stretch;
-}
-
-#addPmsModal .pms-form-section-compact {
-  min-width: 0;
-}
-
-#addPmsModal .ui-form-group,
-#editPmsModal .ui-form-group {
-  margin: 0;
-  min-width: 0;
-}
-
-#addPmsModal .pms-form-section-body > .ui-form-group + .ui-form-group,
-#editPmsModal .pms-form-section-body > .ui-form-group + .ui-form-group {
-  margin-top: 13px;
-}
-
-#addPmsModal label,
-#editPmsModal label {
-  margin-bottom: 7px;
-  color: #1e293b;
-  font-size: 11.5px;
-  font-weight: 750;
-}
-
-#addPmsModal input,
-#addPmsModal select,
-#editPmsModal input,
-#editPmsModal select {
-  min-height: 43px;
-  border: 1px solid #d5e0ed;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #1e293b;
-  font-size: 12.5px;
-}
-
-#addPmsModal input:focus,
-#addPmsModal select:focus,
-#editPmsModal input:focus,
-#editPmsModal select:focus {
-  border-color: #6f9de8;
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
-}
-
-#addPmsModal input[readonly],
-#editPmsModal input[readonly] {
-  background: #f5f8fc;
-  color: #64748b;
-}
-
-#addPmsModal .pms-mileage-highlight-grid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+/* TOOLBAR - SAME STYLE AS JOB ORDER */
+.pms-toolbar {
+  padding: 12px 16px;
   gap: 12px;
-}
-
-#addPmsModal .pms-mileage-highlight {
-  min-height: 76px;
-  padding: 12px 13px;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  border: 1px solid #f4deb0;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #fff8e7 0%, #fff3cf 100%);
-}
-
-#addPmsModal .pms-status-highlight {
-  border-color: #dce5f2;
-  background: #f8fbff;
-}
-
-#addPmsModal .pms-mileage-highlight-icon {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: #fff0bd;
-  color: #e3a000;
-  font-size: 14px;
-}
-
-#addPmsModal .pms-status-highlight .pms-mileage-highlight-icon {
-  background: #e8f1ff;
-  color: #1456d5;
-}
-
-#addPmsModal .pms-mileage-highlight > div > span {
-  display: block;
-  margin-bottom: 2px;
-  color: #475569;
-  font-size: 10.5px;
-  font-weight: 700;
-}
-
-#addPmsModal .pms-highlight-field .ui-form-group {
-  margin: 0;
-}
-
-#addPmsModal .pms-highlight-field label {
-  display: none;
-}
-
-#addPmsModal .pms-highlight-field input {
-  min-height: 28px;
-  height: 28px;
-  padding-top: 0;
-  padding-bottom: 0;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #061f3d;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-#addPmsModal .pms-highlight-field .ui-input-wrap {
-  min-height: 28px;
-  border: 0;
-  background: transparent;
-}
-
-#addPmsModal .pms-highlight-field .ui-input-icon {
-  display: none;
-}
-
-#addPmsModal .ui-form-actions,
-#editPmsModal .ui-form-actions {
-  flex: 0 0 auto;
-  margin-top: 14px;
-  padding: 15px 0 0;
-  border-top: 1px solid #e4ebf4;
-  background: #ffffff;
-}
-
-#addPmsModal .ui-form-actions .ui-form-btn,
-#editPmsModal .ui-form-actions .ui-form-btn {
-  height: 42px;
-  min-height: 42px;
-  padding: 0 17px;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-#addPmsModal .ui-form-btn-primary,
-#editPmsModal .ui-form-btn-primary {
-  background: linear-gradient(135deg, #ffc400, #f5a800);
-  border-color: #f5a800;
-  color: #061f3d;
-  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
-}
-
-#addPmsModal .ui-form-btn-primary:hover,
-#editPmsModal .ui-form-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 196, 0, .30);
-}
-
-#addPmsModal .ui-form-btn-cancel,
-#editPmsModal .ui-form-btn-cancel {
-  border: 1px solid #d5e0ed;
-  background: #ffffff;
-  color: #334155;
-}
-
-/* Edit modal target mileage card */
-#editPmsModal .pms-edit-next-km-card {
-  min-height: 76px;
-  padding: 11px 12px;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  border: 1px solid #f4deb0;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #fff8e7 0%, #fff3cf 100%);
-}
-
-#editPmsModal .pms-edit-next-km-icon {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: #fff0bd;
-  color: #e3a000;
-  font-size: 14px;
-}
-
-#editPmsModal .pms-edit-next-km-label {
-  display: block;
-  margin-bottom: 2px;
-  color: #475569;
-  font-size: 10.5px;
-  font-weight: 700;
-}
-
-#editPmsModal .pms-edit-next-km-card .ui-form-group {
-  margin: 0;
-}
-
-#editPmsModal .pms-edit-next-km-card label {
-  display: none;
-}
-
-#editPmsModal .pms-edit-next-km-card input {
-  min-height: 29px;
-  height: 29px;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #061f3d;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-#editPmsModal .pms-edit-next-km-card .ui-input-wrap {
-  min-height: 29px;
-  border: 0;
-  background: transparent;
-}
-
-#editPmsModal .pms-edit-next-km-card .ui-input-icon {
-  display: none;
-}
-
-#editPmsModal .pms-edit-other-type {
-  margin-top: 13px;
-}
-
-/* Task list modal */
-.pms-tasks-popup .pms-task-list-modal {
-  width: min(1180px, calc(100vw - 48px));
-  max-width: 1180px;
-  max-height: calc(100vh - 48px);
-  padding: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border-radius: 20px;
-  background: #ffffff;
-}
-
-.pms-tasks-popup .pms-task-list-header {
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 20px 22px 17px;
-  align-items: center;
-  border-bottom: 1px solid #e5ebf3;
-}
-
-.pms-tasks-popup .pms-task-list-heading {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
-
-.pms-tasks-popup .pms-modal-title-icon {
-  width: 50px;
-  height: 50px;
-  flex: 0 0 50px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #f5d66f;
   border-radius: 14px;
-  background: #fff5d7;
-  color: #e7a500;
-  font-size: 19px;
-}
-
-.pms-tasks-popup .pms-task-list-header h2 {
-  font-size: 22px;
-  letter-spacing: -.015em;
-}
-
-.pms-tasks-popup .pms-task-list-header p {
-  margin-top: 5px;
+  margin-bottom: 18px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  color: #64748b;
+  align-items: center;
+}
+
+.pms-toolbar .search-box {
+  flex: 1;
+}
+
+.pms-toolbar .search-box input {
+  height: 38px;
+  font-size: 13px;
+  border-radius: 9px;
+  padding-left: 40px;
+}
+
+.pms-toolbar .search-box i {
+  font-size: 13px;
+  left: 14px;
+}
+
+.pms-toolbar .filter-group {
+  gap: 8px;
+}
+
+.pms-toolbar .filter-group label {
   font-size: 12px;
 }
 
-.pms-tasks-popup .pms-task-list-header p strong {
-  color: #334155;
-  font-weight: 700;
-}
-
-.pms-tasks-popup .pms-task-list-body {
-  min-height: 0;
-  flex: 1 1 auto;
-  padding: 16px 20px 0;
-  overflow: hidden;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap {
-  max-height: min(58vh, 560px);
-  margin: 0;
-  overflow: auto;
-  border: 1px solid #dce5f2;
-  border-radius: 12px;
-  background: #ffffff;
-  scrollbar-gutter: stable;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap .pms-table {
-  margin: 0;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap .pms-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: #f3f7fc;
-  color: #475569;
-  box-shadow: 0 1px 0 #dce5f2;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap .pms-table td {
-  min-height: 54px;
-  padding-top: 13px;
-  padding-bottom: 13px;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap .pms-table tbody tr {
-  transition: background-color .18s ease;
-}
-
-.pms-tasks-popup .pms-popup-table-wrap .pms-table tbody tr:hover {
-  background: #f8fbff;
-}
-
-.pms-tasks-popup .pms-table .badge {
-  gap: 6px;
-  padding-left: 11px;
-  padding-right: 11px;
-}
-
-.pms-tasks-popup .pms-table .badge::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.pms-tasks-popup .pms-view-footer {
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 15px 20px 17px;
-  border-top: 1px solid #e5ebf3;
-  background: #ffffff;
-}
-
-.pms-tasks-popup .pms-view-footer .ui-form-btn {
-  min-width: 100px;
-  height: 40px;
+.pms-toolbar .filter-group select {
+  height: 38px;
+  min-width: 120px;
+  font-size: 13px;
   border-radius: 9px;
+  padding: 0 10px;
 }
 
-@media (max-width: 900px) {
-  #addPmsModal .pms-form-bottom-grid,
-  #addPmsModal .pms-mileage-highlight-grid,
-  #addPmsModal .pms-form-grid-2,
-  #editPmsModal .pms-form-grid-2 {
+/* TABLE */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.pms-table,
+.panel-card table {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: collapse;
+}
+
+.pms-table thead,
+.panel-card thead {
+  background: #f0f5fc;
+}
+
+.pms-table th,
+.panel-card th {
+  padding: 14px 13px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.pms-table td,
+.panel-card td {
+  padding: 14px 13px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.pms-table tbody tr:hover,
+.panel-card tbody tr:hover {
+  background: #f7faff;
+}
+
+.pms-table tbody tr:last-child td,
+.panel-card tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* CENTER STATUS COLUMN */
+.pms-table .status-col {
+  text-align: center;
+}
+
+/* BADGES */
+.badge {
+  min-width: 112px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* PMS STATUS BADGES */
+.badge.upcoming {
+  background: #ddf8e7;
+  color: #16a34a;
+}
+
+.badge.due-soon {
+  background: #fff3cd;
+  color: #b77900;
+}
+
+.badge.overdue {
+  background: #ffe2e2;
+  color: #dc2626;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.actions button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.actions .edit {
+  background: #edf3fb;
+  color: #082445;
+}
+
+.actions .delete {
+  background: #fff0f0;
+  color: var(--red);
+}
+
+.actions button:hover {
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .pms-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-legend {
+    flex-wrap: wrap;
+  }
+
+  .pms-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .pms-tasks-popup .pms-task-list-modal {
-    width: min(96vw, 1180px);
-  }
-
-  .pms-tasks-popup .pms-popup-table-wrap .pms-table {
-    min-width: 900px;
-    table-layout: auto;
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 }
-
-@media (max-width: 700px) {
-  #addPmsModal.pms-form-modal-overlay,
-  #editPmsModal.pms-form-modal-overlay {
-    align-items: flex-start !important;
-    padding: 10px !important;
-  }
-
-  #addPmsModal.pms-form-modal-overlay > .ui-form-modal,
-  #editPmsModal.pms-form-modal-overlay > .ui-form-modal {
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: calc(100vh - 20px);
-  }
-
-  #addPmsModal .ui-form-modal-header,
-  #editPmsModal .ui-form-modal-header {
-    padding: 16px;
-  }
-
-  #addPmsModal .ui-form-modal-body,
-  #editPmsModal .ui-form-modal-body {
-    padding: 14px;
-  }
-
-  #addPmsModal .ui-form-actions,
-  #editPmsModal .ui-form-actions {
-    flex-direction: column-reverse;
-  }
-
-  #addPmsModal .ui-form-actions .ui-form-btn,
-  #editPmsModal .ui-form-actions .ui-form-btn,
-  .pms-tasks-popup .pms-view-footer .ui-form-btn {
-    width: 100%;
-  }
-
-  .pms-modal-overlay {
-    padding: 10px;
-  }
-
-  .pms-tasks-popup .pms-task-list-modal {
-    width: 100%;
-    max-height: calc(100vh - 20px);
-  }
-
-  .pms-tasks-popup .pms-task-list-header {
-    padding: 16px;
-  }
-
-  .pms-tasks-popup .pms-task-list-body {
-    padding: 12px 14px 0;
-  }
-
-  .pms-tasks-popup .pms-view-footer {
-    padding: 13px 14px 14px;
-  }
-}
-
-/* Separate PMS table controls from the records header without changing shared toolbars. */
-.pms-page .pms-table-card > .gct-table-toolbar {
-  margin-bottom: 16px;
-}
-
-/* Bus-level PMS overview: unknown mileage must be distinguishable from Upcoming. */
-.pms-page .pms-data-needed-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-height: 26px;
-    padding: 4px 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background: #f1f5f9;
-    color: #475569;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-.pms-page .pms-table td small {font-size: 10px;color: #64748b;}
-
-/* New bus-level PMS overview and accessible configuration forms. */
-.pms-page .pms-monitoring-badge {display:inline-flex;align-items:center;min-height:26px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f1f5f9;color:#475569;font-size:11px;font-weight:700;white-space:nowrap;}
-.pms-page .pms-monitoring-badge.is-due {border-color:#fecaca;background:#fee2e2;color:#b91c1c;}
-.pms-monitoring-details {display:grid;gap:12px;padding:20px 24px;font-size:13px;line-height:1.5;}
-.pms-monitoring-details p {margin:0;}
-.pms-monitoring-form {display:grid;gap:10px;padding:18px 24px;}
-.pms-monitoring-form label {font-size:12px;font-weight:700;color:#1e3556;}
-.pms-monitoring-form input,.pms-monitoring-form select {width:100%;min-height:38px;border:1px solid #cbd5e1;border-radius:7px;padding:8px 10px;background:#fff;color:#0f172a;}
-.pms-monitoring-form p {font-size:12px;color:#475569;margin:0 0 4px;}
-
-/* PMS overview: uniform rectangular status badges including unconfigured buses. */
-.pms-page .pms-table td.status-col .pms-monitoring-badge {
-    display: inline-flex;
-    box-sizing: border-box;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-height: 28px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-.pms-page .pms-table td.status-col .pms-monitoring-badge i {flex: 0 0 auto; font-size: 11px;}
-.pms-page .pms-table td.status-col .pms-monitoring-badge.is-not-configured {background:#f1f5f9;color:#475569;border-color:#cbd5e1;}
-.pms-page .pms-table td.status-col .pms-monitoring-badge.is-unverified {background:#fff7ed;color:#9a5700;border-color:#fed7aa;}
-.pms-page .pms-table td.status-col .pms-monitoring-badge.is-upcoming {background:#dcfce7;color:#15803d;border-color:#b7efca;}
-.pms-page .pms-table td.status-col .pms-monitoring-badge.is-inactive {background:#e2e8f0;color:#475569;border-color:#cbd5e1;}
-
-/* Bus PMS modal redesign — scoped to new monitoring panels only. */
-.pms-tasks-popup.pms-monitor-dialog .pms-monitor-panel {
-  width:min(720px,calc(100vw - 32px))!important;
-  max-height:calc(100dvh - 32px)!important;
-  display:flex;flex-direction:column;overflow:hidden;
-  border-radius:14px;background:#fff;
-}
-.pms-monitor-dialog .pms-monitor-header {
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:16px 20px!important;border-bottom:1px solid #e0e9f5;
-  background:#f8fbff;
-}
-.pms-monitor-dialog .pms-monitor-heading {display:flex;align-items:center;gap:12px;min-width:0;}
-.pms-monitor-dialog .pms-monitor-header-icon {display:grid;place-items:center;width:38px;height:38px;flex-shrink:0;border:1px solid #c9dcfc;border-radius:10px;background:#eaf2ff;color:#1553a6;font-size:16px;}
-.pms-monitor-dialog .pms-monitor-heading h2 {margin:0;font-size:17px;line-height:1.3;font-weight:800;color:#112c51;}
-.pms-monitor-dialog .pms-monitor-heading p {margin:4px 0 0;font-size:11px;color:#61738b;line-height:1.45;}
-.pms-monitor-dialog .pms-monitor-header .pms-close-btn {flex-shrink:0;border:1px solid #dbe5f2;border-radius:8px;background:#fff;color:#254a77;}
-.pms-monitor-dialog .pms-monitor-body {padding:20px;overflow-y:auto;min-height:0;display:grid;gap:16px;}
-.pms-monitor-dialog .pms-monitoring-form {padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;gap:0;}
-.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding:20px;}
-.pms-monitor-dialog .pms-monitor-rule,.pms-monitor-dialog .pms-monitor-empty,.pms-monitor-dialog .pms-monitor-source-note {display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #cbdcf5;border-radius:9px;background:#f3f7ff;}
-.pms-monitor-dialog .pms-monitor-rule>i,.pms-monitor-dialog .pms-monitor-empty>i,.pms-monitor-dialog .pms-monitor-source-note>i {color:#2563b8;font-size:15px;margin-top:2px;}
-.pms-monitor-dialog .pms-monitor-rule strong,.pms-monitor-dialog .pms-monitor-empty strong,.pms-monitor-dialog .pms-monitor-source-note strong {display:block;font-size:12px;color:#143459;}
-.pms-monitor-dialog .pms-monitor-rule p,.pms-monitor-dialog .pms-monitor-empty p,.pms-monitor-dialog .pms-monitor-source-note p {margin:4px 0 0;font-size:11px;line-height:1.55;color:#536b87;}
-.pms-monitor-dialog .pms-monitor-source-note {background:#fff9ef;border-color:#f1d8a9;}
-.pms-monitor-dialog .pms-monitor-source-note>i {color:#a66909;}
-.pms-monitor-dialog .pms-monitor-section-title {display:flex;align-items:center;gap:8px;margin:0;font-size:12px;font-weight:800;color:#173e70;}
-.pms-monitor-dialog .pms-monitor-section-title i {color:#2563b8;}
-.pms-monitor-dialog .pms-monitor-field {display:grid;gap:7px;min-width:0;}
-.pms-monitor-dialog .pms-monitor-field label {font-size:11px;font-weight:750;color:#29456a;}
-.pms-monitor-dialog .pms-monitor-field label span {color:#c2410c;}
-.pms-monitor-dialog .pms-monitor-field-grid,.pms-monitor-dialog .pms-monitor-info-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-.pms-monitor-dialog .pms-monitor-field input,.pms-monitor-dialog .pms-monitor-field select {width:100%;min-height:40px;box-sizing:border-box;border:1px solid #c9d8ea;border-radius:8px;background:#fff;font-size:12px;}
-.pms-monitor-dialog .pms-monitor-help {margin:-6px 0 0;font-size:11px;color:#667992;line-height:1.5;}
-.pms-monitor-dialog .pms-monitor-summary {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
-.pms-monitor-dialog .pms-monitor-summary>div,.pms-monitor-dialog .pms-monitor-info-grid>div {display:flex;flex-direction:column;gap:6px;min-width:0;padding:13px;border:1px solid #e0e9f5;border-radius:9px;background:#f8fbff;}
-.pms-monitor-dialog .pms-monitor-summary span,.pms-monitor-dialog .pms-monitor-info-grid span {font-size:10px;font-weight:700;color:#68809d;}
-.pms-monitor-dialog .pms-monitor-summary strong,.pms-monitor-dialog .pms-monitor-info-grid strong {font-size:13px;font-weight:800;color:#15365e;overflow-wrap:anywhere;}
-.pms-monitor-dialog .pms-monitor-footer {display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0!important;padding:12px 20px!important;border-top:1px solid #e0e9f5;background:#fff;flex-shrink:0;}
-.pms-monitor-dialog .pms-monitor-save {display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#1453a5!important;color:#fff!important;border:1px solid #1453a5!important;border-radius:7px!important;font-size:12px;font-weight:750;}
-@media(max-width:580px) {
-  .pms-monitor-dialog .pms-monitor-field-grid,.pms-monitor-dialog .pms-monitor-info-grid,.pms-monitor-dialog .pms-monitor-summary {grid-template-columns:minmax(0,1fr);}
-  .pms-monitor-dialog .pms-monitor-header {padding:13px!important;}
-  .pms-monitor-dialog .pms-monitor-body,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding:14px;}
-  .pms-monitor-dialog .pms-monitor-footer {padding:12px 14px!important;}
-}
-
-/* Keep the searchable bus choices directly below the field (four visible rows). */
-.pms-monitor-dialog .pms-bus-picker {position:relative;z-index:20;}
-.pms-monitor-dialog .pms-bus-search-wrap {position:relative;}
-.pms-monitor-dialog .pms-bus-search-wrap>i {position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#7188a6;pointer-events:none;}
-.pms-monitor-dialog .pms-bus-search-wrap>input {padding-left:36px!important;}
-.pms-monitor-dialog .pms-bus-options {position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:120;max-height:164px;overflow-y:auto;overscroll-behavior:contain;padding:4px;background:#fff;border:1px solid #c8d9ee;border-radius:8px;box-shadow:0 12px 25px rgba(20,45,80,.18);}
-.pms-monitor-dialog .pms-bus-options[hidden],.pms-monitor-dialog .pms-bus-option[hidden],.pms-monitor-dialog .pms-bus-no-results[hidden] {display:none!important;}
-.pms-monitor-dialog .pms-bus-option {width:100%;display:block;padding:9px 11px;text-align:left;border:0;border-radius:5px;background:#fff;color:#1f3d62;font-size:12px;cursor:pointer;}
-.pms-monitor-dialog .pms-bus-option:hover,.pms-monitor-dialog .pms-bus-option:focus-visible {background:#eaf2ff;outline:none;}
-.pms-monitor-dialog .pms-bus-no-results {margin:0;padding:10px;font-size:12px;color:#64748b;}
-/* Allow popup lists room without clipping when the modal body is shorter than the menu. */
-.pms-monitor-dialog .pms-monitoring-form,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {overflow:visible;}
-.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding-bottom:20px;}

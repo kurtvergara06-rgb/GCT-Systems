@@ -1,292 +1,58 @@
-# GCT Systems
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-Fleet and operations management system for GCT Transport Services covering Maintenance, Warehouse, Purchase, Operation, and Administration workflows.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-**Production:** https://gct-systems.onrender.com/
+## About Laravel
 
-## Architecture
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-GCT Systems uses a dual-engine architecture:
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-- **Laravel backend** — authentication, business workflows, database access, validation, audit activity, and realtime events.
-- **Python FastAPI engine** — PDF/NLP extraction, analytics, delay/ETA/fuel/inventory models, and operation auto-scheduling.
-- **Laravel Reverb + Echo** — realtime UI updates.
-- **MySQL 8.4** — primary production database.
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-Laravel communicates with the Python engine through `NLP_API_URL` and `OPERATION_AI_BASE_URL`.
+## Learning Laravel
 
-## Technology Stack
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-| Layer | Technology |
-|---|---|
-| Backend | Laravel 13, PHP 8.3+ (PHP 8.4 production Docker image) |
-| Database | MySQL 8.4; SQLite supported for automated tests |
-| Frontend | Blade, Vanilla JavaScript, Tailwind CSS 4 |
-| Build | Vite 8 |
-| Realtime | Laravel Reverb + Echo |
-| Python Engine | FastAPI, PyMuPDF, spaCy, pandas, NumPy, scikit-learn, PyTorch |
-| Deployment | Docker + Render |
-| CI | GitHub Actions |
+In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Modules
+You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
-### Maintenance
-Job Orders, PMS scheduling, mechanic availability, fuel reports, and purchase requests.
+## Agentic Development
 
-### Warehouse
-Inventory, part requests, stock movements, and incoming deliveries.
-
-### Purchase
-Maintenance requests, inventory restock, purchase orders, scheduled purchases, and purchase history.
-
-### Operation
-Buses, routes and stops, trip scheduling, driver/bus assignment, automated scheduling, driver/mechanic attendance, Daily Driver Reports (DDR), incidents, and replacement-bus dispatch.
-
-### Administration
-Accounts, role/permission configuration, activity logs, notifications, data management, analytics, and settings.
-
-## Operational Data Relationships
-
-The operation workflow stores durable trip relationships instead of relying only on heuristic matching:
-
-```text
-Trip Schedule
-    |
-    +--> Trip Assignment
-    |       |
-    |       +--> Daily Driver Report
-    |
-    +--> Incident
-            |
-            +--> Incident Replacement
-```
-
-`daily_driver_reports` stores nullable `trip_schedule_id` and `trip_assignment_id` when an exact match is available. Historical DDR records without these keys still use `DailyDriverReportScheduleMatchService` as a compatibility fallback.
-
-When a breakdown replacement is dispatched:
-
-- `incident_replacements.original_bus_id` preserves the bus involved in the incident.
-- `incident_replacements.replacement_bus_id` preserves the dispatched replacement.
-- `trip_assignments.original_bus_id` preserves the trip's initial bus.
-- `trip_assignments.bus_id` represents the current/effective bus continuing the trip.
-
-This lets analytics distinguish the originally assigned bus from the bus that actually continued the trip.
-
-## Prerequisites
-
-- PHP 8.3+
-- Composer
-- Node.js 22+
-- Python 3.10+
-- MySQL 8.4 for normal local/production use
-
-## Local Setup
-
-### Laravel
+Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
 
 ```bash
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-npm run build
-php artisan serve
+composer require laravel/boost --dev
+
+php artisan boost:install
 ```
 
-For the local development runner:
+Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
-```bash
-composer run dev
-```
+## Contributing
 
-### Reverb
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-Run Reverb separately when testing realtime behavior:
+## Code of Conduct
 
-```bash
-php artisan reverb:start
-```
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-### Python Engine
+## Security Vulnerabilities
 
-```bash
-cd python_engine
-pip install -r requirements.txt
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
-```
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-The committed Python checkout includes the core PDF extraction plus the analytics, operation AI, ETA, fuel, inventory, and delay routers mounted by `main.py`.
+## License
 
-Some severity/NER/anomaly/ingestion helpers are intentionally loaded as **optional modules** by `main.py`. They are not present in the current repository checkout, so the engine degrades gracefully instead of failing startup. Do not advertise or depend on an optional endpoint until its implementation exists in the repository.
-
-### Docker Compose
-
-`compose.yaml` is the Laravel Sail development stack for:
-
-- Laravel
-- MySQL
-
-It is **not** a complete container definition for the separate FastAPI and Reverb services. Start those services separately using the commands above, or use their production Render services.
-
-```bash
-docker compose up
-```
-
-## Delay Model #3
-
-The delay pipeline supports two explicit data sources:
-
-```env
-DELAY_DATA_SOURCE=sample
-```
-
-or:
-
-```env
-DELAY_DATA_SOURCE=genuine
-```
-
-`genuine` mode never silently falls back to sample data.
-
-Export genuine matched DDR history with:
-
-```bash
-php artisan delay:export-genuine
-```
-
-New DDR records prefer their stored `trip_schedule_id` / `trip_assignment_id`. Historical records can still use schedule matching.
-
-Incident features are tied to the exact trip whenever a direct trip relationship exists. Legacy fallback matching is only allowed for incidents that do not already belong to another explicit trip.
-
-## Inventory Model #4
-
-The inventory forecasting implementation currently uses generated/sample training data until sufficient genuine stock-movement history exists.
-
-Sample-model output must be treated as development/demo output, not as a production genuine forecast.
-
-Do not change the model to claim genuine readiness until real stock movements satisfy its readiness checks.
-
-## ML readiness and demo cleanup
-
-Local/client-demo deployments may explicitly allow sample-backed Models #3 and #4:
-
-```env
-APP_ENV=local
-ML_RUNTIME_MODE=development
-ALLOW_DEMO_ML=true
-DELAY_DATA_SOURCE=demo
-INVENTORY_DATA_SOURCE=demo
-```
-
-Laravel always disables demo-model serving when `APP_ENV=production`, even if `ALLOW_DEMO_ML` is accidentally enabled. Genuine production serving requires the Python status endpoint to report `is_production_model=true`.
-
-Run the read-only five-model audit while FastAPI is available:
-
-```bash
-python_engine/.venv/Scripts/python.exe python_engine/run_comprehensive_ml_audit.py
-```
-
-Before removing demo artifacts, inspect the exact cleanup plan:
-
-```bash
-php artisan ml:cleanup-demo
-```
-
-When sufficient genuine data exists, execute the reviewed cleanup and switch `.env` to genuine sources:
-
-```bash
-php artisan ml:cleanup-demo --execute --switch-to-genuine
-```
-
-The command backs up `.env`, removes only its explicit Model #3/#4 demo artifact and exported-training targets, and leaves database records unchanged. It then prints the genuine retraining commands. Do not execute cleanup until the client demonstration no longer depends on the demo models.
-
-## Testing
-
-### Laravel
-
-```bash
-php artisan test
-```
-
-or:
-
-```bash
-composer run test
-```
-
-The repository's test count changes as features are added, so this README intentionally does not hard-code a stale number.
-
-### Frontend
-
-```bash
-npm ci
-npm run build
-```
-
-### Python
-
-Python model folders contain script-style validation tests where applicable. CI always compiles the Python tree to catch syntax/import-source errors without pretending that unavailable optional ML modules are present.
-
-## Continuous Integration
-
-`.github/workflows/ci.yml` runs on pull requests, `main`, and `fix/**` branches and checks:
-
-- Laravel test suite on PHP 8.4 + SQLite
-- Vite production build on Node 22
-- Python source compilation on Python 3.12
-
-The production verification workflow also runs a quality gate before its Render availability check.
-
-> Render auto-deploy behavior is configured separately in Render. A GitHub workflow quality gate does not by itself guarantee that Render waits for GitHub checks unless the Render service is configured to do so.
-
-## Realtime Updates
-
-Events are broadcast through Laravel Reverb and received through Echo. AJAX-ready regions can refresh without requiring a complete page reload.
-
-## Activity Log Policy
-
-Activity logs are a controlled audit trail for meaningful changes, including:
-
-- create/update/delete/deactivate
-- approve/reject/status changes
-- assignments and completions
-- receiving/issuing/imports
-- account/security/permission changes
-- login/logout
-
-Navigation, searches, filters, pagination, and preview-only actions are not intended to create audit noise.
-
-Default retention:
-
-```env
-ACTIVITY_LOG_RETENTION_DAYS=365
-ACTIVITY_LOG_PRUNE_BATCH_SIZE=1000
-```
-
-Manual pruning:
-
-```bash
-php artisan activity-logs:prune
-php artisan activity-logs:prune --days=180
-```
-
-## Deployment Notes
-
-The production Laravel Dockerfile uses a Node 22 build stage and PHP 8.4-FPM/Nginx/Supervisor runtime.
-
-Build-time Vite/Reverb variables include:
-
-- `VITE_REVERB_APP_KEY`
-- `VITE_REVERB_HOST`
-- `VITE_REVERB_PORT`
-- `VITE_REVERB_SCHEME`
-
-The FastAPI engine is a separate service and should not be assumed to be private merely because Laravel is the normal caller. Restrict the service at the deployment/network layer before exposing production-only endpoints publicly.
-
-## Known Development Decisions
-
-- Department/role restrictive route middleware is intentionally deferred **during current testing** so one test account can move across Maintenance, Warehouse, Purchase, Operation, and Admin without multiple browser sessions.
-- This testing convenience must be reviewed before production access is opened to real users.
-- Genuine ML readiness is data-dependent and is not simulated with generated data.
-- Optional NLP severity/NER/anomaly/ingestion modules are absent from the current checkout and therefore remain optional/degraded rather than being replaced with fake implementations.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

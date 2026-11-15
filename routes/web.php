@@ -1,97 +1,54 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Auth\GoogleAuthController;
-use App\Http\Controllers\Auth\RegistrationController;
-use App\Http\Controllers\Auth\EmailOtpController;
-use App\Http\Controllers\Auth\AccountEmailChangeController;
-use App\Http\Controllers\TopbarController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [LoginController::class, 'show'])->name('login');
+// ROUTE FOR LOGIN //
+Route::get('/', function () {
+    return view('Login_Register.login');
+})->name('login');
 
-Route::get('/registration/pending', function (\Illuminate\Http\Request $request) {
-    $userId = $request->session()->get('pending_registration_user_id')
-        ?: $request->session()->get('registration_otp_user_id');
-    $applicant = $userId ? \App\Models\Admin\User::query()->find($userId) : null;
+Route::get('/register', function () {
+    return view('Login_Register.register');
+})->name('register');
 
-    return response()->view('Login.pending-approval', [
-        'emailVerified' => $applicant ? $applicant->hasVerifiedEmail() : (bool) $request->session()->get('pending_verified', false),
-    ])->header('Cache-Control', 'no-store');
-})
-    ->name('registration.pending');
-Route::get('/email/otp', [EmailOtpController::class, 'show'])->name('verification.otp');
-Route::post('/email/otp', [EmailOtpController::class, 'verify'])->middleware('throttle:10,1')->name('verification.otp.submit');
-Route::post('/email/otp/resend', [EmailOtpController::class, 'resend'])->middleware('throttle:3,1')->name('verification.otp.resend');
+       //  Maintenance routes //
 
-// Local-only OTP UI preview.
-if (app()->environment('local')) {
-    Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
-}
+Route::get('/dashboard', function () {
+    return view('Maintenance.dashboard');
+})->name('dashboard');
 
-Route::get('/account/email-change/result', [AccountEmailChangeController::class, 'result'])
-    ->name('account.email-change.result');
+Route::get('/job-orders', function () {
+    return view('Maintenance.job-order');
+})->name('job-orders');
 
-Route::get('/account/email-change/{id}/{token}', [AccountEmailChangeController::class, 'verify'])
-    ->middleware(['signed', 'throttle:6,1'])->name('account.email-change.verify');
+Route::get('/mechanic-list', function () {
+    return view('Maintenance.mechanic-list');
+})->name('mechanic-list');
 
-Route::get('/register', [RegistrationController::class, 'show'])->name('register');
-Route::post('/register', [RegistrationController::class, 'store'])
-    ->middleware('throttle:5,1')->name('register.submit');
-Route::get('/email/verify/{id}/{hash}', [RegistrationController::class, 'verify'])
-    ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+Route::get('/PMS-Scheduling', function () {
+    return view('Maintenance.PMS-Scheduling');
+})->name('PMS-Scheduling');
 
-Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
-    ->middleware('throttle:10,1')->name('auth.google');
-Route::get('/auth/google/register', [GoogleAuthController::class, 'registrationForm'])->name('auth.google.register');
-Route::post('/auth/google/register', [GoogleAuthController::class, 'completeRegistration'])
-    ->middleware('throttle:5,1')->name('auth.google.register.submit');
-Route::get('/auth/google/link', [GoogleAuthController::class, 'linkForm'])->name('auth.google.link');
-Route::post('/auth/google/link', [GoogleAuthController::class, 'confirmLink'])
-    ->middleware('throttle:5,1')->name('auth.google.link.confirm');
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
-    ->middleware('throttle:20,1')->name('auth.google.callback');
+Route::get('/purchase-requests', function () {
+    return view('Maintenance.purchase-request');
+})->name('purchase-requests');
 
-Route::get('/forgot-password', [PasswordResetController::class, 'requestForm'])->name('password.request');
-Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])
-    ->middleware('throttle:5,1')->name('password.email');
-Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('password.reset');
-Route::post('/reset-password', [PasswordResetController::class, 'reset'])
-    ->middleware('throttle:5,1')->name('password.update');
+Route::get('/fuel-reports', function () {
+    return view('Maintenance.fuel-reports');
+})->name('fuel-reports');
 
-Route::post('/login', [LoginController::class, 'login'])
-    ->name('login.submit');
+Route::get('/settings', function () {
+    return view('Maintenance.settings');
+})->name('settings');
 
-Route::post('/logout', [LoginController::class, 'logout'])
-    ->middleware('auth')
-    ->name('logout');
 
-Route::middleware('auth')->group(function () {
-    // Activity-triggered renewal. Auth middleware, CSRF, and throttling remain enforced.
-    Route::post('/session/renew', function (\Illuminate\Http\Request $request) {
-        return response()->json([
-            'authenticated' => true,
-            'account_id' => (string) $request->user()->getAuthIdentifier(),
-            'lifetime_seconds' => max(1, (int) config('session.lifetime', 120)) * 60,
-        ])->header('Cache-Control', 'no-store');
-    })->middleware('throttle:30,1')->name('session.renew');
+// Warehouse Routes //
 
-    Route::get('/topbar/summary', [TopbarController::class, 'summary'])
-        ->name('topbar.summary');
+Route::get('/Inventory', function () {
+    return view('Warehouse.Inventory');
+})->name('Inventory');
 
-    Route::get('/topbar/notifications/history', [TopbarController::class, 'notificationHistory'])
-        ->middleware('throttle:60,1')
-        ->name('topbar.notifications.history');
+Route::get('/part-requests', function () {
+    return view('Warehouse.Part-Requests');
+})->name('part-requests');
 
-    Route::post(
-        '/topbar/notifications/read-all',
-        [TopbarController::class, 'markAllNotificationsRead']
-    )->name('topbar.notifications.read-all');
-
-    require base_path('routes/maintenance.php');
-    require base_path('routes/warehouse.php');
-    require base_path('routes/purchase.php');
-    require base_path('routes/operation.php');
-    require base_path('routes/admin.php');
-});

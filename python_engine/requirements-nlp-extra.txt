@@ -1,7 +1,0 @@
-# Optional legacy Python PDF extraction and spaCy NLP enrichment.
-# The default 512 MB deployment uses rules and Laravel's pdftotext parser instead.
--r requirements.txt
-pymupdf>=1.24,<2
-spacy>=3.8,<4
-# To enable spaCy entities, separately install en_core_web_sm and set
-# GCT_ENABLE_SPACY_NLP=true. To enable Python PDF: GCT_ENABLE_PYTHON_PDF=true.

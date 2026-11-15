@@ -1,214 +1,482 @@
-<x-layout.app
-  title="FROMS - Mechanic Availability"
-  :assets="[
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>FROMS - Mechanic List</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  @vite([
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Maintenance/mechanic-list.css',
-    'resources/css/Maintenance/mechanic-availability-enhancement.css',
-    'resources/js/Main-js/sidebar.js',
-  ]"
->
+    'resources/css/Maintenance/mechanic-list.css'
+  ])
+</head>
+
+<body>
 
   <div class="app">
 
-    <x-layout.sidebar department="Maintenance" />
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <main class="main mechanic-page">
-
-      <x-layout.topbar
-        title="Mechanic Availability"
-        subtitle="Monitor attendance, availability, and active Job Order assignments"
-        notification-count="0"
-      />
-
-      <section data-ajax-region="summary" class="stats-grid mechanic-stats-grid">
-        <x-ui.summary-card
-          label="Total Mechanics"
-          value="{{ $totalMechanics ?? 0 }}"
-          small="Active mechanic records"
-          icon="fa-users-gear"
-          color="blue"
-        />
-
-        <x-ui.summary-card
-          label="Available"
-          value="{{ $availableMechanics ?? 0 }}"
-          small="Present or late without active JO"
-          icon="fa-user-check"
-          color="green"
-        />
-
-        <x-ui.summary-card
-          label="Not Available"
-          value="{{ $notAvailableMechanics ?? 0 }}"
-          small="Absent, on leave, or no attendance"
-          icon="fa-user-clock"
-          color="red"
-        />
-
-        <x-ui.summary-card
-          label="Working"
-          value="{{ $onDutyMechanics ?? 0 }}"
-          small="Repair started; parts issued if required"
-          icon="fa-screwdriver-wrench"
-          color="blue"
-        />
-        <div class="mechanic-assigned-summary" style="grid-column: 1 / -1; font-size: 12px; color: #365071; padding: 3px 4px;">
-          <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
-          <strong>{{ $assignedMechanics ?? 0 }} Assigned</strong> — reserved for a Job Order, but not yet working.
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-truck"></i>
         </div>
-      </section>
 
-      <section data-ajax-region="records" class="table-card mechanic-list-card mechanic-table-card">
+        <div>
+          <h2>Maintenance</h2>
+          <p>Department Module</p>
+        </div>
+      </div>
 
-        <div class="availability-header">
-          <div class="availability-heading">
-            <span class="availability-heading-icon">
-              <i class="fa-solid fa-users-gear"></i>
-            </span>
+      <nav class="menu">
+        <a href="{{ route('dashboard') }}" class="menu-item">
+          <i class="fa-solid fa-table-cells-large"></i>
+          <span>Dashboard</span>
+        </a>
 
-            <div>
-              <h2>Mechanic Availability Board</h2>
-              <p>Live attendance from Operation combined with active Maintenance Job Orders.</p>
-            </div>
+        <a href="{{ route('job-orders') }}" class="menu-item">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <span>Job Orders</span>
+        </a>
+
+        <a href="{{ route('mechanic-list') }}" class="menu-item active">
+          <i class="fa-solid fa-bus"></i>
+          <span>Mechanic List</span>
+        </a>
+
+        <a href="{{ route('PMS-Scheduling') }}" class="menu-item">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>PMS Scheduling</span>
+        </a>
+
+        <a href="{{ route('purchase-requests') }}" class="menu-item">
+          <i class="fa-solid fa-file-invoice"></i>
+          <span>Purchase Requests</span>
+        </a>
+
+        <a href="{{ route('fuel-reports') }}" class="menu-item">
+          <i class="fa-solid fa-gas-pump"></i>
+          <span>Fuel Reports</span>
+        </a>
+
+        <a href="{{ route('settings') }}" class="menu-item">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="user-box">
+        <div class="avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+
+        <div>
+          <h4>R. Lim</h4>
+          <p>Maintenance Admin</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div>
+          <h1>Mechanic List</h1>
+          <p>Monitor mechanic availability, assigned jobs, and work history</p>
+        </div>
+
+        <div class="top-actions">
+          <button class="icon-btn notification">
+            <i class="fa-regular fa-bell"></i>
+            <span>6</span>
+          </button>
+
+          <button class="icon-btn">
+            <i class="fa-regular fa-circle-question"></i>
+          </button>
+
+          <button class="icon-btn">
+            <i class="fa-solid fa-user"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- SUMMARY CARDS -->
+      <section class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fa-solid fa-users-gear"></i>
           </div>
 
-          <span class="availability-live-badge">Live assignment status</span>
+          <div>
+            <p>Total Mechanics</p>
+            <h2>30</h2>
+            <small>All mechanics</small>
+          </div>
+
+          <i class="fa-solid fa-chevron-right arrow"></i>
         </div>
 
-        <x-ui.table-toolbar action="{{ route('mechanic-list') }}" search-label="Search Mechanic Availability" search-placeholder="Search mechanic, JO, bus, maintenance type, or issue..." :filter-count="(int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates') + (int) (request()->filled('availability') && request('availability') !== 'All Types')" filter-title="Filter Mechanic Availability" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'employment_status' => 'Employment Status']" default-sort="mechanic_name">
-          <x-slot:filters>
-            <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="All Dates">@foreach(['All Dates','Today','This Week'] as $dateFilter)<option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>@endforeach</x-ui.table-toolbar-field>
-            <x-ui.table-toolbar-field label="Availability" name="availability" default="All Types"><option value="All Types">All Availability</option><option value="Available" @selected(request('availability') === 'Available')>Available</option><option value="Assigned" @selected(request('availability') === 'Assigned')>Assigned</option><option value="Working" @selected(request('availability') === 'Working')>Working</option><option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option></x-ui.table-toolbar-field>
-          </x-slot:filters>
-        </x-ui.table-toolbar>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+
+          <div>
+            <p>Available Mechanics</p>
+            <h2>8</h2>
+            <small>Ready for assignment</small>
+          </div>
+
+          <i class="fa-solid fa-chevron-right arrow"></i>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <i class="fa-solid fa-user-clock"></i>
+          </div>
+
+          <div>
+            <p>Not Available</p>
+            <h2>15</h2>
+            <small>Currently assigned</small>
+          </div>
+
+          <i class="fa-solid fa-chevron-right arrow"></i>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon yellow">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+
+          <div>
+            <p>Jobs Done Today</p>
+            <h2>3</h2>
+            <small>Completed jobs</small>
+          </div>
+
+          <i class="fa-solid fa-chevron-right arrow"></i>
+        </div>
+
+      </section>
+
+      <!-- MECHANIC LIST -->
+      <section class="table-card">
+
+        <div class="section-header">
+          <div>
+            <h2>Mechanic List</h2>
+            <p>Monitor mechanic availability, assigned job orders, and working status</p>
+          </div>
+        </div>
+
+        <div class="toolbar mechanic-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search mechanic name or availability...">
+          </div>
+
+          <div class="filter-group">
+            <label>Date</label>
+            <select>
+              <option>Month Dates</option>
+              <option>Today</option>
+              <option>This Week</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Status</label>
+            <select>
+              <option>All Types</option>
+              <option>Available</option>
+              <option>Not Available</option>
+            </select>
+          </div>
+
+          <button class="primary-btn">
+            <i class="fa-solid fa-plus"></i>
+            New Mechanic
+          </button>
+        </div>
 
         <div class="table-wrap">
-          <table class="mechanic-attendance-style-table">
+          <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Mechanic</th>
-                <th>Assigned Job</th>
-                <th>Date</th>
-                <th>Time-In</th>
-                <th>Time-Out</th>
-                <th>Attendance</th>
+                <th>Name</th>
                 <th>Availability</th>
+                <th>Job Order</th>
+                <th>Time Started</th>
+                <th>Time Ended</th>
+                <th>Duration</th>
+                <th>Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              @forelse($mechanics as $mechanic)
-                @php
-                  $activeJob = $mechanic->active_job;
-                  $effectiveStatus = $mechanic->status;
-                  $assignmentStatus = $mechanic->assignment_status ?? 'Not Available';
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $effectiveStatus));
-                  $initials = collect(explode(' ', $mechanic->mechanic_name))
-                    ->filter()
-                    ->take(2)
-                    ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
-                    ->implode('');
-                @endphp
+              <tr>
+                <td>Priya Nair</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Engine Oil Filter</td>
+                <td>9:00 AM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 5, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                <tr class="{{ $assignmentStatus === 'Working' ? 'row-on-duty' : '' }}">
-                  <td>
-                    <span class="mechanic-id-pill">{{ $mechanic->mechanic_id }}</span>
-                  </td>
+              <tr>
+                <td>Leo Fernandez</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Brake System Repair</td>
+                <td>10:00 AM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 4, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                  <td>
-                    <div class="mechanic-profile-cell">
-                      <span class="mechanic-avatar">{{ $initials }}</span>
+              <tr>
+                <td>Joshua Garcia</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Suspension Repair</td>
+                <td>11:00 AM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                      <div class="mechanic-profile-meta">
-                        <strong>{{ $mechanic->mechanic_name }}</strong>
-                        <small>Mechanic</small>
-                      </div>
-                    </div>
-                  </td>
+              <tr>
+                <td>Biboy Enriquez</td>
+                <td><span class="badge available">Available</span></td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                  <td>
-                    @if($activeJob)
-                      <div class="assigned-job-card">
-                        <div class="assigned-job-top">
-                          <span class="assigned-job-number">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                            {{ $activeJob->job_order_no }}
-                          </span>
+              <tr>
+                <td>Jose Dimaano</td>
+                <td><span class="badge available">Available</span></td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                          <x-ui.status-badge :status="$activeJob->display_status" class="assigned-job-state" />
-                        </div>
+              <tr>
+                <td>Leo De Ocampo</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Suspension Repair</td>
+                <td>12:00 PM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                        <div class="assigned-job-main">
-                          <span>{{ $activeJob->maintenance_type }}</span>
-                          <span class="dot">•</span>
-                          <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $activeJob->bus_no }}</span>
-                        </div>
+              <tr>
+                <td>Rowell Latido</td>
+                <td><span class="badge available">Available</span></td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                        <span class="assigned-job-issue" title="{{ $activeJob->problem_issue }}">
-                          {{ $activeJob->problem_issue ?: 'No issue description provided.' }}
-                        </span>
-                      </div>
-                    @elseif($mechanic->assigned_job)
-                      <div class="assigned-job-card">
-                        <div class="assigned-job-main">
-                          <i class="fa-solid fa-wrench"></i>
-                          <span>{{ $mechanic->assigned_job }}</span>
-                        </div>
-                        <span class="assigned-job-issue">Recorded from attendance</span>
-                      </div>
-                    @else
-                      <span class="no-assignment">
-                        <i class="fa-solid fa-circle-check"></i>
-                        Available for assignment
-                      </span>
-                    @endif
-                  </td>
+              <tr>
+                <td>Cardo Balba</td>
+                <td><span class="badge available">Available</span></td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                  <td class="{{ $mechanic->attendance_date ? 'mechanic-date-cell' : 'empty' }}">
-                    @if($mechanic->attendance_date)
-                      <span class="mechanic-date-value">
-                        {{ $mechanic->attendance_date->format('M d, Y') }}
-                      </span>
-                    @else
-                      —
-                    @endif
-                  </td>
+              <tr>
+                <td>Richard Mendoza</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Flat Tire Repair</td>
+                <td>12:00 PM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
 
-                  <td>
-                    <div class="time-cell">
-                      <strong>{{ $mechanic->time_in ? \Carbon\Carbon::parse($mechanic->time_in)->format('h:i A') : '—' }}</strong>
-                      <small>Time in</small>
-                    </div>
-                  </td>
-
-                  <td>
-                    <div class="time-cell">
-                      <strong>{{ $mechanic->time_out ? \Carbon\Carbon::parse($mechanic->time_out)->format('h:i A') : '—' }}</strong>
-                      <small>Time out</small>
-                    </div>
-                  </td>
-
-                  <td>
-                    <x-ui.status-badge :status="$effectiveStatus" class="attendance-badge {{ $statusClass }}" />
-                  </td>
-                  <td><x-ui.status-badge :status="$assignmentStatus" /></td>
-                </tr>
-              @empty
-                <x-ui.empty-row
-                  colspan="8"
-                  icon="fa-wrench"
-                  message="No Mechanic Records Found"
-                  description="No mechanics match your search or availability filter."
-                />
-              @endforelse
+              <tr>
+                <td>Juan Del Mundo</td>
+                <td><span class="badge not-available">Not Available</span></td>
+                <td>Engine Oil Filter</td>
+                <td>12:00 PM</td>
+                <td>--:--</td>
+                <td>--:--</td>
+                <td>Apr 3, 2026</td>
+                <td>
+                  <div class="actions">
+                    <button class="edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
 
-        <x-ui.table-footer :items="$mechanics" />
       </section>
+
+      <!-- JOB HISTORY -->
+      <section class="table-card history-card">
+
+        <div class="section-header">
+          <div>
+            <h2>Job History</h2>
+            <p>Completed work records and mechanic service history</p>
+          </div>
+        </div>
+
+        <div class="toolbar mechanic-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search mechanic name or job order...">
+          </div>
+
+          <div class="filter-group">
+            <label>Date</label>
+            <select>
+              <option>Month Dates</option>
+              <option>Today</option>
+              <option>This Week</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Type</label>
+            <select>
+              <option>All Types</option>
+              <option>PMS</option>
+              <option>Repair</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Job Order</th>
+                <th>Time Started</th>
+                <th>Time Ended</th>
+                <th>Duration</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+                <td>Priya Nair</td>
+                <td>Engine Oil Filter</td>
+                <td>9:00 AM</td>
+                <td>11:00 AM</td>
+                <td>2 hrs</td>
+                <td>Apr 5, 2026</td>
+              </tr>
+
+              <tr>
+                <td>Leo Fernandez</td>
+                <td>Brake System Repair</td>
+                <td>10:00 AM</td>
+                <td>4:00 PM</td>
+                <td>6 hrs</td>
+                <td>Apr 4, 2026</td>
+              </tr>
+
+              <tr>
+                <td>Joshua Garcia</td>
+                <td>Suspension Repair</td>
+                <td>11:00 AM</td>
+                <td>5:00 PM</td>
+                <td>6 hrs</td>
+                <td>Apr 3, 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
     </main>
+
   </div>
-</x-layout.app>
+
+</body>
+</html>

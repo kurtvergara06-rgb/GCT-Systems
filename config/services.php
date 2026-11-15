@@ -14,19 +14,6 @@ return [
     |
     */
 
-    'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI'),
-    ],
-
-    'brevo' => [
-        'key' => env('BREVO_API_KEY'),
-        'endpoint' => env('BREVO_API_URL', 'https://api.brevo.com/v3/smtp/email'),
-        'timeout' => (int) env('BREVO_TIMEOUT', 10),
-        'connect_timeout' => (int) env('BREVO_CONNECT_TIMEOUT', 3),
-    ],
-
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
@@ -46,93 +33,6 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
-    ],
-
-    'nlp' => [
-        'api_url' => env(
-            'NLP_API_URL',
-            'http://127.0.0.1:8000'
-        ),
-    ],
-
-    'ai' => [
-        // Safe by default: sample-backed models require an explicit opt-in.
-        'allow_demo_models' => env('ALLOW_DEMO_ML', false),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delay-prediction (Model #3)
-    |--------------------------------------------------------------------------
-    |
-    | The delay model is served by the same FastAPI engine as ETA (NLP_API_URL).
-    | demo_trip_prefixes: trip codes treated as DEMO schedules and excluded from
-    | the genuine training export (seeded demo rows use "TRIP-").
-    |
-    */
-
-    'delay' => [
-        'demo_trip_prefixes' => explode(',', (string) env(
-            'DELAY_DEMO_TRIP_PREFIXES',
-            'TRIP-'
-        )),
-        'min_records' => (int) env('DELAY_MIN_RECORDS', 50),
-        'min_routes' => (int) env('DELAY_MIN_ROUTES', 3),
-        'min_buses' => (int) env('DELAY_MIN_BUSES', 5),
-        'min_drivers' => (int) env('DELAY_MIN_DRIVERS', 5),
-        'min_weeks' => (int) env('DELAY_MIN_WEEKS', 4),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | OSRM
-    |--------------------------------------------------------------------------
-    */
-
-    'osrm' => [
-        'base_url' => env(
-            'OSRM_BASE_URL',
-            'https://router.project-osrm.org'
-        ),
-
-        'operational_speed_kph' => (float) env(
-            'OSRM_OPERATIONAL_SPEED_KPH',
-            25
-        ),
-
-        'stop_dwell_minutes' => (int) env(
-            'OSRM_STOP_DWELL_MINUTES',
-            1
-        ),
-
-        'fresh_cache_hours' => (int) env(
-            'OSRM_FRESH_CACHE_HOURS',
-            12
-        ),
-
-        'stale_cache_days' => (int) env(
-            'OSRM_STALE_CACHE_DAYS',
-            30
-        ),
-    ],
-
-    'photon' => [
-        'base_url' => env(
-            'PHOTON_BASE_URL',
-            'https://photon.komoot.io'
-        ),
-    ],
-
-    'operation_ai' => [
-        'base_url' => env(
-            'OPERATION_AI_BASE_URL',
-            'http://127.0.0.1:8000'
-        ),
-
-        'timeout' => (int) env(
-            'OPERATION_AI_TIMEOUT',
-            5
-        ),
     ],
 
 ];

@@ -1,84 +1,12 @@
-import './echo';
+import '../css/Login_Register/login.css';
+import './Login_Register/login.js';
 
-/* Cross-page assets and controls used by multiple modules. */
-import '../css/Main-styles/system-toast.css';
-import '../css/Main-styles/shared-ui-enhancements.css';
-import '../css/Main-styles/scroll-record-lists.css';
-import '../css/Main-styles/analytics-chart-animations.css';
-import '../css/Main-styles/analytics-chart-interactions.css';
-import '../css/Main-styles/analytics-domain-panels.css';
-import '../css/Main-styles/toolbar-cleanup.css';
-import '../css/Main-styles/searchable-select.css';
-import '../css/Main-styles/date-time-picker.css';
-import '../css/Main-styles/spinner.css';
-import '../css/Main-styles/topbar.css';
-import '../css/Main-styles/page-transitions.css';
-import '../css/Main-styles/account-preferences.css';
-import '../css/Main-styles/session-guard.css';
-import '../css/Maintenance/maintenance-ui-enhancements.css';
-import '../css/Maintenance/purchase-request-modal-cleanup.css';
 
-import './Main-js/account-preferences.js';
-import './Main-js/session-guard.js';
-import './Main-js/master-list-scroll.js';
-import './Main-js/global-modal-backdrop.js';
-import './Main-js/system-animations.js';
-import './Main-js/page-transitions.js';
-import './Main-js/system-toast.js';
-import './Operation/Shuttle_Bus_Management/bus-availability-modal.js';
-import './Main-js/automatic-table-search.js';
-import './Main-js/auto-id-badges.js';
-import './Main-js/shared-shell-enhancements.js';
-import './Main-js/scroll-table-pagination.js';
-import './Main-js/searchable-select.js';
-import './Main-js/date-time-picker.js';
-import './Main-js/table-toolbar.js';
-import './Main-js/loading-state.js';
-import './Main-js/ajax-regions.js';
-import './Main-js/topbar.js';
-import './Main-js/analytics-chart-interactions.js';
-import './Main-js/analytics-domain-panels.js';
-import './Maintenance/maintenance-ui-enhancements.js';
-import './Maintenance/maintenance-history-tabs.js';
-import './Maintenance/maintenance-animations.js';
+import '../css/Login_Register/register.css';
+import './Login_Register/register.js';
 
-/* Page-only controls are lazy-loaded only when their page root exists. */
-const initializePageOnlyControls = () => {
-    document.querySelectorAll('.descriptive-overview-kpi em, .descriptive-insight-card strong').forEach((node) => {
-        if (node.textContent.trim() === 'New') {
-            node.textContent = 'No prior data';
-            node.classList.add('no-prior-data');
-        }
-    });
+import '../css/Maintenance/dashboard.css';
+import './Maintenance/dashboard.js';
 
-    if (document.getElementById('routeModal')) {
-        import('./Operation/Routes/route-pin-controls.js');
-    }
-
-    if (document.getElementById('routeModal') && document.getElementById('routeValidationOldInput')) {
-        import('./Operation/Routes/route-validation-recovery.js');
-    }
-
-    if (document.querySelector('.trip-schedule-page')) {
-        import('./Operation/Scheduling_And_Dispatch/trip-toolbar-alignment.js');
-    }
-
-    if (document.getElementById('importModule') && document.getElementById('exportModule')) {
-        import('./Admin/Data_Management/import-export.js');
-    }
-
-    if (document.getElementById('historyDetailsModal')) {
-        import('./Admin/Data_Management/data-history.js');
-    }
-
-    if (document.querySelector('.fuel-page')) {
-        import('./Maintenance/fuel-reports-refinement.js');
-    }
-};
-
-document.addEventListener('DOMContentLoaded', initializePageOnlyControls);
-window.addEventListener('gct:navigation-ready', initializePageOnlyControls);
-
-if (document.body.dataset.gctPerformanceProfile === '1') {
-    import('./Diagnostics/performance-profile.js');
-}
+import '../css/Maintenance/job-order.css';
+import './Maintenance/job-order.js';
