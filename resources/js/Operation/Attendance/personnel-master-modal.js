@@ -114,6 +114,8 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     };
     busTrigger?.addEventListener('click', () => {
         if (busTrigger.disabled || modal.dataset.mode === 'view') return;
+        // Reapply ownership every time: a reused modal may retain stale DOM state.
+        refreshBusAuthorizationOptions();
         if (busPanel) busPanel.hidden = !busPanel.hidden;
         busTrigger.setAttribute('aria-expanded', String(!busPanel?.hidden));
         if (!busPanel?.hidden) busSearch?.focus();
