@@ -2222,3 +2222,6 @@
 .assignment-page .assignment-client-route-group strong {
   font-weight: 800;
 }
+
+/* Hidden choices must stay hidden even with the combobox flex layout. */
+.assignment-combobox-option[hidden] { display: none !important; }

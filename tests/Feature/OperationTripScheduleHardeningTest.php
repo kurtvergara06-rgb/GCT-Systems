@@ -1723,4 +1723,35 @@ class OperationTripScheduleHardeningTest extends TestCase
             Carbon::setTestNow();
         }
     }
+
+    public function test_assignment_bus_picker_keeps_unauthorized_choices_hidden(): void
+    {
+        $script = file_get_contents(
+            resource_path('js/Operation/Scheduling_And_Dispatch/driver-bus-assignment.js')
+        );
+        $styles = file_get_contents(
+            resource_path('css/Operation/Scheduling_And_Dispatch/driver-bus-assignment.css')
+        );
+
+        $this->assertStringContainsString(
+            "filterBusOptions(assignmentBusSearch?.value || '');",
+            $script
+        );
+        $this->assertStringContainsString(
+            'const busAuthorized = allowed.includes(String(option.dataset.value));',
+            $script
+        );
+        $this->assertStringContainsString(
+            'option.hidden = !shouldShow || !busAuthorized;',
+            $script
+        );
+        $this->assertStringNotContainsString(
+            'const busAuthorized = !allowed ||',
+            $script
+        );
+        $this->assertStringContainsString(
+            '.assignment-combobox-option[hidden] { display: none !important; }',
+            $styles
+        );
+    }
 }

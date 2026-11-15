@@ -624,6 +624,9 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         closeDriverDropdown();
+        // Re-evaluate authorization whenever the picker opens (including
+        // after a trip or driver change).
+        filterBusOptions(assignmentBusSearch?.value || '');
 
         assignmentBusMenu.classList.add(
             'show'
@@ -681,8 +684,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
                 );
                 const allowed = selectedDriver
                     ? (selectedDriver.dataset.authorizedBuses || '').split(',').filter(Boolean)
-                    : null;
-                const busAuthorized = !allowed || allowed.includes(String(option.dataset.value));
+                    : [];
+                // No selected driver means no bus can be offered. Only show
+                // buses explicitly authorized for the selected driver.
+                const busAuthorized = allowed.includes(String(option.dataset.value));
 
                 option.hidden = !shouldShow || !busAuthorized;
             }
