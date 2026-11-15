@@ -65,6 +65,7 @@ class JobOrderController extends Controller
 
         $nextJobOrderNo = $this->generateJobOrderNo();
 
+<<<<<<< HEAD
         $assignedActiveMechanics = JobOrder::query()
             ->where('status', '!=', 'Completed')
             ->whereNotNull('assigned_mechanic')
@@ -80,6 +81,10 @@ class JobOrderController extends Controller
             ->get();
 
         $allMechanics = MechanicAttendance::query()
+=======
+        $availableMechanics = MechanicAttendance::query()
+            ->whereIn('status', ['Present', 'On Duty'])
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
             ->orderBy('mechanic_name')
             ->get();
 
@@ -90,8 +95,12 @@ class JobOrderController extends Controller
             'completed',
             'urgentRepair',
             'nextJobOrderNo',
+<<<<<<< HEAD
             'availableMechanics',
             'allMechanics'
+=======
+            'availableMechanics'
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         ));
     }
 
@@ -132,8 +141,13 @@ class JobOrderController extends Controller
         $validated['start_date'] = now();
         $validated['completion_date'] = null;
         $validated['status'] = 'On Going';
+<<<<<<< HEAD
         $validated['part_needed'] = $partNeeded;
         $validated['part_status'] = $partNeeded ? 'Not Requested' : 'No Parts Needed';
+=======
+        $validated['part_needed'] = $this->formatPartsNeeded($request->parts);
+        $validated['part_status'] = $validated['part_needed'] ? 'Not Requested' : null;
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 
         unset($validated['parts']);
 
@@ -206,6 +220,12 @@ class JobOrderController extends Controller
             $validated['part_status'] = 'Not Requested';
         }
 
+        if (! $validated['part_needed']) {
+            $validated['part_status'] = null;
+        } elseif (! $jobOrder->part_status || $jobOrder->part_status === 'Unknown') {
+            $validated['part_status'] = 'Not Requested';
+        }
+
         unset($validated['parts']);
 
         $jobOrder->update($validated);
@@ -228,6 +248,7 @@ class JobOrderController extends Controller
                 ->with('error', 'Job order is already completed.');
         }
 
+<<<<<<< HEAD
         if ($jobOrder->status === 'On Hold') {
             return redirect()
                 ->route('job-orders')
@@ -238,6 +259,12 @@ class JobOrderController extends Controller
             return redirect()
                 ->route('job-orders')
                 ->with('error', 'This job order cannot be finished yet. The part status must be Issued or Rejected first.');
+=======
+        if (! empty($jobOrder->part_needed) && $jobOrder->part_status !== 'Issued') {
+            return redirect()
+                ->route('job-orders')
+                ->with('error', 'This job order cannot be finished yet. The requested part must be issued first.');
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         }
 
         $jobOrder->update([
@@ -267,6 +294,7 @@ class JobOrderController extends Controller
 
     private function setMechanicStatus(?string $mechanicName, string $status): void
     {
+<<<<<<< HEAD
         if (! $mechanicName) {
             return;
         }
@@ -289,6 +317,18 @@ class JobOrderController extends Controller
             return "JO-{$year}-0001";
         }
 
+=======
+        $year = now()->format('Y');
+
+        $lastJobOrder = JobOrder::where('job_order_no', 'like', "JO-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $lastJobOrder) {
+            return "JO-{$year}-0001";
+        }
+
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         preg_match('/JO-' . $year . '-(\d+)/', $lastJobOrder->job_order_no, $matches);
 
         $lastNumber = isset($matches[1]) ? (int) $matches[1] : 0;

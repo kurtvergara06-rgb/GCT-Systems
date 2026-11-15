@@ -70,6 +70,11 @@ Route::controller(PurchaseRequestController::class)
         Route::post('/{purchaseRequest}/approve', 'approve')->name('.approve');
         Route::post('/{purchaseRequest}/reject', 'reject')->name('.reject');
         Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('.for-purchase');
+<<<<<<< HEAD
+=======
+        Route::post('/{purchaseRequest}/pending-purchase', 'markPendingPurchase')->name('.pending-purchase');
+        Route::post('/{purchaseRequest}/delivering', 'markDelivering')->name('.delivering');
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
         Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('.delivered');
         Route::post('/{purchaseRequest}/issue', 'issue')->name('.issue');
     });
@@ -123,11 +128,18 @@ Route::controller(RequestedPurchaseController::class)
     ->name('requested-purchase')
     ->group(function () {
         Route::get('/', 'index');
+<<<<<<< HEAD
         Route::post('/{purchaseRequest}/ordered', 'markOrdered')->name('.ordered');
         Route::post('/{purchaseRequest}/for-pickup', 'markForPickup')->name('.for-pickup');
         Route::post('/{purchaseRequest}/for-delivery', 'markForDelivery')->name('.for-delivery');
         Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('.delivered');
         Route::post('/{purchaseRequest}/picked-up', 'markPickedUp')->name('.picked-up');
+=======
+        Route::post('/{purchaseRequest}/for-purchase', 'markForPurchase')->name('.for-purchase');
+        Route::post('/{purchaseRequest}/pending-purchase', 'markPendingPurchase')->name('.pending-purchase');
+        Route::post('/{purchaseRequest}/delivering', 'markDelivering')->name('.delivering');
+        Route::post('/{purchaseRequest}/delivered', 'markDelivered')->name('.delivered');
+>>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
     });
 
 Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')
