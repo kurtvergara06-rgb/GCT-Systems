@@ -295,9 +295,13 @@ td:nth-child(8) {
 .delete-modal-overlay {
   display: none;
   position: fixed;
-  z-index: 20000;
+  z-index: var(--modal-backdrop-z-index, 99999);
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
   justify-content: center;
   align-items: center;
   padding: 20px;

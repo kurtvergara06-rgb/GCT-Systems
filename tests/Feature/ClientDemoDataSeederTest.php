@@ -109,6 +109,13 @@ class ClientDemoDataSeederTest extends TestCase
             DB::table('purchase_requests')->where('pr_no', 'like', 'DEMO-PR-%')->count()
         );
         $this->assertSame(
+            12,
+            DB::table('purchase_requests')
+                ->where('pr_no', 'like', 'DEMO-PR-%')
+                ->where('source_type', 'Maintenance Request')
+                ->count()
+        );
+        $this->assertSame(
             9,
             DB::table('purchase_orders')->where('po_no', 'like', 'DEMO-PO-%')->count()
         );

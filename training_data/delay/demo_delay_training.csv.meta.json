@@ -1,0 +1,16 @@
+{
+    "exported_at": "2026-09-24T02:27:39.746728Z",
+    "source": "demo",
+    "dataset_type": "DEMO \/ SYNTHETIC FRONTEND DATA",
+    "reports_processed": 460,
+    "matched_rows": 460,
+    "exclusions": {
+        "unmatched": 0,
+        "non_demo": 0,
+        "cancelled": 0,
+        "missing_timing": 0,
+        "implausible_duration": 0,
+        "short_schedule": 0,
+        "duplicate": 0
+    }
+}

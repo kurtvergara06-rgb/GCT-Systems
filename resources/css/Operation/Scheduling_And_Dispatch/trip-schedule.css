@@ -875,7 +875,7 @@
 
 #tripModal.ui-form-overlay,
 #viewTripModal.ui-form-overlay {
-    z-index: 3000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 }
 
 

@@ -56,9 +56,7 @@
                         <p>One audit trail for Batch Processing, Import, and Export activities.</p>
                     </div>
 
-                    <span class="history-count">
-                        {{ number_format($history->total()) }} Records
-                    </span>
+                    <x-ui.id-badge :value="number_format($history->count()) . ' Records'" />
                 </div>
 
                 <form method="GET" action="{{ route('admin.data-history') }}" class="history-toolbar">
@@ -132,6 +130,7 @@
                                     $statusClass = match($item->status) {
                                         'Completed' => 'completed',
                                         'Failed', 'Needs Correction' => 'failed',
+                                        'Deleted' => 'deleted',
                                         default => 'processing',
                                     };
 
@@ -242,34 +241,8 @@
 
                 <div class="table-footer">
                     <p>
-                        Showing {{ $history->firstItem() ?? 0 }} to {{ $history->lastItem() ?? 0 }} of {{ $history->total() }} records
+                        Showing {{ number_format($history->count()) }} {{ \Illuminate\Support\Str::plural('record', $history->count()) }}
                     </p>
-
-                    @if($history->hasPages())
-                        <div class="pagination">
-                            @if($history->onFirstPage())
-                                <button type="button" class="page-btn disabled" disabled>
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </button>
-                            @else
-                                <a class="page-btn" href="{{ $history->previousPageUrl() }}">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </a>
-                            @endif
-
-                            <span class="page-number">{{ $history->currentPage() }}</span>
-
-                            @if($history->hasMorePages())
-                                <a class="page-btn" href="{{ $history->nextPageUrl() }}">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            @else
-                                <button type="button" class="page-btn disabled" disabled>
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </button>
-                            @endif
-                        </div>
-                    @endif
                 </div>
             </section>
         </main>

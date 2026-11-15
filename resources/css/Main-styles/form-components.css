@@ -38,19 +38,22 @@
     position: fixed;
     inset: 0;
 
-    z-index: 4000;
+    z-index: var(--modal-backdrop-z-index, 99999);
 
     display: none;
     align-items: center;
     justify-content: center;
 
     padding: 24px;
+    box-sizing: border-box;
 
     overflow-y: auto;
+    overscroll-behavior: contain;
 
-    background: rgba(6, 31, 61, 0.58);
+    background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
 
-    backdrop-filter: blur(4px);
+    backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+    -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
 }
 
 

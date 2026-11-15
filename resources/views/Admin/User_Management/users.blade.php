@@ -17,19 +17,27 @@
 
         $formatRole = function ($user) {
             $department = trim($user->department ?? '');
-            $role = strtolower(trim($user->role ?? ''));
+            $rawRole = trim($user->role ?? '');
+            $roleLower = strtolower($rawRole);
+            $deptLower = strtolower($department);
 
-            if (strtolower($department) === 'admin') {
-                return $role === 'head'
+            if ($deptLower === 'admin') {
+                return $roleLower === 'head'
                     ? 'System Admin'
                     : 'Admin Staff';
             }
 
-            if ($department === '') {
-                return ucfirst($role ?: 'Account');
+            // If the role already contains or starts with the department name, avoid repeating it
+            if ($department !== '' && str_starts_with($roleLower, $deptLower)) {
+                $cleaned = trim(substr($rawRole, strlen($department)));
+                return $department . ' ' . (ucfirst($cleaned) ?: 'Staff');
             }
 
-            return $department . ' ' . ucfirst($role ?: 'Staff');
+            if ($department === '') {
+                return ucfirst($rawRole ?: 'Account');
+            }
+
+            return $department . ' ' . ucfirst($rawRole ?: 'Staff');
         };
     @endphp
 
@@ -172,6 +180,7 @@
                     <table class="records-table users-table">
                         <thead>
                             <tr>
+                                <th>User ID</th>
                                 <th>Account</th>
                                 <th>Role</th>
                                 <th>Department</th>
@@ -222,6 +231,10 @@
 
                                 <tr>
                                     <td>
+                                        <x-ui.id-badge :value="'USR-' . str_pad($user->id, 3, '0', STR_PAD_LEFT)" />
+                                    </td>
+
+                                    <td>
                                         <x-ui.record-identity
                                             :title="$user->name"
                                             :subtitle="$user->email"
@@ -238,7 +251,9 @@
                                         />
                                     </td>
 
-                                    <td>{{ $user->department ?? '—' }}</td>
+                                    <td>
+                                        <span class="user-dept-text">{{ $user->department ?? '—' }}</span>
+                                    </td>
 
                                     <td>
                                         <x-ui.status-badge
@@ -247,7 +262,16 @@
                                         />
                                     </td>
 
-                                    <td>{{ $lastLoginDisplay }}</td>
+                                    <td>
+                                        @if($user->last_login_at)
+                                            <div class="user-last-login">
+                                                <span class="login-date">{{ \Carbon\Carbon::parse($user->last_login_at)->format('M d, Y') }}</span>
+                                                <small class="login-time">{{ \Carbon\Carbon::parse($user->last_login_at)->format('g:i A') }}</small>
+                                            </div>
+                                        @else
+                                            <span class="user-login-never">Never</span>
+                                        @endif
+                                    </td>
 
                                     <td>
                                         <div class="record-actions action-menu">
@@ -256,6 +280,8 @@
                                                 class="open-view-user-modal action-view"
                                                 title="View Account"
                                                 data-icon-only
+                                                data-id="{{ $user->id }}"
+                                                data-user-id="USR-{{ str_pad($user->id, 3, '0', STR_PAD_LEFT) }}"
                                                 data-name="{{ $user->name }}"
                                                 data-email="{{ $user->email }}"
                                                 data-role="{{ $roleDisplay }}"
@@ -362,7 +388,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="6"
+                                    colspan="7"
                                     message="No system accounts found."
                                 />
                             @endforelse
@@ -481,8 +507,11 @@
 
             <div class="view-user-top">
                 <div class="view-avatar" id="viewUserInitials">--</div>
-                <div>
-                    <h3 id="viewUserName">—</h3>
+                <div class="view-user-meta">
+                    <div class="view-user-name-row">
+                        <h3 id="viewUserName">—</h3>
+                        <span id="viewUserUserId" class="system-id-badge">—</span>
+                    </div>
                     <p id="viewUserEmail">—</p>
                 </div>
             </div>

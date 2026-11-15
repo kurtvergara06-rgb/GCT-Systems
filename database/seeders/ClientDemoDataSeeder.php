@@ -450,7 +450,7 @@ class ClientDemoDataSeeder extends Seeder
                 'quantity' => $quantity,
                 'remarks' => 'DEMO / SYNTHETIC request linked to '.$joNo.' for client presentation.',
                 'status' => $prStatuses[$state],
-                'source_type' => 'job_order',
+                'source_type' => 'Maintenance Request',
                 'source_inventory_item_id' => $item['id'],
                 'created_at' => $storyDate->copy()->addHours(2),
                 'updated_at' => $storyDate->copy()->addDays(1),

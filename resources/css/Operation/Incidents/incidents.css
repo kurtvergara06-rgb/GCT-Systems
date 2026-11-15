@@ -1599,7 +1599,7 @@
 ========================================================= */
 
 #incidentReportModal.ui-form-overlay {
-    z-index: 4100;
+    z-index: var(--modal-backdrop-z-index, 99999);
     padding: 20px;
 }
 

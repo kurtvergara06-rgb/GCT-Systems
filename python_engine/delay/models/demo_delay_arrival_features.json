@@ -1,0 +1,188 @@
+{
+  "features": [
+    "route_encoded",
+    "bus_encoded",
+    "driver_encoded",
+    "scheduled_departure_hour",
+    "scheduled_departure_minute",
+    "day_of_week",
+    "is_weekend",
+    "month",
+    "season_encoded",
+    "scheduled_duration_minutes",
+    "route_distance_km",
+    "route_prior_delay_mean_min",
+    "route_prior_delay_rate",
+    "driver_prior_delay_mean_min",
+    "driver_trip_seq",
+    "incident_before_departure",
+    "incident_breakdown_flag",
+    "incident_traffic_flag",
+    "incident_replacement_flag"
+  ],
+  "target": "arrival_delay_minutes",
+  "source": "sample",
+  "encoders": {
+    "route_encodings": {
+      "DEMO-RT-01": 0,
+      "DEMO-RT-02": 1,
+      "DEMO-RT-03": 2,
+      "DEMO-RT-04": 3,
+      "DEMO-RT-05": 4
+    },
+    "bus_encodings": {
+      "DEMO-BUS-101": 0,
+      "DEMO-BUS-102": 1,
+      "DEMO-BUS-103": 2,
+      "DEMO-BUS-104": 3,
+      "DEMO-BUS-105": 4,
+      "DEMO-BUS-106": 5,
+      "DEMO-BUS-107": 6,
+      "DEMO-BUS-108": 7
+    },
+    "driver_encodings": {
+      "DEMO-DRV-001": 0,
+      "DEMO-DRV-002": 1,
+      "DEMO-DRV-003": 2,
+      "DEMO-DRV-004": 3,
+      "DEMO-DRV-005": 4,
+      "DEMO-DRV-006": 5,
+      "DEMO-DRV-007": 6,
+      "DEMO-DRV-008": 7
+    }
+  },
+  "route_metadata": {
+    "DEMO-RT-01": {
+      "distance_km": 31.5,
+      "duration_minutes": 55.0,
+      "prior_delay_mean": 0.0,
+      "prior_delay_rate": 0.0,
+      "n_obs": 92
+    },
+    "DEMO-RT-02": {
+      "distance_km": 23.4,
+      "duration_minutes": 45.0,
+      "prior_delay_mean": 0.0,
+      "prior_delay_rate": 0.0,
+      "n_obs": 92
+    },
+    "DEMO-RT-03": {
+      "distance_km": 28.7,
+      "duration_minutes": 50.0,
+      "prior_delay_mean": 0.0,
+      "prior_delay_rate": 0.0,
+      "n_obs": 92
+    },
+    "DEMO-RT-04": {
+      "distance_km": 26.2,
+      "duration_minutes": 50.0,
+      "prior_delay_mean": 0.0,
+      "prior_delay_rate": 0.0,
+      "n_obs": 92
+    },
+    "DEMO-RT-05": {
+      "distance_km": 43.8,
+      "duration_minutes": 70.0,
+      "prior_delay_mean": 0.0,
+      "prior_delay_rate": 0.0,
+      "n_obs": 92
+    }
+  },
+  "driver_metadata": {
+    "DEMO-DRV-001": {
+      "prior_delay_mean": 7.965087719298245,
+      "n_obs": 57
+    },
+    "DEMO-DRV-002": {
+      "prior_delay_mean": 13.912105263157894,
+      "n_obs": 57
+    },
+    "DEMO-DRV-003": {
+      "prior_delay_mean": 8.309827586206897,
+      "n_obs": 58
+    },
+    "DEMO-DRV-004": {
+      "prior_delay_mean": 14.743620689655172,
+      "n_obs": 58
+    },
+    "DEMO-DRV-005": {
+      "prior_delay_mean": 14.431896551724138,
+      "n_obs": 58
+    },
+    "DEMO-DRV-006": {
+      "prior_delay_mean": 9.132241379310344,
+      "n_obs": 58
+    },
+    "DEMO-DRV-007": {
+      "prior_delay_mean": 14.124912280701755,
+      "n_obs": 57
+    },
+    "DEMO-DRV-008": {
+      "prior_delay_mean": 9.652807017543859,
+      "n_obs": 57
+    }
+  },
+  "bus_metadata": {
+    "DEMO-BUS-101": {
+      "n_obs": 58,
+      "mean_route_prior_delay": 11.088103448275863
+    },
+    "DEMO-BUS-102": {
+      "n_obs": 58,
+      "mean_route_prior_delay": 10.961724137931034
+    },
+    "DEMO-BUS-103": {
+      "n_obs": 58,
+      "mean_route_prior_delay": 11.386896551724139
+    },
+    "DEMO-BUS-104": {
+      "n_obs": 58,
+      "mean_route_prior_delay": 11.467758620689654
+    },
+    "DEMO-BUS-105": {
+      "n_obs": 57,
+      "mean_route_prior_delay": 11.980526315789476
+    },
+    "DEMO-BUS-106": {
+      "n_obs": 57,
+      "mean_route_prior_delay": 12.189649122807017
+    },
+    "DEMO-BUS-107": {
+      "n_obs": 57,
+      "mean_route_prior_delay": 11.725087719298244
+    },
+    "DEMO-BUS-108": {
+      "n_obs": 57,
+      "mean_route_prior_delay": 11.800701754385962
+    }
+  },
+  "target_range": {
+    "min": 0.0,
+    "max": 51.0,
+    "mean": 12.160326086956522
+  },
+  "periods": {
+    "train_start": "2026-06-01",
+    "train_end": "2026-08-31",
+    "test_start": "2026-09-01",
+    "test_end": "2026-09-23"
+  },
+  "risk_thresholds": [
+    {
+      "max_minutes": 5,
+      "label": "On Time"
+    },
+    {
+      "max_minutes": 10,
+      "label": "Minor Delay"
+    },
+    {
+      "max_minutes": 20,
+      "label": "Moderate Delay"
+    },
+    {
+      "label": "High Delay"
+    }
+  ],
+  "disclaimer": "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a development prototype trained on generated data and is blocked from serving predictions in production."
+}

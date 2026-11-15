@@ -1,0 +1,59 @@
+Delay-prediction model report (Model #3)
+====================================================================
+DATA SOURCE: SAMPLE / DEMONSTRATION DATA
+Data source:          sample
+Prediction target:    arrival_delay_minutes (minutes)
+Feature inputs:       route_encoded, bus_encoded, driver_encoded, scheduled_departure_hour, scheduled_departure_minute, day_of_week, is_weekend, month, season_encoded, scheduled_duration_minutes, route_distance_km, route_prior_delay_mean_min, route_prior_delay_rate, driver_prior_delay_mean_min, driver_trip_seq, incident_before_departure, incident_breakdown_flag, incident_traffic_flag, incident_replacement_flag
+Samples available:    460
+Training rows:        368
+Test rows:            92
+Training period:      2026-06-01 .. 2026-08-31
+Test period:          2026-09-01 .. 2026-09-23
+
+Metrics (chronological held-out test set):
+  MAE : 5.10 minutes
+  RMSE: 6.19 minutes
+  R2  : 0.5685
+
+Label range (training):
+  min : 0.0
+  max : 51.0
+  mean: 12.2
+
+Feature importances:
+  incident_before_departure            0.1636
+  bus_encoded                          0.1566
+  driver_prior_delay_mean_min          0.1126
+  incident_breakdown_flag              0.1034
+  route_prior_delay_rate               0.0853
+  route_prior_delay_mean_min           0.0787
+  driver_encoded                       0.0615
+  day_of_week                          0.0555
+  scheduled_departure_hour             0.0461
+  incident_traffic_flag                0.0304
+  route_encoded                        0.0254
+  route_distance_km                    0.0220
+  scheduled_duration_minutes           0.0178
+  month                                0.0164
+  scheduled_departure_minute           0.0155
+  is_weekend                           0.0092
+  season_encoded                       0.0000
+  driver_trip_seq                      0.0000
+  incident_replacement_flag            0.0000
+
+Risk threshold layer (business rule, not ML):
+  0-5  minutes  = On Time
+  6-10  minutes = Minor Delay
+  11-20 minutes = Moderate Delay
+  21+   minutes = High Delay
+
+Configuration (project-wide RF convention):
+  n_estimators=200, max_depth=None, min_samples_leaf=2,
+  max_features='sqrt', random_state=42, n_jobs=-1
+
+Leakage controls:
+  - target (arrival_delay_minutes) is never an input feature
+  - departure_delay_minutes is never an input feature
+  - actual departure/arrival times and actual duration are excluded
+  - route/driver 'historical' features use ONLY strictly prior trips
+  - train/test split is chronological on the date axis (no shuffle)

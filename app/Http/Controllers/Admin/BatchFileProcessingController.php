@@ -87,13 +87,7 @@ class BatchFileProcessingController extends Controller
 
         $records = $recordsQuery
             ->latest('beginning_at')
-            ->paginate(25)
-            ->withQueryString()
-            ->appends([
-                'batch_id' => $selectedBatchId,
-                'search' => $request->query('search'),
-                'selected_record' => $request->query('selected_record'),
-            ]);
+            ->get();
 
         $selectedRecordId = $request->integer('selected_record');
 
