@@ -10,6 +10,15 @@ class SafeRouteRenderingTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function adminUser(): User
+    {
+        return User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
+    }
+
     public function test_trip_records_page_ignores_an_unavailable_sidebar_destination(): void
     {
         $user = User::factory()->create();
@@ -22,7 +31,7 @@ class SafeRouteRenderingTest extends TestCase
 
     public function test_batch_file_processing_page_renders_cleanly_without_pagination_buttons(): void
     {
-        $user = User::factory()->create();
+        $user = $this->adminUser();
 
         $batch = \App\Models\Admin\BatchUpload::create([
             'file_name' => 'test_gps.csv',
@@ -71,7 +80,7 @@ class SafeRouteRenderingTest extends TestCase
 
     public function test_data_history_page_renders_cleanly_without_pagination_buttons(): void
     {
-        $user = User::factory()->create();
+        $user = $this->adminUser();
 
         \App\Models\Admin\DataActivity::create([
             'activity_type' => 'Batch Processing',
@@ -95,4 +104,3 @@ class SafeRouteRenderingTest extends TestCase
         $response->assertDontSee('page-number');
     }
 }
-

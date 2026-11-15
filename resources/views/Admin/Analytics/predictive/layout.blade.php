@@ -29,6 +29,8 @@
 
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
+        'resources/css/Admin/Analytics/overview/live-data.css',
+        'resources/css/Admin/Analytics/model-status-stage.css',
         'resources/css/Admin/Analytics/predictive/all.css',
     ];
 
@@ -102,6 +104,10 @@
                     <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
                 </form>
             </section>
+
+            @if($activeDomain === 'all')
+                <x-analytics.model-status />
+            @endif
 
             @include($domainViews[$activeDomain])
 
