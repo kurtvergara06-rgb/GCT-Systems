@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Maintenance\JobOrderController;
 use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Warehouse\InventoryController;
@@ -10,19 +12,19 @@ use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use Illuminate\Support\Facades\Route;
 
-
 /*
 |--------------------------------------------------------------------------
 | Authentication Pages
 |--------------------------------------------------------------------------
 */
 
-Route::view('/', 'Login_Register.login')
-    ->name('login');
+Route::view('/', 'Login.login')->name('login');
 
-Route::view('/register', 'Login_Register.register')
-    ->name('register');
+Route::post('/login', [LoginController::class, 'login'])
+    ->name('login.submit');
 
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -45,7 +47,6 @@ Route::view('/fuel-reports', 'Maintenance.fuel-reports')
 Route::view('/settings', 'Maintenance.settings')
     ->name('settings');
 
-
 /*
 |--------------------------------------------------------------------------
 | Maintenance Department - Job Orders
@@ -63,12 +64,9 @@ Route::controller(JobOrderController::class)
         Route::delete('/{jobOrder}', 'destroy')->name('job-orders.destroy');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Maintenance Department - Purchase Requests
-|--------------------------------------------------------------------------
-| This is the Maintenance-side PR page.
 |--------------------------------------------------------------------------
 */
 
@@ -87,7 +85,6 @@ Route::controller(PurchaseRequestController::class)
         Route::post('/{purchaseRequest}/issue', 'issue')->name('purchase-requests.issue');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Warehouse Department - Inventory
@@ -104,7 +101,6 @@ Route::controller(InventoryController::class)
         Route::post('/import', 'import')->name('inventory.import');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Warehouse Department - Part Requests
@@ -118,7 +114,6 @@ Route::controller(WarehousePartRequestController::class)
         Route::post('/{purchaseRequest}/issue', 'issue')->name('part-requests.issue');
         Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')->name('part-requests.send-to-purchase');
     });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -136,13 +131,9 @@ Route::controller(PurchaseOrderController::class)
         Route::delete('/{purchaseOrder}', 'destroy')->name('purchase-orders.destroy');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Purchase Department - Maintenance Requests
-|--------------------------------------------------------------------------
-| This is the child page under Requested Purchase.
-| Old name was requested-purchase.
 |--------------------------------------------------------------------------
 */
 
@@ -153,12 +144,9 @@ Route::controller(MaintenanceRequestController::class)
         Route::post('/{maintenanceRequest}/create-po', 'createPo')->name('maintenance-requests.create-po');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Purchase Department - Inventory Restock
-|--------------------------------------------------------------------------
-| This is the child page under Requested Purchase.
 |--------------------------------------------------------------------------
 */
 
@@ -168,7 +156,6 @@ Route::controller(InventoryRestockController::class)
         Route::get('/', 'index')->name('inventory-restock');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Purchase Department - Scheduled Purchase
@@ -177,7 +164,6 @@ Route::controller(InventoryRestockController::class)
 
 Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')
     ->name('scheduled-purchase');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -197,7 +183,6 @@ Route::view('/driver-attendance', 'Operation.driver-attendance')
 Route::redirect('/available-mechanics', '/mechanic-attendance')
     ->name('available-mechanics');
 
-
 /*
 |--------------------------------------------------------------------------
 | Operations Department - Mechanic Attendance
@@ -214,12 +199,24 @@ Route::controller(MechanicAttendanceController::class)
         Route::post('/import', 'import')->name('mechanic-attendance.import');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | Admin Department
 |--------------------------------------------------------------------------
 */
 
-Route::view('/admin-dashboard', 'Admin.admin-dashboard')
-    ->name('admin-dashboard');
+Route::view('/admin/dashboard', 'Admin.admin-dashboard')
+    ->name('admin.dashboard');
+
+Route::view('/admin/permissions', 'Admin.permissions')
+    ->name('admin.permissions');
+
+Route::controller(AdminUserController::class)
+    ->prefix('admin/users')
+    ->group(function () {
+        Route::get('/', 'index')->name('admin.users');
+        Route::post('/', 'store')->name('admin.users.store');
+        Route::put('/{user}', 'update')->name('admin.users.update');
+        Route::patch('/{user}/status', 'updateStatus')->name('admin.users.update-status');
+        Route::patch('/{user}/reset-password', 'resetPassword')->name('admin.users.reset-password');
+    });

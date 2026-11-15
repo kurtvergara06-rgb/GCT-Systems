@@ -823,3 +823,99 @@ tbody tr:last-child td {
     padding: 24px;
   }
 }
+
+.pr-modal-footer {
+  grid-column: 1 / -1;
+  width: 100%;
+  border-top: 1px solid #e5edf7;
+  padding-top: 14px;
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pr-modal-left-actions,
+.pr-approval-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pr-approval-actions form {
+  margin: 0;
+}
+
+.approve-action-btn,
+.reject-action-btn {
+  min-width: 105px;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.approve-action-btn {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.reject-action-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pr-part-row {
+  display: grid;
+  grid-template-columns: 1fr 95px 115px 36px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.remove-part-btn {
+  width: 36px;
+  height: 40px;
+  border: none;
+  border-radius: 9px;
+  background: #fee2e2;
+  color: #dc2626;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-part-btn:hover {
+  background: #fecaca;
+}
+
+@media (max-width: 768px) {
+  .pr-modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-modal-left-actions,
+  .pr-approval-actions {
+    justify-content: flex-end;
+  }
+
+  .pr-part-row {
+    grid-template-columns: 1fr;
+  }
+
+  .remove-part-btn {
+    width: 100%;
+  }
+}

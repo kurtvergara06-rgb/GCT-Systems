@@ -136,3 +136,14 @@
   padding-top: 25px;
   padding-bottom: 25px;
 }
+
+.login-alert {
+  width: 100%;
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 800;
+}
