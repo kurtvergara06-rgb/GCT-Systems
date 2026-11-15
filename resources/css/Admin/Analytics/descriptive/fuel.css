@@ -1,0 +1,4 @@
+/* Descriptive Analytics — Fuel domain only.
+   Fuel is currently locked visually. Existing chart/donut interaction mechanics remain shared,
+   while future Fuel-only layout changes belong in this file and should be scoped below. */
+.descriptive-domain-fuel .fuel-dashboard-content { isolation: isolate; }
