@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Http\Controllers\Admin\BatchFileProcessingController;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -143,5 +144,34 @@ class BatchFileProcessingActivityPeriodTest extends TestCase
             'activity_period_warning',
             $record->raw_data ?? []
         );
+    }
+
+    public function test_duration_to_minutes_parses_clock_times_and_units_precisely(): void
+    {
+        $controller = app(BatchFileProcessingController::class);
+
+        $durationToMinutes = function ($value) use ($controller) {
+            $method = new \ReflectionMethod($controller, 'durationToMinutes');
+            $method->setAccessible(true);
+
+            return $method->invoke($controller, $value);
+        };
+
+        // HH:MM:SS durations keep their seconds as a fraction of a minute.
+        $this->assertEqualsWithDelta(427.6, $durationToMinutes('07:07:36'), 1e-9);
+        $this->assertEqualsWithDelta(840.95, $durationToMinutes('14:00:57'), 1e-9);
+        $this->assertEqualsWithDelta(427.0, $durationToMinutes('07:07'), 1e-9);
+
+        // Explicit unit-ed values, including decimal hours.
+        $this->assertEqualsWithDelta(510.0, $durationToMinutes('8.5 hours'), 1e-9);
+        $this->assertEqualsWithDelta(90.0, $durationToMinutes('1 hr 30 min'), 1e-9);
+        $this->assertEqualsWithDelta(45.0, $durationToMinutes('45 mins'), 1e-9);
+
+        // Bare numerics are treated as minutes.
+        $this->assertEqualsWithDelta(30.0, $durationToMinutes('30'), 1e-9);
+
+        // Empty / null inputs yield null.
+        $this->assertNull($durationToMinutes(''));
+        $this->assertNull($durationToMinutes(null));
     }
 }

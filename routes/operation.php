@@ -4,6 +4,7 @@ use App\Http\Controllers\Operation\AutoSchedulingController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
+use App\Http\Controllers\Operation\IncidentController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\RouteController;
 use App\Http\Controllers\Operation\TripAssignmentController;
@@ -111,4 +112,18 @@ Route::controller(DailyDriverReportController::class)
             ->middleware('throttle:60,1')
             ->name('daily-driver-reports.schedule-lookup');
         Route::get('/{dailyDriverReport}', 'show')->name('daily-driver-reports.show');
+    });
+
+Route::controller(IncidentController::class)
+    ->prefix('operation/incidents')
+    ->group(function () {
+        Route::get('/', 'index')->name('incidents');
+        Route::get('/create', 'create')->name('incidents.create');
+        Route::post('/', 'store')->name('incidents.store');
+        Route::get('/{incident}', 'show')->name('incidents.show');
+        Route::put('/{incident}', 'update')->name('incidents.update');
+        Route::post('/{incident}/dispatch', 'dispatchReplacement')
+            ->name('incidents.dispatch');
+        Route::post('/{incident}/response', 'addResponse')
+            ->name('incidents.response');
     });

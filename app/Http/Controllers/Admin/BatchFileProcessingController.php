@@ -1128,18 +1128,26 @@ class BatchFileProcessingController extends Controller
                         'initial_location' => $item['initial_location'] ?? null,
                         'ending_at' => $endingAt,
                         'final_location' => $item['final_location'] ?? null,
-                        'duration_minutes' => ! empty($item['duration_minutes'])
-                            ? (float) $item['duration_minutes']
-                            : null,
-                        'total_minutes' => ! empty($item['total_minutes'])
-                            ? (float) $item['total_minutes']
-                            : null,
-                        'in_motion_minutes' => ! empty($item['in_motion_minutes'])
-                            ? (float) $item['in_motion_minutes']
-                            : null,
-                        'idling_minutes' => ! empty($item['idling_minutes'])
-                            ? (float) $item['idling_minutes']
-                            : null,
+                        'duration_minutes' => $this->durationToMinutes(
+                            isset($item['duration_minutes'])
+                                ? (string) $item['duration_minutes']
+                                : null
+                        ),
+                        'total_minutes' => $this->durationToMinutes(
+                            isset($item['total_minutes'])
+                                ? (string) $item['total_minutes']
+                                : null
+                        ),
+                        'in_motion_minutes' => $this->durationToMinutes(
+                            isset($item['in_motion_minutes'])
+                                ? (string) $item['in_motion_minutes']
+                                : null
+                        ),
+                        'idling_minutes' => $this->durationToMinutes(
+                            isset($item['idling_minutes'])
+                                ? (string) $item['idling_minutes']
+                                : null
+                        ),
                         'mileage_km' => ! empty($item['mileage_km'])
                             ? (float) $item['mileage_km']
                             : null,
@@ -1607,7 +1615,7 @@ class BatchFileProcessingController extends Controller
             : null;
     }
 
-    private function durationToMinutes(?string $value): ?int
+    private function durationToMinutes(?string $value): ?float
     {
         if ($value === null || trim($value) === '') {
             return null;
@@ -1615,6 +1623,8 @@ class BatchFileProcessingController extends Controller
 
         $value = strtolower(trim($value));
 
+        // '07:07:36' / '07:07' clock format: seconds kept as a fraction so
+        // '07:07:36' -> 427.6 and '14:00:57' -> 840.95 (not 428 / 841).
         if (
             preg_match(
                 '/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/',
@@ -1630,37 +1640,30 @@ class BatchFileProcessingController extends Controller
 
             return ($hours * 60)
                 + $minutes
-                + (int) round($seconds / 60);
+                + ($seconds / 60);
         }
 
-        preg_match(
-            '/(\d+)\s*(h|hour|hours)/',
-            $value,
-            $hourMatches
-        );
-
-        preg_match(
-            '/(\d+)\s*(m|min|mins|minute|minutes)/',
-            $value,
-            $minuteMatches
-        );
-
-        $hours = isset($hourMatches[1])
-            ? (int) $hourMatches[1]
-            : 0;
-
-        $minutes = isset($minuteMatches[1])
-            ? (int) $minuteMatches[1]
-            : 0;
-
-        if ($hours > 0 || $minutes > 0) {
-            return ($hours * 60) + $minutes;
+        // Explicit decimal hours ('8.5 hours', '1 hr', '2 h') -> minutes.
+        $hours = null;
+        if (preg_match('/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)/', $value, $hourMatches)) {
+            $hours = (float) $hourMatches[1];
         }
 
+        // Explicit minutes ('45 mins', '1 min', '30 m').
+        $minutes = null;
+        if (preg_match('/(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes)/', $value, $minuteMatches)) {
+            $minutes = (float) $minuteMatches[1];
+        }
+
+        if ($hours !== null || $minutes !== null) {
+            return (($hours ?? 0) * 60) + ($minutes ?? 0);
+        }
+
+        // Bare numeric value -> minutes as-is.
         $numeric = $this->numericValue($value);
 
         return $numeric !== null
-            ? (int) round($numeric)
+            ? round($numeric, 1)
             : null;
     }
 

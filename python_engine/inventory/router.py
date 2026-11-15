@@ -46,6 +46,13 @@ def inventory_model_status() -> dict:
         "model_ready": readiness.ml_ready,
         "source": readiness.source,
         "dataset_type": "SAMPLE / DEVELOPMENT" if readiness.source == "sample" else "genuine",
+        "data_source": readiness.data_source,
+        "is_production_model": readiness.source == "genuine",
+        "model_type": (
+            "Sample / Development Model"
+            if readiness.source == "sample"
+            else "Production Model"
+        ),
         "sample_count": readiness.sample_count,
         "model_path": str(readiness.model_path or ""),
         "reason": readiness.reason,

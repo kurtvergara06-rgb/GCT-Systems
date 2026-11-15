@@ -999,6 +999,7 @@ class AnalyticsStageController extends Controller
 
         // 1. ALL DOMAIN PRESCRIPTIVE
         $allPrescriptive = (object) [
+            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
             'kpis' => [
                 ['label' => 'Immediate Action Items', 'value' => '7', 'icon' => 'fa-bolt', 'tone' => 'danger', 'caption' => 'Critical operational tasks pending'],
                 ['label' => 'Projected Fuel Recovery', 'value' => '168 L/mo', 'icon' => 'fa-gas-pump', 'tone' => 'success', 'caption' => 'Idle cutoff + injector tuning'],
@@ -1109,6 +1110,7 @@ class AnalyticsStageController extends Controller
 
         // 2. FLEET & TRIP PRESCRIPTIVE
         $fleetPrescriptive = (object) [
+            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
             'kpis' => [
                 ['label' => 'Active Prescriptions', 'value' => '4 Plans', 'icon' => 'fa-clipboard-list', 'tone' => 'blue', 'caption' => 'Headway & standby allocation'],
                 ['label' => 'Delay Recovery Potential', 'value' => '24 mins', 'icon' => 'fa-clock-rotate-left', 'tone' => 'success', 'caption' => 'Estimated peak schedule recovery'],
@@ -1157,6 +1159,7 @@ class AnalyticsStageController extends Controller
 
         // 3. FUEL PRESCRIPTIVE
         $fuelPrescriptive = (object) [
+            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
             'kpis' => [
                 ['label' => 'Prescribed Savings Target', 'value' => '168 L/mo', 'icon' => 'fa-gas-pump', 'tone' => 'green', 'caption' => '42 L/week across 4 flagged units'],
                 ['label' => 'Idle Mitigation Potential', 'value' => '-42 mins/day', 'icon' => 'fa-clock', 'tone' => 'blue', 'caption' => 'Across top 5 idling units'],
@@ -1201,6 +1204,7 @@ class AnalyticsStageController extends Controller
 
         // 4. BUS HEALTH PRESCRIPTIVE
         $busHealthPrescriptive = (object) [
+            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
             'kpis' => [
                 ['label' => 'Expedited Work Orders', 'value' => '12 Jobs', 'icon' => 'fa-screwdriver-wrench', 'tone' => 'danger', 'caption' => 'Preventing active fleet groundings'],
                 ['label' => 'Turnaround Compression', 'value' => '-36 Hours', 'icon' => 'fa-bolt', 'tone' => 'purple', 'caption' => 'Average repair cycle reduction'],
@@ -1245,6 +1249,7 @@ class AnalyticsStageController extends Controller
 
         // 5. INVENTORY PRESCRIPTIVE
         $inventoryPrescriptive = (object) [
+            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
             'kpis' => [
                 ['label' => 'Prescribed Purchase Orders', 'value' => '10 Parts', 'icon' => 'fa-cart-shopping', 'tone' => 'danger', 'caption' => 'Replenishing depleted reserves'],
                 ['label' => 'Total Reorder Volume', 'value' => '47 Qty', 'icon' => 'fa-boxes-stacked', 'tone' => 'blue', 'caption' => 'Consolidated replenishment batch'],

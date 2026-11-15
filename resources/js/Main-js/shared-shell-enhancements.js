@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const topbarActions = document.getElementById('topbarActions');
 
   if (topbarActions) {
-    const summaryUrl = topbarActions.dataset.summaryUrl;
     const pendingButton = topbarActions.querySelector('[data-dropdown-target="pendingActionsDropdown"]');
     const activityButton = topbarActions.querySelector('[data-dropdown-target="recentActivityDropdown"]');
 
@@ -37,39 +36,32 @@ document.addEventListener('DOMContentLoaded', () => {
       badge.hidden = normalizedCount === 0;
     };
 
-    if (summaryUrl) {
-      fetch(summaryUrl, {
-        headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        credentials: 'same-origin',
-      })
-        .then((response) => response.ok ? response.json() : null)
-        .then((summary) => {
-          if (!summary) {
-            return;
-          }
+    const applySummaryBadges = (summary) => {
+      const pendingTotal = Array.isArray(summary?.pending_actions)
+        ? summary.pending_actions.reduce(
+            (total, item) => total + (Number(item.count) || 0),
+            0
+          )
+        : 0;
 
-          const pendingTotal = Array.isArray(summary.pending_actions)
-            ? summary.pending_actions.reduce(
-                (total, item) => total + (Number(item.count) || 0),
-                0
-              )
-            : 0;
+      const activityTotal = Array.isArray(summary?.recent_activity)
+        ? summary.recent_activity.length
+        : 0;
 
-          const activityTotal = Array.isArray(summary.recent_activity)
-            ? summary.recent_activity.length
-            : 0;
+      updateBadge(pendingBadge, pendingTotal);
+      updateBadge(activityBadge, activityTotal);
+    };
 
-          updateBadge(pendingBadge, pendingTotal);
-          updateBadge(activityBadge, activityTotal);
-        })
-        .catch(() => {
-          updateBadge(pendingBadge, 0);
-          updateBadge(activityBadge, 0);
-        });
-    }
+    // topbar.js is the single caller of /topbar/summary; reuse its result here
+    // instead of issuing a second duplicate request on every page load.
+    window.addEventListener('topbar-summary-loaded', (event) => {
+      if (event.detail) {
+        applySummaryBadges(event.detail);
+      } else {
+        updateBadge(pendingBadge, 0);
+        updateBadge(activityBadge, 0);
+      }
+    });
   }
 
   document.querySelectorAll('.profile-logout-form').forEach((form) => {
