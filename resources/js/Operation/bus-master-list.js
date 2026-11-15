@@ -10,30 +10,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBusModal = document.getElementById('closeBusModal');
     const cancelBusModal = document.getElementById('cancelBusModal');
 
-    const openImportBusModal = document.getElementById('openImportBusModal');
-    const closeImportBusModal = document.getElementById('closeImportBusModal');
-    const cancelImportBusModal = document.getElementById('cancelImportBusModal');
+    const openImportBusModal =
+        document.getElementById('openImportBusModal');
 
-    const closeEditBusModal = document.getElementById('closeEditBusModal');
-    const cancelEditBusModal = document.getElementById('cancelEditBusModal');
+    const closeImportBusModal =
+        document.getElementById('closeImportBusModal');
 
-    const cancelDeleteBus = document.getElementById('cancelDeleteBus');
-    const confirmDeleteBus = document.getElementById('confirmDeleteBus');
-    const deleteBusNo = document.getElementById('deleteBusNo');
+    const cancelImportBusModal =
+        document.getElementById('cancelImportBusModal');
 
-    const editBusForm = document.getElementById('editBusForm');
+    const closeEditBusModal =
+        document.getElementById('closeEditBusModal');
+
+    const cancelEditBusModal =
+        document.getElementById('cancelEditBusModal');
+
+    const cancelDeleteBus =
+        document.getElementById('cancelDeleteBus');
+
+    const confirmDeleteBus =
+        document.getElementById('confirmDeleteBus');
+
+    const deleteBusNo =
+        document.getElementById('deleteBusNo');
+
+    const editBusForm =
+        document.getElementById('editBusForm');
 
     let selectedDeleteForm = null;
 
     function openModal(modal) {
-        if (!modal) return;
+        if (!modal) {
+            return;
+        }
 
         modal.classList.add('show');
         modal.classList.add('active');
     }
 
     function closeModal(modal) {
-        if (!modal) return;
+        if (!modal) {
+            return;
+        }
 
         modal.classList.remove('show');
         modal.classList.remove('active');
@@ -65,7 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.open-edit-bus').forEach((button) => {
         button.addEventListener('click', () => {
-            if (!editBusForm) return;
+            if (!editBusForm) {
+                return;
+            }
 
             editBusForm.action = button.dataset.updateUrl;
 
@@ -89,12 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('edit_status').value =
                 button.dataset.status || 'Active';
-
-            document.getElementById('edit_last_pms_km').value =
-                button.dataset.lastPmsKm || 0;
-
-            document.getElementById('edit_pms_interval_km').value =
-                button.dataset.pmsIntervalKm || 5000;
 
             openModal(editBusModal);
         });
@@ -146,9 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('.close-feedback-modal').forEach((button) => {
+    document.querySelectorAll(
+        '.close-feedback-modal'
+    ).forEach((button) => {
         button.addEventListener('click', () => {
-            closeModal(button.closest('.success-modal-overlay'));
+            closeModal(
+                button.closest('.success-modal-overlay')
+            );
         });
     });
 });

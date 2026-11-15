@@ -90,7 +90,9 @@
                 <div class="section-header">
                     <div>
                         <h2>Registered Buses</h2>
-                        <p>GPS mileage appears after Admin processes matching GPS batch records.</p>
+                        <p>
+                            GPS mileage appears after Admin processes matching GPS batch records.
+                        </p>
                     </div>
                 </div>
 
@@ -118,14 +120,28 @@
                             id="busStatusFilter"
                             onchange="this.form.submit()"
                         >
-                            <option value="All Status">All Status</option>
-                            <option value="Active" @selected(request('status') === 'Active')>
+                            <option value="All Status">
+                                All Status
+                            </option>
+
+                            <option
+                                value="Active"
+                                @selected(request('status') === 'Active')
+                            >
                                 Active
                             </option>
-                            <option value="Inactive" @selected(request('status') === 'Inactive')>
+
+                            <option
+                                value="Inactive"
+                                @selected(request('status') === 'Inactive')
+                            >
                                 Inactive
                             </option>
-                            <option value="Under Maintenance" @selected(request('status') === 'Under Maintenance')>
+
+                            <option
+                                value="Under Maintenance"
+                                @selected(request('status') === 'Under Maintenance')
+                            >
                                 Under Maintenance
                             </option>
                         </select>
@@ -158,8 +174,6 @@
                                 <th>Model</th>
                                 <th>Route / Grouping</th>
                                 <th>Latest GPS KM</th>
-                                <th>Last PMS KM</th>
-                                <th>Next PMS KM</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -168,20 +182,27 @@
                         <tbody>
                             @forelse($buses as $bus)
                                 <tr>
-                                    <td><strong>{{ $bus->bus_no }}</strong></td>
-                                    <td>{{ $bus->bus_model ?: '—' }}</td>
-                                    <td>{{ $bus->route_grouping ?: '—' }}</td>
+                                    <td>
+                                        <strong>{{ $bus->bus_no }}</strong>
+                                    </td>
+
+                                    <td>
+                                        {{ $bus->bus_model ?: '—' }}
+                                    </td>
+
+                                    <td>
+                                        {{ $bus->route_grouping ?: '—' }}
+                                    </td>
 
                                     <td>
                                         @if($bus->display_latest_gps_km !== null)
                                             {{ number_format($bus->display_latest_gps_km, 2) }} km
                                         @else
-                                            <span class="empty">No GPS data</span>
+                                            <span class="empty">
+                                                No GPS data
+                                            </span>
                                         @endif
                                     </td>
-
-                                    <td>{{ number_format($bus->last_pms_km, 2) }} km</td>
-                                    <td>{{ number_format($bus->next_pms_km, 2) }} km</td>
 
                                     <td>
                                         @php
@@ -213,8 +234,6 @@
                                                 data-capacity="{{ $bus->capacity }}"
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-status="{{ $bus->status }}"
-                                                data-last-pms-km="{{ $bus->last_pms_km }}"
-                                                data-pms-interval-km="{{ $bus->pms_interval_km }}"
                                                 data-update-url="{{ route('bus-master-list.update', $bus->id) }}"
                                             />
 
@@ -240,7 +259,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="8"
+                                    colspan="6"
                                     message="No bus records found. Add your first bus."
                                 />
                             @endforelse
@@ -266,72 +285,81 @@
     >
         <div class="form-group">
             <label>Bus No.</label>
-            <input type="text" name="bus_no" placeholder="Example: BUS-205" required>
+
+            <input
+                type="text"
+                name="bus_no"
+                placeholder="Example: BUS-205"
+                required
+            >
         </div>
 
         <div class="form-group">
             <label>Plate No.</label>
-            <input type="text" name="plate_no" placeholder="Example: ABC-1234">
+
+            <input
+                type="text"
+                name="plate_no"
+                placeholder="Example: ABC-1234"
+            >
         </div>
 
         <div class="form-group">
             <label>Bus Model</label>
-            <input type="text" name="bus_model" placeholder="Example: Isuzu N-Series">
+
+            <input
+                type="text"
+                name="bus_model"
+                placeholder="Example: Isuzu N-Series"
+            >
         </div>
 
         <div class="form-group">
             <label>Year Model</label>
-            <input type="text" name="year_model" placeholder="Example: 2024">
+
+            <input
+                type="text"
+                name="year_model"
+                placeholder="Example: 2024"
+            >
         </div>
 
         <div class="form-group">
             <label>Capacity</label>
-            <input type="number" name="capacity" min="1" placeholder="Example: 40">
+
+            <input
+                type="number"
+                name="capacity"
+                min="1"
+                placeholder="Example: 40"
+            >
         </div>
 
         <div class="form-group">
             <label>Status</label>
 
             <select name="status" required>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Under Maintenance">Under Maintenance</option>
+                <option value="Active">
+                    Active
+                </option>
+
+                <option value="Inactive">
+                    Inactive
+                </option>
+
+                <option value="Under Maintenance">
+                    Under Maintenance
+                </option>
             </select>
         </div>
 
         <div class="form-group full-width">
             <label>Route / Grouping</label>
+
             <input
                 type="text"
                 name="route_grouping"
                 placeholder="Example: Batangas City - Malvar"
-            >
-        </div>
-
-        <div class="form-section-title full-width">
-            <h3>PMS Starting Information</h3>
-            <p>GPS mileage appears later after Admin processes matching GPS records.</p>
-        </div>
-
-        <div class="form-group">
-            <label>Last PMS KM</label>
-            <input
-                type="number"
-                name="last_pms_km"
-                min="0"
-                step="0.01"
-                value="0"
-            >
-        </div>
-
-        <div class="form-group">
-            <label>PMS Interval KM</label>
-            <input
-                type="number"
-                name="pms_interval_km"
-                min="1"
-                step="0.01"
-                value="5000"
             >
         </div>
     </x-ui.form-modal>
@@ -342,7 +370,9 @@
             <div class="modal-header">
                 <div>
                     <h2>Import Bus CSV</h2>
-                    <p>Bulk add or update buses using a CSV file.</p>
+                    <p>
+                        Bulk add or update buses using a CSV file.
+                    </p>
                 </div>
 
                 <button
@@ -373,15 +403,17 @@
                     >
 
                     <small>
-                        Required column: <strong>bus_no</strong>
+                        Required column:
+                        <strong>bus_no</strong>
                     </small>
                 </div>
 
                 <div class="form-section-title full-width">
                     <h3>Supported CSV Columns</h3>
+
                     <p>
-                        bus_no, plate_no, bus_model, year_model, capacity,
-                        route_grouping, status, last_pms_km, pms_interval_km
+                        bus_no, plate_no, bus_model, year_model,
+                        capacity, route_grouping, status
                     </p>
                 </div>
 
@@ -394,7 +426,10 @@
                         Cancel
                     </button>
 
-                    <button type="submit" class="primary-btn save-btn">
+                    <button
+                        type="submit"
+                        class="primary-btn save-btn"
+                    >
                         Import CSV
                     </button>
                 </div>
@@ -402,12 +437,15 @@
         </div>
     </div>
 
+    {{-- Edit Bus Modal --}}
     <div id="editBusModal" class="modal-overlay">
         <div class="modal-box wide-modal">
             <div class="modal-header">
                 <div>
                     <h2>Edit Bus Information</h2>
-                    <p>Update the selected official bus record.</p>
+                    <p>
+                        Update the selected official bus record.
+                    </p>
                 </div>
 
                 <button
@@ -430,70 +468,85 @@
 
                 <div class="form-group">
                     <label>Bus No.</label>
-                    <input type="text" name="bus_no" id="edit_bus_no" required>
-                </div>
 
-                <div class="form-group">
-                    <label>Plate No.</label>
-                    <input type="text" name="plate_no" id="edit_plate_no">
-                </div>
-
-                <div class="form-group">
-                    <label>Bus Model</label>
-                    <input type="text" name="bus_model" id="edit_bus_model">
-                </div>
-
-                <div class="form-group">
-                    <label>Year Model</label>
-                    <input type="text" name="year_model" id="edit_year_model">
-                </div>
-
-                <div class="form-group">
-                    <label>Capacity</label>
-                    <input type="number" name="capacity" id="edit_capacity" min="1">
-                </div>
-
-                <div class="form-group">
-                    <label>Status</label>
-
-                    <select name="status" id="edit_status" required>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Under Maintenance">Under Maintenance</option>
-                    </select>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Route / Grouping</label>
-                    <input type="text" name="route_grouping" id="edit_route_grouping">
-                </div>
-
-                <div class="form-section-title full-width">
-                    <h3>PMS Information</h3>
-                    <p>Next PMS KM is automatically recalculated after saving.</p>
-                </div>
-
-                <div class="form-group">
-                    <label>Last PMS KM</label>
                     <input
-                        type="number"
-                        name="last_pms_km"
-                        id="edit_last_pms_km"
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        name="bus_no"
+                        id="edit_bus_no"
                         required
                     >
                 </div>
 
                 <div class="form-group">
-                    <label>PMS Interval KM</label>
+                    <label>Plate No.</label>
+
+                    <input
+                        type="text"
+                        name="plate_no"
+                        id="edit_plate_no"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Bus Model</label>
+
+                    <input
+                        type="text"
+                        name="bus_model"
+                        id="edit_bus_model"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Year Model</label>
+
+                    <input
+                        type="text"
+                        name="year_model"
+                        id="edit_year_model"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Capacity</label>
+
                     <input
                         type="number"
-                        name="pms_interval_km"
-                        id="edit_pms_interval_km"
+                        name="capacity"
+                        id="edit_capacity"
                         min="1"
-                        step="0.01"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+
+                    <select
+                        name="status"
+                        id="edit_status"
                         required
+                    >
+                        <option value="Active">
+                            Active
+                        </option>
+
+                        <option value="Inactive">
+                            Inactive
+                        </option>
+
+                        <option value="Under Maintenance">
+                            Under Maintenance
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Route / Grouping</label>
+
+                    <input
+                        type="text"
+                        name="route_grouping"
+                        id="edit_route_grouping"
                     >
                 </div>
 
@@ -506,7 +559,10 @@
                         Cancel
                     </button>
 
-                    <button type="submit" class="primary-btn save-btn">
+                    <button
+                        type="submit"
+                        class="primary-btn save-btn"
+                    >
                         Update Bus
                     </button>
                 </div>

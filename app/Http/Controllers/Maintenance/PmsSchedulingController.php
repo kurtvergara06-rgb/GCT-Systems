@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\PmsSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
@@ -45,7 +46,11 @@ class PmsSchedulingController extends Controller
             $kmTraveled = $gps['km_traveled'] ?? 0;
             $gpsReportDate = $gps['gps_report_date'] ?? null;
 
-            $status = $this->getPmsStatus($currentKm, (float) $schedule->next_pms_km);
+            $status = $this->getPmsStatus(
+                $currentKm,
+                (float) $schedule->next_pms_km
+            );
+
             $remainingKm = $currentKm !== null
                 ? (float) $schedule->next_pms_km - $currentKm
                 : null;
@@ -63,7 +68,7 @@ class PmsSchedulingController extends Controller
                 'recommended_date' => $this->getRecommendedDate(
                     $currentKm,
                     (float) $schedule->next_pms_km,
-                    $schedule->recommended_date
+                    $gpsReportDate
                 ),
                 'remaining_km' => $remainingKm,
                 'status' => $status,
@@ -78,7 +83,6 @@ class PmsSchedulingController extends Controller
             ->groupBy('bus_no')
             ->map(function ($tasks, string $busNo) {
                 $firstTask = $tasks->first();
-                $overallStatus = $this->getOverallStatus($tasks);
 
                 return (object) [
                     'bus_no' => $busNo,
@@ -87,9 +91,13 @@ class PmsSchedulingController extends Controller
                     'km_traveled' => $firstTask->km_traveled,
                     'tasks' => $tasks->values(),
                     'due_pms_count' => $tasks
-                        ->filter(fn ($task) => in_array($task->status, ['Due Soon', 'Overdue']))
+                        ->filter(fn ($task) => in_array(
+                            $task->status,
+                            ['Due Soon', 'Overdue'],
+                            true
+                        ))
                         ->count(),
-                    'overall_status' => $overallStatus,
+                    'overall_status' => $this->getOverallStatus($tasks),
                 ];
             })
             ->values();
@@ -107,21 +115,23 @@ class PmsSchedulingController extends Controller
             })->values();
         }
 
-        if ($request->filled('status') && $request->status !== 'All Status') {
+        if (
+            $request->filled('status')
+            && $request->status !== 'All Status'
+        ) {
             $groups = $groups->filter(function ($group) use ($request) {
                 return $group->overall_status === $request->status
-                    || $group->tasks->contains(fn ($task) => $task->status === $request->status);
+                    || $group->tasks->contains(
+                        fn ($task) => $task->status === $request->status
+                    );
             })->values();
         }
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $totalRows = $groups->count();
 
         $rows = new LengthAwarePaginator(
-            $groups
-                ->forPage($currentPage, self::PER_PAGE)
-                ->values(),
-            $totalRows,
+            $groups->forPage($currentPage, self::PER_PAGE)->values(),
+            $groups->count(),
             self::PER_PAGE,
             $currentPage,
             [
@@ -163,14 +173,28 @@ class PmsSchedulingController extends Controller
                 'string',
                 'max:255',
                 Rule::unique('pms_schedules', 'maintenance_type')
-                    ->where(fn ($query) => $query->where('bus_no', $request->bus_no)),
+                    ->where(fn ($query) => $query->where(
+                        'bus_no',
+                        $request->bus_no
+                    )),
             ],
-            'recommended_date' => ['nullable', 'date'],
         ]);
 
         $validated['next_pms_km'] =
             (float) $validated['last_pms_km']
             + (float) $validated['pms_interval_km'];
+
+        $latestGps = $this->getLatestProcessedGpsForBus(
+            $validated['bus_no']
+        );
+
+        $validated['recommended_date'] = $this->getRecommendedDate(
+            $latestGps ? (float) $latestGps->mileage_km : null,
+            (float) $validated['next_pms_km'],
+            $latestGps
+                ? ($latestGps->beginning_at ?? $latestGps->created_at)
+                : null
+        );
 
         PmsSchedule::create($validated);
 
@@ -195,15 +219,29 @@ class PmsSchedulingController extends Controller
                 'string',
                 'max:255',
                 Rule::unique('pms_schedules', 'maintenance_type')
-                    ->where(fn ($query) => $query->where('bus_no', $request->bus_no))
+                    ->where(fn ($query) => $query->where(
+                        'bus_no',
+                        $request->bus_no
+                    ))
                     ->ignore($pmsSchedule->id),
             ],
-            'recommended_date' => ['nullable', 'date'],
         ]);
 
         $validated['next_pms_km'] =
             (float) $validated['last_pms_km']
             + (float) $validated['pms_interval_km'];
+
+        $latestGps = $this->getLatestProcessedGpsForBus(
+            $validated['bus_no']
+        );
+
+        $validated['recommended_date'] = $this->getRecommendedDate(
+            $latestGps ? (float) $latestGps->mileage_km : null,
+            (float) $validated['next_pms_km'],
+            $latestGps
+                ? ($latestGps->beginning_at ?? $latestGps->created_at)
+                : null
+        );
 
         $pmsSchedule->update($validated);
 
@@ -214,6 +252,19 @@ class PmsSchedulingController extends Controller
 
     public function destroy(PmsSchedule $pmsSchedule)
     {
+        $hasActiveJobOrder = $pmsSchedule->jobOrders()
+            ->where('status', '!=', 'Completed')
+            ->exists();
+
+        if ($hasActiveJobOrder) {
+            return redirect()
+                ->route('PMS-Scheduling')
+                ->with(
+                    'error',
+                    'This PMS task cannot be deleted while it has an active Job Order.'
+                );
+        }
+
         $pmsSchedule->delete();
 
         return redirect()
@@ -223,31 +274,32 @@ class PmsSchedulingController extends Controller
 
     public function createJobOrder(PmsSchedule $pmsSchedule)
     {
-        $latestGps = GpsTripRecord::query()
-            ->whereRaw(
-                'UPPER(TRIM(bus_no)) = ?',
-                [strtoupper(trim($pmsSchedule->bus_no))]
-            )
-            ->whereNotNull('mileage_km')
-            ->whereHas('batchUpload', function ($query) {
-                $query->where('status', 'Processed');
-            })
-            ->orderByDesc('beginning_at')
-            ->orderByDesc('id')
-            ->first();
+        $latestGps = $this->getLatestProcessedGpsForBus(
+            $pmsSchedule->bus_no
+        );
 
         if (! $latestGps) {
             return redirect()
                 ->route('PMS-Scheduling')
-                ->with('error', 'No processed GPS mileage record was found for this bus.');
+                ->with(
+                    'error',
+                    'No processed GPS mileage record was found for this bus.'
+                );
         }
 
         $currentKm = (float) $latestGps->mileage_km;
 
-        if ($currentKm < (float) $pmsSchedule->next_pms_km - self::WARNING_RANGE_KM) {
+        if (
+            $currentKm
+            < (float) $pmsSchedule->next_pms_km
+                - self::WARNING_RANGE_KM
+        ) {
             return redirect()
                 ->route('PMS-Scheduling')
-                ->with('error', 'This PMS task is still Upcoming and cannot create a Job Order yet.');
+                ->with(
+                    'error',
+                    'This PMS task is still Upcoming and cannot create a Job Order yet.'
+                );
         }
 
         $statusText = $currentKm >= (float) $pmsSchedule->next_pms_km
@@ -274,22 +326,10 @@ class PmsSchedulingController extends Controller
     private function syncSchedulesFromBuses(): void
     {
         $defaultTasks = [
-            [
-                'maintenance_type' => 'Change Oil',
-                'interval' => 5000,
-            ],
-            [
-                'maintenance_type' => 'Oil Filter',
-                'interval' => 5000,
-            ],
-            [
-                'maintenance_type' => 'Brake Check',
-                'interval' => 10000,
-            ],
-            [
-                'maintenance_type' => 'Air Filter',
-                'interval' => 10000,
-            ],
+            ['maintenance_type' => 'Change Oil', 'interval' => 5000],
+            ['maintenance_type' => 'Oil Filter', 'interval' => 5000],
+            ['maintenance_type' => 'Brake Check', 'interval' => 10000],
+            ['maintenance_type' => 'Air Filter', 'interval' => 10000],
         ];
 
         Bus::query()
@@ -315,8 +355,10 @@ class PmsSchedulingController extends Controller
             });
     }
 
-    private function getPmsStatus(?float $currentKm, float $nextPmsKm): string
-    {
+    private function getPmsStatus(
+        ?float $currentKm,
+        float $nextPmsKm
+    ): string {
         if ($currentKm === null) {
             return 'Upcoming';
         }
@@ -345,23 +387,45 @@ class PmsSchedulingController extends Controller
         return 'Upcoming';
     }
 
-    private function getRecommendedDate(?float $currentKm, float $nextPmsKm, $savedRecommendedDate): ?string
-    {
-        if ($currentKm === null) {
-            return $savedRecommendedDate;
+    private function getRecommendedDate(
+        ?float $currentKm,
+        float $nextPmsKm,
+        $gpsReportDate
+    ): ?string {
+        if ($currentKm === null || ! $gpsReportDate) {
+            return null;
         }
 
         $remainingKm = $nextPmsKm - $currentKm;
 
         if ($remainingKm <= 0) {
-            return now()->toDateString();
+            return Carbon::parse($gpsReportDate)->toDateString();
         }
 
-        $daysUntilPms = (int) ceil($remainingKm / self::DEFAULT_AVERAGE_DAILY_KM);
+        $daysUntilPms = (int) ceil(
+            $remainingKm / self::DEFAULT_AVERAGE_DAILY_KM
+        );
 
-        return now()
+        return Carbon::parse($gpsReportDate)
             ->addDays(max(1, $daysUntilPms))
             ->toDateString();
+    }
+
+    private function getLatestProcessedGpsForBus(
+        string $busNo
+    ): ?GpsTripRecord {
+        return GpsTripRecord::query()
+            ->whereRaw(
+                'UPPER(TRIM(bus_no)) = ?',
+                [strtoupper(trim($busNo))]
+            )
+            ->whereNotNull('mileage_km')
+            ->whereHas('batchUpload', function ($query) {
+                $query->where('status', 'Processed');
+            })
+            ->orderByDesc('beginning_at')
+            ->orderByDesc('id')
+            ->first();
     }
 
     private function getLatestProcessedGpsByBus()
