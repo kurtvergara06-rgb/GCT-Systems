@@ -1,439 +1,684 @@
-/* PURCHASE REQUEST PAGE ONLY */
+/* =========================================================
+   MAINTENANCE PURCHASE REQUESTS PAGE
+   File: resources/css/Maintenance/purchase-request.css
+========================================================= */
 
-/* ================================
-   CARD / SECTION
-================================ */
+:root {
+  --pr-blue: #0057f8;
+  --pr-navy: #0b2344;
+  --pr-muted: #64748b;
+  --pr-border: #dce5f2;
+  --pr-bg-soft: #f8fafc;
+  --pr-table-head: #f0f5fc;
+
+  --pr-green-bg: #dcfce7;
+  --pr-green: #15803d;
+
+  --pr-red-bg: #fee2e2;
+  --pr-red: #dc2626;
+
+  --pr-yellow-bg: #fef3c7;
+  --pr-yellow: #b45309;
+
+  --pr-blue-bg: #dbeafe;
+  --pr-purple-bg: #e0e7ff;
+  --pr-purple: #4338ca;
+
+  --pr-orange-bg: #ffedd5;
+  --pr-orange: #ea580c;
+
+  --pr-teal-bg: #ccfbf1;
+  --pr-teal: #0f766e;
+}
+
+/* =========================================================
+   PAGE CARD
+========================================================= */
+
+.table-card,
 .purchase-card {
+  background: #ffffff;
+  border: 1px solid var(--pr-border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  margin-bottom: 20px;
   overflow: hidden;
 }
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
 
 .section-header {
   margin-bottom: 12px;
 }
 
 .section-header h2 {
-  margin: 0;
   font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
+  font-weight: 900;
+  color: var(--text, #0f172a);
 }
 
 .section-header p {
-  margin-top: 3px;
-  color: var(--muted);
+  color: var(--muted, #64748b);
   font-size: 12px;
+  margin-top: 4px;
 }
 
-/* ================================
+/* =========================================================
    TOOLBAR
-================================ */
-.purchase-toolbar {
+========================================================= */
+
+.purchase-toolbar,
+.fixed-purchase-toolbar {
   width: 100%;
   padding: 12px 16px;
   gap: 12px;
+  border: 1px solid var(--pr-border);
   border-radius: 14px;
   margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
 }
 
-.purchase-toolbar .search-box {
+.purchase-toolbar .search-box,
+.fixed-purchase-toolbar .search-box {
   flex: 1;
+  position: relative;
 }
 
-.purchase-toolbar .search-box i {
+.purchase-toolbar .search-box i,
+.fixed-purchase-toolbar .search-box i {
+  position: absolute;
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pr-muted);
   font-size: 13px;
 }
 
-.purchase-toolbar .search-box input {
+.purchase-toolbar .search-box input,
+.fixed-purchase-toolbar .search-box input {
+  width: 100%;
   height: 38px;
-  padding-left: 40px;
+  border: 1px solid var(--pr-border);
   border-radius: 9px;
+  padding: 0 14px 0 40px;
+  outline: none;
   font-size: 13px;
+  color: var(--text, #0f172a);
+  background: #ffffff;
 }
 
-.purchase-toolbar .filter-group {
+.purchase-toolbar .search-box input:focus,
+.fixed-purchase-toolbar .search-box input:focus,
+.pr-status-select:focus {
+  border-color: var(--pr-blue);
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.purchase-toolbar .filter-group,
+.fixed-purchase-toolbar .filter-group {
+  display: flex;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.purchase-toolbar .filter-group label {
-  color: var(--muted);
+.purchase-toolbar .filter-group label,
+.fixed-purchase-toolbar .filter-group label {
   font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #64748b);
   white-space: nowrap;
 }
 
 .purchase-toolbar .filter-group select,
+.fixed-purchase-toolbar .filter-group select,
 .pr-status-select {
-  min-width: 150px;
   height: 38px;
-  border: 1px solid var(--border);
+  min-width: 140px;
+  max-width: 170px;
+  border: 1px solid var(--pr-border);
   border-radius: 9px;
-  padding: 0 12px;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 0 10px;
   outline: none;
-}
-
-.purchase-toolbar .filter-group select:focus,
-.pr-status-select:focus {
-  border-color: var(--yellow);
-}
-
-.purchase-toolbar .primary-btn {
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 9px;
-  gap: 7px;
+  background: #ffffff;
+  color: var(--text, #0f172a);
   font-size: 13px;
-  flex-shrink: 0;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-/* ================================
+.primary-btn,
+.compact-new-pr-btn {
+  height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 9px !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  gap: 7px !important;
+  white-space: nowrap;
+}
+
+.compact-new-pr-btn i,
+.primary-btn i {
+  font-size: 13px;
+}
+
+/* =========================================================
    TABLE
-================================ */
-.purchase-card table {
-  min-width: 1050px;
+========================================================= */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.purchase-card th,
-.purchase-card td {
+table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--pr-table-head);
+}
+
+th {
   padding: 14px 13px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text, #0f172a);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 16px 13px;
+  border-bottom: 1px solid var(--pr-border);
+  font-size: 14px;
+  color: var(--text, #0f172a);
   vertical-align: middle;
 }
 
-/* Center Quantity, Status, Created, Actions */
-.purchase-card th:nth-child(5),
-.purchase-card td:nth-child(5),
-.purchase-card th:nth-child(6),
-.purchase-card td:nth-child(6),
-.purchase-card th:nth-child(7),
-.purchase-card td:nth-child(7),
-.purchase-card th:nth-child(8),
-.purchase-card td:nth-child(8),
+tbody tr:hover {
+  background: #f7faff;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .status-col {
   text-align: center;
 }
 
-/* ================================
-   ACTION BUTTONS
-================================ */
-.purchase-card .actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+/* =========================================================
+   STATUS BADGES
+========================================================= */
 
-.purchase-card .actions form {
-  display: inline-flex;
-}
-
-.purchase-card .view-btn,
-.purchase-card .edit,
-.actions .view {
-  background: #edf3fb;
-  color: #082445;
-}
-
-.purchase-card .approve-btn {
-  background: #ddf8e7;
-  color: var(--green);
-}
-
-.purchase-card .reject-btn,
-.purchase-card .actions .delete {
-  background: #fee2e2;
-  color: var(--red);
-}
-
-/* ================================
-   STATUS BADGES - OLD COMPONENT SUPPORT
-================================ */
-.badge.draft {
-  background: #eef1f6;
-  color: #64748b;
-}
-
-.badge.submitted {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.badge.approved {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-
-.badge.rejected {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.badge.for-purchase {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.badge.ordered {
-  background: #ede9fe;
-  color: #7c3aed;
-}
-
-.badge.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.badge.for-delivery {
-  background: #ffedd5;
-  color: #ea580c;
-}
-
-.badge.delivered {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.badge.picked-up {
-  background: #ccfbf1;
-  color: #0f766e;
-}
-
-.badge.issued {
-  background: #bbf7d0;
-  color: #15803d;
-}
-
-/* ================================
-   PURCHASE REQUEST STATUS BADGES
-================================ */
-.pr-status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 112px;
+.pr-status-badge,
+.badge {
+  min-width: 105px;
   padding: 7px 12px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   white-space: nowrap;
 }
 
-/* Submitted = blue */
 .pr-status-badge.submitted,
-.pr-status-select.submitted {
-  background: #dbeafe;
-  color: #1d4ed8;
+.badge.submitted {
+  background: var(--pr-yellow-bg);
+  color: var(--pr-yellow);
 }
 
-/* Approved = indigo */
 .pr-status-badge.approved,
-.pr-status-select.approved {
-  background: #e0e7ff;
-  color: #4338ca;
+.badge.approved {
+  background: var(--pr-purple-bg);
+  color: var(--pr-purple);
 }
 
-/* Rejected = red */
 .pr-status-badge.rejected,
-.pr-status-select.rejected {
-  background: #fee2e2;
-  color: #dc2626;
+.badge.rejected {
+  background: var(--pr-red-bg);
+  color: var(--pr-red);
 }
 
-/* For Purchase = blue */
 .pr-status-badge.for-purchase,
-.pr-status-select.for-purchase {
-  background: #dbeafe;
-  color: #2563eb;
+.badge.for-purchase {
+  background: var(--pr-blue-bg);
+  color: var(--pr-blue);
 }
 
-/* Ordered = violet */
 .pr-status-badge.ordered,
-.pr-status-select.ordered {
-  background: #ede9fe;
+.badge.ordered {
+  background: var(--pr-purple-bg);
   color: #7c3aed;
 }
 
-/* For Pick-up = yellow */
 .pr-status-badge.for-pick-up,
-.pr-status-select.for-pick-up {
-  background: #fef3c7;
-  color: #b45309;
+.badge.for-pick-up {
+  background: var(--pr-yellow-bg);
+  color: var(--pr-yellow);
 }
 
-/* For Delivery = orange */
 .pr-status-badge.for-delivery,
-.pr-status-select.for-delivery {
-  background: #ffedd5;
-  color: #ea580c;
+.badge.for-delivery {
+  background: var(--pr-orange-bg);
+  color: var(--pr-orange);
 }
 
-/* Delivered = green */
 .pr-status-badge.delivered,
-.pr-status-select.delivered {
-  background: #dcfce7;
-  color: #16a34a;
+.badge.delivered {
+  background: var(--pr-teal-bg);
+  color: var(--pr-teal);
 }
 
-/* Picked Up = teal */
 .pr-status-badge.picked-up,
-.pr-status-select.picked-up {
-  background: #ccfbf1;
-  color: #0f766e;
+.badge.picked-up {
+  background: var(--pr-teal-bg);
+  color: var(--pr-teal);
 }
 
-/* Issued = green */
 .pr-status-badge.issued,
-.pr-status-select.issued {
-  background: #bbf7d0;
-  color: #15803d;
+.badge.issued {
+  background: var(--pr-green-bg);
+  color: var(--pr-green);
 }
 
-/* ================================
-   ALERT ERROR
-================================ */
-.alert-error {
-  margin-bottom: 16px;
-  padding: 14px 18px;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  background: #fee2e2;
-  color: var(--red);
-  font-size: 13px;
-}
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
 
-.alert-error ul {
-  margin-left: 18px;
-}
-
-/* ================================
-   READONLY / DISABLED INPUTS
-================================ */
-#busNoInput[readonly],
-#edit_bus_no[readonly],
-#edit_status_display[readonly],
-#editPrModal input:disabled,
-#editPrModal select:disabled,
-#edit_job_order_no:disabled,
-#edit_bus_no:disabled,
-#edit_item:disabled,
-#edit_quantity:disabled,
-#edit_remarks:disabled {
-  background: #f8fafc;
-  color: #64748b;
-  cursor: not-allowed;
-}
-
-/* ================================
-   DETAILS GRID
-================================ */
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 18px;
-  margin-top: 18px;
-}
-
-.detail-item {
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #f8fafc;
-}
-
-.detail-item span {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.detail-item strong {
-  display: block;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 800;
-  word-break: break-word;
-}
-
-.detail-item.full-width {
-  grid-column: 1 / -1;
-}
-
-/* ================================
-   WORKFLOW ACTION SECTIONS
-================================ */
-.pr-approval-actions,
-.warehouse-actions,
-.purchase-actions {
-  justify-content: flex-end;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
-.pr-approval-actions form,
-.warehouse-actions form,
-.purchase-actions form {
-  display: inline-flex;
-}
-
-#editPrMainActions,
-#viewOnlyActions {
-  justify-content: flex-end;
-}
-
-#viewOnlyActions .cancel-btn {
-  min-width: 110px;
-}
-
-/* ================================
-   WORKFLOW BUTTONS
-================================ */
-.approve-action-btn,
-.reject-action-btn,
-.purchase-action-btn {
+.actions {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 18px;
+}
+
+.actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
   border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 800;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: 0.2s ease;
+  font-size: 13px;
 }
 
-.approve-action-btn {
-  background: #ddf8e7;
-  color: #16a34a;
+.action-btn.view {
+  background: #edf3fb;
+  color: var(--pr-navy);
 }
 
-.reject-action-btn {
-  background: #fee2e2;
-  color: #dc2626;
+.action-btn.edit {
+  background: #eaf2ff;
+  color: var(--pr-blue);
 }
 
-.purchase-action-btn {
-  background: #e7f0ff;
-  color: #0057f8;
+.action-btn.delete {
+  background: var(--pr-red-bg);
+  color: var(--pr-red);
 }
 
-.approve-action-btn:hover,
-.reject-action-btn:hover,
-.purchase-action-btn:hover {
+.action-btn:hover {
   transform: translateY(-1px);
 }
 
-/* ================================
-   PAGINATION SVG FIX
-================================ */
+.action-btn.view:hover,
+.action-btn.edit:hover {
+  background: var(--pr-blue);
+  color: #ffffff;
+}
+
+.action-btn.delete:hover {
+  background: var(--pr-red);
+  color: #ffffff;
+}
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 9999;
+}
+
+.modal-overlay.show,
+.modal-overlay.active {
+  display: flex;
+}
+
+/* =========================================================
+   PR MODAL SAME STYLE AS JO MODAL
+========================================================= */
+
+.modal-box,
+.wide-modal,
+.fixed-pr-modal,
+.pr-jo-style-modal {
+  width: min(760px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 30px 34px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+/* Header */
+.pr-jo-modal-header,
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.pr-jo-modal-header h2,
+.modal-header h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--pr-navy);
+  margin: 0 0 6px;
+}
+
+.pr-jo-modal-header p,
+.modal-header p {
+  font-size: 13px;
+  color: var(--pr-muted);
+  margin: 0;
+}
+
+.pr-jo-close-btn,
+.close-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: var(--pr-navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.pr-jo-close-btn:hover,
+.close-btn:hover {
+  background: var(--pr-red-bg);
+  color: var(--pr-red);
+}
+
+/* Form grid */
+.pr-jo-form,
+.job-form,
+.wide-form,
+.fixed-pr-modal .wide-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+
+/* Section title */
+.pr-jo-section-title,
+.form-section-title {
+  margin-bottom: 2px;
+}
+
+.pr-jo-section-title h3,
+.form-section-title h3 {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--pr-navy);
+  margin: 0 0 4px;
+}
+
+.pr-jo-section-title p,
+.form-section-title p {
+  font-size: 13px;
+  color: var(--pr-muted);
+  margin: 0;
+}
+
+/* Groups */
+.pr-jo-form-group,
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pr-jo-form-group.full-width,
+.pr-jo-section-title.full-width,
+.pr-jo-actions.full-width,
+.form-group.full-width,
+.form-section-title.full-width,
+.modal-actions.full-width {
+  grid-column: 1 / -1;
+}
+
+.pr-jo-form-group label,
+.form-group label {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--pr-navy);
+}
+
+/* Inputs */
+.pr-jo-form-group input,
+.pr-jo-form-group select,
+.pr-jo-form-group textarea,
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--pr-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.pr-jo-form-group textarea,
+.form-group textarea {
+  min-height: 90px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.pr-jo-form-group input:focus,
+.pr-jo-form-group select:focus,
+.pr-jo-form-group textarea:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--pr-blue);
+  box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
+}
+
+.pr-jo-form-group input[readonly],
+.pr-jo-form-group select:disabled,
+.pr-jo-form-group textarea[readonly],
+.form-group input[readonly],
+.form-group select:disabled,
+.form-group textarea[readonly] {
+  background: var(--pr-bg-soft);
+  color: #475569;
+}
+
+/* Modal buttons */
+.pr-jo-actions,
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pr-jo-cancel-btn,
+.pr-jo-save-btn,
+.cancel-btn,
+.save-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pr-jo-cancel-btn,
+.cancel-btn {
+  background: #f1f5f9;
+  color: var(--pr-navy);
+}
+
+.pr-jo-cancel-btn:hover,
+.cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.pr-jo-save-btn,
+.save-btn {
+  background: #ffc400;
+  color: var(--pr-navy);
+}
+
+.pr-jo-save-btn:hover,
+.save-btn:hover {
+  filter: brightness(0.96);
+}
+
+/* =========================================================
+   APPROVE / REJECT BUTTONS
+========================================================= */
+
+.pr-approval-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e5eaf2;
+}
+
+.approve-action-btn,
+.reject-action-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approve-action-btn {
+  background: var(--pr-green-bg);
+  color: var(--pr-green);
+}
+
+.approve-action-btn:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.reject-action-btn {
+  background: var(--pr-red-bg);
+  color: var(--pr-red);
+}
+
+.reject-action-btn:hover {
+  background: var(--pr-red);
+  color: #ffffff;
+}
+
+/* =========================================================
+   REMOVE JO MULTI-PART DESIGN INSIDE PR MODAL
+========================================================= */
+
+.pr-jo-style-modal .part-row,
+.pr-jo-style-modal .parts-row,
+.pr-jo-style-modal .remove-part-btn,
+.pr-jo-style-modal .add-part-btn,
+.pr-jo-style-modal .add-other-part,
+.pr-jo-style-modal #addPartBtn {
+  display: none !important;
+}
+
+/* =========================================================
+   DELETE / FEEDBACK MODAL SUPPORT
+========================================================= */
+
+.delete-modal-overlay,
+.success-modal-overlay,
+.error-modal-overlay,
+.feedback-modal-overlay,
+.action-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 10000;
+}
+
+.delete-modal-overlay.show,
+.success-modal-overlay.show,
+.error-modal-overlay.show,
+.feedback-modal-overlay.show,
+.action-modal-overlay.show,
+.delete-modal-overlay.active,
+.success-modal-overlay.active,
+.error-modal-overlay.active,
+.feedback-modal-overlay.active,
+.action-modal-overlay.active {
+  display: flex;
+}
+
+/* =========================================================
+   PAGINATION FIX
+========================================================= */
+
 .pagination svg {
   width: 18px !important;
   height: 18px !important;
@@ -443,60 +688,161 @@
   display: none;
 }
 
-/* ================================
+/* =========================================================
    RESPONSIVE
-================================ */
+========================================================= */
+
 @media (max-width: 1200px) {
-  .purchase-toolbar {
+  .purchase-toolbar,
+  .fixed-purchase-toolbar {
     flex-wrap: wrap;
   }
 
-  .purchase-toolbar .search-box {
+  .purchase-toolbar .search-box,
+  .fixed-purchase-toolbar .search-box {
     min-width: 100%;
   }
 }
 
-@media (max-width: 768px) {
-  .purchase-toolbar {
+@media (max-width: 900px) {
+  .purchase-toolbar,
+  .fixed-purchase-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .purchase-toolbar .filter-group {
+  .purchase-toolbar .filter-group,
+  .fixed-purchase-toolbar .filter-group {
     width: 100%;
     justify-content: space-between;
   }
 
-  .purchase-toolbar .filter-group select {
-    flex: 1;
+  .purchase-toolbar .filter-group select,
+  .fixed-purchase-toolbar .filter-group select,
+  .compact-new-pr-btn {
+    width: 100%;
     max-width: none;
   }
 
-  .purchase-toolbar .primary-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .details-grid {
+  .pr-jo-form,
+  .job-form,
+  .wide-form,
+  .fixed-pr-modal .wide-form {
     grid-template-columns: 1fr;
   }
 
-  .pr-approval-actions,
-  .warehouse-actions,
-  .purchase-actions {
-    flex-direction: column;
+  .pr-jo-form-group.full-width,
+  .pr-jo-section-title.full-width,
+  .pr-jo-actions.full-width,
+  .form-group.full-width,
+  .form-section-title.full-width,
+  .modal-actions.full-width {
+    grid-column: auto;
   }
 
-  .pr-approval-actions form,
-  .warehouse-actions form,
-  .purchase-actions form,
+  .pr-jo-actions,
+  .modal-actions,
+  .pr-approval-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-jo-cancel-btn,
+  .pr-jo-save-btn,
+  .cancel-btn,
+  .save-btn,
   .approve-action-btn,
-  .reject-action-btn,
-  .purchase-action-btn,
-  .pr-approval-actions .cancel-btn,
-  .warehouse-actions .cancel-btn,
-  .purchase-actions .cancel-btn {
+  .reject-action-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+.pr-parts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pr-part-row {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 10px;
+  align-items: center;
+}
+
+.pr-part-row input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.pr-part-row input[readonly] {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.action-btn.edit {
+  background: #eaf2ff;
+  color: #0057f8;
+}
+
+.action-btn.edit:hover {
+  background: #0057f8;
+  color: #ffffff;
+}
+
+.action-btn.view {
+  background: #edf3fb;
+  color: #0b2344;
+}
+
+.action-btn.view:hover {
+  background: #0b2344;
+  color: #ffffff;
+}
+
+.action-btn.delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btn.delete:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .pr-part-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .modal-box,
+  .wide-modal,
+  .fixed-pr-modal,
+  .pr-jo-style-modal {
+    padding: 24px;
   }
 }
