@@ -1,5 +1,8 @@
-/* JOB ORDER PAGE ONLY */
+/* =========================================================
+   JOB ORDER PAGE ONLY
+========================================================= */
 
+/* SECTION HEADER */
 .section-header {
   margin-bottom: 12px;
 }
@@ -16,7 +19,10 @@
   margin-top: 3px;
 }
 
-/* TABLE CARD */
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
 .table-card {
   background: #ffffff;
   border: 1px solid var(--border);
@@ -27,7 +33,7 @@
   margin-bottom: 20px;
 }
 
-/* TOOLBAR SAME AS MECHANIC LIST */
+/* TOOLBAR */
 .job-toolbar {
   padding: 12px 16px;
   gap: 12px;
@@ -81,15 +87,15 @@
   font-size: 13px;
 }
 
+/* TABLE */
 .table-wrap {
   width: 100%;
   overflow-x: auto;
 }
 
-/* TABLE */
 table {
   width: 100%;
-  min-width: 1050px;
+  min-width: 1100px;
   border-collapse: collapse;
 }
 
@@ -134,7 +140,10 @@ tbody tr:last-child td {
   color: #17233f;
 }
 
-/* BADGES */
+/* =========================================================
+   BADGES
+========================================================= */
+
 .badge {
   min-width: 88px;
   padding: 7px 12px;
@@ -162,10 +171,23 @@ tbody tr:last-child td {
   color: #16a34a;
 }
 
-/* ACTION BUTTONS */
+.badge.urgent {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
 .actions {
   display: flex;
   gap: 10px;
+  align-items: center;
+}
+
+.actions form {
+  display: inline;
 }
 
 .actions button {
@@ -175,6 +197,10 @@ tbody tr:last-child td {
   border-radius: 8px;
   cursor: pointer;
   transition: 0.2s ease;
+}
+
+.actions button:hover {
+  transform: translateY(-2px);
 }
 
 .actions .edit {
@@ -187,11 +213,10 @@ tbody tr:last-child td {
   color: var(--red);
 }
 
-.actions button:hover {
-  transform: translateY(-2px);
-}
+/* =========================================================
+   TABLE FOOTER
+========================================================= */
 
-/* TABLE FOOTER */
 .table-footer {
   padding-top: 18px;
   display: flex;
@@ -206,22 +231,360 @@ tbody tr:last-child td {
   gap: 8px;
 }
 
-.pagination button {
-  width: 38px;
+.pagination button,
+.pagination a,
+.pagination span {
+  min-width: 38px;
   height: 38px;
   border: 1px solid var(--border);
   background: white;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text);
+  padding: 0 10px;
 }
 
-.pagination .active-page {
+.pagination .active-page,
+.pagination .active span,
+.pagination span[aria-current="page"] {
   background: var(--navy);
   color: white;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   ALERTS
+========================================================= */
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.alert-error ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* =========================================================
+   GENERAL MODALS
+========================================================= */
+
+.modal-overlay,
+.success-modal-overlay,
+.delete-modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 20000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-overlay.show,
+.success-modal-overlay.show,
+.delete-modal-overlay.show {
+  display: flex;
+}
+
+.modal-box {
+  width: 760px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 26px 32px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+  animation: popUp 0.25s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #061b3a;
+}
+
+.close-btn {
+  border: none;
+  background: #f3f6fb;
+  color: #061b3a;
+  font-size: 26px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   FORM DESIGN
+========================================================= */
+
+.job-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 22px;
+}
+
+.form-section-title,
+.form-section-divider,
+.form-group.full-width,
+.form-row,
+.modal-actions {
+  grid-column: 1 / -1;
+}
+
+.form-section-title h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #061b3a;
+}
+
+.form-section-title p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #061b3a;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid #dbe3f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #ffc107;
+}
+
+.form-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 2px;
+}
+
+.form-section-divider::before,
+.form-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #dbe3f0;
+}
+
+.form-section-divider span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.time-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cancel-btn,
+.save-btn,
+.danger-btn {
+  border: none;
+  padding: 11px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.cancel-btn {
+  background: #eef2f7;
+  color: #061b3a;
+}
+
+.save-btn {
+  background: #ffc107;
+  color: #061b3a;
+}
+
+.save-btn:hover {
+  background: #ffb300;
+}
+
+.danger-btn {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.danger-btn:hover {
+  background: #b91c1c;
+}
+
+/* =========================================================
+   SUCCESS POPUP
+========================================================= */
+
+.success-modal-box {
+  width: 380px;
+  max-width: 92%;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+  animation: popUp 0.25s ease;
+}
+
+.success-icon {
+  width: 70px;
+  height: 70px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 30px;
+}
+
+.success-modal-box h2 {
+  margin: 0 0 8px;
+  color: #061b3a;
+}
+
+.success-modal-box p {
+  margin-bottom: 20px;
+  color: #334155;
+}
+
+/* =========================================================
+   DELETE POPUP
+========================================================= */
+
+.delete-modal-box {
+  width: 420px;
+  max-width: 92%;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+  animation: popUp 0.25s ease;
+}
+
+.delete-icon {
+  width: 70px;
+  height: 70px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 30px;
+}
+
+.delete-modal-box h2 {
+  margin: 0 0 8px;
+  color: #061b3a;
+}
+
+.delete-modal-box p {
+  margin-bottom: 22px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes popUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -251,5 +614,35 @@ tbody tr:last-child td {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+  }
+
+  .modal-box {
+    width: 95%;
+    padding: 22px;
+  }
+
+  .job-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions,
+  .delete-modal-actions {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .save-btn,
+  .danger-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
