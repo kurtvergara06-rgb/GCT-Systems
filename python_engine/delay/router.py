@@ -5,8 +5,9 @@ Supports two explicit training sources:
     * ``genuine`` (production)   - genuine GCT operational model, only available
                   after the genuine data-export + readiness gate passed.
 
-The payloads always disclose the actual data source; genuine mode is never
-presented as sample and sample mode is never presented as production.
+The payloads always disclose the actual data source. Production additionally
+enforces the shared genuine-data runtime policy: a sample/synthetic model is
+reported as ``MODEL NOT READY`` and cannot serve predictions.
 """
 
 import logging
@@ -16,6 +17,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from ml_runtime_policy import evaluate_model_source, synthetic_models_allowed
 from .config import disclaimers
 from .predict import (
     delay_readiness,
@@ -90,44 +92,60 @@ def _parse_trip_date(value: Optional[str]) -> Optional[datetime]:
 @router.get("/status")
 def delay_model_status() -> dict:
     readiness = delay_readiness()
-    source = readiness.source if readiness.source in {"sample", "genuine"} else "sample"
-    genuine = source == "genuine"
+    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    policy = evaluate_model_source("Delay Model #3", source)
+    effective_ready = bool(readiness.ml_ready and policy.allowed)
+    genuine = policy.data_source == "genuine"
+
     return {
         "success": True,
-        "model_ready": readiness.ml_ready,
-        "ready": readiness.ml_ready,
+        "model_ready": effective_ready,
+        "ready": effective_ready,
         "source": readiness.source,
-        "dataset_type": "GENUINE" if genuine else "SAMPLE / DEMONSTRATION",
-        "model_source": readiness.data_source,
-        "data_source": readiness.data_source,
-        "is_production_model": genuine,
-        "model_type": "Production Model" if genuine else "Sample / Demonstration Model",
-        "model_version": readiness.message,
+        "dataset_type": "GENUINE GCT RECORDS" if genuine else "SYNTHETIC / DEVELOPMENT",
+        "model_source": policy.data_source,
+        "data_source": policy.data_source,
+        "is_production_model": bool(genuine and effective_ready),
+        "model_type": (
+            "Production Model" if genuine and effective_ready
+            else "Synthetic / Development Model" if policy.allowed
+            else "MODEL NOT READY"
+        ),
+        "model_version": readiness.message if policy.allowed else policy.model_ready_message,
         "training_record_count": readiness.sample_count,
         "sample_count": readiness.sample_count,
         "model_path": str(readiness.model_path or ""),
-        "reason": readiness.reason,
-        "message": readiness.message,
+        "runtime_mode": policy.runtime_mode,
+        "synthetic_allowed": synthetic_models_allowed(),
+        "policy_enforced": True,
+        "reason": readiness.reason if policy.allowed else policy.reason,
+        "message": readiness.message if policy.allowed else policy.model_ready_message,
         "warning": (
             "" if genuine else
-            "This model is NOT trained on genuine GCT historical delay records. "
-            "It is a SAMPLE / DEMONSTRATION prototype."
+            "Generated/synthetic Delay data is development-only and is blocked in production."
         ),
-        "disclaimer": disclaimers().get(source, disclaimers()["sample"]),
+        "disclaimer": disclaimers().get(
+            readiness.source if readiness.source in {"sample", "genuine"} else "sample",
+            disclaimers()["sample"],
+        ),
     }
 
 
 @router.post("/predict")
 def delay_prediction(payload: DelayPredictionRequest) -> dict:
     readiness = delay_readiness()
+    source = readiness.source if readiness.source in {"sample", "genuine"} else readiness.data_source
+    policy = evaluate_model_source("Delay Model #3", source)
+
+    if not policy.allowed:
+        raise HTTPException(status_code=503, detail=policy.reason)
 
     if not readiness.ml_ready:
         raise HTTPException(
             status_code=503,
             detail=(
-                "Delay model is not ready. Run "
-                "`python -m delay.prepare_training_data` and "
-                "`python -m delay.train_model` first."
+                "MODEL NOT READY: Delay model does not have a usable genuine "
+                "training artifact for this runtime."
             ),
         )
 
