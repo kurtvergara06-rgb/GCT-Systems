@@ -9,12 +9,11 @@ class JobOrder extends Model
     protected $fillable = [
         'job_order_no',
         'bus_no',
-        'service',
-        'type',
+        'problem_issue',
+        'maintenance_type',
         'assigned_mechanic',
+        'start_date',
+        'completion_date',
         'status',
-        'start_time',
-        'end_time',
-        'date_reported',
     ];
 }

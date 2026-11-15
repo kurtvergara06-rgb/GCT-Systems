@@ -26,7 +26,6 @@
 
   <div class="app">
 
-    {{-- SIDEBAR COMPONENT --}}
     <x-layout.sidebar
       department="Maintenance"
       subtitle="Department Module"
@@ -34,7 +33,7 @@
       user-name="R. Lim"
       user-role="Maintenance Admin"
       :items="[
-        ['label' => 'Dashboard', 'route' => 'dashboard-maintenance', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
         ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
         ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
@@ -44,7 +43,6 @@
       ]"
     />
 
-    {{-- MAIN CONTENT --}}
     <main class="main">
 
       {{-- TOP BAR --}}
@@ -84,71 +82,47 @@
       {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
-        <div class="stat-card">
-          <div class="stat-icon yellow">
-            <i class="fa-solid fa-pause"></i>
-          </div>
+        <x-ui.summary-card
+          label="On Hold"
+          value="{{ $onHold }}"
+          small="Job Orders"
+          icon="fa-pause"
+          color="yellow"
+        />
 
-          <div>
-            <p>On Hold</p>
-            <h2>{{ $onHold }}</h2>
-            <small>Job Orders</small>
-          </div>
+        <x-ui.summary-card
+          label="On Going"
+          value="{{ $onGoing }}"
+          small="Job Orders"
+          icon="fa-spinner"
+          color="blue"
+        />
 
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Completed"
+          value="{{ $completed }}"
+          small="Job Orders"
+          icon="fa-check"
+          color="green"
+        />
 
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-spinner"></i>
-          </div>
-
-          <div>
-            <p>On Going</p>
-            <h2>{{ $onGoing }}</h2>
-            <small>Job Order</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-check"></i>
-          </div>
-
-          <div>
-            <p>Completed</p>
-            <h2>{{ $completed }}</h2>
-            <small>Job Orders</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-          </div>
-
-          <div>
-            <p>Urgent Repair</p>
-            <h2>{{ $urgentRepair }}</h2>
-            <small>Needs attention</small>
-          </div>
-
-          <i class="fa-solid fa-chevron-right arrow"></i>
-        </div>
+        <x-ui.summary-card
+          label="Urgent Repair"
+          value="{{ $urgentRepair }}"
+          small="Needs attention"
+          icon="fa-triangle-exclamation"
+          color="red"
+        />
 
       </section>
 
-      {{-- JOB ORDERS TABLE --}}
+      {{-- TABLE --}}
       <section class="table-card">
 
         <div class="section-header">
           <div>
             <h2>Job Orders</h2>
-            <p>Track service requests, assigned mechanics, and job order status</p>
+            <p>Track job order details, assigned mechanics, and status</p>
           </div>
         </div>
 
@@ -159,49 +133,28 @@
               type="text"
               name="search"
               value="{{ request('search') }}"
-              placeholder="Search service, JO no., bus, or mechanic..."
+              placeholder="Search JO no., bus, problem, or mechanic..."
             >
           </div>
 
           <div class="filter-group">
             <label>Status</label>
             <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
-                All Statuses
-              </option>
-
-              <option value="On Hold" {{ request('status') == 'On Hold' ? 'selected' : '' }}>
-                On Hold
-              </option>
-
-              <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>
-                On Going
-              </option>
-
-              <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>
-                Completed
-              </option>
-
-              <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>
-                Urgent Repair
-              </option>
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>All Statuses</option>
+              <option value="On Hold" {{ request('status') == 'On Hold' ? 'selected' : '' }}>On Hold</option>
+              <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>On Going</option>
+              <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+              <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>Urgent Repair</option>
             </select>
           </div>
 
           <div class="filter-group">
-            <label>Type</label>
-            <select name="type" onchange="this.form.submit()">
-              <option value="All Types" {{ request('type') == 'All Types' ? 'selected' : '' }}>
-                All Types
-              </option>
-
-              <option value="PMS" {{ request('type') == 'PMS' ? 'selected' : '' }}>
-                PMS
-              </option>
-
-              <option value="Repair" {{ request('type') == 'Repair' ? 'selected' : '' }}>
-                Repair
-              </option>
+            <label>Maintenance Type</label>
+            <select name="maintenance_type" onchange="this.form.submit()">
+              <option value="All Types" {{ request('maintenance_type') == 'All Types' ? 'selected' : '' }}>All Types</option>
+              <option value="PMS" {{ request('maintenance_type') == 'PMS' ? 'selected' : '' }}>PMS</option>
+              <option value="Repair" {{ request('maintenance_type') == 'Repair' ? 'selected' : '' }}>Repair</option>
+              <option value="Urgent Repair" {{ request('maintenance_type') == 'Urgent Repair' ? 'selected' : '' }}>Urgent Repair</option>
             </select>
           </div>
 
@@ -218,13 +171,12 @@
                 <th><input type="checkbox"></th>
                 <th>JO No.</th>
                 <th>Bus #</th>
-                <th>Service</th>
-                <th>Type</th>
+                <th>Problem / Issue</th>
+                <th>Maintenance Type</th>
                 <th>Assigned Mechanic</th>
+                <th>Start Date</th>
+                <th>Completion Date</th>
                 <th>Status</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Date Reported</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -232,20 +184,29 @@
             <tbody>
               @forelse($jobOrders as $jobOrder)
                 <tr>
-                  <td>
-                    <input type="checkbox">
-                  </td>
+                  <td><input type="checkbox"></td>
 
                   <td>{{ $jobOrder->job_order_no }}</td>
-
                   <td>{{ $jobOrder->bus_no }}</td>
 
-                  <td>{{ $jobOrder->service }}</td>
+                  <td class="problem-cell">
+                    <span title="{{ $jobOrder->problem_issue }}">
+                      {{ \Illuminate\Support\Str::limit($jobOrder->problem_issue, 35, '...') }}
+                    </span>
+                  </td>
 
-                  <td>{{ $jobOrder->type }}</td>
+                  <td>{{ $jobOrder->maintenance_type }}</td>
 
                   <td class="{{ $jobOrder->assigned_mechanic ? '' : 'empty' }}">
                     {{ $jobOrder->assigned_mechanic ?? '—' }}
+                  </td>
+
+                  <td class="{{ $jobOrder->start_date ? '' : 'empty' }}">
+                    {{ $jobOrder->start_date ? date('M d, Y', strtotime($jobOrder->start_date)) : '—' }}
+                  </td>
+
+                  <td class="{{ $jobOrder->completion_date ? '' : 'empty' }}">
+                    {{ $jobOrder->completion_date ? date('M d, Y', strtotime($jobOrder->completion_date)) : '—' }}
                   </td>
 
                   <td>
@@ -264,26 +225,6 @@
                     </span>
                   </td>
 
-                  <td class="{{ $jobOrder->start_time ? '' : 'empty' }}">
-                    @if($jobOrder->start_time)
-                      {{ date('g:i A', strtotime($jobOrder->start_time)) }}
-                    @else
-                      —
-                    @endif
-                  </td>
-
-                  <td class="{{ $jobOrder->end_time ? '' : 'empty' }}">
-                    @if($jobOrder->end_time)
-                      {{ date('g:i A', strtotime($jobOrder->end_time)) }}
-                    @else
-                      —
-                    @endif
-                  </td>
-
-                  <td>
-                    {{ date('M d, Y h:i A', strtotime($jobOrder->date_reported)) }}
-                  </td>
-
                   <td>
                     <div class="actions">
                       <button
@@ -292,15 +233,15 @@
                         data-id="{{ $jobOrder->id }}"
                         data-job-order-no="{{ $jobOrder->job_order_no }}"
                         data-bus-no="{{ $jobOrder->bus_no }}"
-                        data-service="{{ $jobOrder->service }}"
-                        data-type="{{ $jobOrder->type }}"
+                        data-problem-issue="{{ $jobOrder->problem_issue }}"
+                        data-maintenance-type="{{ $jobOrder->maintenance_type }}"
                         data-assigned-mechanic="{{ $jobOrder->assigned_mechanic }}"
+                        data-start-date="{{ $jobOrder->start_date }}"
+                        data-completion-date="{{ $jobOrder->completion_date }}"
                         data-status="{{ $jobOrder->status }}"
-                        data-start-time="{{ $jobOrder->start_time }}"
-                        data-end-time="{{ $jobOrder->end_time }}"
-                        data-date-reported="{{ date('Y-m-d\TH:i', strtotime($jobOrder->date_reported)) }}"
+                        title="View / Edit"
                       >
-                        <i class="fa-solid fa-pen"></i>
+                        <i class="fa-solid fa-pen-to-square"></i>
                       </button>
 
                       <form
@@ -316,6 +257,7 @@
                           class="delete open-delete-modal"
                           data-id="{{ $jobOrder->id }}"
                           data-jo-no="{{ $jobOrder->job_order_no }}"
+                          title="Delete"
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
@@ -325,7 +267,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="11" style="text-align:center; padding: 30px;">
+                  <td colspan="10" style="text-align:center; padding: 30px;">
                     No job orders found.
                   </td>
                 </tr>
@@ -347,188 +289,147 @@
       </section>
 
     </main>
-
   </div>
 
-  {{-- NEW JOB ORDER MODAL --}}
-  <div id="jobModal" class="modal-overlay">
-    <div class="modal-box wide-modal">
-      <div class="modal-header">
-        <h2>New Job Order</h2>
-        <button type="button" id="closeJobModal" class="close-btn">&times;</button>
+  {{-- NEW JO MODAL --}}
+  <x-ui.form-modal
+    id="jobModal"
+    title="New Job Order"
+    subtitle="Job Order Details"
+    description="Enter the client-required job order information."
+    action="{{ route('job-orders.store') }}"
+    method="POST"
+    submit-text="Save Job Order"
+    close-id="closeJobModal"
+    cancel-id="cancelJobModal"
+  >
+    <div class="form-group">
+      <label>JO No.</label>
+      <input type="text" name="job_order_no" placeholder="Example: JO-26-0001" required>
+    </div>
+
+    <div class="form-group">
+      <label>Bus #</label>
+      <input type="text" name="bus_no" placeholder="Example: BUS-001" required>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Problem / Issue</label>
+      <textarea name="problem_issue" placeholder="Describe the problem or issue..." required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Maintenance Type</label>
+      <select name="maintenance_type" required>
+        <option value="">Select Maintenance Type</option>
+        <option value="PMS">PMS</option>
+        <option value="Repair">Repair</option>
+        <option value="Urgent Repair">Urgent Repair</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select name="status" required>
+        <option value="On Hold">On Hold</option>
+        <option value="On Going">On Going</option>
+        <option value="Completed">Completed</option>
+        <option value="Urgent Repair">Urgent Repair</option>
+      </select>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Assigned Mechanic</label>
+      <input type="text" name="assigned_mechanic" placeholder="Optional">
+    </div>
+
+    <div class="form-section-divider full-width">
+      <span>Schedule Details</span>
+    </div>
+
+    <div class="form-row time-section full-width">
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" name="start_date">
       </div>
 
-      <form action="{{ route('job-orders.store') }}" method="POST" class="job-form wide-form">
-        @csrf
-
-        <div class="form-section-title full-width">
-          <h3>Job Order Details</h3>
-          <p>Enter the basic information of the service request.</p>
-        </div>
-
-        <div class="form-group">
-          <label>JO No.</label>
-          <input type="text" name="job_order_no" placeholder="Example: JO-26-0001" required>
-        </div>
-
-        <div class="form-group">
-          <label>Bus #</label>
-          <input type="text" name="bus_no" placeholder="Example: BUS-001" required>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Service</label>
-          <input type="text" name="service" placeholder="Example: Engine Oil Filter" required>
-        </div>
-
-        <div class="form-group">
-          <label>Type</label>
-          <select name="type" required>
-            <option value="">Select Type</option>
-            <option value="PMS">PMS</option>
-            <option value="Repair">Repair</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Status</label>
-          <select name="status" required>
-            <option value="On Hold">On Hold</option>
-            <option value="On Going">On Going</option>
-            <option value="Completed">Completed</option>
-            <option value="Urgent Repair">Urgent Repair</option>
-          </select>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Assigned Mechanic</label>
-          <input type="text" name="assigned_mechanic" placeholder="Optional">
-        </div>
-
-        <div class="form-section-divider full-width">
-          <span>Work Time Details</span>
-        </div>
-
-        <div class="form-row time-section full-width">
-          <div class="form-group">
-            <label>Start Time</label>
-            <input type="time" name="start_time">
-          </div>
-
-          <div class="form-group">
-            <label>End Time</label>
-            <input type="time" name="end_time">
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Date Reported</label>
-          <input type="datetime-local" name="date_reported" required>
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelJobModal" class="cancel-btn">
-            Cancel
-          </button>
-
-          <button type="submit" class="save-btn">
-            Save Job Order
-          </button>
-        </div>
-      </form>
+      <div class="form-group">
+        <label>Completion Date</label>
+        <input type="date" name="completion_date">
+      </div>
     </div>
-  </div>
+  </x-ui.form-modal>
 
-  {{-- EDIT / DETAILS JOB ORDER MODAL --}}
-  <div id="editJobModal" class="modal-overlay">
-    <div class="modal-box wide-modal">
-      <div class="modal-header">
-        <h2>Job Order Details</h2>
-        <button type="button" id="closeEditJobModal" class="close-btn">&times;</button>
+  {{-- EDIT JO MODAL --}}
+  <x-ui.form-modal
+    id="editJobModal"
+    title="Job Order Details"
+    subtitle="Editable JO Information"
+    description="Review and update the selected job order."
+    form-id="editJobForm"
+    action="#"
+    method="PUT"
+    submit-text="Update Job Order"
+    close-id="closeEditJobModal"
+    cancel-id="cancelEditJobModal"
+  >
+    <div class="form-group">
+      <label>JO No.</label>
+      <input type="text" name="job_order_no" id="edit_job_order_no" required>
+    </div>
+
+    <div class="form-group">
+      <label>Bus #</label>
+      <input type="text" name="bus_no" id="edit_bus_no" required>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Problem / Issue</label>
+      <textarea name="problem_issue" id="edit_problem_issue" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Maintenance Type</label>
+      <select name="maintenance_type" id="edit_maintenance_type" required>
+        <option value="PMS">PMS</option>
+        <option value="Repair">Repair</option>
+        <option value="Urgent Repair">Urgent Repair</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select name="status" id="edit_status" required>
+        <option value="On Hold">On Hold</option>
+        <option value="On Going">On Going</option>
+        <option value="Completed">Completed</option>
+        <option value="Urgent Repair">Urgent Repair</option>
+      </select>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Assigned Mechanic</label>
+      <input type="text" name="assigned_mechanic" id="edit_assigned_mechanic">
+    </div>
+
+    <div class="form-section-divider full-width">
+      <span>Schedule Details</span>
+    </div>
+
+    <div class="form-row time-section full-width">
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" name="start_date" id="edit_start_date">
       </div>
 
-      <form id="editJobForm" method="POST" class="job-form wide-form">
-        @csrf
-        @method('PUT')
-
-        <div class="form-section-title full-width">
-          <h3>Editable JO Information</h3>
-          <p>Review and update the selected job order.</p>
-        </div>
-
-        <div class="form-group">
-          <label>JO No.</label>
-          <input type="text" name="job_order_no" id="edit_job_order_no" required>
-        </div>
-
-        <div class="form-group">
-          <label>Bus #</label>
-          <input type="text" name="bus_no" id="edit_bus_no" required>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Service</label>
-          <input type="text" name="service" id="edit_service" required>
-        </div>
-
-        <div class="form-group">
-          <label>Type</label>
-          <select name="type" id="edit_type" required>
-            <option value="PMS">PMS</option>
-            <option value="Repair">Repair</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Status</label>
-          <select name="status" id="edit_status" required>
-            <option value="On Hold">On Hold</option>
-            <option value="On Going">On Going</option>
-            <option value="Completed">Completed</option>
-            <option value="Urgent Repair">Urgent Repair</option>
-          </select>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Assigned Mechanic</label>
-          <input type="text" name="assigned_mechanic" id="edit_assigned_mechanic">
-        </div>
-
-        <div class="form-section-divider full-width">
-          <span>Work Time Details</span>
-        </div>
-
-        <div class="form-row time-section full-width">
-          <div class="form-group">
-            <label>Start Time</label>
-            <input type="time" name="start_time" id="edit_start_time">
-          </div>
-
-          <div class="form-group">
-            <label>End Time</label>
-            <input type="time" name="end_time" id="edit_end_time">
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Date Reported</label>
-          <input type="datetime-local" name="date_reported" id="edit_date_reported" required>
-        </div>
-
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelEditJobModal" class="cancel-btn">
-            Cancel
-          </button>
-
-          <button type="submit" class="save-btn">
-            Update Job Order
-          </button>
-        </div>
-      </form>
+      <div class="form-group">
+        <label>Completion Date</label>
+        <input type="date" name="completion_date" id="edit_completion_date">
+      </div>
     </div>
-  </div>
+  </x-ui.form-modal>
 
-  {{-- DELETE CONFIRMATION MODAL --}}
+  {{-- DELETE MODAL --}}
   <div id="deleteJobModal" class="delete-modal-overlay">
     <div class="delete-modal-box">
       <div class="delete-icon">

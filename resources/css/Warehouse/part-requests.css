@@ -1,17 +1,23 @@
-/* REQUESTED PURCHASE PAGE ONLY */
+/* WAREHOUSE PART REQUESTS PAGE ONLY */
 
+/* SUMMARY GRID */
+.inventory-stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* CARD */
 .table-card,
-.purchase-card {
+.inventory-card {
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
+  box-shadow: var(--shadow);
   margin-bottom: 20px;
   overflow: hidden;
 }
 
-/* CARD HEADER */
+/* SECTION HEADER */
 .section-header {
   margin-bottom: 12px;
 }
@@ -29,7 +35,7 @@
 }
 
 /* TOOLBAR */
-.request-toolbar {
+.inventory-toolbar {
   width: 100%;
   padding: 12px 16px;
   gap: 12px;
@@ -39,48 +45,51 @@
   align-items: center;
 }
 
-.request-toolbar .search-box {
+.inventory-toolbar .search-box {
   flex: 1;
 }
 
-.request-toolbar .search-box input {
+.inventory-toolbar .search-box input {
   height: 38px;
   font-size: 13px;
   border-radius: 9px;
   padding-left: 40px;
 }
 
-.request-toolbar .search-box i {
+.inventory-toolbar .search-box i {
   font-size: 13px;
   left: 14px;
 }
 
-.request-toolbar .filter-group {
+.inventory-toolbar .filter-group {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.request-toolbar .filter-group label {
+.inventory-toolbar .filter-group label {
   font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-.request-toolbar .filter-group select {
+.inventory-toolbar .filter-group select {
   height: 38px;
-  min-width: 130px;
+  min-width: 150px;
+  max-width: 190px;
   font-size: 13px;
   border-radius: 9px;
   padding: 0 10px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  outline: none;
 }
 
-.request-toolbar .primary-btn {
-  height: 38px;
-  padding: 0 14px;
-  font-size: 13px;
-  border-radius: 9px;
-  gap: 7px;
-}
-
-.request-toolbar .primary-btn i {
-  font-size: 13px;
+.inventory-toolbar .filter-group select:focus {
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.18);
 }
 
 /* TABLE */
@@ -89,17 +98,17 @@
   overflow-x: auto;
 }
 
-.request-table {
+.inventory-table {
   width: 100%;
   min-width: 1000px;
   border-collapse: collapse;
 }
 
-.request-table thead {
+.inventory-table thead {
   background: #f0f5fc;
 }
 
-.request-table th {
+.inventory-table th {
   padding: 14px 13px;
   text-align: left;
   font-size: 13px;
@@ -109,75 +118,168 @@
   text-transform: uppercase;
 }
 
-.request-table td {
+.inventory-table td {
   padding: 18px 13px;
   border-bottom: 1px solid var(--border);
   font-size: 14px;
   color: var(--text);
 }
 
-.request-table tbody tr:hover {
+.inventory-table tbody tr:hover {
   background: #f7faff;
 }
 
-.request-table tbody tr:last-child td {
+.inventory-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* BADGES */
+/* STATUS BADGES */
 .badge {
-  min-width: 76px;
+  min-width: 96px;
   padding: 7px 12px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
 }
 
-.badge.high {
-  background: #ffe2e2;
-  color: #dc2626;
-}
-
-.badge.low {
-  background: #ddf8e7;
-  color: #16a34a;
-}
-
-.badge.pending {
-  background: #fff3cd;
-  color: #b77900;
-}
-
+/* Approved */
 .badge.approved {
   background: #ddf8e7;
   color: #16a34a;
 }
 
-.badge.rejected {
-  background: #ffe2e2;
-  color: #dc2626;
+/* For Purchase */
+.badge.for-purchase {
+  background: #dbeafe;
+  color: #0057f8;
 }
 
-/* VIEW LINK */
-.view-link {
-  color: #0d6efd;
-  font-weight: 700;
-  text-decoration: none;
+/* Pending Purchase */
+.badge.pending {
+  background: #fff3cd;
+  color: #b77900;
+}
+
+/* Delivering */
+.badge.monitor {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+/* Delivered */
+.badge.low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Issued */
+.badge.in-stock {
+  background: #eef1f6;
+  color: #64748b;
+}
+
+/* ACTION BUTTONS */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions form {
+  display: inline-flex;
+}
+
+.actions button,
+.view-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn {
+  background: #edf3fb;
+  color: #082445;
+}
+
+.actions .edit {
+  background: #ddf8e7;
+  color: #16a34a;
+}
+
+.actions .purchase-action {
+  background: #dbeafe;
+  color: #0057f8;
+}
+
+.actions button:hover,
+.view-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* NO ACTION TEXT */
+.no-action {
+  color: var(--muted);
   font-size: 13px;
+  font-weight: 700;
 }
 
-.view-link:hover {
-  text-decoration: underline;
+/* VIEW PR DETAILS MODAL */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-top: 18px;
+}
+
+.detail-item {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.detail-item span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.detail-item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
 }
 
 /* RESPONSIVE */
 @media (max-width: 1200px) {
-  .request-toolbar {
+  .inventory-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inventory-toolbar {
     flex-wrap: wrap;
+  }
+
+  .inventory-toolbar .search-box {
+    min-width: 100%;
   }
 }
 
@@ -188,7 +290,7 @@
     padding: 20px;
   }
 
-  .stats-grid {
+  .inventory-stats {
     grid-template-columns: 1fr;
   }
 
@@ -196,5 +298,24 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+  }
+
+  .inventory-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inventory-toolbar .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .inventory-toolbar .filter-group select {
+    flex: 1;
+    max-width: none;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
   }
 }
