@@ -1,28 +1,32 @@
 /* PURCHASE REQUEST PAGE ONLY */
 
-/* CARD */
+/* ================================
+   CARD / SECTION
+================================ */
 .purchase-card {
   overflow: hidden;
 }
 
-/* SECTION HEADER */
 .section-header {
   margin-bottom: 12px;
 }
 
 .section-header h2 {
+  margin: 0;
   font-size: 18px;
   font-weight: 800;
   color: var(--text);
 }
 
 .section-header p {
+  margin-top: 3px;
   color: var(--muted);
   font-size: 12px;
-  margin-top: 3px;
 }
 
-/* TOOLBAR */
+/* ================================
+   TOOLBAR
+================================ */
 .purchase-toolbar {
   width: 100%;
   padding: 12px 16px;
@@ -35,16 +39,16 @@
   flex: 1;
 }
 
-.purchase-toolbar .search-box input {
-  height: 38px;
+.purchase-toolbar .search-box i {
+  left: 14px;
   font-size: 13px;
-  border-radius: 9px;
-  padding-left: 40px;
 }
 
-.purchase-toolbar .search-box i {
+.purchase-toolbar .search-box input {
+  height: 38px;
+  padding-left: 40px;
+  border-radius: 9px;
   font-size: 13px;
-  left: 14px;
 }
 
 .purchase-toolbar .filter-group {
@@ -53,28 +57,42 @@
 }
 
 .purchase-toolbar .filter-group label {
-  font-size: 12px;
   color: var(--muted);
+  font-size: 12px;
   white-space: nowrap;
 }
 
-.purchase-toolbar .filter-group select {
-  height: 38px;
+.purchase-toolbar .filter-group select,
+.pr-status-select {
   min-width: 150px;
-  font-size: 13px;
+  height: 38px;
+  border: 1px solid var(--border);
   border-radius: 9px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+}
+
+.purchase-toolbar .filter-group select:focus,
+.pr-status-select:focus {
+  border-color: var(--yellow);
 }
 
 .purchase-toolbar .primary-btn {
   height: 38px;
   padding: 0 14px;
-  font-size: 13px;
   border-radius: 9px;
   gap: 7px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
-/* TABLE */
+/* ================================
+   TABLE
+================================ */
 .purchase-card table {
   min-width: 1050px;
 }
@@ -85,7 +103,7 @@
   vertical-align: middle;
 }
 
-/* CENTER QUANTITY, STATUS, CREATED, ACTIONS */
+/* Center Quantity, Status, Created, Actions */
 .purchase-card th:nth-child(5),
 .purchase-card td:nth-child(5),
 .purchase-card th:nth-child(6),
@@ -93,11 +111,14 @@
 .purchase-card th:nth-child(7),
 .purchase-card td:nth-child(7),
 .purchase-card th:nth-child(8),
-.purchase-card td:nth-child(8) {
+.purchase-card td:nth-child(8),
+.status-col {
   text-align: center;
 }
 
-/* ACTION BUTTONS */
+/* ================================
+   ACTION BUTTONS
+================================ */
 .purchase-card .actions {
   display: flex;
   align-items: center;
@@ -107,6 +128,13 @@
 
 .purchase-card .actions form {
   display: inline-flex;
+}
+
+.purchase-card .view-btn,
+.purchase-card .edit,
+.actions .view {
+  background: #edf3fb;
+  color: #082445;
 }
 
 .purchase-card .approve-btn {
@@ -120,26 +148,22 @@
   color: var(--red);
 }
 
-.purchase-card .view-btn,
-.purchase-card .edit {
-  background: #edf3fb;
-  color: #0b2344;
-}
-
-/* STATUS BADGES */
+/* ================================
+   STATUS BADGES - OLD COMPONENT SUPPORT
+================================ */
 .badge.draft {
   background: #eef1f6;
   color: #64748b;
 }
 
 .badge.submitted {
-  background: #fff3cd;
-  color: #b77900;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .badge.approved {
-  background: #ddf8e7;
-  color: #16a34a;
+  background: #e0e7ff;
+  color: #4338ca;
 }
 
 .badge.rejected {
@@ -148,38 +172,136 @@
 }
 
 .badge.for-purchase {
-  background: #e7f0ff;
-  color: #0057f8;
+  background: #dbeafe;
+  color: #2563eb;
 }
 
-.badge.pending-purchase {
-  background: #fff3cd;
-  color: #b77900;
-}
-
-.badge.delivering {
+.badge.ordered {
   background: #ede9fe;
-  color: #6d28d9;
+  color: #7c3aed;
+}
+
+.badge.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
 }
 
 .badge.delivered {
   background: #dcfce7;
-  color: #15803d;
+  color: #16a34a;
+}
+
+.badge.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
 .badge.issued {
-  background: #dbeafe;
-  color: #0057f8;
+  background: #bbf7d0;
+  color: #15803d;
 }
 
-/* ALERT ERROR */
-.alert-error {
+/* ================================
+   PURCHASE REQUEST STATUS BADGES
+================================ */
+.pr-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Submitted = blue */
+.pr-status-badge.submitted,
+.pr-status-select.submitted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Approved = indigo */
+.pr-status-badge.approved,
+.pr-status-select.approved {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+/* Rejected = red */
+.pr-status-badge.rejected,
+.pr-status-select.rejected {
   background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: var(--red);
-  padding: 14px 18px;
-  border-radius: 12px;
+  color: #dc2626;
+}
+
+/* For Purchase = blue */
+.pr-status-badge.for-purchase,
+.pr-status-select.for-purchase {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* Ordered = violet */
+.pr-status-badge.ordered,
+.pr-status-select.ordered {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+/* For Pick-up = yellow */
+.pr-status-badge.for-pick-up,
+.pr-status-select.for-pick-up {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* For Delivery = orange */
+.pr-status-badge.for-delivery,
+.pr-status-select.for-delivery {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+/* Delivered = green */
+.pr-status-badge.delivered,
+.pr-status-select.delivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* Picked Up = teal */
+.pr-status-badge.picked-up,
+.pr-status-select.picked-up {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+/* Issued = green */
+.pr-status-badge.issued,
+.pr-status-select.issued {
+  background: #bbf7d0;
+  color: #15803d;
+}
+
+/* ================================
+   ALERT ERROR
+================================ */
+.alert-error {
   margin-bottom: 16px;
+  padding: 14px 18px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: var(--red);
   font-size: 13px;
 }
 
@@ -187,18 +309,27 @@
   margin-left: 18px;
 }
 
-/* READONLY / DISABLED INPUTS */
+/* ================================
+   READONLY / DISABLED INPUTS
+================================ */
 #busNoInput[readonly],
 #edit_bus_no[readonly],
 #edit_status_display[readonly],
 #editPrModal input:disabled,
-#editPrModal select:disabled {
+#editPrModal select:disabled,
+#edit_job_order_no:disabled,
+#edit_bus_no:disabled,
+#edit_item:disabled,
+#edit_quantity:disabled,
+#edit_remarks:disabled {
   background: #f8fafc;
   color: #64748b;
   cursor: not-allowed;
 }
 
-/* DETAILS GRID */
+/* ================================
+   DETAILS GRID
+================================ */
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -207,24 +338,24 @@
 }
 
 .detail-item {
-  background: #f8fafc;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px;
+  background: #f8fafc;
 }
 
 .detail-item span {
   display: block;
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 700;
   margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .detail-item strong {
   display: block;
-  font-size: 14px;
   color: var(--text);
+  font-size: 14px;
   font-weight: 800;
   word-break: break-word;
 }
@@ -233,14 +364,16 @@
   grid-column: 1 / -1;
 }
 
-/* WORKFLOW ACTION SECTIONS */
+/* ================================
+   WORKFLOW ACTION SECTIONS
+================================ */
 .pr-approval-actions,
 .warehouse-actions,
 .purchase-actions {
-  border-top: 1px solid var(--border);
+  justify-content: flex-end;
   margin-top: 18px;
   padding-top: 18px;
-  justify-content: flex-end;
+  border-top: 1px solid var(--border);
 }
 
 .pr-approval-actions form,
@@ -249,20 +382,31 @@
   display: inline-flex;
 }
 
-/* WORKFLOW BUTTONS */
+#editPrMainActions,
+#viewOnlyActions {
+  justify-content: flex-end;
+}
+
+#viewOnlyActions .cancel-btn {
+  min-width: 110px;
+}
+
+/* ================================
+   WORKFLOW BUTTONS
+================================ */
 .approve-action-btn,
 .reject-action-btn,
 .purchase-action-btn {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 18px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
   transition: 0.2s ease;
 }
 
@@ -287,7 +431,9 @@
   transform: translateY(-1px);
 }
 
-/* PAGINATION SVG FIX */
+/* ================================
+   PAGINATION SVG FIX
+================================ */
 .pagination svg {
   width: 18px !important;
   height: 18px !important;
@@ -297,36 +443,9 @@
   display: none;
 }
 
-#editPrMainActions,
-#viewOnlyActions {
-  justify-content: flex-end;
-}
-
-#viewOnlyActions .cancel-btn {
-  min-width: 110px;
-}
-
-#edit_job_order_no:disabled,
-#edit_bus_no:disabled,
-#edit_item:disabled,
-#edit_quantity:disabled,
-#edit_remarks:disabled {
-  background: #f8fafc;
-  color: #64748b;
-  cursor: not-allowed;
-}
-
-.actions .view {
-  background: #edf3fb;
-  color: #082445;
-}
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
-/* RESPONSIVE */
+/* ================================
+   RESPONSIVE
+================================ */
 @media (max-width: 1200px) {
   .purchase-toolbar {
     flex-wrap: wrap;
@@ -370,10 +489,7 @@
 
   .pr-approval-actions form,
   .warehouse-actions form,
-  .purchase-actions form {
-    width: 100%;
-  }
-
+  .purchase-actions form,
   .approve-action-btn,
   .reject-action-btn,
   .purchase-action-btn,

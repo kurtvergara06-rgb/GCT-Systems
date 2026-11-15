@@ -2,23 +2,15 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
 use App\Models\JobOrder;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
-=======
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseRequest;
-use App\Models\JobOrder;
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
-<<<<<<< HEAD
-=======
     private array $statuses = [
-        'For Purchase',
         'Ordered',
         'For Pick-up',
         'For Delivery',
@@ -26,7 +18,6 @@ class PurchaseOrderController extends Controller
         'Picked Up',
     ];
 
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
     public function index(Request $request)
     {
         $query = PurchaseOrder::query();
@@ -35,18 +26,10 @@ class PurchaseOrderController extends Controller
             $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-<<<<<<< HEAD
-                $q->where('po_number', 'like', "%{$search}%")
-                    ->orWhere('supplier', 'like', "%{$search}%")
-                    ->orWhere('first_item', 'like', "%{$search}%")
-                    ->orWhere('pr_no', 'like', "%{$search}%")
-                    ->orWhere('bus_no', 'like', "%{$search}%")
-=======
                 $q->where('po_no', 'like', "%{$search}%")
                     ->orWhere('supplier_name', 'like', "%{$search}%")
                     ->orWhere('supplier_address_tel', 'like', "%{$search}%")
                     ->orWhere('purpose', 'like', "%{$search}%")
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
                     ->orWhere('status', 'like', "%{$search}%");
             });
         }
@@ -61,74 +44,57 @@ class PurchaseOrderController extends Controller
             ->withQueryString();
 
         $totalOrders = PurchaseOrder::count();
-<<<<<<< HEAD
-        $forPurchase = PurchaseOrder::where('status', 'Ordered')->count();
+        $ordered = PurchaseOrder::where('status', 'Ordered')->count();
+        $forPickup = PurchaseOrder::where('status', 'For Pick-up')->count();
         $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
         $delivered = PurchaseOrder::whereIn('status', ['Delivered', 'Picked Up'])->count();
-=======
-        $forPurchase = PurchaseOrder::where('status', 'For Purchase')->count();
-        $ordered = PurchaseOrder::where('status', 'Ordered')->count();
-        $forDelivery = PurchaseOrder::where('status', 'For Delivery')->count();
-        $delivered = PurchaseOrder::where('status', 'Delivered')->count();
 
         $nextPoNo = $this->generatePoNo();
         $statuses = $this->statuses;
 
+        $usedPurchaseRequestIds = PurchaseOrder::query()
+            ->whereNotNull('purchase_request_id')
+            ->pluck('purchase_request_id')
+            ->toArray();
+
         $availablePurchaseRequests = PurchaseRequest::query()
-            ->whereIn('status', [
-                'For Purchase',
-                'Pending Purchase',
-                'Delivering',
-                'Delivered',
-                'Issued',
-            ])
+            ->where('status', 'For Purchase')
+            ->when(! empty($usedPurchaseRequestIds), function ($q) use ($usedPurchaseRequestIds) {
+                $q->whereNotIn('id', $usedPurchaseRequestIds);
+            })
             ->orderBy('pr_no')
             ->get();
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+
+        $selectedPurchaseRequest = null;
+
+        if ($request->filled('create_from_pr')) {
+            $selectedPurchaseRequest = PurchaseRequest::query()
+                ->where('id', $request->create_from_pr)
+                ->where('status', 'For Purchase')
+                ->first();
+        }
+
+        $openPoModal = session('open_po_modal') || $selectedPurchaseRequest !== null;
 
         return view('Purchase.purchase-orders', compact(
             'purchaseOrders',
             'totalOrders',
-            'forPurchase',
-<<<<<<< HEAD
-            'forDelivery',
-            'delivered'
-        ));
-    }
-
-    public function update(Request $request, PurchaseOrder $purchaseOrder)
-    {
-        $validated = $request->validate([
-            'supplier' => 'nullable|string|max:255',
-            'employee' => 'nullable|string|max:255',
-            'net_amount' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
-        ]);
-
-        $purchaseOrder->update([
-            'supplier' => $validated['supplier'] ?? $purchaseOrder->supplier,
-            'employee' => $validated['employee'] ?? $purchaseOrder->employee,
-            'net_amount' => $validated['net_amount'] ?? $purchaseOrder->net_amount,
-            'status' => $validated['status'],
-        ]);
-
-        $this->syncRequestAndJobOrder($purchaseOrder, $validated['status']);
-
-        return redirect()
-            ->back()
-=======
             'ordered',
+            'forPickup',
             'forDelivery',
             'delivered',
             'nextPoNo',
             'statuses',
-            'availablePurchaseRequests'
+            'availablePurchaseRequests',
+            'selectedPurchaseRequest',
+            'openPoModal'
         ));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'purchase_request_id' => 'nullable|exists:purchase_requests,id',
             'supplier_name' => 'required|string|max:255',
             'supplier_address_tel' => 'nullable|string',
             'terms' => 'nullable|string|max:255',
@@ -137,8 +103,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable',
             'discount' => 'nullable',
             'vat' => 'nullable',
-            'status' => 'required|string|in:For Purchase,Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
-
+            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -153,7 +118,7 @@ class PurchaseOrderController extends Controller
 
         if (count($items) === 0) {
             return redirect()
-                ->route('purchase-orders')
+                ->back()
                 ->withInput()
                 ->with('error', 'Please add at least one valid item.');
         }
@@ -165,26 +130,37 @@ class PurchaseOrderController extends Controller
             $request->vat
         );
 
-        PurchaseOrder::create([
-            'po_no' => $this->generatePoNo(),
-            'po_date' => now()->toDateString(),
-            'supplier_name' => $validated['supplier_name'],
-            'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
-            'terms' => $validated['terms'] ?? null,
-            'terms_of_payment' => $validated['terms_of_payment'] ?? null,
-            'purpose' => $validated['purpose'] ?? null,
-            'items' => $items,
-            'gross_amount' => $totals['gross_amount'],
-            'delivery_fee' => $totals['delivery_fee'],
-            'discount' => $totals['discount'],
-            'vat' => $totals['vat'],
-            'net_amount' => $totals['net_amount'],
-            'status' => $validated['status'],
-        ]);
+        $purchaseRequest = null;
 
-        if ($validated['status'] === 'Delivered') {
-            $this->markRelatedJobOrdersAsDelivered($items);
+        if (! empty($validated['purchase_request_id'])) {
+            $purchaseRequest = PurchaseRequest::find($validated['purchase_request_id']);
         }
+
+        if (! $purchaseRequest) {
+            $purchaseRequest = $this->findFirstPurchaseRequest($items);
+        }
+
+        DB::transaction(function () use ($validated, $items, $totals, $purchaseRequest) {
+            $purchaseOrder = PurchaseOrder::create([
+                'po_no' => $this->generatePoNo(),
+                'po_date' => now()->toDateString(),
+                'purchase_request_id' => $purchaseRequest?->id,
+                'supplier_name' => $validated['supplier_name'],
+                'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
+                'terms' => $validated['terms'] ?? null,
+                'terms_of_payment' => $validated['terms_of_payment'] ?? null,
+                'purpose' => $validated['purpose'] ?? null,
+                'items' => $items,
+                'gross_amount' => $totals['gross_amount'],
+                'delivery_fee' => $totals['delivery_fee'],
+                'discount' => $totals['discount'],
+                'vat' => $totals['vat'],
+                'net_amount' => $totals['net_amount'],
+                'status' => $validated['status'],
+            ]);
+
+            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+        });
 
         return redirect()
             ->route('purchase-orders')
@@ -196,6 +172,7 @@ class PurchaseOrderController extends Controller
         $validated = $request->validate([
             'po_no' => 'required|string|max:255|unique:purchase_orders,po_no,' . $purchaseOrder->id,
             'po_date' => 'required|date',
+            'purchase_request_id' => 'nullable|exists:purchase_requests,id',
             'supplier_name' => 'required|string|max:255',
             'supplier_address_tel' => 'nullable|string',
             'terms' => 'nullable|string|max:255',
@@ -204,8 +181,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable',
             'discount' => 'nullable',
             'vat' => 'nullable',
-            'status' => 'required|string|in:For Purchase,Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
-
+            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -220,7 +196,7 @@ class PurchaseOrderController extends Controller
 
         if (count($items) === 0) {
             return redirect()
-                ->route('purchase-orders')
+                ->back()
                 ->withInput()
                 ->with('error', 'Please add at least one valid item.');
         }
@@ -232,70 +208,120 @@ class PurchaseOrderController extends Controller
             $request->vat
         );
 
-        $purchaseOrder->update([
-            'po_no' => $validated['po_no'],
-            'po_date' => $validated['po_date'],
-            'supplier_name' => $validated['supplier_name'],
-            'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
-            'terms' => $validated['terms'] ?? null,
-            'terms_of_payment' => $validated['terms_of_payment'] ?? null,
-            'purpose' => $validated['purpose'] ?? null,
-            'items' => $items,
-            'gross_amount' => $totals['gross_amount'],
-            'delivery_fee' => $totals['delivery_fee'],
-            'discount' => $totals['discount'],
-            'vat' => $totals['vat'],
-            'net_amount' => $totals['net_amount'],
-            'status' => $validated['status'],
-        ]);
+        $purchaseRequest = null;
 
-        if ($validated['status'] === 'Delivered') {
-            $this->markRelatedJobOrdersAsDelivered($items);
+        if (! empty($validated['purchase_request_id'])) {
+            $purchaseRequest = PurchaseRequest::find($validated['purchase_request_id']);
         }
 
+        if (! $purchaseRequest) {
+            $purchaseRequest = $purchaseOrder->purchaseRequest ?: $this->findFirstPurchaseRequest($items);
+        }
+
+        DB::transaction(function () use ($purchaseOrder, $validated, $items, $totals, $purchaseRequest) {
+            $purchaseOrder->update([
+                'po_no' => $validated['po_no'],
+                'po_date' => $validated['po_date'],
+                'purchase_request_id' => $purchaseRequest?->id,
+                'supplier_name' => $validated['supplier_name'],
+                'supplier_address_tel' => $validated['supplier_address_tel'] ?? null,
+                'terms' => $validated['terms'] ?? null,
+                'terms_of_payment' => $validated['terms_of_payment'] ?? null,
+                'purpose' => $validated['purpose'] ?? null,
+                'items' => $items,
+                'gross_amount' => $totals['gross_amount'],
+                'delivery_fee' => $totals['delivery_fee'],
+                'discount' => $totals['discount'],
+                'vat' => $totals['vat'],
+                'net_amount' => $totals['net_amount'],
+                'status' => $validated['status'],
+            ]);
+
+            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+        });
+
         return redirect()
-            ->route('purchase-orders')
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
+            ->back()
             ->with('success', 'Purchase order updated successfully.');
+    }
+
+    public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
+        ]);
+
+        DB::transaction(function () use ($purchaseOrder, $validated) {
+            $purchaseOrder->update([
+                'status' => $validated['status'],
+            ]);
+
+            $this->syncRelatedPurchaseRequestsAndJobOrders($purchaseOrder, $validated['status']);
+        });
+
+        return redirect()
+            ->back()
+            ->with('success', 'Purchase order status updated successfully.');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
-<<<<<<< HEAD
-        $purchaseRequest = $purchaseOrder->purchaseRequest;
+        DB::transaction(function () use ($purchaseOrder) {
+            $purchaseRequest = $purchaseOrder->purchaseRequest;
 
-        if ($purchaseRequest && $purchaseRequest->status === 'Ordered') {
-            $purchaseRequest->update([
-                'status' => 'For Purchase',
-            ]);
+            $purchaseOrder->delete();
 
-            $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
-        }
+            if ($purchaseRequest && in_array($purchaseRequest->status, $this->statuses, true)) {
+                $purchaseRequest->update([
+                    'status' => 'For Purchase',
+                ]);
 
-        $purchaseOrder->delete();
+                $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
+            }
+        });
 
         return redirect()
             ->back()
             ->with('success', 'Purchase order deleted successfully.');
     }
 
-    private function syncRequestAndJobOrder(PurchaseOrder $purchaseOrder, string $status): void
+    private function syncRelatedPurchaseRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void
     {
-        $purchaseRequest = $purchaseOrder->purchaseRequest;
+        $purchaseRequests = collect();
 
-        if (! $purchaseRequest) {
-            $purchaseRequest = PurchaseRequest::where('pr_no', $purchaseOrder->pr_no)->first();
+        $purchaseOrder->refresh();
+
+        if ($purchaseOrder->purchaseRequest) {
+            $purchaseRequests->push($purchaseOrder->purchaseRequest);
         }
 
-        if (! $purchaseRequest) {
-            return;
+        foreach ($purchaseOrder->items ?? [] as $item) {
+            $prNo = $item['pr_no'] ?? null;
+
+            if (! $prNo) {
+                continue;
+            }
+
+            $purchaseRequest = PurchaseRequest::where('pr_no', $prNo)->first();
+
+            if ($purchaseRequest) {
+                $purchaseRequests->push($purchaseRequest);
+            }
         }
 
-        $purchaseRequest->update([
-            'status' => $status,
-        ]);
+        $purchaseRequests
+            ->unique('id')
+            ->each(function (PurchaseRequest $purchaseRequest) use ($status) {
+                if ($purchaseRequest->status === 'Issued') {
+                    return;
+                }
 
-        $this->updateRelatedJobOrderPartStatus($purchaseRequest, $status);
+                $purchaseRequest->update([
+                    'status' => $status,
+                ]);
+
+                $this->updateRelatedJobOrderPartStatus($purchaseRequest, $status);
+            });
     }
 
     private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
@@ -309,45 +335,25 @@ class PurchaseOrderController extends Controller
         $jobOrder->update([
             'part_status' => $partStatus,
         ]);
-=======
-        $purchaseOrder->delete();
-
-        return redirect()
-            ->route('purchase-orders')
-            ->with('success', 'Purchase order deleted successfully.');
     }
 
-    private function markRelatedJobOrdersAsDelivered(array $items): void
+    private function findFirstPurchaseRequest(array $items): ?PurchaseRequest
     {
         foreach ($items as $item) {
             $prNo = $item['pr_no'] ?? null;
 
-            if (empty($prNo)) {
+            if (! $prNo) {
                 continue;
             }
 
             $purchaseRequest = PurchaseRequest::where('pr_no', $prNo)->first();
 
-            if (! $purchaseRequest) {
-                continue;
-            }
-
-            $jobOrderNo = $purchaseRequest->job_order_no
-                ?? $purchaseRequest->jo_no
-                ?? null;
-
-            if (empty($jobOrderNo)) {
-                continue;
-            }
-
-            $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
-
-            if ($jobOrder) {
-                $jobOrder->update([
-                    'part_status' => 'Delivered',
-                ]);
+            if ($purchaseRequest) {
+                return $purchaseRequest;
             }
         }
+
+        return null;
     }
 
     private function cleanItems(?array $items): array
@@ -393,14 +399,12 @@ class PurchaseOrderController extends Controller
         $discount = $this->cleanCurrency($discount ?? 0);
         $vat = $this->cleanCurrency($vat ?? 0);
 
-        $netAmount = $grossAmount + $deliveryFee - $discount + $vat;
-
         return [
             'gross_amount' => $grossAmount,
             'delivery_fee' => $deliveryFee,
             'discount' => $discount,
             'vat' => $vat,
-            'net_amount' => $netAmount,
+            'net_amount' => $grossAmount + $deliveryFee - $discount + $vat,
         ];
     }
 
@@ -425,9 +429,7 @@ class PurchaseOrderController extends Controller
 
         preg_match('/PO-' . $year . '-(\d+)/', $lastPurchaseOrder->po_no, $matches);
 
-        $lastNumber = isset($matches[1]) ? (int) $matches[1] : 0;
-        $nextNumber = $lastNumber + 1;
-
+        $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
         $newPoNo = 'PO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         while (PurchaseOrder::where('po_no', $newPoNo)->exists()) {
@@ -436,6 +438,5 @@ class PurchaseOrderController extends Controller
         }
 
         return $newPoNo;
->>>>>>> 261af0e33d572cd870c9ef98898f871a0e6e07fb
     }
 }

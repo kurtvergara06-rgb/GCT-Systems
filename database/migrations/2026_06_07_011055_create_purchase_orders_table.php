@@ -30,13 +30,12 @@ return new class extends Migration
             $table->decimal('net_amount', 12, 2)->default(0);
 
             $table->enum('status', [
-                'For Purchase',
                 'Ordered',
                 'For Pick-up',
                 'For Delivery',
                 'Delivered',
                 'Picked Up',
-            ])->default('For Purchase');
+            ])->default('Ordered');
 
             $table->timestamps();
         });

@@ -85,7 +85,7 @@
           value="{{ $submitted }}"
           small="Waiting approval"
           icon="fa-paper-plane"
-          color="yellow"
+          color="blue"
         />
 
         <x-ui.summary-card
@@ -101,7 +101,7 @@
           value="{{ $approved }}"
           small="Approved requests"
           icon="fa-check"
-          color="green"
+          color="purple"
         />
 
         <x-ui.summary-card
@@ -109,7 +109,7 @@
           value="{{ $issued }}"
           small="Released parts"
           icon="fa-box-open"
-          color="blue"
+          color="green"
         />
 
       </section>
@@ -131,10 +131,15 @@
           button-label="New PR"
         >
           <div class="filter-group">
-            <label>Status</label>
+            <label for="prStatusFilter">Status</label>
 
-            <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+            <select
+              name="status"
+              id="prStatusFilter"
+              class="pr-status-select"
+              onchange="this.form.submit()"
+            >
+              <option value="All Statuses" {{ request('status', 'All Statuses') == 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
               </option>
 
@@ -154,8 +159,24 @@
                 For Purchase
               </option>
 
+              <option value="Ordered" {{ request('status') == 'Ordered' ? 'selected' : '' }}>
+                Ordered
+              </option>
+
+              <option value="For Pick-up" {{ request('status') == 'For Pick-up' ? 'selected' : '' }}>
+                For Pick-up
+              </option>
+
+              <option value="For Delivery" {{ request('status') == 'For Delivery' ? 'selected' : '' }}>
+                For Delivery
+              </option>
+
               <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
                 Delivered
+              </option>
+
+              <option value="Picked Up" {{ request('status') == 'Picked Up' ? 'selected' : '' }}>
+                Picked Up
               </option>
 
               <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
@@ -174,7 +195,7 @@
                 <th>Bus #</th>
                 <th>Item</th>
                 <th>Quantity</th>
-                <th>Status</th>
+                <th class="status-col">Status</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -195,18 +216,25 @@
                     'Issued',
                   ];
 
-                  $isViewOnly = in_array($pr->status, $viewOnlyStatuses);
+                  $isViewOnly = in_array($pr->status, $viewOnlyStatuses, true);
+                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $pr->status));
                 @endphp
 
                 <tr>
                   <td>{{ $pr->pr_no }}</td>
+
                   <td>{{ $pr->job_order_no }}</td>
+
                   <td>{{ $pr->bus_no }}</td>
+
                   <td>{{ $pr->item }}</td>
+
                   <td>{{ $pr->quantity }}</td>
 
-                  <td>
-                    <x-ui.status-badge :status="$pr->status" />
+                  <td class="status-col">
+                    <span class="pr-status-badge {{ $statusClass }}">
+                      {{ $pr->status }}
+                    </span>
                   </td>
 
                   <td>
@@ -518,7 +546,7 @@
         </div>
       </form>
 
-      {{-- SUB ADMIN APPROVAL ACTIONS - NO CONFIRM MODAL --}}
+      {{-- SUB ADMIN APPROVAL ACTIONS --}}
       <div class="modal-actions full-width pr-approval-actions" id="prApprovalActions" style="display: none;">
         <form id="approvePrForm" method="POST" action="#">
           @csrf
@@ -575,266 +603,5 @@
     cancel-id="cancelDeletePr"
     confirm-id="confirmDeletePr"
   />
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      function openModal(modal) {
-        if (modal) {
-          modal.classList.add('show');
-        }
-      }
-
-      function closeModal(modal) {
-        if (modal) {
-          modal.classList.remove('show');
-        }
-      }
-
-      function parsePartNeeded(partNeeded) {
-        if (!partNeeded) {
-          return {
-            item: '',
-            quantity: ''
-          };
-        }
-
-        const firstPart = partNeeded.split(',')[0].trim();
-
-        if (firstPart.includes(' - Qty:')) {
-          const pieces = firstPart.split(' - Qty:');
-
-          return {
-            item: pieces[0] ? pieces[0].trim() : '',
-            quantity: pieces[1] ? pieces[1].trim() : 1
-          };
-        }
-
-        return {
-          item: firstPart,
-          quantity: 1
-        };
-      }
-
-      const validationErrorModal = document.getElementById('validationErrorModal');
-      const closeValidationErrorModal = document.getElementById('closeValidationErrorModal');
-
-      if (closeValidationErrorModal && validationErrorModal) {
-        closeValidationErrorModal.addEventListener('click', () => {
-          closeModal(validationErrorModal);
-        });
-      }
-
-      const prModal = document.getElementById('prModal');
-      const openPrModal = document.getElementById('openPrModal');
-      const closePrModal = document.getElementById('closePrModal');
-      const cancelPrModal = document.getElementById('cancelPrModal');
-
-      if (openPrModal) {
-        openPrModal.addEventListener('click', () => {
-          openModal(prModal);
-        });
-      }
-
-      if (closePrModal) {
-        closePrModal.addEventListener('click', () => {
-          closeModal(prModal);
-        });
-      }
-
-      if (cancelPrModal) {
-        cancelPrModal.addEventListener('click', () => {
-          closeModal(prModal);
-        });
-      }
-
-      const jobOrderSelect = document.getElementById('jobOrderSelect');
-      const busNoInput = document.getElementById('busNoInput');
-      const partInput = document.getElementById('partInput');
-      const quantityInput = document.getElementById('quantityInput');
-
-      if (jobOrderSelect) {
-        jobOrderSelect.addEventListener('change', () => {
-          const selected = jobOrderSelect.options[jobOrderSelect.selectedIndex];
-          const busNo = selected.dataset.bus || '';
-          const parts = selected.dataset.parts || '';
-          const parsed = parsePartNeeded(parts);
-
-          if (busNoInput) busNoInput.value = busNo;
-          if (partInput) partInput.value = parsed.item;
-          if (quantityInput) quantityInput.value = parsed.quantity || 1;
-        });
-      }
-
-      const editPrModal = document.getElementById('editPrModal');
-      const closeEditPrModal = document.getElementById('closeEditPrModal');
-      const cancelEditPrModal = document.getElementById('cancelEditPrModal');
-      const closeViewOnlyPr = document.getElementById('closeViewOnlyPr');
-
-      const editPrForm = document.getElementById('editPrForm');
-      const editPrNo = document.getElementById('edit_pr_no');
-      const editJobOrderNo = document.getElementById('edit_job_order_no');
-      const editBusNo = document.getElementById('edit_bus_no');
-      const editStatusDisplay = document.getElementById('edit_status_display');
-      const editItem = document.getElementById('edit_item');
-      const editQuantity = document.getElementById('edit_quantity');
-      const editRemarks = document.getElementById('edit_remarks');
-
-      const editPrMainActions = document.getElementById('editPrMainActions');
-      const viewOnlyActions = document.getElementById('viewOnlyActions');
-      const prApprovalActions = document.getElementById('prApprovalActions');
-      const warehouseActions = document.getElementById('warehouseActions');
-
-      const approvePrForm = document.getElementById('approvePrForm');
-      const rejectPrForm = document.getElementById('rejectPrForm');
-      const issuePrForm = document.getElementById('issuePrForm');
-      const forPurchasePrForm = document.getElementById('forPurchasePrForm');
-
-      document.querySelectorAll('.open-edit-pr-modal').forEach((button) => {
-        button.addEventListener('click', () => {
-          const status = button.dataset.status || '';
-
-          if (editPrForm) editPrForm.action = button.dataset.updateUrl || '#';
-          if (approvePrForm) approvePrForm.action = button.dataset.approveUrl || '#';
-          if (rejectPrForm) rejectPrForm.action = button.dataset.rejectUrl || '#';
-          if (issuePrForm) issuePrForm.action = button.dataset.issueUrl || '#';
-          if (forPurchasePrForm) forPurchasePrForm.action = button.dataset.forPurchaseUrl || '#';
-
-          if (editPrNo) editPrNo.value = button.dataset.prNo || '';
-          if (editBusNo) editBusNo.value = button.dataset.busNo || '';
-          if (editStatusDisplay) editStatusDisplay.value = status;
-          if (editItem) editItem.value = button.dataset.item || '';
-          if (editQuantity) editQuantity.value = button.dataset.quantity || '';
-          if (editRemarks) editRemarks.value = button.dataset.remarks || '';
-
-          if (editJobOrderNo) {
-            let optionExists = false;
-
-            Array.from(editJobOrderNo.options).forEach((option) => {
-              if (option.value === button.dataset.jobOrderNo) {
-                optionExists = true;
-              }
-            });
-
-            if (!optionExists && button.dataset.jobOrderNo) {
-              const option = document.createElement('option');
-              option.value = button.dataset.jobOrderNo;
-              option.textContent = button.dataset.jobOrderNo;
-              option.dataset.bus = button.dataset.busNo || '';
-              option.dataset.parts = `${button.dataset.item || ''} - Qty: ${button.dataset.quantity || 1}`;
-              editJobOrderNo.appendChild(option);
-            }
-
-            editJobOrderNo.value = button.dataset.jobOrderNo || '';
-          }
-
-          const canEdit = status === 'Submitted';
-          const canApproveReject = status === 'Submitted';
-          const canWarehouseAct = status === 'Approved';
-
-          if (editPrMainActions) {
-            editPrMainActions.style.display = canEdit ? 'flex' : 'none';
-          }
-
-          if (viewOnlyActions) {
-            viewOnlyActions.style.display = canEdit ? 'none' : 'flex';
-          }
-
-          if (prApprovalActions) {
-            prApprovalActions.style.display = canApproveReject ? 'flex' : 'none';
-          }
-
-          if (warehouseActions) {
-            warehouseActions.style.display = canWarehouseAct ? 'flex' : 'none';
-          }
-
-          if (editRemarks) {
-            editRemarks.readOnly = !canEdit;
-          }
-
-          if (editJobOrderNo) {
-            editJobOrderNo.disabled = !canEdit;
-          }
-
-          openModal(editPrModal);
-        });
-      });
-
-      if (closeEditPrModal) {
-        closeEditPrModal.addEventListener('click', () => {
-          closeModal(editPrModal);
-        });
-      }
-
-      if (cancelEditPrModal) {
-        cancelEditPrModal.addEventListener('click', () => {
-          closeModal(editPrModal);
-        });
-      }
-
-      if (closeViewOnlyPr) {
-        closeViewOnlyPr.addEventListener('click', () => {
-          closeModal(editPrModal);
-        });
-      }
-
-      if (editJobOrderNo) {
-        editJobOrderNo.addEventListener('change', () => {
-          const selected = editJobOrderNo.options[editJobOrderNo.selectedIndex];
-          const busNo = selected.dataset.bus || '';
-          const parts = selected.dataset.parts || '';
-          const parsed = parsePartNeeded(parts);
-
-          if (editBusNo) editBusNo.value = busNo;
-          if (editItem) editItem.value = parsed.item;
-          if (editQuantity) editQuantity.value = parsed.quantity || 1;
-        });
-      }
-
-      const deletePrModal = document.getElementById('deletePrModal');
-      const deletePrNo = document.getElementById('deletePrNo');
-      const cancelDeletePr = document.getElementById('cancelDeletePr');
-      const confirmDeletePr = document.getElementById('confirmDeletePr');
-
-      let selectedDeletePrForm = null;
-
-      document.querySelectorAll('.open-delete-pr-modal').forEach((button) => {
-        button.addEventListener('click', () => {
-          const id = button.dataset.id;
-          const prNo = button.dataset.prNo;
-
-          selectedDeletePrForm = document.getElementById(`deletePrForm-${id}`);
-
-          if (deletePrNo) {
-            deletePrNo.textContent = prNo || 'this purchase request';
-          }
-
-          openModal(deletePrModal);
-        });
-      });
-
-      if (cancelDeletePr) {
-        cancelDeletePr.addEventListener('click', () => {
-          selectedDeletePrForm = null;
-          closeModal(deletePrModal);
-        });
-      }
-
-      if (confirmDeletePr) {
-        confirmDeletePr.addEventListener('click', () => {
-          if (selectedDeletePrForm) {
-            selectedDeletePrForm.submit();
-          }
-        });
-      }
-
-      document.querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay').forEach((overlay) => {
-        overlay.addEventListener('click', (event) => {
-          if (event.target === overlay) {
-            overlay.classList.remove('show');
-          }
-        });
-      });
-    });
-  </script>
 
 </x-layout.app>

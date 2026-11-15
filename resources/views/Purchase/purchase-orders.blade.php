@@ -23,21 +23,59 @@
   @php
     $purchaseRequestOptions = $availablePurchaseRequests->map(function ($pr) {
       return [
+        'id' => $pr->id,
         'pr_no' => $pr->pr_no,
+        'job_order_no' => $pr->job_order_no,
         'bus_no' => $pr->bus_no,
-        'employee' => $pr->employee ?? $pr->requested_by ?? $pr->created_by ?? '',
+        'employee' => $pr->employee ?? $pr->requested_by ?? $pr->created_by ?? $pr->job_order_no ?? '',
+        'item' => $pr->item,
+        'quantity' => $pr->quantity,
+        'unit' => $pr->unit ?? 'PC',
       ];
     })->values();
+
+    $selectedPurchaseRequestData = null;
+
+    if ($selectedPurchaseRequest ?? false) {
+      $selectedPurchaseRequestData = [
+        'id' => $selectedPurchaseRequest->id,
+        'pr_no' => $selectedPurchaseRequest->pr_no,
+        'job_order_no' => $selectedPurchaseRequest->job_order_no,
+        'bus_no' => $selectedPurchaseRequest->bus_no,
+        'employee' => $selectedPurchaseRequest->employee
+          ?? $selectedPurchaseRequest->requested_by
+          ?? $selectedPurchaseRequest->created_by
+          ?? $selectedPurchaseRequest->job_order_no
+          ?? '',
+        'item' => $selectedPurchaseRequest->item,
+        'quantity' => $selectedPurchaseRequest->quantity,
+        'unit' => $selectedPurchaseRequest->unit ?? 'PC',
+      ];
+    }
   @endphp
 
   <script type="application/json" id="purchaseRequestOptionsJson">
     @json($purchaseRequestOptions)
   </script>
 
+  @if($selectedPurchaseRequestData)
+    <script type="application/json" id="selectedPurchaseRequestJson">
+      @json($selectedPurchaseRequestData)
+    </script>
+  @endif
+
+  @if($openPoModal ?? false)
+    <span id="openPoModalFlag" hidden></span>
+  @endif
+
   <datalist id="purchaseRequestList">
     @foreach($availablePurchaseRequests as $pr)
       <option value="{{ $pr->pr_no }}">
     @endforeach
+
+    @if($selectedPurchaseRequest ?? false)
+      <option value="{{ $selectedPurchaseRequest->pr_no }}">
+    @endif
   </datalist>
 
   <div class="app">
@@ -84,25 +122,25 @@
         />
 
         <x-ui.summary-card
-          label="For Purchase"
-          value="{{ $forPurchase }}"
-          small="Ready to order"
-          icon="fa-cart-shopping"
+          label="Ordered"
+          value="{{ $ordered }}"
+          small="PO created"
+          icon="fa-file-invoice"
           color="blue"
         />
 
         <x-ui.summary-card
-          label="For Delivery"
-          value="{{ $forDelivery }}"
-          small="Waiting delivery"
-          icon="fa-truck-fast"
+          label="For Pick-up"
+          value="{{ $forPickup }}"
+          small="Waiting pickup"
+          icon="fa-box"
           color="yellow"
         />
 
         <x-ui.summary-card
-          label="Delivered"
-          value="{{ $delivered }}"
-          small="Completed orders"
+          label="For Delivery / Done"
+          value="{{ $forDelivery + $delivered }}"
+          small="Delivery and completed"
           icon="fa-circle-check"
           color="green"
         />
@@ -155,10 +193,9 @@
               <tr>
                 <th>PO Number</th>
                 <th>Supplier</th>
-                <th>First Item</th>
+                <th>Item</th>
                 <th>PR No.</th>
                 <th>Bus No.</th>
-                <th>Employee</th>
                 <th>Qty</th>
                 <th>Net Amount</th>
                 <th>Status</th>
@@ -177,6 +214,7 @@
 
                 <tr>
                   <td>{{ $purchaseOrder->po_no }}</td>
+
                   <td>{{ $purchaseOrder->supplier_name }}</td>
 
                   <td>
@@ -184,8 +222,9 @@
                   </td>
 
                   <td>{{ $firstItem['pr_no'] ?? '—' }}</td>
+
                   <td>{{ $firstItem['bus_no'] ?? '—' }}</td>
-                  <td>{{ $firstItem['employee'] ?? '—' }}</td>
+
                   <td>{{ $firstItem['quantity'] ?? '—' }}</td>
 
                   <td>
@@ -193,9 +232,27 @@
                   </td>
 
                   <td>
-                    <span class="badge {{ $statusClass }}">
-                      {{ $purchaseOrder->status }}
-                    </span>
+                    <form
+                      action="{{ route('purchase-orders.update-status', $purchaseOrder->id) }}"
+                      method="POST"
+                      class="po-status-form"
+                    >
+                      @csrf
+                      @method('PATCH')
+
+                      <select
+                        name="status"
+                        class="po-status-dropdown {{ $statusClass }}"
+                        onchange="this.form.submit()"
+                        title="Change PO status"
+                      >
+                        @foreach($statuses as $status)
+                          <option value="{{ $status }}" {{ $purchaseOrder->status === $status ? 'selected' : '' }}>
+                            {{ $status }}
+                          </option>
+                        @endforeach
+                      </select>
+                    </form>
                   </td>
 
                   <td>{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('m/d/y') : '—' }}</td>
@@ -249,7 +306,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="11"
+                  colspan="10"
                   message="No purchase orders found."
                 />
               @endforelse
@@ -279,6 +336,13 @@
 
       <form action="{{ route('purchase-orders.store') }}" method="POST" class="po-document-form">
         @csrf
+
+        <input
+          type="hidden"
+          name="purchase_request_id"
+          id="purchaseRequestIdInput"
+          value="{{ $selectedPurchaseRequest?->id }}"
+        >
 
         <div class="po-doc-header">
           <div>
@@ -342,6 +406,7 @@
                 name="items[0][pr_no]"
                 list="purchaseRequestList"
                 placeholder="PR No."
+                value="{{ $selectedPurchaseRequest?->pr_no }}"
               >
 
               <input
@@ -349,6 +414,7 @@
                 class="po-bus-no"
                 name="items[0][bus_no]"
                 placeholder="Bus No."
+                value="{{ $selectedPurchaseRequest?->bus_no }}"
                 readonly
               >
 
@@ -357,6 +423,7 @@
                 class="po-employee"
                 name="items[0][employee]"
                 placeholder="Employee"
+                value="{{ $selectedPurchaseRequest?->job_order_no }}"
               >
 
               <input
@@ -364,6 +431,7 @@
                 class="po-item-description"
                 name="items[0][item_description]"
                 placeholder="Item description"
+                value="{{ $selectedPurchaseRequest?->item }}"
                 required
               >
 
@@ -374,6 +442,7 @@
                 min="1"
                 step="1"
                 placeholder="Qty"
+                value="{{ $selectedPurchaseRequest?->quantity }}"
                 required
               >
 
@@ -415,7 +484,7 @@
         <div class="po-bottom-grid">
           <div class="form-group">
             <label>Purpose</label>
-            <textarea name="purpose" placeholder="Example: For Warehouse Stock."></textarea>
+            <textarea name="purpose" placeholder="Example: For Warehouse Stock.">{{ $selectedPurchaseRequest ? 'Created from ' . $selectedPurchaseRequest->pr_no : '' }}</textarea>
           </div>
 
           <div class="po-totals-box">
@@ -450,7 +519,7 @@
           <label>Status</label>
           <select name="status" required>
             @foreach($statuses as $status)
-              <option value="{{ $status }}" {{ $status === 'For Purchase' ? 'selected' : '' }}>
+              <option value="{{ $status }}" {{ $status === 'Ordered' ? 'selected' : '' }}>
                 {{ $status }}
               </option>
             @endforeach
@@ -582,6 +651,8 @@
             </div>
           </div>
         </div>
+
+        <input type="hidden" name="purchase_request_id" id="edit_purchase_request_id">
 
         <div class="form-group">
           <label>Status</label>
