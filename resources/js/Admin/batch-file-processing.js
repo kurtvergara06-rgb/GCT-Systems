@@ -22,6 +22,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteFileName = document.getElementById('batchDeleteFileName');
     const cancelDeleteButton = document.getElementById('cancelBatchDelete');
 
+    const editTripRecordModal = document.getElementById('editTripRecordModal');
+    const openEditTripRecordModal = document.getElementById('openEditTripRecordModal');
+    const closeEditTripRecordModal = document.getElementById('closeEditTripRecordModal');
+    const cancelEditTripRecordModal = document.getElementById('cancelEditTripRecordModal');
+
+    const allowedExtensions = ['csv', 'txt', 'pdf', 'xls', 'xlsx'];
+
+    function openModal(modal) {
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+
+    function closeModal(modal) {
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
     function setSelectedFile(file) {
         if (!file) {
             return;
@@ -29,8 +48,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const extension = file.name.split('.').pop().toLowerCase();
 
-        if (!['csv', 'txt', 'pdf'].includes(extension)) {
-            alert('Please upload only CSV, TXT, or PDF files.');
+        if (!allowedExtensions.includes(extension)) {
+            alert('Please upload only PDF, CSV, TXT, XLS, or XLSX files.');
 
             if (fileInput) {
                 fileInput.value = '';
@@ -90,8 +109,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const extension = file.name.split('.').pop().toLowerCase();
 
-            if (extension !== 'csv' && extension !== 'txt') {
-                alert('Please upload only CSV or TXT files.');
+            if (!allowedExtensions.includes(extension)) {
+                alert('Please upload only PDF, CSV, TXT, XLS, or XLSX files.');
                 return;
             }
 
@@ -113,42 +132,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             uploadButton.disabled = true;
-            uploadButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+            uploadButton.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
         });
     }
 
-    if (closeFeedbackModal && feedbackModal) {
+    if (closeFeedbackModal) {
         closeFeedbackModal.addEventListener('click', function () {
-            feedbackModal.classList.remove('show');
+            closeModal(feedbackModal);
         });
     }
 
     if (feedbackModal) {
         feedbackModal.addEventListener('click', function (event) {
             if (event.target === feedbackModal) {
-                feedbackModal.classList.remove('show');
+                closeModal(feedbackModal);
             }
         });
     }
 
     document.querySelectorAll('[data-open-raw-modal]').forEach(function (button) {
         button.addEventListener('click', function () {
-            if (rawUploadModal) {
-                rawUploadModal.classList.add('show');
-            }
+            openModal(rawUploadModal);
         });
     });
 
-    if (closeRawUploadModal && rawUploadModal) {
+    if (closeRawUploadModal) {
         closeRawUploadModal.addEventListener('click', function () {
-            rawUploadModal.classList.remove('show');
+            closeModal(rawUploadModal);
         });
     }
 
     if (rawUploadModal) {
         rawUploadModal.addEventListener('click', function (event) {
             if (event.target === rawUploadModal) {
-                rawUploadModal.classList.remove('show');
+                closeModal(rawUploadModal);
             }
         });
     }
@@ -167,22 +185,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('[data-open-records-modal]').forEach(function (button) {
         button.addEventListener('click', function () {
-            if (allRecordsModal) {
-                allRecordsModal.classList.add('show');
-            }
+            openModal(allRecordsModal);
         });
     });
 
-    if (closeAllRecordsModal && allRecordsModal) {
+    if (closeAllRecordsModal) {
         closeAllRecordsModal.addEventListener('click', function () {
-            allRecordsModal.classList.remove('show');
+            closeModal(allRecordsModal);
         });
     }
 
     if (allRecordsModal) {
         allRecordsModal.addEventListener('click', function (event) {
             if (event.target === allRecordsModal) {
-                allRecordsModal.classList.remove('show');
+                closeModal(allRecordsModal);
             }
         });
     }
@@ -199,6 +215,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (openEditTripRecordModal) {
+        openEditTripRecordModal.addEventListener('click', function () {
+            openModal(editTripRecordModal);
+        });
+    }
+
+    if (closeEditTripRecordModal) {
+        closeEditTripRecordModal.addEventListener('click', function () {
+            closeModal(editTripRecordModal);
+        });
+    }
+
+    if (cancelEditTripRecordModal) {
+        cancelEditTripRecordModal.addEventListener('click', function () {
+            closeModal(editTripRecordModal);
+        });
+    }
+
+    if (editTripRecordModal) {
+        editTripRecordModal.addEventListener('click', function (event) {
+            if (event.target === editTripRecordModal) {
+                closeModal(editTripRecordModal);
+            }
+        });
+    }
+
     document.querySelectorAll('[data-delete-batch]').forEach(function (button) {
         button.addEventListener('click', function () {
             if (deleteForm) {
@@ -209,22 +251,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 deleteFileName.textContent = button.dataset.deleteName;
             }
 
-            if (deleteModal) {
-                deleteModal.classList.add('show');
-            }
+            openModal(deleteModal);
         });
     });
 
-    if (cancelDeleteButton && deleteModal) {
+    if (cancelDeleteButton) {
         cancelDeleteButton.addEventListener('click', function () {
-            deleteModal.classList.remove('show');
+            closeModal(deleteModal);
         });
     }
 
     if (deleteModal) {
         deleteModal.addEventListener('click', function (event) {
             if (event.target === deleteModal) {
-                deleteModal.classList.remove('show');
+                closeModal(deleteModal);
             }
         });
     }
