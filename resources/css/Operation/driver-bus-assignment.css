@@ -1,0 +1,1495 @@
+/* =========================================================
+   DRIVER & BUS ASSIGNMENT
+   MATCHED TO JOB ORDERS SCALE
+========================================================= */
+
+.assignment-page {
+    --assign-blue: #0b40b5;
+    --assign-blue-dark: #07338f;
+    --assign-navy: #061f3d;
+    --assign-yellow: #ffc400;
+    --assign-yellow-dark: #f5a800;
+
+    --assign-green: #16a34a;
+    --assign-red: #dc2626;
+    --assign-orange: #d97706;
+    --assign-purple: #6d28d9;
+
+    --assign-text: #0f172a;
+    --assign-muted: #64748b;
+
+    --assign-border: #dce5f2;
+    --assign-soft-border: #e7edf5;
+    --assign-table-head: #f3f7fc;
+
+    --assign-shadow:
+        0 4px 16px rgba(6, 31, 61, 0.07);
+
+    --assign-hover-shadow:
+        0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.assignment-page .topbar {
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+   SAME SCALE AS JOB ORDERS
+========================================================= */
+
+.assignment-summary-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 20px;
+}
+
+
+.assignment-summary-card {
+    min-height: 112px;
+
+    padding: 18px 20px;
+
+    display: grid;
+
+    grid-template-columns:
+        48px minmax(0, 1fr);
+
+    align-items: center;
+
+    gap: 14px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 16px;
+
+    box-shadow: var(--assign-shadow);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.assignment-summary-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow: var(--assign-hover-shadow);
+}
+
+
+.summary-icon {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    font-size: 18px;
+}
+
+
+.summary-icon.blue {
+    background: #eaf2ff;
+    color: var(--assign-blue);
+}
+
+
+.summary-icon.green {
+    background: #dcfce7;
+    color: var(--assign-green);
+}
+
+
+.summary-icon.purple {
+    background: #ede9fe;
+    color: var(--assign-purple);
+}
+
+
+.summary-icon.yellow {
+    background: #fff4c7;
+    color: #b77900;
+}
+
+
+.assignment-summary-card p {
+    margin: 0;
+
+    color: var(--assign-muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+.assignment-summary-card h2 {
+    margin: 3px 0 2px;
+
+    color: var(--assign-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+
+.assignment-summary-card small {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.assignment-card,
+.resource-card {
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 16px;
+
+    box-shadow: var(--assign-shadow);
+}
+
+
+.assignment-card {
+    padding: 16px;
+
+    margin-bottom: 18px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.assignment-card-header {
+    margin-bottom: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+}
+
+
+.assignment-card-header h2 {
+    margin: 0;
+
+    color: var(--assign-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    letter-spacing: -0.01em;
+}
+
+
+.assignment-card-header p {
+    margin: 3px 0 0;
+
+    color: var(--assign-muted);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   NEW ASSIGNMENT BUTTON
+========================================================= */
+
+.new-assignment-btn {
+    height: 40px;
+
+    padding: 0 16px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border: 1px solid var(--assign-yellow-dark);
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--assign-yellow),
+            var(--assign-yellow-dark)
+        );
+
+    color: var(--assign-navy);
+
+    font-size: 13px;
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 12px rgba(255, 196, 0, 0.22);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.new-assignment-btn:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.assignment-toolbar {
+    width: 100%;
+
+    margin-bottom: 14px;
+
+    padding: 10px 12px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(280px, 1fr)
+        165px
+        165px;
+
+    align-items: end;
+
+    gap: 10px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 12px;
+}
+
+
+.assignment-search {
+    position: relative;
+
+    min-width: 0;
+}
+
+
+.assignment-search i {
+    position: absolute;
+
+    top: 50%;
+    left: 14px;
+
+    transform: translateY(-50%);
+
+    color: var(--assign-blue);
+
+    font-size: 13px;
+
+    pointer-events: none;
+}
+
+
+.assignment-search input {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 14px 0 40px;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--assign-text);
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+
+.assignment-search input::placeholder {
+    color: #8a98ac;
+}
+
+
+.assignment-filter {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+
+.assignment-filter label {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+.assignment-filter input,
+.assignment-filter select {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 11px;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--assign-text);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    outline: none;
+}
+
+
+.assignment-search input:focus,
+.assignment-filter input:focus,
+.assignment-filter select:focus {
+    border-color: var(--assign-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.assignment-table-wrap {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.assignment-table {
+    width: 100%;
+
+    min-width: 1080px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+
+.assignment-table thead {
+    background: var(--assign-table-head);
+}
+
+
+.assignment-table th {
+    padding: 13px 14px;
+
+    border-bottom: 1px solid var(--assign-border);
+
+    color: #475569;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 0.055em;
+
+    line-height: 1.25;
+
+    text-align: left;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+}
+
+
+.assignment-table td {
+    padding: 13px 14px;
+
+    border-bottom:
+        1px solid var(--assign-soft-border);
+
+    color: var(--assign-text);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    vertical-align: middle;
+}
+
+
+.assignment-table tbody tr {
+    transition:
+        background-color 0.18s ease;
+}
+
+
+.assignment-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+
+.assignment-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   COLUMN WIDTHS
+========================================================= */
+
+.assignment-table th:nth-child(1) {
+    width: 8%;
+}
+
+
+.assignment-table th:nth-child(2) {
+    width: 14%;
+}
+
+
+.assignment-table th:nth-child(3) {
+    width: 18%;
+}
+
+
+.assignment-table th:nth-child(4) {
+    width: 24%;
+}
+
+
+.assignment-table th:nth-child(5) {
+    width: 12%;
+}
+
+
+.assignment-table th:nth-child(6) {
+    width: 13%;
+}
+
+
+.assignment-table th:nth-child(7) {
+    width: 11%;
+}
+
+
+.assignment-table th:nth-child(1),
+.assignment-table td:nth-child(1),
+.assignment-table th:nth-child(5),
+.assignment-table td:nth-child(5),
+.assignment-table th:nth-child(6),
+.assignment-table td:nth-child(6),
+.assignment-table th:nth-child(7),
+.assignment-table td:nth-child(7) {
+    text-align: center;
+}
+
+
+/* =========================================================
+   SCHEDULE CELL
+========================================================= */
+
+.schedule-cell {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.schedule-cell strong {
+    color: var(--assign-text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.schedule-cell span {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   ROUTE CELL
+========================================================= */
+
+.route-cell {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.route-cell strong {
+    color: var(--assign-blue);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+.route-cell span {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   DRIVER CELL
+========================================================= */
+
+.driver-cell {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.driver-avatar {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eaf2ff;
+
+    border-radius: 9px;
+
+    color: var(--assign-blue);
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+
+.driver-cell > div:last-child {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.driver-cell strong {
+    color: var(--assign-text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.driver-cell span {
+    color: var(--assign-green);
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   BUS BADGE
+========================================================= */
+
+.bus-badge {
+    min-width: 82px;
+    min-height: 28px;
+
+    padding: 0 10px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eaf2ff;
+
+    border: 1px solid #bfd4ff;
+    border-radius: 7px;
+
+    color: var(--assign-blue);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.assignment-status {
+    min-width: 88px;
+    min-height: 28px;
+
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+
+.assignment-status.ready {
+    background: #dcfce7;
+
+    border: 1px solid #b7efca;
+
+    color: #15803d;
+}
+
+
+.assignment-status.assigned {
+    background: #e0ecff;
+
+    border: 1px solid #bfd4ff;
+
+    color: var(--assign-blue);
+}
+
+
+.assignment-status.dispatched {
+    background: #ede9fe;
+
+    border: 1px solid #ddd6fe;
+
+    color: #6d28d9;
+}
+
+
+.assignment-status.unassigned {
+    background: #fff4c7;
+
+    border: 1px solid #f9df7a;
+
+    color: #9a6700;
+}
+
+
+.unassigned-row {
+    background: #fffdf7;
+}
+
+
+.not-assigned {
+    color: #b45309;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.assignment-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    white-space: nowrap;
+}
+
+
+.assignment-action {
+    width: 34px;
+    min-width: 34px;
+
+    height: 34px;
+    min-height: 34px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    box-shadow: none;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.18s ease,
+        background-color 0.18s ease,
+        color 0.18s ease;
+}
+
+
+.assignment-action.view,
+.assignment-action.edit {
+    background: #eaf2ff;
+
+    border-color: #d4e3ff;
+
+    color: var(--assign-blue);
+}
+
+
+.assignment-action.view:hover,
+.assignment-action.edit:hover {
+    background: var(--assign-blue);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   ASSIGN BUTTON
+========================================================= */
+
+.assign-now-btn {
+    height: 34px;
+
+    padding: 0 13px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--assign-yellow-dark);
+    border-radius: 8px;
+
+    background: var(--assign-yellow);
+
+    color: var(--assign-navy);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+.assign-now-btn:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 12px rgba(255, 196, 0, 0.22);
+}
+
+
+/* =========================================================
+   TABLE FOOTER
+========================================================= */
+
+.assignment-footer {
+    margin-top: 14px;
+
+    padding-top: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    border-top:
+        1px solid var(--assign-soft-border);
+}
+
+
+.assignment-footer > span {
+    color: var(--assign-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+.assignment-footer > div {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.assignment-footer button {
+    min-height: 34px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: var(--assign-navy);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+.assignment-footer button:disabled {
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
+}
+
+
+.assignment-footer div span {
+    color: var(--assign-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   RESOURCE CARDS
+========================================================= */
+
+.resource-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 25px;
+}
+
+
+.resource-card {
+    padding: 18px 20px;
+}
+
+
+.resource-card-header {
+    margin-bottom: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+
+.resource-card-header span {
+    color: var(--assign-blue);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+}
+
+
+.resource-card-header h2 {
+    margin: 3px 0 0;
+
+    color: var(--assign-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+
+.resource-total {
+    color: var(--assign-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+}
+
+
+.resource-record {
+    padding: 13px 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    border-bottom:
+        1px solid var(--assign-soft-border);
+}
+
+
+.resource-record:last-child {
+    border-bottom: 0;
+}
+
+
+.bus-resource-icon {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eaf2ff;
+
+    border-radius: 9px;
+
+    color: var(--assign-blue);
+
+    font-size: 13px;
+}
+
+
+.resource-record-info {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.resource-record-info strong {
+    color: var(--assign-text);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.resource-record-info span {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+.availability {
+    min-height: 26px;
+
+    padding: 0 10px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+.availability.available {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+
+.availability.assigned {
+    background: #e0ecff;
+    color: var(--assign-blue);
+}
+
+
+.availability.unavailable {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+
+/* =========================================================
+   ASSIGNMENT MODAL
+========================================================= */
+
+.assignment-modal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    padding: 20px;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(6, 31, 61, 0.58);
+
+    backdrop-filter: blur(3px);
+}
+
+
+.assignment-modal-overlay.show {
+    display: flex;
+}
+
+
+.assignment-modal {
+    width: min(680px, 100%);
+
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 18px;
+
+    box-shadow:
+        0 20px 50px rgba(6, 31, 61, 0.22);
+}
+
+
+.assignment-modal-header {
+    padding: 20px 22px;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    border-bottom:
+        1px solid var(--assign-border);
+}
+
+
+.assignment-modal-header h2 {
+    margin: 0;
+
+    color: var(--assign-navy);
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+
+.assignment-modal-header p {
+    margin: 4px 0 0;
+
+    color: var(--assign-muted);
+
+    font-size: 12px;
+}
+
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 9px;
+
+    color: var(--assign-muted);
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+
+.assignment-modal-body {
+    padding: 20px 22px;
+}
+
+
+/* =========================================================
+   TRIP SUMMARY
+========================================================= */
+
+.trip-summary {
+    margin-bottom: 20px;
+
+    padding: 14px;
+
+    display: grid;
+
+    grid-template-columns:
+        0.8fr
+        1.8fr
+        1fr;
+
+    gap: 12px;
+
+    background: #f7faff;
+
+    border: 1px solid #dce8fb;
+    border-radius: 10px;
+}
+
+
+.trip-summary div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.trip-summary span {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+.trip-summary strong {
+    color: var(--assign-text);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.assignment-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+
+.assignment-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+.assignment-field label {
+    color: #334155;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.assignment-field select {
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--assign-border);
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--assign-text);
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+
+.assignment-field select:focus {
+    border-color: var(--assign-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+
+.assignment-field small {
+    color: var(--assign-muted);
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   VALIDATION MESSAGE
+========================================================= */
+
+.assignment-validation {
+    margin-top: 18px;
+
+    padding: 13px 14px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    background: #f0fdf4;
+
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+}
+
+
+.assignment-validation > i {
+    margin-top: 2px;
+
+    color: var(--assign-green);
+
+    font-size: 14px;
+}
+
+
+.assignment-validation div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.assignment-validation strong {
+    color: #166534;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.assignment-validation span {
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.assignment-modal-footer {
+    margin-top: 20px;
+
+    padding-top: 16px;
+
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    border-top:
+        1px solid var(--assign-soft-border);
+}
+
+
+.secondary-modal-btn,
+.primary-modal-btn {
+    height: 40px;
+
+    padding: 0 16px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border-radius: 9px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.secondary-modal-btn {
+    background: #ffffff;
+
+    border: 1px solid var(--assign-border);
+
+    color: #475569;
+}
+
+
+.primary-modal-btn {
+    background: var(--assign-blue);
+
+    border: 1px solid var(--assign-blue);
+
+    color: #ffffff;
+}
+
+
+.primary-modal-btn:hover {
+    background: var(--assign-blue-dark);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .assignment-summary-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .assignment-toolbar {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+
+    .assignment-search {
+        grid-column: 1 / -1;
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .assignment-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+
+    .assignment-search {
+        grid-column: auto;
+    }
+
+
+    .resource-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .assignment-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .assignment-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .new-assignment-btn {
+        width: 100%;
+    }
+
+
+    .assignment-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .assignment-form-grid,
+    .trip-summary {
+        grid-template-columns: 1fr;
+    }
+
+}
