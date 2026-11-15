@@ -11,6 +11,7 @@ use App\Http\Controllers\Purchase\MaintenanceRequestController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
+use App\Http\Controllers\Maintenance\MechanicListController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,8 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::view('/maintenance-dashboard', 'Maintenance.maintenance-dashboard')
         ->name('maintenance-dashboard');
 
-    Route::view('/mechanic-list', 'Maintenance.mechanic-list')
-        ->name('mechanic-list');
+    Route::get('/mechanic-list', [MechanicListController::class, 'index'])
+    ->name('mechanic-list');
 
     Route::view('/PMS-Scheduling', 'Maintenance.PMS-Scheduling')
         ->name('PMS-Scheduling');

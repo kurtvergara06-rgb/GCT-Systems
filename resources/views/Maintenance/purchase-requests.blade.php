@@ -138,7 +138,11 @@
           </div>
         </div>
 
-        <form action="{{ route('purchase-requests') }}" method="GET" class="toolbar purchase-toolbar fixed-purchase-toolbar">
+        <form
+          action="{{ route('purchase-requests') }}"
+          method="GET"
+          class="toolbar purchase-toolbar fixed-purchase-toolbar"
+        >
 
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -160,12 +164,18 @@
               class="pr-status-select"
               onchange="this.form.submit()"
             >
-              <option value="All Statuses" {{ request('status', 'All Statuses') === 'All Statuses' ? 'selected' : '' }}>
+              <option
+                value="All Statuses"
+                {{ request('status', 'All Statuses') === 'All Statuses' ? 'selected' : '' }}
+              >
                 All Statuses
               </option>
 
               @foreach($statuses as $status)
-                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
+                <option
+                  value="{{ $status }}"
+                  {{ request('status') === $status ? 'selected' : '' }}
+                >
                   {{ $status }}
                 </option>
               @endforeach
@@ -197,13 +207,24 @@
             <tbody>
               @forelse($purchaseRequests as $pr)
                 @php
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $pr->status));
-
                   $firstRequestedItem = trim(explode(',', $pr->item ?? '')[0] ?? '');
 
                   if (str_contains($firstRequestedItem, ' - Qty:')) {
-                    $firstRequestedItem = trim(explode(' - Qty:', $firstRequestedItem)[0] ?? $firstRequestedItem);
+                    $firstRequestedItem = trim(
+                      explode(' - Qty:', $firstRequestedItem)[0] ?? $firstRequestedItem
+                    );
                   }
+
+                  $isLockedPr = in_array($pr->status, [
+                    'Approved',
+                    'For Purchase',
+                    'Ordered',
+                    'For Pick-up',
+                    'For Delivery',
+                    'Delivered',
+                    'Picked Up',
+                    'Issued',
+                  ], true);
                 @endphp
 
                 <tr>
@@ -214,8 +235,8 @@
                   <td>{{ $pr->quantity }}</td>
 
                   <td class="status-col">
-                    <x-ui.status-badge 
-                      :status="$pr->status" 
+                    <x-ui.status-badge
+                      :status="$pr->status"
                       type="purchase"
                     />
                   </td>
@@ -227,6 +248,7 @@
                   <td>
                     <div class="actions">
 
+                      {{-- VIEW: ALWAYS AVAILABLE --}}
                       <button
                         type="button"
                         class="action-btn view open-view-pr-modal"
@@ -247,26 +269,39 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      <button
-                        type="button"
-                        class="action-btn edit open-edit-pr-modal"
-                        title="Edit"
-                        data-id="{{ $pr->id }}"
-                        data-pr-no="{{ $pr->pr_no }}"
-                        data-job-order-no="{{ $pr->job_order_no }}"
-                        data-bus-no="{{ $pr->bus_no }}"
-                        data-item="{{ $pr->item }}"
-                        data-quantity="{{ $pr->quantity }}"
-                        data-status="{{ $pr->status }}"
-                        data-remarks="{{ $pr->remarks }}"
-                        data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
-                        data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
-                        data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                        data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
-                      >
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
+                      {{-- EDIT: ACTIVE ONLY FOR SUBMITTED OR REJECTED --}}
+                      @if($isLockedPr)
+                        <button
+                          type="button"
+                          class="action-btn edit disabled-pr-edit-btn"
+                          title="Cannot edit. This Purchase Request is already approved or being processed."
+                          disabled
+                        >
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                      @else
+                        <button
+                          type="button"
+                          class="action-btn edit open-edit-pr-modal"
+                          title="Edit"
+                          data-id="{{ $pr->id }}"
+                          data-pr-no="{{ $pr->pr_no }}"
+                          data-job-order-no="{{ $pr->job_order_no }}"
+                          data-bus-no="{{ $pr->bus_no }}"
+                          data-item="{{ $pr->item }}"
+                          data-quantity="{{ $pr->quantity }}"
+                          data-status="{{ $pr->status }}"
+                          data-remarks="{{ $pr->remarks }}"
+                          data-update-url="{{ route('purchase-requests.update', $pr->id) }}"
+                          data-approve-url="{{ route('purchase-requests.approve', $pr->id) }}"
+                          data-reject-url="{{ route('purchase-requests.reject', $pr->id) }}"
+                          data-can-approve="{{ $isMaintenanceAdmin ? '1' : '0' }}"
+                        >
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                      @endif
 
+                      {{-- DELETE --}}
                       <form
                         id="deletePrForm-{{ $pr->id }}"
                         action="{{ route('purchase-requests.destroy', $pr->id) }}"
@@ -325,7 +360,11 @@
         </button>
       </div>
 
-      <form action="{{ route('purchase-requests.store') }}" method="POST" class="pr-jo-form">
+      <form
+        action="{{ route('purchase-requests.store') }}"
+        method="POST"
+        class="pr-jo-form"
+      >
         @csrf
 
         <div class="pr-jo-section-title full-width">
@@ -345,6 +384,7 @@
 
         <div class="pr-jo-form-group">
           <label>JO No.</label>
+
           <select name="job_order_no" id="jobOrderSelect" required>
             <option value="">Select Job Order</option>
 
@@ -386,7 +426,6 @@
             class="pr-parts-container"
             data-initial-parts="{{ isset($selectedJobOrder) && $selectedJobOrder ? $selectedJobOrder->part_needed : '' }}"
           >
-            {{-- JS creates rows here --}}
           </div>
         </div>
 
@@ -398,11 +437,14 @@
         </div>
 
         <div class="pr-jo-form-group full-width">
-          <small>Add each part separately so Warehouse can check inventory correctly.</small>
+          <small>
+            Add each part separately so Warehouse can check inventory correctly.
+          </small>
         </div>
 
         <div class="pr-jo-form-group full-width">
           <label>Remarks</label>
+
           <input
             type="text"
             name="remarks"
@@ -446,7 +488,9 @@
 
         <div class="pr-jo-section-title full-width">
           <h3>Editable PR Information</h3>
-          <p id="editPrDescription">You can edit this purchase request information.</p>
+          <p id="editPrDescription">
+            You can edit this purchase request information.
+          </p>
         </div>
 
         <div class="pr-jo-form-group">
@@ -473,7 +517,6 @@
           <label>Requested Parts</label>
 
           <div id="editPrPartsContainer" class="pr-parts-container">
-            {{-- JS creates rows here --}}
           </div>
         </div>
 
@@ -486,6 +529,7 @@
 
         <div class="pr-jo-form-group full-width">
           <label>Remarks</label>
+
           <input
             type="text"
             name="remarks"
@@ -525,14 +569,17 @@
           </div>
         </div>
 
-        <div class="pr-jo-actions full-width" id="viewOnlyActions" style="display: none;">
+        <div
+          class="pr-jo-actions full-width"
+          id="viewOnlyActions"
+          style="display: none;"
+        >
           <button type="button" id="closeViewOnlyPr" class="pr-jo-cancel-btn">
             Close
           </button>
         </div>
 
       </form>
-
     </div>
   </div>
 
