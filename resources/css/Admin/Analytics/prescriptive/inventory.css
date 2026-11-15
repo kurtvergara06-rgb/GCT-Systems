@@ -1,0 +1,32 @@
+/* ==========================================================================
+   PRESCRIPTIVE ANALYTICS - INVENTORY DOMAIN STYLESHEET
+   ========================================================================== */
+
+.prescriptive-inventory-page .prescriptive-card {
+    border-top: 3px solid #8b5cf6;
+}
+
+.prescriptive-inventory-page .queue-domain-pill {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.prescriptive-inventory-page .prescriptive-queue-item {
+    border-left-color: #8b5cf6;
+}
+
+.item-name-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-primary-name {
+    font-weight: 700;
+    color: var(--presc-navy);
+}
+
+.item-category-sub {
+    font-size: 11px;
+    color: var(--presc-muted);
+}

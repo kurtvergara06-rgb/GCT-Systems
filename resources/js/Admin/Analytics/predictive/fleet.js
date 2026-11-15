@@ -68,7 +68,12 @@ if (tripRiskCanvas) {
         ? list(tripRisk.route_risk)
         : [12, 13, 15, 14, 13, 14, 17];
 
-    new Chart(tripRiskCanvas.getContext('2d'), {
+    const ctxRisk = tripRiskCanvas.getContext('2d');
+    const blueGradient = ctxRisk.createLinearGradient(0, 0, 0, 220);
+    blueGradient.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+    blueGradient.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+    new Chart(ctxRisk, {
         type: 'line',
         data: {
             labels,
@@ -77,10 +82,11 @@ if (tripRiskCanvas) {
                     label: 'Trips at Risk',
                     data: tripsAtRiskData,
                     borderColor: '#2563eb',
-                    backgroundColor: 'transparent',
+                    backgroundColor: blueGradient,
+                    fill: true,
                     borderWidth: 2.2,
-                    pointRadius: 2.5,
-                    pointHoverRadius: 5,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
                     pointBackgroundColor: '#2563eb',
                     tension: 0.4,
                 },
@@ -241,7 +247,7 @@ if (performanceCanvas) {
                     backgroundColor: (ctx) => ctx.dataIndex >= 4 ? 'rgba(37, 99, 235, 0.45)' : '#2563eb',
                     borderColor: '#2563eb',
                     borderWidth: (ctx) => ctx.dataIndex >= 4 ? 1.5 : 0,
-                    borderRadius: 2,
+                    borderRadius: 4,
                     barPercentage: 0.55,
                     categoryPercentage: 0.65,
                     yAxisID: 'y',
@@ -253,7 +259,7 @@ if (performanceCanvas) {
                     backgroundColor: (ctx) => ctx.dataIndex >= 4 ? 'rgba(16, 185, 129, 0.45)' : '#10b981',
                     borderColor: '#10b981',
                     borderWidth: (ctx) => ctx.dataIndex >= 4 ? 1.5 : 0,
-                    borderRadius: 2,
+                    borderRadius: 4,
                     barPercentage: 0.55,
                     categoryPercentage: 0.65,
                     yAxisID: 'y',
@@ -331,3 +337,4 @@ if (performanceCanvas) {
         },
     });
 }
+console.log('GCT Predictive Fleet Analytics initialized.');

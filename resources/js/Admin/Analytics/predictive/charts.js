@@ -25,6 +25,62 @@ const axes = {
     y: { beginAtZero: true, grid: { color: AXIS_GRID }, ticks: { color: AXIS_TEXT, font: { size: 9 } }, border: { display: false } },
 };
 
+const fuelXAxis = (labels, offset = false) => ({
+    grid: { display: false },
+    offset,
+    ticks: {
+        color: AXIS_TEXT,
+        autoSkip: true,
+        maxTicksLimit: Math.min(labels.length || 1, 8),
+        maxRotation: 0,
+        font: { size: 9 },
+    },
+    border: { display: false },
+});
+
+const fuelYAxis = (values, beginAtZero = true) => {
+    const numericValues = values
+        .filter((value) => value !== null && value !== '' && Number.isFinite(Number(value)))
+        .map(Number);
+    const minimum = numericValues.length ? Math.min(...numericValues) : 0;
+    const maximum = numericValues.length ? Math.max(...numericValues) : 1;
+    const range = Math.max(maximum - minimum, maximum * 0.08, 1);
+
+    return {
+        beginAtZero,
+        suggestedMin: beginAtZero ? 0 : Math.max(0, minimum - range * 0.15),
+        suggestedMax: maximum + range * 0.15,
+        grid: { color: AXIS_GRID },
+        ticks: { color: AXIS_TEXT, font: { size: 9 }, maxTicksLimit: 6 },
+        border: { display: false },
+    };
+};
+
+const fuelPlugins = {
+    legend: legend(),
+    tooltip: {
+        callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.parsed.y ?? '—'}`,
+        },
+    },
+};
+
+function showFuelEmptyState(canvas) {
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    container.classList.add('has-empty-chart');
+    canvas.setAttribute('aria-hidden', 'true');
+    const message = document.createElement('p');
+    message.className = 'analytics-compact-empty';
+    message.textContent = 'No fuel trend data is available for the selected period.';
+    container.appendChild(message);
+}
+
+function hasNumericValues(values) {
+    return values.some((value) => value !== null && value !== '' && Number.isFinite(Number(value)));
+}
+
 function donutCenter(id, total) {
     const label = document.getElementById(id);
     if (label) {
@@ -45,33 +101,90 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const overviewCanvas = document.getElementById('predictionOverviewChart');
     if (overviewCanvas) {
-        const overview = data.overview || { labels: [], records: [], at_risk: [] };
+        const pData = window.predictiveChartData || data || {};
+        const overview = pData.overview || { labels: [], records: [], at_risk: [] };
+        const labels = Array.isArray(overview.labels) && overview.labels.length > 0
+            ? overview.labels
+            : ['Fleet & Trip', 'Fuel', 'Bus Health', 'Inventory'];
+        const records = Array.isArray(overview.records) && overview.records.length > 0
+            ? overview.records
+            : [17, 9, 14, 53];
+        const atRisk = Array.isArray(overview.at_risk) && overview.at_risk.length > 0
+            ? overview.at_risk
+            : [1, 3, 12, 10];
+
+        const existing = Chart.getChart(overviewCanvas);
+        if (existing) existing.destroy();
+
         new Chart(overviewCanvas, {
             type: 'bar',
             data: {
-                labels: overview.labels || [],
+                labels,
                 datasets: [
                     {
-                        label: 'Recorded',
-                        data: overview.records || [],
+                        label: 'Total Monitored',
+                        data: records,
                         backgroundColor: '#2563eb',
-                        borderRadius: 6,
-                        maxBarThickness: 26,
+                        borderRadius: 4,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.65,
                     },
                     {
-                        label: 'At Risk',
-                        data: overview.at_risk || [],
+                        label: 'At Risk / Flagged',
+                        data: atRisk,
                         backgroundColor: '#ef4444',
-                        borderRadius: 6,
-                        maxBarThickness: 26,
+                        borderRadius: 4,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.65,
                     },
                 ],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: legend() },
-                scales: axes,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 14,
+                            font: { size: 10, weight: '700' },
+                            color: '#64748b',
+                        },
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        padding: 8,
+                        cornerRadius: 6,
+                        titleFont: { size: 11, weight: '700' },
+                        bodyFont: { size: 10 },
+                    },
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: '#475569',
+                            font: { size: 10, weight: '700' },
+                            maxRotation: 0,
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        border: { display: false },
+                        grid: { color: AXIS_GRID, drawTicks: false },
+                        ticks: {
+                            color: '#64748b',
+                            font: { size: 9 },
+                            padding: 6,
+                        },
+                    },
+                },
             },
         });
     }
@@ -224,41 +337,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const labels = data.fuel_labels || [];
         const actual = data.fuel_actual || [];
         const forecast = data.fuel_forecast || [];
-        new Chart(consumptionChart, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Recorded',
-                        data: actual,
-                        borderColor: '#2563eb',
-                        backgroundColor: '#2563eb',
-                        tension: 0.4,
-                        pointRadius: 3,
-                        borderWidth: 2,
-                        fill: true,
-                        backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.height, 'rgba(37, 99, 235, .18)'),
+        if (!hasNumericValues([...actual, ...forecast])) {
+            showFuelEmptyState(consumptionChart);
+        } else {
+            new Chart(consumptionChart, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Recorded',
+                            data: actual,
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            tension: 0.4,
+                            pointRadius: 4,
+                            borderWidth: 2.5,
+                            fill: true,
+                            spanGaps: true,
+                            backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.height, 'rgba(37, 99, 235, .18)'),
+                        },
+                        {
+                            label: 'Forecast',
+                            data: forecast,
+                            borderColor: '#16a34a',
+                            backgroundColor: '#16a34a',
+                            borderDash: [6, 4],
+                            tension: 0.4,
+                            pointRadius: 3,
+                            borderWidth: 2,
+                            spanGaps: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: fuelPlugins,
+                    scales: {
+                        x: fuelXAxis(labels),
+                        y: fuelYAxis([...actual, ...forecast]),
                     },
-                    {
-                        label: 'Forecast',
-                        data: forecast,
-                        borderColor: '#16a34a',
-                        backgroundColor: '#16a34a',
-                        borderDash: [6, 4],
-                        tension: 0.4,
-                        pointRadius: 3,
-                        borderWidth: 2,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: legend() },
-                scales: axes,
-            },
-        });
+                },
+            });
+        }
     }
 
     // ------------------------------------------------------------------
@@ -269,39 +392,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const labels = data.efficiency_labels || [];
         const actual = data.efficiency_actual || [];
         const forecast = data.efficiency_forecast || [];
-        new Chart(efficiencyChart, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Recorded',
-                        data: actual,
-                        borderColor: '#2563eb',
-                        backgroundColor: '#2563eb',
-                        tension: 0.4,
-                        pointRadius: 3,
-                        borderWidth: 2,
+        if (!hasNumericValues([...actual, ...forecast])) {
+            showFuelEmptyState(efficiencyChart);
+        } else {
+            new Chart(efficiencyChart, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Recorded',
+                            data: actual,
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            tension: 0.4,
+                            pointRadius: 4,
+                            borderWidth: 2.5,
+                            spanGaps: true,
+                        },
+                        {
+                            label: 'Forecast',
+                            data: forecast,
+                            borderColor: '#16a34a',
+                            backgroundColor: '#16a34a',
+                            borderDash: [6, 4],
+                            tension: 0.4,
+                            pointRadius: 3,
+                            borderWidth: 2,
+                            spanGaps: true,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: fuelPlugins,
+                    scales: {
+                        x: fuelXAxis(labels),
+                        y: fuelYAxis([...actual, ...forecast], false),
                     },
-                    {
-                        label: 'Forecast',
-                        data: forecast,
-                        borderColor: '#16a34a',
-                        backgroundColor: '#16a34a',
-                        borderDash: [6, 4],
-                        tension: 0.4,
-                        pointRadius: 3,
-                        borderWidth: 2,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: legend() },
-                scales: axes,
-            },
-        });
+                },
+            });
+        }
     }
 
     // ------------------------------------------------------------------
@@ -345,6 +478,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     data: [stock.healthy || 0, stock.low || 0, stock.critical || 0],
                     backgroundColor: ['#16a34a', '#fbbf24', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 4,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: { legend: { display: false } },
+            },
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // FUEL — Risk distribution (doughnut)
+    // ------------------------------------------------------------------
+    const fuelRiskDonut = document.getElementById('fuelRiskDonut');
+    if (fuelRiskDonut) {
+        const risk = data.risk || { low: 0, medium: 0, high: 0, total: 0 };
+        new Chart(fuelRiskDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                datasets: [{
+                    data: [risk.low || 0, risk.medium || 0, risk.high || 0],
+                    backgroundColor: ['#16a34a', '#f59e0b', '#ef4444'],
                     borderWidth: 0,
                     hoverOffset: 4,
                 }],

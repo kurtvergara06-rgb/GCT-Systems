@@ -216,14 +216,13 @@
 
         <div class="descriptive-attention-grid">
             @foreach($attentionItems as [$label, $value, $detail, $icon, $tone])
-                <div class="descriptive-attention-card tone-{{ $tone }}">
-                    <span><i class="fa-solid {{ $icon }}"></i></span>
-                    <div>
-                        <strong>{{ number_format($value) }}</strong>
-                        <b>{{ $label }}</b>
-                        <small>{{ $detail }}</small>
-                    </div>
-                </div>
+                <x-analytics.kpi
+                    :label="$label"
+                    :value="number_format($value)"
+                    :description="$detail"
+                    :icon="$icon"
+                    :tone="$tone === 'gray' ? 'blue' : ($tone === 'orange' ? 'yellow' : $tone)"
+                />
             @endforeach
         </div>
     </x-analytics.card>

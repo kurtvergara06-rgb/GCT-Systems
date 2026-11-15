@@ -600,7 +600,8 @@
 .fuel-status-pill,
 .issue-pill,
 .descriptive-alert-state,
-.analytics-card__badge {
+.analytics-card__badge,
+.analytics-card-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
