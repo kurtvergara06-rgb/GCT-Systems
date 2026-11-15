@@ -217,7 +217,7 @@
                                 <small>{{ $bus->bus_model ?: 'Model not recorded' }}{{ $bus->year_model ? ' (' . $bus->year_model . ')' : '' }}</small>
                             </div>
                             <div class="health-attention-status">
-                                <span class="status-pill {{ strtolower(str_replace(' ', '-', $bus->status)) }}">{{ $bus->status }}</span>
+                                <x-ui.status-badge :status="$bus->status" class="status-pill {{ strtolower(str_replace(' ', '-', $bus->status)) }}" />
                             </div>
                             <div class="health-attention-orders">
                                 <strong>{{ $bus->open_orders }} open</strong>
@@ -323,9 +323,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="status-pill {{ strtolower(str_replace(' ', '-', $bus->status)) }}">
-                                        <i></i>{{ $bus->status }}
-                                    </span>
+                                    <x-ui.status-badge :status="$bus->status" class="status-pill {{ strtolower(str_replace(' ', '-', $bus->status)) }}" />
                                 </td>
                                 <td><strong>{{ $bus->open_orders }}</strong></td>
                                 <td>

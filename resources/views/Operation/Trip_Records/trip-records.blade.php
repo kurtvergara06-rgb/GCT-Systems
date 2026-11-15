@@ -1,32 +1,11 @@
-<x-layout.app
-    title="FROMS - Trip Records"
-    :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
-        'resources/css/Main-styles/form-components.css',
-        'resources/css/Operation/Trip_Records/trip-records.css',
-        'resources/js/Main-js/sidebar.js',
-        'resources/js/Operation/Trip_Records/trip-records.js',
-    ]"
->
-    <div class="app">
-        <x-layout.sidebar department="Operation" />
-
-        <main class="main trip-records-page">
-            <x-layout.topbar
-                title="Trip Records"
-                subtitle="Review completed shuttle trips and operational history"
-                notification-count="4"
-            />
-
-            <!-- Summary KPI Cards -->
-            <section data-ajax-region="summary" class="trip-summary-grid">
+<x-operation.trip-history-layout active-view="operations" heading="Operational Records" description="Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.">
+    <x-slot:kpis>
                 <article class="trip-summary-card">
                     <div class="trip-summary-icon green">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                     <div>
-                        <p>Total Completed Trips</p>
+                        <p>Total Completed Trips (All Time)</p>
                         <h2>{{ number_format($totalCompletedTrips) }}</h2>
                         <small>Completed shuttle runs</small>
                     </div>
@@ -59,87 +38,36 @@
                         <i class="fa-solid fa-bus"></i>
                     </div>
                     <div>
-                        <p>Delayed Trips</p>
+                        <p>Delayed Trips (All Time)</p>
                         <h2>{{ number_format($delayedTripsCount) }}</h2>
                         <small>Trip delays recorded</small>
                     </div>
                 </article>
-            </section>
+    </x-slot:kpis>
 
-            <!-- Main Records Card -->
-            <section data-ajax-region="records" class="trip-card">
-                <div class="trip-card-header">
-                    <div>
-                        <h2>Operational Trip History</h2>
-                        <p>Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.</p>
-                    </div>
+    <x-slot:headerAction>
                     <button class="trip-export-btn trip-export-header" type="submit" form="tripRecordsFilterForm"
                         formaction="{{ route('trip-records.export') }}" formmethod="GET">
                         <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
                     </button>
-                </div>
+    </x-slot:headerAction>
 
-                <!-- Filter & Search Toolbar -->
-                <form method="GET" action="{{ route('trip-records') }}" id="tripRecordsFilterForm" class="trip-toolbar">
-                    <div class="trip-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search by trip code, bus, driver, route..."
-                        />
-                    </div>
+    <x-slot:toolbar>
+                <x-ui.table-toolbar action="{{ route('trip-records', ['view' => 'operations'], false) }}" form-id="tripRecordsFilterForm" search-label="Search Trip Records" search-placeholder="Search trip code, bus, driver, or route..." :filter-count="collect(['date_from','date_to'])->filter(fn ($key) => request()->filled($key))->count() + (int) (request()->filled('status') && request('status') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('shift') && request('shift') !== 'all')" filter-title="Filter Trip Records" :sort-options="['trip_date' => 'Trip Date', 'trip_code' => 'Trip ID', 'departure_time' => 'Departure Time', 'status' => 'Status']" default-sort="trip_date" default-direction="desc">
+                    <x-slot:hidden><input type="hidden" name="view" value="operations"></x-slot:hidden>
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Date From" name="date_from" type="date" />
+                        <x-ui.table-toolbar-field label="Date To" name="date_to" type="date" />
+                        <x-ui.table-toolbar-field label="Status" name="status" default="all"><option value="all">All Statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Route" name="route" default="all"><option value="all">All Routes</option>@foreach($routes as $route)<option value="{{ $route->id }}" @selected(request('route') == $route->id)>{{ $route->route_code }} - {{ $route->route_name }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Shift" name="shift" default="all"><option value="all">All Shifts</option>@foreach($shifts as $shift)<option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>@endforeach</x-ui.table-toolbar-field>
+                    </x-slot:filters>
+                </x-ui.table-toolbar>
+    </x-slot:toolbar>
 
-                    <details class="trip-more-filters">
-                        <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i> More Filters</summary>
-                        <div class="trip-extra-filters">
-                            <div class="trip-filter date-filter">
-                                <label for="filterFrom">Date From</label>
-                                <input type="date" id="filterFrom" name="date_from" value="{{ request('date_from') }}" />
-                            </div>
-                            <div class="trip-filter date-filter">
-                                <label for="filterTo">Date To</label>
-                                <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
-                            </div>
-                            <div class="trip-filter">
-                                <label for="filterStatus">Status</label>
-                                <select id="filterStatus" name="status">
-                                    <option value="all">All Statuses</option>
-                                    @foreach($statuses as $status)
-                                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="trip-filter">
-                                <label for="filterRoute">Route</label>
-                                <select id="filterRoute" name="route">
-                                    <option value="all">All Routes</option>
-                                    @foreach($routes as $route)
-                                        <option value="{{ $route->id }}" @selected(request('route') == $route->id)>{{ $route->route_code }} - {{ $route->route_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="trip-filter">
-                                <label for="filterShift">Shift</label>
-                                <select id="filterShift" name="shift">
-                                    <option value="all">All Shifts</option>
-                                    @foreach($shifts as $shift)
-                                        <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="trip-filter-actions">
-                                <a href="{{ route('trip-records') }}" class="trip-clear-btn">Reset</a>
-                                <button class="trip-export-btn" type="submit">Apply Filters</button>
-                            </div>
-                        </div>
-                    </details>
-                </form>
+    <x-slot:helper><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Operational records reflect saved trip execution and matched driver-report data.</x-slot:helper>
 
-                <!-- Trip Table Container with Contained Scroll -->
-                <div class="table-wrap trip-table-wrap">
-                    <table class="trip-table">
+                    <table class="trip-table trip-history-table">
                         <thead>
                             <tr>
                                 <th>Trip ID</th>
@@ -158,7 +86,8 @@
                         <tbody>
                             @forelse($trips as $trip)
                                 @php
-                                    $assignment = $trip->assignment;
+                                    $allAssignments = $trip->assignments->sortBy('id')->values();
+                                    $assignment = $allAssignments->first() ?: $trip->assignment;
                                     $bus = $assignment?->bus;
                                     $route = $trip->shuttleRoute;
                                     $routeCode = $trip->route_code_snapshot ?: $route?->route_code;
@@ -195,6 +124,14 @@
                                         'bus_model' => $bus?->bus_model,
                                         'driver_name' => $assignment?->driver_name,
                                         'driver_id' => $assignment?->driver_id,
+                                        'assignments' => $allAssignments->map(fn ($a) => [
+                                            'bus_no' => $a->bus?->bus_no,
+                                            'plate_no' => $a->bus?->plate_no,
+                                            'bus_model' => $a->bus?->bus_model,
+                                            'driver_name' => $a->driver_name,
+                                            'driver_id' => $a->driver_id,
+                                            'actual_duration_minutes' => $a->actual_duration_minutes,
+                                        ])->values()->all(),
                                         'departure_time' => $departureFmt,
                                         'estimated_arrival_time' => $estArrivalFmt,
                                         'actual_departure_time' => $actualDeptFmt ?: '—',
@@ -228,24 +165,24 @@
                                     </td>
 
                                     <td>
-                                        @if($bus)
-                                            <x-ui.id-badge :value="$bus->plate_no ?: 'No plate'" />
-                                        @else
+                                        @forelse($allAssignments as $unit)
+                                            <div style="margin-bottom: 3px;"><x-ui.id-badge :value="$unit->bus?->plate_no ?: ($unit->bus?->bus_no ?: 'No plate')" /></div>
+                                        @empty
                                             <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
-                                        @endif
+                                        @endforelse
                                     </td>
 
                                     <td>
-                                        @if($assignment?->driver_name)
-                                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                                <span style="font-weight: 700; color: var(--trip-navy);">{{ $assignment->driver_name }}</span>
-                                                @if($assignment->driver_id)
-                                                    <small style="color: var(--trip-muted); font-size: 11px;">{{ $assignment->driver_id }}</small>
+                                        @forelse($allAssignments as $unit)
+                                            <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px;">
+                                                <span style="font-weight: 700; color: var(--trip-navy);">{{ $unit->driver_name ?: '—' }}</span>
+                                                @if($unit->driver_id)
+                                                    <small style="color: var(--trip-muted); font-size: 11px;">{{ $unit->driver_id }}</small>
                                                 @endif
                                             </div>
-                                        @else
+                                        @empty
                                             <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
-                                        @endif
+                                        @endforelse
                                     </td>
 
                                     <td>
@@ -276,9 +213,7 @@
                                     </td>
 
                                     <td>
-                                        <span class="trip-status {{ $statusClass }}">
-                                            {{ $trip->status }}
-                                        </span>
+                                        <x-ui.status-badge :status="$trip->status" class="trip-status {{ $statusClass }}" />
                                     </td>
 
                                     <td>
@@ -289,56 +224,35 @@
                                                 title="View Trip Details"
                                                 data-trip="{{ $tripDataJson }}"
                                             >
-                                                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="10" style="text-align: center; padding: 48px 20px;">
-                                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--trip-muted);">
-                                            <i class="fa-solid fa-route" style="font-size: 32px; color: #cbd5e1;"></i>
-                                            <strong style="font-size: 15px; color: var(--trip-navy);">No Trip Records Found</strong>
-                                            <p style="font-size: 13px; margin: 0; max-width: 400px;">
-                                                No historical trips matched your search or filter criteria. Try adjusting the date, route, or status filters.
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <x-ui.empty-row
+                                    colspan="10"
+                                    icon="fa-route"
+                                    message="No Trip Records Found"
+                                    description="No historical trips matched your search or filter criteria. Try adjusting the date, route, or status filters."
+                                />
                             @endforelse
                         </tbody>
                     </table>
-                </div>
 
-                <div
-                    class="trip-table-footer"
-                    data-scroll-pagination
-                    data-lazy-pagination="true"
-                    data-page-name="{{ $trips->getPageName() }}"
-                    data-next-url="{{ $trips->nextPageUrl() }}"
-                    data-total="{{ $trips->total() }}"
-                >
-                    <span data-entry-count>
-                        Showing {{ $trips->total() ? $trips->firstItem() : 0 }} to {{ $trips->total() ? $trips->lastItem() : 0 }} of {{ $trips->total() }} matching trip records
-                    </span>
-                    <span class="table-loading-all" data-table-loading hidden>
-                        <x-ui.spinner size="sm" />
-                        <span data-table-loading-label>Loading more records...</span>
-                    </span>
-                    @if($trips->hasMorePages())<span class="trip-scroll-hint">Scroll to load more historical records</span>@endif
-                </div>
-            </section>
-        </main>
-    </div>
+    <x-slot:pagination><x-ui.table-footer :items="$trips" data-lazy-pagination="true" /></x-slot:pagination>
 
+    <x-slot:after>
     <!-- Trip Record Detail Inspection Modal -->
     <div class="trip-modal-overlay" id="tripDetailModal">
         <div class="trip-modal">
             <div class="trip-modal-header">
                 <div>
-                    <h2 id="modalTripCode">Trip Details</h2>
-                    <p>Comprehensive operational log breakdown for this shuttle trip.</p>
+                    <div class="trip-modal-title-row">
+                        <h2 id="modalTripCode">Trip Details</h2>
+                        <span id="modalStatus" class="trip-status scheduled">—</span>
+                    </div>
+                    <p>Comprehensive operational log & multi-unit schedule execution breakdown.</p>
                 </div>
                 <button type="button" class="trip-modal-close" aria-label="Close modal">
                     <i class="fa-solid fa-xmark"></i>
@@ -346,102 +260,146 @@
             </div>
 
             <div class="trip-detail-body">
-                <!-- Status & Timing Header -->
-                <div class="trip-detail-section">
-                    <h3 class="trip-detail-section-title">Overview & Status</h3>
-                    <div class="trip-detail-grid">
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Current Status</span>
-                            <span id="modalStatus" class="trip-status scheduled">—</span>
+                <!-- Saved unit assignments for this historical trip (no placeholder records). -->
+                <div class="unit-records-card">
+                    <div class="unit-records-header">
+                        <div class="unit-records-title-group">
+                            <h3>Assigned Units</h3>
+                            <p>Actual saved driver and bus assignments for this trip.</p>
                         </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Operational Date & Shift</span>
-                            <span class="trip-detail-value"><span id="modalTripDate">—</span> • <span id="modalShift">—</span></span>
+                        <div class="unit-records-controls">
+                            <label class="unit-records-search">
+                                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                <input type="search" id="unitRecordSearchInput" placeholder="Search plate, driver, or bus..." aria-label="Search assigned units" />
+                            </label>
+                            <button type="button" class="unit-records-export-btn" id="unitExportBtn"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export Units CSV</button>
                         </div>
                     </div>
+                    <div class="unit-records-table-wrap">
+                        <table class="unit-records-table">
+                            <thead><tr><th>Slot</th><th>Bus / Plate</th><th>Driver</th><th>Scheduled Departure</th><th>Trip Status</th></tr></thead>
+                            <tbody id="actualTripUnitRows"><tr><td colspan="5">Select a trip to inspect its saved assignments.</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="unit-records-footer" id="unitTableEntriesCount"></div>
                 </div>
 
-                <!-- Route Information -->
-                <div class="trip-detail-section">
-                    <h3 class="trip-detail-section-title">Route & Corridor</h3>
-                    <div class="trip-detail-grid">
-                        <div class="trip-detail-item full">
-                            <span class="trip-detail-label">Shuttle Route</span>
-                            <span id="modalRouteName" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
+                <!-- Underlying Database Telemetry Drawer (Preserves all verified historical record fields) -->
+                <details class="trip-database-telemetry-drawer">
+                    <summary>
+                        <div class="telemetry-drawer-summary-left">
+                            <i class="fa-solid fa-database"></i>
+                            <div>
+                                <strong>Underlying System Database Record</strong>
+                                <span>Schedule timings, snapshots, and driver notes recorded in the database</span>
+                            </div>
                         </div>
-                        <div class="trip-detail-item full">
-                            <span class="trip-detail-label">Origin & Destination</span>
-                            <span id="modalRouteSpan" class="trip-detail-value">—</span>
-                        </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Recorded Distance</span>
-                            <span id="modalDistance" class="trip-detail-value">—</span>
-                        </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Estimated Transit Time</span>
-                            <span id="modalEstTime" class="trip-detail-value">—</span>
-                        </div>
-                    </div>
-                </div>
+                        <i class="fa-solid fa-chevron-down telemetry-drawer-chevron"></i>
+                    </summary>
 
-                <!-- Vehicle & Personnel Assignment -->
-                <div class="trip-detail-section">
-                    <h3 class="trip-detail-section-title">Assigned Bus & Driver</h3>
-                    <div class="trip-detail-grid">
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Assigned Plate Number</span>
-                            <span id="modalBusNo" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
-                            <small id="modalBusDetails" style="color: #64748b; font-size: 11px;">—</small>
+                    <div class="telemetry-drawer-content">
+                        <!-- Overview & Status -->
+                        <div class="trip-detail-section">
+                            <h3 class="trip-detail-section-title">Record Dates & Shift</h3>
+                            <div class="trip-detail-grid">
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Operational Date</span>
+                                    <span id="modalTripDate" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Shift</span>
+                                    <span id="modalShift" class="trip-detail-value">—</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Assigned Driver</span>
-                            <span id="modalDriverName" class="trip-detail-value">—</span>
-                            <small id="modalDriverId" style="color: #64748b; font-size: 11px;">—</small>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Timings Breakdown -->
-                <div class="trip-detail-section">
-                    <h3 class="trip-detail-section-title">Execution Timings</h3>
-                    <div class="trip-detail-grid">
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Scheduled Departure</span>
-                            <span id="modalSchedDept" class="trip-detail-value">—</span>
+                        <!-- Route Information -->
+                        <div class="trip-detail-section">
+                            <h3 class="trip-detail-section-title">Route & Corridor</h3>
+                            <div class="trip-detail-grid">
+                                <div class="trip-detail-item full">
+                                    <span class="trip-detail-label">Shuttle Route</span>
+                                    <span id="modalRouteName" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
+                                </div>
+                                <div class="trip-detail-item full">
+                                    <span class="trip-detail-label">Origin & Destination</span>
+                                    <span id="modalRouteSpan" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Recorded Distance</span>
+                                    <span id="modalDistance" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Estimated Transit Time</span>
+                                    <span id="modalEstTime" class="trip-detail-value">—</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Estimated Arrival</span>
-                            <span id="modalSchedArr" class="trip-detail-value">—</span>
-                        </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Actual Departure</span>
-                            <span id="modalActualDept" class="trip-detail-value">—</span>
-                        </div>
-                        <div class="trip-detail-item">
-                            <span class="trip-detail-label">Actual Arrival</span>
-                            <span id="modalActualArr" class="trip-detail-value">—</span>
-                        </div>
-                        <div class="trip-detail-item full">
-                            <span class="trip-detail-label">Total Actual Run Duration</span>
-                            <span id="modalDuration" class="trip-detail-value">—</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Log Notes -->
-                <div class="trip-detail-section">
-                    <h3 class="trip-detail-section-title">Operational Notes</h3>
-                    <div class="trip-detail-item full" style="background: #ffffff; border: 1px dashed #cbd5e1;">
-                        <p id="modalNotes" style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">—</p>
+                        <!-- Vehicle & Personnel Assignment -->
+                        <div class="trip-detail-section">
+                            <h3 class="trip-detail-section-title">Primary Assigned Bus & Driver</h3>
+                            <div class="trip-detail-grid">
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Assigned Plate Number</span>
+                                    <span id="modalBusNo" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
+                                    <small id="modalBusDetails" style="color: #64748b; font-size: 11px;">—</small>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Assigned Driver</span>
+                                    <span id="modalDriverName" class="trip-detail-value">—</span>
+                                    <small id="modalDriverId" style="color: #64748b; font-size: 11px;">—</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timings Breakdown -->
+                        <div class="trip-detail-section">
+                            <h3 class="trip-detail-section-title">Execution Timings</h3>
+                            <div class="trip-detail-grid">
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Scheduled Departure</span>
+                                    <span id="modalSchedDept" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Estimated Arrival</span>
+                                    <span id="modalSchedArr" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Actual Departure</span>
+                                    <span id="modalActualDept" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item">
+                                    <span class="trip-detail-label">Actual Arrival</span>
+                                    <span id="modalActualArr" class="trip-detail-value">—</span>
+                                </div>
+                                <div class="trip-detail-item full">
+                                    <span class="trip-detail-label">Total Actual Run Duration</span>
+                                    <span id="modalDuration" class="trip-detail-value">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Log Notes -->
+                        <div class="trip-detail-section">
+                            <h3 class="trip-detail-section-title">Operational Notes</h3>
+                            <div class="trip-detail-item full" style="background: #ffffff; border: 1px dashed #cbd5e1;">
+                                <p id="modalNotes" style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">—</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </details>
             </div>
 
-            <div class="trip-modal-actions" style="padding: 14px 22px; margin: 0; background: #f8fafc; border-top: 1px solid var(--trip-border); border-radius: 0 0 18px 18px;">
-                <button type="button" class="trip-secondary-btn trip-modal-dismiss" style="margin-left: auto;">
+            <div class="trip-modal-actions">
+                <span class="trip-modal-footer-caption">
+                    <i class="fa-solid fa-shield-halved"></i> GCT-Systems • Saved Operational Records
+                </span>
+                <button type="button" class="trip-secondary-btn trip-modal-dismiss">
                     Close
                 </button>
             </div>
         </div>
     </div>
-</x-layout.app>
+    </x-slot:after>
+</x-operation.trip-history-layout>

@@ -1913,3 +1913,174 @@ button.ddr-new-btn {
     background: #fff;
     font-size: 12px;
 }
+
+/* Floating DDR validation message: positioned outside the modal grid. */
+.ddr-validation-tooltip {
+    position: fixed;
+    z-index: 110000;
+    max-width: min(280px, calc(100vw - 16px));
+    padding: 8px 11px 8px 32px;
+    color: #26364d;
+    background: #fff;
+    border: 1px solid #d4dce7;
+    border-radius: 7px;
+    box-shadow: 0 5px 16px rgba(15, 36, 61, .17);
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+    pointer-events: none;
+}
+.ddr-validation-tooltip[hidden] { display: none; }
+.ddr-validation-tooltip::before {
+    content: '!';
+    position: absolute;
+    left: 9px;
+    top: 7px;
+    width: 15px;
+    height: 17px;
+    border-radius: 3px;
+    color: #fff;
+    background: #d97706;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+}
+.ddr-validation-tooltip::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 20px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-left: 1px solid #d4dce7;
+    border-top: 1px solid #d4dce7;
+    transform: rotate(45deg);
+}
+.ddr-validation-tooltip.is-above::after {
+    top: auto;
+    bottom: -5px;
+    transform: rotate(225deg);
+}
+.ddr-page .ddr-input-invalid,
+#ddrEncodeModal .ddr-input-invalid {
+    border-color: #d97706 !important;
+    box-shadow: 0 0 0 2px rgba(245,158,11,.12) !important;
+}
+
+/* DDR icon actions and an in-page confirmation modal. */
+.ddr-actions { display:flex; align-items:center; justify-content:center; gap:7px; }
+.ddr-actions .ddr-action { width:30px; height:30px; border:1px solid #c6daf9; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; padding:0; background:#eff6ff; color:#175ac0; cursor:pointer; text-decoration:none; }
+.ddr-actions .ddr-action:hover:not(:disabled) { background:#dbeafe; }
+.ddr-actions .ddr-delete-trigger:not(:disabled) { color:#c0243d; background:#fff1f2; border-color:#fecdd3; }
+.ddr-actions .ddr-delete-trigger:disabled { color:#9ca3af; border-color:#e2e8f0; background:#f1f5f9; cursor:not-allowed; opacity:.7; }
+
+.ddr-actions .ddr-edit-action:not(:disabled) { color:#1455b8; background:#eff6ff; border-color:#c6daf9; }
+.ddr-actions .ddr-edit-action:disabled { color:#9ca3af; border-color:#e2e8f0; background:#f1f5f9; cursor:not-allowed; opacity:.7; }
+.ddr-edit-card .ddr-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:22px; }
+.ddr-edit-card .ui-form-group { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.ddr-edit-card .ui-form-group label { font-size:12px; font-weight:700; color:#183451; }
+.ddr-edit-card .ui-form-group input { width:100%; border:1px solid #cbd5e1; border-radius:8px; background:#fff; padding:10px 12px; font:inherit; font-size:12px; color:#173153; }
+.ddr-edit-card .ui-form-group input:disabled { background:#f1f5f9; color:#64748b; }
+.ddr-edit-card .ui-form-group input:focus-visible { outline:2px solid #2764d8; outline-offset:1px; }
+@media(max-width:600px){ .ddr-edit-card .ddr-form-grid { grid-template-columns:1fr; } }
+
+/* DDR details and correction dialogs live within the records page. */
+.ddr-record-overlay[hidden] { display:none!important; }
+.ddr-record-overlay.is-open { position:fixed; inset:0; z-index:100000; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(13,35,66,.58); backdrop-filter:blur(5px); }
+.ddr-record-dialog { width:min(850px,100%); max-height:calc(100dvh - 36px); display:flex; flex-direction:column; background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.ddr-record-dialog-edit { width:min(650px,100%); }
+.ddr-record-header { display:flex; justify-content:space-between; align-items:flex-start; gap:15px; border-bottom:1px solid #e2e8f0; padding:18px 22px; }
+.ddr-record-header h2 { font-size:17px; color:#122c4f; margin:0 0 3px; }
+.ddr-record-header p { font-size:12px; color:#64748b; margin:0; }
+.ddr-record-close { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; cursor:pointer; color:#193453; }
+.ddr-record-header .ddr-record-close { min-width:32px; padding:7px; }
+.ddr-record-body { padding:18px 22px; overflow-y:auto; min-height:0; }
+.ddr-record-body h3 { font-size:13px; margin:18px 0 10px; color:#162f50; }
+.ddr-record-info { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.ddr-record-info>div { padding:11px; border-radius:9px; background:#f5f8fc; border:1px solid #e9eff7; overflow-wrap:anywhere; }
+.ddr-record-info small { display:block; font-size:10px; color:#62748d; margin-bottom:4px; }
+.ddr-record-info strong { color:#183451; font-size:12px; }
+.ddr-record-table-wrap { overflow-x:auto; }
+.ddr-record-table { width:100%; border-collapse:collapse; font-size:11px; }
+.ddr-record-table th,.ddr-record-table td { text-align:left; padding:9px; border-bottom:1px solid #e2e8f0; }
+.ddr-record-table th { background:#f0f5fa; color:#4f6684; }
+.ddr-record-total { display:flex; justify-content:space-between; gap:12px; padding:12px 0; font-size:12px; color:#193656; }
+.ddr-record-compare { padding:12px 14px; background:#f8fafc; border:1px dashed #cad8e8; border-radius:9px; }
+.ddr-record-compare h3 { margin:0 0 5px; }
+.ddr-record-compare p { color:#60748e; font-size:12px; margin:0; }
+.ddr-record-footer { display:flex; gap:9px; justify-content:flex-end; padding:15px 22px; border-top:1px solid #e2e8f0; background:#fff; }
+.ddr-record-save { border:1px solid #f4ae00; background:#ffbd08; border-radius:8px; padding:10px 15px; font-size:12px; font-weight:750; cursor:pointer; }
+.ddr-record-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.ddr-record-fields label { display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:700; color:#183451; }
+.ddr-record-fields input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; color:#142c48; font:inherit; }
+.ddr-record-note { font-size:12px; color:#64748b; margin:0 0 15px; }
+@media(max-width:650px){ .ddr-record-info{grid-template-columns:repeat(2,minmax(0,1fr));}.ddr-record-fields{grid-template-columns:1fr;} }
+
+.ddr-record-dialog-edit > form { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.ddr-record-dialog-edit > form .ddr-record-body { overflow-y:auto; }
+.ddr-record-overlay .ddr-record-close:focus-visible, .ddr-record-overlay .ddr-record-save:focus-visible { outline:3px solid rgba(37,99,235,.25); outline-offset:2px; }
+
+/* All recorded trips are individually editable without adding new DDR trips. */
+.ddr-edit-trip-list { display:grid; gap:10px; }
+.ddr-edit-trip { border:1px solid #dbe5f2; border-radius:10px; background:#fff; overflow:hidden; }
+.ddr-edit-trip[open] { border-color:#95b8f5; box-shadow:0 2px 10px rgba(28,72,133,.07); }
+.ddr-edit-trip summary { list-style:none; cursor:pointer; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; background:#f5f8fd; color:#193b64; font-size:12px; font-weight:800; }
+.ddr-edit-trip summary::-webkit-details-marker { display:none; }
+.ddr-edit-trip summary small { display:inline-block; margin-left:8px; color:#70829d; font-size:11px; font-weight:600; }
+.ddr-edit-trip summary i { transition:transform .16s ease; }
+.ddr-edit-trip[open] summary i { transform:rotate(180deg); }
+.ddr-edit-trip > .ddr-record-fields { padding:14px; }
+.ddr-edit-trip summary:focus-visible { outline:2px solid #2563eb; outline-offset:-2px; }
+
+/* Refined DDR record viewing: no needless horizontal scroll at desktop sizes. */
+.ddr-record-dialog { width:min(880px,calc(100vw - 36px)); }
+.ddr-record-dialog .ddr-record-body { min-width:0; }
+.ddr-record-dialog .ddr-record-info { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.ddr-record-dialog .ddr-record-info>div { min-width:0; padding:12px; }
+.ddr-record-table-wrap { max-width:100%; overflow-x:auto; border:1px solid #e1eaf5; border-radius:9px; }
+.ddr-record-table { width:100%; min-width:0; table-layout:fixed; }
+.ddr-record-table th,.ddr-record-table td { padding:10px 8px; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }
+.ddr-record-table th { font-size:10px; }
+.ddr-record-table th:nth-child(1) { width:6%; }
+.ddr-record-table th:nth-child(2) { width:13%; }
+.ddr-record-table th:nth-child(3) { width:27%; }
+.ddr-record-table th:nth-child(4),.ddr-record-table th:nth-child(5) { width:15%; }
+.ddr-record-table th:nth-child(6) { width:13%; }
+.ddr-record-table th:nth-child(7) { width:11%; }
+.ddr-record-total { align-items:center; flex-wrap:wrap; padding:13px 2px; border-bottom:1px solid #edf2f8; }
+.ddr-record-compare { margin-top:13px; }
+@media(max-width:680px) {
+  .ddr-record-dialog .ddr-record-info { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ddr-record-table { min-width:620px; }
+  .ddr-record-table-wrap { overflow-x:auto; }
+}
+/* Consistent compact delete confirmation; actions stay in a single footer. */
+
+/* DDR modal approved visual refresh */
+.ddr-record-dialog:not(.ddr-record-dialog-edit) { width:min(960px,calc(100vw - 32px)); }
+.ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-header { align-items:center; gap:14px; }
+.ddr-record-title-icon { width:45px; height:45px; flex:0 0 45px; display:grid; place-items:center; border-radius:12px; color:#1759da; background:#eaf2ff; font-size:19px; }
+.ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-header > div:nth-child(2) { flex:1; min-width:0; }
+.ddr-record-info-iconic > div { display:flex; align-items:center; gap:10px; min-height:72px; }
+.ddr-info-icon { display:grid; place-items:center; width:34px; height:34px; flex:0 0 34px; background:#e1edff; color:#1761d4; border-radius:9px; }
+.ddr-info-copy { display:flex; min-width:0; flex-direction:column; gap:3px; }
+.ddr-info-copy strong { line-height:1.35; overflow-wrap:anywhere; }
+.ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-body h3 { display:flex; align-items:center; gap:8px; font-size:14px; }
+.ddr-record-total { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border:1px solid #dbe9fc; border-radius:9px; padding:0; margin:13px 0 16px; background:#edf5ff; }
+.ddr-record-total > div { display:flex; align-items:center; justify-content:center; gap:13px; padding:13px 10px; }
+.ddr-record-total > div + div { border-left:1px solid #cdddf5; }
+.ddr-record-total > div > i { color:#1b60d4; font-size:19px; }
+.ddr-record-total > div > span { color:#516988; font-size:11px; display:flex; flex-direction:column; gap:2px; }
+.ddr-record-total strong { font-size:20px; color:#142e55; }
+.ddr-record-compare { background:#fffaf0; border-color:#f8d888; }
+.ddr-record-compare h3 { color:#183656; }
+.ddr-record-compare h3 i { color:#c48607; }
+.ddr-record-table td:nth-child(4),.ddr-record-table td:nth-child(5) { white-space:nowrap; }
+@media(max-width:720px) {
+ .ddr-record-dialog:not(.ddr-record-dialog-edit) .ddr-record-info { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .ddr-record-table { min-width:680px; }
+}
+@media(max-width:430px) { .ddr-record-total > div { gap:7px; }.ddr-record-total strong { font-size:17px; } }
+
+/* Match the shared Driver Attendance centered deletion confirmation pattern. */

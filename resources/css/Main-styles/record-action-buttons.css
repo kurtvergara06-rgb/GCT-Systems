@@ -34,3 +34,251 @@
 :where(.gct-record-action, .action-btn):is(.view,.edit,.delete):is(:disabled,.gct-action-unavailable) i {
     color:inherit !important;
 }
+
+/* Canonical solid-icon table delete buttons, including legacy record actions. */
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete) {
+    box-sizing: border-box;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    color: #dc2626 !important;
+}
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+    transform: none !important;
+}
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):is(:disabled, .disabled, .gct-action-unavailable, [aria-disabled="true"]) {
+    background: #e5e7eb !important;
+    border: 1px solid #d1d5db !important;
+    color: #737373 !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete) > i {
+    font-size: 13px !important;
+    line-height: 1;
+    color: inherit !important;
+}
+
+/* Driver Attendance is the canonical table-action reference for all modules.
+   Keep existing handlers, semantic classes and permissions unchanged. */
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .gct-record-action.view, .gct-record-action.edit, .gct-record-action.delete,
+  .table-action-btn.view, .table-action-btn.edit, .table-action-btn.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
+) {
+  box-sizing: border-box;
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  line-height: 1;
+  vertical-align: middle;
+  transform: none;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.view, .action-btn.edit, .gct-record-action.view, .gct-record-action.edit,
+  .table-action-btn.view, .table-action-btn.edit, .trip-action.view, .trip-action.edit
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
+  color: #0057f8 !important;
+  background: #edf5ff !important;
+  border: 1px solid #bcd7ff !important;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete, .trip-action.delete
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
+  color: #dc2626 !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.view, .action-btn.edit, .gct-record-action.view, .gct-record-action.edit,
+  .table-action-btn.view, .table-action-btn.edit, .trip-action.view, .trip-action.edit
+):not(:disabled):not(.disabled):hover {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete, .trip-action.delete
+):not(:disabled):not(.disabled):hover {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .gct-record-action.view, .gct-record-action.edit, .gct-record-action.delete,
+  .table-action-btn.view, .table-action-btn.edit, .table-action-btn.delete,
+  .trip-action.view, .trip-action.edit, .trip-action.delete
+):is(:disabled, .disabled, .gct-action-unavailable, .inc-action-disabled, [aria-disabled="true"]) {
+  color: #737373 !important;
+  background: #e5e7eb !important;
+  border: 1px solid #d1d5db !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+:where(.app) :is(table, .data-table, .records-table) :is(
+  .action-btn, .gct-record-action, .table-action-btn, .trip-action
+):is(.view, .edit, .delete) > i {
+  color: inherit !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+/* System-wide compatibility layer for record tables that predate the shared
+   component. Semantic View/Edit/Delete controls keep their existing handlers,
+   but visually follow the same compact action pattern in every module. */
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.view, .fuel-action-btn.edit, .fuel-action-btn.delete,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .assignment-action.view, .assignment-action.edit,
+  .ddr-action.view, .ddr-action.edit, .ddr-action.delete,
+  .view-btn, .edit-btn, .delete-btn,
+  .pms-edit-task-btn
+) {
+  box-sizing: border-box;
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  line-height: 1;
+  vertical-align: middle;
+  transform: none !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.view, .fuel-action-btn.edit,
+  .route-action.view, .route-action.edit,
+  .assignment-action.view, .assignment-action.edit,
+  .ddr-action.view, .ddr-action.edit,
+  .view-btn, .edit-btn,
+  .pms-edit-task-btn
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
+  color: #0057f8 !important;
+  background: #edf5ff !important;
+  border: 1px solid #bcd7ff !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.delete,
+  .route-action.delete,
+  .ddr-action.delete,
+  .delete-btn
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
+  color: #dc2626 !important;
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.view, .fuel-action-btn.edit,
+  .route-action.view, .route-action.edit,
+  .assignment-action.view, .assignment-action.edit,
+  .ddr-action.view, .ddr-action.edit,
+  .view-btn, .edit-btn,
+  .pms-edit-task-btn
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]):hover {
+  color: #1d4ed8 !important;
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.delete,
+  .route-action.delete,
+  .ddr-action.delete,
+  .delete-btn
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]):hover {
+  color: #b91c1c !important;
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn.view, .fuel-action-btn.edit, .fuel-action-btn.delete,
+  .route-action.view, .route-action.edit, .route-action.delete,
+  .assignment-action.view, .assignment-action.edit,
+  .ddr-action.view, .ddr-action.edit, .ddr-action.delete,
+  .view-btn, .edit-btn, .delete-btn,
+  .pms-edit-task-btn
+):is(:disabled, .disabled, .gct-action-unavailable, .inc-action-disabled, [aria-disabled="true"]) {
+  color: #737373 !important;
+  background: #e5e7eb !important;
+  border: 1px solid #d1d5db !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+
+:where(.app) :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .fuel-action-btn, .route-action, .assignment-action, .ddr-action,
+  .view-btn, .edit-btn, .delete-btn, .pms-edit-task-btn
+) > i {
+  color: inherit !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+
+/* Shared interactive table-action hover across all five modules.
+   Enabled primary actions become solid blue with white content.
+   Destructive actions remain semantically red; disabled actions remain gray. */
+.app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .action-btn.view, .action-btn.edit,
+  .gct-record-action.view, .gct-record-action.edit,
+  .table-action-btn.view, .table-action-btn.edit,
+  .trip-action.view, .trip-action.edit,
+  .fuel-action-btn.view, .fuel-action-btn.edit,
+  .route-action.view, .route-action.edit,
+  .assignment-action.view, .assignment-action.edit,
+  .ddr-action.view, .ddr-action.edit,
+  .view-btn, .edit-btn, .pms-edit-task-btn,
+  .schedule-action-btn.remove
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]):hover {
+  background: #2357a8 !important;
+  border-color: #2357a8 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete,
+  .trip-action.delete, .fuel-action-btn.delete, .route-action.delete,
+  .ddr-action.delete, .delete-btn
+):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]):hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+}
+.app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
+  .action-btn, .gct-record-action, .table-action-btn, .trip-action,
+  .fuel-action-btn, .route-action, .assignment-action, .ddr-action,
+  .view-btn, .edit-btn, .delete-btn, .pms-edit-task-btn,
+  .schedule-action-btn
+):hover > :is(i, svg, span) {
+  color: inherit !important;
+}

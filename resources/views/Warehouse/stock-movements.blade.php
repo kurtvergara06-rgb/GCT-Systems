@@ -32,29 +32,12 @@
           </div>
         </div>
 
-        <form action="{{ route('stock-movements') }}" method="GET" class="toolbar stock-movement-toolbar" data-server-filter="true">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search item, reference no., or movement...">
-          </div>
-
-          <div class="filter-group">
-            <select name="type" id="movementTypeFilter" aria-label="Movement type">
-              @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
-                <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
-              @endforeach
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <select name="date_filter" id="movementDateFilter" aria-label="Date range">
-              @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
-                <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
-              @endforeach
-            </select>
-          </div>
-
-        </form>
+        <x-ui.table-toolbar action="{{ route('stock-movements') }}" data-server-filter="true" search-label="Search Stock Movements" search-placeholder="Search item, reference no., or movement..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates')" filter-title="Filter Stock Movements" :sort-options="['created_at' => 'Date and Time', 'item_name' => 'Item Name', 'movement_type' => 'Movement Type', 'quantity' => 'Quantity', 'reference_no' => 'Reference Number']" default-sort="created_at" default-direction="desc">
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Movement Type" name="type" default="All Types" id="movementTypeFilter">@foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)<option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>@endforeach</x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="All Dates" id="movementDateFilter">@foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)<option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>@endforeach</x-ui.table-toolbar-field>
+          </x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap">
           <table class="stock-movement-table">
@@ -122,16 +105,12 @@
                   <td class="movement-remarks">{{ $movement->remarks ?: '—' }}</td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="8" class="empty-stock-movements">
-                    <x-ui.empty-state
-                      class="stock-movement-empty-state"
-                      icon="fa-right-left"
-                      title="No stock movements recorded"
-                      description="Stock-in, stock-out, and adjustment transactions will appear automatically when inventory changes."
-                    />
-                  </td>
-                </tr>
+                <x-ui.empty-row
+                  colspan="8"
+                  icon="fa-right-left"
+                  message="No Stock Movements Recorded"
+                  description="Stock-in, stock-out, and adjustment transactions will appear automatically when inventory changes."
+                />
               @endforelse
             </tbody>
           </table>

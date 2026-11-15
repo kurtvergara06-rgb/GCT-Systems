@@ -59,38 +59,9 @@
           <span class="purchase-section-count">{{ $restockRequests->total() }} active</span>
         </div>
 
-        <form
-          action="{{ route('inventory-restock', [], false) }}"
-          method="GET"
-          class="toolbar restock-toolbar records-toolbar"
-        >
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search restock no., item, status..."
-            >
-          </div>
-
-          <div class="filter-group">
-            <select
-              name="status"
-              id="restockStatusFilter"
-              aria-label="Status"
-            >
-              <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
-                All States
-              </option>
-              @foreach(($statuses ?? []) as $status)
-                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
-                  {{ $status }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-        </form>
+        <x-ui.table-toolbar action="{{ route('inventory-restock', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Inventory Restock" search-placeholder="Search restock no., item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Inventory Restock" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'Restock Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+          <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap records-table-wrap">
           <table class="restock-table records-table">
@@ -182,7 +153,9 @@
               @empty
                 <x-ui.empty-row
                   colspan="7"
-                  message="No active inventory restock requests found."
+                  icon="fa-boxes-packing"
+                  message="No Inventory Restock Requests Found"
+                  description="No restock requisitions currently require purchasing action."
                 />
               @endforelse
             </tbody>

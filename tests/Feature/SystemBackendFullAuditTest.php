@@ -12,6 +12,7 @@ use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
+use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Models\Operation\ShuttleRoute;
@@ -22,6 +23,7 @@ use App\Models\Purchase\ScheduledPurchase;
 use App\Models\TopbarNotification;
 use App\Models\Warehouse\InventoryItem;
 use App\Models\Warehouse\StockMovement;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -232,21 +234,20 @@ class SystemBackendFullAuditTest extends TestCase
         $this->get(route('operation.routes'))->assertOk();
 
         Http::fake([
-            'router.project-osrm.org/*' =>
-                Http::response([
-                    'code' => 'Ok',
-                    'routes' => [[
-                        'distance' => 38500,
-                        'duration' => 3600,
-                        'geometry' => [
-                            'type' => 'LineString',
-                            'coordinates' => [
-                                [121.1652, 14.2145],
-                                [121.0415, 14.4172],
-                            ],
+            'router.project-osrm.org/*' => Http::response([
+                'code' => 'Ok',
+                'routes' => [[
+                    'distance' => 38500,
+                    'duration' => 3600,
+                    'geometry' => [
+                        'type' => 'LineString',
+                        'coordinates' => [
+                            [121.1652, 14.2145],
+                            [121.0415, 14.4172],
                         ],
-                    ]],
-                ], 200),
+                    ],
+                ]],
+            ], 200),
         ]);
 
         $routeResponse = $this->post(route('operation.routes.store'), [
@@ -347,8 +348,11 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 3.9 Incidents
         $this->get(route('incidents'))->assertOk();
-        $incResponse = $this->post(route('incidents.store'), [
-            'trip_schedule_id' => $tripSchedule->id,
+        // Incidents are reported against the current local-day Ready trip.
+        Carbon::setTestNow(Carbon::parse($tripSchedule->trip_date->format('Y-m-d').' 09:00:00', 'Asia/Manila'));
+        try {
+            $incResponse = $this->post(route('incidents.store'), [
+                'trip_schedule_id' => $tripSchedule->id,
             'bus_id' => $bus->id,
             'driver_id' => $driver->driver_id,
             'driver_name' => $driver->driver_name,
@@ -357,9 +361,12 @@ class SystemBackendFullAuditTest extends TestCase
             'description' => 'Radiator burst hose and coolant leak.',
             'incident_reported_at' => now()->format('Y-m-d H:i:s'),
         ]);
-        $incResponse->assertRedirect();
-        $incident = Incident::where('trip_schedule_id', $tripSchedule->id)->firstOrFail();
-        $this->assertSame('Reported', $incident->status);
+            $incResponse->assertRedirect()->assertSessionHasNoErrors();
+            $incident = Incident::where('trip_schedule_id', $tripSchedule->id)->firstOrFail();
+            $this->assertSame('Reported', $incident->status);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     // =========================================================================
@@ -581,7 +588,7 @@ class SystemBackendFullAuditTest extends TestCase
             'created_by' => $opHead->id,
         ]);
 
-        TripAssignment::create([
+        $assignment = TripAssignment::create([
             'trip_schedule_id' => $trip->id,
             'driver_attendance_id' => $attendance->id,
             'driver_id' => $driver->driver_id,
@@ -594,6 +601,7 @@ class SystemBackendFullAuditTest extends TestCase
         $incident = Incident::create([
             'incident_no' => 'INC-E2E-701',
             'trip_schedule_id' => $trip->id,
+            'trip_assignment_id' => $assignment->id,
             'bus_id' => $bus->id,
             'driver_id' => $driver->driver_id,
             'driver_name' => $driver->driver_name,
@@ -606,9 +614,14 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
 
         // 7.4 Unplanned Breakdown replacement check
-        $spareBus = Bus::create(['bus_no' => 'BUS-SPARE-702', 'status' => 'Active']);
+        $spareBus = Bus::create(['bus_no' => 'BUS-SPARE-702', 'fleet_purpose' => 'Reserve', 'status' => 'Active']);
+        $this->actingAs($opHead)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
         $dispatchResponse = $this->actingAs($opHead)->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
             'replacement_bus_id' => $spareBus->id,
+            'oic_authorized' => '1',
+            'notes' => 'Deploying reserve unit',
         ]);
         $dispatchResponse->assertRedirect();
 
@@ -787,24 +800,35 @@ class SystemBackendFullAuditTest extends TestCase
         $this->assertSame(1, MaintenanceReferral::where('incident_id', $incident->id)->count());
 
         // 8.2 Duplicate replacement bus assignment on same incident is blocked
-        $spare1 = Bus::create(['bus_no' => 'BUS-SPARE-A', 'status' => 'Active']);
-        $spare2 = Bus::create(['bus_no' => 'BUS-SPARE-B', 'status' => 'Active']);
+        $spare1 = Bus::create(['bus_no' => 'BUS-SPARE-A', 'fleet_purpose' => 'Reserve', 'status' => 'Active']);
+        $spare2 = Bus::create(['bus_no' => 'BUS-SPARE-B', 'fleet_purpose' => 'Reserve', 'status' => 'Active']);
+
+        $this->actingAs($opHead)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
 
         $this->actingAs($opHead)->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
             'replacement_bus_id' => $spare1->id,
+            'oic_authorized' => '1',
+            'notes' => 'Deploying reserve unit',
         ])->assertRedirect();
         $this->assertDatabaseHas('incident_replacements', ['incident_id' => $incident->id, 'replacement_bus_id' => $spare1->id]);
 
         // Attempting to dispatch another replacement should be rejected
         $this->actingAs($opHead)->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
             'replacement_bus_id' => $spare2->id,
+            'oic_authorized' => '1',
+            'notes' => 'Attempting duplicate dispatch',
         ])->assertRedirect();
-        $this->assertSame(1, \App\Models\Operation\IncidentReplacement::where('incident_id', $incident->id)->count());
+        $this->assertSame(1, IncidentReplacement::where('incident_id', $incident->id)->count());
 
-        // 8.3 Null handling: incident without trip schedule functions smoothly
+        // 8.3 Null handling: an independent standalone breakdown without a trip schedule.
+        // Use a different bus because the first bus already has an active breakdown,
+        // protected by incidents_active_breakdown_key_unique.
+        $standaloneBus = Bus::create(['bus_no' => 'BUS-STANDALONE-001', 'status' => 'Active']);
         $standaloneIncident = Incident::create([
             'incident_no' => 'INC-STANDALONE-001',
-            'bus_id' => $bus->id,
+            'bus_id' => $standaloneBus->id,
             'incident_type' => 'Bus Breakdown',
             'location' => 'Yard',
             'description' => 'Broken mirror while parked',

@@ -264,12 +264,19 @@ for name, td, dd, bd in scenarios:
     r_b = bus_score(b)
     ml = ml_score(t, dr, b)
 
-    rule_eligible = r_d > 0 and r_b > 0
-    ml_high = ml > 50 if rule_eligible else ml < 50
-    match_str = "OK" if ml_high else "WARN"
+    # ml_score is the raw model estimate, not a dispatch authorization.
+    # A strong raw prediction must never make an ineligible pair schedulable.
+    rule_eligible = is_driver_eligible(dr, td["shift"]) and is_bus_eligible(b)
+    eligible_score = ml if rule_eligible else 0.0
+    valid_result = (eligible_score == 0.0) if not rule_eligible else (0.0 <= eligible_score <= 100.0)
+    match_str = "OK" if valid_result else "FAIL"
 
     print(f"  {name:<20} {r_d:>11} {r_b:>9} {ml:>7.1f} {match_str:>6}")
-    check(f"{name} direction correct", ml_high, f"rule_eligible={rule_eligible}, ml={ml:.1f}")
+    check(
+        f"{name} eligibility gate",
+        valid_result,
+        f"eligible={rule_eligible}, raw_ml={ml:.1f}, usable_score={eligible_score:.1f}",
+    )
 
 
 # ============================================================

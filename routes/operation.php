@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Operation\AutoSchedulingController;
+use App\Http\Controllers\Operation\BusAvailabilityController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\IncidentController;
 use App\Http\Controllers\Operation\MaintenanceReferralController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
+use App\Http\Controllers\Operation\OperationDashboardController;
 use App\Http\Controllers\Operation\RouteController;
 use App\Http\Controllers\Operation\TripAssignmentController;
 use App\Http\Controllers\Operation\TripRecordController;
@@ -15,7 +17,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('role:operation:head,operation:staff,admin:head')->group(function () {
 
-    Route::view('/operation/dashboard', 'Operation.dashboard-operation')->name('dashboard-operation');
+    Route::get('/operation/dashboard', [OperationDashboardController::class, 'index'])
+        ->middleware('system.permission:operation,view')
+        ->name('dashboard-operation');
 
     Route::controller(BusController::class)
         ->prefix('bus-master-list')
@@ -28,10 +32,20 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
             Route::put('/{bus}', 'update')
                 ->middleware('system.permission:operation,edit')
                 ->name('bus-master-list.update');
+            Route::patch('/{bus}/deactivate', 'deactivate')
+                ->middleware('system.permission:operation,edit')
+                ->name('bus-master-list.deactivate');
+            Route::patch('/{bus}/activate', 'activate')
+                ->middleware('system.permission:operation,edit')
+                ->name('bus-master-list.activate');
             Route::delete('/{bus}', 'destroy')
                 ->middleware('system.permission:operation,edit')
                 ->name('bus-master-list.destroy');
         });
+
+    Route::get('/operation/bus-availability', [BusAvailabilityController::class, 'index'])
+        ->middleware('system.permission:operation,view')
+        ->name('bus-availability');
 
     Route::controller(DriverAttendanceController::class)
         ->prefix('driver-attendance')
@@ -70,11 +84,20 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
                 ->name('trip-schedule.destroy');
         });
 
+    Route::post('operation/external-bus-rentals', [\App\Http\Controllers\Operation\ExternalBusRentalController::class, 'store'])
+        ->middleware('system.permission:operation,edit')
+        ->name('external-bus-rentals.store');
+
+    Route::post('operation/external-bus-rentals/{rental}/assign', [\App\Http\Controllers\Operation\ExternalBusRentalController::class, 'assign'])
+        ->middleware('system.permission:operation,edit')
+        ->name('external-bus-rentals.assign');
+
     Route::controller(TripAssignmentController::class)
         ->prefix('operation/driver-bus-assignment')
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('driver-bus-assignment');
+            Route::get('/print', 'printSheet')->name('driver-bus-assignment.print');
             Route::get('/availability/{tripSchedule}', 'availability')
                 ->name('driver-bus-assignment.availability');
             Route::post('/', 'store')
@@ -93,7 +116,14 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('auto-scheduling');
+            Route::get('/drafts', 'listDrafts')->name('auto-scheduling.drafts.index');
+            Route::get('/draft', 'loadDraft')->name('auto-scheduling.draft.load');
+            Route::post('/draft', 'saveDraft')->middleware('system.permission:operation,edit')->name('auto-scheduling.draft.save');
+            Route::delete('/draft', 'deleteDraft')->middleware('system.permission:operation,edit')->name('auto-scheduling.draft.delete');
             Route::post('/generate', 'generate')->name('auto-scheduling.generate'); // Read-only recommendation preview; confirm/resolve require edit permission.
+            Route::post('/edit-preview', 'editPreview')
+                ->middleware('system.permission:operation,edit')
+                ->name('auto-scheduling.edit-preview');
             Route::post('/confirm', 'confirm')
                 ->middleware('system.permission:operation,edit')
                 ->name('auto-scheduling.confirm');
@@ -111,7 +141,8 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::get('/create', 'create')->name('daily-driver-reports.create');
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
-        Route::get('/{dailyDriverReport}', 'show')->name('daily-driver-reports.show');
+        Route::put('/{dailyDriverReport}', 'update')->middleware('system.permission:operation,edit')->name('daily-driver-reports.update');
+        Route::delete('/{dailyDriverReport}', 'destroy')->middleware('system.permission:operation,edit')->name('daily-driver-reports.destroy');
     });
 
     Route::post('/operation/incidents/{incident}/maintenance-referral', [MaintenanceReferralController::class, 'store'])

@@ -96,48 +96,7 @@
             <h2>Mechanic Attendance List</h2>
             <p>Track time-in, time-out, assigned job, and attendance status</p>
           </div>
-        </div>
-
-        <form
-          action="{{ route('mechanic-attendance', [], false) }}"
-          method="GET"
-          class="toolbar attendance-toolbar"
-          data-server-filter="true"
-        >
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search mechanic name, ID, or assigned job..."
-            >
-          </div>
-
-          <div class="filter-group">
-            <select name="status" aria-label="Status">
-              <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>All Status</option>
-              <option value="Present" {{ request('status') == 'Present' ? 'selected' : '' }}>Present</option>
-              <option value="Late" {{ request('status') == 'Late' ? 'selected' : '' }}>Late</option>
-              <option value="On Duty" {{ request('status') == 'On Duty' ? 'selected' : '' }}>On Duty</option>
-              <option value="Absent" {{ request('status') == 'Absent' ? 'selected' : '' }}>Absent</option>
-              <option value="On Leave" {{ request('status') == 'On Leave' ? 'selected' : '' }}>On Leave</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label class="sr-only" for="mechanicAttendanceFilterDate">Attendance Date</label>
-            <input
-              type="date"
-              id="mechanicAttendanceFilterDate"
-              name="attendance_date"
-              value="{{ $summaryDate }}"
-              aria-label="Filter attendance by date"
-              title="Choose attendance date"
-            >
-          </div>
-
-          <button
+<button
             type="button"
             class="primary-btn batch-attendance-open"
             data-batch-attendance-open
@@ -145,9 +104,17 @@
             <i class="fa-solid fa-clipboard-check"></i>
             Record Daily Attendance
           </button>
-        </form>
 
-        <div class="table-wrap">
+        </div>
+
+        <x-ui.table-toolbar action="{{ route('mechanic-attendance', [], false) }}" data-server-filter="true" search-label="Search Mechanic Attendance" search-placeholder="Search mechanic name, ID, or assigned job..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Mechanic Attendance" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Shift', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="mechanic_name">
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Attendance Date" name="attendance_date" type="date" :value="$summaryDate" />
+          </x-slot:filters>
+        </x-ui.table-toolbar>
+
+        <div class="table-wrap" style="margin-top: 16px;">
           <table class="attendance-table">
             <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
             <thead>
@@ -183,7 +150,7 @@
                   <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
-                  <td><span class="badge gct-pill gct-pill--attendance {{ $statusClass }}">{{ $attendance->status }}</span></td>
+                  <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
                   <td>
                     <div class="actions">
                       <button type="button" class="action-btn view open-view-mechanic-attendance-modal"
@@ -236,7 +203,12 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="8" message="No mechanic attendance records found." />
+                <x-ui.empty-row
+                  colspan="8"
+                  icon="fa-user-gear"
+                  message="No Mechanic Attendance Records Found"
+                  description="No mechanic attendance records match your selected date or shift filter."
+                />
               @endforelse
             </tbody>
           </table>
@@ -301,8 +273,6 @@
           <label>Shift</label>
           <select name="shift" id="edit_shift" required>
             <option value="Morning">Morning</option>
-            <option value="Afternoon">Afternoon</option>
-            <option value="Night">Night</option>
           </select>
         </div>
         <div class="form-group">

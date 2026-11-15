@@ -101,7 +101,7 @@
                                         <td>{{ number_format($row->fuel_liters, 1) }} L</td>
                                         <td>{{ number_format($row->distance_km, 1) }} km</td>
                                         <td><span class="fuel-efficiency-value">{{ number_format($row->km_per_liter, 2) }} km/L</span></td>
-                                        <td><span class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}">{{ $row->status }}</span></td>
+                                        <td><x-ui.status-badge :status="$row->status" class="fuel-status-pill fuel-status-{{ $fuelStatusClass }}" /></td>
                                     </tr>
                                 @endforeach
                             </tbody>

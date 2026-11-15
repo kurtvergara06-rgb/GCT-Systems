@@ -26,291 +26,323 @@
                 notification-count="4"
             />
 
-            <section data-ajax-region="summary" class="trip-summary-grid">
-                <article class="trip-summary-card">
-                    <div class="trip-summary-icon blue">
-                        <i class="fa-solid fa-calendar-days"></i>
-                    </div>
-                    <div>
-                        <p>Total Trips Today</p>
-                        <h2>{{ $totalTripsToday }}</h2>
-                        <small>Active trips today</small>
-                    </div>
-                </article>
-
-                <article class="trip-summary-card">
-                    <div class="trip-summary-icon green">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <div>
-                        <p>Assigned Trips</p>
-                        <h2>{{ $assignedTrips }}</h2>
-                        <small>Driver and bus assigned</small>
-                    </div>
-                </article>
-
-                <article class="trip-summary-card">
-                    <div class="trip-summary-icon yellow">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                    <div>
-                        <p>Pending Assignment</p>
-                        <h2>{{ $pendingAssignments }}</h2>
-                        <small>Scheduled and awaiting resources</small>
-                    </div>
-                </article>
-
-                <article class="trip-summary-card">
-                    <div class="trip-summary-icon purple">
-                        <i class="fa-solid fa-route"></i>
-                    </div>
-                    <div>
-                        <p>Active Routes</p>
-                        <h2>{{ $activeRoutesUsed }}</h2>
-                        <small>Used by active trips today</small>
-                    </div>
-                </article>
+            <section data-ajax-region="summary" class="trip-summary-grid service-summary-grid">
+                <x-ui.summary-card
+                    label="Total Scheduled Trips"
+                    :value="$scheduledServices"
+                    small="Services on selected date"
+                    icon="fa-bus"
+                    color="blue"
+                />
+                <x-ui.summary-card
+                    label="Incoming Trips"
+                    :value="$incomingServices"
+                    small="Employees going to work"
+                    icon="fa-arrow-down"
+                    color="green"
+                />
+                <x-ui.summary-card
+                    label="Outgoing Trips"
+                    :value="$outgoingServices"
+                    small="Employees going home"
+                    icon="fa-arrow-up"
+                    color="yellow"
+                />
+                <x-ui.summary-card
+                    label="Total Buses Required"
+                    :value="$totalBusesRequired"
+                    small="Planned units across services"
+                    icon="fa-bus-simple"
+                    color="purple"
+                />
             </section>
 
-            <section data-ajax-region="records" class="trip-card">
-                <div class="trip-card-header">
-                    <div>
-                        <h2>Trip Records</h2>
-                        <p>
-                            Create and manage scheduled trips. Driver and bus assignment
-                            is handled separately.
-                        </p>
+            <section data-ajax-region="records" class="service-schedule-records">
+                <div class="service-controls-card">
+                    <x-ui.section-header
+                        title="Trip Schedules"
+                        subtitle="Create and manage incoming and outgoing employee transportation services."
+                        icon="fa-calendar-check"
+                        class="service-schedule-toolbar"
+                    >
+                        <x-slot:actions>
+                            @if($canEditOperation && request('tab') !== 'history')
+                                <button type="button" class="new-trip-btn gct-section-new-button" id="openTripModal">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Create Schedule</span>
+                                </button>
+                            @endif
+                        </x-slot:actions>
+                    </x-ui.section-header>
+
+                    <div class="trip-record-controls">
+                        <nav class="trip-record-tabs" aria-label="Trip schedule record groups">
+                            <a class="trip-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('trip-schedule', array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Active Trips</a>
+                            <a class="trip-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('trip-schedule', array_merge(request()->except(['tab', 'status', 'page', 'trip_date']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Schedule History</a>
+                        </nav>
+                    <x-ui.table-toolbar action="{{ route('trip-schedule', [], false) }}" data-server-filter="true" search-label="Search Trip Schedules" search-placeholder="Search trip, route, or status..." :filter-count="(int) request()->filled('trip_date') + (int) (request()->filled('direction') && request('direction') !== 'all') + (int) (request()->filled('route') && request('route') !== 'all') + (int) (request()->filled('status') && request('status') !== 'all')" filter-title="Filter Trip Schedules" :show-filter-count="false" filter-view="Operation.Scheduling_And_Dispatch.partials.trip-schedule-filters" :filter-data="compact('selectedTripDate', 'activeRoutes')" :sort-options="['departure_time' => 'Departure Time', 'trip_code' => 'Trip ID', 'trip_date' => 'Trip Date', 'required_buses' => 'Required Buses', 'status' => 'Status']" default-sort="departure_time">
+                        <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                    </x-ui.table-toolbar>
                     </div>
-                    @if($canEditOperation)
-                        <button
-                            type="button"
-                            class="new-trip-btn gct-section-new-button"
-                            id="openTripModal"
-                        >
-                            <i class="fa-solid fa-plus"></i>
-                            <span>New Trip</span>
-                        </button>
+                    @if(request('tab') === 'history')
+                        <p class="trip-schedule-history-note" style="margin: 10px 0 0; color: #64748b; font-size: 12px;">
+                            Read-only scheduling audit: planned time, route, required buses, and final status.
+                            For actual drivers, buses, recorded distance, and execution details,
+                            <a href="{{ route('trip-records') }}">open Trip Records</a>.
+                            @unless(request()->filled('trip_date')) Showing all historical dates. @endunless
+                        </p>
                     @endif
                 </div>
 
-                <form
-                    method="GET"
-                    action="{{ route('trip-schedule', [], false) }}"
-                    class="toolbar trip-toolbar"
-                    data-server-filter="true"
-                >
-                    <div class="trip-search search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search trip ID, route, status..."
-                            autocomplete="off"
-                        >
-                    </div>
-
-                    <div class="trip-filter">
-                        <input
-                            type="date"
-                            name="trip_date"
-                            value="{{ $selectedTripDate }}"
-                            onchange="this.form.requestSubmit()"
-                            aria-label="Date"
-                        >
-                    </div>
-
-                    <div class="trip-filter">
-                        <select
-                            name="status"
-                            aria-label="Status"
-                        >
-                            <option value="all">All Statuses</option>
-                            @foreach(['Scheduled', 'Ready', 'Dispatched', 'Completed', 'Cancelled', 'Missed'] as $status)
-                                <option
-                                    value="{{ $status }}"
-                                    @selected(request('status') === $status)
-                                >
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                </form>
-
-                <div class="trip-table-wrap">
-                    <table class="trip-table">
-                        <colgroup>
-                            <col class="trip-col-id">
-                            <col class="trip-col-date">
-                            <col class="trip-col-route">
-                            <col class="trip-col-departure">
-                            <col class="trip-col-eta">
-                            <col class="trip-col-shift">
-                            <col class="trip-col-assignment">
-                            <col class="trip-col-status">
-                            <col class="trip-col-actions">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>Trip ID</th>
-                                <th>Date</th>
-                                <th>Route</th>
-                                <th>Departure</th>
-                                <th>ETA</th>
-                                <th>Shift</th>
-                                <th>Assignment</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @forelse($trips as $trip)
-                                @php
-                                    $route = $trip->shuttleRoute;
-                                    $departureDateTime = $trip->departureDateTime();
-                                    $arrivalDateTime = $trip->estimatedArrivalDateTime();
-                                    $isHistorical = $trip->hasDeparted();
-                                    $hasAssignment = $trip->assignment !== null
-                                        || $trip->assignment_status !== 'Unassigned';
-                                    $displayAssignmentStatus = $hasAssignment
-                                        ? 'Assigned'
-                                        : 'Unassigned';
-                                    $canManageSchedule = $trip->canBeManagedFromSchedule();
-
-                                    $canEdit = $canEditOperation
-                                        && $canManageSchedule;
-
-                                    $canDelete = $canEdit;
-
-                                    $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime)
-                                        ? $arrivalDateTime->format('g:i A')
-                                        : $arrivalDateTime->format('M d · g:i A');
-
-                                    $viewTripData = [
-                                        'tripCode' => $trip->trip_code,
-                                        'date' => $trip->trip_date?->format('M d, Y'),
-                                        'routeCode' => $route?->route_code,
-                                        'routeName' => $route?->route_name,
-                                        'origin' => $route?->origin,
-                                        'destination' => $route?->destination,
-                                        'departure' => $departureDateTime->format('g:i A'),
-                                        'arrival' => $arrivalDisplay,
-                                        'shift' => $trip->shift,
-                                        'assignment' => $displayAssignmentStatus,
-                                        'status' => $trip->status,
-                                        'notes' => $trip->notes,
-                                    ];
-                                @endphp
-
-                                <tr class="{{ ! $hasAssignment && $trip->status === 'Scheduled' ? 'pending-row' : '' }}">
-                                    <td><x-ui.id-badge :value="$trip->trip_code" /></td>
-                                    <td>{{ $trip->trip_date?->format('M d, Y') }}</td>
-                                    <td>
-                                        <div class="route-cell">
-                                            <strong>{{ $route?->route_code ?? '—' }}</strong>
-                                            <span>{{ $route?->route_name ?? 'Deleted route' }}</span>
-                                        </div>
-                                    </td>
-                                    <td>{{ $departureDateTime->format('g:i A') }}</td>
-                                    <td>{{ $arrivalDisplay }}</td>
-                                    <td>
-                                        <span class="shift-badge {{ strtolower($trip->shift) }}">
-                                            {{ $trip->shift }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if(! $hasAssignment)
-                                            <a
-                                                href="{{ route('driver-bus-assignment', [], false) }}"
-                                                class="assignment-badge unassigned"
-                                            >
-                                                Unassigned
-                                            </a>
-                                        @else
-                                            <span class="assignment-badge assigned">
-                                                Assigned
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="trip-status {{ strtolower($trip->status) }}">
-                                            {{ $trip->status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="trip-actions">
-                                            <button
-                                                type="button"
-                                                class="trip-action view view-trip"
-                                                title="View"
-                                                data-trip='@json($viewTripData)'
-                                            >
-                                                <i class="fa-solid fa-eye"></i>
-                                            </button>
-
-                                            @if($canEdit)
-                                                <button
-                                                    type="button"
-                                                    class="trip-action edit edit-trip"
-                                                    title="Edit"
-                                                    data-id="{{ $trip->id }}"
-                                                    data-trip-code="{{ $trip->trip_code }}"
-                                                    data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
-                                                    data-route-id="{{ $trip->shuttle_route_id }}"
-                                                    data-departure-time="{{ $departureDateTime->format('H:i') }}"
-                                                    data-arrival-time="{{ $arrivalDateTime->format('H:i') }}"
-                                                    data-status="{{ $trip->status }}"
-                                                    data-notes="{{ $trip->notes }}"
-                                                    data-update-url="{{ route('trip-schedule.update', $trip->id, false) }}"
-                                                    data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
-                                                >
-                                                    <i class="fa-solid fa-pen-to-square"></i>
+                <div class="service-panels-surface">
+                @foreach(['Incoming', 'Outgoing'] as $serviceDirection)
+                    @php
+                        $directionTrips = $trips->filter(fn ($item) => $item->direction === $serviceDirection);
+                    @endphp
+                    <div class="service-direction-panel {{ strtolower($serviceDirection) }}">
+                        <header class="service-direction-header">
+                            <div class="service-direction-heading">
+                                <span class="service-direction-icon">
+                                    <i class="fa-solid {{ $serviceDirection === 'Incoming' ? 'fa-arrow-down' : ($serviceDirection === 'Outgoing' ? 'fa-arrow-up' : 'fa-circle-question') }}"></i>
+                                </span>
+                                <div>
+                                    <h3>{{ $serviceDirection === 'Unspecified' ? 'Unclassified Trips' : $serviceDirection.' Trips' }}</h3>
+                                    <p>{{ $serviceDirection === 'Incoming' ? 'Buses transporting employees to work.' : ($serviceDirection === 'Outgoing' ? 'Buses transporting employees home.' : 'Existing trips that need an Incoming or Outgoing direction.') }}</p>
+                                </div>
+                            </div>
+                            <div class="service-direction-metrics">
+                                <div class="service-metric-stat">
+                                    <span>Total Buses</span>
+                                    <strong>{{ $directionTrips->where('status', '!=', 'Cancelled')->sum(fn ($item) => $item->required_buses ?? 1) }}</strong>
+                                </div>
+                                <div class="service-metric-stat">
+                                    <span>Reserve Deployed</span>
+                                    <strong>{{ $directionTrips->sum(fn ($item) => $reserveDeployedByTrip->get($item->id, 0)) }}</strong>
+                                </div>
+                                <div class="service-metric-chips">
+                                    <span class="service-chip planned">
+                                        <i class="fa-solid fa-calendar-check"></i> Scheduled {{ $directionTrips->where('status', 'Scheduled')->count() }}
+                                    </span>
+                                    <span class="service-chip modified">
+                                        <i class="fa-solid fa-user-check"></i> Assigned {{ $directionTrips->filter(fn ($item) => $item->assignment !== null)->count() }}
+                                    </span>
+                                    <span class="service-chip cancelled">
+                                        <i class="fa-solid fa-ban"></i> Cancelled {{ $directionTrips->where('status', 'Cancelled')->count() }}
+                                    </span>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="service-table-wrap service-table-scroll" role="region" aria-label="{{ $serviceDirection }} trip schedules" tabindex="0">
+                            <table class="service-table">
+                                <colgroup>
+                                    <col class="service-col-expand">
+                                    <col class="service-col-time">
+                                    <col class="service-col-route">
+                                    <col class="service-col-point">
+                                    <col class="service-col-required">
+                                    <col class="service-col-assigned">
+                                    <col class="service-col-status">
+                                    <col class="service-col-actions">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th class="service-expander"></th>
+                                        <th>Time</th>
+                                        <th>Route</th>
+                                        <th>{{ $serviceDirection === 'Outgoing' ? 'Remarks / Drop-off Point' : 'Remarks / Pickup Point' }}</th>
+                                        <th class="text-center">Required Buses</th>
+                                        <th>Assigned Buses</th>
+                                        <th>{{ request('tab') === 'history' ? 'Trip Status' : 'Assignment' }}</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($directionTrips as $trip)
+                                        @php
+                                            $route = $trip->shuttleRoute;
+                                            // Use the saved route point, ignoring generic designer placeholders.
+                                            $locationCandidates = $serviceDirection === 'Incoming'
+                                                ? [$trip->route_origin_snapshot, $route?->origin]
+                                                : [$trip->route_destination_snapshot, $route?->destination];
+                                            $servicePoint = collect($locationCandidates)
+                                                ->map(fn ($value) => trim((string) $value))
+                                                ->first(fn ($value) => $value !== '' && ! in_array(strtolower($value), ['destination', 'origin', 'pickup point', 'drop-off point', 'drop off point', '—', 'n/a'], true))
+                                                ?? 'Not specified';
+                                            $departureDateTime = $trip->departureDateTime();
+                                            $arrivalDateTime = $trip->estimatedArrivalDateTime();
+                                            $isHistorical = $trip->hasDeparted();
+                                            $assignedCount = $trip->assignments->count() ?: ($trip->assignment !== null ? 1 : 0);
+                                            $requiredCount = max(1, (int) ($trip->required_buses ?? 1));
+                                            $hasAssignment = $assignedCount > 0 || $trip->assignment_status !== 'Unassigned';
+                                            $displayAssignmentStatus = $assignedCount >= $requiredCount ? 'Assigned' : ($assignedCount > 0 ? 'Partially Assigned' : 'Unassigned');
+                                            $canManageSchedule = $trip->canBeManagedFromSchedule();
+                                            $canEdit = $canEditOperation && $canManageSchedule && request('tab') !== 'history';
+                                            $canDelete = $canEdit;
+                                            $arrivalDisplay = $arrivalDateTime->isSameDay($departureDateTime) ? $arrivalDateTime->format('g:i A') : $arrivalDateTime->format('M d · g:i A');
+                                            $assignmentLabel = in_array($trip->status, ['Missed', 'Cancelled', 'Completed'], true) ? $trip->status : ($assignedCount === 0 ? 'Pending' : ($assignedCount >= $requiredCount ? 'Fully Assigned' : 'Partially Assigned'));
+                                            $viewTripData = [
+                                                'tripCode' => $trip->trip_code, 'date' => $trip->trip_date?->format('M d, Y'),
+                                                'routeCode' => $route?->route_code, 'routeName' => $route?->route_name,
+                                                'origin' => $route?->origin, 'destination' => $route?->destination,
+                                                'departure' => $departureDateTime->format('g:i A'), 'arrival' => $arrivalDisplay,
+                                                'shift' => $trip->shift, 'assignment' => $displayAssignmentStatus,
+                                                'status' => $trip->status, 'notes' => $trip->notes,
+                                                'direction' => $trip->direction, 'requiredBuses' => $requiredCount,
+                                            ];
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <button type="button" class="service-expand-button" aria-label="Expand {{ $trip->trip_code }}" aria-expanded="false">
+                                                    <i class="fa-solid fa-chevron-right"></i>
                                                 </button>
-                                            @endif
+                                            </td>
+                                            <td class="service-time">
+                                                <span class="trip-time-badge">
+                                                    <i class="fa-regular fa-clock"></i>
+                                                    {{ $departureDateTime->format('g:i A') }}
+                                                </span>
+                                            </td>
+                                            <td class="service-route">
+                                                <div class="service-route-cell">
+                                                    @if($route?->route_code)
+                                                        <x-ui.id-badge :value="$route->route_code" />
+                                                    @endif
+                                                    <span class="service-route-title">{{ $route?->route_name ?? $trip->route_name_snapshot ?? 'Deleted route' }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="service-pickup">
+                                                <span class="service-location-text">
+                                                    <i class="fa-solid fa-location-dot"></i>
+                                                    {{ $servicePoint }}
+                                                </span>
+                                            </td>
+                                            <td class="service-count text-center">
+                                                <span class="service-buses-badge">
+                                                    <i class="fa-solid fa-bus"></i> {{ $requiredCount }}
+                                                </span>
+                                            </td>
+                                            <td class="service-assigned-col">
+                                                <div class="service-assigned-wrap">
+                                                    <span class="service-assigned-value">{{ $assignedCount }} / {{ $requiredCount }}</span>
+                                                    <div class="service-progress">
+                                                        <div class="{{ $assignedCount >= $requiredCount ? 'is-complete' : ($assignedCount > 0 ? 'is-partial' : '') }}" style="width:{{ round($assignedCount / $requiredCount * 100) }}%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <x-ui.status-badge :status="$assignmentLabel" class="service-assignment-badge {{ strtolower(str_replace(' ', '-', $assignmentLabel)) }}" />
+                                            </td>
+                                            <td>
+                                                <div class="service-row-actions">
+                                                    <div class="trip-actions">
+                                                        <x-ui.action-button
+                                                            type="view"
+                                                            class="trip-action view-trip"
+                                                            title="View Details"
+                                                            data-trip='@json($viewTripData)'
+                                                        />
+                                                        @if($canEdit)
+                                                            <x-ui.action-button
+                                                                type="edit"
+                                                                class="trip-action edit-trip"
+                                                                title="Edit"
+                                                                data-id="{{ $trip->id }}"
+                                                                data-trip-code="{{ $trip->trip_code }}"
+                                                                data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
+                                                                data-route-id="{{ $trip->shuttle_route_id }}"
+                                                                data-direction="{{ $trip->direction }}"
+                                                                data-required-buses="{{ $trip->required_buses ?? 1 }}"
+                                                                data-departure-time="{{ $departureDateTime->format('H:i') }}"
+                                                                data-arrival-time="{{ $arrivalDateTime->format('H:i') }}"
+                                                                data-status="{{ $trip->status }}"
+                                                                data-notes="{{ $trip->notes }}"
+                                                                data-update-url="{{ route('trip-schedule.update', $trip->id, false) }}"
+                                                                data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
+                                                            />
+                                                        @endif
+                                                        @if($canDelete)
+                                                            <form
+                                                                id="deleteTripForm-{{ $trip->id }}"
+                                                                method="POST"
+                                                                action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
+                                                            >
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
+                                                                <input type="hidden" name="return_search" value="{{ request('search') }}">
+                                                                <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
 
-                                            @if($canDelete)
-                                                <form
-                                                    id="deleteTripForm-{{ $trip->id }}"
-                                                    method="POST"
-                                                    action="{{ route('trip-schedule.destroy', $trip->id, false) }}"
-                                                >
-                                                    @csrf
-                                                    @method('DELETE')
-<input type="hidden" name="return_trip_date" value="{{ $selectedTripDate }}">
-                                                    <input type="hidden" name="return_search" value="{{ request('search') }}">
-                                                    <input type="hidden" name="return_status" value="{{ request('status', 'all') }}">
-
-                                                    <button
-                                                        type="button"
-                                                        class="trip-action delete delete-trip"
-                                                        title="Delete"
-                                                        data-form-id="deleteTripForm-{{ $trip->id }}"
-                                                        data-trip-code="{{ $trip->trip_code }}"
-                                                    >
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <x-ui.empty-row
-                                    colspan="9"
-                                    message="No trip schedules found."
-                                />
-                            @endforelse
-                        </tbody>
-                    </table>
+                                                                <x-ui.action-button
+                                                                    type="delete"
+                                                                    class="trip-action delete-trip"
+                                                                    title="Delete"
+                                                                    data-form-id="deleteTripForm-{{ $trip->id }}"
+                                                                    data-trip-code="{{ $trip->trip_code }}"
+                                                                />
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="service-details-row" hidden>
+                                            <td colspan="8">
+                                                <div class="service-details-content">
+                                                    <div class="service-detail-item">
+                                                        <span class="detail-label">Trip Code:</span>
+                                                        <x-ui.id-badge :value="$trip->trip_code" />
+                                                    </div>
+                                                    <div class="service-detail-item">
+                                                        <span class="detail-label"><i class="fa-solid fa-calendar-day"></i> Schedule:</span>
+                                                        <strong>{{ $trip->trip_date?->format('M d, Y') }}</strong> · {{ $trip->shift }} shift
+                                                    </div>
+                                                    <div class="service-detail-item">
+                                                        <span class="detail-label"><i class="fa-solid fa-clock-rotate-left"></i> ETA:</span>
+                                                        <strong>{{ $arrivalDisplay }}</strong>
+                                                    </div>
+                                                    <div class="service-detail-item">
+                                                        <span class="detail-label"><i class="fa-solid fa-bus"></i> Assigned Buses ({{ $assignedCount }}/{{ $requiredCount }}):</span>
+                                                        @if($trip->assignments->isNotEmpty())
+                                                            <div class="service-assigned-chips" style="display: inline-flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                                @foreach($trip->assignments as $asgn)
+                                                                    <x-ui.id-badge :value="($asgn->bus?->plate_no ?: 'Bus #'.$asgn->bus_id) . ' · ' . ($asgn->driverAttendance?->driver?->full_name ?: $asgn->driver_name ?: 'Driver')" />
+                                                                @endforeach
+                                                            </div>
+                                                        @elseif($trip->assignment)
+                                                            <x-ui.id-badge :value="$trip->assignment->bus?->plate_no ?: 'Assigned'" />
+                                                        @else
+                                                            <span class="text-muted">No bus assigned</span>
+                                                        @endif
+                                                    </div>
+                                                    @if($assignedCount < $requiredCount && $trip->status !== 'Cancelled')
+                                                        <div class="service-planning-status" role="status" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #fcd34d; border-radius: 7px; background: #fffbeb; color: #92400e; font-size: 12px; font-weight: 650;">
+                                                            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                                            Requires {{ $requiredCount - $assignedCount }} more {{ \Illuminate\Support\Str::plural('bus', $requiredCount - $assignedCount) }} to complete assignment.
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <x-ui.empty-row colspan="8" icon="fa-calendar-xmark" :message="'No ' . $serviceDirection . ' Trips Found'" description="There are no schedules matching your selected date and filters." />
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <footer class="service-direction-footer">
+                            @if($directionTrips->isEmpty())
+                                <span>Showing 0 to 0 of 0 entries</span>
+                            @else
+                                <span>Showing 1 to {{ $directionTrips->count() }} of {{ $directionTrips->count() }} entries</span>
+                            @endif
+                        </footer>
+                    </div>
+                @endforeach
                 </div>
-
-                <x-ui.table-footer :items="$trips" />
             </section>
-        </main>
-    </div>
+
+        {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
+
 
     @if($errors->any() && in_array($tripValidationMode, ['create', 'edit'], true))
         @php
@@ -334,13 +366,13 @@
             id="tripModal"
             title="New Trip"
             title-id="tripModalTitle"
-            description="Set the route, trip date, departure time, and schedule status."
+            description="Set the route, trip date, departure time, and schedule details."
             icon="fa-calendar-plus"
             size="large"
             form-id="tripForm"
             :action="route('trip-schedule.store', [], false)"
             method="POST"
-            submit-text="Save Trip"
+            submit-text="Create Trip"
             submit-text-id="tripSubmitText"
             submit-icon="fa-floppy-disk"
             cancel-text="Cancel"
@@ -391,7 +423,26 @@
                     @error('shuttle_route_id')<span class="ui-field-error">{{ $message }}</span>@enderror
                 </div>
 
+                <div class="trip-service-planning-fields">
+                    <div class="ui-form-group">
+                        <label for="tripDirection">Service Direction</label>
+                        <select name="direction" id="tripDirection">
+                            <option value="">Not specified (legacy)</option>
+                            <option value="Incoming" @selected(old('direction') === 'Incoming')>Incoming — Employees going to work</option>
+                            <option value="Outgoing" @selected(old('direction') === 'Outgoing')>Outgoing — Employees going home</option>
+                        </select>
+                        @error('direction')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
                 <x-ui.form-field label="Departure Time" name="departure_time" id="departureTime" type="time" :value="old('departure_time')" icon="fa-clock" :required="true" />
+                <div class="trip-service-planning-fields trip-required-bus-field">
+                    <div class="ui-form-group">
+                        <label for="tripRequiredBuses">Required Buses</label>
+                        <input name="required_buses" id="tripRequiredBuses" type="number" min="1" max="30" step="1" value="{{ old('required_buses', 1) }}" required>
+                        <small>Planning demand only. Additional buses cannot be assigned until grouped scheduling is enabled.</small>
+                        @error('required_buses')<span class="ui-field-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
                 <x-ui.form-field label="Estimated Arrival (Auto)" name="estimated_arrival_time_display" id="arrivalTime" type="time" :value="old('estimated_arrival_time_display')" icon="fa-clock-rotate-left" :readonly="true" />
                 <x-ui.form-field label="Shift" name="shift_display" id="tripShift" value="Automatic" icon="fa-business-time" :readonly="true" />
                 <x-ui.form-select
@@ -434,7 +485,7 @@
         id="viewTripModal"
         title="Trip Details"
         description="Route, timing, assignment, and schedule information."
-        icon="fa-calendar-check"
+        icon="fa-bus"
         size="large"
         form-id="viewTripForm"
         action="#"
@@ -471,4 +522,6 @@
             confirm-id="confirmDeleteTrip"
         />
     @endif
+        </main>
+    </div>
 </x-layout.app>

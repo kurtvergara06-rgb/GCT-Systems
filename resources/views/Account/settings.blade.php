@@ -121,10 +121,10 @@
                                     <i class="fa-solid fa-user-shield"></i>
                                     {{ $displayRole }}
                                 </span>
-                                <span class="account-badge account-badge-status">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                    {{ $user->status ?: 'Active' }}
-                                </span>
+                                <x-ui.status-badge
+                                    :status="$user->status ?: 'Active'"
+                                    class="account-badge account-badge-status"
+                                />
                             </div>
                         </div>
                     </div>

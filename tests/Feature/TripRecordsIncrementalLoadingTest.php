@@ -25,6 +25,25 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         ]);
     }
 
+    public function test_both_trip_history_tabs_use_the_shared_layout_toolbar_and_pagination(): void
+    {
+        $user = $this->operationUser();
+
+        foreach (['assignments', 'operations'] as $view) {
+            $response = $this->actingAs($user)
+                ->get(route('trip-records', ['view' => $view]))
+                ->assertOk()
+                ->assertSee('class="trip-history-controls"', false)
+                ->assertSee('data-table-toolbar="true"', false)
+                ->assertSee('data-ui-component="table-footer"', false)
+                ->assertSeeText('Search')
+                ->assertSeeText('Filter')
+                ->assertSeeText('Sort');
+
+            $response->assertSee($view === 'assignments' ? 'Assignment History' : 'Operational Records');
+        }
+    }
+
     public function test_trip_records_are_loaded_in_bounded_server_pages(): void
     {
         $route = ShuttleRoute::create([
@@ -56,7 +75,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $user = $this->operationUser();
 
         $this->actingAs($user)
-            ->get(route('trip-records'))
+            ->get(route('trip-records', ['view' => 'operations']))
             ->assertOk()
             ->assertViewHas('trips', function ($trips): bool {
                 return $trips instanceof LengthAwarePaginator
@@ -69,7 +88,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
             ->assertDontSee('>Next<', false);
 
         $this->actingAs($user)
-            ->get(route('trip-records', ['records_page' => 2]))
+            ->get(route('trip-records', ['view' => 'operations', 'records_page' => 2]))
             ->assertOk()
             ->assertViewHas('trips', function ($trips): bool {
                 return $trips instanceof LengthAwarePaginator
@@ -92,8 +111,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         );
 
         $this->assertStringContainsString('->paginate(self::RECORDS_PER_PAGE', $controller);
-        $this->assertStringContainsString('data-scroll-pagination', $view);
-        $this->assertStringContainsString('data-lazy-pagination="true"', $view);
+        $this->assertStringContainsString('<x-ui.table-footer :items="$trips" data-lazy-pagination="true"', $view);
         $this->assertStringContainsString("event.target.closest('.view-trip-btn')", $script);
         $this->assertStringContainsString('__gctTripRecordsAbortController', $script);
         $this->assertStringNotContainsString("querySelectorAll('.view-trip-btn')", $script);
@@ -140,7 +158,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $route->update(['route_name' => 'Renamed Route', 'distance_km' => 120]);
 
         $this->actingAs($this->operationUser())
-            ->get(route('trip-records'))
+            ->get(route('trip-records', ['view' => 'operations']))
             ->assertOk()
             ->assertSee('Original Route')
             ->assertViewHas('trips', fn ($trips) => $trips->first()->route_name_snapshot === 'Original Route')
@@ -177,7 +195,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         ]);
 
         $this->actingAs($this->operationUser())
-            ->get(route('trip-records'))
+            ->get(route('trip-records', ['view' => 'operations']))
             ->assertOk()
             ->assertViewHas('onTimeRate', 100.0);
     }

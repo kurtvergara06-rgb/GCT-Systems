@@ -71,38 +71,17 @@
           </div>
         </div>
 
-        <form action="{{ route('inventory') }}" method="GET" class="toolbar inventory-toolbar" data-server-filter="true">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              autocomplete="off"
-              placeholder="Search by item, item code, supplier, or location..."
-              aria-label="Search inventory records"
-            >
-          </div>
-
-          <div class="filter-group">
-            <select name="category" aria-label="Filter inventory by category">
-              <option value="All Categories" @selected(request('category', 'All Categories') === 'All Categories')>All Categories</option>
-
-              @foreach($categories as $category)
-                <option value="{{ $category }}" @selected(request('category') === $category)>
-                  {{ $category }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-
+        <div class="gct-table-toolbar-row">
+          <x-ui.table-toolbar action="{{ route('inventory') }}" data-server-filter="true" search-label="Search Inventory" search-placeholder="Search item, code, supplier, or location..." :filter-count="(int) (request()->filled('category') && request('category') !== 'All Categories')" filter-title="Filter Inventory" :sort-options="['item_name' => 'Item Name', 'item_code' => 'Item Code', 'category' => 'Category', 'quantity' => 'Stock Quantity', 'reorder_level' => 'Reorder Level']" default-sort="item_name">
+            <x-slot:filters><x-ui.table-toolbar-field label="Category" name="category" default="All Categories"><option value="All Categories">All Categories</option>@foreach($categories as $category)<option value="{{ $category }}" @selected(request('category') === $category)>{{ $category }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+          </x-ui.table-toolbar>
           @if($canEditWarehouse)
             <button type="button" class="primary-btn" id="openAddModal">
               <i class="fa-solid fa-plus"></i>
               Add Item
             </button>
           @endif
-        </form>
+        </div>
 
         <div class="table-wrap">
           <table class="inventory-table">
@@ -222,7 +201,9 @@
               @empty
                 <x-ui.empty-row
                   colspan="8"
-                  message="No inventory items found."
+                  icon="fa-boxes-stacked"
+                  message="No Inventory Items Found"
+                  description="No spare parts or consumables match your search or category filter."
                 />
               @endforelse
             </tbody>

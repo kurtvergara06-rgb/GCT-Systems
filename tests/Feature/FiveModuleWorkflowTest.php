@@ -6,6 +6,12 @@ use App\Models\Admin\User;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Incident;
+use App\Models\Operation\Driver;
+use App\Models\Operation\DriverAttendance;
+use App\Models\Operation\ShuttleRoute;
+use App\Models\Operation\TripAssignment;
+use App\Models\Operation\TripSchedule;
+use App\Models\Maintenance\Bus;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,11 +29,64 @@ class FiveModuleWorkflowTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-INC-WORKFLOW',
+            'route_name' => 'Incident Workflow Route',
+            'origin' => 'Terminal A',
+            'destination' => 'Terminal B',
+            'status' => 'Active',
+        ]);
+        $driver = Driver::create([
+            'driver_id' => 'DRV-INC-WORKFLOW',
+            'driver_name' => 'Incident Workflow Driver',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+        $attendance = DriverAttendance::create([
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $driver->driver_name,
+            'attendance_date' => $date,
+            'shift' => 'Morning',
+            'status' => 'Present',
+        ]);
+        $bus = Bus::create([
+            'bus_no' => 'BUS-INC-WORKFLOW',
+            'plate_no' => 'INC-1001',
+            'status' => 'Active',
+            'fleet_purpose' => 'Regular',
+        ]);
+        $trip = TripSchedule::create([
+            'trip_code' => 'TRIP-INC-WORKFLOW',
+            'trip_date' => $date,
+            'shuttle_route_id' => $route->id,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '09:00:00',
+            'estimated_arrival_date' => $date,
+            'shift' => 'Morning',
+            'direction' => 'Incoming',
+            'required_buses' => 1,
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+        $assignment = TripAssignment::create([
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $driver->driver_id,
+            'driver_name' => $driver->driver_name,
+            'bus_id' => $bus->id,
+            'slot_number' => 1,
+        ]);
+        $trip->syncAssignmentStatus();
+
         $this->actingAs($operationUser)->post(route('incidents.store'), [
+            'trip_schedule_id' => $trip->id,
+            'trip_assignment_id' => $assignment->id,
+            'bus_id' => $bus->id,
             'incident_type' => 'Bus Breakdown',
             'location' => 'Test terminal',
             'description' => 'Engine stopped during a trip.',
-        ])->assertRedirect();
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
         $incident = Incident::query()->firstOrFail();
         $this->assertSame('Reported', $incident->status);

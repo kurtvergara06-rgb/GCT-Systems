@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\MaintenanceReferral;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,8 +62,8 @@ class MaintenanceReferralController extends Controller
             });
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'status' => 'status'], 'created_at', 'desc');
         $referrals = $query
-            ->latest()
             ->paginate(25)
             ->withQueryString();
 

@@ -67,41 +67,13 @@
           <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
         @endif
 
-        <form action="{{ route('part-requests') }}" method="GET" class="toolbar inventory-toolbar warehouse-part-toolbar" data-server-filter="true">
-          <input type="hidden" name="view" value="{{ $currentView }}">
-          <div class="toolbar-left">
-            <div class="search-box">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input
-                type="text"
-                name="search"
-                value="{{ request('search') }}"
-                placeholder="Search PR no., JO no., bus, or item..."
-              >
-            </div>
-
-            <div class="filter-group">
-              <select
-                name="status"
-                id="warehouseStatusFilter"
-                class="warehouse-status-select"
-                onchange="this.form.requestSubmit()"
-              >
-                <option value="All Statuses" @selected(request('status', 'All Statuses') === 'All Statuses')>All Statuses</option>
-                @foreach(($statusOptions ?? []) as $status)
-                  <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                @endforeach
-              </select>
-            </div>
-          </div>
-
-          <div class="toolbar-right">
-            <span class="toolbar-count-chip">
-              <i class="fa-solid fa-list-check"></i>
-              {{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}
-            </span>
-          </div>
-        </form>
+        <div class="gct-table-toolbar-row">
+          <span class="toolbar-count-chip"><i class="fa-solid fa-list-check"></i>{{ $purchaseRequests->total() }} {{ \Illuminate\Support\Str::plural('Requisition', $purchaseRequests->total()) }}</span>
+          <x-ui.table-toolbar action="{{ route('part-requests') }}" data-server-filter="true" search-label="Search Part Requests" search-placeholder="Search PR no., JO no., bus, or item..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Part Requests" :sort-options="['pr_no' => 'PR Number', 'created_at' => 'Request Date', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+            <x-slot:hidden><input type="hidden" name="view" value="{{ $currentView }}"></x-slot:hidden>
+            <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Statuses"><option value="All Statuses">All Statuses</option>@foreach(($statusOptions ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+          </x-ui.table-toolbar>
+        </div>
 
         <div class="table-wrap">
           <table class="inventory-table warehouse-part-table warehouse-part-table-clean">
@@ -136,13 +108,6 @@
                     ? ($partRequest->warehouse_status ?: $partRequest->status)
                     : ($partRequest->warehouse_workflow_status ?? 'Ready to Issue');
                   $warehouseStatusLabel = $warehouseStatus;
-                  $warehouseStatusClass = match ($warehouseStatusLabel) {
-                    'Ready to Issue' => 'approved',
-                    'Needs Purchase' => 'hold',
-                    'Waiting for Purchase', 'Waiting for Delivery', 'Waiting for Stock' => 'pending',
-                    'Issued' => 'issued',
-                    default => 'neutral',
-                  };
                 @endphp
 
                 <tr>
@@ -178,15 +143,13 @@
                   <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
                   <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
                   <td class="status-col">
-                    <span class="warehouse-status-pill {{ $warehouseStatusClass }}" title="{{ $warehouseStatus }}">
-                      {{ $warehouseStatusLabel }}
-                    </span>
+                    <x-ui.status-badge :status="$warehouseStatusLabel" class="warehouse-status-pill" title="{{ $warehouseStatus }}" />
                   </td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
                       <button
                         type="button"
-                        class="view-btn open-view-pr-modal"
+                        class="action-btn view view-btn open-view-pr-modal"
                         title="View Requisition Details"
                         data-pr-no="{{ $partRequest->pr_no }}"
                         data-job-order-no="{{ $partRequest->job_order_no }}"
@@ -241,7 +204,12 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="8" :message="$isHistory ? 'No part request history found.' : 'No active part requests found.'" />
+                <x-ui.empty-row
+                  colspan="8"
+                  icon="fa-clipboard-list"
+                  :message="$isHistory ? 'No Part Request History Found' : 'No Active Part Requests Found'"
+                  :description="$isHistory ? 'Issued and fulfilled part requests will appear here.' : 'Maintenance part requisitions awaiting fulfillment will appear here.'"
+                />
               @endforelse
             </tbody>
           </table>

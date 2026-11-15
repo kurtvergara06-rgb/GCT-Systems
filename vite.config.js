@@ -23,6 +23,7 @@ export default defineConfig({
                 'resources/css/Main-styles/sidebar-state.css',
                 'resources/css/Main-styles/identifier-text.css',
                 'resources/css/Main-styles/admin-records.css',
+                'resources/css/Main-styles/table-toolbar.css',
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Account/account.css',
 
@@ -174,6 +175,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
+                'resources/css/Operation/Shuttle_Bus_Management/bus-availability.css',
                 'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
 
                 // ======================================================

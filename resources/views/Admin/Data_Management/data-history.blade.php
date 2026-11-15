@@ -58,47 +58,13 @@
                     <x-ui.id-badge :value="number_format($history->count()) . ' Records'" />
                 </div>
 
-                <form method="GET" action="{{ route('admin.data-history') }}" class="history-toolbar">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search file, module, data type, source..."
-                        >
-                    </div>
-
-                    <div class="filter-group">
-                        <select name="type" onchange="this.form.submit()">
-                            @foreach(['All Types', 'Batch Processing', 'Import', 'Export'] as $type)
-                                <option value="{{ $type }}" {{ request('type', 'All Types') === $type ? 'selected' : '' }}>
-                                    {{ $type }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <select name="module" onchange="this.form.submit()">
-                            @foreach(['All Modules', 'Admin', 'Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $module)
-                                <option value="{{ $module }}" {{ request('module', 'All Modules') === $module ? 'selected' : '' }}>
-                                    {{ $module }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <select name="status" onchange="this.form.submit()">
-                            @foreach(['All Status', 'Completed', 'For Review', 'Needs Correction', 'Failed', 'Processing', 'Deleted'] as $status)
-                                <option value="{{ $status }}" {{ request('status', 'All Status') === $status ? 'selected' : '' }}>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </form>
+                <x-ui.table-toolbar action="{{ route('admin.data-history') }}" search-label="Search Data History" search-placeholder="Search file, module, data type, or source..." :filter-count="(int) (request()->filled('type') && request('type') !== 'All Types') + (int) (request()->filled('module') && request('module') !== 'All Modules') + (int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter Data History" :sort-options="['created_at' => 'Date and Time', 'file_name' => 'File Name', 'activity_type' => 'Type', 'module' => 'Module', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+                    <x-slot:filters>
+                        <x-ui.table-toolbar-field label="Type" name="type" default="All Types">@foreach(['All Types', 'Batch Processing', 'Import', 'Export'] as $type)<option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Module" name="module" default="All Modules">@foreach(['All Modules', 'Admin', 'Operation', 'Maintenance', 'Warehouse', 'Purchase'] as $module)<option value="{{ $module }}" @selected(request('module', 'All Modules') === $module)>{{ $module }}</option>@endforeach</x-ui.table-toolbar-field>
+                        <x-ui.table-toolbar-field label="Status" name="status" default="All Status">@foreach(['All Status', 'Completed', 'For Review', 'Needs Correction', 'Failed', 'Processing', 'Deleted'] as $status)<option value="{{ $status }}" @selected(request('status', 'All Status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+                    </x-slot:filters>
+                </x-ui.table-toolbar>
 
                 <div class="table-wrap">
                     <table class="data-history-table">
@@ -182,9 +148,7 @@
                                     <td>{{ number_format($item->total_records) }}</td>
 
                                     <td>
-                                        <span class="history-status {{ $statusClass }}">
-                                            {{ $item->status }}
-                                        </span>
+                                        <x-ui.status-badge :status="$item->status" class="history-status {{ $statusClass }}" />
                                     </td>
 
                                     <td>

@@ -136,7 +136,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="fuel-status-badge fuel-status--{{ strtolower($status) }}">{{ $status }}</span>
+                                <x-ui.status-badge :status="$status" class="fuel-status-badge fuel-status--{{ strtolower($status) }}" />
                             </td>
                             <td>
                                 <span class="risk-badge {{ strtolower($riskLevel) }}">{{ $riskLevel }}</span>

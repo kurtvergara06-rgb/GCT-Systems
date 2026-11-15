@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use App\Services\RolePermissionService;
+use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -72,7 +73,8 @@ class AdminUserController extends Controller
             $query->where('status', $request->status);
         }
 
-        $users = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'name' => 'name', 'email' => 'email', 'department' => 'department', 'role' => 'role', 'status' => 'status'], 'created_at', 'desc');
+        $users = $query->paginate(10)->withQueryString();
 
         $totalUsers = User::count();
         $activeUsers = User::where('status', 'Active')->count();
@@ -162,12 +164,12 @@ class AdminUserController extends Controller
             'RolePermission',
             'permissions_updated',
             $rolePermission->role_key,
-            $rolePermission->label . ' permissions were updated.'
+            $rolePermission->label.' permissions were updated.'
         ));
 
         return redirect()
             ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
-            ->with('success', $rolePermission->label . ' permissions updated successfully.');
+            ->with('success', $rolePermission->label.' permissions updated successfully.');
     }
 
     public function update(Request $request, User $user)

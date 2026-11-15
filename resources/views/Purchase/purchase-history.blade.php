@@ -59,44 +59,13 @@
           <span class="purchase-section-count">{{ $historyRecords->total() }} records</span>
         </div>
 
-        <form
-          action="{{ route('maintenance-requests', [], false) }}"
-          method="GET"
-          class="toolbar requested-toolbar records-toolbar"
-          data-server-filter="true"
-        >
-          <input type="hidden" name="view" value="history">
-
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search request no., JO no., bus, item, source, or status..."
-            >
-          </div>
-
-          <div class="filter-group">
-            <select name="source" aria-label="Source">
-              @foreach(['All Sources', 'Maintenance Request', 'Inventory Restock'] as $source)
-                <option value="{{ $source }}" {{ request('source', 'All Sources') === $source ? 'selected' : '' }}>
-                  {{ $source }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <select name="status" aria-label="Status">
-              @foreach(['All Statuses', 'Delivered', 'Picked Up', 'Issued'] as $status)
-                <option value="{{ $status }}" {{ request('status', 'All Statuses') === $status ? 'selected' : '' }}>
-                  {{ $status }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-        </form>
+        <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase History" search-placeholder="Search request, JO, bus, item, source, or status..." :filter-count="(int) (request()->filled('source') && request('source') !== 'All Sources') + (int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase History" :sort-options="['updated_at' => 'Completed Date', 'pr_no' => 'Request Number', 'status' => 'Status']" default-sort="updated_at" default-direction="desc">
+          <x-slot:hidden><input type="hidden" name="view" value="history"></x-slot:hidden>
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Source" name="source" default="All Sources">@foreach(['All Sources', 'Maintenance Request', 'Inventory Restock'] as $source)<option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source }}</option>@endforeach</x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">@foreach(['All Statuses', 'Delivered', 'Picked Up', 'Issued'] as $status)<option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
+          </x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap records-table-wrap">
           <table class="requested-purchase-table records-table">
@@ -152,7 +121,12 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="9" message="No completed purchase history found." />
+                <x-ui.empty-row
+                  colspan="9"
+                  icon="fa-clock-rotate-left"
+                  message="No Purchase History Found"
+                  description="Completed, received, and closed purchase orders will appear here."
+                />
               @endforelse
             </tbody>
           </table>

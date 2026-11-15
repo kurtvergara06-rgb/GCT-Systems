@@ -136,7 +136,7 @@
                         <strong>{{ $bus->bus_no }}</strong>
                         <span>{{ $bus->bus_model ?: 'Model not recorded' }}{{ $bus->plate_no ? ' · ' . $bus->plate_no : '' }}</span>
                     </div>
-                    <span class="bus-health-unit-status {{ $statusClass }}">{{ $bus->status ?: 'Unspecified' }}</span>
+                    <x-ui.status-badge :status="$bus->status ?: 'Unspecified'" class="bus-health-unit-status {{ $statusClass }}" />
                 </div>
             @empty
                 <div class="analytics-compact-empty"><i class="fa-solid fa-bus"></i><span>No buses are recorded in the Bus Master List.</span></div>
@@ -184,7 +184,7 @@
                         <strong>{{ $bus->bus_no }}</strong>
                         <small>{{ $bus->bus_model ?: 'Model not recorded' }}{{ $bus->plate_no ? ' · ' . $bus->plate_no : '' }}</small>
                     </div>
-                    <span class="bus-health-unit-status {{ $statusClass }}">{{ $bus->status ?: 'Unspecified' }}</span>
+                    <x-ui.status-badge :status="$bus->status ?: 'Unspecified'" class="bus-health-unit-status {{ $statusClass }}" />
                 </div>
             @empty
                 <div class="analytics-compact-empty"><i class="fa-solid fa-circle-check"></i><span>No buses currently require status follow-up.</span></div>

@@ -399,7 +399,7 @@ class JobOrderController extends Controller
                 }
             }
 
-            $bus->update(['status' => 'Under Maintenance']);
+            $bus->placeUnderMaintenance();
 
             $createdJobOrder = JobOrder::create([
                 'job_order_no' => $this->generateJobOrderNo(),
@@ -842,9 +842,8 @@ class JobOrderController extends Controller
                 ->where('status', '!=', 'Completed')
                 ->exists();
 
-            if ($lockedBus && $lockedBus->status === 'Under Maintenance' && ! $hasAnotherActiveJobOrder) {
-                $lockedBus->update(['status' => 'Active']);
-                $busChanged = true;
+            if ($lockedBus && ! $hasAnotherActiveJobOrder) {
+                $busChanged = $lockedBus->releaseFromMaintenance() || $busChanged;
             }
 
             return $lockedJobOrder->fresh();
@@ -931,7 +930,7 @@ class JobOrderController extends Controller
                     'Bus',
                     'updated',
                     $cleanupResult['bus_released_id'],
-                    'A bus was returned to Active after its Job Order was safely deleted.'
+                    'A bus was released by Maintenance after its Job Order was safely deleted.'
                 );
             }
 
@@ -970,7 +969,7 @@ class JobOrderController extends Controller
         });
 
         if ($releasedBus) {
-            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $releasedBus->id, 'A bus was returned to Active after its Job Order was deleted.');
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $releasedBus->id, 'A bus was released by Maintenance after its Job Order was deleted.');
         }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'deleted', $jobOrderId, 'A job order was deleted.');
@@ -1046,7 +1045,7 @@ class JobOrderController extends Controller
             return null;
         }
 
-        $bus->update(['status' => 'Active']);
+        $bus->releaseFromMaintenance();
 
         return $bus->fresh();
     }

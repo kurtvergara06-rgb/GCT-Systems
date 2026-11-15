@@ -71,18 +71,25 @@
                     :action="route('job-orders')"
                     class="toolbar job-toolbar"
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
+                      search-label="Search Job Orders"
+                      :filter-count="(int) ($recordView !== 'history' && request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) ($recordView !== 'history' && request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
+                      filter-title="Filter Job Orders"
+                      :sort-options="['created_at' => 'Created Date', 'job_order_no' => 'Job Order Number', 'bus_no' => 'Bus Number', 'start_date' => 'Start Date', 'status' => 'JO Status', 'part_status' => 'Part Status']"
+                      default-sort="created_at"
+                      default-direction="desc"
                     button-id="openJobModal"
                     button-label="New JO"
                     :show-button="$recordView !== 'history'"
                     data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                 >
-                    @if($recordView === 'history')
-                        <input type="hidden" name="record_view" value="history">
-                    @endif
-                    @if($recordView !== 'history')
-                        <div class="filter-group">
-                            <label for="partStatusFilter"></label>
-                            <select name="part_status" id="partStatusFilter" class="part-status-select" onchange="this.form.submit()">
+                    <x-slot:hidden>
+                        @if($recordView === 'history')
+                            <input type="hidden" name="record_view" value="history">
+                        @endif
+                    </x-slot:hidden>
+                    <x-slot:filters>
+                        @if($recordView !== 'history')
+                            <x-ui.table-toolbar-field label="Part Status" name="part_status" default="All Part Statuses">
                                 @foreach([
                                     'All Part Statuses', 'Not Requested', 'Submitted', 'Approved', 'Rejected',
                                     'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery', 'Delivered',
@@ -95,18 +102,15 @@
                                         {{ $partStatusOption }}
                                     </option>
                                 @endforeach
-                            </select>
-                        </div>
+                            </x-ui.table-toolbar-field>
 
-                        <div class="filter-group">
-                            <label for="maintenanceTypeFilter"></label>
-                            <select name="maintenance_type" id="maintenanceTypeFilter" onchange="this.form.submit()">
+                            <x-ui.table-toolbar-field label="Maintenance Type" name="maintenance_type" default="All Types">
                                 <option value="All Types" {{ request('maintenance_type', 'All Types') === 'All Types' ? 'selected' : '' }}>All Types</option>
                                 <option value="PMS" {{ request('maintenance_type') === 'PMS' ? 'selected' : '' }}>PMS</option>
                                 <option value="Repair" {{ request('maintenance_type') === 'Repair' ? 'selected' : '' }}>Repair</option>
-                            </select>
-                        </div>
-                    @endif
+                            </x-ui.table-toolbar-field>
+                        @endif
+                    </x-slot:filters>
                 </x-ui.table-toolbar>
 
                 <div class="table-wrap">
@@ -284,7 +288,7 @@
                                         @if(!$hasNeededParts || $partStatus === '----')
                                             <span class="empty">----</span>
                                         @else
-                                            <span class="part-status-badge {{ $partStatusClass }}">{{ $partStatus }}</span>
+                                            <x-ui.status-badge :status="$partStatus" class="part-status-badge {{ $partStatusClass }}" />
                                         @endif
                                     </td>
 
@@ -343,7 +347,7 @@
                                                     @if($hasLinkedPr && !$allLinkedPrsRejected)
                                                         <button
                                                             type="button"
-                                                            class="action-btn disabled-action-btn"
+                                                            class="action-btn delete disabled-action-btn"
                                                             title="Cannot delete: this Job Order has an active linked Purchase Request."
                                                             disabled
                                                         >
@@ -367,7 +371,12 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row colspan="8" message="No job orders found." />
+                                <x-ui.empty-row
+                                    colspan="8"
+                                    icon="fa-clipboard-check"
+                                    message="No Job Orders Found"
+                                    description="No maintenance job orders match your search or filter criteria. Try adjusting your filters."
+                                />
                             @endforelse
                         </tbody>
                     </table>

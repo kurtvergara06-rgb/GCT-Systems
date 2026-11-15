@@ -63,22 +63,23 @@ class IncidentTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $attendance = DriverAttendance::create([
             'driver_name' => 'Test Driver',
             'shift' => 'Morning',
-            'attendance_date' => now()->toDateString(),
+            'attendance_date' => $today,
             'status' => 'Present',
         ]);
 
         $this->tripSchedule = TripSchedule::create([
             'trip_code' => 'T-T001',
-            'trip_date' => now()->toDateString(),
+            'trip_date' => $today,
             'shuttle_route_id' => $route->id,
             'departure_time' => '05:00:00',
             'estimated_arrival_time' => '06:00:00',
             'shift' => 'Morning',
             'assignment_status' => 'Assigned',
-            'status' => 'Dispatched',
+            'status' => 'Ready',
             'created_by' => $this->user->id,
         ]);
 
@@ -141,6 +142,25 @@ class IncidentTest extends TestCase
                 'location' => 'Some Location',
             ])
             ->assertSessionHasErrors(['incident_type']);
+    }
+
+    public function test_new_incidents_only_accept_breakdown_or_accident_road_incident_types(): void
+    {
+        foreach (['Traffic', 'Other'] as $unsupportedType) {
+            $this->actingAs($this->user)
+                ->from(route('incidents.create'))
+                ->post(route('incidents.store'), [
+                    'incident_type' => $unsupportedType,
+                    'location' => 'Test road location',
+                    'description' => 'Test incident report.',
+                ])
+                ->assertSessionHasErrors(['incident_type']);
+        }
+
+        $this->assertDatabaseMissing('incidents', [
+            'incident_type' => 'Traffic',
+            'location' => 'Test road location',
+        ]);
     }
 
     public function test_unauthorized_users_cannot_manipulate_incidents(): void
@@ -278,6 +298,7 @@ class IncidentTest extends TestCase
 
         $replacementBus = Bus::create([
             'bus_no' => 'BUS-REPL-001',
+            'fleet_purpose' => 'Reserve',
             'plate_no' => 'XYZ-5678',
             'bus_model' => 'Spare Bus',
             'capacity' => 40,
@@ -285,9 +306,21 @@ class IncidentTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
+            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->assertOk()
+            ->assertSee('Available Reserve Buses')
+            ->assertSee('BUS-REPL-001');
+
+        $this->actingAs($this->user)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($this->user)
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $replacementBus->id,
+                'oic_authorized' => '1',
+                'notes' => 'Deploying reserve unit',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -304,6 +337,36 @@ class IncidentTest extends TestCase
         ]);
     }
 
+    public function test_regular_bus_is_hidden_and_rejected_as_breakdown_replacement(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+
+        $regularBus = Bus::create([
+            'bus_no' => 'BUS-REGULAR-002',
+            'fleet_purpose' => 'Regular',
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->assertOk()
+            ->assertDontSee('BUS-REGULAR-002');
+
+        $this->actingAs($this->user)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
+                'replacement_bus_id' => $regularBus->id,
+                'oic_authorized' => '1',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('incident_replacements', 0);
+    }
+
     public function test_unavailable_buses_cannot_be_dispatched(): void
     {
         $incident = $this->createIncident('Bus Breakdown');
@@ -311,13 +374,19 @@ class IncidentTest extends TestCase
         $inactiveBus = Bus::create([
             'bus_no' => 'BUS-INACTIVE',
             'plate_no' => 'ZZZ-0000',
+            'fleet_purpose' => 'Reserve',
             'status' => 'Inactive',
         ]);
+
+        $this->actingAs($this->user)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
 
         $this->actingAs($this->user)
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $inactiveBus->id,
+                'oic_authorized' => '1',
             ])
             ->assertRedirect()
             ->assertSessionHas('error');
@@ -329,10 +398,15 @@ class IncidentTest extends TestCase
     {
         $incident = $this->createIncident('Bus Breakdown');
 
+        $this->actingAs($this->user)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
+
         $this->actingAs($this->user)
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $this->bus->id,
+                'oic_authorized' => '1',
             ])
             ->assertRedirect()
             ->assertSessionHas('error');
@@ -380,12 +454,17 @@ class IncidentTest extends TestCase
 
     public function test_non_breakdown_incident_cannot_dispatch_replacement(): void
     {
-        $incident = $this->createIncident('Traffic');
+        $incident = $this->createIncident('Accident/Road Incident');
+
+        $this->actingAs($this->user)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC noted incident.',
+        ])->assertSessionHasNoErrors();
 
         $this->actingAs($this->user)
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $this->bus->id,
+                'oic_authorized' => '1',
             ])
             ->assertRedirect()
             ->assertSessionHas('error');
@@ -421,6 +500,40 @@ class IncidentTest extends TestCase
             ->assertSee($incident->incident_no)
             ->assertSee('Bus Breakdown')
             ->assertSee('Operations Actions');
+    }
+
+    public function test_embedded_show_renders_the_complete_incident_workflow_workspace(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+
+        $this->actingAs($this->user)
+            ->get(route('incidents.show', [
+                'incident' => $incident->incident_no,
+                'embedded' => 1,
+            ]))
+            ->assertOk()
+            ->assertSee('data-embedded-incident-workflow', false)
+            ->assertSee('Incident Workflow')
+            ->assertSee('Details')
+            ->assertSee('Updates')
+            ->assertSee('Related Records')
+            ->assertSee('Current Status')
+            ->assertDontSee('Back to Incident List');
+    }
+
+    public function test_embedded_response_redirect_keeps_the_workflow_context(): void
+    {
+        $incident = $this->createIncident('Bus Breakdown');
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.response', ['incident' => $incident->incident_no]), [
+                'notes' => 'OIC confirmed that a reserve bus is being prepared.',
+                'embedded' => 1,
+            ])
+            ->assertRedirect(route('incidents.show', [
+                'incident' => $incident->incident_no,
+                'embedded' => 1,
+            ]));
     }
 
     public function test_search_filters_incidents(): void
@@ -513,18 +626,12 @@ class IncidentTest extends TestCase
 
     public function test_incident_trip_context_uses_the_real_assignment_not_posted_bus_and_driver(): void
     {
-        $otherBus = Bus::create([
-            'bus_no' => 'BUS-OTHER',
-            'plate_no' => 'OTH-1000',
-            'status' => 'Active',
-        ]);
-
         $this->actingAs($this->user)->post(route('incidents.store'), [
             'trip_schedule_id' => $this->tripSchedule->id,
-            'bus_id' => $otherBus->id,
+            'bus_id' => $this->bus->id,
             'driver_id' => 'FAKE-DRIVER',
             'driver_name' => 'Fake Driver',
-            'incident_type' => 'Traffic',
+            'incident_type' => 'Accident/Road Incident',
             'location' => 'Terminal A',
         ])->assertSessionHasNoErrors();
 
@@ -543,6 +650,7 @@ class IncidentTest extends TestCase
             ->from(route('incidents.create'))
             ->post(route('incidents.store'), [
                 'trip_schedule_id' => $this->tripSchedule->id,
+                'bus_id' => $this->bus->id,
                 'incident_type' => 'Bus Breakdown',
                 'location' => 'Terminal A',
             ])
@@ -571,6 +679,7 @@ class IncidentTest extends TestCase
         $incident = Incident::create([
             'incident_no' => 'INC-'.str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT),
             'trip_schedule_id' => $this->tripSchedule->id,
+            'trip_assignment_id' => $this->tripSchedule->assignment?->id,
             'bus_id' => $this->bus->id,
             'driver_id' => $this->driver->driver_id,
             'driver_name' => $this->driver->driver_name,

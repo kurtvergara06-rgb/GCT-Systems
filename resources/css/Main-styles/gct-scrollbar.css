@@ -1,0 +1,123 @@
+/* GCT shared compact scrollbar. Native scrolling is preserved.
+   Add .gct-scrollbar to any additional scrollable region. */
+:root {
+  --gct-scrollbar-size: 4px;
+  --gct-scrollbar-track: #f4f6f8;
+  --gct-scrollbar-thumb: #a8b2bf;
+  --gct-scrollbar-thumb-hover: #778597;
+}
+
+/* Intentionally excludes html/body and non-scrollable input controls. */
+:is(
+  .gct-scrollbar,
+  .ui-form-modal-body,
+  .service-table-scroll,
+  .table-wrap,
+  .table-container,
+  .table-responsive,
+  .table-wrapper,
+  .attendance-table-wrap,
+  .personnel-master-table-wrap,
+  .bus-table-wrap
+) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gct-scrollbar-thumb) var(--gct-scrollbar-track);
+}
+
+:is(
+  .gct-scrollbar,
+  .ui-form-modal-body,
+  .service-table-scroll,
+  .table-wrap,
+  .table-container,
+  .table-responsive,
+  .table-wrapper,
+  .attendance-table-wrap,
+  .personnel-master-table-wrap,
+  .bus-table-wrap
+)::-webkit-scrollbar {
+  width: var(--gct-scrollbar-size);
+  height: var(--gct-scrollbar-size);
+}
+
+:is(
+  .gct-scrollbar,
+  .ui-form-modal-body,
+  .service-table-scroll,
+  .table-wrap,
+  .table-container,
+  .table-responsive,
+  .table-wrapper,
+  .attendance-table-wrap,
+  .personnel-master-table-wrap,
+  .bus-table-wrap
+)::-webkit-scrollbar-track {
+  background: var(--gct-scrollbar-track);
+  border-radius: 999px;
+}
+
+:is(
+  .gct-scrollbar,
+  .ui-form-modal-body,
+  .service-table-scroll,
+  .table-wrap,
+  .table-container,
+  .table-responsive,
+  .table-wrapper,
+  .attendance-table-wrap,
+  .personnel-master-table-wrap,
+  .bus-table-wrap
+)::-webkit-scrollbar-thumb {
+  background: var(--gct-scrollbar-thumb);
+  border: 1px solid var(--gct-scrollbar-track);
+  border-radius: 999px;
+}
+
+:is(
+  .gct-scrollbar,
+  .ui-form-modal-body,
+  .service-table-scroll,
+  .table-wrap,
+  .table-container,
+  .table-responsive,
+  .table-wrapper,
+  .attendance-table-wrap,
+  .personnel-master-table-wrap,
+  .bus-table-wrap
+)::-webkit-scrollbar-thumb:hover {
+  background: var(--gct-scrollbar-thumb-hover);
+}
+
+/* Keep keyboard scrolling usable and do not suppress focus indicators. */
+
+/* Modal-specific specificity beats older blue department overrides.
+   Firefox uses thin system-defined width; Chromium uses 4px WebKit width. */
+body :is(.ui-form-modal-body, .service-table-scroll) {
+  scrollbar-color: var(--gct-scrollbar-thumb) var(--gct-scrollbar-track);
+}
+body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar {
+  width: var(--gct-scrollbar-size);
+  height: var(--gct-scrollbar-size);
+}
+body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar-thumb {
+  background: var(--gct-scrollbar-thumb);
+  border-color: var(--gct-scrollbar-track);
+  border-radius: 999px;
+}
+body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--gct-scrollbar-thumb-hover);
+}
+body :is(.ui-form-modal-body, .service-table-scroll)::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* The shared modal manager locks body scrolling. In browsers where the
+   document element owns the scrollport, lock that as well while an
+   actually-open GCT overlay is present. No JS or modal state changes. */
+/* The modal manager toggles body.modal-open. Lock the document
+   scrollport as well, since Chromium can scroll html independently. */
+html:has(body.modal-open) {
+  overflow: hidden;
+}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\DataActivity;
+use App\Support\TableSort;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -38,6 +39,7 @@ class DataHistoryController extends Controller
             $query->where('status', $request->query('status'));
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'file_name' => 'file_name', 'activity_type' => 'activity_type', 'module' => 'module', 'status' => 'status'], 'created_at', 'desc');
         $history = $query->get();
 
         $stats = [

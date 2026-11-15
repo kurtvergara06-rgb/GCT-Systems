@@ -134,10 +134,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="prescriptive-status-pill">
-                                    <i class="fa-solid fa-check-double"></i>
-                                    {{ $action['status'] }}
-                                </span>
+                                <x-ui.status-badge :status="$action['status']" class="prescriptive-status-pill" />
                             </td>
                             <td class="text-right">
                                 <a href="{{ route('fuel-reports') }}" class="btn-table-action">

@@ -118,26 +118,6 @@
     background: #fbfdff;
 }
 
-.flagged-review-row::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    background: #93a4ba;
-}
-
-.flagged-review-row.critical::before {
-    background: #ef4444;
-}
-
-.flagged-review-row.warning::before {
-    background: #f59e0b;
-}
-
-.flagged-review-row.info::before {
-    background: #2563eb;
-}
-
 .flagged-review-index {
     width: 28px;
     height: 28px;

@@ -3,6 +3,10 @@ window.GCTPartialNavigation.registerInitializer('operation-daily-driver-reports'
     initScheduleContextPanel();
     initDdrEncodeModal();
     initDdrAdditionalTrips();
+    initDdrCustomValidation();
+    initDdrDeleteModal();
+    initDdrRecordModals();
+    initDdrEditTripSections();
 });
 
 /* =========================================================
@@ -399,5 +403,161 @@ function initDdrAdditionalTrips() {
     add.addEventListener('click', () => append());
     modal.querySelector('#ddrEncodeForm')?.addEventListener('reset', () => {
         container.replaceChildren();
+    });
+}
+
+/* Compact floating DDR field hint: never alters the form grid. */
+function initDdrCustomValidation() {
+    document.querySelectorAll('form.ddr-form, #ddrEncodeForm').forEach((form) => {
+        if (form.dataset.ddrValidationReady === '1') return;
+        form.dataset.ddrValidationReady = '1';
+        form.noValidate = true;
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'ddr-validation-tooltip';
+        tooltip.setAttribute('role', 'alert');
+        tooltip.hidden = true;
+        document.body.appendChild(tooltip);
+        let invalidField = null;
+
+        const hide = () => {
+            tooltip.hidden = true;
+            invalidField?.classList.remove('ddr-input-invalid');
+            invalidField?.removeAttribute('aria-invalid');
+            invalidField = null;
+        };
+        const position = () => {
+            if (!invalidField || tooltip.hidden || !invalidField.isConnected) return;
+            const rect = invalidField.getBoundingClientRect();
+            const desiredLeft = rect.left + 14;
+            tooltip.style.left = Math.max(8, Math.min(desiredLeft, window.innerWidth - tooltip.offsetWidth - 8)) + 'px';
+            const below = rect.bottom + 9;
+            const above = rect.top - tooltip.offsetHeight - 9;
+            tooltip.classList.toggle('is-above', below + tooltip.offsetHeight > window.innerHeight && above >= 8);
+            tooltip.style.top = (tooltip.classList.contains('is-above') ? above : below) + 'px';
+        };
+        const show = (field, message) => {
+            hide();
+            invalidField = field;
+            tooltip.textContent = message;
+            tooltip.hidden = false;
+            field.classList.add('ddr-input-invalid');
+            field.setAttribute('aria-invalid', 'true');
+            field.focus({ preventScroll: true });
+            field.scrollIntoView({ block: 'nearest' });
+            position();
+        };
+        const controls = () => Array.from(form.querySelectorAll('input, select, textarea'))
+            .filter((field) => !field.disabled && field.type !== 'hidden' &&
+                field.type !== 'button' && field.type !== 'submit' && !field.closest('template'));
+
+        form.addEventListener('submit', (event) => {
+            hide();
+            for (const field of controls()) {
+                if (!field.checkValidity()) {
+                    event.preventDefault();
+                    const label = field.closest('.ui-form-group, .ddr-form-group')
+                        ?.querySelector('label')?.textContent?.replace('*', '').trim() || 'This field';
+                    const msg = field.validity.valueMissing ? 'Please fill out ' + label.toLowerCase() + '.'
+                        : field.validity.rangeUnderflow ? label + ' must be at least ' + field.min + '.'
+                        : field.validity.rangeOverflow ? label + ' must not exceed ' + field.max + '.'
+                        : 'Please enter a valid ' + label.toLowerCase() + '.';
+                    show(field, msg);
+                    return;
+                }
+                // Combo ID inputs are hidden, so validate the visible search control.
+                const combo = field.closest('[data-combo]');
+                if (combo && !combo.querySelector('[data-combo-value]')?.value.trim()) {
+                    event.preventDefault();
+                    show(field, 'Please select a ' + (combo.dataset.field === 'bus' ? 'bus' : 'driver') + '.');
+                    return;
+                }
+            }
+        });
+        form.addEventListener('input', (event) => {
+            if (event.target === invalidField) hide();
+        });
+        form.addEventListener('change', (event) => {
+            if (event.target === invalidField) hide();
+        });
+        form.addEventListener('reset', hide);
+        form.addEventListener('focusin', (event) => {
+            if (invalidField && event.target !== invalidField) hide();
+        });
+        window.addEventListener('combo:select', hide);
+        window.addEventListener('resize', position);
+        document.addEventListener('scroll', position, true);
+        document.addEventListener('click', (event) => {
+            if (invalidField && !form.contains(event.target)) hide();
+        });
+    });
+}
+
+function initDdrDeleteModal() {
+    const modal = document.getElementById('ddrDeleteModal');
+    const form = document.getElementById('ddrDeleteForm');
+    const selected = document.getElementById('ddrDeleteNumber');
+    const cancel = document.getElementById('ddrDeleteCancel');
+    const confirm = document.getElementById('ddrDeleteConfirm');
+    if (!modal || !form || !selected || !cancel || !confirm) return;
+
+    const close = () => {
+        modal.classList.remove('show', 'active');
+        form.removeAttribute('action');
+    };
+    document.querySelectorAll('.ddr-delete-trigger:not([disabled])').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!button.dataset.deleteUrl) return;
+            form.action = button.dataset.deleteUrl;
+            selected.textContent = button.dataset.ddrId || 'this report';
+            modal.classList.add('show', 'active');
+            cancel.focus();
+        });
+    });
+    cancel.addEventListener('click', close);
+    confirm.addEventListener('click', () => {
+        if (!form.getAttribute('action')) return;
+        confirm.disabled = true;
+        form.requestSubmit();
+    });
+}
+
+function initDdrRecordModals() {
+    const close = (modal) => {
+        if (!modal) return;
+        modal.hidden = true;
+        modal.classList.remove('is-open');
+    };
+    document.querySelectorAll('.ddr-open-modal').forEach((button) => {
+        button.addEventListener('click', () => {
+            const modal = document.getElementById(button.dataset.ddrModal);
+            if (!modal) return;
+            modal.hidden = false;
+            modal.classList.add('is-open');
+            modal.querySelector('.ddr-record-close')?.focus();
+        });
+    });
+    document.querySelectorAll('.ddr-record-overlay').forEach((modal) => {
+        modal.querySelectorAll('.ddr-record-close').forEach((button) =>
+            button.addEventListener('click', () => close(modal)));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) return; // Backdrop must not close the modal.
+        });
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        document.querySelectorAll('.ddr-record-overlay.is-open').forEach(close);
+    });
+}
+
+function initDdrEditTripSections() {
+    document.querySelectorAll('.ddr-record-dialog-edit .ddr-edit-trip-list').forEach((list) => {
+        list.addEventListener('toggle', (event) => {
+            const opened = event.target;
+            if (!(opened instanceof HTMLDetailsElement) || !opened.open || !opened.classList.contains('ddr-edit-trip')) return;
+            list.querySelectorAll('.ddr-edit-trip').forEach((section) => {
+                if (section !== opened) section.open = false;
+            });
+        }, true);
     });
 }

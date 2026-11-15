@@ -814,7 +814,7 @@ class LinkedJobOrderResetService
             return null;
         }
 
-        $bus->update(['status' => 'Active']);
+        $bus->releaseFromMaintenance();
 
         return $bus->fresh();
     }

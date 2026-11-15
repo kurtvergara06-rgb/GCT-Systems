@@ -29,9 +29,7 @@ class IncidentReplacement extends Model
     {
         static::created(function (IncidentReplacement $replacement): void {
             if ($replacement->original_bus_id) {
-                Bus::query()
-                    ->whereKey($replacement->original_bus_id)
-                    ->update(['status' => 'Under Maintenance']);
+                Bus::query()->find($replacement->original_bus_id)?->placeUnderMaintenance();
             }
 
             if (! Schema::hasColumn('trip_assignments', 'original_bus_id')) {
@@ -44,10 +42,20 @@ class IncidentReplacement extends Model
                 return;
             }
 
-            $assignment = TripAssignment::query()
-                ->where('trip_schedule_id', $incident->trip_schedule_id)
-                ->lockForUpdate()
-                ->first();
+            $assignmentQuery = TripAssignment::query()
+                ->where('trip_schedule_id', $incident->trip_schedule_id);
+
+            if ($incident->trip_assignment_id) {
+                $assignmentQuery->where('id', $incident->trip_assignment_id);
+            } elseif ($replacement->original_bus_id || $incident->bus_id) {
+                $busId = $replacement->original_bus_id ?: $incident->bus_id;
+                $assignmentQuery->where(function ($query) use ($busId): void {
+                    $query->where('bus_id', $busId)
+                        ->orWhere('original_bus_id', $busId);
+                });
+            }
+
+            $assignment = $assignmentQuery->lockForUpdate()->first();
 
             if (! $assignment) {
                 return;

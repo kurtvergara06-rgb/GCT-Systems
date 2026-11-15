@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Services\PartParser;
+use App\Support\TableSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -53,8 +54,8 @@ class MaintenanceRequestController extends Controller
             $query->where('status', $request->status);
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 
@@ -123,8 +124,8 @@ class MaintenanceRequestController extends Controller
             $historyQuery->where('status', $request->status);
         }
 
+        TableSort::apply($historyQuery, $request, ['updated_at' => 'updated_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'updated_at', 'desc');
         $historyRecords = $historyQuery
-            ->latest('updated_at')
             ->paginate(10)
             ->withQueryString();
 
@@ -193,7 +194,7 @@ class MaintenanceRequestController extends Controller
         session()->flash('open_po_modal', true);
 
         return new RedirectResponse(
-            '/purchase-orders?create_from_pr=' . $maintenanceRequest->id
+            '/purchase-orders?create_from_pr='.$maintenanceRequest->id
         );
     }
 
@@ -265,7 +266,7 @@ class MaintenanceRequestController extends Controller
                     'quantity' => $part['quantity'] ?? 1,
                     'unit' => $unit,
                     'quantity_display' => trim(
-                        ($part['quantity'] ?? 1) . ' ' . $unit
+                        ($part['quantity'] ?? 1).' '.$unit
                     ),
                 ];
             })
@@ -281,7 +282,7 @@ class MaintenanceRequestController extends Controller
         $firstUnit = $parts[0]['unit'] ?? null;
 
         if ($firstQuantity && $firstUnit && $firstUnit !== '—') {
-            $purchaseRequest->first_quantity_display = $firstQuantity . ' ' . $firstUnit;
+            $purchaseRequest->first_quantity_display = $firstQuantity.' '.$firstUnit;
         } elseif ($firstQuantity) {
             $purchaseRequest->first_quantity_display = $firstQuantity;
         } else {

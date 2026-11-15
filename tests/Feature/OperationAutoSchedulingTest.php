@@ -9,12 +9,57 @@ use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class OperationAutoSchedulingTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_preview_editor_lists_eligible_resources_without_persisting(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), [
+            'trip_schedule_id' => $trip->id,
+        ])->assertOk()
+            ->assertJsonFragment(['id' => $driver->id, 'name' => $driver->driver_name])
+            ->assertJsonFragment(['id' => $bus->id, 'name' => $bus->bus_no]);
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
+
+    public function test_preview_editor_validates_a_selection_without_saving(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'recommendations' => [],
+        ])->assertOk()->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
+
+    public function test_preview_editor_rejects_ineligible_driver_without_saving(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $driver->update(['status' => 'Absent']);
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.edit-preview'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+        ])->assertUnprocessable()->assertJsonValidationErrors('assignment');
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
 
     public function test_confirm_saves_a_valid_recommendation(): void
     {
@@ -71,12 +116,9 @@ class OperationAutoSchedulingTest extends TestCase
                 route('auto-scheduling.confirm'),
                 [
                     'recommendations' => [[
-                        'trip_schedule_id' =>
-                            $trip->id,
-                        'driver_attendance_id' =>
-                            $driver->id,
-                        'bus_id' =>
-                            $bus->id,
+                        'trip_schedule_id' => $trip->id,
+                        'driver_attendance_id' => $driver->id,
+                        'bus_id' => $bus->id,
                     ]],
                 ]
             );
@@ -90,8 +132,7 @@ class OperationAutoSchedulingTest extends TestCase
         $this->assertDatabaseMissing(
             'trip_assignments',
             [
-                'trip_schedule_id' =>
-                    $trip->id,
+                'trip_schedule_id' => $trip->id,
             ]
         );
     }
@@ -209,7 +250,6 @@ class OperationAutoSchedulingTest extends TestCase
         ]);
     }
 
-
     public function test_resolve_recalculates_shift_for_afternoon_departure(): void
     {
         $user = User::factory()->create();
@@ -319,7 +359,7 @@ class OperationAutoSchedulingTest extends TestCase
 
     public function test_resolve_rejects_proposed_departure_past_in_manila(): void
     {
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-10-08 16:30:00', 'UTC'));
+        Carbon::setTestNow(Carbon::parse('2026-10-08 16:30:00', 'UTC'));
 
         try {
             $user = User::factory()->create();
@@ -344,7 +384,7 @@ class OperationAutoSchedulingTest extends TestCase
                 ->assertUnprocessable()
                 ->assertJsonValidationErrors('proposed_departure_time');
         } finally {
-            \Carbon\Carbon::setTestNow();
+            Carbon::setTestNow();
         }
     }
 
@@ -395,6 +435,55 @@ class OperationAutoSchedulingTest extends TestCase
         $this->assertDatabaseMissing('trip_assignments', [
             'trip_schedule_id' => $trip->id,
         ]);
+    }
+
+    public function test_auto_scheduling_confirm_does_not_require_driver_license_expiration(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $attendance, $bus] = $this->makeScheduleResources();
+
+        Driver::query()
+            ->where('driver_id', $attendance->driver_id)
+            ->update(['license_expiration' => $trip->trip_date->copy()->subDay()->toDateString()]);
+
+        $this->actingAs($user)
+            ->postJson(route('auto-scheduling.confirm'), [
+                'recommendations' => [[
+                    'trip_schedule_id' => $trip->id,
+                    'driver_attendance_id' => $attendance->id,
+                    'bus_id' => $bus->id,
+                ]],
+            ])
+            ->assertOk()
+            ->assertJsonPath('saved', 1);
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $bus->id,
+        ]);
+    }
+
+    public function test_resolve_keeps_multi_bus_trip_partially_assigned(): void
+    {
+        $user = User::factory()->create();
+        [$trip] = $this->makeScheduleResources();
+        $trip->update(['required_buses' => 3]);
+
+        $this->actingAs($user)
+            ->postJson(route('auto-scheduling.resolve'), [
+                'trip_schedule_id' => $trip->id,
+                'proposed_departure_time' => '09:15:00',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('trip_schedules', [
+            'id' => $trip->id,
+            'assignment_status' => 'Partially Assigned',
+            'status' => 'Scheduled',
+        ]);
+        $this->assertSame(1, TripAssignment::query()->where('trip_schedule_id', $trip->id)->count());
     }
 
     public function test_auto_scheduling_resolve_rejects_inactive_master_driver(): void
@@ -459,10 +548,621 @@ class OperationAutoSchedulingTest extends TestCase
             'estimated_arrival_date' => $scheduleDate,
             'shift' => 'Morning',
             'assignment_status' => 'Unassigned',
-            'status' => 'Scheduled',
         ]);
 
         return [$trip, $driver, $bus, $route];
+    }
+
+    public function test_auto_scheduling_page_renders_incoming_and_outgoing_service_panels(): void
+    {
+        $user = User::factory()->create();
+        $scheduleDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+
+        $response = $this->actingAs($user)
+            ->get(route('auto-scheduling', ['schedule_date' => $scheduleDate]));
+
+        $response->assertOk()
+            ->assertSee('id="autoIncomingPanel"', false)
+            ->assertSee('id="autoOutgoingPanel"', false)
+            ->assertSee('Incoming Trips')
+            ->assertSee('Buses transporting employees to work')
+            ->assertSee('Outgoing Trips')
+            ->assertSee('Buses transporting employees home')
+            ->assertSee('id="incomingTripCount"', false)
+            ->assertSee('id="incomingRequiredBusesCount"', false)
+            ->assertSee('id="incomingReadyCount"', false)
+            ->assertSee('id="incomingReviewCount"', false)
+            ->assertSee('id="outgoingTripCount"', false)
+            ->assertSee('id="outgoingRequiredBusesCount"', false)
+            ->assertSee('id="outgoingReadyCount"', false)
+            ->assertSee('id="outgoingReviewCount"', false)
+            ->assertSee('id="autoScheduleIncomingBody"', false)
+            ->assertSee('id="autoScheduleOutgoingBody"', false)
+            ->assertSee('id="confirmScheduleButton"', false);
+    }
+
+    public function test_generate_returns_directional_grouping_and_summary_breakdown(): void
+    {
+        $user = User::factory()->create();
+        $scheduleDate = '2026-10-20';
+
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-TEST',
+            'route_name' => 'Test Route',
+            'origin' => 'Origin',
+            'destination' => 'Destination',
+            'status' => 'Active',
+        ]);
+
+        $incomingTrip = TripSchedule::create([
+            'trip_code' => 'T-INC-01',
+            'trip_date' => $scheduleDate,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Incoming',
+            'required_buses' => 2,
+            'departure_time' => '18:00:00', // Departing late, but explicitly Incoming
+            'estimated_arrival_time' => '19:00:00',
+            'estimated_arrival_date' => $scheduleDate,
+            'shift' => 'Night',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+
+        $outgoingTrip = TripSchedule::create([
+            'trip_code' => 'T-OUT-01',
+            'trip_date' => $scheduleDate,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Outgoing',
+            'required_buses' => 1,
+            'departure_time' => '06:00:00', // Departing early, but explicitly Outgoing
+            'estimated_arrival_time' => '07:00:00',
+            'estimated_arrival_date' => $scheduleDate,
+            'shift' => 'Morning',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('auto-scheduling.generate'), [
+                'schedule_date' => $scheduleDate,
+                'shift' => 'all',
+                'shuttle_route_id' => 'all',
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('summary.incoming.trips', 1)
+            ->assertJsonPath('summary.incoming.required_buses', 2)
+            ->assertJsonPath('summary.outgoing.trips', 1)
+            ->assertJsonPath('summary.outgoing.required_buses', 1);
+
+        $data = $response->json();
+        $allSlots = array_merge($data['recommendations'], $data['conflicts']);
+
+        $incomingSlots = array_filter($allSlots, fn ($s) => $s['direction'] === 'Incoming');
+        $outgoingSlots = array_filter($allSlots, fn ($s) => $s['direction'] === 'Outgoing');
+
+        $this->assertCount(2, $incomingSlots);
+        $this->assertCount(1, $outgoingSlots);
+
+        foreach ($incomingSlots as $slot) {
+            $this->assertSame('Incoming', $slot['direction']);
+            $this->assertSame(2, $slot['required_buses']);
+        }
+
+        foreach ($outgoingSlots as $slot) {
+            $this->assertSame('Outgoing', $slot['direction']);
+            $this->assertSame(1, $slot['required_buses']);
+        }
+    }
+
+    public function test_confirm_submits_recommendations_from_both_incoming_and_outgoing(): void
+    {
+        $user = User::factory()->create();
+        $scheduleDate = '2026-10-21';
+
+        $route = ShuttleRoute::create([
+            'route_code' => 'R-BOTH',
+            'route_name' => 'Both Route',
+            'origin' => 'Origin',
+            'destination' => 'Destination',
+            'status' => 'Active',
+        ]);
+
+        $bus1 = Bus::create([
+            'bus_no' => 'GCT-901',
+            'plate_number' => 'ABC-901',
+            'status' => 'Active',
+            'fleet_purpose' => 'Regular',
+        ]);
+
+        $bus2 = Bus::create([
+            'bus_no' => 'GCT-902',
+            'plate_number' => 'ABC-902',
+            'status' => 'Active',
+            'fleet_purpose' => 'Regular',
+        ]);
+
+        $driver1Master = Driver::firstOrCreate(
+            ['driver_id' => 'D-TEST-901'],
+            ['driver_name' => 'Driver One', 'shift' => 'Morning', 'employment_status' => 'Active']
+        );
+        $driver1 = DriverAttendance::create([
+            'driver_id' => $driver1Master->driver_id,
+            'driver_name' => 'Driver One',
+            'shift' => 'Morning',
+            'attendance_date' => $scheduleDate,
+            'status' => 'Present',
+        ]);
+
+        $driver2Master = Driver::firstOrCreate(
+            ['driver_id' => 'D-TEST-902'],
+            ['driver_name' => 'Driver Two', 'shift' => 'Afternoon', 'employment_status' => 'Active']
+        );
+        $driver2 = DriverAttendance::create([
+            'driver_id' => $driver2Master->driver_id,
+            'driver_name' => 'Driver Two',
+            'shift' => 'Afternoon',
+            'attendance_date' => $scheduleDate,
+            'status' => 'Present',
+        ]);
+
+        $incomingTrip = TripSchedule::create([
+            'trip_code' => 'T-INC-CONFIRM',
+            'trip_date' => $scheduleDate,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Incoming',
+            'required_buses' => 1,
+            'departure_time' => '07:00:00',
+            'estimated_arrival_time' => '08:00:00',
+            'estimated_arrival_date' => $scheduleDate,
+            'shift' => 'Morning',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+
+        $outgoingTrip = TripSchedule::create([
+            'trip_code' => 'T-OUT-CONFIRM',
+            'trip_date' => $scheduleDate,
+            'shuttle_route_id' => $route->id,
+            'direction' => 'Outgoing',
+            'required_buses' => 1,
+            'departure_time' => '17:00:00',
+            'estimated_arrival_time' => '18:00:00',
+            'estimated_arrival_date' => $scheduleDate,
+            'shift' => 'Afternoon',
+            'assignment_status' => 'Unassigned',
+            'status' => 'Scheduled',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('auto-scheduling.confirm'), [
+                'recommendations' => [
+                    [
+                        'trip_schedule_id' => $incomingTrip->id,
+                        'driver_attendance_id' => $driver1->id,
+                        'bus_id' => $bus1->id,
+                    ],
+                    [
+                        'trip_schedule_id' => $outgoingTrip->id,
+                        'driver_attendance_id' => $driver2->id,
+                        'bus_id' => $bus2->id,
+                    ],
+                ],
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('saved', 2);
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $incomingTrip->id,
+            'bus_id' => $bus1->id,
+        ]);
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $outgoingTrip->id,
+            'bus_id' => $bus2->id,
+        ]);
+
+        $this->assertDatabaseHas('trip_schedules', [
+            'id' => $incomingTrip->id,
+            'assignment_status' => 'Assigned',
+            'status' => 'Ready',
+        ]);
+        $this->assertDatabaseHas('trip_schedules', [
+            'id' => $outgoingTrip->id,
+            'assignment_status' => 'Assigned',
+            'status' => 'Ready',
+        ]);
+    }
+
+    public function test_reserve_bus_is_recommended_only_when_no_regular_bus_is_available(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $regular] = $this->makeScheduleResources();
+        $reserve = Bus::create([
+            'bus_no' => 'BUS-RES-001',
+            'plate_no' => 'RES-1001',
+            'bus_model' => 'Reserve Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+            'fleet_purpose' => 'Reserve',
+        ]);
+
+        $payload = [
+            'schedule_date' => $trip->trip_date->toDateString(),
+            'shift' => 'all',
+            'shuttle_route_id' => 'all',
+        ];
+
+        $regularResult = $this->actingAs($user)
+            ->postJson(route('auto-scheduling.generate'), $payload)
+            ->assertOk()->json('recommendations');
+        $this->assertSame($regular->id, $regularResult[0]['bus_id']);
+        $this->assertFalse($regularResult[0]['reserve_approval_required']);
+
+        $regular->update(['status' => 'Inactive']);
+        $reserveResponse = $this->actingAs($user)
+            ->postJson(route('auto-scheduling.generate'), $payload)
+            ->assertOk();
+        $this->assertSame([], $reserveResponse->json('recommendations'));
+        $reserveSuggestion = collect($reserveResponse->json('conflicts'))
+            ->firstWhere('issue_type', 'reserve_approval_required');
+        $this->assertNotNull($reserveSuggestion);
+        $this->assertSame($reserve->id, $reserveSuggestion['suggested_bus_id']);
+        $this->assertSame($driver->id, $reserveSuggestion['suggested_driver_attendance_id']);
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+    }
+
+    public function test_reserve_assignment_requires_approval_and_regular_shortage(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $regular] = $this->makeScheduleResources();
+        $reserve = Bus::create([
+            'bus_no' => 'BUS-RES-002',
+            'plate_no' => 'RES-1002',
+            'bus_model' => 'Reserve Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+            'fleet_purpose' => 'Reserve',
+        ]);
+        $payload = ['recommendations' => [[
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $reserve->id,
+        ]]];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $payload)
+            ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
+
+        $approvedPayload = ['recommendations' => [[
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $reserve->id,
+            'oic_approval' => [
+                'method' => 'Phone',
+                'approved_at' => now()->subMinute()->toDateTimeString(),
+                'remarks' => 'OIC approved the Reserve Bus by phone.',
+            ],
+        ]]];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $approvedPayload)
+            ->assertUnprocessable()->assertJsonValidationErrors('recommendations.0');
+
+        $regular->update(['status' => 'Inactive']);
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), $approvedPayload)
+            ->assertOk()->assertJsonPath('saved', 1);
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'bus_id' => $reserve->id,
+        ]);
+
+        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
+            'recorded_by' => $user->id,
+            'approved_by' => 'OIC (externally confirmed)',
+            'approval_method' => 'Phone',
+        ]);
+    }
+
+    public function test_confirm_refuses_unresolved_schedule_conflicts_even_with_ready_recommendations(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $filters = [
+            'schedule_date' => $trip->trip_date->toDateString(),
+            'shift' => 'all',
+            'shuttle_route_id' => 'all',
+        ];
+        $recommendations = [[
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+        ]];
+        $conflicts = [['trip_schedule_id' => $trip->id, 'issue_type' => 'missing_bus']];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => $recommendations,
+            'conflicts' => $conflicts,
+        ])->assertUnprocessable()->assertJsonValidationErrors('conflicts');
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.draft.save'),
+            $filters + ['recommendations' => $recommendations, 'conflicts' => $conflicts])
+            ->assertOk();
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => $recommendations,
+            'conflicts' => [],
+            'draft_filters' => $filters,
+        ])->assertUnprocessable()->assertJsonValidationErrors('conflicts');
+
+        $this->assertDatabaseMissing('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+        ]);
+    }
+
+    public function test_auto_schedule_draft_persists_without_assigning_a_bus(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $filters = ['schedule_date' => $trip->trip_date->toDateString(), 'shift' => 'all', 'shuttle_route_id' => 'all'];
+        $preview = [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'result' => 'Ready',
+        ];
+        $this->actingAs($user)->postJson(route('auto-scheduling.draft.save'),
+            $filters + ['recommendations' => [$preview], 'conflicts' => []])
+            ->assertOk()->assertJsonPath('saved', true);
+
+        $this->actingAs($user)->getJson(route('auto-scheduling.draft.load', $filters))
+            ->assertOk()->assertJsonPath('draft.recommendations.0.bus_id', $bus->id);
+
+        $this->assertDatabaseMissing('trip_assignments', ['trip_schedule_id' => $trip->id]);
+        $this->actingAs($user)->deleteJson(route('auto-scheduling.draft.delete', $filters))
+            ->assertOk()->assertJsonPath('deleted', true);
+        $this->actingAs($user)->getJson(route('auto-scheduling.draft.load', $filters))
+            ->assertOk()->assertJsonPath('draft', null);
+    }
+
+    public function test_drafts_are_private_to_the_operator(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        [$trip] = $this->makeScheduleResources();
+        $filters = ['schedule_date' => $trip->trip_date->toDateString(), 'shift' => 'all', 'shuttle_route_id' => 'all'];
+
+        $this->actingAs($owner)->postJson(route('auto-scheduling.draft.save'),
+            $filters + ['recommendations' => [], 'conflicts' => []])->assertOk();
+        $this->actingAs($other)->getJson(route('auto-scheduling.draft.load', $filters))
+            ->assertOk()->assertJsonPath('draft', null);
+    }
+
+    public function test_partial_confirmation_requires_and_persists_an_explicit_slot_decision(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $trip->update(['required_buses' => 2]);
+
+        $recommendation = [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'slot' => 1,
+        ];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [$recommendation],
+            'decisions' => [],
+        ])->assertUnprocessable()->assertJsonValidationErrors('decisions');
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [$recommendation],
+            'decisions' => [[
+                'trip_schedule_id' => $trip->id,
+                'slot' => 2,
+                'decision' => 'manual_later',
+                'notes' => 'Operations will assign the remaining unit later.',
+            ]],
+        ])->assertOk()
+            ->assertJsonPath('saved', 1)
+            ->assertJsonPath('pending_decisions', 1);
+
+        $this->assertSame('Partially Assigned', $trip->fresh()->assignment_status);
+        $this->assertDatabaseHas('auto_schedule_slot_decisions', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 2,
+            'decision' => 'manual_later',
+            'status' => 'Pending',
+        ]);
+
+        $secondDriver = Driver::create([
+            'driver_id' => 'D-2026-0002',
+            'driver_name' => 'Second Test Driver',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+        $secondAttendance = DriverAttendance::create([
+            'driver_id' => $secondDriver->driver_id,
+            'driver_name' => $secondDriver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => $trip->trip_date->toDateString(),
+            'status' => 'Late',
+        ]);
+        $secondBus = Bus::create([
+            'bus_no' => 'BUS-002',
+            'plate_no' => 'ABC-5678',
+            'bus_model' => 'Second Test Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $secondAttendance->id,
+            'bus_id' => $secondBus->id,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Assigned', $trip->fresh()->assignment_status);
+        $this->assertDatabaseHas('auto_schedule_slot_decisions', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 2,
+            'status' => 'Resolved',
+        ]);
+    }
+
+    public function test_draft_saves_and_restores_manual_and_external_slot_decisions(): void
+    {
+        $user = User::factory()->create();
+        [$trip] = $this->makeScheduleResources();
+        $filters = ['schedule_date' => $trip->trip_date->toDateString(), 'shift' => 'all', 'shuttle_route_id' => 'all'];
+        $decision = [
+            'trip_schedule_id' => $trip->id,
+            'slot' => 1,
+            'decision' => 'external_bus',
+            'notes' => 'Rental request pending.',
+        ];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.draft.save'), $filters + [
+            'recommendations' => [],
+            'conflicts' => [],
+            'decisions' => [$decision],
+        ])->assertOk()->assertJsonPath('saved', true);
+
+        $this->actingAs($user)->getJson(route('auto-scheduling.draft.load', $filters))
+            ->assertOk()
+            ->assertJsonPath('draft.decisions.0.decision', 'external_bus')
+            ->assertJsonPath('draft.decisions.0.notes', 'Rental request pending.');
+    }
+
+    public function test_assignment_resolves_only_the_exact_deferred_slot(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $trip->update(['required_buses' => 2]);
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [[
+                'trip_schedule_id' => $trip->id,
+                'driver_attendance_id' => $driver->id,
+                'bus_id' => $bus->id,
+                'slot' => 2,
+            ]],
+            'decisions' => [[
+                'trip_schedule_id' => $trip->id,
+                'slot' => 1,
+                'decision' => 'manual_later',
+                'notes' => 'Fill the first slot manually.',
+            ]],
+        ])->assertOk();
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 2,
+        ]);
+        $this->assertDatabaseHas('auto_schedule_slot_decisions', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 1,
+            'status' => 'Pending',
+            'fulfilled_by_assignment_id' => null,
+        ]);
+
+        $secondDriver = Driver::create([
+            'driver_id' => 'D-2026-0099',
+            'driver_name' => 'Exact Slot Driver',
+            'shift' => 'Morning',
+            'employment_status' => 'Active',
+        ]);
+        $secondAttendance = DriverAttendance::create([
+            'driver_id' => $secondDriver->driver_id,
+            'driver_name' => $secondDriver->driver_name,
+            'shift' => 'Morning',
+            'attendance_date' => $trip->trip_date->toDateString(),
+            'status' => 'Present',
+        ]);
+        $secondBus = Bus::create([
+            'bus_no' => 'BUS-099',
+            'plate_no' => 'SLOT-099',
+            'bus_model' => 'Exact Slot Bus',
+            'capacity' => 40,
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($user)->post(route('driver-bus-assignment.store'), [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $secondAttendance->id,
+            'bus_id' => $secondBus->id,
+        ])->assertSessionHasNoErrors();
+
+        $slotOneAssignment = TripAssignment::query()
+            ->where('trip_schedule_id', $trip->id)
+            ->where('slot_number', 1)
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('auto_schedule_slot_decisions', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 1,
+            'status' => 'Resolved',
+            'fulfilled_by_assignment_id' => $slotOneAssignment->id,
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('driver-bus-assignment.destroy', $slotOneAssignment))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('auto_schedule_slot_decisions', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 1,
+            'status' => 'Pending',
+            'fulfilled_by_assignment_id' => null,
+        ]);
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'slot_number' => 2,
+        ]);
+    }
+
+    public function test_confirmation_rejects_draft_content_changes_and_missing_draft_identity(): void
+    {
+        $user = User::factory()->create();
+        [$trip, $driver, $bus] = $this->makeScheduleResources();
+        $filters = [
+            'schedule_date' => $trip->trip_date->toDateString(),
+            'shift' => 'all',
+            'shuttle_route_id' => 'all',
+        ];
+        $recommendation = [
+            'trip_schedule_id' => $trip->id,
+            'driver_attendance_id' => $driver->id,
+            'bus_id' => $bus->id,
+            'slot' => 1,
+        ];
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.draft.save'), $filters + [
+            'recommendations' => [$recommendation],
+            'conflicts' => [],
+            'decisions' => [],
+        ])->assertOk();
+
+        $changed = $recommendation;
+        $changed['slot'] = 2;
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [$changed],
+            'conflicts' => [],
+            'decisions' => [],
+            'draft_filters' => $filters,
+        ])->assertUnprocessable()->assertJsonValidationErrors('recommendations');
+
+        $this->actingAs($user)->postJson(route('auto-scheduling.confirm'), [
+            'recommendations' => [$recommendation],
+            'conflicts' => [],
+            'decisions' => [],
+        ])->assertUnprocessable()->assertJsonValidationErrors('draft_filters');
+
+        $this->assertDatabaseMissing('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+        ]);
     }
 
     private function createDriverMaster(): Driver

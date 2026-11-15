@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Purchase;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Purchase\ScheduledPurchase;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -51,9 +52,8 @@ class ScheduledPurchaseController extends Controller
             };
         }
 
+        TableSort::apply($query, $request, ['next_purchase_date' => 'next_purchase_date', 'schedule_name' => 'schedule_name', 'supplier_name' => 'supplier_name', 'estimated_cost' => 'estimated_cost', 'status' => 'status'], 'next_purchase_date');
         $schedules = $query
-            ->orderByRaw("CASE WHEN status = 'Active' THEN 0 ELSE 1 END")
-            ->orderBy('next_purchase_date')
             ->paginate(8)
             ->withQueryString();
 

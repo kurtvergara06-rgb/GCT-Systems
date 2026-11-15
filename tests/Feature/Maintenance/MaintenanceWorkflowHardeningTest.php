@@ -107,6 +107,7 @@ class MaintenanceWorkflowHardeningTest extends TestCase
 
         $jobOrder = JobOrder::where('bus_no', $bus->bus_no)->firstOrFail();
         $this->assertSame('Under Maintenance', $bus->fresh()->status);
+        $this->assertSame('Active', $bus->fresh()->pre_maintenance_status);
 
         $this->actingAs($staff)
             ->delete(route('job-orders.destroy', $jobOrder))
@@ -114,6 +115,90 @@ class MaintenanceWorkflowHardeningTest extends TestCase
 
         $this->assertDatabaseMissing('job_orders', ['id' => $jobOrder->id]);
         $this->assertSame('Active', $bus->fresh()->status);
+        $this->assertNull($bus->fresh()->pre_maintenance_status);
+    }
+
+    public function test_reconciliation_is_dry_run_by_default_and_preserves_an_inactive_release_status(): void
+    {
+        $staff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        $bus = Bus::create([
+            'bus_no' => 'BUS-LEGACY-INCONSISTENT',
+            'status' => 'Inactive',
+        ]);
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-LEGACY-001',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Legacy repair workflow',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $this->artisan('maintenance:reconcile-bus-statuses', [
+            '--bus' => [$bus->bus_no],
+        ])->assertSuccessful();
+
+        $this->assertSame('Inactive', $bus->fresh()->status);
+        $this->assertNull($bus->fresh()->pre_maintenance_status);
+
+        $this->artisan('maintenance:reconcile-bus-statuses', [
+            '--bus' => [$bus->bus_no],
+            '--apply' => true,
+        ])->assertSuccessful();
+
+        $this->assertSame('Under Maintenance', $bus->fresh()->status);
+        $this->assertSame('Inactive', $bus->fresh()->pre_maintenance_status);
+
+        $this->actingAs($staff)
+            ->post(route('job-orders.finish', $jobOrder))
+            ->assertRedirect();
+
+        $this->assertSame('Completed', $jobOrder->fresh()->status);
+        $this->assertSame('Inactive', $bus->fresh()->status);
+        $this->assertNull($bus->fresh()->pre_maintenance_status);
+    }
+
+    public function test_bus_is_released_only_after_its_last_unresolved_job_order(): void
+    {
+        $staff = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+        $bus = Bus::create([
+            'bus_no' => 'BUS-MULTIPLE-JO',
+            'status' => 'Inactive',
+        ]);
+        $bus->placeUnderMaintenance();
+
+        $first = JobOrder::create([
+            'job_order_no' => 'JO-MULTIPLE-001',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'First repair',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'part_status' => 'No Parts Required',
+        ]);
+        $second = JobOrder::create([
+            'job_order_no' => 'JO-MULTIPLE-002',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Second legacy repair',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'part_status' => 'No Parts Required',
+        ]);
+
+        $this->actingAs($staff)->post(route('job-orders.finish', $first))->assertRedirect();
+        $this->assertSame('Under Maintenance', $bus->fresh()->status);
+        $this->assertSame('Inactive', $bus->fresh()->pre_maintenance_status);
+
+        $this->actingAs($staff)->post(route('job-orders.finish', $second))->assertRedirect();
+        $this->assertSame('Inactive', $bus->fresh()->status);
+        $this->assertNull($bus->fresh()->pre_maintenance_status);
     }
 
     public function test_completing_the_last_job_order_returns_bus_to_active(): void

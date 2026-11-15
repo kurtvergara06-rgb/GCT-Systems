@@ -100,24 +100,12 @@
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
         </div>
 
-        <form action="/purchase-orders" method="GET" class="toolbar po-toolbar records-toolbar" data-server-filter="true">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO number, item, request no., or status...">
-          </div>
-
-          <div class="filter-group po-filter-field">
-            <label for="poStatusFilter" class="sr-only">Status</label>
-            <select id="poStatusFilter" name="status">
-              <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>All Statuses</option>
-              @foreach($statuses as $status)
-                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>{{ $status }}</option>
-              @endforeach
-            </select>
-          </div>
-
+        <div class="gct-table-toolbar-row">
+          <x-ui.table-toolbar action="/purchase-orders" class="records-toolbar" data-server-filter="true" search-label="Search Purchase Orders" search-placeholder="Search PO no., item, request no., or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Purchase Orders" :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'total_amount' => 'Total Amount', 'status' => 'Status']" default-sort="po_date" default-direction="desc">
+            <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All Statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+          </x-ui.table-toolbar>
           <button type="button" id="openPoModal" class="primary-btn compact-new-po-btn"><i class="fa-solid fa-plus"></i> New PO</button>
-        </form>
+        </div>
 
         <div class="table-wrap records-table-wrap">
           <table class="records-table">
@@ -215,7 +203,12 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="9" message="No purchase orders found." />
+                <x-ui.empty-row
+                  colspan="9"
+                  icon="fa-file-invoice"
+                  message="No Purchase Orders Found"
+                  description="No purchase orders match your search or filter criteria. Try adjusting your filters."
+                />
               @endforelse
             </tbody>
           </table>

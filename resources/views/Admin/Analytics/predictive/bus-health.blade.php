@@ -200,10 +200,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="bus-status-pill bus-status-pill--{{ $statusTone }}">
-                                    <span class="status-circle"></span>
-                                    {{ $status }}
-                                </span>
+                                <x-ui.status-badge :status="$status" class="bus-status-pill bus-status-pill--{{ $statusTone }}" />
                             </td>
                             <td>
                                 <span class="component-risk-cell">

@@ -23,7 +23,18 @@ class BusController extends Controller
 
     public function index(Request $request)
     {
+        $fleetTab = $request->query('fleet_purpose', 'Regular');
         $query = Bus::query();
+        if ($fleetTab === 'Inactive') {
+            $query->where('status', 'Inactive')
+                ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+        } else {
+            $query->where('fleet_purpose', $fleetTab === 'Reserve' ? 'Reserve' : 'Regular')
+                ->where(function ($q): void {
+                    $q->where('status', '!=', 'Inactive')
+                        ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                });
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -41,11 +52,26 @@ class BusController extends Controller
             $request->filled('status')
             && $request->status !== 'All Status'
         ) {
-            $query->where('status', $request->status);
+            if ($request->status === 'Under Maintenance') {
+                $query->where(function ($query): void {
+                    $query->where('status', 'Under Maintenance')
+                        ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                });
+            } else {
+                $query->where('status', $request->status)
+                    ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+            }
         }
 
+        // Sort only by known Bus columns; never interpolate untrusted SQL identifiers.
+        $sort = in_array($request->query('sort'), ['bus_no', 'plate_no', 'bus_model', 'status'], true)
+            ? $request->query('sort')
+            : 'bus_no';
+        $direction = $request->query('sort_direction', $request->query('direction')) === 'desc' ? 'desc' : 'asc';
+
         $buses = $query
-            ->orderBy('bus_no')
+            ->orderBy($sort, $direction)
+            ->when($sort !== 'bus_no', fn ($builder) => $builder->orderBy('bus_no'))
             ->paginate(10)
             ->withQueryString();
 
@@ -62,7 +88,14 @@ class BusController extends Controller
             ->sortBy(fn ($assignment) => $assignment->tripSchedule->trip_date->format('Y-m-d').' '.$assignment->tripSchedule->departure_time)
             ->groupBy('bus_id');
 
-        $buses->getCollection()->each(function (Bus $bus) use ($routeAssignments): void {
+        $maintenanceLockedBusNumbers = JobOrder::query()
+            ->where('status', '!=', 'Completed')
+            ->whereIn('bus_no', $buses->getCollection()->pluck('bus_no'))
+            ->pluck('bus_no')
+            ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
+            ->flip();
+
+        $buses->getCollection()->each(function (Bus $bus) use ($maintenanceLockedBusNumbers, $routeAssignments): void {
             $bus->display_route_name = $routeAssignments
                 ->get($bus->id)
                 ?->first()
@@ -72,23 +105,32 @@ class BusController extends Controller
 
             // Mirror the existing server-side Bus No. history guard in the UI.
             $bus->bus_no_locked = $this->hasHistoricalBusReferences($bus);
+            $bus->fleet_purpose_locked = $routeAssignments->has($bus->id);
+            $bus->deactivation_locked = $routeAssignments->has($bus->id);
+            $bus->maintenance_locked = $maintenanceLockedBusNumbers->has(strtoupper(trim($bus->bus_no)));
+            $bus->display_status = $bus->maintenance_locked ? 'Under Maintenance' : $bus->status;
         });
 
         $totalBuses = Bus::count();
 
         $activeBuses = Bus::where('status', 'Active')
+            ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers())
             ->count();
 
-        $underMaintenance = Bus::where(
-            'status',
-            'Under Maintenance'
-        )->count();
+        $underMaintenance = Bus::query()
+            ->where(function ($query): void {
+                $query->where('status', 'Under Maintenance')
+                    ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+            })
+            ->count();
 
         // Active buses with no unresolved scheduled trip assignment are
         // available for a new assignment. Past completed/cancelled trips do
         // not remove a bus from this count.
         $availableBuses = Bus::query()
             ->where('status', 'Active')
+            ->where('fleet_purpose', 'Regular')
+            ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers())
             ->whereDoesntHave('tripAssignments', function ($query): void {
                 $query->whereHas('tripSchedule', fn ($schedule) => $schedule
                     ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
@@ -141,8 +183,9 @@ class BusController extends Controller
             ],
             'status' => [
                 'required',
-                'in:Active,Inactive,Under Maintenance',
+                'in:Active,Inactive',
             ],
+            'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
         $bus = DB::transaction(function () use ($validated): Bus {
@@ -154,6 +197,7 @@ class BusController extends Controller
                 'capacity' => $validated['capacity'] ?? null,
                 'route_grouping' => $validated['route_grouping'] ?? null,
                 'status' => $validated['status'],
+                'fleet_purpose' => $validated['fleet_purpose'] ?? 'Regular',
             ]);
 
             $this->pmsScheduleSynchronizer->ensureDefaultsFor($createdBus);
@@ -376,15 +420,11 @@ class BusController extends Controller
                 'integer',
                 'min:1',
             ],
-            'route_grouping' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
             'status' => [
                 'required',
-                'in:Active,Inactive,Under Maintenance',
+                'in:Active,Inactive',
             ],
+            'fleet_purpose' => ['sometimes', 'in:Regular,Reserve'],
         ]);
 
         $bus = DB::transaction(function () use ($bus, $validated): Bus {
@@ -395,6 +435,37 @@ class BusController extends Controller
             if ($lockedBus->status === 'Under Maintenance') {
                 throw ValidationException::withMessages([
                     $validated['status'] === 'Active' ? 'status' : 'bus_no' => 'This bus is Under Maintenance. Its master-list information is locked until Maintenance releases it.',
+                ]);
+            }
+
+            // Operations may deactivate a bus only when doing so cannot invalidate
+            // an ongoing or future confirmed vehicle assignment.
+            if ($validated['status'] === 'Inactive' && $lockedBus->status === 'Active') {
+                if ($this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Cannot deactivate this bus while it has an ongoing or future confirmed trip assignment. Reassign the trip first.',
+                    ]);
+                }
+
+                if (JobOrder::query()
+                    ->where('bus_no', $lockedBus->bus_no)
+                    ->where('status', '!=', 'Completed')
+                    ->lockForUpdate()
+                    ->first() !== null) {
+                    throw ValidationException::withMessages([
+                        'status' => 'This bus has an ongoing maintenance Job Order. Only Maintenance can release it; Operation cannot deactivate it.',
+                    ]);
+                }
+            }
+
+            $newFleetPurpose = $validated['fleet_purpose'] ?? $lockedBus->fleet_purpose;
+
+            if (
+                $newFleetPurpose !== $lockedBus->fleet_purpose
+                && $this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)
+            ) {
+                throw ValidationException::withMessages([
+                    'fleet_purpose' => 'Cannot change this bus between Regular and Reserve while it has an ongoing or future confirmed trip assignment. Resolve or reassign the trip first.',
                 ]);
             }
 
@@ -430,8 +501,8 @@ class BusController extends Controller
                 'bus_model' => $validated['bus_model'] ?? null,
                 'year_model' => $validated['year_model'] ?? null,
                 'capacity' => $validated['capacity'] ?? null,
-                'route_grouping' => $validated['route_grouping'] ?? null,
                 'status' => $validated['status'],
+                'fleet_purpose' => $newFleetPurpose,
             ]);
 
             $this->pmsScheduleSynchronizer->renameBus($oldBusNo, $lockedBus);
@@ -446,7 +517,89 @@ class BusController extends Controller
             'Bus information updated successfully.'
         );
 
-        return new RedirectResponse('/bus-master-list');
+        return redirect()->back(fallback: '/bus-master-list');
+    }
+
+    public function deactivate(Bus $bus): RedirectResponse
+    {
+        DB::transaction(function () use ($bus): void {
+            $lockedBus = Bus::query()
+                ->whereKey($bus->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus is Under Maintenance. Its master-list status is locked until Maintenance releases it.',
+                ]);
+            }
+
+            if ($this->hasUnresolvedCurrentOrFutureAssignment($lockedBus)) {
+                throw ValidationException::withMessages([
+                    'bus' => 'Cannot deactivate this bus while it has an ongoing or future confirmed trip assignment. Reassign the trip first.',
+                ]);
+            }
+
+            if (JobOrder::query()
+                ->where('bus_no', $lockedBus->bus_no)
+                ->where('status', '!=', 'Completed')
+                ->lockForUpdate()
+                ->first() !== null) {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus has an ongoing maintenance Job Order. Only Maintenance can release the bus; Operation cannot deactivate it.',
+                ]);
+            }
+
+            $lockedBus->update(['status' => 'Inactive']);
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, "Bus {$bus->bus_no} was deactivated.");
+
+        session()->flash(
+            'success',
+            "Bus {$bus->bus_no} has been deactivated successfully."
+        );
+
+        return redirect()->back(fallback: '/bus-master-list');
+    }
+
+    public function activate(Bus $bus): RedirectResponse
+    {
+        DB::transaction(function () use ($bus): void {
+            $lockedBus = Bus::query()
+                ->whereKey($bus->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus is Under Maintenance. Its master-list status is locked until Maintenance releases it.',
+                ]);
+            }
+
+            if (
+                JobOrder::query()
+                    ->where('bus_no', $lockedBus->bus_no)
+                    ->where('status', '!=', 'Completed')
+                    ->lockForUpdate()
+                    ->first() !== null
+            ) {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus cannot be activated while it has an ongoing maintenance Job Order.',
+                ]);
+            }
+
+            $lockedBus->update(['status' => 'Active']);
+        });
+
+        $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, "Bus {$bus->bus_no} was activated.");
+
+        session()->flash(
+            'success',
+            "Bus {$bus->bus_no} has been activated successfully."
+        );
+
+        return redirect()->back(fallback: '/bus-master-list');
     }
 
     public function destroy(Bus $bus): RedirectResponse
@@ -489,7 +642,7 @@ class BusController extends Controller
             'Bus deleted successfully.'
         );
 
-        return new RedirectResponse('/bus-master-list');
+        return redirect()->back(fallback: '/bus-master-list');
     }
 
     private function hasHistoricalBusReferences(Bus $bus): bool
@@ -507,6 +660,27 @@ class BusController extends Controller
             || DB::table('purchase_requests')->where('bus_no', $busNo)->exists()
             || DB::table('gps_trip_records')->where('bus_no', $busNo)->exists()
             || DB::table('batch_uploads')->where('bus_no', $busNo)->exists();
+    }
+
+    private function hasUnresolvedCurrentOrFutureAssignment(Bus $bus): bool
+    {
+        // The bus row is locked by update() before this check. Assignment and
+        // replacement flows also lock the selected bus, so a concurrent write
+        // cannot bypass the purpose/status guard.
+        return TripAssignment::query()
+            ->where('bus_id', $bus->id)
+            ->whereHas('tripSchedule', function ($query): void {
+                $query->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
+                    ->whereDate('trip_date', '>=', today(config('app.business_timezone', 'Asia/Manila'))->toDateString());
+            })
+            ->exists();
+    }
+
+    private function unresolvedJobOrderBusNumbers()
+    {
+        return JobOrder::query()
+            ->select('bus_no')
+            ->where('status', '!=', 'Completed');
     }
 
     private function hasTripBusHistory(Bus $bus, bool $lock = false): bool

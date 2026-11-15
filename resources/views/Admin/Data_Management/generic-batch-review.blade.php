@@ -22,9 +22,10 @@
                 </div>
 
                 <div class="generic-review-actions">
-                    <span class="generic-batch-status {{ $batch->status === 'Processed' ? 'processed' : '' }}">
-                        {{ $batch->status }}
-                    </span>
+                    <x-ui.status-badge
+                        :status="$batch->status"
+                        class="generic-batch-status {{ $batch->status === 'Processed' ? 'processed' : '' }}"
+                    />
 
                     <a
                         href="{{ route('batch-file-processing', [], false) }}"

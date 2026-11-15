@@ -287,13 +287,9 @@
                                 </td>
                                 <td>
                                     @if($isCritical)
-                                        <span class="status-pill out-of-stock">
-                                            <i class="pulse-dot"></i> Out of Stock
-                                        </span>
+                                        <x-ui.status-badge status="Out of Stock" class="status-pill out-of-stock" />
                                     @else
-                                        <span class="status-pill low-stock">
-                                            <i class="warning-dot"></i> Low Stock
-                                        </span>
+                                        <x-ui.status-badge status="Low Stock" class="status-pill low-stock" />
                                     @endif
                                 </td>
                                 <td>

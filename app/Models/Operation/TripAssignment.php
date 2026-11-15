@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TripAssignment extends Model
 {
@@ -15,12 +16,17 @@ class TripAssignment extends Model
 
     protected $fillable = [
         'trip_schedule_id',
+        'slot_number',
         'driver_attendance_id',
         'driver_id',
         'driver_name',
         'bus_id',
         'original_bus_id',
         'assigned_by',
+    ];
+
+    protected $casts = [
+        'slot_number' => 'integer',
     ];
 
     public function tripSchedule(): BelongsTo
@@ -69,6 +75,11 @@ class TripAssignment extends Model
             Incident::class,
             'trip_assignment_id'
         );
+    }
+
+    public function reserveApproval(): HasOne
+    {
+        return $this->hasOne(AutoScheduleReserveApproval::class, 'trip_assignment_id');
     }
 
     public function assigner(): BelongsTo

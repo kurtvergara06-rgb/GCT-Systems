@@ -272,33 +272,11 @@
                     </td>
 
                     <td>
-                      <span class="workflow-badge {{ $workflowClass }}">
-                        @if($row->workflow_status === 'Completed')
-                          <i class="fa-solid fa-circle-check"></i>
-                        @elseif($row->workflow_status === 'For Fuel Entry')
-                          <i class="fa-solid fa-gas-pump"></i>
-                        @elseif($row->workflow_status === 'Missing GPS')
-                          <i class="fa-solid fa-triangle-exclamation"></i>
-                        @else
-                          <i class="fa-solid fa-clock"></i>
-                        @endif
-                        {{ $row->workflow_status }}
-                      </span>
+                      <x-ui.status-badge :status="$row->workflow_status" class="workflow-badge {{ $workflowClass }}" />
                     </td>
 
                     <td>
-                      <span class="badge {{ $efficiencyClass }}">
-                        @if($row->efficiency_status === 'Efficient')
-                          <i class="fa-solid fa-circle-check"></i>
-                        @elseif($row->efficiency_status === 'Normal')
-                          <i class="fa-solid fa-gauge-high"></i>
-                        @elseif($row->efficiency_status === 'Inefficient')
-                          <i class="fa-solid fa-triangle-exclamation"></i>
-                        @else
-                          <i class="fa-solid fa-minus"></i>
-                        @endif
-                        {{ $row->efficiency_status }}
-                      </span>
+                      <x-ui.status-badge :status="$row->efficiency_status" class="{{ $efficiencyClass }}" />
 
                       @if($row->km_per_liter > 0)
                         <small>{{ number_format($row->km_per_liter, 2) }} km/L</small>
@@ -308,7 +286,9 @@
                 @empty
                   <x-ui.empty-row
                     colspan="7"
-                    message="No buses are available for this filter."
+                    icon="fa-gas-pump"
+                    message="No Bus Fuel Efficiency Records"
+                    description="No buses match the selected filter criteria."
                   />
                 @endforelse
               </tbody>
@@ -416,18 +396,7 @@
                   </td>
 
                   <td>
-                    <span class="badge {{ $recordStatusClass }}">
-                      @if($record->status === 'Efficient')
-                        <i class="fa-solid fa-circle-check"></i>
-                      @elseif($record->status === 'Normal')
-                        <i class="fa-solid fa-gauge-high"></i>
-                      @elseif($record->status === 'Inefficient')
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                      @else
-                        <i class="fa-solid fa-minus"></i>
-                      @endif
-                      {{ $record->status }}
-                    </span>
+                    <x-ui.status-badge :status="$record->status" class="{{ $recordStatusClass }}" />
                   </td>
 
                   <td>
@@ -508,7 +477,9 @@
 
                 <x-ui.empty-row
                   colspan="9"
-                  message="No recent fuel records found."
+                  icon="fa-gas-pump"
+                  message="No Fuel Records Found"
+                  description="No fuel dispensing or consumption logs match your search or filter criteria."
                 />
 
               @endforelse

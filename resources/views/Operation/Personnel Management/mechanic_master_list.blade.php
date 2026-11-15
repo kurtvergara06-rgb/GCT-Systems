@@ -31,61 +31,27 @@
                     <h2>Mechanic Records</h2>
                     <p>Permanent mechanic information only. Daily attendance remains separate from mechanic skills and profile data.</p>
                 </div>
-            </div>
-
-            <form
-                method="GET"
-                action="{{ route('operation.personnel.mechanics', [], false) }}"
-                class="toolbar attendance-toolbar personnel-master-toolbar mechanic-master-toolbar"
-                data-server-filter="true"
-            >
-                <div class="search-box personnel-search-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input
-                        type="search"
-                        name="search"
-                        value="{{ request('search') }}"
-                        placeholder="Search mechanic ID, name, shift, or specialization..."
-                        aria-label="Search mechanic records"
-                    >
-                </div>
-
-                <div class="filter-group personnel-filter">
-                    <label class="sr-only" for="mechanicStatusFilter">Status</label>
-                    <select id="mechanicStatusFilter" name="status" aria-label="Filter by status">
-                        <option value="">All Statuses</option>
-                        <option value="Active" @selected(request('status') === 'Active')>Active</option>
-                        <option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option>
-                    </select>
-                </div>
-
-                <div class="filter-group personnel-filter personnel-filter-specialization">
-                    <label class="sr-only" for="mechanicSpecializationFilter">Specialization</label>
-                    <select id="mechanicSpecializationFilter" name="specialization" aria-label="Filter by specialization">
-                        <option value="">All Specializations</option>
-                        @foreach($specializationOptions as $specialization)
-                            <option value="{{ $specialization }}" @selected(request('specialization') === $specialization)>{{ $specialization }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="filter-group personnel-filter">
-                    <label class="sr-only" for="mechanicShiftFilter">Shift</label>
-                    <select id="mechanicShiftFilter" name="shift" aria-label="Filter by default shift">
-                        <option value="">All Shifts</option>
-                        @foreach(['Morning', 'Afternoon'] as $shift)
-                            <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                @if($canEditOperation)
+@if($canEditOperation)
                 <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
                     <i class="fa-solid fa-plus"></i>
                     <span>Add Mechanic</span>
                 </button>
                 @endif
-            </form>
+
+            </div>
+
+
+            <div class="gct-table-toolbar-row"><nav class="personnel-record-tabs" aria-label="Mechanic record groups">
+                <a class="personnel-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.mechanics', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Active Mechanics</a>
+                <a class="personnel-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route('operation.personnel.mechanics', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
+            </nav>
+            <x-ui.table-toolbar action="{{ route('operation.personnel.mechanics', [], false) }}" search-label="Search Mechanics" search-placeholder="Search ID, name, shift, or specialization..." :filter-count="(int) request()->filled('specialization') + (int) request()->filled('shift')" filter-title="Filter Mechanics" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Default Shift', 'employment_status' => 'Status']" default-sort="mechanic_name">
+                <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
+                <x-slot:filters>
+                    <x-ui.table-toolbar-field label="Specialization" name="specialization"><option value="">All Specializations</option>@foreach($specializationOptions as $specialization)<option value="{{ $specialization }}" @selected(request('specialization') === $specialization)>{{ $specialization }}</option>@endforeach</x-ui.table-toolbar-field>
+                    <x-ui.table-toolbar-field label="Default Shift" name="shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon'] as $shift)<option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>@endforeach</x-ui.table-toolbar-field>
+                </x-slot:filters>
+            </x-ui.table-toolbar></div>
 
             <div class="personnel-filter-loading" data-server-filter-loading hidden>
                 <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
@@ -174,9 +140,7 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="badge personnel-status gct-pill gct-pill--{{ strtolower($mechanic->employment_status) }}">
-                                    {{ $mechanic->employment_status }}
-                                </span>
+                                <x-ui.status-badge :status="$mechanic->employment_status" class="personnel-status gct-pill gct-pill--{{ strtolower($mechanic->employment_status) }}" />
                             </td>
                             <td>
                                 <div class="actions">
@@ -201,7 +165,12 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row colspan="6" message="No mechanic master records found." />
+                        <x-ui.empty-row
+                            colspan="6"
+                            icon="fa-wrench"
+                            message="No Mechanic Records Found"
+                            description="No mechanic profiles match your search or filter criteria. Try adjusting your filters."
+                        />
                     @endforelse
                     </tbody>
                 </table>
@@ -261,7 +230,7 @@
                     <i class="fa-regular fa-clock" aria-hidden="true"></i>
                     <select name="shift" required>
                         <option value="">Select shift</option>
-                        @foreach(['Morning','Afternoon'] as $shift)
+                        @foreach(['Morning'] as $shift)
                             <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
                         @endforeach
                     </select>

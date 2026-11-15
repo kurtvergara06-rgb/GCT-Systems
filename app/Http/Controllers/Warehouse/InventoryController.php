@@ -8,6 +8,7 @@ use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,8 +54,8 @@ class InventoryController extends Controller
             $query->where('category', $request->category);
         }
 
+        TableSort::apply($query, $request, ['item_name' => 'item_name', 'item_code' => 'item_code', 'category' => 'category', 'quantity' => 'quantity_available', 'reorder_level' => 'reorder_level'], 'item_name');
         $inventoryItems = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 
@@ -543,8 +544,7 @@ class InventoryController extends Controller
 
             if ($quantity > $current) {
                 throw ValidationException::withMessages([
-                    'quantity' =>
-                        "Insufficient stock. Only {$current} available, but {$quantity} requested.",
+                    'quantity' => "Insufficient stock. Only {$current} available, but {$quantity} requested.",
                 ]);
             }
 
@@ -555,10 +555,10 @@ class InventoryController extends Controller
                 $quantity,
                 $issueNo,
                 'Issued to '
-                    . trim((string) $validated['issued_to'])
-                    . ' for '
-                    . trim((string) $validated['purpose'])
-                    . '.',
+                    .trim((string) $validated['issued_to'])
+                    .' for '
+                    .trim((string) $validated['purpose'])
+                    .'.',
                 auth()->id()
             );
 
@@ -625,9 +625,9 @@ class InventoryController extends Controller
             : 0;
 
         return 'ISS-'
-            . $year
-            . '-'
-            . str_pad(
+            .$year
+            .'-'
+            .str_pad(
                 (string) ($lastNumber + 1),
                 4,
                 '0',
@@ -705,11 +705,10 @@ class InventoryController extends Controller
             'quantity' => $neededQuantity,
             'status' => 'For Purchase',
             'source_type' => 'Auto Restock',
-            'remarks' =>
-                "Auto restock request from Warehouse Inventory. "
-                . "{$itemName} is below reorder level. "
-                . "Current stock: {$onHand} {$unit}. "
-                . "Reorder level: {$reorderLevel} {$unit}.",
+            'remarks' => 'Auto restock request from Warehouse Inventory. '
+                ."{$itemName} is below reorder level. "
+                ."Current stock: {$onHand} {$unit}. "
+                ."Reorder level: {$reorderLevel} {$unit}.",
         ]);
     }
 
@@ -730,7 +729,7 @@ class InventoryController extends Controller
         $nextNumber = $lastNumber + 1;
 
         return "RST-{$year}-"
-            . str_pad(
+            .str_pad(
                 (string) $nextNumber,
                 4,
                 '0',

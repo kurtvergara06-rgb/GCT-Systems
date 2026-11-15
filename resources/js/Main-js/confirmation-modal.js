@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let pendingForm = null;
     let pendingCallback = null;
+    let closeOnCallbackConfirm = false;
     let pendingSubmitter = null;
     let isSubmitting = false;
 
@@ -75,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             pendingForm = null;
             pendingCallback = null;
+            closeOnCallbackConfirm = false;
             pendingSubmitter = null;
 
             if (window.GCTModalBackdrop?.sync) {
@@ -285,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
         pendingForm = null;
         pendingSubmitter = null;
         pendingCallback = typeof callback === 'function' ? callback : null;
+        closeOnCallbackConfirm = options.closeOnConfirm === true;
         isSubmitting = false;
 
         configureModal(options);
@@ -300,6 +303,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (pendingCallback) {
             const callbackToRun = pendingCallback;
             pendingCallback = null;
+            if (closeOnCallbackConfirm) {
+                closeModal();
+                callbackToRun();
+                return;
+            }
             isSubmitting = true;
             setConfirmLoading();
             callbackToRun();

@@ -2020,3 +2020,56 @@
 .personnel-master-page .gct-pill--shift-night {
   font-weight: 800 !important;
 }
+
+
+/* Driver Master List: use the same segmented record navigation as Bus Master List. */
+.personnel-master-page .personnel-record-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 14px;
+}
+.personnel-master-page .personnel-record-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 4px;
+    border: 1px solid #d9e2ee;
+    border-radius: 12px;
+    background: #f2f5fa;
+}
+.personnel-master-page .personnel-record-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 9px;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.personnel-master-page .personnel-record-tab.is-active {
+    background: #fff;
+    color: #112b50;
+    box-shadow: 0 1px 4px #0f172a17;
+}
+.personnel-master-page .personnel-record-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.personnel-master-page .personnel-record-controls > .gct-table-toolbar {
+    margin-left: auto;
+    width: auto;
+    min-width: 0;
+}
+@media (max-width: 700px) {
+    .personnel-master-page .personnel-record-controls { align-items: stretch; }
+    .personnel-master-page .personnel-record-controls > .gct-table-toolbar { margin-left: 0; }
+}

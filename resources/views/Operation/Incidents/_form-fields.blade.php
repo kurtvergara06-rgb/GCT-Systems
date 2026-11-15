@@ -1,16 +1,18 @@
 <!-- Bus-first lookup uses actual assignment data already loaded for today. -->
 <div class="inc-form-group full inc-bus-lookup" data-incident-bus-lookup>
     <label for="{{ $formPrefix ?? '' }}incidentBusLookup">Bus ID <span class="ui-required">*</span></label>
-    <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" name="bus_lookup_display" data-incident-bus-search
-        placeholder="Enter Bus ID or plate number (e.g. GCT-205)" autocomplete="off" required />
-    <input type="hidden" name="bus_lookup_required" value="1" />
-    <div data-incident-bus-options hidden>
-        @foreach($incidentBuses as $busOption)
-            <span data-bus-id="{{ $busOption->id }}" data-bus-no="{{ $busOption->bus_no }}" data-plate-no="{{ $busOption->plate_no }}" data-bus-status="{{ $busOption->status }}"></span>
-        @endforeach
+    <div class="inc-bus-search-shell">
+        <input id="{{ $formPrefix ?? '' }}incidentBusLookup" type="search" name="bus_lookup_display" data-incident-bus-search
+            placeholder="Enter Bus ID or plate number (e.g. GCT-205)" autocomplete="off" required />
+        <input type="hidden" name="bus_lookup_required" value="1" />
+        <div data-incident-bus-options hidden>
+            @foreach($incidentBuses as $busOption)
+                <span data-bus-id="{{ $busOption->id }}" data-bus-no="{{ $busOption->bus_no }}" data-plate-no="{{ $busOption->plate_no }}" data-bus-status="{{ $busOption->status }}"></span>
+            @endforeach
+        </div>
+        <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
     </div>
-    <div class="inc-bus-lookup-results" data-incident-bus-results role="status" aria-live="polite" hidden></div>
-    <p class="inc-bus-search-help">Type to search and select a bus from the master list.</p>
+    <p class="inc-bus-search-help">Select a bus assigned to a Ready trip today.</p>
     <div class="inc-bus-trip-summary" data-incident-trip-summary>
         <div class="inc-bus-trip-summary-head">
             <strong>Matched Trip <small>(Auto-filled)</small></strong>
@@ -53,18 +55,28 @@
             </option>
         @endif
 
-        @foreach($availableTrips as $trip)
-            @if($trip->id === $tripSchedule?->id)
+        @foreach($availableTrips as $readyAssignment)
+            @php $trip = $readyAssignment->tripSchedule; @endphp
+            @if(!$trip || ($activeTripAssignment && $readyAssignment->id === $activeTripAssignment->id))
                 @continue
             @endif
             <option
                 value="{{ $trip->id }}"
-                data-assignment-id="{{ $trip->assignment?->id }}" data-driver-id="{{ $trip->assignment?->driver_id }}" data-bus-id="{{ $trip->assignment?->bus_id }}" data-bus-no="{{ $trip->assignment?->bus?->bus_no }}" data-plate-no="{{ $trip->assignment?->bus?->plate_no }}" data-driver-name="{{ $trip->assignment?->driver_name }}" data-route="{{ $trip->shuttleRoute?->route_name }}" data-origin="{{ $trip->shuttleRoute?->origin }}" data-destination="{{ $trip->shuttleRoute?->destination }}" data-departure="{{ $trip->departure_time }}" data-arrival="{{ $trip->estimated_arrival_time }}" data-trip-status="{{ $trip->status }}"
-                @selected(old('trip_schedule_id') == $trip->id)
+                data-assignment-id="{{ $readyAssignment->id }}"
+                data-driver-id="{{ $readyAssignment->driver_id }}"
+                data-bus-id="{{ $readyAssignment->bus_id }}"
+                data-bus-no="{{ $readyAssignment->bus?->bus_no }}"
+                data-plate-no="{{ $readyAssignment->bus?->plate_no }}"
+                data-driver-name="{{ $readyAssignment->driver_name }}"
+                data-route="{{ $trip->shuttleRoute?->route_name }}"
+                data-origin="{{ $trip->shuttleRoute?->origin }}"
+                data-destination="{{ $trip->shuttleRoute?->destination }}"
+                data-departure="{{ $trip->departure_time }}"
+                data-arrival="{{ $trip->estimated_arrival_time }}"
+                data-trip-status="{{ $trip->status }}"
+                @selected(old('trip_assignment_id') == $readyAssignment->id)
             >
-                {{ $trip->trip_code }}
-                &bull; {{ $trip->trip_date?->format('M d, Y') }}
-                &bull; {{ $trip->shuttleRoute?->route_name }}
+                {{ $trip->trip_code }} • Slot {{ $readyAssignment->slot_number }} • {{ $readyAssignment->bus?->bus_no }}
             </option>
         @endforeach
     </select>
@@ -144,7 +156,7 @@
 
     <select name="incident_type" id="{{ $formPrefix ?? '' }}incident_type" required>
         <option value="">Select incident type...</option>
-        @foreach(['Traffic', 'Bus Breakdown', 'Accident/Road Incident', 'Other'] as $incidentType)
+        @foreach(['Bus Breakdown', 'Accident/Road Incident'] as $incidentType)
             <option value="{{ $incidentType }}" @selected(old('incident_type') == $incidentType)>
                 {{ $incidentType }}
             </option>

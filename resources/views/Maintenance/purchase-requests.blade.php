@@ -133,57 +133,28 @@
                       <p class="maintenance-history-note">Issued Purchase Requests are kept here for reference and audit history.</p>
                   @endif
 
-                  <form
-                      action="{{ route('purchase-requests') }}"
-                      method="GET"
-                      class="toolbar purchase-toolbar"
-                      data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
-                  >
-                      @if($recordView === 'history')
-                          <input type="hidden" name="record_view" value="history">
-                      @endif
-
-                      <div class="search-box">
-                          <i class="fa-solid fa-magnifying-glass"></i>
-                          <input
-                              type="text"
-                              name="search"
-                              value="{{ request('search') }}"
-                              placeholder="Search PR no., JO no., bus no., item..."
-                          >
-                      </div>
-
+                  <div class="gct-table-toolbar-row">
+                      <x-ui.table-toolbar action="{{ route('purchase-requests') }}" search-label="Search Purchase Requests" search-placeholder="Search PR no., JO no., bus no., or item..." :filter-count="(int) ($recordView !== 'history' && request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc" data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}">
+                          <x-slot:hidden>
+                              @if($recordView === 'history')
+                                  <input type="hidden" name="record_view" value="history">
+                              @endif
+                          </x-slot:hidden>
+                          <x-slot:filters>
+                              @if($recordView !== 'history')
+                                  <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
+                                      <option value="All Statuses">All Statuses</option>
+                                      @foreach($statuses as $status)
+                                          <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                                      @endforeach
+                                  </x-ui.table-toolbar-field>
+                              @endif
+                          </x-slot:filters>
+                      </x-ui.table-toolbar>
                       @if($recordView !== 'history')
-                          <div class="filter-group">
-                              <label for="prStatusFilter" class="sr-only"></label>
-                              <select
-                                  name="status"
-                                  id="prStatusFilter"
-                                  class="pr-status-select"
-                                  onchange="this.form.requestSubmit()"
-                              >
-                                  <option
-                                      value="All Statuses"
-                                      @selected(request('status', 'All Statuses') === 'All Statuses')
-                                  >
-                                      All Statuses
-                                  </option>
-                                  @foreach($statuses as $status)
-                                      <option value="{{ $status }}" @selected(request('status') === $status)>
-                                          {{ $status }}
-                                      </option>
-                                  @endforeach
-                              </select>
-                          </div>
+                          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn"><i class="fa-solid fa-plus"></i> New PR</button>
                       @endif
-
-                      @if($recordView !== 'history')
-                          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
-                              <i class="fa-solid fa-plus"></i>
-                              New PR
-                          </button>
-                      @endif
-                  </form>
+                  </div>
 
                   <div class="table-wrap purchase-table-wrap">
                       <table class="purchase-request-table">
@@ -284,7 +255,12 @@
                                       </td>
                                   </tr>
                               @empty
-                                  <x-ui.empty-row colspan="7" message="No purchase requests found." />
+                                  <x-ui.empty-row
+                                      colspan="7"
+                                      icon="fa-clipboard-list"
+                                      message="No Purchase Requests Found"
+                                      description="No maintenance purchase requisitions match your search or filter criteria."
+                                  />
                               @endforelse
                           </tbody>
                       </table>

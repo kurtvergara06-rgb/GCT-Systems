@@ -37,6 +37,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
 
         $replacementBus = Bus::create([
             'bus_no' => 'BUS-SPARE-001',
+            'fleet_purpose' => 'Reserve',
             'plate_no' => 'SPR-1001',
             'bus_model' => 'Spare Bus',
             'capacity' => 40,
@@ -93,6 +94,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $incident = Incident::create([
             'incident_no' => 'INC-BRK-0001',
             'trip_schedule_id' => $trip->id,
+            'trip_assignment_id' => $assignment->id,
             'bus_id' => $originalBus->id,
             'driver_id' => $driver->driver_id,
             'driver_name' => $driver->driver_name,
@@ -107,9 +109,15 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertTrue($incident->is_unplanned_breakdown);
         $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
 
+        $this->actingAs($operationHead)->post(route('incidents.response', $incident), [
+            'notes' => 'OIC instructed reserve deployment.',
+        ])->assertSessionHasNoErrors();
+
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $replacementBus->id,
+                'oic_authorized' => '1',
+                'notes' => 'Deploying reserve unit',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');

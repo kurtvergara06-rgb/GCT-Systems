@@ -7,6 +7,7 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Operation\MechanicAttendance;
+use App\Support\TableSort;
 use Illuminate\Http\Request;
 
 class JobOrderIndexController extends Controller
@@ -61,8 +62,8 @@ class JobOrderIndexController extends Controller
             $query->where('maintenance_type', $request->maintenance_type);
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'job_order_no' => 'job_order_no', 'bus_no' => 'bus_no', 'start_date' => 'start_date', 'status' => 'status', 'part_status' => 'part_status'], 'created_at', 'desc');
         $jobOrders = $query
-            ->latest()
             ->paginate($recordView === 'history' ? 20 : 1000)
             ->withQueryString();
 
@@ -145,13 +146,13 @@ class JobOrderIndexController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        preg_match('/JO-' . $year . '-(\d+)/', (string) ($lastJobOrder?->job_order_no ?? ''), $matches);
+        preg_match('/JO-'.$year.'-(\d+)/', (string) ($lastJobOrder?->job_order_no ?? ''), $matches);
         $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
-        $newJobOrderNo = 'JO-' . $year . '-' . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+        $newJobOrderNo = 'JO-'.$year.'-'.str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
 
         while (JobOrder::where('job_order_no', $newJobOrderNo)->exists()) {
             $nextNumber++;
-            $newJobOrderNo = 'JO-' . $year . '-' . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+            $newJobOrderNo = 'JO-'.$year.'-'.str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
         }
 
         return $newJobOrderNo;

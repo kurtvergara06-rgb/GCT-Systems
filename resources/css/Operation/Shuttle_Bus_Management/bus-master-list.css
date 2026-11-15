@@ -174,31 +174,22 @@
    TOOLBAR
 ========================================================= */
 
-.bus-toolbar {
+.bus-toolbar,
+.bus-master-list-page .bus-toolbar {
   width: 100%;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(280px, 1fr)
-    auto
-    auto
-    auto;
-
-  align-items: end;
-
+  display: flex;
+  align-items: center;
   gap: 10px;
-
   margin-bottom: 14px;
-
   padding: 10px 12px;
-
-  border: 1px solid var(--bus-border);
-  border-radius: 12px;
-
   background: #ffffff;
-
+  border: 1px solid var(--bus-border, #dce5f2);
+  border-radius: 12px;
   box-shadow: none;
+}
+
+.bus-toolbar input[type="hidden"] {
+  display: none !important;
 }
 
 
@@ -206,27 +197,26 @@
    SEARCH
 ========================================================= */
 
-.bus-toolbar .search-box {
-  min-width: 0;
+.bus-toolbar .search-box,
+.bus-master-list-page .bus-toolbar .search-box {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 240px;
 }
 
-.bus-toolbar .search-box input {
+.bus-toolbar .search-box input,
+.bus-master-list-page .bus-toolbar .search-box input {
   width: 100%;
   height: 40px;
-
+  min-height: 40px;
   padding: 0 14px 0 40px;
-
-  border: 1px solid var(--bus-border);
+  border: 1px solid #dce5f2;
   border-radius: 9px;
-
   background: #ffffff;
-
-  color: var(--bus-text);
-
+  color: var(--bus-text, #0f172a);
   font-size: 13px;
-
+  font-weight: 500;
   outline: none;
-
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -234,21 +224,23 @@
 
 .bus-toolbar .search-box input::placeholder {
   color: #8a98ac;
+  font-weight: 400;
 }
 
 .bus-toolbar .search-box input:focus {
-  border-color: var(--bus-blue);
-
-  box-shadow:
-    0 0 0 3px rgba(11, 64, 181, 0.12);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.bus-toolbar .search-box i {
+.bus-toolbar .search-box i,
+.bus-master-list-page .bus-toolbar .search-box i {
+  position: absolute;
   left: 14px;
-
-  color: var(--bus-blue);
-
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2563eb;
   font-size: 13px;
+  pointer-events: none;
 }
 
 
@@ -256,62 +248,40 @@
    STATUS FILTER
 ========================================================= */
 
-.bus-toolbar .filter-group {
-  min-width: 150px;
-
-  display: flex;
-  flex-direction: column;
-
-  align-items: stretch;
-
-  gap: 5px;
-
+.bus-toolbar .filter-group,
+.bus-master-list-page .bus-toolbar .filter-group {
+  margin: 0;
   flex-shrink: 0;
-}
-
-.bus-toolbar .filter-group label {
-  color: var(--bus-muted);
-
-  font-size: 11px;
-  font-weight: 600;
-
-  white-space: nowrap;
-}
-
-.bus-toolbar .filter-group select {
-  width: 100%;
-
   min-width: 150px;
+}
 
+.bus-toolbar .filter-group label,
+.bus-master-list-page .bus-toolbar .filter-group label {
+  display: none;
+}
+
+.bus-toolbar .filter-group select,
+.bus-master-list-page .bus-toolbar .filter-group select {
+  width: 100%;
   height: 40px;
-
-  padding: 0 34px 0 11px;
-
-  border: 1px solid var(--bus-border);
-
+  min-height: 40px;
+  padding: 0 34px 0 14px;
+  border: 1px solid #dce5f2;
   border-radius: 9px;
-
   background: #ffffff;
-
-  color: var(--bus-text);
-
-  font-size: 12px;
+  color: #1e293b;
+  font-size: 13px;
   font-weight: 600;
-
   outline: none;
-
   cursor: pointer;
-
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
 .bus-toolbar .filter-group select:focus {
-  border-color: var(--bus-blue);
-
-  box-shadow:
-    0 0 0 3px rgba(11, 64, 181, 0.12);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 
@@ -319,52 +289,34 @@
    ADD BUS BUTTON
 ========================================================= */
 
-.bus-toolbar .primary-btn {
+.bus-toolbar .primary-btn,
+.bus-master-list-page .bus-toolbar .primary-btn {
   height: 40px;
-
+  min-height: 40px;
   padding: 0 16px;
-
-  border:
-    1px solid var(--bus-yellow-dark);
-
+  border: none;
   border-radius: 9px;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--bus-yellow),
-      var(--bus-yellow-dark)
-    );
-
-  color: var(--bus-navy);
-
-  box-shadow:
-    0 5px 12px rgba(255, 196, 0, 0.22);
-
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  color: #061f3d;
+  box-shadow: 0 4px 12px rgba(255, 196, 0, 0.22);
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
-
   gap: 7px;
-
   font-size: 13px;
-  font-weight: 800;
-
+  font-weight: 700;
   white-space: nowrap;
-
   cursor: pointer;
-
+  flex-shrink: 0;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.bus-toolbar .primary-btn:hover {
+.bus-toolbar .primary-btn:hover,
+.bus-master-list-page .bus-toolbar .primary-btn:hover {
   transform: translateY(-1px);
-
-  box-shadow:
-    0 8px 18px rgba(255, 196, 0, 0.32);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
 }
 
 
@@ -374,14 +326,15 @@
 
 .table-wrap {
   width: 100%;
-
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(6, 31, 61, 0.05);
   overflow-x: auto;
-
-  border-radius: 10px;
 }
 
 .table-wrap:has(tbody > tr:nth-child(8)) {
-  max-height: 500px;
+  max-height: 520px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
@@ -397,67 +350,62 @@
   border-radius: 999px;
 }
 
+
 /* =========================================================
    BUS TABLE
 ========================================================= */
 
 .bus-table {
   width: 100%;
-
-  min-width: 900px;
-
+  min-width: 850px;
   border-collapse: separate;
-
   border-spacing: 0;
 }
 
 .bus-table thead {
-  background: var(--bus-table-head);
+  background: #f1f5f9;
 }
 
 .bus-table th {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--bus-table-head);
-
-  padding: 13px 14px;
-
-  color: #475569;
-
+  background: #f1f5f9 !important;
+  padding: 13px 18px;
+  color: #334155;
   font-size: 11px;
   font-weight: 700;
-
   letter-spacing: 0.055em;
-
   line-height: 1.25;
-
   text-transform: uppercase;
-
   white-space: nowrap;
+  border-bottom: 1.5px solid #cbd5e1;
+  box-shadow: 0 1px 0 #cbd5e1;
+}
 
-  border-bottom:
-    1px solid var(--bus-border);
-  box-shadow: 0 1px 0 var(--bus-border);
+.bus-table th .th-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bus-table th .sort-icon {
+  font-size: 10px;
+  color: #94a3b8;
+  opacity: 0.75;
 }
 
 .bus-table td {
-  padding: 13px 14px;
-
+  padding: 13px 18px;
   color: var(--bus-text);
-
   font-size: 13px;
   font-weight: 500;
-
-  border-bottom:
-    1px solid #e7edf5;
-
+  border-bottom: 1px solid #cbd5e1;
   vertical-align: middle;
 }
 
 .bus-table tbody tr {
-  transition:
-    background-color 0.18s ease;
+  transition: background-color 0.18s ease;
 }
 
 .bus-table tbody tr:hover {
@@ -478,117 +426,142 @@
 .bus-table th:nth-child(2),
 .bus-table td:nth-child(2),
 .bus-table th:nth-child(3),
-.bus-table td:nth-child(3) {
+.bus-table td:nth-child(3),
+.bus-table th:nth-child(4),
+.bus-table td:nth-child(4) {
   text-align: left;
 }
 
-.bus-table th:nth-child(4),
-.bus-table td:nth-child(4),
 .bus-table th:nth-child(5),
-.bus-table td:nth-child(5),
-.bus-table th:nth-child(6),
-.bus-table td:nth-child(6) {
+.bus-table td:nth-child(5) {
   text-align: center;
 }
 
 
 /* =========================================================
-   BUS ID
+   BUS ID CELL & BADGE
 ========================================================= */
 
-.bus-table td strong {
-  color: var(--bus-blue);
-
-  font-weight: 800;
-}
-
-
-/* =========================================================
-   GPS EMPTY STATE
-========================================================= */
-
-.bus-table .empty {
-  color: #94a3b8;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  font-style: italic;
-}
-
-
-/* =========================================================
-   BUS STATUS BADGES
-========================================================= */
-
-.bus-status {
-  min-width: 92px;
-
-  min-height: 26px;
-
-  padding: 0 11px;
-
-  border-radius: 999px;
-
+.bus-id-cell {
   display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
 
+.bus-icon-badge {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 9px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
 
-  font-size: 11px;
+.bus-icon-badge.is-active {
+  background: #e0f2fe;
+  color: #2563eb;
+}
+
+.bus-icon-badge.is-muted {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.bus-id-text {
+  color: #0f172a;
   font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
 
-  line-height: 1;
 
+/* =========================================================
+   PLATE & MODEL CELLS
+========================================================= */
+
+.bus-plate-text {
+  color: #334155;
+  font-weight: 500;
+  font-size: 13.5px;
+}
+
+.bus-model-text {
+  color: #111827;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+
+/* =========================================================
+   BUS STATUS BADGES / PILLS
+========================================================= */
+
+.bus-status-pill,
+.bus-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
-
 /* ACTIVE */
-
+.bus-status-pill.status-active,
 .bus-status.status-active {
   background: #dcfce7;
-
   color: #15803d;
-
-  border:
-    1px solid #b7efca;
+  border: 1px solid #bbf7d0;
 }
 
-
-/* INACTIVE */
-
-.bus-status.status-inactive {
-  background: #fee2e2;
-
-  color: #c62828;
-
-  border:
-    1px solid #fecaca;
+.bus-status-pill.status-active i,
+.bus-status.status-active i {
+  color: #16a34a;
+  font-size: 12px;
 }
-
 
 /* UNDER MAINTENANCE */
-
+.bus-status-pill.status-maintenance,
 .bus-status.status-maintenance {
-  background: #fff4c7;
-
-  color: #9a6700;
-
-  border:
-    1px solid #f9df7a;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
+.bus-status-pill.status-maintenance i,
+.bus-status.status-maintenance i {
+  color: #d97706;
+  font-size: 11px;
+}
+
+/* INACTIVE */
+.bus-status-pill.status-inactive,
+.bus-status.status-inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.bus-status-pill.status-inactive i,
+.bus-status.status-inactive i {
+  color: #dc2626;
+  font-size: 12px;
+}
 
 /* DEFAULT */
-
+.bus-status-pill.status-default,
 .bus-status.status-default {
   background: #f1f5f9;
-
   color: #475569;
-
-  border:
-    1px solid var(--bus-border);
+  border: 1px solid #cbd5e1;
 }
 
 
@@ -598,98 +571,123 @@
 
 .bus-table .actions {
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
-
-  gap: 6px;
-
+  gap: 7px;
   white-space: nowrap;
 }
 
 .bus-table .actions form {
   display: inline-flex;
-
   margin: 0;
 }
-
-
-/* All table action buttons */
 
 .bus-table .actions .action-btn,
 .bus-table .actions > button,
 .bus-table .actions form > button {
   width: 34px;
   min-width: 34px;
-
   height: 34px;
   min-height: 34px;
-
   padding: 0;
-
-  border:
-    1px solid transparent;
-
+  border: 1px solid transparent;
   border-radius: 8px;
-
   box-shadow: none;
-
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
-
   font-size: 13px;
-
   cursor: pointer;
-
   transition:
-    background 0.2s ease,
+    background-color 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+/* VIEW BUTTON */
+.bus-table .actions .view {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
 
-/* =========================================================
-   EDIT BUTTON
-========================================================= */
+.bus-table .actions .view:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+}
 
+/* EDIT BUTTON */
 .bus-table .actions .edit {
-  background: #eaf2ff;
-
-  color: var(--bus-blue);
-
-  border-color: #d4e3ff;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 
-.bus-table .actions .edit:hover {
-  background: var(--bus-blue);
-
+.bus-table .actions .edit:not(:disabled):hover {
+  background: #0b40b5;
+  border-color: #0b40b5;
   color: #ffffff;
-
   transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(11, 64, 181, 0.25);
 }
 
-
-/* =========================================================
-   DELETE BUTTON
-========================================================= */
-
-.bus-table .actions .delete {
-  background: #fff0f0;
-
+/* DEACTIVATE BUTTON */
+.bus-table .actions .deactivate {
+  background: #fff1f2;
+  border-color: #fecdd3;
   color: #dc2626;
-
-  border-color: #fee2e2;
 }
 
-.bus-table .actions .delete:hover {
+.bus-table .actions .deactivate:not(:disabled):hover {
   background: #dc2626;
-
+  border-color: #dc2626;
   color: #ffffff;
-
   transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* ACTIVATE BUTTON */
+.bus-table .actions .activate {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.bus-table .actions .activate:not(:disabled):hover {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.25);
+}
+
+/* DELETE BUTTON */
+.bus-table .actions .delete {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.bus-table .actions .delete:not(:disabled):hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* DISABLED STATE (e.g. Under Maintenance) */
+.bus-table .actions .action-btn:disabled,
+.bus-table .actions .action-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 
@@ -1327,19 +1325,12 @@
   }
 
   .bus-toolbar {
-    grid-template-columns:
-      1fr
-      1fr;
+    flex-wrap: wrap;
   }
 
   .bus-toolbar .search-box {
-    grid-column: 1 / -1;
-
+    flex: 1 1 100%;
     min-width: 100%;
-  }
-
-  .bus-toolbar .primary-btn {
-    width: 100%;
   }
 
 }
@@ -1362,26 +1353,27 @@
 
 
   .bus-toolbar {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 
 
   .bus-toolbar .search-box {
-    grid-column: auto;
+    width: 100%;
+    min-width: 0;
   }
 
 
   .bus-toolbar .filter-group,
-  .bus-toolbar .filter-group select {
+  .bus-toolbar .filter-select-wrap,
+  .bus-toolbar .filter-select-wrap select {
     width: 100%;
-
     max-width: none;
   }
 
 
   .bus-toolbar .primary-btn {
     width: 100%;
-
     justify-content: center;
   }
 
@@ -1431,51 +1423,6 @@
 
 }
 
-/* Routes-aligned Bus Master List controls */
-.bus-master-list-page .bus-toolbar {
-  grid-template-columns: minmax(0, 1fr) 150px auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #fff;
-  border-color: #d9e4f0;
-}
-
-.bus-master-list-page .bus-toolbar .search-box {
-  min-width: 0;
-}
-
-.bus-master-list-page .bus-toolbar .search-box i {
-  color: #0b40b5;
-}
-
-.bus-master-list-page .bus-toolbar .search-box input,
-.bus-master-list-page .bus-toolbar .filter-group select {
-  height: 40px;
-  min-height: 40px;
-  border-radius: 9px;
-  border-color: #d9e4f0;
-  background: #fff;
-}
-
-.bus-master-list-page .bus-toolbar .filter-group,
-.bus-master-list-page .bus-toolbar .filter-group select {
-  min-width: 0;
-  width: 100%;
-}
-
-.bus-master-list-page .bus-toolbar .primary-btn {
-  height: 40px;
-  background: linear-gradient(135deg, #ffcf00, #ffb900);
-  border-color: #e8ac00;
-  color: #0b2a4a;
-  font-size: 12px;
-}
-
-.bus-master-list-page .bus-toolbar .primary-btn:hover {
-  background: linear-gradient(135deg, #ffdc39, #ffc400);
-}
-
 .bus-filter-loading {
   margin: -2px 0 10px;
   padding: 7px 10px;
@@ -1487,63 +1434,6 @@
 .bus-filter-loading i {
   margin-right: 6px;
   color: #0b40b5;
-}
-
-.bus-master-list-page .bus-table .actions .action-btn {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  border-radius: 8px;
-  font-size: 13px;
-}
-
-.bus-master-list-page .bus-table .actions .edit {
-  background: #eaf2ff;
-  border-color: #d4e3ff;
-  color: #0b40b5;
-}
-
-.bus-master-list-page .bus-table .actions .edit:hover {
-  background: #0b40b5;
-  border-color: #0b40b5;
-  color: #fff;
-}
-
-.bus-master-list-page .bus-table .actions .delete {
-  background: #fff0f0;
-  border-color: #fee2e2;
-  color: #dc2626;
-}
-
-.bus-master-list-page .bus-table .actions .delete:hover {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: #fff;
-}
-
-.bus-master-list-page .bus-status {
-  gap: 7px;
-}
-
-@media (max-width: 1050px) {
-  .bus-master-list-page .bus-toolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .bus-master-list-page .bus-toolbar .search-box {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 620px) {
-  .bus-master-list-page .bus-toolbar {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .bus-master-list-page .bus-toolbar .search-box {
-    grid-column: auto;
-  }
 }
 
 /* Secondary vehicle identification in the Bus Master List. */
@@ -1686,4 +1576,952 @@
 .bus-master-list-page .bus-table .actions button.open-edit-bus:disabled i,
 .bus-master-list-page .bus-table .actions button.open-delete-bus:disabled i {
   color: inherit !important;
+}
+
+/* Separate fleet-purpose tabs; operational status filters remain independent. */
+.bus-fleet-tabs { display:flex; gap:4px; width:max-content; max-width:100%; margin:0 0 14px; padding:4px; border:1px solid #d9e2ee; border-radius:12px; background:#f2f5fa; }
+.bus-fleet-tab { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:9px; font-size:12px; font-weight:600; text-decoration:none; color:#475569; white-space:nowrap; }
+.bus-fleet-tab.is-active { background:#fff; color:#112b50; box-shadow:0 1px 4px #0f172a17; }
+.bus-fleet-tab:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
+
+/* Keep fleet tabs aligned with the Registered Buses heading. */
+.bus-master-list-page .table-card > .section-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.bus-master-list-page .section-header > .bus-fleet-tabs { margin:0 0 0 auto; flex-shrink:0; }
+@media (max-width:640px) { .bus-master-list-page .section-header > .bus-fleet-tabs { margin-left:0; } }
+
+/* 2026 Bus Master List: unified Add/Edit modal visual refresh. */
+#busModal .ui-form-modal,
+#editBusModal .bus-edit-design {
+  width: min(900px, calc(100vw - 32px));
+  border-radius: 20px;
+  box-shadow: 0 24px 75px rgba(12, 34, 65, .25);
+}
+#busModal .ui-form-modal-header,
+#editBusModal .bus-edit-design > .modal-header {
+  padding: 22px 26px;
+  background: #fff;
+  border-bottom: 1px solid #e6edf6;
+}
+#busModal .ui-form-modal-scrollable,
+#editBusModal .job-form.wide-form {
+  gap: 16px 20px;
+}
+#busModal .ui-form-modal-scrollable > .bus-form-section,
+#editBusModal .job-form > .bus-form-section {
+  grid-column: 1 / -1;
+  border: 1px solid #e4ebf6;
+  background: #f3f7fe;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 5px 0 0;
+}
+#busModal .ui-form-modal-scrollable > .bus-route-section,
+#editBusModal .job-form > .bus-route-section {
+  margin-top: 10px;
+}
+#busModal .bus-form-section .bus-section-icon,
+#editBusModal .bus-form-section .bus-section-icon {
+  background: #e8f1ff;
+  color: #2467db;
+  border: 1px solid #cfe0ff;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+}
+#busModal .form-group label,
+#editBusModal .form-group label {
+  font-weight: 800;
+  letter-spacing: .015em;
+  color: #11274b;
+}
+#busModal .form-group input,
+#busModal .form-group select,
+#editBusModal .form-group input,
+#editBusModal .form-group select {
+  border-radius: 9px;
+  min-height: 47px;
+  background: #fff;
+}
+#busModal .bus-purpose-note,
+#editBusModal .bus-purpose-note {
+  margin: 10px 0 0;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #244677;
+  background: #eaf2ff;
+}
+#busModal .bus-purpose-note i,
+#editBusModal .bus-purpose-note i { margin-right: 6px; color: #2670e8; }
+#busModal .ui-form-actions,
+#editBusModal .modal-actions {
+  border-top: 1px solid #e6edf6;
+  padding-top: 18px;
+}
+#busModal .ui-form-btn-primary,
+#editBusModal .save-btn { background: #ffba08; color: #102649; border-radius: 10px; }
+@media (max-width: 600px) {
+  #busModal .ui-form-modal,
+  #editBusModal .bus-edit-design { width: calc(100vw - 20px); }
+  #busModal .ui-form-modal-header,
+  #editBusModal .bus-edit-design > .modal-header { padding: 16px; }
+}
+
+/* Structured Add Bus modal: actual two-column cards, with a reachable footer. */
+#busModal .ui-form-modal { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#busModal .ui-form-content { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+#busModal .ui-form-modal-body { display:flex; flex-direction:column; min-height:0; overflow:hidden; padding:16px 24px 0; }
+#busModal .ui-form-modal-scrollable { display:block; min-height:0; overflow-y:auto; padding:0 2px 16px; }
+#busModal .bus-modal-basic, #busModal .bus-modal-panel { padding:16px; border:1px solid #e4ebf6; border-radius:13px; background:#f4f7fc; }
+#busModal .bus-modal-field-grid, #busModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
+#busModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#busModal .bus-modal-panel { min-width:0; }
+#busModal .bus-modal-basic > .bus-form-section,
+#busModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#busModal .bus-modal-field-grid > .form-group, #busModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
+#busModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
+#busModal .ui-form-actions { flex-shrink:0; margin:0; padding:15px 4px; background:#fff; }
+@media(max-width:640px) {
+  #busModal .bus-modal-field-grid, #busModal .bus-modal-lower { grid-template-columns:1fr; }
+  #busModal .ui-form-modal-body { padding:12px 14px 0; }
+  #busModal .bus-modal-basic, #busModal .bus-modal-panel { padding:12px; }
+}
+
+/* Edit Bus now follows exactly the Add Bus card structure, with a fixed footer. */
+#editBusModal .bus-edit-design { display:flex; flex-direction:column; max-height:calc(100dvh - 36px); }
+#editBusModal .job-form.wide-form { display:flex; flex-direction:column; gap:0; padding:0; min-height:0; max-height:none; overflow:hidden; }
+#editBusModal .bus-edit-scroll { overflow-y:auto; min-height:0; flex:1 1 auto; padding:16px 24px; }
+#editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:16px; border:1px solid #e4ebf6; border-radius:13px; background:#f4f7fc; }
+#editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; }
+#editBusModal .bus-modal-lower { margin-top:14px; gap:14px; }
+#editBusModal .bus-modal-panel { min-width:0; }
+#editBusModal .bus-modal-basic > .bus-form-section, #editBusModal .bus-modal-panel > .bus-form-section { display:flex; margin:0 0 14px; padding:0; border:0; background:transparent; }
+#editBusModal .bus-modal-field-grid > .form-group, #editBusModal .bus-modal-panel > .form-group { min-width:0; margin:0; }
+#editBusModal .bus-modal-panel > .form-group.full-width { padding:0; border:0; }
+#editBusModal .bus-no-lock-hint { margin:10px 0 0; }
+#editBusModal .bus-maintenance-lock-notice { margin:12px 0 0; }
+#editBusModal .modal-actions.full-width { display:flex; justify-content:flex-end; gap:12px; margin:0; padding:16px 24px; background:#fff; border-top:1px solid #e6edf6; flex-shrink:0; }
+@media(max-width:640px) {
+ #editBusModal .bus-modal-field-grid, #editBusModal .bus-modal-lower { grid-template-columns:1fr; }
+ #editBusModal .bus-edit-scroll { padding:12px 14px; }
+ #editBusModal .bus-modal-basic, #editBusModal .bus-modal-panel { padding:12px; }
+ #editBusModal .modal-actions.full-width { padding:12px 14px; }
+}
+
+/* Matching field icons in Create and Edit Bus modals. */
+#busModal .bus-icon-input,
+#editBusModal .bus-icon-input { position:relative; display:block; min-width:0; }
+#busModal .bus-icon-input > i,
+#editBusModal .bus-icon-input > i {
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  color:#597297; font-size:14px; z-index:1; pointer-events:none;
+}
+#busModal .bus-icon-input > input,
+#busModal .bus-icon-input > select,
+#editBusModal .bus-icon-input > input,
+#editBusModal .bus-icon-input > select {
+  padding-left:42px !important; box-sizing:border-box; width:100%;
+}
+#busModal .bus-icon-input > select,
+#editBusModal .bus-icon-input > select { padding-right:34px; }
+
+/* Keep the available Deactivate action visibly red; disabled Maintenance actions stay neutral. */
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled):hover,
+.bus-master-list-page .bus-table .actions button.action-btn.deactivate:not(:disabled):focus-visible {
+  background: #dc2626;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+/* Final Bus Master List action palette and regular-weight model labels. */
+.bus-master-list-page .bus-table tbody td:nth-child(3) .bus-model-text {
+  font-weight: 400;
+  color: #111827;
+}
+.bus-master-list-page .bus-table tbody td:nth-child(3) strong.bus-model-text {
+  font-weight: 400;
+}
+.bus-master-list-page .bus-table tbody .actions .action-btn.deactivate:not(:disabled) {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+}
+.bus-master-list-page .bus-table tbody .actions .action-btn.deactivate:not(:disabled):hover {
+  background-color: #dc2626 !important;
+  border-color: #b91c1c !important;
+  color: #fff !important;
+}
+
+
+/* Keep fleet tabs compact on their own row; shared record-tab rules must not stretch them. */
+.bus-master-list-page .table-card > .bus-fleet-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid #d9e2ee;
+  border-radius: 12px;
+  background: #f2f5fa;
+}
+.bus-master-list-page .table-card > .bus-fleet-tabs .bus-fleet-tab {
+  flex: 0 0 auto;
+}
+
+
+/* Compact Bus Master List toolbar — Search / Filter / Sort only. */
+.bus-master-list-page .bus-compact-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 12px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.bus-master-list-page .bus-tool {
+  position: relative;
+  flex: 0 0 auto;
+}
+.bus-master-list-page .bus-tool-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #102a4c;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Search button — soft blue pill matching reference */
+.bus-master-list-page .bus-tool-trigger--search {
+  background: #eff6ff;
+  border-color: #c7dcf9;
+  color: #103778;
+}
+.bus-master-list-page .bus-tool-trigger--search > i {
+  color: #1d4ed8;
+  font-size: 13px;
+}
+.bus-master-list-page .bus-tool-trigger--search:hover,
+.bus-master-list-page .bus-tool-trigger--search[aria-expanded="true"],
+.bus-master-list-page .bus-tool-trigger--search.bus-tool-active {
+  background: #e4f0ff;
+  border-color: #9ec5f8;
+  color: #0c2e69;
+}
+
+/* Filter button — soft purple pill with count badge matching reference */
+.bus-master-list-page .bus-tool-trigger--filter,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger.bus-tool-active,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger[aria-expanded="true"] {
+  background: #f5f0ff;
+  border-color: #d8c7fc;
+  color: #6425d0;
+}
+.bus-master-list-page .bus-tool-trigger--filter > i {
+  color: #6425d0;
+  font-size: 12.5px;
+}
+.bus-master-list-page .bus-tool-trigger--filter:hover,
+.bus-master-list-page .bus-tool-trigger--filter[aria-expanded="true"] {
+  background: #ede4ff;
+  border-color: #c4b5fd;
+}
+.bus-master-list-page .bus-filter-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #6425d0;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Sort button — clean white pill matching reference */
+.bus-master-list-page .bus-tool-trigger--sort {
+  background: #ffffff;
+  border-color: #dce5f2;
+  color: #1e293b;
+}
+.bus-master-list-page .bus-tool-trigger--sort > i {
+  color: #1e293b;
+  font-size: 13px;
+}
+.bus-master-list-page .bus-tool-trigger--sort:hover,
+.bus-master-list-page .bus-tool-trigger--sort[aria-expanded="true"],
+.bus-master-list-page .bus-tool-trigger--sort.bus-tool-active {
+  background: #f8fafc;
+  border-color: #b8c9e0;
+  color: #0f172a;
+}
+
+/* Popover card container */
+.bus-master-list-page .bus-tool-popover {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 255px;
+  max-width: calc(100vw - 36px);
+  padding: 15px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.11),
+    0 2px 6px rgba(15, 23, 42, 0.05);
+}
+.bus-master-list-page .bus-tool-popover[hidden] {
+  display: none !important;
+}
+.bus-master-list-page .bus-tool-search-panel {
+  width: 292px;
+  right: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 245px;
+  left: auto;
+  right: 0;
+  box-sizing: border-box;
+}
+.bus-master-list-page .bus-tool-sort-panel {
+  width: 245px;
+  right: 0;
+}
+
+/* Popover header */
+.bus-master-list-page .bus-popover-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bus-master-list-page .bus-popover-heading strong {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+.bus-master-list-page .bus-popover-close {
+  border: 0;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-master-list-page .bus-popover-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Search Buses input box with inner icon */
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > i {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 13.5px;
+  pointer-events: none;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input {
+  display: block;
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px 0 36px;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12.5px;
+  font-weight: 500;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input::placeholder {
+  color: #64748b;
+  font-weight: 400;
+}
+.bus-master-list-page .bus-tool-search-panel .bus-popover-search-box > input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.bus-master-list-page .bus-tool-search-panel small {
+  display: block;
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Filter & Sort groups */
+.bus-master-list-page .bus-filter-group {
+  margin-bottom: 12px;
+}
+.bus-master-list-page .bus-filter-group:last-child {
+  margin-bottom: 0;
+}
+.bus-master-list-page .bus-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bus-master-list-page .bus-filter-label label {
+  margin: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.2;
+}
+.bus-master-list-page .bus-filter-label-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+}
+.bus-master-list-page .bus-filter-label-icon.is-status-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: #15803d;
+}
+.bus-master-list-page .bus-filter-label-icon.is-route-pin,
+.bus-master-list-page .bus-filter-label-icon.is-sort-field {
+  color: #2563eb;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-filter-label-icon.is-sort-order {
+  color: #15803d;
+  font-size: 12px;
+}
+
+/* Indented select box with inner prefix icon and right chevron */
+.bus-master-list-page .bus-filter-select-box {
+  position: relative;
+  margin-left: 18px;
+}
+.bus-master-list-page .bus-select-prefix-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+.bus-master-list-page .bus-select-prefix-icon.is-status {
+  width: 10px;
+  height: 10px;
+  left: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow:
+    inset 0 0 0 2px #1d4ed8,
+    0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+.bus-master-list-page .bus-select-prefix-icon.is-route,
+.bus-master-list-page .bus-select-prefix-icon.is-sort,
+.bus-master-list-page .bus-select-prefix-icon.is-order {
+  color: #2563eb;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-filter-select-box select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: block;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 30px 0 32px;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 500;
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.bus-master-list-page .bus-filter-select-box select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.bus-master-list-page .bus-select-arrow {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #475569;
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* Final Bus Master List layout: fleet tabs left, compact controls right. */
+.bus-master-list-page .table-card > .bus-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  width: 100%;
+  margin: 0 0 12px;
+  overflow: visible;
+}
+.bus-master-list-page .table-card .bus-record-controls > .bus-fleet-tabs {
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px;
+  border-bottom: 1px solid #d9e2ee;
+}
+.bus-master-list-page .table-card .bus-record-controls > .bus-compact-toolbar {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  justify-content: flex-end;
+}
+@media (max-width: 740px) {
+  .bus-master-list-page .table-card .bus-record-controls > .bus-compact-toolbar {
+    margin-left: auto;
+  }
+}
+@media (max-width: 600px) {
+  .bus-master-list-page .bus-compact-toolbar {
+    justify-content: flex-start;
+  }
+  .bus-master-list-page .bus-tool:first-of-type .bus-tool-popover {
+    left: 0;
+    right: auto;
+  }
+  .bus-master-list-page .bus-tool-filter-panel {
+    left: auto;
+    right: 0;
+  }
+}
+
+
+/* Minimal single-purpose Status filter panel for Bus Master List. */
+.bus-master-list-page .bus-filter-count[hidden] { display: none !important; }
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 252px;
+  max-width: min(252px, calc(100vw - 32px));
+  padding: 16px;
+  box-sizing: border-box;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading { margin-bottom: 14px; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-group { margin: 0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  margin-bottom: 9px;
+  gap: 8px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box { margin-left: 0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  min-height: 40px;
+  height: 40px;
+  padding-left: 34px;
+  padding-right: 30px;
+}
+
+
+/* Bus filter alignment and clean white default appearance. */
+.bus-master-list-page .bus-tool-trigger--filter:not(.bus-tool-active):not([aria-expanded="true"]) {
+  background: #fff;
+  border-color: #dce5f2;
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-trigger--filter:not(.bus-tool-active):not([aria-expanded="true"]) > i {
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel {
+  background: #fff;
+  border: 1px solid #dce5f2;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label-icon.is-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  display: inline-block !important;
+  margin: 0 !important;
+  line-height: 1.3;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box {
+  width: 100%;
+  margin: 0;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  background-color: #fff;
+  width: 100%;
+}
+
+
+/* Approved Bus Master List status filter card. */
+.bus-master-list-page .bus-tool-filter-panel {
+  width: 292px;
+  max-width: min(292px, calc(100vw - 32px));
+  padding: 18px;
+  border-radius: 14px;
+  background: #fff;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading { margin-bottom: 5px; }
+.bus-master-list-page .bus-filter-helper {
+  margin: 0 0 15px;
+  color: #718098;
+  font-size: 11px;
+  line-height: 1.5;
+  border-bottom: 1px solid #e9edf4;
+  padding-bottom: 13px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select { height: 42px; min-height: 42px; }
+.bus-master-list-page .bus-filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+.bus-master-list-page .bus-filter-actions button {
+  min-height: 37px;
+  border-radius: 8px;
+  border: 1px solid #dce5f2;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bus-master-list-page .bus-filter-clear { background: #fff; color: #5d6d85; }
+.bus-master-list-page .bus-filter-clear:hover { background: #f5f7fa; }
+.bus-master-list-page .bus-filter-apply {
+  border-color: #6d38d9 !important;
+  background: #6d38d9;
+  color: #fff;
+}
+.bus-master-list-page .bus-filter-apply:hover { background: #5b2fba; }
+
+
+/* GCT theme and balanced spacing for the Bus Master List status filter only. */
+.bus-master-list-page .bus-tool-filter-panel {
+  padding: 17px 18px 18px;
+  border-color: #dce5f2;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading {
+  align-items: center;
+  min-height: 22px;
+  margin-bottom: 5px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-popover-heading strong {
+  color: #102a4c;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-helper {
+  margin: 0 0 14px;
+  padding: 0 0 13px;
+  color: #64748b;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  font-size: 11px !important;
+  line-height: 1.5;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box select {
+  border-color: #dce5f2;
+  background: #fff;
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  gap: 10px;
+  margin-top: 16px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  min-height: 38px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-clear {
+  border-color: #dce5f2;
+  background: #fff;
+  color: #102a4c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-apply {
+  border-color: #ffb900 !important;
+  background: #ffb900;
+  color: #10213c;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-apply:hover {
+  background: #f3af00;
+  border-color: #f3af00 !important;
+}
+
+
+/* Approved GCT Bus Master List Sort panel — compact navy/white/yellow. */
+.bus-master-list-page .bus-tool-sort-panel {
+  width: 290px;
+  max-width: min(290px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 18px;
+  background: #fff;
+  border-color: #dce5f2;
+}
+.bus-master-list-page .bus-tool-sort-panel .bus-popover-heading { margin-bottom: 5px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-popover-heading strong { color: #102a4c; }
+.bus-master-list-page .bus-sort-helper {
+  margin: 0 0 14px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #e9edf4;
+  color: #64748b;
+  font-size: 11px;
+}
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-group { margin-bottom: 14px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-label { margin-bottom: 5px; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box { margin-left: 0; }
+.bus-master-list-page .bus-tool-sort-panel .bus-filter-select-box select { height: 40px; min-height: 40px; background: #fff; }
+.bus-master-list-page .bus-sort-hint {
+  margin: 0 0 7px;
+  color: #75849a;
+  font-size: 10px;
+}
+.bus-master-list-page .bus-sort-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  border-top: 1px solid #e9edf4;
+  padding-top: 14px;
+}
+.bus-master-list-page .bus-sort-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bus-master-list-page .bus-sort-reset { color: #102a4c; background: #fff; border: 1px solid #dce5f2; }
+.bus-master-list-page .bus-sort-reset:hover { background: #f5f7fa; }
+.bus-master-list-page .bus-sort-apply { color: #10213c; background: #ffb900; border: 1px solid #ffb900; }
+.bus-master-list-page .bus-sort-apply:hover { background: #f2ae00; }
+
+
+/* GCT bus status filter: reflect the selected status and separate actions. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 14px;
+  margin-top: 20px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions button {
+  min-width: 0;
+  padding: 0 8px;
+  gap: 7px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] select {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] select {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] select {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+  font-weight: 700;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] .bus-select-prefix-icon.is-status { background: #16a34a; box-shadow: 0 0 0 3px #bbf7d0; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] .bus-select-prefix-icon.is-status { background: #d97706; box-shadow: 0 0 0 3px #fde68a; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] .bus-select-prefix-icon.is-status { background: #64748b; box-shadow: 0 0 0 3px #e2e8f0; }
+
+
+/* Align only the Status label and its contextual indicator. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 18px;
+  margin-bottom: 10px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label .is-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  margin: 0;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="active"] .is-status-dot { background: #16a34a; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="maintenance"] .is-status-dot { background: #d97706; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label[data-status-tone="inactive"] .is-status-dot { background: #64748b; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label label {
+  display: inline-block !important;
+  margin: 0 !important;
+  line-height: 18px !important;
+  font-size: 11px !important;
+  color: #102a4c !important;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 16px !important;
+  margin-top: 20px;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-actions > button {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  padding: 0 5px;
+}
+
+
+/* GCT-native filter button: count means applied filters, not purple decoration. */
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter.bus-tool-active,
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter[aria-expanded="true"] {
+  background: #fff;
+  border-color: #dce5f2;
+  color: #102a4c;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter > i {
+  color: #102a4c;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter.bus-tool-active {
+  background: #fff9e6;
+  border-color: #ffc837;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-tool-trigger--filter[aria-expanded="true"] {
+  border-color: #91b7ee;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count {
+  background: #102a4c;
+  color: #fff;
+  margin-left: 3px;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count[hidden] {
+  display: none !important;
+}
+
+
+/* Final Bus Master List filter refinements: white field, colored text/dot, aligned badge. */
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone] select {
+  background: #fff;
+  border-color: #dce5f2;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="active"] select { color: #15803d; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="maintenance"] select { color: #a16207; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-select-box[data-status-tone="inactive"] select { color: #64748b; }
+.bus-master-list-page .bus-tool-filter-panel .bus-filter-label {
+  gap: 12px;
+}
+.bus-master-list-page [data-bus-tool="filter"] .bus-filter-count:not([hidden]) {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 4px;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }

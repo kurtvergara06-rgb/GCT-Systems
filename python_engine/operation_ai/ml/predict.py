@@ -157,7 +157,7 @@ def bus_readiness() -> ComponentReadiness:
     if state["sample_count"] < _thresholds["min_bus_records"]:
         return ComponentReadiness(
             ml_ready=False,
-            source="data_fallback",
+            source="rule_fallback",
             reason=(
                 f"Only {state['sample_count']} bus trip records available; "
                 f"need at least {_thresholds['min_bus_records']}."
@@ -262,7 +262,9 @@ def data_derived_driver_score(
     attendance_rate = float(hist.get("attendance_rate", 0.0))
 
     # Current-day status modifier, grounded in the real attendance enum.
-    status_bonus = 1.0 if driver.status in ("Present", "Late") else 0.0
+    # Current scheduling eligibility is Present-only. Historical Late records
+    # remain in attendance_rate for compatibility with existing model features.
+    status_bonus = 1.0 if driver.status == "Present" else 0.0
 
     score = 0.7 * attendance_rate + 0.3 * status_bonus
     return max(0.0, min(1.0, score))
@@ -296,11 +298,13 @@ def evaluate_candidates(
             score = predict_bus_suitability(bus, trip, bus_histories.get(bus.id))
             if score is not None:
                 outcome.bus_scores[bus.id] = score
-        if not outcome.bus_scores:
+        if len(outcome.bus_scores) != len(eligible_buses):
+            # Do not label a mixed ML/rule ranking as entirely ML-derived.
+            outcome.bus_scores.clear()
             outcome.bus_readiness = ComponentReadiness(
                 ml_ready=False,
                 source="rule_fallback",
-                reason="Bus ML model produced no valid predictions; using fallback.",
+                reason="Bus ML predictions were incomplete; using rule-based ranking.",
                 sample_count=bus_ready.sample_count,
                 model_path=_paths["bus_model"],
             )
@@ -314,16 +318,18 @@ def evaluate_candidates(
             score = predict_driver_suitability(driver, trip, driver_histories.get(driver.id))
             if score is not None:
                 outcome.driver_scores[driver.id] = score
-        if not outcome.driver_scores:
+        if len(outcome.driver_scores) != len(eligible_drivers):
+            # All candidates must share the reported prediction source.
+            outcome.driver_scores.clear()
             outcome.driver_readiness = ComponentReadiness(
                 ml_ready=False,
                 source="data_fallback",
-                reason="Driver ML model produced no valid predictions; using data-derived reliability.",
+                reason="Driver ML predictions were incomplete; using data-derived reliability.",
                 sample_count=driver_ready.sample_count,
                 model_path=_paths["driver_model"],
             )
-    else:
-        # Data-derived reliability fallback for drivers.
+    if not outcome.driver_readiness.ml_ready:
+        # Populate actual fallback scores even if the loaded model failed prediction.
         for driver in eligible_drivers:
             outcome.driver_scores[driver.id] = data_derived_driver_score(
                 driver, driver_histories.get(driver.id)

@@ -72,46 +72,12 @@
           <span class="availability-live-badge">Live assignment status</span>
         </div>
 
-        <form
-          action="{{ route('mechanic-list') }}"
-          method="GET"
-          class="toolbar mechanic-toolbar"
-        >
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <input
-              type="search"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search mechanic, JO number, bus, maintenance type, or issue..."
-            >
-          </div>
-
-          <div class="filter-group">
-            <select
-              name="date_filter"
-              id="dateFilter"
-              onchange="this.form.submit()"
-            >
-              <option value="All Dates" @selected(request('date_filter', 'All Dates') === 'All Dates')>All Dates</option>
-              <option value="Today" @selected(request('date_filter') === 'Today')>Today</option>
-              <option value="This Week" @selected(request('date_filter') === 'This Week')>This Week</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <select
-              name="availability"
-              id="availabilityFilter"
-              onchange="this.form.submit()"
-            >
-              <option value="All Types" @selected(request('availability', 'All Types') === 'All Types')>All Availability</option>
-              <option value="Available" @selected(request('availability') === 'Available')>Available</option>
-              <option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option>
-            </select>
-          </div>
-        </form>
+        <x-ui.table-toolbar action="{{ route('mechanic-list') }}" search-label="Search Mechanic Availability" search-placeholder="Search mechanic, JO, bus, maintenance type, or issue..." :filter-count="(int) (request()->filled('date_filter') && request('date_filter') !== 'All Dates') + (int) (request()->filled('availability') && request('availability') !== 'All Types')" filter-title="Filter Mechanic Availability" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Shift', 'employment_status' => 'Employment Status']" default-sort="mechanic_name">
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="All Dates">@foreach(['All Dates','Today','This Week'] as $dateFilter)<option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>@endforeach</x-ui.table-toolbar-field>
+            <x-ui.table-toolbar-field label="Availability" name="availability" default="All Types"><option value="All Types">All Availability</option><option value="Available" @selected(request('availability') === 'Available')>Available</option><option value="Not Available" @selected(request('availability') === 'Not Available')>Not Available</option></x-ui.table-toolbar-field>
+          </x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap">
           <table class="mechanic-attendance-style-table">
@@ -165,7 +131,7 @@
                             {{ $activeJob->job_order_no }}
                           </span>
 
-                          <span class="assigned-job-state">{{ $activeJob->status }}</span>
+                          <x-ui.status-badge :status="$activeJob->status" class="assigned-job-state" />
                         </div>
 
                         <div class="assigned-job-main">
@@ -219,15 +185,15 @@
                   </td>
 
                   <td>
-                    <span class="attendance-badge {{ $statusClass }}">
-                      {{ $effectiveStatus }}
-                    </span>
+                    <x-ui.status-badge :status="$effectiveStatus" class="attendance-badge {{ $statusClass }}" />
                   </td>
                 </tr>
               @empty
                 <x-ui.empty-row
                   colspan="7"
-                  message="No mechanic availability records found."
+                  icon="fa-wrench"
+                  message="No Mechanic Records Found"
+                  description="No mechanics match your search or availability filter."
                 />
               @endforelse
             </tbody>

@@ -125,9 +125,11 @@
                             <h2>Admin Module Gateways</h2>
                             <p>Direct governance shortcuts and access control hubs.</p>
                         </div>
-                        <span class="system-status-pill">
-                            <span class="status-indicator-dot"></span> All Systems Operational
-                        </span>
+                        <x-ui.status-badge
+                            status="Operational"
+                            label="All Systems Operational"
+                            class="system-status-pill"
+                        />
                     </div>
                     <div class="admin-access-grid">
                         <a href="{{ route('admin.users') }}" class="admin-gateway-card">

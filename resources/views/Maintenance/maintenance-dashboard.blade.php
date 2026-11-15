@@ -151,9 +151,7 @@
                       @endif
                     </div>
 
-                    <span class="dashboard-status {{ $statusClass }}">
-                      {{ $jobOrder->status ?? 'Unknown' }}
-                    </span>
+                    <x-ui.status-badge :status="$jobOrder->status ?? 'Unknown'" class="dashboard-status {{ $statusClass }}" />
                   </div>
 
                   <div class="recent-job-description">
@@ -280,7 +278,7 @@
                   <div class="roster-info">
                     <div class="roster-name-row">
                       <h4>{{ $mech->name }}</h4>
-                      <span class="roster-pill pill-available">{{ $mech->status }}</span>
+                      <x-ui.status-badge :status="$mech->status" class="roster-pill pill-available" />
                     </div>
                     <p class="roster-assignment text-muted">
                       <i class="fa-solid fa-clock"></i> Shift: {{ $mech->shift }} · Standing by in shop
@@ -303,7 +301,7 @@
                   <div class="roster-info">
                     <div class="roster-name-row">
                       <h4>{{ $mech->name }}</h4>
-                      <span class="roster-pill pill-other">{{ $mech->status }}</span>
+                      <x-ui.status-badge :status="$mech->status" class="roster-pill pill-other" />
                     </div>
                     <p class="roster-assignment text-muted">
                       Shift: {{ $mech->shift }}
@@ -363,19 +361,11 @@
                   </div>
                   <div class="mileage-delta">
                     @if($item->status === 'Overdue')
-                      <span class="pms-status-badge overdue">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        @if($item->km_difference <= 0)
-                          {{ number_format(abs($item->km_difference)) }} km overdue
-                        @else
-                          Date overdue ({{ $item->recommended_date?->format('M d, Y') }})
-                        @endif
-                      </span>
+                      <x-ui.status-badge status="Overdue" class="pms-status-badge overdue" :label="$item->km_difference <= 0
+                        ? number_format(abs($item->km_difference)) . ' km overdue'
+                        : 'Date overdue (' . $item->recommended_date?->format('M d, Y') . ')'" />
                     @else
-                      <span class="pms-status-badge due-soon">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        Due in {{ number_format($item->km_difference) }} km
-                      </span>
+                      <x-ui.status-badge status="Due Soon" class="pms-status-badge due-soon" :label="'Due in ' . number_format($item->km_difference) . ' km'" />
                     @endif
                   </div>
                 </div>
@@ -474,9 +464,7 @@
                     </p>
                   </div>
                   <div class="blocked-status-side">
-                    <span class="part-status-badge waiting">
-                      {{ $blockedJo->part_status ?: 'Requested' }}
-                    </span>
+                    <x-ui.status-badge :status="$blockedJo->part_status ?: 'Requested'" class="part-status-badge waiting" />
                   </div>
                 </div>
               @empty
@@ -554,9 +542,7 @@
                       <strong>{{ $referral->incident?->incident_no ? (\Illuminate\Support\Str::startsWith($referral->incident->incident_no, 'INC-') ? $referral->incident->incident_no : 'INC-' . $referral->incident->incident_no) : 'Incident' }}</strong>
                       <span class="bus-tag"><i class="fa-solid fa-bus"></i> {{ $referral->incident?->bus?->bus_no ?? 'No Bus' }}</span>
                     </div>
-                    <span class="ref-status-badge {{ $refStatusClass }}">
-                      {{ $referral->status }}
-                    </span>
+                    <x-ui.status-badge :status="$referral->status" class="ref-status-badge {{ $refStatusClass }}" />
                   </div>
 
                   <p class="ref-desc">

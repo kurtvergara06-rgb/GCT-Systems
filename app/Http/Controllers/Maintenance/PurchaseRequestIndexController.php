@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -62,8 +63,8 @@ class PurchaseRequestIndexController extends Controller
             }
         }
 
+        TableSort::apply($query, $request, ['created_at' => 'created_at', 'pr_no' => 'pr_no', 'status' => 'status'], 'created_at', 'desc');
         $purchaseRequests = $query
-            ->latest()
             ->paginate(8)
             ->withQueryString();
 
@@ -162,13 +163,13 @@ class PurchaseRequestIndexController extends Controller
             return "PR-{$year}-0001";
         }
 
-        preg_match('/PR-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
+        preg_match('/PR-'.$year.'-(\d+)/', $lastPr->pr_no, $matches);
         $nextNumber = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
-        $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        $newPrNo = 'PR-'.$year.'-'.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         while (PurchaseRequest::where('pr_no', $newPrNo)->exists()) {
             $nextNumber++;
-            $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $newPrNo = 'PR-'.$year.'-'.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
 
         return $newPrNo;

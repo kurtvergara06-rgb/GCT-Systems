@@ -59,38 +59,9 @@
           <span class="purchase-section-count">{{ $purchaseRequests->total() }} active</span>
         </div>
 
-        <form
-          action="{{ route('maintenance-requests', [], false) }}"
-          method="GET"
-          class="toolbar requested-toolbar records-toolbar"
-        >
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, item, or status..."
-            >
-          </div>
-
-          <div class="filter-group">
-            <select
-              name="status"
-              id="requestedStatusFilter"
-              aria-label="Status"
-            >
-              <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
-                All States
-              </option>
-              @foreach(($statuses ?? []) as $status)
-                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
-                  {{ $status }}
-                </option>
-              @endforeach
-            </select>
-          </div>
-        </form>
+        <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Maintenance Requests" search-placeholder="Search PR no., JO no., bus, item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Maintenance Requests" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'PR Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
+          <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap records-table-wrap">
           <table class="requested-purchase-table records-table">
@@ -170,7 +141,9 @@
               @empty
                 <x-ui.empty-row
                   colspan="8"
-                  message="No requested purchases found."
+                  icon="fa-wrench"
+                  message="No Maintenance Requests Found"
+                  description="Maintenance requisitions endorsed for purchasing will appear here."
                 />
               @endforelse
             </tbody>

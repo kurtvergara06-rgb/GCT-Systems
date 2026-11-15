@@ -107,70 +107,9 @@
                 {{-- =================================================
                     TOOLBAR
                 ================================================== --}}
-                <form
-                    method="GET"
-                    action="{{ route('PMS-Scheduling') }}"
-                >
-
-                    <div class="toolbar pms-toolbar">
-
-                        <div class="search-box">
-
-                            <i class="fa-solid fa-magnifying-glass"></i>
-
-                            <input
-                                type="text"
-                                name="search"
-                                value="{{ request('search') }}"
-                                placeholder="Search vehicle, PMS task, or status..."
-                            >
-
-                        </div>
-
-
-                        <div class="filter-group">
-
-                            <label for="pmsStatusFilter">
-                            </label>
-
-                            <select
-                                name="status"
-                                id="pmsStatusFilter"
-                                onchange="this.form.submit()"
-                            >
-
-                                <option value="All Status">
-                                    All Status
-                                </option>
-
-                                <option
-                                    value="Upcoming"
-                                    @selected(request('status') === 'Upcoming')
-                                >
-                                    Upcoming
-                                </option>
-
-                                <option
-                                    value="Due Soon"
-                                    @selected(request('status') === 'Due Soon')
-                                >
-                                    Due Soon
-                                </option>
-
-                                <option
-                                    value="Overdue"
-                                    @selected(request('status') === 'Overdue')
-                                >
-                                    Overdue
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                    </div>
-
-                </form>
+                <x-ui.table-toolbar action="{{ route('PMS-Scheduling') }}" search-label="Search PMS Records" search-placeholder="Search vehicle, PMS task, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All Status')" filter-title="Filter PMS Records" :sort-options="['bus_no' => 'Vehicle ID', 'gps_report_date' => 'GPS Report Date', 'current_km' => 'Current KM', 'overall_status' => 'Overall Status']" default-sort="bus_no">
+                    <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(['Upcoming','Due Soon','Overdue'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+                </x-ui.table-toolbar>
 
 
                 {{-- =================================================
@@ -254,11 +193,7 @@
 
                                     <td class="status-col">
 
-                                        <span
-                                            class="badge {{ strtolower(str_replace(' ', '-', $row->overall_status)) }}"
-                                        >
-                                            {{ $row->overall_status }}
-                                        </span>
+                                        <x-ui.status-badge :status="$row->overall_status" />
 
                                     </td>
 
@@ -433,11 +368,7 @@
 
                                     <td class="status-col">
 
-                                        <span
-                                            class="badge {{ strtolower(str_replace(' ', '-', $task->status)) }}"
-                                        >
-                                            {{ $task->status }}
-                                        </span>
+                                        <x-ui.status-badge :status="$task->status" />
 
                                     </td>
 
@@ -485,7 +416,7 @@
                                             {{-- EDIT --}}
                                             <button
                                                 type="button"
-                                                class="pms-edit-task-btn open-edit-pms"
+                                                class="action-btn edit pms-edit-task-btn open-edit-pms"
                                                 title="Edit PMS Task"
 
                                                 data-update-url="{{ route('pms-schedules.update', $task->schedule, false) }}"
@@ -546,7 +477,7 @@
 
                                                 <button
                                                     type="submit"
-                                                    class="delete"
+                                                    class="action-btn delete"
                                                     title="Delete PMS Task"
                                                 >
                                                     <i class="fa-solid fa-trash"></i>

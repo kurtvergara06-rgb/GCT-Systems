@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Warehouse\StockMovement;
+use App\Support\TableSort;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
@@ -40,7 +41,8 @@ class StockMovementController extends Controller
             $movementQuery->whereYear('created_at', now()->year)->whereMonth('created_at', now()->month);
         }
 
-        $stockMovements = $movementQuery->latest()->paginate(20)->withQueryString();
+        TableSort::apply($movementQuery, $request, ['created_at' => 'created_at', 'item_name' => 'item_name', 'movement_type' => 'movement_type', 'quantity' => 'quantity', 'reference_no' => 'reference_no'], 'created_at', 'desc');
+        $stockMovements = $movementQuery->paginate(20)->withQueryString();
         $totalMovements = StockMovement::count();
         $stockIn = StockMovement::where('movement_type', 'Stock In')->count();
         $stockOut = StockMovement::where('movement_type', 'Stock Out')->count();

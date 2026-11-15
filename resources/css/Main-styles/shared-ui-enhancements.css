@@ -550,51 +550,59 @@ button,
   letter-spacing: 0 !important;
   text-align: center !important;
   white-space: nowrap !important;
+  gap: 6px !important;
+  vertical-align: middle !important;
 }
 
-[data-ui-component="status-badge"][data-status="active"],
-[data-ui-component="status-badge"][data-status="completed"],
-[data-ui-component="status-badge"][data-status="available"],
-[data-ui-component="status-badge"][data-status="approved"],
-[data-ui-component="status-badge"][data-status="issued"],
-[data-ui-component="status-badge"][data-status="in-stock"] {
+[data-ui-component="status-badge"] .status-badge__icon {
+  width: 1em;
+  flex: 0 0 1em;
+  color: currentColor;
+  font-size: 11px !important;
+  line-height: 1;
+  text-align: center;
+}
+
+[data-ui-component="status-badge"] .status-badge__label {
+  min-width: 0;
+  color: inherit;
+  line-height: 1;
+}
+
+[data-ui-component="status-badge"][data-status="positive"],
+[data-ui-component="status-badge"][data-status="success"] {
   border-color: #8bdcab !important;
   background: #d7f7e3 !important;
   color: #087332 !important;
 }
 
 [data-ui-component="status-badge"][data-status="pending"],
-[data-ui-component="status-badge"][data-status="upcoming"],
-[data-ui-component="status-badge"][data-status="due-soon"],
-[data-ui-component="status-badge"][data-status="for-purchase"],
-[data-ui-component="status-badge"][data-status="for-pick-up"] {
+[data-ui-component="status-badge"][data-status="scheduled"],
+[data-ui-component="status-badge"][data-status="warning"] {
   border-color: #f3ce65 !important;
   background: #fff0bd !important;
   color: #8a5600 !important;
 }
 
-[data-ui-component="status-badge"][data-status="ongoing"],
-[data-ui-component="status-badge"][data-status="in-progress"],
-[data-ui-component="status-badge"][data-status="for-delivery"] {
+[data-ui-component="status-badge"][data-status="progress"] {
   border-color: #a9c8ff !important;
   background: #dceaff !important;
   color: #0644b8 !important;
 }
 
-[data-ui-component="status-badge"][data-status="inactive"],
-[data-ui-component="status-badge"][data-status="rejected"],
-[data-ui-component="status-badge"][data-status="failed"],
-[data-ui-component="status-badge"][data-status="cancelled"],
-[data-ui-component="status-badge"][data-status="not-available"],
-[data-ui-component="status-badge"][data-status="restricted"],
-[data-ui-component="status-badge"][data-status="overdue"] {
+[data-ui-component="status-badge"][data-status="maintenance"] {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #9a5b00 !important;
+}
+
+[data-ui-component="status-badge"][data-status="negative"] {
   border-color: #ffaaaa !important;
   background: #ffe0e0 !important;
   color: #b20f1b !important;
 }
 
-[data-ui-component="status-badge"][data-status="draft"],
-[data-ui-component="status-badge"][data-status="unknown"] {
+[data-ui-component="status-badge"][data-status="neutral"] {
   border-color: #cbd5e1 !important;
   background: #edf2f7 !important;
   color: #475569 !important;

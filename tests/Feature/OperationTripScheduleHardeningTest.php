@@ -137,6 +137,97 @@ class OperationTripScheduleHardeningTest extends TestCase
         );
     }
 
+    public function test_trip_schedule_persists_incoming_service_bus_demand_and_filters_direction(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $date = now()->addDays(2)->toDateString();
+
+        $this->actingAs($user)
+            ->post(route('trip-schedule.store'), [
+                'trip_date' => $date,
+                'shuttle_route_id' => $route->id,
+                'departure_time' => '06:00',
+                'direction' => 'Incoming',
+                'required_buses' => 3,
+            ])
+            ->assertRedirect('/operation/trip-schedule')
+            ->assertSessionHasNoErrors();
+
+        $trip = TripSchedule::query()->firstOrFail();
+        $this->assertSame('Incoming', $trip->direction);
+        $this->assertSame(3, $trip->required_buses);
+        $this->assertSame('Unassigned', $trip->assignment_status);
+
+        $this->actingAs($user)
+            ->get(route('trip-schedule', [
+                'trip_date' => $date,
+                'direction' => 'Incoming',
+            ]))
+            ->assertOk()
+            ->assertSee($trip->trip_code);
+
+        $this->actingAs($user)
+            ->get(route('trip-schedule', [
+                'trip_date' => $date,
+                'direction' => 'Outgoing',
+            ]))
+            ->assertOk()
+            ->assertDontSee($trip->trip_code);
+    }
+
+    public function test_direction_dashboard_groups_records_and_counts_required_buses(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $date = now()->addDays(2)->toDateString();
+
+        $incoming = $this->trip($route, [
+            'trip_date' => $date,
+            'direction' => 'Incoming',
+            'required_buses' => 3,
+        ]);
+        $outgoing = $this->trip($route, [
+            'trip_date' => $date,
+            'direction' => 'Outgoing',
+            'required_buses' => 2,
+            'departure_time' => '17:00:00',
+            'estimated_arrival_time' => '17:30:00',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('trip-schedule', ['trip_date' => $date]))
+            ->assertOk()
+            ->assertViewHas('scheduledServices', 2)
+            ->assertViewHas('incomingServices', 1)
+            ->assertViewHas('outgoingServices', 1)
+            ->assertViewHas('totalBusesRequired', 5)
+            ->assertSee('Incoming Trips')
+            ->assertSee('Outgoing Trips')
+            ->assertSee($incoming->trip_code)
+            ->assertSee($outgoing->trip_code);
+
+        $this->assertStringContainsString('3', $response->getContent());
+    }
+
+    public function test_trip_schedule_rejects_invalid_direction_and_bus_quantity(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+
+        $this->actingAs($user)
+            ->post(route('trip-schedule.store'), [
+                'trip_date' => now()->addDays(2)->toDateString(),
+                'shuttle_route_id' => $route->id,
+                'departure_time' => '06:00',
+                'direction' => 'Other',
+                'required_buses' => 0,
+            ])
+            ->assertSessionHasErrors(['direction', 'required_buses']);
+
+        $this->assertDatabaseCount('trip_schedules', 0);
+    }
+
     public function test_new_trip_cannot_be_scheduled_in_the_past(): void
     {
         $user = $this->operationUser();
@@ -327,11 +418,12 @@ class OperationTripScheduleHardeningTest extends TestCase
     {
         $user = $this->operationUser();
         $route = $this->route();
-        $pastDeparture = now()->subHour()->startOfMinute();
+        $pastDeparture = now(config('app.business_timezone', 'Asia/Manila'))->subHour()->startOfMinute();
         $pastArrival = $pastDeparture->copy()->addMinutes(30);
 
         $trip = $this->trip($route, [
             'trip_code' => 'T-MISSED',
+            'direction' => 'Incoming',
             'trip_date' => $pastDeparture->toDateString(),
             'departure_time' => $pastDeparture->format('H:i:s'),
             'estimated_arrival_time' => $pastArrival->format('H:i:s'),
@@ -339,7 +431,9 @@ class OperationTripScheduleHardeningTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('trip-schedule'))
+            ->get(route('trip-schedule', [
+                'trip_date' => $pastDeparture->toDateString(),
+            ]))
             ->assertOk()
             ->assertSee('data-id="'.$trip->id.'"', false)
             ->assertSee('data-allow-past="true"', false);
@@ -385,7 +479,7 @@ class OperationTripScheduleHardeningTest extends TestCase
     {
         $user = $this->operationUser();
         $route = $this->route();
-        $today = now()->toDateString();
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
         $this->trip($route, [
             'trip_code' => 'T-ACTIVE',
@@ -652,6 +746,10 @@ class OperationTripScheduleHardeningTest extends TestCase
             resource_path(
                 'views/Operation/Trip_Records/trip-records.blade.php'
             )
+        ).file_get_contents(
+            resource_path(
+                'views/components/operation/trip-history-layout.blade.php'
+            )
         );
 
         $dailyDriverReportsView = file_get_contents(
@@ -777,7 +875,7 @@ class OperationTripScheduleHardeningTest extends TestCase
         );
     }
 
-    public function test_assignment_index_uses_selected_date_and_excludes_allocated_resources(): void
+    public function test_assignment_index_uses_selected_date_and_keeps_reusable_resources_visible(): void
     {
         $user = $this->operationUser();
         $route = $this->route();
@@ -847,7 +945,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             ): bool {
                 $ids = $drivers->getCollection()->pluck('id');
 
-                return ! $ids->contains($busyAttendance->id)
+                return $ids->contains($busyAttendance->id)
                     && $ids->contains($freeAttendance->id)
                     && ! $ids->contains($otherAttendance->id);
             })
@@ -857,7 +955,7 @@ class OperationTripScheduleHardeningTest extends TestCase
             ): bool {
                 $ids = $buses->getCollection()->pluck('id');
 
-                return ! $ids->contains($busyBus->id)
+                return $ids->contains($busyBus->id)
                     && $ids->contains($freeBus->id);
             });
     }
@@ -1297,6 +1395,61 @@ class OperationTripScheduleHardeningTest extends TestCase
 
         $this->assertSame([$freeAttendance->id], $response->json('drivers.*.id'));
         $this->assertSame([$freeBus->id], $response->json('buses.*.id'));
+    }
+
+    public function test_resources_can_be_reused_for_a_later_non_overlapping_trip(): void
+    {
+        $user = $this->operationUser();
+        $route = $this->route();
+        $date = now(config('app.business_timezone'))->addDay()->toDateString();
+        $earlierTrip = $this->trip($route, [
+            'trip_code' => 'T-REUSE-EARLY',
+            'trip_date' => $date,
+            'estimated_arrival_date' => $date,
+            'departure_time' => '08:00:00',
+            'estimated_arrival_time' => '09:00:00',
+            'assignment_status' => 'Assigned',
+            'status' => 'Ready',
+        ]);
+        $laterTrip = $this->trip($route, [
+            'trip_code' => 'T-REUSE-LATE',
+            'trip_date' => $date,
+            'estimated_arrival_date' => $date,
+            'departure_time' => '10:00:00',
+            'estimated_arrival_time' => '11:00:00',
+        ]);
+        [, $attendance, $bus] = $this->assignmentResources($date, 'REUSE');
+
+        TripAssignment::create([
+            'trip_schedule_id' => $earlierTrip->id,
+            'driver_attendance_id' => $attendance->id,
+            'driver_id' => $attendance->driver_id,
+            'driver_name' => $attendance->driver_name,
+            'bus_id' => $bus->id,
+            'assigned_by' => $user->id,
+        ]);
+
+        $availability = $this->actingAs($user)
+            ->getJson(route('driver-bus-assignment.availability', $laterTrip))
+            ->assertOk();
+
+        $this->assertContains($attendance->id, $availability->json('drivers.*.id'));
+        $this->assertContains($bus->id, $availability->json('buses.*.id'));
+
+        $this->actingAs($user)
+            ->from(route('driver-bus-assignment', ['trip_date' => $date]))
+            ->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $laterTrip->id,
+                'driver_attendance_id' => $attendance->id,
+                'bus_id' => $bus->id,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $laterTrip->id,
+            'driver_attendance_id' => $attendance->id,
+            'bus_id' => $bus->id,
+        ]);
     }
 
     public function test_overlap_returns_field_validation_errors(): void

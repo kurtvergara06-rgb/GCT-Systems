@@ -316,9 +316,10 @@
                                 <strong>{{ $latestBatch->file_name }}</strong>
                             </div>
 
-                            <span class="latest-batch-status {{ strtolower(str_replace(' ', '-', $latestBatch->status)) }}">
-                                {{ $latestBatch->status }}
-                            </span>
+                            <x-ui.status-badge
+                                :status="$latestBatch->status"
+                                class="latest-batch-status {{ strtolower(str_replace(' ', '-', $latestBatch->status)) }}"
+                            />
                         </div>
 
                         <div class="latest-batch-meta">

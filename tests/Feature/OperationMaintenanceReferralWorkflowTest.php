@@ -507,7 +507,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         MechanicAttendance::create([
             'mechanic_id' => $mechanic->mechanic_id,
             'mechanic_name' => $mechanic->mechanic_name,
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => 'Present',
         ]);
 
