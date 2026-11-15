@@ -391,6 +391,15 @@ button {
   -webkit-backdrop-filter: blur(3px) !important;
 }
 
+/* Global confirmation is always above an open edit/view/delete dialog.
+   Explicit priority prevents equal-z-index overlays from covering its actions. */
+#globalConfirmationModal.global-confirmation-overlay.show,
+#globalConfirmationModal.global-confirmation-overlay.active {
+  position: fixed !important;
+  z-index: calc(var(--modal-stacked-z-index, 105000) + 10) !important;
+  isolation: isolate;
+}
+
 /* Base display toggles */
 .modal-overlay,
 .delete-modal-overlay,
@@ -603,3 +612,41 @@ header.topbar::before {
 .personnel-status-input-shell > .personnel-status-input-dot {
   display: none !important;
 }
+
+
+/* Shared read-only action treatment: keep forbidden actions visible and gray.
+   Buttons must also receive a real disabled attribute and server-side guard. */
+button.action-btn.edit:disabled,
+button.action-btn.edit[aria-disabled="true"],
+button.open-edit-bus:disabled,
+button.open-edit-attendance-modal:disabled,
+button.open-edit-driver-attendance-modal:disabled {
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+  opacity: 0.85 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+button.action-btn.edit:disabled i,
+button.action-btn.edit[aria-disabled="true"] i {
+  color: inherit !important;
+}
+
+/* Keep assignment-protected Delete actions visible but clearly unavailable. */
+button.action-btn.delete:disabled,
+button.action-btn.delete[aria-disabled="true"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+  opacity: .85 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+button.action-btn.delete:disabled i,
+button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }

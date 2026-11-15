@@ -15,14 +15,13 @@
         $isClosed = $isResolved || $isCancelled;
         $isBreakdown = $incident->incident_type === 'Bus Breakdown';
 
-        $statusFormOptions = [
-            'Reported',
-            'Monitoring',
-            'Responding',
-            'Replacement Bus Dispatched',
-            'Resolved',
-            'Cancelled',
-        ];
+        $statusFormOptions = match ($incident->status) {
+            'Reported' => ['Reported', 'Monitoring', 'Responding', 'Resolved', 'Cancelled'],
+            'Monitoring' => ['Monitoring', 'Responding', 'Resolved', 'Cancelled'],
+            'Responding' => ['Responding', 'Resolved', 'Cancelled'],
+            'Replacement Bus Dispatched' => ['Replacement Bus Dispatched', 'Responding', 'Resolved', 'Cancelled'],
+            default => [$incident->status],
+        };
 
         $eligibleReplacementBuses = $activeBuses
             ->reject(fn ($bus) => $incident->bus_id && $bus->id === $incident->bus_id)

@@ -197,7 +197,7 @@
                       <button
                         type="button"
                         class="action-btn edit open-edit-driver-attendance-modal"
-                        title="Edit"
+                        @if($attendance->tripAssignments->isNotEmpty()) disabled aria-disabled="true" title="Locked: linked trip or bus assignment" @else title="Edit" @endif
                         data-id="{{ $attendance->id }}"
                         data-driver-id="{{ $attendance->driver_id }}"
                         data-driver-name="{{ $attendance->driver_name }}"

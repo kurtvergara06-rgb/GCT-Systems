@@ -1,0 +1,36 @@
+/* Five-module shared record-action design. All components and legacy .action-btn
+   controls share the same appearance while keeping their existing behavior. */
+:where(.gct-record-action, .action-btn.view, .action-btn.edit, .action-btn.delete) {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; min-width:34px; height:34px; min-height:34px;
+    padding:0; border-radius:9px; border:1px solid transparent;
+    box-shadow:none; vertical-align:middle; line-height:1;
+    transition:background-color .15s ease,border-color .15s ease,color .15s ease;
+}
+:where(.gct-record-action, .action-btn.view, .action-btn.edit, .action-btn.delete) i {
+    font-size:14px; line-height:1; color:inherit;
+}
+:where(.gct-record-action, .action-btn).view:not(:disabled):not(.gct-action-unavailable),
+:where(.gct-record-action, .action-btn).edit:not(:disabled):not(.gct-action-unavailable) {
+    background:#eef5ff; color:#1260df; border-color:#bfd7ff;
+}
+:where(.gct-record-action, .action-btn).delete:not(:disabled):not(.gct-action-unavailable) {
+    background:#fff0f0; color:#d92d36; border-color:#ffbfc3;
+}
+:where(.gct-record-action, .action-btn).view:not(:disabled):hover,
+:where(.gct-record-action, .action-btn).edit:not(:disabled):hover {
+    background:#dceaff; color:#1559c6; border-color:#a2c6ff;
+}
+:where(.gct-record-action, .action-btn).delete:not(:disabled):hover {
+    background:#ffe4e6; color:#b91c1c; border-color:#fda4af;
+}
+:where(.gct-record-action, .action-btn):is(.view,.edit,.delete):is(:disabled,.gct-action-unavailable),
+:where(.gct-record-action, .action-btn):is(.view,.edit,.delete):is(:disabled,.gct-action-unavailable):hover {
+    background:#e5e7eb !important; border-color:#d1d5db !important;
+    color:#737373 !important; opacity:1 !important;
+    box-shadow:none !important; transform:none !important;
+    cursor:not-allowed !important;
+}
+:where(.gct-record-action, .action-btn):is(.view,.edit,.delete):is(:disabled,.gct-action-unavailable) i {
+    color:inherit !important;
+}

@@ -3,6 +3,7 @@
 namespace App\Services\Operation;
 
 use App\Models\Operation\DailyDriverReport;
+use App\Models\Operation\DailyDriverReportTripEntry;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
 use Carbon\Carbon;
@@ -79,19 +80,10 @@ class DailyDriverReportScheduleMatchService
             return $matches->first();
         }
 
-        $actualDepartureMinutes = $this->minutesFromMidnight(
-            $this->timeString($report->departure_time)
-        );
-
-        return $matches
-            ->sortBy(function (TripSchedule $schedule) use ($actualDepartureMinutes) {
-                return abs(
-                    $this->minutesFromMidnight(
-                        $this->timeString($schedule->departure_time)
-                    ) - $actualDepartureMinutes
-                );
-            })
-            ->first();
+        // More than one assignment on the same date is ambiguous without an
+        // exact trip ticket. Never silently attach operational history to the
+        // merely nearest departure.
+        return null;
     }
 
     public function persistMatch(DailyDriverReport $report): ?TripSchedule
@@ -126,6 +118,66 @@ class DailyDriverReportScheduleMatchService
         }
 
         return $schedule;
+    }
+
+    public function persistEntryMatch(DailyDriverReportTripEntry $entry): ?TripSchedule
+    {
+        if (! Schema::hasColumn('daily_driver_report_trip_entries', 'trip_schedule_id')) {
+            return null;
+        }
+
+        $report = $entry->report()->first();
+        if (! $report) {
+            return null;
+        }
+
+        $schedule = $this->matchEntry($entry, $report);
+        if (! $schedule) {
+            return null;
+        }
+
+        $assignment = $schedule->relationLoaded('assignment')
+            ? $schedule->assignment
+            : $schedule->assignment()->first();
+
+        $entry->forceFill([
+            'trip_schedule_id' => $schedule->id,
+            'trip_assignment_id' => $assignment?->id,
+        ])->saveQuietly();
+
+        return $schedule;
+    }
+
+    public function matchEntry(
+        DailyDriverReportTripEntry $entry,
+        DailyDriverReport $report
+    ): ?TripSchedule {
+        if ($entry->trip_schedule_id) {
+            return $this->scheduleQuery()->find($entry->trip_schedule_id);
+        }
+
+        $query = $this->scheduleQuery()
+            ->whereDate('trip_date', $report->report_date->toDateString())
+            ->whereHas('assignment', function (Builder $assignmentQuery) use ($report): void {
+                $assignmentQuery->where('driver_id', $report->driver_id)
+                    ->where(function (Builder $busQuery) use ($report): void {
+                        $busQuery->where('bus_id', $report->bus_id);
+                        if (Schema::hasColumn('trip_assignments', 'original_bus_id')) {
+                            $busQuery->orWhere('original_bus_id', $report->bus_id);
+                        }
+                    });
+            });
+
+        if ($entry->trip_ticket) {
+            $exact = (clone $query)->where('trip_code', $entry->trip_ticket)->first();
+            if ($exact) {
+                return $exact;
+            }
+        }
+
+        $matches = $query->limit(2)->get();
+
+        return $matches->count() === 1 ? $matches->first() : null;
     }
 
     /**

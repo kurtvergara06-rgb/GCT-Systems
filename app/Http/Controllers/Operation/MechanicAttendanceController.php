@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class MechanicAttendanceController extends Controller
@@ -79,6 +80,17 @@ class MechanicAttendanceController extends Controller
                 : (trim((string) $attendance->assigned_job) ?: 'Unassigned');
         });
 
+        // Preload active JO names for permission-aware Edit buttons.
+        $mechanicNames = $mechanicAttendances->getCollection()->pluck('mechanic_name')->filter()->unique();
+        $busyMechanicNames = $mechanicNames->isEmpty() ? collect() : JobOrder::query()
+            ->where('status', 'On Going')
+            ->whereIn('assigned_mechanic', $mechanicNames)
+            ->pluck('assigned_mechanic')
+            ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+        $mechanicAttendances->getCollection()->each(function (MechanicAttendance $attendance) use ($busyMechanicNames): void {
+            $attendance->has_active_job = $busyMechanicNames->contains(mb_strtolower(trim((string) $attendance->mechanic_name)));
+        });
+
         $summaryQuery = MechanicAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
 
@@ -100,15 +112,41 @@ class MechanicAttendanceController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
+    private function normalizeAttendanceTimes(Request $request): void
     {
+        $normalized = [];
+        foreach (['time_in', 'time_out'] as $field) {
+            $raw = $request->input($field);
+            if (! is_string($raw) || trim($raw) === '') {
+                continue;
+            }
+            $value = trim($raw);
+            foreach (['H:i', 'H:i:s', 'h:i A', 'g:i A', 'h:i:s A', 'g:i:s A'] as $format) {
+                try {
+                    $parsed = Carbon::createFromFormat('!'.$format, strtoupper($value));
+                    if ($parsed && $parsed->format($format) === strtoupper($value)) {
+                        $normalized[$field] = $parsed->format('H:i');
+                        break;
+                    }
+                } catch (Throwable) {
+                    // Keep the invalid input unchanged for standard validation.
+                }
+            }
+        }
+        if ($normalized !== []) {
+            $request->merge($normalized);
+        }
+    }
+
+    public function store(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'assigned_job' => 'nullable|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
@@ -145,7 +183,13 @@ class MechanicAttendanceController extends Controller
         $validated['mechanic_name'] = $mechanic->mechanic_name;
         $validated['shift'] = $mechanic->shift ?: $validated['shift'];
 
-        $attendance = MechanicAttendance::create($validated);
+        // Serialize attendance writes per master-list employee to protect the
+        // model's duplicate-date check against simultaneous requests.
+        $attendance = DB::transaction(function () use ($validated) {
+            Mechanic::query()->where('mechanic_id', $validated['mechanic_id'])->lockForUpdate()->firstOrFail();
+
+            return MechanicAttendance::create($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -169,18 +213,24 @@ class MechanicAttendanceController extends Controller
 
     public function update(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
+        $this->normalizeAttendanceTimes($request);
+        if (JobOrder::query()->where('assigned_mechanic', $mechanicAttendance->mechanic_name)->where('status', 'On Going')->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'attendance' => 'Attendance is locked while this employee has an active assignment. Update assignments through their owning module.',
+            ]);
+        }
+
         $validated = $request->validate([
-            'mechanic_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'assigned_job' => 'nullable|string|max:255',
-            'attendance_date' => 'required|date',
-            'time_in' => 'nullable',
-            'time_out' => 'nullable',
+            'attendance_date' => 'required|date_format:Y-m-d',
+            'time_in' => ['nullable', 'date_format:H:i'],
+            'time_out' => ['nullable', 'date_format:H:i'],
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
+        // Never allow an attendance edit to reassign the record to another person.
         $mechanic = Mechanic::query()
-            ->where('mechanic_name', $validated['mechanic_name'])
+            ->where('mechanic_id', $mechanicAttendance->mechanic_id)
             ->first();
 
         if (! $mechanic) {
@@ -200,7 +250,23 @@ class MechanicAttendanceController extends Controller
         $validated['mechanic_name'] = $mechanic->mechanic_name;
         $validated['shift'] = $mechanic->shift ?: $validated['shift'];
 
-        $mechanicAttendance->update($validated);
+        // Prevent an ongoing Maintenance Job Order from being made unavailable
+        // or moved to a different attendance day.
+        if (JobOrder::query()
+            ->where('assigned_mechanic', $mechanicAttendance->mechanic_name)
+            ->where('status', 'On Going')
+            ->exists()
+            && ($mechanicAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
+                || in_array($validated['status'], ['Absent', 'On Leave'], true))) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'status' => 'A mechanic with an ongoing Job Order cannot be marked unavailable or moved to another date.',
+            ]);
+        }
+
+        DB::transaction(function () use ($mechanicAttendance, $validated) {
+            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
+            $mechanicAttendance->update($validated);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -224,29 +290,39 @@ class MechanicAttendanceController extends Controller
 
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
-        $attendanceId = $mechanicAttendance->id;
-        $mechanicAttendance->delete();
+        $deleted = DB::transaction(function () use ($mechanicAttendance): bool {
+            // Use the master mechanic lock consistently with attendance updates.
+            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
+            $locked = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
+            if (JobOrder::query()
+                ->where('assigned_mechanic', $locked->mechanic_name)
+                ->where('status', 'On Going')
+                ->exists()) {
+                return false;
+            }
+            $locked->delete();
+            return true;
+        }, 5);
 
-        $this->broadcastSystemDataUpdated(
-            'Operation',
-            'Attendance',
-            'deleted',
-            $attendanceId,
-            'A mechanic attendance record was deleted.'
-        );
-
-        if ($request->ajax() || $request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Mechanic attendance record deleted successfully.',
-            ]);
+        if (! $deleted) {
+            $message = 'This mechanic has an active Job Order. Attendance cannot be deleted.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+            return redirect()->route('mechanic-attendance')->with('error', $message);
         }
 
-        return redirect()->route('mechanic-attendance')
-            ->with('success', 'Mechanic attendance record deleted successfully.');
+        $this->broadcastSystemDataUpdated(
+            'Operation', 'Attendance', 'deleted', $mechanicAttendance->id,
+            'A mechanic attendance record was deleted.'
+        );
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Mechanic attendance record deleted successfully.']);
+        }
+        return redirect()->route('mechanic-attendance')->with('success', 'Mechanic attendance record deleted successfully.');
     }
 
-    public function import(Request $request): RedirectResponse
+        public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' => 'required|file|mimes:csv,txt',
@@ -320,7 +396,6 @@ class MechanicAttendanceController extends Controller
                         [
                             'mechanic_name' => $mechanic->mechanic_name,
                             'shift' => $mechanic->shift ?: trim($data['shift'] ?? 'Morning'),
-                            'assigned_job' => trim($data['assigned_job'] ?? ''),
                             'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
                             'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
                             'status' => $status,

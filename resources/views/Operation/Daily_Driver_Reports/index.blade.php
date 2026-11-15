@@ -151,10 +151,10 @@
                                 <th>Report Date</th>
                                 <th>Driver</th>
                                 <th>Bus</th>
-                                <th>Trip Ticket</th>
-                                <th>Route</th>
-                                <th>Actual Times</th>
-                                <th>Passengers</th>
+                                <th>Trips</th>
+                                <th>First Route</th>
+                                <th>First Trip Times</th>
+                                <th>Total Passengers</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -206,7 +206,7 @@
                                     </td>
 
                                     <td>
-                                        <x-ui.id-badge :value="$report->trip_ticket" tone="neutral" />
+                                        <span class="ddr-passenger-pill">{{ 1 + $report->additionalTrips->count() }} {{ (1 + $report->additionalTrips->count()) === 1 ? "trip" : "trips" }}</span>
                                     </td>
 
                                     <td>
@@ -227,7 +227,7 @@
 
                                     <td>
                                         <span class="ddr-passenger-pill">
-                                            {{ number_format($report->passengers) }}
+                                            {{ number_format($report->passengers + $report->additionalTrips->sum('passengers')) }}
                                         </span>
                                     </td>
 
@@ -298,7 +298,7 @@
                 type="date"
                 value="{{ old('report_date') }}"
                 required
-                icon="fa-calendar-day"
+
             />
 
             <x-ui.form-field
@@ -307,7 +307,7 @@
                 value="{{ old('trip_ticket') }}"
                 placeholder="Ticket number printed on the DDR"
                 required
-                icon="fa-ticket"
+
                 list="ddrTripTicketList"
             />
             <datalist id="ddrTripTicketList">
@@ -408,7 +408,7 @@
                 value="{{ old('from_location') }}"
                 placeholder="Origin terminal / stop"
                 required
-                icon="fa-circle-play"
+
             />
 
             <x-ui.form-field
@@ -417,7 +417,7 @@
                 value="{{ old('to_location') }}"
                 placeholder="Destination terminal / stop"
                 required
-                icon="fa-circle-flag"
+
                 unit=""
             />
 
@@ -427,7 +427,7 @@
                 type="time"
                 value="{{ old('departure_time') }}"
                 required
-                icon="fa-clock"
+
             />
 
             <x-ui.form-field
@@ -436,7 +436,7 @@
                 type="time"
                 value="{{ old('arrival_time') }}"
                 required
-                icon="fa-flag-checkered"
+
             />
 
             <x-ui.form-field
@@ -448,9 +448,33 @@
                 step="1"
                 placeholder="0"
                 required
-                icon="fa-users"
+
             />
+            <x-ui.form-field label="KM Traveled" name="km" type="number" value="{{ old('km') }}" min="0" max="99999999.99" step="0.01" placeholder="KM recorded on the DDR" />
         </div>
+
+        <section class="ddr-multi-trips" data-ddr-multi-trips>
+            <div class="ddr-multi-header">
+                <div><strong>Additional Trip Entries</strong><p>One physical DDR can contain several trips. The fields above are Trip 1.</p></div>
+                <button type="button" class="ddr-add-trip" data-ddr-add-trip><i class="fa-solid fa-plus"></i> Add Another Trip</button>
+            </div>
+            <div data-ddr-trip-rows></div>
+            <script type="application/json" data-ddr-old-trips>@json(array_values(old("additional_trips", [])))</script>
+            <template data-ddr-trip-template>
+                <div class="ddr-extra-trip">
+                    <div class="ddr-extra-trip-heading"><strong data-trip-title>Additional Trip</strong><button type="button" data-ddr-remove-trip class="ddr-remove-trip"><i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Remove</span></button></div>
+                    <div class="ddr-extra-trip-grid">
+                        <x-ui.form-field label="Trip Ticket No." name="ddr_trip_template_ticket" required placeholder="Trip ticket number" maxlength="50" data-trip-field="trip_ticket" />
+                        <x-ui.form-field label="From Location" name="ddr_trip_template_from" required placeholder="Origin terminal / stop" maxlength="150" data-trip-field="from_location" />
+                        <x-ui.form-field label="To Location" name="ddr_trip_template_to" required placeholder="Destination terminal / stop" maxlength="150" data-trip-field="to_location" />
+                        <x-ui.form-field label="Departure Time" name="ddr_trip_template_departure" type="time" required data-trip-field="departure_time" />
+                        <x-ui.form-field label="Arrival Time" name="ddr_trip_template_arrival" type="time" required data-trip-field="arrival_time" />
+                        <x-ui.form-field label="Passengers" name="ddr_trip_template_passengers" type="number" min="0" step="1" required placeholder="0" data-trip-field="passengers" />
+                        <x-ui.form-field label="KM Traveled" name="ddr_trip_template_km" type="number" min="0" max="99999999.99" step="0.01" placeholder="KM from the DDR" data-trip-field="km" />
+                    </div>
+                </div>
+            </template>
+        </section>
 
         <div class="ddr-form-note">
             <i class="fa-solid fa-circle-info"></i>

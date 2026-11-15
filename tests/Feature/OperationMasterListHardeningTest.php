@@ -69,6 +69,29 @@ class OperationMasterListHardeningTest extends TestCase
         }
     }
 
+    public function test_route_mutation_endpoints_reject_view_only_operation_users(): void
+    {
+        $staff = $this->operationUser('staff');
+        $this->setOperationEditPermission($staff, false);
+        $route = $this->route();
+
+        $this->actingAs($staff)
+            ->get(route('operation.routes'))
+            ->assertOk();
+
+        $this->actingAs($staff)
+            ->post(route('operation.routes.store'), [])
+            ->assertForbidden();
+        $this->actingAs($staff)
+            ->put(route('operation.routes.update', $route), [])
+            ->assertForbidden();
+        $this->actingAs($staff)
+            ->delete(route('operation.routes.destroy', $route))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('shuttle_routes', ['id' => $route->id]);
+    }
+
     public function test_personnel_ids_become_immutable_after_attendance_history_exists(): void
     {
         $user = $this->operationUser();

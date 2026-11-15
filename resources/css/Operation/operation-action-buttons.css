@@ -1,0 +1,83 @@
+/* Operation-wide action buttons: approved second reference.
+ * Limited to Operation shell; does not affect Admin, Warehouse, Maintenance or Purchase.
+ * Existing actions, permissions, tooltips and click handlers stay intact.
+ */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .inc-record-actions .inc-delete-action
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 9px;
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action
+):not(:disabled):not(.inc-action-disabled):not(.gct-action-unavailable) {
+  color: #1260df;
+  background: #eef5ff;
+  border: 1px solid #bfd7ff;
+  opacity: 1;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.delete, .inc-record-actions .inc-delete-action
+):not(:disabled):not(.inc-action-disabled):not(.gct-action-unavailable) {
+  color: #d92d36;
+  background: #fff0f0;
+  border: 1px solid #ffbfc3;
+  opacity: 1;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action
+):not(:disabled):not(.inc-action-disabled):hover {
+  color: #1559c6;
+  background: #dceaff;
+  border-color: #a2c6ff;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.delete, .inc-record-actions .inc-delete-action
+):not(:disabled):not(.inc-action-disabled):hover {
+  color: #b91c1c;
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
+/* Protected controls: fully gray, never faded red/blue. */
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .inc-record-actions .inc-delete-action
+):is(:disabled, .inc-action-disabled, .gct-action-unavailable),
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .inc-record-actions .inc-delete-action
+):is(:disabled, .inc-action-disabled, .gct-action-unavailable):hover {
+  color: #737373 !important;
+  background: #e5e7eb !important;
+  border: 1px solid #d1d5db !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.app:has(.sidebar[data-gct-shell="operation"]) :is(
+  .action-btn.view, .action-btn.edit, .action-btn.delete,
+  .inc-record-actions .inc-action.view, .inc-record-actions .inc-edit-action,
+  .inc-record-actions .inc-delete-action
+) > i {
+  color: inherit !important;
+  font-size: 14px;
+  line-height: 1;
+}

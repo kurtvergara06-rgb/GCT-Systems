@@ -51,7 +51,7 @@ class ExportGenuineDelayDataTest extends TestCase
             'G-SCHED-1', 'R-001', '2026-09-15',
             '05:30:00', '06:30:00', 'Scheduled', 60
         );
-        $genuine = $this->createDdr('DDR-2026-0001', '2026-09-15', '05:30:00', '06:35:00', 'TT-10001');
+        $genuine = $this->createDdr('DDR-2026-0001', '2026-09-15', '05:30:00', '06:35:00', 'G-SCHED-1');
 
         $breakdown = $this->createIncident('INC-001', 'Bus Breakdown', '2026-09-15 05:10:00', $genuine);
         IncidentReplacement::create([
@@ -69,7 +69,7 @@ class ExportGenuineDelayDataTest extends TestCase
             'TRIP-001', 'R-002', '2026-09-15',
             '07:00:00', '08:00:00', 'Scheduled', 60
         );
-        $this->createDdr('DDR-2026-0002', '2026-09-15', '07:05:00', '08:10:00', 'TT-10002');
+        $this->createDdr('DDR-2026-0002', '2026-09-15', '07:05:00', '08:10:00', 'TRIP-001');
 
         // Unmatched DDR (no schedule/assignment that day).
         $this->createDdr('DDR-2026-0003', '2026-09-16', '08:00:00', '09:00:00', 'TT-10003');
@@ -79,17 +79,17 @@ class ExportGenuineDelayDataTest extends TestCase
             'G-SCHED-2', 'R-003', '2026-09-15',
             '09:00:00', '10:00:00', 'Cancelled', 60
         );
-        $this->createDdr('DDR-2026-0004', '2026-09-15', '09:05:00', '10:10:00', 'TT-10004');
+        $this->createDdr('DDR-2026-0004', '2026-09-15', '09:05:00', '10:10:00', 'G-SCHED-2');
 
         // Impossibly short schedule (< 10 min) -> excluded.
         $this->createAssignedSchedule(
             'G-SCHED-3', 'R-004', '2026-09-15',
             '11:00:00', '11:05:00', 'Scheduled', 60
         );
-        $this->createDdr('DDR-2026-0005', '2026-09-15', '11:02:00', '11:08:00', 'TT-10005');
+        $this->createDdr('DDR-2026-0005', '2026-09-15', '11:02:00', '11:08:00', 'G-SCHED-3');
 
         // Duplicate (report_date, trip_ticket) -> only one row exported.
-        $this->createDdr('DDR-2026-0006', '2026-09-15', '05:35:00', '06:40:00', 'TT-10001');
+        $this->createDdr('DDR-2026-0006', '2026-09-15', '05:35:00', '06:40:00', 'G-SCHED-1');
 
         $path = storage_path('delay_genuine_test.csv');
 
@@ -97,12 +97,12 @@ class ExportGenuineDelayDataTest extends TestCase
         $this->assertSame(0, $exit, 'Genuine rows were exported so the command succeeds.');
 
         $rows = $this->parseCsv($path);
-        $this->assertCount(2, $rows, 'Header row + the single valid genuine row (TT-10001).');
+        $this->assertCount(2, $rows, 'Header row + the single valid genuine row (G-SCHED-1).');
 
         $header = array_shift($rows);
         $this->assertContains('trip_code', $header, 'Header must use the GENUINE_RAW_COLUMNS layout.');
         $this->assertContains('incident_replacement_count', $header);
-        $this->assertCount(1, $rows, 'Only the genuine TT-10001 row is data.');
+        $this->assertCount(1, $rows, 'Only the genuine G-SCHED-1 row is data.');
 
         $codes = array_column($rows, 1);
         $this->assertNotContains('TRIP-001', $codes, 'Demo schedules are excluded.');
@@ -115,7 +115,7 @@ class ExportGenuineDelayDataTest extends TestCase
         $this->assertSame('2026-09-15', $row[0]);
         $this->assertSame('R-001', $row[2]);
         $this->assertSame('BUS-001', $row[4]);
-        $this->assertSame('TT-10001', $row[7]);
+        $this->assertSame('G-SCHED-1', $row[7]);
         $this->assertSame('05:30', $row[8], 'Scheduled departure comes from the schedule.');
         $this->assertSame('60', $row[12], 'Scheduled duration is 60 minutes.');
         $this->assertSame('25', $row[16], 'Route distance is 25km.');

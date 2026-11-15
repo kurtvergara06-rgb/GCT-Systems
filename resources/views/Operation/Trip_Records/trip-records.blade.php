@@ -38,8 +38,8 @@
                     </div>
                     <div>
                         <p>On-Time Rate</p>
-                        <h2>{{ $onTimeRate }}%</h2>
-                        <small>Punctual arrivals</small>
+                        <h2>{{ $onTimeRate === null ? '—' : $onTimeRate.'%' }}</h2>
+                        <small>Completed trips with verified arrival times</small>
                     </div>
                 </article>
 
@@ -48,9 +48,9 @@
                         <i class="fa-solid fa-road"></i>
                     </div>
                     <div>
-                        <p>Total Distance Logged</p>
+                        <p>Recorded Distance</p>
                         <h2>{{ number_format($totalDistanceKm, 1) }} <span style="font-size: 15px; font-weight: 600;">km</span></h2>
-                        <small>Recorded operational mileage</small>
+                        <small>Distance entered in matched driver reports</small>
                     </div>
                 </article>
 
@@ -59,9 +59,9 @@
                         <i class="fa-solid fa-bus"></i>
                     </div>
                     <div>
-                        <p>Active Fleet Logged</p>
-                        <h2>{{ $activeFleetCount }}</h2>
-                        <small>Buses deployed historically</small>
+                        <p>Delayed Trips</p>
+                        <h2>{{ number_format($delayedTripsCount) }}</h2>
+                        <small>Trip delays recorded</small>
                     </div>
                 </article>
             </section>
@@ -71,12 +71,16 @@
                 <div class="trip-card-header">
                     <div>
                         <h2>Operational Trip History</h2>
-                        <p>Complete historical log of shuttle bus trips, scheduled vs actual timings, vehicle assignments, and route performance.</p>
+                        <p>Completed, delayed, cancelled, and missed trips. Upcoming and scheduled trips remain in Scheduling.</p>
                     </div>
+                    <button class="trip-export-btn trip-export-header" type="submit" form="tripRecordsFilterForm"
+                        formaction="{{ route('trip-records.export') }}" formmethod="GET">
+                        <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
+                    </button>
                 </div>
 
                 <!-- Filter & Search Toolbar -->
-                <form method="GET" action="{{ route('trip-records') }}" class="trip-toolbar">
+                <form method="GET" action="{{ route('trip-records') }}" id="tripRecordsFilterForm" class="trip-toolbar">
                     <div class="trip-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input
@@ -87,58 +91,50 @@
                         />
                     </div>
 
-                    <div class="trip-filter date-filter">
-                        <label for="filterDate">Date</label>
-                        <input
-                            type="date"
-                            id="filterDate"
-                            name="trip_date"
-                            value="{{ request('trip_date') }}"
-                            onchange="this.form.submit()"
-                        />
-                    </div>
-
-                    <div class="trip-filter">
-                        <label for="filterRoute">Route</label>
-                        <select id="filterRoute" name="route" onchange="this.form.submit()">
-                            <option value="all">All Routes</option>
-                            @foreach($routes as $route)
-                                <option value="{{ $route->id }}" @selected(request('route') == $route->id)>
-                                    {{ $route->route_code }} - {{ $route->route_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="trip-filter">
-                        <label for="filterShift">Shift</label>
-                        <select id="filterShift" name="shift" onchange="this.form.submit()">
-                            <option value="all">All Shifts</option>
-                            @foreach($shifts as $shift)
-                                <option value="{{ $shift }}" @selected(request('shift') === $shift)>
-                                    {{ $shift }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="trip-filter">
-                        <label for="filterStatus">Status</label>
-                        <select id="filterStatus" name="status" onchange="this.form.submit()">
-                            <option value="all">All Statuses</option>
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" @selected(request('status') === $status)>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if(request()->anyFilled(['search', 'trip_date', 'route', 'shift', 'status']))
-                        <a href="{{ route('trip-records') }}" class="trip-clear-btn" title="Reset all filters">
-                            <i class="fa-solid fa-rotate-left"></i> Reset
-                        </a>
-                    @endif
+                    <details class="trip-more-filters">
+                        <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i> More Filters</summary>
+                        <div class="trip-extra-filters">
+                            <div class="trip-filter date-filter">
+                                <label for="filterFrom">Date From</label>
+                                <input type="date" id="filterFrom" name="date_from" value="{{ request('date_from') }}" />
+                            </div>
+                            <div class="trip-filter date-filter">
+                                <label for="filterTo">Date To</label>
+                                <input type="date" id="filterTo" name="date_to" value="{{ request('date_to') }}" />
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterStatus">Status</label>
+                                <select id="filterStatus" name="status">
+                                    <option value="all">All Statuses</option>
+                                    @foreach($statuses as $status)
+                                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterRoute">Route</label>
+                                <select id="filterRoute" name="route">
+                                    <option value="all">All Routes</option>
+                                    @foreach($routes as $route)
+                                        <option value="{{ $route->id }}" @selected(request('route') == $route->id)>{{ $route->route_code }} - {{ $route->route_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter">
+                                <label for="filterShift">Shift</label>
+                                <select id="filterShift" name="shift">
+                                    <option value="all">All Shifts</option>
+                                    @foreach($shifts as $shift)
+                                        <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="trip-filter-actions">
+                                <a href="{{ route('trip-records') }}" class="trip-clear-btn">Reset</a>
+                                <button class="trip-export-btn" type="submit">Apply Filters</button>
+                            </div>
+                        </div>
+                    </details>
                 </form>
 
                 <!-- Trip Table Container with Contained Scroll -->
@@ -149,11 +145,11 @@
                                 <th>Trip ID</th>
                                 <th>Date & Shift</th>
                                 <th>Route & Terminals</th>
-                                <th>Bus No.</th>
+                                <th>Plate Number</th>
                                 <th>Driver</th>
                                 <th>Scheduled</th>
                                 <th>Actual Times</th>
-                                <th>Distance</th>
+                                <th>Recorded Distance</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -165,6 +161,13 @@
                                     $assignment = $trip->assignment;
                                     $bus = $assignment?->bus;
                                     $route = $trip->shuttleRoute;
+                                    $routeCode = $trip->route_code_snapshot ?: $route?->route_code;
+                                    $routeName = $trip->route_name_snapshot ?: $route?->route_name;
+                                    $routeOrigin = $trip->route_origin_snapshot ?: $route?->origin;
+                                    $routeDestination = $trip->route_destination_snapshot ?: $route?->destination;
+                                    $plannedDistance = $trip->planned_distance_km ?? $route?->distance_km;
+                                    $recordedDistance = (float) ($trip->primary_recorded_distance_km ?? 0)
+                                        + (float) ($trip->additional_recorded_distance_km ?? 0);
                                     $tripDateFormatted = \Carbon\Carbon::parse($trip->trip_date)->format('M d, Y');
                                     $shiftClass = strtolower($trip->shift);
                                     $statusClass = strtolower($trip->status);
@@ -180,12 +183,13 @@
                                         'trip_date' => $tripDateFormatted,
                                         'shift' => $trip->shift,
                                         'status' => $trip->status,
-                                        'route_code' => $route?->route_code,
-                                        'route_name' => $route?->route_name,
-                                        'origin' => $route?->origin,
-                                        'destination' => $route?->destination,
-                                        'distance_km' => $route?->distance_km ? number_format($route->distance_km, 2) : null,
-                                        'estimated_time_minutes' => $route?->estimated_time_minutes,
+                                        'route_code' => $routeCode,
+                                        'route_name' => $routeName,
+                                        'origin' => $routeOrigin,
+                                        'destination' => $routeDestination,
+                                        'distance_km' => $recordedDistance > 0 ? number_format($recordedDistance, 2) : null,
+                                        'planned_distance_km' => $plannedDistance ? number_format($plannedDistance, 2) : null,
+                                        'estimated_time_minutes' => $trip->planned_duration_minutes ?? $route?->estimated_time_minutes,
                                         'bus_no' => $bus?->bus_no,
                                         'plate_no' => $bus?->plate_no,
                                         'bus_model' => $bus?->bus_model,
@@ -214,18 +218,18 @@
 
                                     <td>
                                         <div class="route-cell">
-                                            <strong>{{ $route?->route_name ?: '—' }}</strong>
+                                            <strong>{{ $routeName ?: '—' }}</strong>
                                             <span>
-                                                {{ $route?->origin ?: '—' }}
+                                                {{ $routeOrigin ?: '—' }}
                                                 <i class="fa-solid fa-arrow-right-long" style="font-size: 9px; margin: 0 3px; color: var(--trip-blue);"></i>
-                                                {{ $route?->destination ?: '—' }}
+                                                {{ $routeDestination ?: '—' }}
                                             </span>
                                         </div>
                                     </td>
 
                                     <td>
                                         @if($bus)
-                                            <x-ui.id-badge :value="$bus->bus_no" />
+                                            <x-ui.id-badge :value="$bus->plate_no ?: 'No plate'" />
                                         @else
                                             <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
                                         @endif
@@ -267,7 +271,7 @@
 
                                     <td>
                                         <strong style="color: var(--trip-navy); font-size: 12px;">
-                                            {{ $route?->distance_km ? number_format($route->distance_km, 1) . ' km' : '—' }}
+                                            {{ $recordedDistance > 0 ? number_format($recordedDistance, 1) . ' km' : '—' }}
                                         </strong>
                                     </td>
 
@@ -316,13 +320,13 @@
                     data-total="{{ $trips->total() }}"
                 >
                     <span data-entry-count>
-                        Showing {{ $trips->firstItem() ?? 0 }} to {{ $trips->lastItem() ?? 0 }} of {{ $trips->total() }} matching trip records
+                        Showing {{ $trips->total() ? $trips->firstItem() : 0 }} to {{ $trips->total() ? $trips->lastItem() : 0 }} of {{ $trips->total() }} matching trip records
                     </span>
                     <span class="table-loading-all" data-table-loading hidden>
                         <x-ui.spinner size="sm" />
                         <span data-table-loading-label>Loading more records...</span>
                     </span>
-                    <span class="trip-scroll-hint">Scroll within the table to browse records</span>
+                    @if($trips->hasMorePages())<span class="trip-scroll-hint">Scroll to load more historical records</span>@endif
                 </div>
             </section>
         </main>
@@ -370,7 +374,7 @@
                             <span id="modalRouteSpan" class="trip-detail-value">—</span>
                         </div>
                         <div class="trip-detail-item">
-                            <span class="trip-detail-label">Route Distance</span>
+                            <span class="trip-detail-label">Recorded Distance</span>
                             <span id="modalDistance" class="trip-detail-value">—</span>
                         </div>
                         <div class="trip-detail-item">
@@ -385,7 +389,7 @@
                     <h3 class="trip-detail-section-title">Assigned Bus & Driver</h3>
                     <div class="trip-detail-grid">
                         <div class="trip-detail-item">
-                            <span class="trip-detail-label">Assigned Bus No.</span>
+                            <span class="trip-detail-label">Assigned Plate Number</span>
                             <span id="modalBusNo" class="trip-detail-value" style="color: var(--trip-blue);">—</span>
                             <small id="modalBusDetails" style="color: #64748b; font-size: 11px;">—</small>
                         </div>

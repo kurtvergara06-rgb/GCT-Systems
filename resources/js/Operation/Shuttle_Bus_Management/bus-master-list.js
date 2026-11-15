@@ -171,6 +171,41 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
+    // Delegated view action works after AJAX table filtering and remains read-only.
+    const viewBusModal = document.getElementById('viewBusModal');
+    const viewBusPage = document.querySelector('.bus-master-list-page');
+    viewBusPage?.addEventListener('click', (event) => {
+        const button = event.target.closest('.open-view-bus');
+        if (!button || !viewBusPage.contains(button) || !viewBusModal) return;
+        event.preventDefault();
+        const fields = {
+            busNo: button.dataset.busNo,
+            plateNo: button.dataset.plateNo,
+            busModel: button.dataset.busModel,
+            yearModel: button.dataset.yearModel,
+            capacity: button.dataset.capacity,
+            status: button.dataset.status,
+            routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
+        };
+        for (const [key, value] of Object.entries(fields)) {
+            const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
+            if (target) target.textContent = String(value || '—');
+        }
+        const statusBadge = viewBusModal.querySelector('.bus-details-status');
+        if (statusBadge) {
+            const validStatuses = ['Active', 'Inactive', 'Under Maintenance'];
+            statusBadge.dataset.status = validStatuses.includes(fields.status) ? fields.status : 'Unknown';
+        }
+        viewBusModal.setAttribute('aria-hidden', 'false');
+        openModal(viewBusModal);
+    });
+    ['closeViewBusModal', 'dismissViewBusModal'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('click', () => {
+            closeModal(viewBusModal);
+            viewBusModal?.setAttribute('aria-hidden', 'true');
+        });
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Edit Bus Modal
@@ -241,8 +276,16 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 */
 
                 if (editBusNo) {
-                    editBusNo.value =
-                        button.dataset.busNo || '';
+                    editBusNo.value = button.dataset.busNo || '';
+                    const locked = button.dataset.busNoLocked === '1';
+                    editBusNo.readOnly = locked;
+                    editBusNo.classList.toggle('bus-locked-input', locked);
+                    editBusNo.setAttribute('aria-readonly', locked ? 'true' : 'false');
+                    editBusNo.title = locked
+                        ? 'Bus No. cannot be changed after operational history exists.'
+                        : '';
+                    const hint = document.getElementById('editBusNoLockHint');
+                    if (hint) hint.hidden = !locked;
                 }
 
 
@@ -281,6 +324,37 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                         button.dataset.status || 'Active';
                 }
 
+
+                // Operation cannot edit any master-list field while Maintenance
+                // owns this bus. Preserve displayed values for read-only review.
+                const maintenanceLocked = button.dataset.status === 'Under Maintenance';
+                editBusForm.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach((field) => {
+                    if (maintenanceLocked) {
+                        field.dataset.busMaintenanceLocked = '1';
+                        if (field.matches('select')) {
+                            field.disabled = true;
+                        } else {
+                            field.readOnly = true;
+                        }
+                        field.classList.add('bus-maintenance-locked');
+                    } else if (field.dataset.busMaintenanceLocked === '1') {
+                        field.removeAttribute('data-bus-maintenance-locked');
+                        field.disabled = false;
+                        field.readOnly = false;
+                        field.classList.remove('bus-maintenance-locked');
+                    }
+                });
+                // Reapply the independent history-based Bus No. restriction.
+                if (!maintenanceLocked && editBusNo) {
+                    editBusNo.readOnly = button.dataset.busNoLocked === '1';
+                }
+                const updateButton = editBusForm.querySelector('button[type="submit"]');
+                if (updateButton) {
+                    updateButton.disabled = maintenanceLocked;
+                    updateButton.hidden = maintenanceLocked;
+                }
+                const lockNotice = document.getElementById('editBusMaintenanceNotice');
+                if (lockNotice) lockNotice.hidden = !maintenanceLocked;
 
                 openModal(editBusModal);
     });
@@ -392,6 +466,8 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         closeModal(busModal);
         closeModal(editBusModal);
         closeModal(deleteBusModal);
+        closeModal(viewBusModal);
+        viewBusModal?.setAttribute('aria-hidden', 'true');
     });
 
 });

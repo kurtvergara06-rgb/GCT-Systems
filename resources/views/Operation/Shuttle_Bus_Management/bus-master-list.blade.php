@@ -186,12 +186,20 @@
 
                                     <td>
                                         <div class="actions">
+                                            <button type="button" class="action-btn view open-view-bus" title="View Bus" aria-label="View bus {{ $bus->bus_no }}"
+                                                data-bus-no="{{ $bus->bus_no }}"
+                                                data-bus-no-locked="{{ $bus->bus_no_locked ? '1' : '0' }}" data-plate-no="{{ $bus->plate_no }}"
+                                                data-bus-model="{{ $bus->bus_model }}" data-year-model="{{ $bus->year_model }}"
+                                                data-capacity="{{ $bus->capacity }}" data-status="{{ $bus->status }}"
+                                                data-route-grouping="{{ $bus->route_grouping }}"
+                                                data-display-route="{{ $bus->display_route_name }}">
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                            </button>
                                             @if($canEditOperation)
-                                            <x-ui.action-buttom-modal
-                                                class="edit open-edit-bus"
+                                            <button
+                                                class="action-btn edit open-edit-bus"
                                                 type="button"
-                                                title="Edit Bus"
-                                                icon="fa-pen-to-square"
+                                                @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Edit Bus" @endif
                                                 data-id="{{ $bus->id }}"
                                                 data-bus-no="{{ $bus->bus_no }}"
                                                 data-plate-no="{{ $bus->plate_no }}"
@@ -201,7 +209,7 @@
                                                 data-route-grouping="{{ $bus->route_grouping }}"
                                                 data-status="{{ $bus->status }}"
                                                 data-update-url="/bus-master-list/{{ $bus->id }}"
-                                            />
+                                            ><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>
 
                                             <form
                                                 id="deleteBusForm-{{ $bus->id }}"
@@ -211,17 +219,14 @@
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <x-ui.action-buttom-modal
-                                                    class="delete open-delete-bus"
+                                                <button
+                                                    class="action-btn delete open-delete-bus"
                                                     type="button"
-                                                    title="Delete Bus"
-                                                    icon="fa-trash"
+                                                    @if($bus->status === 'Under Maintenance') disabled aria-disabled="true" title="Locked: bus Under Maintenance" @else title="Delete Bus" @endif
                                                     data-id="{{ $bus->id }}"
                                                     data-bus-no="{{ $bus->bus_no }}"
-                                                />
+                                                ><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                                             </form>
-                                            @else
-                                                <span class="empty">View only</span>
                                             @endif
                                         </div>
                                     </td>
@@ -241,9 +246,46 @@
         </main>
     </div>
 
+    {{-- Read-only Bus Details: no form, editable controls, or update action. --}}
+    <div id="viewBusModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-box wide-modal bus-details-modal" role="dialog" aria-modal="true" aria-labelledby="viewBusTitle">
+            <div class="bus-details-header">
+                <span class="bus-details-icon" aria-hidden="true"><i class="fa-solid fa-bus"></i></span>
+                <div class="bus-details-heading">
+                    <h2 id="viewBusTitle">Bus Information</h2>
+                    <p>Official bus record and operational details. View only.</p>
+                </div>
+                <button type="button" class="close-btn" id="closeViewBusModal" aria-label="Close bus details">&times;</button>
+            </div>
+            <div class="bus-details-body">
+                <div class="bus-details-section">
+                    <i class="fa-regular fa-clipboard" aria-hidden="true"></i>
+                    <div><strong>Bus Details</strong><p>Registered vehicle information</p></div>
+                </div>
+                <dl class="bus-details-grid">
+                    <div><dt>Bus No.</dt><dd data-bus-detail="busNo">—</dd></div>
+                    <div><dt>Plate No.</dt><dd data-bus-detail="plateNo">—</dd></div>
+                    <div><dt>Bus Model</dt><dd data-bus-detail="busModel">—</dd></div>
+                    <div><dt>Year Model</dt><dd data-bus-detail="yearModel">—</dd></div>
+                    <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
+                    <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
+                </dl>
+                <div class="bus-details-section bus-details-route-heading">
+                    <i class="fa-solid fa-route" aria-hidden="true"></i>
+                    <div><strong>Route / Grouping</strong><p>Assigned route or grouping information</p></div>
+                </div>
+                <div class="bus-details-route" data-bus-detail="routeGrouping">—</div>
+            </div>
+            <div class="bus-details-footer">
+                <button type="button" class="primary-btn" id="dismissViewBusModal">Close</button>
+            </div>
+        </div>
+    </div>
+
     @if($canEditOperation)
     <x-ui.form-modal
         id="busModal"
+        icon="fa-bus"
         title="Add New Bus"
         subtitle="Bus Information"
         description="Add an official bus record for Operations, GPS matching, PMS, and Job Orders."
@@ -258,6 +300,7 @@
         confirm-button="Yes, Add Bus"
         confirm-type="create"
     >
+        <div class="bus-form-section full-width"><span class="bus-section-icon"><i class="fa-regular fa-file-lines"></i></span><div><strong>Bus Information</strong><p>Provide the basic details of the bus unit.</p></div></div>
         <div class="form-group">
             <label>Bus No.</label>
 
@@ -328,6 +371,7 @@
             </select>
         </div>
 
+        <div class="bus-form-section full-width bus-route-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Assign the bus to a route or group for easier management.</p></div></div>
         <div class="form-group full-width">
             <label>Route / Grouping</label>
 
@@ -341,9 +385,10 @@
 
     {{-- Edit Bus Modal --}}
     <div id="editBusModal" class="modal-overlay">
-        <div class="modal-box wide-modal">
+        <div class="modal-box wide-modal bus-edit-design">
             <div class="modal-header">
-                <div>
+                <span class="bus-header-icon"><i class="fa-solid fa-bus"></i></span>
+                <div class="bus-edit-heading">
                     <h2>Edit Bus Information</h2>
                     <p>
                         Update the selected official bus record.
@@ -373,6 +418,7 @@
                 @csrf
                 @method('PUT')
 
+                <div class="bus-form-section full-width"><span class="bus-section-icon"><i class="fa-regular fa-file-lines"></i></span><div><strong>Bus Information</strong><p>Update the official details of this bus unit.</p></div></div>
                 <div class="form-group">
                     <label>Bus No.</label>
 
@@ -381,9 +427,11 @@
                         name="bus_no"
                         id="edit_bus_no"
                         required
+                        aria-describedby="editBusNoLockHint"
                     >
                 </div>
 
+                <p id="editBusNoLockHint" class="bus-no-lock-hint full-width" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> Bus No. is locked because this bus has related operational history.</p>
                 <div class="form-group">
                     <label>Plate No.</label>
 
@@ -447,6 +495,7 @@
                     </select>
                 </div>
 
+                <div class="bus-form-section full-width bus-route-section"><span class="bus-section-icon"><i class="fa-solid fa-location-dot"></i></span><div><strong>Route / Grouping</strong><p>Route assignments and group information.</p></div></div>
                 <div class="form-group full-width">
                     <label>Route / Grouping</label>
 
@@ -456,6 +505,8 @@
                         id="edit_route_grouping"
                     >
                 </div>
+
+                <p id="editBusMaintenanceNotice" class="bus-maintenance-lock-notice full-width" role="status" hidden><i class="fa-solid fa-lock" aria-hidden="true"></i> This bus is Under Maintenance. Master-list editing is disabled until Maintenance releases it.</p>
 
                 <div class="modal-actions full-width">
                     <button

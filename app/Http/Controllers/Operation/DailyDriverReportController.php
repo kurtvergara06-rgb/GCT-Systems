@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\DailyDriverReport;
+use App\Models\Operation\DailyDriverReportTripEntry;
 use App\Models\Operation\Driver;
 use App\Models\Operation\TripSchedule;
 use App\Services\Operation\DailyDriverReportScheduleMatchService;
+use App\Services\Operation\OperationNumberSequenceService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,19 +17,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DailyDriverReportController extends Controller
 {
     public function __construct(
-        private readonly DailyDriverReportScheduleMatchService $scheduleMatchService
-    ) {
-    }
+        private readonly DailyDriverReportScheduleMatchService $scheduleMatchService,
+        private readonly OperationNumberSequenceService $numberSequenceService
+    ) {}
 
     public function index(Request $request): View
     {
         $query = DailyDriverReport::query()
-            ->with(['driver', 'bus'])
+            ->with(['driver', 'bus', 'additionalTrips'])
             ->orderByDesc('report_date')
             ->orderByDesc('id');
 
@@ -42,6 +45,11 @@ class DailyDriverReportController extends Controller
                     ->orWhere('trip_ticket', 'like', "%{$search}%")
                     ->orWhere('from_location', 'like', "%{$search}%")
                     ->orWhere('to_location', 'like', "%{$search}%")
+                    ->orWhereHas('additionalTrips', function ($trips) use ($search) {
+                        $trips->where('trip_ticket', 'like', "%{$search}%")
+                            ->orWhere('from_location', 'like', "%{$search}%")
+                            ->orWhere('to_location', 'like', "%{$search}%");
+                    })
                     ->orWhereHas('bus', function ($busQuery) use ($search) {
                         $busQuery->where('bus_no', 'like', "%{$search}%");
                     });
@@ -83,10 +91,17 @@ class DailyDriverReportController extends Controller
 
         $passengersToday = DailyDriverReport::query()
             ->whereDate('report_date', $today)
-            ->sum('passengers');
+            ->sum('passengers')
+            + DailyDriverReportTripEntry::query()
+                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))
+                ->sum('passengers');
 
-        $passengerCount = $reportsToday > 0
-            ? $passengersToday / $reportsToday
+        $tripsToday = DailyDriverReport::query()->whereDate('report_date', $today)->count()
+            + DailyDriverReportTripEntry::query()
+                ->whereHas('report', fn ($q) => $q->whereDate('report_date', $today))->count();
+
+        $passengerCount = $tripsToday > 0
+            ? $passengersToday / $tripsToday
             : 0;
 
         $drivers = Driver::query()
@@ -211,21 +226,39 @@ class DailyDriverReportController extends Controller
                 'integer',
                 'min:0',
             ],
+            'km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'additional_trips' => ['sometimes', 'array', 'max:30'],
+            'additional_trips.*.trip_ticket' => ['required', 'string', 'max:50'],
+            'additional_trips.*.from_location' => ['required', 'string', 'max:150'],
+            'additional_trips.*.to_location' => ['required', 'string', 'max:150'],
+            'additional_trips.*.departure_time' => ['required', 'date_format:H:i'],
+            'additional_trips.*.arrival_time' => ['required', 'date_format:H:i'],
+            'additional_trips.*.passengers' => ['required', 'integer', 'min:0'],
+            'additional_trips.*.km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ]);
 
-        $duplicateExists = DailyDriverReport::query()
-            ->where('report_date', $validated['report_date'])
-            ->where('trip_ticket', $validated['trip_ticket'])
-            ->exists();
+        $allTickets = collect([$validated['trip_ticket']])
+            ->merge(collect($validated['additional_trips'] ?? [])->pluck('trip_ticket'))
+            ->map(fn ($ticket) => trim((string) $ticket));
+        $normalizedTickets = $allTickets->map(fn ($ticket) => mb_strtolower($ticket));
+        if ($normalizedTickets->duplicates()->isNotEmpty()) {
+            return back()->withInput()->with('error', 'A trip ticket cannot be repeated within the same DDR.');
+        }
 
-        if ($duplicateExists) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'A daily driver report for this trip ticket already exists on the selected date.'
-                );
+        $existingTicket = DailyDriverReport::query()
+            ->whereDate('report_date', $validated['report_date'])
+            ->whereIn('trip_ticket', $allTickets)
+            ->exists()
+            || DailyDriverReportTripEntry::query()
+                ->whereIn('trip_ticket', $allTickets)
+                ->whereHas('report', fn ($query) => $query->whereDate('report_date', $validated['report_date']))
+                ->exists();
+
+        if ($existingTicket) {
+            return back()->withInput()->with(
+                'error',
+                'A daily driver report for this trip ticket already exists on the selected date.'
+            );
         }
 
         $driver = Driver::query()
@@ -244,45 +277,87 @@ class DailyDriverReportController extends Controller
 
         $ddrNo = '';
 
-        DB::transaction(function () use ($validated, $driver, $departure, $arrival, &$ddrNo) {
-            $year = substr($validated['report_date'], 0, 4);
+        $year = substr($validated['report_date'], 0, 4);
+        $latestNumber = DailyDriverReport::query()
+            ->where('ddr_no', 'like', "DDR-{$year}-%")
+            ->selectRaw('MAX(CAST(RIGHT(ddr_no, 4) AS UNSIGNED)) AS maximum')
+            ->value('maximum');
+        $nextNumber = $this->numberSequenceService->next(
+            "ddr:{$year}",
+            (int) $latestNumber
+        );
+        $ddrNo = 'DDR-'
+            .$year
+            .'-'
+            .str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
 
-            $latest = DailyDriverReport::query()
-                ->lockForUpdate()
-                ->where('ddr_no', 'like', "DDR-{$year}-%")
-                ->orderByDesc('id')
-                ->first();
+        try {
+            DB::transaction(function () use (
+                $validated,
+                $driver,
+                $departure,
+                $arrival,
+                $allTickets,
+                $normalizedTickets,
+                $ddrNo
+            ): void {
+                $report = DailyDriverReport::create([
+                    'ddr_no' => $ddrNo,
+                    'report_date' => $validated['report_date'],
+                    'driver_id' => $validated['driver_id'],
+                    'driver_name' => $driver?->driver_name
+                        ?: $validated['driver_id'],
+                    'bus_id' => $validated['bus_id'],
+                    'trip_ticket' => $validated['trip_ticket'],
+                    'from_location' => $validated['from_location'],
+                    'to_location' => $validated['to_location'],
+                    'departure_time' => $departure->format('H:i:s'),
+                    'arrival_time' => $arrival->format('H:i:s'),
+                    'passengers' => $validated['passengers'],
+                    'km' => $validated['km'] ?? null,
+                    'encoded_by' => auth()->id(),
+                ]);
 
-            $lastNumber = $latest && $latest->ddr_no
-                ? (int) substr($latest->ddr_no, -4)
-                : 0;
+                foreach ($allTickets as $index => $ticket) {
+                    $inserted = DB::table('daily_driver_report_ticket_claims')->insertOrIgnore([
+                        'daily_driver_report_id' => $report->id,
+                        'report_date' => $validated['report_date'],
+                        'normalized_ticket' => $normalizedTickets->get($index),
+                        'trip_ticket' => $ticket,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
-            $ddrNo = 'DDR-'
-                . $year
-                . '-'
-                . str_pad(
-                    (string) ($lastNumber + 1),
-                    4,
-                    '0',
-                    STR_PAD_LEFT
+                    if ($inserted !== 1) {
+                        throw ValidationException::withMessages([
+                            'trip_ticket' => 'A daily driver report for this trip ticket already exists on the selected date.',
+                        ]);
+                    }
+                }
+
+                foreach (($validated['additional_trips'] ?? []) as $index => $trip) {
+                    $report->additionalTrips()->create([
+                        'sequence' => $index + 2,
+                        'trip_ticket' => trim($trip['trip_ticket']),
+                        'from_location' => $trip['from_location'],
+                        'to_location' => $trip['to_location'],
+                        'departure_time' => $trip['departure_time'].':00',
+                        'arrival_time' => $trip['arrival_time'].':00',
+                        'passengers' => $trip['passengers'],
+                        'km' => $trip['km'] ?? null,
+                    ]);
+                }
+            }, 5);
+        } catch (ValidationException $exception) {
+            if (isset($exception->errors()['trip_ticket'])) {
+                return back()->withInput()->with(
+                    'error',
+                    $exception->errors()['trip_ticket'][0]
                 );
+            }
 
-            DailyDriverReport::create([
-                'ddr_no' => $ddrNo,
-                'report_date' => $validated['report_date'],
-                'driver_id' => $validated['driver_id'],
-                'driver_name' => $driver?->driver_name
-                    ?: $validated['driver_id'],
-                'bus_id' => $validated['bus_id'],
-                'trip_ticket' => $validated['trip_ticket'],
-                'from_location' => $validated['from_location'],
-                'to_location' => $validated['to_location'],
-                'departure_time' => $departure->format('H:i:s'),
-                'arrival_time' => $arrival->format('H:i:s'),
-                'passengers' => $validated['passengers'],
-                'encoded_by' => auth()->id(),
-            ]);
-        });
+            throw $exception;
+        }
 
         return redirect()
             ->route('daily-driver-reports')
@@ -296,7 +371,7 @@ class DailyDriverReportController extends Controller
         Request $request,
         DailyDriverReport $dailyDriverReport
     ): View {
-        $report = $dailyDriverReport->load(['driver', 'bus', 'encoder']);
+        $report = $dailyDriverReport->load(['driver', 'bus', 'encoder', 'additionalTrips']);
 
         $schedule = $this->scheduleMatchService->match($report);
 
@@ -348,7 +423,7 @@ class DailyDriverReportController extends Controller
             'trip_code' => $schedule->trip_code,
             'route_label' => $schedule->shuttleRoute
                 ? ($schedule->shuttleRoute->route_code
-                    . ' - ' . $schedule->shuttleRoute->route_name)
+                    .' - '.$schedule->shuttleRoute->route_name)
                 : null,
             'origin' => $schedule->shuttleRoute?->origin,
             'destination' => $schedule->shuttleRoute?->destination,
@@ -364,7 +439,7 @@ class DailyDriverReportController extends Controller
                 ? 'No scheduled trip matches the selected driver and bus on this date.'
                 : ($rows->count() === 1
                     ? 'Scheduled trip found for this driver and bus.'
-                    : count($rows) . ' scheduled trips found for this driver and bus. The closest departure will be used for the comparison.'),
+                    : count($rows).' scheduled trips found. Select an exact trip ticket so the report is not linked to the wrong trip.'),
         ]);
     }
 }

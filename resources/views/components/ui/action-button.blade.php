@@ -11,7 +11,7 @@
   $iconMap = [
     'view' => 'fa-eye',
     'edit' => 'fa-pen-to-square',
-    'delete' => 'fa-trash',
+    'delete' => 'fa-trash-can',
     'create-po' => 'fa-cart-plus',
     'issue' => 'fa-box-open',
     'send' => 'fa-cart-shopping',
@@ -24,7 +24,7 @@
   ];
 
   $icon = $iconMap[$type] ?? 'fa-circle';
-  $buttonClass = 'action-btn ' . $type . ($disabled ? ' gct-action-unavailable' : '');
+  $buttonClass = 'action-btn gct-record-action ' . $type . ($disabled ? ' gct-action-unavailable' : '');
 
   if ($class) {
     $buttonClass .= ' ' . $class;

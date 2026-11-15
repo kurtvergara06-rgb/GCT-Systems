@@ -19,9 +19,17 @@ class TripSchedule extends Model
         'trip_code',
         'trip_date',
         'shuttle_route_id',
+        'route_code_snapshot',
+        'route_name_snapshot',
+        'route_origin_snapshot',
+        'route_destination_snapshot',
+        'planned_distance_km',
+        'planned_duration_minutes',
         'departure_time',
         'estimated_arrival_time',
         'estimated_arrival_date',
+        'actual_departure_time',
+        'actual_arrival_time',
         'shift',
         'assignment_status',
         'status',
@@ -32,7 +40,48 @@ class TripSchedule extends Model
     protected $casts = [
         'trip_date' => 'date',
         'estimated_arrival_date' => 'date',
+        'planned_distance_km' => 'decimal:2',
+        'planned_duration_minutes' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (TripSchedule $trip): void {
+            if (! $trip->shuttle_route_id || $trip->route_name_snapshot) {
+                return;
+            }
+
+            $route = ShuttleRoute::query()->find($trip->shuttle_route_id);
+            if (! $route) {
+                return;
+            }
+
+            $trip->route_code_snapshot = $route->route_code;
+            $trip->route_name_snapshot = $route->route_name;
+            $trip->route_origin_snapshot = $route->origin;
+            $trip->route_destination_snapshot = $route->destination;
+            $trip->planned_distance_km = $route->distance_km;
+            $trip->planned_duration_minutes = $route->estimated_time_minutes;
+        });
+
+        static::updating(function (TripSchedule $trip): void {
+            if (! $trip->isDirty('shuttle_route_id')) {
+                return;
+            }
+
+            $route = ShuttleRoute::query()->find($trip->shuttle_route_id);
+            if (! $route) {
+                return;
+            }
+
+            $trip->route_code_snapshot = $route->route_code;
+            $trip->route_name_snapshot = $route->route_name;
+            $trip->route_origin_snapshot = $route->origin;
+            $trip->route_destination_snapshot = $route->destination;
+            $trip->planned_distance_km = $route->distance_km;
+            $trip->planned_duration_minutes = $route->estimated_time_minutes;
+        });
+    }
 
     public function scopeNotDeparted(Builder $query): Builder
     {
@@ -183,6 +232,11 @@ class TripSchedule extends Model
             DailyDriverReport::class,
             'trip_schedule_id'
         );
+    }
+
+    public function dailyDriverReportTripEntries(): HasMany
+    {
+        return $this->hasMany(DailyDriverReportTripEntry::class, 'trip_schedule_id');
     }
 
     public function incidents(): HasMany

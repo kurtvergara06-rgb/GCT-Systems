@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Schema;
 
 class Incident extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'incident_no',
@@ -24,6 +25,7 @@ class Incident extends Model
         'driver_id',
         'driver_name',
         'incident_type',
+        'active_breakdown_key',
         'location',
         'description',
         'incident_reported_at',
@@ -58,6 +60,15 @@ class Incident extends Model
             ) {
                 $incident->resolved_at = null;
                 $incident->resolved_by = null;
+            }
+
+            if ($incident->incident_type === 'Bus Breakdown'
+                && ! in_array($incident->status, ['Resolved', 'Cancelled'], true)) {
+                $incident->active_breakdown_key = $incident->trip_schedule_id
+                    ? 'trip:'.$incident->trip_schedule_id
+                    : null;
+            } else {
+                $incident->active_breakdown_key = null;
             }
         });
 

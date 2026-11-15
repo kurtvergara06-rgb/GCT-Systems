@@ -174,14 +174,16 @@ function syncState() {
       if (count > 1) {
         document.body.classList.add('has-stacked-modal');
 
-        // Mark topmost overlay for stacked styling to avoid double-darkening
+        // The global confirmation must always be the topmost active dialog,
+        // independent of where page-level edit overlays sit in the DOM.
+        const confirmation = visibleOverlays.find((overlay) =>
+          overlay.id === 'globalConfirmationModal'
+        );
         visibleOverlays.forEach((overlay, idx) => {
-          const isTopmost = idx === count - 1;
-          if (isTopmost || overlay.classList.contains('global-confirmation-overlay')) {
-            overlay.classList.add('is-stacked-modal');
-          } else {
-            overlay.classList.remove('is-stacked-modal');
-          }
+          const isTopmost = confirmation
+            ? overlay === confirmation
+            : idx === count - 1;
+          overlay.classList.toggle('is-stacked-modal', isTopmost);
         });
       } else {
         document.body.classList.remove('has-stacked-modal');

@@ -69,6 +69,9 @@ class BusController extends Controller
                 ?->tripSchedule
                 ?->shuttleRoute
                 ?->route_name;
+
+            // Mirror the existing server-side Bus No. history guard in the UI.
+            $bus->bus_no_locked = $this->hasHistoricalBusReferences($bus);
         });
 
         $totalBuses = Bus::count();
@@ -389,6 +392,12 @@ class BusController extends Controller
                 ->whereKey($bus->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    $validated['status'] === 'Active' ? 'status' : 'bus_no' => 'This bus is Under Maintenance. Its master-list information is locked until Maintenance releases it.',
+                ]);
+            }
+
             $oldBusNo = $lockedBus->bus_no;
             $newBusNo = strtoupper(trim($validated['bus_no']));
 
@@ -450,6 +459,12 @@ class BusController extends Controller
                 ->whereKey($bus->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ($lockedBus->status === 'Under Maintenance') {
+                throw ValidationException::withMessages([
+                    'bus' => 'This bus is Under Maintenance and cannot be deleted until Maintenance releases it.',
+                ]);
+            }
 
             if ($this->hasTripBusHistory($lockedBus, true)) {
                 throw ValidationException::withMessages([

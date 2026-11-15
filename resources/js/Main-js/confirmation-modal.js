@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openModal() {
+        // Keep the global dialog outside page-level stacking contexts (including
+        // Operation edit modals) so its confirmation buttons remain accessible.
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        modal.style.zIndex = '105000';
         modal.style.display = 'flex';
         modal.classList.add('show', 'active');
         modal.setAttribute('aria-hidden', 'false');

@@ -28,6 +28,7 @@ class DailyDriverReport extends Model
         'departure_time',
         'arrival_time',
         'passengers',
+        'km',
         'encoded_by',
     ];
 
@@ -36,6 +37,7 @@ class DailyDriverReport extends Model
         'departure_time' => 'datetime:H:i',
         'arrival_time' => 'datetime:H:i',
         'passengers' => 'integer',
+        'km' => 'decimal:2',
     ];
 
     protected static function booted(): void
@@ -82,6 +84,11 @@ class DailyDriverReport extends Model
             TripAssignment::class,
             'trip_assignment_id'
         );
+    }
+
+    public function additionalTrips(): HasMany
+    {
+        return $this->hasMany(DailyDriverReportTripEntry::class, 'daily_driver_report_id')->orderBy('sequence');
     }
 
     public function incidents(): HasMany
