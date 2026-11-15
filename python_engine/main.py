@@ -1,36 +1,55 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
 from pathlib import Path
 import shutil
 import uuid
 
-from NLP.pdf_extractor import extract_pdf_text, extract_pdf_rows
-from NLP.text_cleaner import clean_text
+from fastapi import FastAPI, File, HTTPException, UploadFile
+
 from NLP.entity_extractor import (
     extract_entities,
     infer_records_from_table_rows,
 )
+from NLP.pdf_extractor import (
+    extract_pdf_rows,
+    extract_pdf_text,
+)
+from NLP.text_cleaner import clean_text
+from operation_ai.router import router as operation_ai_router
 
 
 app = FastAPI(
     title="GCT Python Engine",
-    description="Business Analytics and PDF NLP Processing API",
+    description=(
+        "Business Analytics, PDF NLP Processing, "
+        "and Operation AI Assistance API"
+    ),
     version="1.0.0",
 )
 
 
+# Register the Operation AI router during application startup.
+app.include_router(
+    operation_ai_router,
+    prefix="/operation/auto-scheduling/ai",
+    tags=["Operation AI Assistance"],
+)
+
+
 UPLOAD_FOLDER = Path("uploads")
-UPLOAD_FOLDER.mkdir(exist_ok=True)
+UPLOAD_FOLDER.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
 
 @app.get("/")
-def home():
+def home() -> dict[str, str]:
     return {
-        "message": "GCT Python Engine is running."
+        "message": "GCT Python Engine is running.",
     }
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> dict[str, str]:
     return {
         "status": "online",
         "service": "GCT Python Engine",
@@ -39,8 +58,8 @@ def health_check():
 
 @app.post("/nlp/extract-pdf")
 async def extract_pdf_data(
-    pdf_file: UploadFile = File(...)
-):
+    pdf_file: UploadFile = File(...),
+) -> dict:
     if not pdf_file.filename:
         raise HTTPException(
             status_code=400,
@@ -53,25 +72,31 @@ async def extract_pdf_data(
             detail="Only PDF files are allowed.",
         )
 
+    safe_filename = Path(
+        pdf_file.filename
+    ).name
+
     unique_name = (
-        f"{uuid.uuid4()}_{pdf_file.filename}"
+        f"{uuid.uuid4()}_{safe_filename}"
     )
 
-    saved_pdf_path = UPLOAD_FOLDER / unique_name
+    saved_pdf_path = (
+        UPLOAD_FOLDER / unique_name
+    )
 
     try:
-        with open(saved_pdf_path, "wb") as buffer:
+        with saved_pdf_path.open("wb") as buffer:
             shutil.copyfileobj(
                 pdf_file.file,
                 buffer,
             )
 
         raw_text = extract_pdf_text(
-            str(saved_pdf_path)
+            str(saved_pdf_path),
         )
 
         table_result = extract_pdf_rows(
-            str(saved_pdf_path)
+            str(saved_pdf_path),
         )
 
         if isinstance(table_result, tuple):
@@ -93,10 +118,12 @@ async def extract_pdf_data(
                 ),
             )
 
-        cleaned_text = clean_text(raw_text)
+        cleaned_text = clean_text(
+            raw_text,
+        )
 
         extracted_data = extract_entities(
-            cleaned_text
+            cleaned_text,
         )
 
         records = []
@@ -109,7 +136,7 @@ async def extract_pdf_data(
         if table_rows:
             inference_result = (
                 infer_records_from_table_rows(
-                    table_rows
+                    table_rows,
                 )
             )
 
@@ -132,60 +159,86 @@ async def extract_pdf_data(
                 )
             )
 
-            debug_info = inference_result.get(
-                "debug_info",
-                {},
+            debug_info = (
+                inference_result.get(
+                    "debug_info",
+                    {},
+                )
             )
 
             if records:
                 extraction_mode = "table"
 
         if not records and not table_rows:
-            has_meaningful_value = any([
-                extracted_data.get("bus_no"),
-                extracted_data.get("grouping"),
-                extracted_data.get("beginning"),
-                extracted_data.get("ending"),
-                extracted_data.get(
-                    "initial_location"
-                ),
-                extracted_data.get(
-                    "final_location"
-                ),
-                extracted_data.get("location"),
-                extracted_data.get(
-                    "mileage_km"
-                ),
-                extracted_data.get(
-                    "engine_hours"
-                ),
-            ])
+            has_meaningful_value = any(
+                [
+                    extracted_data.get(
+                        "bus_no"
+                    ),
+                    extracted_data.get(
+                        "grouping"
+                    ),
+                    extracted_data.get(
+                        "beginning"
+                    ),
+                    extracted_data.get(
+                        "ending"
+                    ),
+                    extracted_data.get(
+                        "initial_location"
+                    ),
+                    extracted_data.get(
+                        "final_location"
+                    ),
+                    extracted_data.get(
+                        "location"
+                    ),
+                    extracted_data.get(
+                        "mileage_km"
+                    ),
+                    extracted_data.get(
+                        "engine_hours"
+                    ),
+                ]
+            )
 
             if (
                 has_meaningful_value
-                and extracted_data.get("bus_no")
+                and extracted_data.get(
+                    "bus_no"
+                )
             ):
                 fallback_record = {
                     "record_no": None,
-                    "bus_no": extracted_data.get(
-                        "bus_no"
+                    "bus_no": (
+                        extracted_data.get(
+                            "bus_no"
+                        )
                     ),
-                    "grouping": extracted_data.get(
-                        "grouping"
+                    "grouping": (
+                        extracted_data.get(
+                            "grouping"
+                        )
                     ),
-                    "trip_type": extracted_data.get(
-                        "trip_type"
+                    "trip_type": (
+                        extracted_data.get(
+                            "trip_type"
+                        )
                     ),
-                    "beginning": extracted_data.get(
-                        "beginning"
+                    "beginning": (
+                        extracted_data.get(
+                            "beginning"
+                        )
                     ),
                     "initial_location": (
                         extracted_data.get(
                             "initial_location"
                         )
                     ),
-                    "ending": extracted_data.get(
-                        "ending"
+                    "ending": (
+                        extracted_data.get(
+                            "ending"
+                        )
                     ),
                     "final_location": (
                         extracted_data.get(
@@ -222,8 +275,10 @@ async def extract_pdf_data(
                             "engine_hours"
                         )
                     ),
-                    "location": extracted_data.get(
-                        "location"
+                    "location": (
+                        extracted_data.get(
+                            "location"
+                        )
                     ),
                     "coordinates": (
                         extracted_data.get(
@@ -243,9 +298,17 @@ async def extract_pdf_data(
                     },
                 }
 
-                records = [fallback_record]
-                extraction_mode = "text_fallback"
-                table_type = "text_fallback"
+                records = [
+                    fallback_record,
+                ]
+
+                extraction_mode = (
+                    "text_fallback"
+                )
+
+                table_type = (
+                    "text_fallback"
+                )
 
         return {
             "success": True,
@@ -259,7 +322,9 @@ async def extract_pdf_data(
                 "table_rows_found": len(
                     table_rows
                 ),
-                "records_created": len(records),
+                "records_created": len(
+                    records
+                ),
                 "skipped_headers": (
                     skipped_headers
                 ),
@@ -303,7 +368,7 @@ async def extract_pdf_data(
                 "PDF NLP processing failed: "
                 f"{str(error)}"
             ),
-        )
+        ) from error
 
     finally:
         await pdf_file.close()
