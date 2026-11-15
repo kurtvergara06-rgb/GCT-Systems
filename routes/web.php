@@ -415,11 +415,12 @@ Route::middleware('auth')->group(function () {
 
 
     /*
-    |--------------------------------------------------------------------------
-    | WAREHOUSE DEPARTMENT
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| WAREHOUSE DEPARTMENT
+|--------------------------------------------------------------------------
+*/
 
+Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -431,7 +432,7 @@ Route::middleware('auth')->group(function () {
         '/warehouse/dashboard',
         'Warehouse.dashboard-warehouse'
     )->name(
-        'dashboard-warehouse'
+        'warehouse.dashboard'
     );
 
 
@@ -452,14 +453,12 @@ Route::middleware('auth')->group(function () {
                 'inventory'
             );
 
-
             Route::post(
                 '/',
                 'store'
             )->name(
                 'inventory.store'
             );
-
 
             Route::put(
                 '/{inventoryItem}',
@@ -468,14 +467,12 @@ Route::middleware('auth')->group(function () {
                 'inventory.update'
             );
 
-
             Route::delete(
                 '/{inventoryItem}',
                 'destroy'
             )->name(
                 'inventory.destroy'
             );
-
 
             Route::post(
                 '/import',
@@ -506,14 +503,12 @@ Route::middleware('auth')->group(function () {
                 'part-requests'
             );
 
-
             Route::post(
                 '/{purchaseRequest}/issue',
                 'issue'
             )->name(
                 'part-requests.issue'
             );
-
 
             Route::post(
                 '/{purchaseRequest}/send-to-purchase',
@@ -551,6 +546,8 @@ Route::middleware('auth')->group(function () {
     )->name(
         'incoming-deliveries'
     );
+
+});
 
 
     /*

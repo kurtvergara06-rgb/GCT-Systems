@@ -225,8 +225,11 @@ class BatchFileProcessingController extends Controller
             }
 
             return redirect()
-                ->route('batch-file-processing', ['batch_id' => $batch->id])
-                ->with('success', $message . '.');
+            ->to(route('batch-file-processing', [
+                'batch_id' => $batch->id,
+            ], false))
+            ->with('success', $message . '.');
+            
         } catch (\Throwable $exception) {
             $batch->update([
                 'status' => 'Failed',
@@ -234,8 +237,8 @@ class BatchFileProcessingController extends Controller
             ]);
 
             return redirect()
-                ->route('batch-file-processing')
-                ->with('error', $exception->getMessage());
+    ->to(route('batch-file-processing', [], false))
+    ->with('error', $exception->getMessage());
         }
     }
 
@@ -267,11 +270,11 @@ class BatchFileProcessingController extends Controller
         );
 
         return redirect()
-            ->route('batch-file-processing', [
-                'batch_id' => $gpsTripRecord->batch_upload_id,
-                'selected_record' => $gpsTripRecord->id,
-            ])
-            ->with('success', 'GPS trip record updated successfully.');
+        ->to(route('batch-file-processing', [
+            'batch_id' => $gpsTripRecord->batch_upload_id,
+            'selected_record' => $gpsTripRecord->id,
+        ], false))
+        ->with('success', 'GPS trip record updated successfully.');
     }
 
     public function bulkUpdateRecords(
@@ -333,9 +336,9 @@ class BatchFileProcessingController extends Controller
         );
 
         return redirect()
-            ->route('batch-file-processing', [
+            ->to(route('batch-file-processing', [
                 'batch_id' => $batchUpload->id,
-            ])
+            ], false))
             ->with(
                 'success',
                 'All edited GPS trip records were saved successfully.'
@@ -346,7 +349,7 @@ class BatchFileProcessingController extends Controller
     {
         if ($batchUpload->status === 'Failed') {
             return redirect()
-                ->route('batch-file-processing')
+                ->to(route('batch-file-processing', [], false))
                 ->with(
                     'error',
                     'A failed upload cannot be marked as processed.'
@@ -355,9 +358,9 @@ class BatchFileProcessingController extends Controller
 
         if ($batchUpload->status !== 'In Review') {
             return redirect()
-                ->route('batch-file-processing', [
+                ->to(route('batch-file-processing', [
                     'batch_id' => $batchUpload->id,
-                ])
+                ], false))
                 ->with(
                     'error',
                     'Only an In Review batch can be marked as Processed.'
@@ -366,9 +369,9 @@ class BatchFileProcessingController extends Controller
 
         if ($batchUpload->tripRecords()->count() === 0) {
             return redirect()
-                ->route('batch-file-processing', [
+                ->to(route('batch-file-processing', [
                     'batch_id' => $batchUpload->id,
-                ])
+                ], false))
                 ->with(
                     'error',
                     'This batch has no valid trip records to process.'
@@ -390,9 +393,9 @@ class BatchFileProcessingController extends Controller
         );
 
         return redirect()
-            ->route('batch-file-processing', [
+            ->to(route('batch-file-processing', [
                 'batch_id' => $batchUpload->id,
-            ])
+            ], false))
             ->with(
                 'success',
                 'Batch data was reviewed and marked as Processed.'
@@ -426,7 +429,7 @@ class BatchFileProcessingController extends Controller
         );
 
         return redirect()
-            ->route('batch-file-processing')
+            ->to(route('batch-file-processing', [], false))
             ->with(
                 'success',
                 'Uploaded file and all related trip records were deleted.'

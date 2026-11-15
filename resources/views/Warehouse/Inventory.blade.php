@@ -16,8 +16,8 @@
     :items="[
         [
             'label' => 'Dashboard',
-            'route' => 'dashboard-warehouse',
-            'icon' => 'fa-table-cells-large'
+            'route' => 'warehouse.dashboard',
+            'icon' => 'fa-table-cells-large',
         ],
         [
             'label' => 'Inventory',
