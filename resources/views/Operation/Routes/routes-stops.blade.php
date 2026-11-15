@@ -70,70 +70,80 @@
         {{-- =====================================================
             SIDEBAR
         ====================================================== --}}
-        <x-layout.sidebar
-            department="Operation"
-            subtitle="Operation Module"
-            icon="fa-bus"
-            :items="[
-                [
-                    'label' => 'Dashboard',
-                    'route' => 'dashboard-operation',
-                    'icon' => 'fa-table-cells-large'
-                ],
+      <x-layout.sidebar
+    department="Operation"
+    subtitle="Operation Module"
+    icon="fa-bus"
+    :items="[
+        [
+            'label' => 'Dashboard',
+            'route' => 'dashboard-operation',
+            'icon' => 'fa-table-cells-large'
+        ],
 
-                [
-                    'label' => 'Routes',
-                    'route' => 'operation.routes',
-                    'icon' => 'fa-route'
-                ],
+        [
+            'label' => 'Routes',
+            'route' => 'operation.routes',
+            'icon' => 'fa-route'
+        ],
 
+        [
+            'label' => 'Scheduling',
+            'icon' => 'fa-calendar-days',
+            'children' => [
                 [
-                    'label' => 'Scheduling',
-                    'icon' => 'fa-calendar-days',
-                    'children' => [
-                        [
-                            'label' => 'Trip Schedule',
-                            'route' => 'trip-schedule',
-                            'icon' => 'fa-calendar-days'
-                        ],
-                        [
-                            'label' => 'Driver & Bus Assignment',
-                            'route' => 'driver-bus-assignment',
-                            'icon' => 'fa-user-tie'
-                        ],
-                        [
-                            'label' => 'Auto Scheduling',
-                            'route' => 'auto-scheduling',
-                            'icon' => 'fa-wand-magic-sparkles'
-                        ],
-                    ]
+                    'label' => 'Trip Schedule',
+                    'route' => 'trip-schedule',
+                    'icon' => 'fa-calendar-days'
                 ],
-
                 [
-                    'label' => 'Attendance',
-                    'icon' => 'fa-calendar-check',
-                    'children' => [
-                        [
-                            'label' => 'Driver Attendance',
-                            'route' => 'driver-attendance',
-                            'icon' => 'fa-id-card'
-                        ],
-                        [
-                            'label' => 'Mechanic Attendance',
-                            'route' => 'mechanic-attendance',
-                            'icon' => 'fa-users-gear'
-                        ],
-                    ]
+                    'label' => 'Driver & Bus Assignment',
+                    'route' => 'driver-bus-assignment',
+                    'icon' => 'fa-user-tie'
                 ],
+                [
+                    'label' => 'Auto Scheduling',
+                    'route' => 'auto-scheduling',
+                    'icon' => 'fa-wand-magic-sparkles'
+                ],
+            ]
+        ],
 
+        [
+            'label' => 'Attendance',
+            'icon' => 'fa-calendar-check',
+            'children' => [
+                [
+                    'label' => 'Driver Attendance',
+                    'route' => 'driver-attendance',
+                    'icon' => 'fa-id-card'
+                ],
+                [
+                    'label' => 'Mechanic Attendance',
+                    'route' => 'mechanic-attendance',
+                    'icon' => 'fa-users-gear'
+                ],
+            ]
+        ],
+
+        [
+            'label' => 'Fleet Management',
+            'icon' => 'fa-bus',
+            'children' => [
                 [
                     'label' => 'Bus Master List',
                     'route' => 'bus-master-list',
                     'icon' => 'fa-bus'
                 ],
-            ]"
-        />
-
+                [
+                    'label' => 'Fuel Efficiency',
+                    'route' => 'fuel-efficiency',
+                    'icon' => 'fa-gas-pump'
+                ],
+            ]
+        ],
+    ]"
+/>
 
         <main class="main routes-page">
 
@@ -142,49 +152,9 @@
             ====================================================== --}}
             <x-layout.topbar
                 title="Routes"
-                subtitle="Manage shuttle routes, destinations, stops, distance, and estimated travel time"
-                notification-count="4"
+                subtitle="Manage shuttle routes, stops, distances, and estimated travel times for scheduling and dispatch"
+                notification-count="6"
             />
-
-
-            {{-- =====================================================
-                SUMMARY CARDS
-            ====================================================== --}}
-            <section class="stats-grid routes-summary-grid">
-
-                <x-ui.summary-card
-                    label="Total Routes"
-                    value="{{ $totalRoutes ?? 0 }}"
-                    small="Registered shuttle routes"
-                    icon="fa-route"
-                    color="blue"
-                />
-
-                <x-ui.summary-card
-                    label="Active Routes"
-                    value="{{ $activeRoutes ?? 0 }}"
-                    small="Currently available"
-                    icon="fa-circle-check"
-                    color="green"
-                />
-
-                <x-ui.summary-card
-                    label="Total Stops"
-                    value="{{ $totalStops ?? 0 }}"
-                    small="Across all routes"
-                    icon="fa-location-dot"
-                    color="purple"
-                />
-
-                <x-ui.summary-card
-                    label="Route Coverage"
-                    value="{{ number_format((float) ($routeCoverage ?? 0), 1) }} KM"
-                    small="Combined route distance"
-                    icon="fa-road"
-                    color="yellow"
-                />
-
-            </section>
 
 
             {{-- =====================================================

@@ -2,7 +2,7 @@ python -m uvicorn main:app --reload
 
 php artisan reverb:start
 
-
+php artisan serve --host=127.0.0.1 --port=8000
 
 Start-Service MySQL80
 

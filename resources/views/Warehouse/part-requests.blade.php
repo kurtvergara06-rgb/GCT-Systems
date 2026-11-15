@@ -3,7 +3,7 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Warehouse/part-request.css',
+    'resources/css/Warehouse/part-requests.css',
     'resources/js/Warehouse/part-requests.js'
   ]"
 >
