@@ -139,20 +139,29 @@ const recoverRouteValidation = () => {
     const openButton = document.getElementById('openRouteModal');
     const routeModal = document.getElementById('routeModal');
 
-    if (!oldInput || !openButton || !routeModal) {
+    if (!oldInput || !routeModal) {
         return;
     }
 
-    const legacyValidationModal = document.getElementById('routeValidationModal');
+    const editingRouteId =
+        String(oldInput.editing_route_id || '').trim();
 
-    if (legacyValidationModal) {
-        legacyValidationModal.classList.remove('show', 'active');
-        legacyValidationModal.setAttribute('aria-hidden', 'true');
+    const editButton = editingRouteId
+        ? document.querySelector(
+            `.edit-route-btn[data-id="${CSS.escape(editingRouteId)}"]`
+        )
+        : null;
+
+    if (!editButton && !openButton) {
+        return;
     }
 
-    // Use the existing New Route handler so the normal modal/map initialization
-    // still runs, then restore Laravel's old input after the form reset.
-    openButton.click();
+    // Re-open the same workflow that submitted the invalid form.
+    if (editButton instanceof HTMLElement) {
+        editButton.click();
+    } else {
+        openButton.click();
+    }
 
     window.setTimeout(() => {
         restoreVisibleFields(oldInput);

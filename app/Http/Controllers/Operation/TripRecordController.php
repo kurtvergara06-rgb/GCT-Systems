@@ -11,6 +11,8 @@ use Illuminate\View\View;
 
 class TripRecordController extends Controller
 {
+    private const RECORDS_PER_PAGE = 50;
+
     public function index(Request $request): View
     {
         $query = TripSchedule::query()
@@ -75,7 +77,7 @@ class TripRecordController extends Controller
         $trips = $query
             ->orderByDesc('trip_date')
             ->orderByDesc('departure_time')
-            ->paginate(10)
+            ->paginate(self::RECORDS_PER_PAGE, ['*'], 'records_page')
             ->withQueryString();
 
         // Summary KPI statistics

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
@@ -36,15 +37,47 @@ class MechanicAttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Keep the attendance record list in sync with the selected KPI date.
+        $request->validate(['attendance_date' => ['sometimes', 'required', 'date_format:Y-m-d']]);
+        $summaryDate = $request->input('attendance_date')
+            ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $query->whereDate('attendance_date', $summaryDate);
+
         $mechanicAttendances = $query
             ->latest('attendance_date')
             ->latest('id')
             ->paginate(8)
             ->withQueryString();
 
-        $summaryDate = $request->filled('attendance_date')
-            ? Carbon::parse($request->attendance_date)->toDateString()
-            : now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+
+
+        // Attendance history retains its original job reference. For today's
+        // records, show the live On Going Job Order assigned in Maintenance.
+        $activeJobsByMechanic = collect();
+        if ($summaryDate === now(config('app.business_timezone', 'Asia/Manila'))->toDateString()) {
+            $names = $mechanicAttendances->getCollection()
+                ->pluck('mechanic_name')
+                ->map(fn ($name) => trim((string) $name))
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($names->isNotEmpty()) {
+                $activeJobsByMechanic = JobOrder::query()
+                    ->where('status', 'On Going')
+                    ->whereIn('assigned_mechanic', $names)
+                    ->orderByDesc('id')
+                    ->get(['assigned_mechanic', 'job_order_no'])
+                    ->groupBy(fn ($job) => mb_strtolower(trim((string) $job->assigned_mechanic)));
+            }
+        }
+
+        $mechanicAttendances->getCollection()->each(function (MechanicAttendance $attendance) use ($activeJobsByMechanic): void {
+            $jobs = $activeJobsByMechanic->get(mb_strtolower(trim((string) $attendance->mechanic_name)));
+            $attendance->display_assigned_job = $jobs && $jobs->isNotEmpty()
+                ? $jobs->pluck('job_order_no')->filter()->unique()->implode(', ')
+                : (trim((string) $attendance->assigned_job) ?: 'Unassigned');
+        });
 
         $summaryQuery = MechanicAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
@@ -62,7 +95,8 @@ class MechanicAttendanceController extends Controller
             'absent',
             'late',
             'onDuty',
-            'nextMechanicId'
+            'nextMechanicId',
+            'summaryDate'
         ));
     }
 
@@ -93,6 +127,18 @@ class MechanicAttendanceController extends Controller
             }
 
             return back()->withInput()->with('error', 'Select an existing mechanic from the Mechanic Master List.');
+        }
+
+        if ($mechanic->employment_status !== 'Active') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'mechanic_name' => 'Only active mechanics can receive new attendance records.',
+            ]);
+        }
+
+        if (! in_array($mechanic->shift, ['Morning', 'Afternoon'], true)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'mechanic_name' => 'New mechanic attendance requires a Morning or Afternoon master-list shift.',
+            ]);
         }
 
         $validated['mechanic_id'] = $mechanic->mechanic_id;

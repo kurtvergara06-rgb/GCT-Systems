@@ -5,6 +5,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     '.restock-toolbar',
     '.po-toolbar',
     '.schedule-toolbar',
+    '.assignment-toolbar',
   ].join(', ');
 
   const searchInputSelector = '.search-box input[type="text"], .search-box input[type="search"]';
@@ -90,7 +91,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     return Array.from(toolbar.querySelectorAll('select')).map((select) => {
       const value = String(select.value || '').trim().toLowerCase();
 
-      if (!value || value.startsWith('all ')) {
+      if (!value || value === 'all' || value.startsWith('all ')) {
         return '';
       }
 
@@ -262,6 +263,14 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
     const target = buildServerFilterUrl(toolbar);
     if (!target) {
+      return;
+    }
+
+    if (
+      toolbar.dataset.serverFilterNavigation === 'true'
+      && window.GCTPartialNavigation?.navigate
+    ) {
+      await window.GCTPartialNavigation.navigate(target.href);
       return;
     }
 
@@ -588,10 +597,15 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   }, true);
 
   document.addEventListener('change', (event) => {
-    const select = event.target.closest?.('select');
-    const toolbar = closestToolbar(select);
+    const control = event.target.closest?.('select, input[type="date"]');
+    const toolbar = closestToolbar(control);
 
-    if (!select || !toolbar) {
+    if (!control || !toolbar) {
+      return;
+    }
+
+    // Date inputs are server-side criteria; do not treat them as text filters.
+    if (control.matches('input[type="date"]') && !usesServerFilter(toolbar)) {
       return;
     }
 

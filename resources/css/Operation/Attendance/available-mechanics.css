@@ -220,47 +220,6 @@
 
 
 /* =========================================================
-   IMPORT BUTTON
-========================================================= */
-
-.import-btn {
-  height: 40px;
-
-  padding: 0 14px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 8px;
-
-  background: #ffffff;
-
-  border: 1px solid #d8e2f0;
-  border-radius: 9px;
-
-  color: #0b2a4a;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  white-space: nowrap;
-
-  cursor: pointer;
-
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.import-btn:hover {
-  background: #f1f5f9;
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
    TABLE WRAPPER
 ========================================================= */
 
@@ -524,8 +483,7 @@
   }
 
   .attendance-toolbar select,
-  .attendance-toolbar .primary-btn,
-  .import-btn {
+  .attendance-toolbar .primary-btn {
     width: 100%;
   }
 
@@ -539,4 +497,112 @@
     background: #ede9fe;
     color: #7c3aed;
     border: 1px solid #c4b5fd;
+}
+/* Compact date-based attendance history filter. */
+.attendance-toolbar .filter-group input[type="date"] {
+  width: 155px;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid #d6e1ef;
+  border-radius: 9px;
+  background: #fff;
+  color: #183253;
+  font: inherit;
+  font-size: 12px;
+}
+
+/* Read-only mechanic attendance details, matching the existing action style. */
+.mechanic-attendance-page ~ #viewMechanicAttendanceModal .attendance-details-grid,
+#viewMechanicAttendanceModal .attendance-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 20px 24px;
+}
+#viewMechanicAttendanceModal .mechanic-attendance-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #e0e8f4;
+  border-radius: 10px;
+  background: #f8fafc;
+  overflow-wrap: anywhere;
+}
+#viewMechanicAttendanceModal .mechanic-attendance-detail-card strong {
+  font-size: 11px;
+  color: #64748b;
+}
+#viewMechanicAttendanceModal .mechanic-attendance-detail-card span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #17365d;
+}
+@media (max-width: 640px) {
+  #viewMechanicAttendanceModal .attendance-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mechanic attendance fits all nine columns at desktop widths. */
+.mechanic-attendance-page .table-wrap {
+  overflow-x: hidden;
+}
+.mechanic-attendance-page .attendance-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+.mechanic-attendance-page .attendance-table th,
+.mechanic-attendance-page .attendance-table td {
+  box-sizing: border-box;
+  padding: 12px 6px;
+  vertical-align: middle;
+  text-align: left;
+}
+.mechanic-attendance-page .attendance-table td {
+  overflow-wrap: anywhere;
+}
+/* Keep IDs/names left-aligned and center the operational values.
+   Matching th/td alignment prevents apparent column drift. */
+.mechanic-attendance-page .attendance-table th:nth-child(n+3),
+.mechanic-attendance-page .attendance-table td:nth-child(n+3) {
+  text-align: center;
+}
+.mechanic-attendance-page .attendance-table td:last-child .actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.mechanic-attendance-page .attendance-table td:last-child .action-btn {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+@media (max-width: 900px) {
+  .mechanic-attendance-page .table-wrap {
+    overflow-x: auto;
+  }
+  .mechanic-attendance-page .attendance-table {
+    min-width: 900px;
+  }
+}
+
+/* Server-rendered name chips remain consistent after AJAX table filtering. */
+.mechanic-attendance-page .mechanic-attendance-name-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid #d5e2f2;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #162b4a;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }

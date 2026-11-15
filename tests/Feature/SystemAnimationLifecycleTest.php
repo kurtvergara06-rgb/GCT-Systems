@@ -127,7 +127,14 @@ class SystemAnimationLifecycleTest extends TestCase
         $this->assertStringContainsString('.operation-dashboard-main', $source);
         $this->assertStringContainsString('.purchase-history-page', $source);
         $this->assertDoesNotMatchRegularExpression('/roots:\s*[^\n]*\bmain\.main\b/', $source);
-        $this->assertStringContainsString('class="main operation-dashboard-main"', $operationDashboard);
-        $this->assertStringContainsString('class="main purchase-history-page"', $purchaseHistory);
+        $this->assertMatchesRegularExpression(
+            '/<main\s+class="[^"]*\boperation-dashboard-main\b[^"]*"/',
+            $operationDashboard
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/<main\s+class="[^"]*\bpurchase-history-page\b[^"]*"/',
+            $purchaseHistory
+        );
     }
 }

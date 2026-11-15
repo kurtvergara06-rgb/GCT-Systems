@@ -72,16 +72,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Geoapify
-    |--------------------------------------------------------------------------
-    */
-
-    'geoapify' => [
-        'key' => env('GEOAPIFY_API_KEY'),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | OSRM
     |--------------------------------------------------------------------------
     */
@@ -90,6 +80,33 @@ return [
         'base_url' => env(
             'OSRM_BASE_URL',
             'https://router.project-osrm.org'
+        ),
+
+        'operational_speed_kph' => (float) env(
+            'OSRM_OPERATIONAL_SPEED_KPH',
+            25
+        ),
+
+        'stop_dwell_minutes' => (int) env(
+            'OSRM_STOP_DWELL_MINUTES',
+            1
+        ),
+
+        'fresh_cache_hours' => (int) env(
+            'OSRM_FRESH_CACHE_HOURS',
+            12
+        ),
+
+        'stale_cache_days' => (int) env(
+            'OSRM_STALE_CACHE_DAYS',
+            30
+        ),
+    ],
+
+    'photon' => [
+        'base_url' => env(
+            'PHOTON_BASE_URL',
+            'https://photon.komoot.io'
         ),
     ],
 

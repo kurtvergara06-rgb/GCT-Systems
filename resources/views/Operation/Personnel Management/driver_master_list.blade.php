@@ -9,6 +9,9 @@
         'resources/js/Operation/Attendance/personnel-master-modal.js'
     ]"
 >
+@php
+    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+@endphp
 <div class="app">
     <x-layout.sidebar department="Operation" />
 
@@ -19,28 +22,51 @@
             <x-ui.summary-card label="Total Drivers" value="{{ $stats['total'] }}" small="All driver profiles" icon="fa-users" color="blue" />
             <x-ui.summary-card label="Active" value="{{ $stats['active'] }}" small="Available for attendance" icon="fa-user-check" color="green" />
             <x-ui.summary-card label="Inactive" value="{{ $stats['inactive'] }}" small="Deactivated profiles" icon="fa-user-slash" color="red" />
-            <x-ui.summary-card label="License Expiring" value="{{ $stats['expiring'] }}" small="Within the next 60 days" icon="fa-id-card" color="yellow" />
+            <x-ui.summary-card label="Active Morning Shift" value="{{ $stats['morning'] }}" small="Active drivers on Morning shift" icon="fa-sun" color="yellow" />
         </section>
 
         <section data-ajax-region="records" class="table-card attendance-card personnel-master-panel">
             <div class="section-header personnel-section-header">
                 <div>
-                    <span class="personnel-module-label"><i class="fa-solid fa-address-book"></i> Personnel Management</span>
                     <h2>Driver Records</h2>
                     <p>Permanent driver information only. Daily transactions remain in Driver Attendance.</p>
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('operation.personnel.drivers', [], false) }}" class="toolbar attendance-toolbar personnel-master-toolbar">
-                <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="search" name="search" value="{{ request('search') }}" placeholder="Search ID, name, contact, shift, or license..."></div>
-                <div class="filter-group"><select name="status" aria-label="Status" onchange="this.form.submit()"><option value="">All Status</option><option value="Active" @selected(request('status') === 'Active')>Active</option><option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option></select></div>
-                <button class="secondary-btn personnel-search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-                <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add"><i class="fa-solid fa-plus"></i> Add Driver</button>
+            <form method="GET" action="{{ route('operation.personnel.drivers', [], false) }}" class="toolbar attendance-toolbar personnel-master-toolbar driver-master-toolbar" data-server-filter="true">
+                <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="search" name="search" value="{{ request('search') }}" placeholder="Search ID, name, contact, or shift..." aria-label="Search driver records"></div>
+                <div class="filter-group personnel-filter">
+                    <label class="sr-only" for="driverStatusFilter">Status</label>
+                    <select id="driverStatusFilter" name="status" aria-label="Filter by status">
+                        <option value="">All Statuses</option>
+                        <option value="Active" @selected(request('status') === 'Active')>Active</option>
+                        <option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group personnel-filter">
+                    <label class="sr-only" for="driverShiftFilter">Default Shift</label>
+                    <select id="driverShiftFilter" name="shift" aria-label="Filter by default shift">
+                        <option value="">All Shifts</option>
+                        @foreach(['Morning', 'Afternoon', 'Night'] as $shift)
+                            <option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @if($canEditOperation)
+                <button type="button" class="primary-btn personnel-add-btn" data-personnel-action="add">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Driver</span>
+                </button>
+                @endif
             </form>
+            <div class="personnel-filter-loading" data-server-filter-loading hidden>
+                <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+                Updating driver records...
+            </div>
 
             <div class="table-wrap personnel-master-table-wrap">
                 <table class="attendance-table personnel-master-table">
-                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Default Shift</th><th>Contact</th><th>License Number</th><th>License Expiration</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Driver ID</th><th>Driver</th><th>Default Shift</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($drivers as $driver)
                         @php
@@ -49,29 +75,27 @@
                                 'driver_name' => $driver->driver_name,
                                 'shift' => $driver->shift,
                                 'contact_number' => $driver->contact_number,
-                                'license_number' => $driver->license_number,
-                                'license_expiration' => $driver->license_expiration?->format('Y-m-d'),
                                 'employment_status' => $driver->employment_status,
                             ], JSON_THROW_ON_ERROR));
                         @endphp
                         <tr>
                             <td><span class="personnel-id">{{ $driver->driver_id }}</span></td>
                             <td><div class="personnel-name-cell"><span class="personnel-avatar"><i class="fa-solid fa-user"></i></span><div><strong>{{ $driver->driver_name }}</strong><small>Driver profile</small></div></div></td>
-                            <td><span class="personnel-shift"><i class="fa-regular fa-clock"></i> {{ $driver->shift }}</span></td>
+                            <td><span class="gct-pill gct-pill--shift-{{ strtolower($driver->shift) }}">{{ $driver->shift }}</span></td>
                             <td>{{ $driver->contact_number ?: '—' }}</td>
-                            <td>{{ $driver->license_number ?: '—' }}</td>
-                            <td>{{ $driver->license_expiration?->format('M d, Y') ?? '—' }}</td>
-                            <td><span class="badge personnel-status {{ strtolower($driver->employment_status) }}">{{ $driver->employment_status }}</span></td>
+                            <td><span class="badge personnel-status gct-pill gct-pill--{{ strtolower($driver->employment_status) }}">{{ $driver->employment_status }}</span></td>
                             <td><div class="actions">
-                                <button type="button" class="action-btn view" title="View" data-personnel-action="view" data-record="{{ $driverRecord }}"><i class="fa-solid fa-eye"></i></button>
-                                <button type="button" class="action-btn edit" title="Edit" data-personnel-action="edit" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" data-record="{{ $driverRecord }}"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" class="action-btn view" title="View" aria-label="View {{ $driver->driver_name }}" data-personnel-action="view" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-eye"></i></button>
+                                @if($canEditOperation)
+                                <button type="button" class="action-btn edit" title="Edit" aria-label="Edit {{ $driver->driver_name }}" data-personnel-action="edit" data-record-id="{{ $driver->id }}" data-update-url="{{ route('operation.personnel.drivers.update', $driver, false) }}" data-record="{!! $driverRecord !!}"><i class="fa-solid fa-pen-to-square"></i></button>
                                 @if($driver->employment_status === 'Active')
-                                <form method="POST" action="{{ route('operation.personnel.drivers.deactivate', $driver, false) }}" data-confirm-form data-confirm-title="Deactivate Driver?" data-confirm-message="This removes the driver from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">@csrf @method('PATCH')<button type="submit" class="action-btn delete" title="Deactivate"><i class="fa-solid fa-user-slash"></i></button></form>
+                                <form method="POST" action="{{ route('operation.personnel.drivers.deactivate', $driver, false) }}" data-confirm-form data-confirm-title="Deactivate Driver?" data-confirm-message="This removes the driver from active attendance rosters but preserves historical records." data-confirm-button="Deactivate" data-confirm-type="warning">@csrf @method('PATCH')<button type="submit" class="action-btn delete" title="Deactivate" aria-label="Deactivate {{ $driver->driver_name }}"><i class="fa-solid fa-user-slash"></i></button></form>
+                                @endif
                                 @endif
                             </div></td>
                         </tr>
                     @empty
-                        <x-ui.empty-row colspan="8" message="No driver master records found." />
+                        <x-ui.empty-row colspan="6" message="No driver master records found." />
                     @endforelse
                     </tbody>
                 </table>
@@ -81,21 +105,108 @@
     </main>
 </div>
 
+@if($canEditOperation)
 <div class="personnel-modal-overlay" data-personnel-modal data-open-on-error="{{ $errors->any() ? 'true' : 'false' }}" aria-hidden="true">
-    <div class="personnel-modal" role="dialog" aria-modal="true" aria-labelledby="personnelModalTitle">
-        <div class="personnel-modal-header"><div class="personnel-modal-title"><div class="personnel-modal-icon"><i class="fa-solid fa-user-plus"></i></div><div><span class="personnel-modal-eyebrow">Personnel Management</span><h2 id="personnelModalTitle" data-modal-title>Add New Driver</h2><p data-modal-subtitle>Create a permanent driver profile. Attendance is recorded separately.</p></div></div><button type="button" class="personnel-modal-close" data-close-personnel-modal aria-label="Close">&times;</button></div>
-        <form method="POST" action="{{ route('operation.personnel.drivers.store', [], false) }}" data-personnel-form data-store-url="{{ route('operation.personnel.drivers.store', [], false) }}" class="personnel-modal-form">
-            @csrf <input type="hidden" name="_method" value="POST" data-method-field>
-            @if($errors->any())<div class="personnel-modal-errors"><strong>Please review the following:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-            <label>Driver ID <span class="personnel-required">*</span><input name="driver_id" value="{{ old('driver_id') }}" required></label>
-            <label>Driver Name <span class="personnel-required">*</span><input name="driver_name" value="{{ old('driver_name') }}" required></label>
-            <label>Default Shift <span class="personnel-required">*</span><select name="shift" required><option value="">Select shift</option>@foreach(['Morning','Afternoon','Night'] as $shift)<option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>@endforeach</select></label>
-            <label>Contact Number<input name="contact_number" value="{{ old('contact_number') }}"></label>
-            <label>License Number<input name="license_number" value="{{ old('license_number') }}"></label>
-            <label>License Expiration<input type="date" name="license_expiration" value="{{ old('license_expiration') }}"></label>
-            <label class="full-width">Employment Status <span class="personnel-required">*</span><select name="employment_status" required><option value="Active">Active</option><option value="Inactive">Inactive</option></select></label>
-            <div class="personnel-modal-actions"><button type="button" class="secondary-btn" data-close-personnel-modal>Cancel</button><button type="submit" class="primary-btn" data-submit-button><i class="fa-solid fa-floppy-disk"></i> Save Driver</button></div>
+    <div class="personnel-modal personnel-modal-driver" role="dialog" aria-modal="true" aria-labelledby="personnelModalTitle" aria-describedby="personnelModalSubtitle">
+        <div class="personnel-modal-header driver-modal-header">
+            <div class="personnel-modal-title">
+                <div class="personnel-modal-icon driver-modal-icon">
+                    <i class="fa-solid fa-id-card" data-personnel-modal-icon aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h2 id="personnelModalTitle" data-modal-title>Add New Driver</h2>
+                    <p id="personnelModalSubtitle" data-modal-subtitle>Create a permanent driver profile. Attendance is recorded separately.</p>
+                </div>
+            </div>
+            <button type="button" class="personnel-modal-close" data-close-personnel-modal aria-label="Close driver details">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{{ route('operation.personnel.drivers.store', [], false) }}" data-personnel-form data-store-url="{{ route('operation.personnel.drivers.store', [], false) }}" class="personnel-modal-form personnel-driver-form">
+            @csrf
+            <input type="hidden" name="_method" value="POST" data-method-field>
+            <input type="hidden" name="editing_personnel_id" value="{{ old('editing_personnel_id') }}" data-editing-personnel-id>
+            @if($errors->any())
+                <div class="personnel-modal-errors" role="alert">
+                    <strong>Please review the following:</strong>
+                    <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                </div>
+            @endif
+
+            <div class="driver-modal-group-heading">
+                <div>
+                    <strong>Driver information</strong>
+                    <small>Identity and default assignment details</small>
+                </div>
+                <i class="fa-solid fa-address-card" aria-hidden="true"></i>
+            </div>
+
+            <label class="driver-input-field">
+                <span>Driver ID <span class="personnel-required">*</span></span>
+                <span class="driver-input-shell">
+                    <i class="fa-solid fa-hashtag" aria-hidden="true"></i>
+                    <input name="driver_id" value="{{ old('driver_id') }}" placeholder="e.g. DRV-001" autocomplete="off" required>
+                </span>
+            </label>
+            <label class="driver-input-field">
+                <span>Driver Name <span class="personnel-required">*</span></span>
+                <span class="driver-input-shell">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <input name="driver_name" value="{{ old('driver_name') }}" placeholder="Full driver name" required>
+                </span>
+            </label>
+            <label class="driver-input-field">
+                <span>Default Shift <span class="personnel-required">*</span></span>
+                <span class="driver-input-shell">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    <select name="shift" required>
+                        <option value="">Select shift</option>
+                        @foreach(['Morning','Afternoon','Night'] as $shift)
+                            <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
+                        @endforeach
+                    </select>
+                </span>
+            </label>
+            <label class="driver-input-field">
+                <span>Contact Number</span>
+                <span class="driver-input-shell">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <input name="contact_number" value="{{ old('contact_number') }}" placeholder="Contact number" inputmode="tel">
+                </span>
+            </label>
+
+            <div class="driver-modal-group-heading">
+                <div>
+                    <strong>Employment information</strong>
+                    <small>Driver availability for operations</small>
+                </div>
+                <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+            </div>
+            <label class="driver-input-field full-width">
+                <span>Employment Status <span class="personnel-required">*</span></span>
+                <span class="driver-input-shell">
+                    <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+                    <select name="employment_status" required>
+                        <option value="Active" @selected(old('employment_status', 'Active') === 'Active')>Active</option>
+                        <option value="Inactive" @selected(old('employment_status') === 'Inactive')>Inactive</option>
+                    </select>
+                </span>
+            </label>
+
+            <div class="driver-modal-view-notice" data-personnel-view-notice hidden>
+                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                <span>View-only details. Select Edit from the table to make changes.</span>
+            </div>
+            <div class="personnel-modal-actions driver-modal-actions">
+                <span class="driver-modal-helper">Attendance records are managed separately.</span>
+                <button type="button" class="secondary-btn" data-close-personnel-modal>Cancel</button>
+                <button type="submit" class="primary-btn" data-submit-button>
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Driver
+                </button>
+            </div>
         </form>
     </div>
 </div>
+@endif
 </x-layout.app>

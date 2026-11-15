@@ -513,3 +513,210 @@ button,
     overflow: auto;
   }
 }
+
+/* =========================================================
+   SYSTEM-WIDE TABLE SIGNAL VISIBILITY
+   Stronger Source / Status / Action semantics for every module.
+========================================================= */
+
+.source-badge {
+  min-width: 96px !important;
+  min-height: 28px !important;
+  padding: 6px 11px !important;
+  border: 1px solid #f0cc61 !important;
+  border-radius: 999px !important;
+  background: #fff1bf !important;
+  color: #8a5600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Status components should remain readable even when page CSS is denser. */
+[data-ui-component="status-badge"] {
+  min-width: 92px !important;
+  min-height: 28px !important;
+  padding: 6px 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+[data-ui-component="status-badge"][data-status="active"],
+[data-ui-component="status-badge"][data-status="completed"],
+[data-ui-component="status-badge"][data-status="available"],
+[data-ui-component="status-badge"][data-status="approved"],
+[data-ui-component="status-badge"][data-status="issued"],
+[data-ui-component="status-badge"][data-status="in-stock"] {
+  border-color: #8bdcab !important;
+  background: #d7f7e3 !important;
+  color: #087332 !important;
+}
+
+[data-ui-component="status-badge"][data-status="pending"],
+[data-ui-component="status-badge"][data-status="upcoming"],
+[data-ui-component="status-badge"][data-status="due-soon"],
+[data-ui-component="status-badge"][data-status="for-purchase"],
+[data-ui-component="status-badge"][data-status="for-pick-up"] {
+  border-color: #f3ce65 !important;
+  background: #fff0bd !important;
+  color: #8a5600 !important;
+}
+
+[data-ui-component="status-badge"][data-status="ongoing"],
+[data-ui-component="status-badge"][data-status="in-progress"],
+[data-ui-component="status-badge"][data-status="for-delivery"] {
+  border-color: #a9c8ff !important;
+  background: #dceaff !important;
+  color: #0644b8 !important;
+}
+
+[data-ui-component="status-badge"][data-status="inactive"],
+[data-ui-component="status-badge"][data-status="rejected"],
+[data-ui-component="status-badge"][data-status="failed"],
+[data-ui-component="status-badge"][data-status="cancelled"],
+[data-ui-component="status-badge"][data-status="not-available"],
+[data-ui-component="status-badge"][data-status="restricted"],
+[data-ui-component="status-badge"][data-status="overdue"] {
+  border-color: #ffaaaa !important;
+  background: #ffe0e0 !important;
+  color: #b20f1b !important;
+}
+
+[data-ui-component="status-badge"][data-status="draft"],
+[data-ui-component="status-badge"][data-status="unknown"] {
+  border-color: #cbd5e1 !important;
+  background: #edf2f7 !important;
+  color: #475569 !important;
+}
+
+/* Every shared action button keeps its meaning visible before hover. */
+[data-ui-component="action-button"] {
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 7px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .05) !important;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease,
+    border-color .15s ease, color .15s ease !important;
+}
+
+[data-ui-component="action-button"][data-action="view"],
+[data-ui-component="action-button"][data-action="edit"] {
+  border: 1px solid #bcd7ff !important;
+  background: #edf5ff !important;
+  color: #0057f8 !important;
+}
+
+[data-ui-component="action-button"][data-action="create-po"],
+[data-ui-component="action-button"][data-action="send"],
+[data-ui-component="action-button"][data-action="deactivate"] {
+  border: 1px solid #f3cb5f !important;
+  background: #fff3cd !important;
+  color: #a16207 !important;
+}
+
+[data-ui-component="action-button"][data-action="issue"],
+[data-ui-component="action-button"][data-action="approve"],
+[data-ui-component="action-button"][data-action="activate"] {
+  border: 1px solid #9fdfb7 !important;
+  background: #ddf8e7 !important;
+  color: #15803d !important;
+}
+
+[data-ui-component="action-button"][data-action="status"] {
+  border: 1px solid #c4b5fd !important;
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+}
+
+[data-ui-component="action-button"][data-action="reset"] {
+  border: 1px solid #ddd6fe !important;
+  background: #f5f3ff !important;
+  color: #4f46e5 !important;
+}
+
+[data-ui-component="action-button"][data-action="reject"],
+[data-ui-component="action-button"][data-action="delete"] {
+  border: 1px solid #fecaca !important;
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+[data-ui-component="action-button"]:not(:disabled):hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 7px rgba(15, 23, 42, .10) !important;
+  filter: brightness(.98);
+}
+
+[data-ui-component="action-button"]:disabled,
+[data-ui-component="action-button"][aria-disabled="true"] {
+  opacity: .42 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Legacy action buttons receive the same semantic colors. */
+.action-btn.view {
+  border-color: #bcd7ff !important;
+  background: #edf5ff !important;
+  color: #0057f8 !important;
+}
+
+.action-btn.edit {
+  border-color: #bcd7ff !important;
+  background: #edf5ff !important;
+  color: #0057f8 !important;
+}
+
+.action-btn.create-po,
+.action-btn.send,
+.action-btn.deactivate {
+  border-color: #f3cb5f !important;
+  background: #fff3cd !important;
+  color: #a16207 !important;
+}
+
+.action-btn.issue,
+.action-btn.approve,
+.action-btn.activate {
+  border-color: #9fdfb7 !important;
+  background: #ddf8e7 !important;
+  color: #15803d !important;
+}
+
+.action-btn.status {
+  border-color: #c4b5fd !important;
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+}
+
+.action-btn.reset {
+  border-color: #ddd6fe !important;
+  background: #f5f3ff !important;
+  color: #4f46e5 !important;
+}
+
+.action-btn.reject,
+.action-btn.delete {
+  border-color: #fecaca !important;
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}

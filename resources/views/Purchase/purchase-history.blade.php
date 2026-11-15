@@ -4,13 +4,14 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Purchase/Requested_Purchase/maintenance-requests.js'
   ]"
 >
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main purchase-history-page">
+    <main class="main purchase-history-page purchase-module-page records-page">
       <x-layout.topbar
         title="Purchase History"
         subtitle="Review completed maintenance and inventory restock procurement records"
@@ -48,18 +49,20 @@
         />
       </section>
 
-      <section data-ajax-region="records" class="table-card requested-purchase-card">
+      <section data-ajax-region="records" class="table-card requested-purchase-card records-card">
         <div class="section-header">
           <div>
+            <span class="purchase-section-eyebrow">AUDIT ARCHIVE</span>
             <h2>Completed Purchase Records</h2>
             <p>Completed requests are kept here for reference and audit history.</p>
           </div>
+          <span class="purchase-section-count">{{ $historyRecords->total() }} records</span>
         </div>
 
         <form
           action="{{ route('maintenance-requests', [], false) }}"
           method="GET"
-          class="toolbar requested-toolbar"
+          class="toolbar requested-toolbar records-toolbar"
           data-server-filter="true"
         >
           <input type="hidden" name="view" value="history">
@@ -95,8 +98,8 @@
           </div>
         </form>
 
-        <div class="table-wrap">
-          <table class="requested-purchase-table">
+        <div class="table-wrap records-table-wrap">
+          <table class="requested-purchase-table records-table">
             <thead>
               <tr>
                 <th>Request #</th>
@@ -129,7 +132,7 @@
                   </td>
                   <td>{{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}</td>
                   <td>
-                    <div class="actions">
+                    <div class="actions record-actions">
                       <button
                         type="button"
                         class="action-btn view open-view-requested-pr-modal"

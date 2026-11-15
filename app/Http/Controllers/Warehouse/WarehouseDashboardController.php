@@ -24,7 +24,7 @@ class WarehouseDashboardController extends Controller
         $lowStockItems = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
         $outOfStock = $inventoryItems->filter(fn ($item) => $item->stock_status === 'Critical')->count();
         $forReorder = $inventoryItems->filter(function ($item) {
-            $stock = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+            $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
             $reorderLevel = (int) ($item->reorder_level ?? 0);
 
             return $reorderLevel > 0 && $stock <= $reorderLevel;
@@ -43,7 +43,7 @@ class WarehouseDashboardController extends Controller
             $low = $items->filter(fn ($item) => $item->stock_status === 'Low Stock')->count();
             $out = $items->filter(fn ($item) => $item->stock_status === 'Critical')->count();
             $reorder = $items->filter(function ($item) {
-                $stock = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+                $stock = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
                 $reorderLevel = (int) ($item->reorder_level ?? 0);
 
                 return $reorderLevel > 0 && $stock <= $reorderLevel;

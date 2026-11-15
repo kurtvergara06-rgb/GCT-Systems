@@ -61,9 +61,6 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     const busModal =
         document.getElementById('busModal');
 
-    const importBusModal =
-        document.getElementById('importBusModal');
-
     const editBusModal =
         document.getElementById('editBusModal');
 
@@ -85,22 +82,6 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
     const cancelBusModal =
         document.getElementById('cancelBusModal');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Import Bus
-    |--------------------------------------------------------------------------
-    */
-
-    const openImportBusModal =
-        document.getElementById('openImportBusModal');
-
-    const closeImportBusModal =
-        document.getElementById('closeImportBusModal');
-
-    const cancelImportBusModal =
-        document.getElementById('cancelImportBusModal');
 
 
     /*
@@ -192,42 +173,16 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
     /*
     |--------------------------------------------------------------------------
-    | Import CSV Modal
-    |--------------------------------------------------------------------------
-    */
-
-    if (openImportBusModal) {
-        openImportBusModal.addEventListener('click', () => {
-            openModal(importBusModal);
-        });
-    }
-
-
-    if (closeImportBusModal) {
-        closeImportBusModal.addEventListener('click', () => {
-            closeModal(importBusModal);
-        });
-    }
-
-
-    if (cancelImportBusModal) {
-        cancelImportBusModal.addEventListener('click', () => {
-            closeModal(importBusModal);
-        });
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
     | Edit Bus Modal
     |--------------------------------------------------------------------------
     */
 
-    document
-        .querySelectorAll('.open-edit-bus')
-        .forEach((button) => {
+    // Delegate table actions so they continue working after AJAX filtering.
+    const busPage = document.querySelector('.bus-master-list-page');
 
-            button.addEventListener('click', (event) => {
+    busPage?.addEventListener('click', (event) => {
+        const button = event.target.closest('.open-edit-bus');
+        if (!button || !busPage.contains(button)) return;
 
                 event.preventDefault();
 
@@ -328,8 +283,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
 
                 openModal(editBusModal);
-            });
-        });
+    });
 
 
     if (closeEditBusModal) {
@@ -352,11 +306,9 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     |--------------------------------------------------------------------------
     */
 
-    document
-        .querySelectorAll('.open-delete-bus')
-        .forEach((button) => {
-
-            button.addEventListener('click', (event) => {
+    busPage?.addEventListener('click', (event) => {
+        const button = event.target.closest('.open-delete-bus');
+        if (!button || !busPage.contains(button)) return;
 
                 event.preventDefault();
 
@@ -378,8 +330,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
 
 
                 openModal(deleteBusModal);
-            });
-        });
+    });
 
 
     if (cancelDeleteBus) {
@@ -402,25 +353,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Click Outside Modal
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll(
-            '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
-        )
-        .forEach((modal) => {
-
-            modal.addEventListener('click', (event) => {
-
-                if (event.target === modal) {
-                    closeModal(modal);
-                }
-            });
-        });
+    // Modal backdrops never close dialogs; use the explicit close/cancel buttons.
 
 
     /*
@@ -457,7 +390,6 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
         }
 
         closeModal(busModal);
-        closeModal(importBusModal);
         closeModal(editBusModal);
         closeModal(deleteBusModal);
     });

@@ -42,6 +42,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     const assignmentBus =
         document.getElementById('assignmentBus');
 
+    const assignmentEditId =
+        document.getElementById('assignmentEditId');
+
+    const assignmentRestoreState =
+        document.getElementById('assignmentRestoreState');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -74,10 +80,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             'assignmentDriverSearch'
         );
 
-    const assignmentDriverOptions =
-        document.querySelectorAll(
-            '.assignment-driver-option'
-        );
+    const assignmentDriverOptionsContainer =
+        document.getElementById('assignmentDriverOptions');
+
+    let assignmentDriverOptions = [];
 
 
     /*
@@ -111,10 +117,11 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             'assignmentBusSearch'
         );
 
-    const assignmentBusOptions =
-        document.querySelectorAll(
-            '.assignment-combobox-option'
-        );
+    const assignmentBusOptionsContainer =
+        document.getElementById('assignmentBusOptions');
+
+    let assignmentBusOptions = [];
+    let availabilityController = null;
 
 
     /*
@@ -168,11 +175,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     | Other Elements
     |--------------------------------------------------------------------------
     */
-
-    const openAssignmentModal =
-        document.getElementById(
-            'openAssignmentModal'
-        );
 
     const closeAssignmentModal =
         document.getElementById(
@@ -272,6 +274,139 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         return fallback;
+    }
+
+
+    function setAvailabilityMessage(message) {
+        const markup = `<p class="assignment-combobox-empty">${escapeHtml(message)}</p>`;
+
+        if (assignmentDriverOptionsContainer) {
+            assignmentDriverOptionsContainer.innerHTML = markup;
+        }
+
+        if (assignmentBusOptionsContainer) {
+            assignmentBusOptionsContainer.innerHTML = markup;
+        }
+
+        assignmentDriverOptions = [];
+        assignmentBusOptions = [];
+    }
+
+
+    function renderAvailability(data) {
+        const drivers = Array.isArray(data?.drivers) ? data.drivers : [];
+        const buses = Array.isArray(data?.buses) ? data.buses : [];
+
+        if (assignmentDriverOptionsContainer) {
+            assignmentDriverOptionsContainer.innerHTML = drivers.length
+                ? drivers.map((driver) => {
+                    const label = `${driver.name} — ${driver.shift} Shift`;
+                    const search = `${driver.driver_id} ${driver.name} ${driver.shift} ${driver.status}`.toLowerCase();
+
+                    return `<button type="button" class="assignment-combobox-option assignment-driver-option" data-value="${escapeHtml(driver.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(driver.name)}</strong><small>${escapeHtml(driver.driver_id)} — ${escapeHtml(driver.shift)} Shift — ${escapeHtml(driver.status)}</small></span><i class="fa-solid fa-check"></i></button>`;
+                }).join('')
+                : '<p class="assignment-combobox-empty">No eligible drivers are available for this trip.</p>';
+        }
+
+        if (assignmentBusOptionsContainer) {
+            assignmentBusOptionsContainer.innerHTML = buses.length
+                ? buses.map((bus) => {
+                    const label = bus.model ? `${bus.bus_no} — ${bus.model}` : bus.bus_no;
+                    const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
+
+                    return `<button type="button" class="assignment-combobox-option assignment-bus-option" data-value="${escapeHtml(bus.id)}" data-label="${escapeHtml(label)}" data-search="${escapeHtml(search)}"><span><strong>${escapeHtml(bus.bus_no)}</strong><small>${escapeHtml(bus.model || 'Operational bus')}</small></span><i class="fa-solid fa-check"></i></button>`;
+                }).join('')
+                : '<p class="assignment-combobox-empty">No active buses are available for this trip.</p>';
+        }
+
+        assignmentDriverOptions = Array.from(
+            assignmentDriverOptionsContainer?.querySelectorAll('.assignment-driver-option') || []
+        );
+        assignmentBusOptions = Array.from(
+            assignmentBusOptionsContainer?.querySelectorAll('.assignment-bus-option') || []
+        );
+    }
+
+
+    function ensureTripOption(tripId, label, availabilityUrl) {
+        if (!assignmentTrip || !tripId) return null;
+
+        let option = assignmentTrip.querySelector(
+            `option[value="${CSS.escape(String(tripId))}"]`
+        );
+
+        if (!option) {
+            option = document.createElement('option');
+            option.value = tripId;
+            option.textContent = label || `Trip ${tripId}`;
+            option.dataset.editOnly = 'true';
+            assignmentTrip.appendChild(option);
+        }
+
+        if (availabilityUrl) {
+            option.dataset.availabilityUrl = availabilityUrl;
+        }
+
+        return option;
+    }
+
+
+    async function loadAvailability(tripId, explicitUrl = '') {
+        resetDriverSelection();
+        resetBusSelection();
+        availabilityController?.abort();
+
+        const option = assignmentTrip?.querySelector(
+            `option[value="${CSS.escape(String(tripId || ''))}"]`
+        );
+        const url = explicitUrl || option?.dataset.availabilityUrl;
+
+        if (!tripId || !url) {
+            setAvailabilityMessage('Select a trip to load available resources.');
+            return false;
+        }
+
+        const controller = new AbortController();
+        availabilityController = controller;
+        setAvailabilityMessage('Loading available resources…');
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                cache: 'no-store',
+                signal: controller.signal,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const message = Object.values(data?.errors || {})
+                    .flat()
+                    .find(Boolean) || 'Unable to load available resources.';
+                throw new Error(message);
+            }
+
+            if (availabilityController !== controller) {
+                return false;
+            }
+
+            renderAvailability(data);
+            return true;
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                return false;
+            }
+
+            setAvailabilityMessage(error?.message || 'Unable to load available resources.');
+            return false;
+        } finally {
+            if (availabilityController === controller) {
+                availabilityController = null;
+            }
+        }
     }
 
 
@@ -603,6 +738,8 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         }
 
         assignmentForm.reset();
+        assignmentTrip?.querySelectorAll('option[data-edit-only="true"]')
+            .forEach((option) => option.remove());
 
         assignmentForm.setAttribute(
             'action',
@@ -613,6 +750,10 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             assignmentFormMethod.disabled = true;
         }
 
+        if (assignmentEditId) {
+            assignmentEditId.value = '';
+        }
+
         if (assignmentTrip) {
             assignmentTrip.disabled = false;
             assignmentTrip.required = true;
@@ -620,6 +761,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
 
         resetDriverSelection();
         resetBusSelection();
+        setAvailabilityMessage('Select a trip to load available resources.');
 
         if (assignmentModalTitle) {
             assignmentModalTitle.textContent =
@@ -639,37 +781,112 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     |--------------------------------------------------------------------------
     */
 
-    if (openAssignmentModal) {
-        openAssignmentModal.addEventListener(
-            'click',
-            () => {
-                resetAssignmentForm();
-                openModal(assignmentModal);
+    document.addEventListener('click', async (event) => {
+        const newButton = event.target.closest('#openAssignmentModal');
+
+        if (newButton && !newButton.disabled) {
+            resetAssignmentForm();
+            openModal(assignmentModal);
+            return;
+        }
+
+        const assignButton = event.target.closest('.open-assignment');
+
+        if (assignButton && !assignButton.disabled) {
+            resetAssignmentForm();
+
+            if (assignmentTrip) {
+                assignmentTrip.value = assignButton.dataset.tripId || '';
             }
-        );
-    }
 
+            await loadAvailability(assignButton.dataset.tripId || '');
+            openModal(assignmentModal);
+            return;
+        }
 
-    document
-        .querySelectorAll('.open-assignment')
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    resetAssignmentForm();
+        const editButton = event.target.closest('.edit-assignment');
 
-                    if (assignmentTrip) {
-                        assignmentTrip.value =
-                            button.dataset.tripId
-                            || '';
-                    }
+        if (editButton && !editButton.disabled) {
+            if (!assignmentForm) return;
 
-                    openModal(
-                        assignmentModal
-                    );
-                }
+            resetAssignmentForm();
+
+            const assignmentId = editButton.dataset.assignmentId;
+
+            ensureTripOption(
+                editButton.dataset.tripId,
+                editButton.dataset.tripLabel,
+                editButton.dataset.availabilityUrl
             );
-        });
+
+            if (assignmentEditId) {
+                assignmentEditId.value = assignmentId || '';
+            }
+
+            const fallbackUrl =
+                `/operation/driver-bus-assignment/${assignmentId}`;
+
+            assignmentForm.setAttribute(
+                'action',
+                normalizePath(editButton.dataset.updateUrl, fallbackUrl)
+            );
+
+            if (assignmentFormMethod) {
+                assignmentFormMethod.disabled = false;
+                assignmentFormMethod.value = 'PUT';
+            }
+
+            if (assignmentTrip) {
+                assignmentTrip.value = editButton.dataset.tripId || '';
+                assignmentTrip.disabled = true;
+                assignmentTrip.required = false;
+            }
+
+            await loadAvailability(
+                editButton.dataset.tripId || '',
+                editButton.dataset.availabilityUrl || ''
+            );
+
+            selectDriverById(editButton.dataset.driverId || '');
+            selectBusById(editButton.dataset.busId || '');
+
+            if (assignmentModalTitle) {
+                assignmentModalTitle.textContent = 'Edit Assignment';
+            }
+
+            if (assignmentSubmitText) {
+                assignmentSubmitText.textContent = 'Update Assignment';
+            }
+
+            openModal(assignmentModal);
+            return;
+        }
+
+        const viewButton = event.target.closest('.view-assignment');
+
+        if (viewButton && !viewButton.disabled) {
+            renderAssignmentDetails(
+                parseAssignmentDetails(viewButton.dataset.details)
+            );
+            openModal(viewAssignmentModal);
+            return;
+        }
+
+        const removeButton = event.target.closest('.remove-assignment');
+
+        if (removeButton && !removeButton.disabled) {
+            selectedRemoveForm = document.getElementById(
+                removeButton.dataset.formId
+            );
+
+            if (removeAssignmentName) {
+                removeAssignmentName.textContent =
+                    removeButton.dataset.tripCode || 'this trip';
+            }
+
+            openModal(removeAssignmentModal);
+        }
+    });
 
 
     /*
@@ -728,19 +945,12 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     );
 
 
-    assignmentDriverOptions.forEach(
-        (option) => {
-            option.addEventListener(
-                'click',
-                () => {
-                    selectDriver(
-                        option.dataset.value,
-                        option.dataset.label
-                    );
-                }
-            );
-        }
-    );
+    assignmentDriverOptionsContainer?.addEventListener('click', (event) => {
+        const option = event.target.closest('.assignment-driver-option');
+        if (!option) return;
+
+        selectDriver(option.dataset.value, option.dataset.label);
+    });
 
 
     /*
@@ -776,19 +986,16 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     );
 
 
-    assignmentBusOptions.forEach(
-        (option) => {
-            option.addEventListener(
-                'click',
-                () => {
-                    selectBus(
-                        option.dataset.value,
-                        option.dataset.label
-                    );
-                }
-            );
-        }
-    );
+    assignmentBusOptionsContainer?.addEventListener('click', (event) => {
+        const option = event.target.closest('.assignment-bus-option');
+        if (!option) return;
+
+        selectBus(option.dataset.value, option.dataset.label);
+    });
+
+    assignmentTrip?.addEventListener('change', () => {
+        void loadAvailability(assignmentTrip.value);
+    });
 
 
     /*
@@ -827,76 +1034,32 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     |--------------------------------------------------------------------------
     */
 
-    document
-        .querySelectorAll('.edit-assignment')
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    if (!assignmentForm) {
-                        return;
-                    }
+    assignmentForm?.addEventListener('submit', () => {
+        if (assignmentTrip) {
+            assignmentTrip.disabled = false;
+        }
+    });
 
-                    const assignmentId =
-                        button.dataset.assignmentId;
+    if (assignmentRestoreState?.dataset.hasErrors === 'true') {
+        const tripId = assignmentRestoreState.dataset.tripId || '';
+        const editId = assignmentEditId?.value || '';
+        const editButton = editId
+            ? document.querySelector(`.edit-assignment[data-assignment-id="${CSS.escape(editId)}"]`)
+            : null;
 
-                    const fallbackUrl =
-                        `/operation/driver-bus-assignment/${assignmentId}`;
-
-                    assignmentForm.setAttribute(
-                        'action',
-                        normalizePath(
-                            button.dataset.updateUrl,
-                            fallbackUrl
-                        )
-                    );
-
-                    if (assignmentFormMethod) {
-                        assignmentFormMethod.disabled =
-                            false;
-
-                        assignmentFormMethod.value =
-                            'PUT';
-                    }
-
-                    if (assignmentTrip) {
-                        assignmentTrip.value =
-                            button.dataset.tripId
-                            || '';
-
-                        assignmentTrip.disabled =
-                            true;
-
-                        assignmentTrip.required =
-                            false;
-                    }
-
-                    selectDriverById(
-                        button.dataset.driverId
-                        || ''
-                    );
-
-                    selectBusById(
-                        button.dataset.busId
-                        || ''
-                    );
-
-                    if (assignmentModalTitle) {
-                        assignmentModalTitle.textContent =
-                            'Edit Assignment';
-                    }
-
-                    if (assignmentSubmitText) {
-                        assignmentSubmitText.textContent =
-                            'Update Assignment';
-                    }
-
-                    openModal(
-                        assignmentModal
-                    );
-                }
-            );
-        });
+        if (editButton) {
+            editButton.click();
+        } else if (tripId) {
+            assignmentTrip.value = tripId;
+            void loadAvailability(tripId).then(() => {
+                selectDriverById(assignmentRestoreState.dataset.driverId || '');
+                selectBusById(assignmentRestoreState.dataset.busId || '');
+                openModal(assignmentModal);
+            });
+        } else {
+            openModal(assignmentModal);
+        }
+    }
 
 
     /*
@@ -904,29 +1067,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     | View Assignment
     |--------------------------------------------------------------------------
     */
-
-    document
-        .querySelectorAll('.view-assignment')
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    const details =
-                        parseAssignmentDetails(
-                            button.dataset.details
-                        );
-
-                    renderAssignmentDetails(
-                        details
-                    );
-
-                    openModal(
-                        viewAssignmentModal
-                    );
-                }
-            );
-        });
-
 
     function parseAssignmentDetails(rawData) {
         if (!rawData) {
@@ -1049,34 +1189,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
     |--------------------------------------------------------------------------
     */
 
-    document
-        .querySelectorAll('.remove-assignment')
-        .forEach((button) => {
-            button.addEventListener(
-                'click',
-                () => {
-                    const formId =
-                        button.dataset.formId;
-
-                    selectedRemoveForm =
-                        document.getElementById(
-                            formId
-                        );
-
-                    if (removeAssignmentName) {
-                        removeAssignmentName.textContent =
-                            button.dataset.tripCode
-                            || 'this trip';
-                    }
-
-                    openModal(
-                        removeAssignmentModal
-                    );
-                }
-            );
-        });
-
-
     if (cancelRemoveAssignment) {
         cancelRemoveAssignment.addEventListener(
             'click',
@@ -1104,31 +1216,6 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             }
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Close Modal When Clicking Overlay
-    |--------------------------------------------------------------------------
-    */
-
-    document
-        .querySelectorAll(
-            '.ui-form-overlay, '
-            + '.delete-modal-overlay'
-        )
-        .forEach((modal) => {
-            modal.addEventListener(
-                'click',
-                (event) => {
-                    if (event.target === modal) {
-                        closeDriverDropdown();
-                        closeBusDropdown();
-                        closeModal(modal);
-                    }
-                }
-            );
-        });
 
 
     /*
@@ -1169,3 +1256,22 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
             .replaceAll("'", '&#039;');
     }
 });
+
+if (!window.__gctAssignmentModalRefreshBound) {
+    window.__gctAssignmentModalRefreshBound = true;
+
+    window.addEventListener('system-regions-refreshed', (event) => {
+        const regions = Array.isArray(event.detail?.regions)
+            ? event.detail.regions
+            : [];
+
+        if (
+            document.querySelector('.assignment-page')
+            && regions.includes('assignment-modal')
+        ) {
+            window.dispatchEvent(new CustomEvent('gct:navigation-ready', {
+                detail: { source: 'realtime-assignment-modal' },
+            }));
+        }
+    });
+}

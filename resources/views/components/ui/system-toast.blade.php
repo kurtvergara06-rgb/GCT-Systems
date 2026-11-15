@@ -46,6 +46,9 @@
                 class="system-toast-notification system-toast-notification--{{ $toast['type'] }}"
                 data-system-toast
                 data-type="{{ $toast['type'] }}"
+                @if(array_key_exists('timeout', $toast))
+                    data-toast-timeout="{{ $toast['timeout'] }}"
+                @endif
                 role="status"
                 aria-live="polite"
             >

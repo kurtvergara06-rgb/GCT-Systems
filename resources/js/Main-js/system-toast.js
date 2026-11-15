@@ -3,6 +3,13 @@ const toastSelector = '[data-system-toast]';
 const closeButtonSelector = '.system-toast-close';
 const removeDelay = 4000;
 const removeAnimationDelay = 180;
+
+const toastTimeoutByType = {
+    success: 4000,
+    info: 4500,
+    warning: 6000,
+    error: 7000,
+};
 const toastTimers = new WeakMap();
 
 const getToastRoot = () => {
@@ -56,15 +63,42 @@ const removeToast = (toast) => {
     toastTimers.set(toast, { cleanupTimer });
 };
 
-const scheduleToastRemoval = (toast, timeout = removeDelay) => {
+const resolveToastTimeout = (
+    toast,
+    timeout = null
+) => {
+    const explicitDuration = Number(timeout);
+
+    if (
+        timeout !== null
+        && timeout !== undefined
+        && Number.isFinite(explicitDuration)
+        && explicitDuration > 0
+    ) {
+        return explicitDuration;
+    }
+
+    const typeName =
+        toast?.getAttribute('data-type')
+        || 'info';
+
+    return toastTimeoutByType[typeName]
+        || removeDelay;
+};
+
+const scheduleToastRemoval = (
+    toast,
+    timeout = null
+) => {
     if (!toast?.isConnected) return;
 
     clearToastTimers(toast);
 
-    const duration = Number(timeout);
-    if (!Number.isFinite(duration) || duration <= 0) {
-        return;
-    }
+    const duration =
+        resolveToastTimeout(
+            toast,
+            timeout
+        );
 
     const removeTimer = window.setTimeout(() => {
         removeToast(toast);
@@ -73,7 +107,7 @@ const scheduleToastRemoval = (toast, timeout = removeDelay) => {
     toastTimers.set(toast, { removeTimer });
 };
 
-const attachToastBehavior = (toast, timeout = removeDelay) => {
+const attachToastBehavior = (toast, timeout = null) => {
     if (toast.dataset.toastInitialized !== 'true') {
         toast.dataset.toastInitialized = 'true';
 
@@ -101,7 +135,18 @@ const initSystemToasts = () => {
         const toasts = root.querySelectorAll(toastSelector);
 
         toasts.forEach((toast) => {
-            attachToastBehavior(toast);
+            const configuredTimeout =
+                toast.dataset.toastTimeout;
+
+            const timeout =
+                configuredTimeout === undefined
+                    ? null
+                    : Number(configuredTimeout);
+
+            attachToastBehavior(
+                toast,
+                timeout
+            );
         });
     });
 };
@@ -134,7 +179,10 @@ window.showSystemToast = function (message, type = 'info', title = null, options
     if (duplicateToast) {
         duplicateToast.classList.remove('is-removing');
         duplicateToast.classList.add('is-visible');
-        scheduleToastRemoval(duplicateToast, options.timeout ?? removeDelay);
+        scheduleToastRemoval(
+            duplicateToast,
+            options.timeout ?? null
+        );
         return duplicateToast;
     }
 
@@ -181,7 +229,10 @@ window.showSystemToast = function (message, type = 'info', title = null, options
     toast.appendChild(closeButton);
     root.appendChild(toast);
 
-    attachToastBehavior(toast, options.timeout ?? removeDelay);
+    attachToastBehavior(
+        toast,
+        options.timeout ?? null
+    );
 
     return toast;
 };

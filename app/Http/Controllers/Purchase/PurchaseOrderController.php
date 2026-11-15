@@ -7,9 +7,11 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Traits\SystemDataUpdateBroadcaster;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
 {
@@ -111,7 +113,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
+            'status' => 'required|string|in:Ordered',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -130,6 +132,12 @@ class PurchaseOrderController extends Controller
 
         $totals = $this->calculateTotals($items, $request->delivery_fee, $request->discount, $request->vat);
 
+        if ($totals['net_amount'] < 0) {
+            throw ValidationException::withMessages([
+                'discount' => 'Discount cannot make the purchase order total negative.',
+            ]);
+        }
+
         $maintenanceRequest = null;
 
         if (! empty($validated['purchase_request_id'])) {
@@ -143,6 +151,25 @@ class PurchaseOrderController extends Controller
         $newPurchaseOrder = null;
 
         DB::transaction(function () use ($validated, $items, $totals, $maintenanceRequest, &$newPurchaseOrder) {
+            if ($maintenanceRequest) {
+                $maintenanceRequest = MaintenanceRequest::query()
+                    ->whereKey($maintenanceRequest->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($maintenanceRequest->status !== 'For Purchase') {
+                    throw ValidationException::withMessages([
+                        'purchase_request_id' => 'Only a For Purchase request can be linked to a new purchase order.',
+                    ]);
+                }
+
+                if (PurchaseOrder::query()->where('purchase_request_id', $maintenanceRequest->id)->exists()) {
+                    throw ValidationException::withMessages([
+                        'purchase_request_id' => 'A purchase order already exists for this purchase request.',
+                    ]);
+                }
+            }
+
             $newPurchaseOrder = PurchaseOrder::create([
                 'po_no' => $this->generatePoNo(),
                 'po_date' => now()->toDateString(),
@@ -158,10 +185,10 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => $validated['status'],
+                'status' => 'Ordered',
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, 'Ordered');
         });
 
         if ($newPurchaseOrder) {
@@ -175,8 +202,15 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
+        if (strtolower(trim((string) $purchaseOrder->status)) !== 'ordered') {
+            return redirect()->back()->with(
+                'error',
+                'Only purchase orders that are still Ordered can be edited.'
+            );
+        }
+
         $validated = $request->validate([
-            'po_no' => 'required|string|max:255|unique:purchase_orders,po_no,' . $purchaseOrder->id,
+            'po_no' => 'required|string|max:255|unique:purchase_orders,po_no,'.$purchaseOrder->id,
             'po_date' => 'required|date',
             'purchase_request_id' => 'nullable|exists:purchase_requests,id',
             'supplier_name' => 'required|string|max:255',
@@ -187,7 +221,7 @@ class PurchaseOrderController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'vat' => 'nullable|numeric|min:0',
-            'status' => 'required|string|in:Ordered,For Pick-up,For Delivery,Delivered,Picked Up',
+            'status' => 'required|string|in:Ordered',
             'items' => 'required|array|min:1',
             'items.*.pr_no' => 'nullable|string|max:255',
             'items.*.bus_no' => 'nullable|string|max:255',
@@ -206,6 +240,12 @@ class PurchaseOrderController extends Controller
 
         $totals = $this->calculateTotals($items, $request->delivery_fee, $request->discount, $request->vat);
 
+        if ($totals['net_amount'] < 0) {
+            throw ValidationException::withMessages([
+                'discount' => 'Discount cannot make the purchase order total negative.',
+            ]);
+        }
+
         $maintenanceRequest = null;
 
         if (! empty($validated['purchase_request_id'])) {
@@ -217,9 +257,40 @@ class PurchaseOrderController extends Controller
         }
 
         DB::transaction(function () use ($purchaseOrder, $validated, $items, $totals, $maintenanceRequest) {
-            $oldInventoryPostedAt = $purchaseOrder->inventory_posted_at;
+            $lockedOrder = PurchaseOrder::query()
+                ->whereKey($purchaseOrder->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            $purchaseOrder->update([
+            if ($lockedOrder->status !== 'Ordered' || $lockedOrder->inventory_posted_at !== null) {
+                throw ValidationException::withMessages([
+                    'status' => 'Only an unreceived Ordered purchase order can be edited.',
+                ]);
+            }
+
+            $oldRequests = $this->relatedMaintenanceRequests($lockedOrder, true);
+            $oldInventoryPostedAt = $lockedOrder->inventory_posted_at;
+
+            if ($maintenanceRequest) {
+                $lockedRequest = MaintenanceRequest::query()
+                    ->whereKey($maintenanceRequest->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $alreadyLinked = $oldRequests->contains('id', $lockedRequest->id);
+                $linkedToAnotherOrder = PurchaseOrder::query()
+                    ->whereKeyNot($lockedOrder->id)
+                    ->where('purchase_request_id', $lockedRequest->id)
+                    ->exists();
+
+                if ((! $alreadyLinked && $lockedRequest->status !== 'For Purchase') || $linkedToAnotherOrder) {
+                    throw ValidationException::withMessages([
+                        'purchase_request_id' => 'The selected purchase request is not available for this purchase order.',
+                    ]);
+                }
+            }
+
+            $lockedOrder->update([
                 'po_no' => $validated['po_no'],
                 'po_date' => $validated['po_date'],
                 'purchase_request_id' => $maintenanceRequest?->id,
@@ -234,11 +305,16 @@ class PurchaseOrderController extends Controller
                 'discount' => $totals['discount'],
                 'vat' => $totals['vat'],
                 'net_amount' => $totals['net_amount'],
-                'status' => $validated['status'],
+                'status' => 'Ordered',
                 'inventory_posted_at' => $oldInventoryPostedAt,
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, 'Ordered');
+
+            $newRequestIds = $this->relatedMaintenanceRequests($lockedOrder, true)->pluck('id');
+            $oldRequests
+                ->reject(fn (MaintenanceRequest $request) => $newRequestIds->contains($request->id))
+                ->each(fn (MaintenanceRequest $request) => $this->resetRequestAfterOrderRemoval($request));
         });
 
         $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'updated', $purchaseOrder->id, 'A purchase order was updated.');
@@ -268,7 +344,7 @@ class PurchaseOrderController extends Controller
                 ->firstOrFail();
 
             if (! in_array($validated['status'], $allowedTransitions[$lockedOrder->status] ?? [], true)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'status' => 'That purchase order status change is no longer allowed.',
                 ]);
             }
@@ -292,16 +368,33 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
+        if ($purchaseOrder->inventory_posted_at !== null || in_array($purchaseOrder->status, ['Delivered', 'Picked Up'], true)) {
+            return redirect()->back()->with(
+                'error',
+                'A received purchase order cannot be deleted because its inventory movement must remain auditable.'
+            );
+        }
+
         $purchaseOrderId = $purchaseOrder->id;
 
         DB::transaction(function () use ($purchaseOrder) {
-            $maintenanceRequest = $purchaseOrder->maintenanceRequest;
-            $purchaseOrder->delete();
+            $lockedOrder = PurchaseOrder::query()
+                ->whereKey($purchaseOrder->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if ($maintenanceRequest && in_array($maintenanceRequest->status, $this->statuses, true)) {
-                $maintenanceRequest->update(['status' => 'For Purchase']);
-                $this->updateRelatedJobOrderPartStatus($maintenanceRequest, 'For Purchase');
+            if ($lockedOrder->inventory_posted_at !== null || in_array($lockedOrder->status, ['Delivered', 'Picked Up'], true)) {
+                throw ValidationException::withMessages([
+                    'purchase_order' => 'A received purchase order cannot be deleted.',
+                ]);
             }
+
+            $maintenanceRequests = $this->relatedMaintenanceRequests($lockedOrder, true);
+            $lockedOrder->delete();
+
+            $maintenanceRequests->each(
+                fn (MaintenanceRequest $request) => $this->resetRequestAfterOrderRemoval($request)
+            );
         });
 
         $this->broadcastSystemDataUpdated('Purchase', 'PurchaseOrder', 'deleted', $purchaseOrderId, 'A purchase order was deleted.');
@@ -326,7 +419,9 @@ class PurchaseOrderController extends Controller
                 continue;
             }
 
-            $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)->first();
+            $maintenanceRequest = MaintenanceRequest::where('pr_no', $prNo)
+                ->lockForUpdate()
+                ->first();
             if ($maintenanceRequest) {
                 $maintenanceRequests->push($maintenanceRequest);
             }
@@ -355,6 +450,52 @@ class PurchaseOrderController extends Controller
         }
 
         $jobOrder->update(['part_status' => $partStatus]);
+    }
+
+    private function relatedMaintenanceRequests(PurchaseOrder $purchaseOrder, bool $lock = false): Collection
+    {
+        $ids = collect([$purchaseOrder->purchase_request_id])->filter();
+        $prNumbers = collect($purchaseOrder->items ?? [])
+            ->map(fn (array $item) => $this->normalizePrNo($item['pr_no'] ?? null))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty() && $prNumbers->isEmpty()) {
+            return collect();
+        }
+
+        $query = MaintenanceRequest::query()
+            ->where(function ($builder) use ($ids, $prNumbers) {
+                if ($ids->isNotEmpty()) {
+                    $builder->whereIn('id', $ids);
+                }
+
+                if ($prNumbers->isNotEmpty()) {
+                    $method = $ids->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                    $builder->{$method}('pr_no', $prNumbers);
+                }
+            });
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        return $query->get();
+    }
+
+    private function resetRequestAfterOrderRemoval(MaintenanceRequest $maintenanceRequest): void
+    {
+        if ($maintenanceRequest->status === 'Issued') {
+            return;
+        }
+
+        if (PurchaseOrder::query()->where('purchase_request_id', $maintenanceRequest->id)->exists()) {
+            return;
+        }
+
+        $maintenanceRequest->update(['status' => 'For Purchase']);
+        $this->updateRelatedJobOrderPartStatus($maintenanceRequest, 'For Purchase');
     }
 
     private function findFirstMaintenanceRequest(array $items): ?MaintenanceRequest
@@ -439,6 +580,7 @@ class PurchaseOrderController extends Controller
     private function cleanCurrency($value): float
     {
         $cleaned = preg_replace('/[^\d.]/', '', (string) $value);
+
         return $cleaned !== '' ? (float) $cleaned : 0;
     }
 
@@ -453,13 +595,13 @@ class PurchaseOrderController extends Controller
             return "PO-{$year}-0001";
         }
 
-        preg_match('/PO-' . $year . '-(\d+)/', $lastPurchaseOrder->po_no, $matches);
+        preg_match('/PO-'.$year.'-(\d+)/', $lastPurchaseOrder->po_no, $matches);
         $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
-        $newPoNo = 'PO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        $newPoNo = 'PO-'.$year.'-'.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         while (PurchaseOrder::where('po_no', $newPoNo)->exists()) {
             $nextNumber++;
-            $newPoNo = 'PO-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $newPoNo = 'PO-'.$year.'-'.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
 
         return $newPoNo;

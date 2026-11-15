@@ -602,7 +602,7 @@
                       class="ui-form-btn pr-review-btn-edit"
                       hidden
                   >
-                      <i class="fa-solid fa-pen"></i>
+                      <i class="fa-solid fa-pen-to-square"></i>
                       <span>Edit</span>
                   </button>
 

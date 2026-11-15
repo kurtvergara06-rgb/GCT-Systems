@@ -8,17 +8,24 @@
         'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
     ]"
 >
+@php
+    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+@endphp
+
 <div class="app">
   <x-layout.sidebar department="Operation" />
 
-    <main class="main auto-scheduling-page">
+    <main
+        class="main auto-scheduling-page"
+        data-operation-edit="{{ $canEditOperation ? 'true' : 'false' }}"
+    >
         <x-layout.topbar
             title="Auto Scheduling"
             subtitle="Automatically assign available drivers and shuttle buses to scheduled trips"
             notification-count="4"
         />
 
-        <section class="auto-summary-grid">
+        <section data-ajax-region="summary" class="auto-summary-grid">
             <article class="auto-summary-card">
                 <div class="summary-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
                 <div>
@@ -273,10 +280,17 @@
                         Regenerate
                     </button>
 
-                    <button type="button" class="schedule-primary-btn" id="confirmScheduleButton" disabled>
-                        <i class="fa-solid fa-circle-check"></i>
-                        Confirm Schedule
-                    </button>
+                    @if($canEditOperation)
+                        <button type="button" class="schedule-primary-btn" id="confirmScheduleButton" disabled>
+                            <i class="fa-solid fa-circle-check"></i>
+                            Confirm Schedule
+                        </button>
+                    @else
+                        <span class="schedule-readonly-note">
+                            <i class="fa-solid fa-eye"></i>
+                            View-only access
+                        </span>
+                    @endif
                 </div>
             </div>
         </section>

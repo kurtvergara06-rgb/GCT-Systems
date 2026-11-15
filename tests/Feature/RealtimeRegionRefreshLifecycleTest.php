@@ -20,7 +20,7 @@ class RealtimeRegionRefreshLifecycleTest extends TestCase
         $this->assertStringContainsString("'Maintenance:RolePermission': ['/maintenance-dashboard','/maintenance-referrals','/pms-scheduling','/fuel-reports','/job-orders','/purchase-requests','/mechanic-list']", $source);
         $this->assertStringContainsString("'Maintenance:JobOrder': ['/job-orders','/purchase-requests','/part-requests','/maintenance-requests','/maintenance-dashboard','/admin/dashboard']", $source);
         $this->assertStringContainsString("'Maintenance:FuelReport': ['/fuel-reports','/maintenance-dashboard','/admin/dashboard']", $source);
-        $this->assertStringContainsString("'Operation:Bus': ['/bus-master-list','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard']", $source);
+        $this->assertStringContainsString("'Operation:Bus': ['/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard']", $source);
         $this->assertStringContainsString("payload?.entity !== 'RolePermission'", $source);
     }
 }

@@ -20,7 +20,7 @@
             />
 
             <!-- Summary KPI Cards -->
-            <section class="trip-summary-grid">
+            <section data-ajax-region="summary" class="trip-summary-grid">
                 <article class="trip-summary-card">
                     <div class="trip-summary-icon green">
                         <i class="fa-solid fa-circle-check"></i>
@@ -67,7 +67,7 @@
             </section>
 
             <!-- Main Records Card -->
-            <section class="trip-card">
+            <section data-ajax-region="records" class="trip-card">
                 <div class="trip-card-header">
                     <div>
                         <h2>Operational Trip History</h2>
@@ -142,7 +142,7 @@
                 </form>
 
                 <!-- Trip Table Container with Contained Scroll -->
-                <div class="trip-table-wrap">
+                <div class="table-wrap trip-table-wrap">
                     <table class="trip-table">
                         <thead>
                             <tr>
@@ -285,7 +285,7 @@
                                                 title="View Trip Details"
                                                 data-trip="{{ $tripDataJson }}"
                                             >
-                                                <i class="fa-regular fa-eye"></i>
+                                                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -307,36 +307,22 @@
                     </table>
                 </div>
 
-                <!-- Pagination Footer -->
-                <div class="trip-table-footer">
-                    <span>
-                        Showing {{ $trips->firstItem() ?? 0 }} to {{ $trips->lastItem() ?? 0 }} of {{ $trips->total() }} trip records
+                <div
+                    class="trip-table-footer"
+                    data-scroll-pagination
+                    data-lazy-pagination="true"
+                    data-page-name="{{ $trips->getPageName() }}"
+                    data-next-url="{{ $trips->nextPageUrl() }}"
+                    data-total="{{ $trips->total() }}"
+                >
+                    <span data-entry-count>
+                        Showing {{ $trips->firstItem() ?? 0 }} to {{ $trips->lastItem() ?? 0 }} of {{ $trips->total() }} matching trip records
                     </span>
-
-                    {{ $trips->links() }}
-                    <div class="trip-pagination">
-                        @if ($trips->onFirstPage())
-                            <button type="button" class="disabled" disabled>
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </button>
-                        @else
-                            <a href="{{ $trips->previousPageUrl() }}">
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </a>
-                        @endif
-
-                        <span>Page {{ $trips->currentPage() }} of {{ $trips->lastPage() }}</span>
-
-                        @if ($trips->hasMorePages())
-                            <a href="{{ $trips->nextPageUrl() }}">
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        @else
-                            <button type="button" class="disabled" disabled>
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        @endif
-                    </div>
+                    <span class="table-loading-all" data-table-loading hidden>
+                        <x-ui.spinner size="sm" />
+                        <span data-table-loading-label>Loading more records...</span>
+                    </span>
+                    <span class="trip-scroll-hint">Scroll within the table to browse records</span>
                 </div>
             </section>
         </main>

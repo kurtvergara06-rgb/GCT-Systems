@@ -67,6 +67,7 @@
           action="{{ route('mechanic-attendance', [], false) }}"
           method="GET"
           class="toolbar attendance-toolbar"
+          data-server-filter="true"
         >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -79,7 +80,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="status" onchange="this.form.submit()" aria-label="Status">
+            <select name="status" aria-label="Status">
               <option value="All Status" {{ request('status') == 'All Status' ? 'selected' : '' }}>All Status</option>
               <option value="Present" {{ request('status') == 'Present' ? 'selected' : '' }}>Present</option>
               <option value="Late" {{ request('status') == 'Late' ? 'selected' : '' }}>Late</option>
@@ -89,14 +90,17 @@
             </select>
           </div>
 
-          <button
-            type="button"
-            id="openImportAttendanceModal"
-            class="secondary-btn import-btn"
-          >
-            <i class="fa-solid fa-file-import"></i>
-            Import Data
-          </button>
+          <div class="filter-group">
+            <label class="sr-only" for="mechanicAttendanceFilterDate">Attendance Date</label>
+            <input
+              type="date"
+              id="mechanicAttendanceFilterDate"
+              name="attendance_date"
+              value="{{ $summaryDate }}"
+              aria-label="Filter attendance by date"
+              title="Choose attendance date"
+            >
+          </div>
 
           <button
             type="button"
@@ -110,13 +114,13 @@
 
         <div class="table-wrap">
           <table class="attendance-table">
+            <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Mechanic</th>
                 <th>Shift</th>
                 <th>Assigned Job</th>
-                <th>Date</th>
                 <th>Time-in</th>
                 <th>Time-out</th>
                 <th>Status</th>
@@ -138,20 +142,31 @@
                 @endphp
 
                 <tr>
-                  <td>{{ $attendance->mechanic_id }}</td>
-                  <td>{{ $attendance->mechanic_name }}</td>
-                  <td>{{ $attendance->shift }}</td>
-                  <td>{{ $attendance->assigned_job ?? 'Available' }}</td>
-                  <td>{{ $attendance->attendance_date ? $attendance->attendance_date->format('m/d/y') : '—' }}</td>
+                  <td><span class="system-id-badge system-id-badge--small">{{ $attendance->mechanic_id }}</span></td>
+                  <td><span class="mechanic-attendance-name-chip">{{ $attendance->mechanic_name }}</span></td>
+                  <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
+                  <td><span class="gct-pill {{ $attendance->display_assigned_job === 'Unassigned' ? 'gct-pill--unassigned' : 'gct-pill--scheduled' }}">{{ $attendance->display_assigned_job }}</span></td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
                   <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
-                  <td><span class="badge {{ $statusClass }}">{{ $attendance->status }}</span></td>
+                  <td><span class="badge gct-pill gct-pill--attendance {{ $statusClass }}">{{ $attendance->status }}</span></td>
                   <td>
                     <div class="actions">
+                      <button type="button" class="action-btn view open-view-mechanic-attendance-modal"
+                        title="View" aria-label="View mechanic attendance"
+                        data-mechanic-id="{{ $attendance->mechanic_id }}"
+                        data-mechanic-name="{{ $attendance->mechanic_name }}"
+                        data-shift="{{ $attendance->shift }}"
+                        data-assigned-job="{{ $attendance->display_assigned_job }}"
+                        data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
+                        data-time-in="{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}"
+                        data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
+                        data-status="{{ $attendance->status }}">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
                       <x-ui.action-buttom-modal
                         class="edit open-edit-attendance-modal"
                         title="Edit"
-                        icon="fa-pen"
+                        icon="fa-pen-to-square"
                         data-id="{{ $attendance->id }}"
                         data-mechanic-id="{{ $attendance->mechanic_id }}"
                         data-mechanic-name="{{ $attendance->mechanic_name }}"
@@ -186,7 +201,7 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="9" message="No mechanic attendance records found." />
+                <x-ui.empty-row colspan="8" message="No mechanic attendance records found." />
               @endforelse
             </tbody>
           </table>
@@ -197,42 +212,16 @@
     </main>
   </div>
 
-  <div id="importAttendanceModal" class="modal-overlay">
-    <div class="modal-box">
+  <div id="viewMechanicAttendanceModal" class="modal-overlay">
+    <div class="modal-box wide-modal" role="dialog" aria-modal="true" aria-labelledby="viewMechanicAttendanceTitle">
       <div class="modal-header">
-        <h2>Import Mechanic Attendance Data</h2>
-        <button type="button" id="closeImportAttendanceModal" class="close-btn">&times;</button>
+        <h2 id="viewMechanicAttendanceTitle">Mechanic Attendance Details</h2>
+        <button type="button" id="closeViewMechanicAttendanceModal" class="close-btn" aria-label="Close">&times;</button>
       </div>
-
-      <form
-        id="importAttendanceForm"
-        action="{{ route('mechanic-attendance.import', [], false) }}"
-        method="POST"
-        enctype="multipart/form-data"
-        class="job-form"
-        data-confirm-form
-        data-confirm-title="Import Mechanic Attendance?"
-        data-confirm-message="Are you sure you want to import these mechanic attendance records?"
-        data-confirm-button="Yes, Import Data"
-        data-confirm-type="warning"
-      >
-        @csrf
-        <div class="form-section-title full-width">
-          <h3>Upload CSV File</h3>
-          <p>Upload mechanic attendance records using a CSV file.</p>
-        </div>
-        <div class="form-group full-width">
-          <label>CSV File</label>
-          <input type="file" name="import_file" accept=".csv,.txt" required>
-        </div>
-        <div class="form-group full-width">
-          <small>Required columns: mechanic_name, shift, assigned_job, attendance_date, time_in, time_out, status</small>
-        </div>
-        <div class="modal-actions full-width">
-          <button type="button" id="cancelImportAttendanceModal" class="cancel-btn">Cancel</button>
-          <button type="submit" class="save-btn">Import Data</button>
-        </div>
-      </form>
+      <div class="attendance-details-grid" id="viewMechanicAttendanceContent"></div>
+      <div class="modal-actions">
+        <button type="button" id="dismissViewMechanicAttendanceModal" class="cancel-btn">Close</button>
+      </div>
     </div>
   </div>
 

@@ -255,11 +255,20 @@ const badgeTable = (table) => {
 const processIdBadges = (root = document) => {
   normalizeExistingIdElements(root);
 
-  if (root.matches?.('table')) {
+  // AJAX table filtering replaces only <tbody>, not <table>. Include its
+  // containing table so newly inserted rows receive their ID badges too.
+  const containingTable = root.closest?.('table');
+  if (containingTable) {
+    badgeTable(containingTable);
+  } else if (root.matches?.('table')) {
     badgeTable(root);
   }
 
-  root.querySelectorAll?.('table').forEach(badgeTable);
+  root.querySelectorAll?.('table').forEach((table) => {
+    if (table !== containingTable) {
+      badgeTable(table);
+    }
+  });
 };
 
 document.addEventListener('DOMContentLoaded', () => {

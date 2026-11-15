@@ -316,60 +316,6 @@
 
 
 /* =========================================================
-   IMPORT CSV BUTTON
-========================================================= */
-
-.bus-toolbar .import-btn {
-  height: 40px;
-
-  padding: 0 14px;
-
-  border: 1px solid var(--bus-border);
-  border-radius: 9px;
-
-  background: #ffffff;
-
-  color: var(--bus-navy);
-
-  display: inline-flex;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-
-  font-size: 13px;
-  font-weight: 800;
-
-  white-space: nowrap;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.bus-toolbar .import-btn i {
-  color: var(--bus-blue);
-
-  font-size: 13px;
-}
-
-.bus-toolbar .import-btn:hover {
-  background: #f5f8ff;
-
-  border-color: var(--bus-blue);
-
-  color: var(--bus-blue);
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
    ADD BUS BUTTON
 ========================================================= */
 
@@ -1392,7 +1338,6 @@
     min-width: 100%;
   }
 
-  .bus-toolbar .import-btn,
   .bus-toolbar .primary-btn {
     width: 100%;
   }
@@ -1434,7 +1379,6 @@
   }
 
 
-  .bus-toolbar .import-btn,
   .bus-toolbar .primary-btn {
     width: 100%;
 
@@ -1485,4 +1429,127 @@
     justify-content: center;
   }
 
+}
+
+/* Routes-aligned Bus Master List controls */
+.bus-master-list-page .bus-toolbar {
+  grid-template-columns: minmax(0, 1fr) 150px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border-color: #d9e4f0;
+}
+
+.bus-master-list-page .bus-toolbar .search-box {
+  min-width: 0;
+}
+
+.bus-master-list-page .bus-toolbar .search-box i {
+  color: #0b40b5;
+}
+
+.bus-master-list-page .bus-toolbar .search-box input,
+.bus-master-list-page .bus-toolbar .filter-group select {
+  height: 40px;
+  min-height: 40px;
+  border-radius: 9px;
+  border-color: #d9e4f0;
+  background: #fff;
+}
+
+.bus-master-list-page .bus-toolbar .filter-group,
+.bus-master-list-page .bus-toolbar .filter-group select {
+  min-width: 0;
+  width: 100%;
+}
+
+.bus-master-list-page .bus-toolbar .primary-btn {
+  height: 40px;
+  background: linear-gradient(135deg, #ffcf00, #ffb900);
+  border-color: #e8ac00;
+  color: #0b2a4a;
+  font-size: 12px;
+}
+
+.bus-master-list-page .bus-toolbar .primary-btn:hover {
+  background: linear-gradient(135deg, #ffdc39, #ffc400);
+}
+
+.bus-filter-loading {
+  margin: -2px 0 10px;
+  padding: 7px 10px;
+  color: #55708e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bus-filter-loading i {
+  margin-right: 6px;
+  color: #0b40b5;
+}
+
+.bus-master-list-page .bus-table .actions .action-btn {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.bus-master-list-page .bus-table .actions .edit {
+  background: #eaf2ff;
+  border-color: #d4e3ff;
+  color: #0b40b5;
+}
+
+.bus-master-list-page .bus-table .actions .edit:hover {
+  background: #0b40b5;
+  border-color: #0b40b5;
+  color: #fff;
+}
+
+.bus-master-list-page .bus-table .actions .delete {
+  background: #fff0f0;
+  border-color: #fee2e2;
+  color: #dc2626;
+}
+
+.bus-master-list-page .bus-table .actions .delete:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.bus-master-list-page .bus-status {
+  gap: 7px;
+}
+
+@media (max-width: 1050px) {
+  .bus-master-list-page .bus-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bus-master-list-page .bus-toolbar .search-box {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .bus-master-list-page .bus-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bus-master-list-page .bus-toolbar .search-box {
+    grid-column: auto;
+  }
+}
+
+/* Secondary vehicle identification in the Bus Master List. */
+.bus-master-list-page .bus-plate-detail {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.35;
 }

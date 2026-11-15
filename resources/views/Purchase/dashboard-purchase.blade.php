@@ -4,6 +4,7 @@
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Purchase/dashboard-purchase.css',
+    'resources/css/Purchase/purchase-module-ui.css',
     'resources/js/Main-js/sidebar.js'
   ]"
 >
@@ -33,7 +34,7 @@
     <x-layout.sidebar department="Purchase" />
 
 
-    <main class="main purchase-dashboard-main">
+    <main class="main purchase-dashboard-main purchase-module-page records-page">
 
       {{-- =====================================================
           TOPBAR

@@ -2042,3 +2042,180 @@ tr.gct-highlight-pulse td,
 .toolbar[aria-busy="true"] {
   cursor: progress;
 }
+
+/* Hide only the browser page scrollbar; preserve table, modal and panel scrollbars. */
+html, body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+/* Slim GCT navy scrollbar for scrollable table containers.
+   The document scrollbar stays hidden; panels and modals keep their own styling. */
+:is(.table-wrap, .table-container, .table-responsive, .table-wrapper,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap) {
+  scrollbar-width: thin;
+  scrollbar-color: #24558c #edf2f7;
+}
+
+:is(.table-wrap, .table-container, .table-responsive, .table-wrapper,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap)::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+:is(.table-wrap, .table-container, .table-responsive, .table-wrapper,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap)::-webkit-scrollbar-track {
+  background: #edf2f7;
+  border-radius: 999px;
+}
+
+:is(.table-wrap, .table-container, .table-responsive, .table-wrapper,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap)::-webkit-scrollbar-thumb {
+  background: #24558c;
+  border-radius: 999px;
+}
+
+:is(.table-wrap, .table-container, .table-responsive, .table-wrapper,
+    .attendance-table-wrap, .personnel-master-table-wrap, .bus-table-wrap)::-webkit-scrollbar-thumb:hover {
+  background: #123b68;
+}
+
+/* Consistent operational shift, assignment and status chips across the
+   master lists and attendance pages; maintained in server-rendered markup
+   so AJAX table refreshes retain the same appearance. */
+.gct-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 25px;
+  padding: 3px 11px;
+  border: 1px solid #dce5ef;
+  border-radius: 999px;
+  background: #f3f6fa;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.gct-pill--shift-morning,
+.gct-pill--shift-afternoon,
+.gct-pill--unassigned {
+  background: #fff5cf !important;
+  border-color: #f7d876 !important;
+  color: #966000 !important;
+}
+.gct-pill--shift-night {
+  background: #e7e9ff !important;
+  border-color: #c5ceff !important;
+  color: #454cae !important;
+}
+.gct-pill--scheduled {
+  background: #e3edff !important;
+  border-color: #bcd2ff !important;
+  color: #1748ae !important;
+}
+.gct-pill--active,
+.gct-pill--attendance.present {
+  background: #dcfae7 !important;
+  border-color: #b3edc9 !important;
+  color: #127240 !important;
+}
+.gct-pill--inactive,
+.gct-pill--attendance.absent {
+  background: #ffe5e6 !important;
+  border-color: #ffc4c8 !important;
+  color: #ac2435 !important;
+}
+.gct-pill--attendance.late,
+.gct-pill.status-maintenance {
+  background: #fff0cc !important;
+  border-color: #ffda8a !important;
+  color: #986000 !important;
+}
+.gct-pill--attendance.duty {
+  background: #e3edff !important;
+  border-color: #bcd2ff !important;
+  color: #1748ae !important;
+}
+.gct-pill--attendance.leave {
+  background: #f0e7ff !important;
+  border-color: #d9c5ff !important;
+  color: #6c3aa3 !important;
+}
+
+/* Emphasize assignment chips without making table dates or times bold. */
+.gct-pill--unassigned,
+.gct-pill--scheduled,
+.gct-pill--shift-morning,
+.gct-pill--shift-afternoon,
+.gct-pill--shift-night {
+  font-weight: 800 !important;
+}
+
+/* Shared unavailable action behavior: visibly disabled, never clickable.
+   Preserve the icon shape and tooltips; do not hide restricted actions. */
+:is(.action-btn, .route-action, .fuel-action-btn, [data-ui-component="action-button"]):is(:disabled, [aria-disabled="true"], .gct-action-unavailable) {
+  background: #f1f5f9 !important;
+  border: 1px solid #dbe3ec !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  opacity: 0.78 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  filter: grayscale(1);
+}
+:is(.action-btn, .route-action, .fuel-action-btn, [data-ui-component="action-button"]):is(:disabled, [aria-disabled="true"], .gct-action-unavailable):hover {
+  background: #f1f5f9 !important;
+  border-color: #dbe3ec !important;
+  color: #94a3b8 !important;
+  transform: none !important;
+}
+:is(.action-btn, .route-action, .fuel-action-btn, [data-ui-component="action-button"]):is(:disabled, [aria-disabled="true"], .gct-action-unavailable) i {
+  color: #94a3b8 !important;
+  pointer-events: none;
+}
+
+/* Shared GCT record-card Add/New action: place in section header, outside filters. */
+.gct-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.gct-section-header > :first-child { min-width: 0; }
+.gct-section-new-button {
+  min-height: 38px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid #e8a500;
+  border-radius: 9px;
+  background: #ffbd00;
+  color: #102442;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 181, 0, .15);
+}
+.gct-section-new-button:hover { background: #f4af00; }
+.gct-section-new-button:focus-visible { outline: 2px solid #0b40b5; outline-offset: 2px; }
+.gct-section-new-button:disabled,
+.gct-section-new-button[aria-disabled="true"] {
+  background: #f1f5f9; border-color: #dbe3ec; color: #94a3b8;
+  cursor: not-allowed; box-shadow: none;
+}
+@media (max-width: 650px) { .gct-section-header { flex-wrap: wrap; } }

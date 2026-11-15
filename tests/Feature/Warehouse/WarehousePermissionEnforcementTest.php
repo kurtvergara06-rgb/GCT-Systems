@@ -23,13 +23,13 @@ class WarehousePermissionEnforcementTest extends TestCase
         ]);
     }
 
-    private function permissions(bool $view, bool $edit, bool $approve): void
+    private function permissions(bool $view, bool $edit): void
     {
         $role = RolePermission::where('role_key', 'warehouse_staff')->firstOrFail();
         $permissions = $role->permissions;
         data_set($permissions, 'warehouse.view', $view);
         data_set($permissions, 'warehouse.edit', $edit);
-        data_set($permissions, 'warehouse.approve', $approve);
+        data_forget($permissions, 'warehouse.approve');
         $role->update(['permissions' => $permissions]);
     }
 
@@ -50,7 +50,7 @@ class WarehousePermissionEnforcementTest extends TestCase
     public function test_view_permission_blocks_all_warehouse_pages(): void
     {
         $staff = $this->staff();
-        $this->permissions(false, true, true);
+        $this->permissions(false, true);
 
         foreach (['warehouse.dashboard', 'inventory', 'part-requests', 'incoming-deliveries', 'stock-movements'] as $route) {
             $this->actingAs($staff)->get(route($route))->assertForbidden();
@@ -60,7 +60,7 @@ class WarehousePermissionEnforcementTest extends TestCase
     public function test_edit_permission_blocks_direct_inventory_receive_and_issue_requests(): void
     {
         $staff = $this->staff();
-        $this->permissions(true, false, true);
+        $this->permissions(true, false);
         $item = InventoryItem::create([
             'item_code' => 'PERM-ITEM',
             'item_name' => 'Brake Pad',
@@ -87,20 +87,20 @@ class WarehousePermissionEnforcementTest extends TestCase
         $this->assertSame(2, (int) $item->fresh()->quantity_available);
     }
 
-    public function test_approve_permission_controls_send_to_purchase_workflow_for_staff(): void
+    public function test_edit_permission_controls_send_to_purchase_workflow_for_staff(): void
     {
         $staff = $this->staff();
         InventoryItem::create([
-            'item_code' => 'PERM-APPROVE',
+            'item_code' => 'PERM-PURCHASE',
             'item_name' => 'Brake Pad',
             'category' => 'Parts',
             'quantity_available' => 0,
             'unit_of_measurement' => 'pcs',
             'reorder_level' => 0,
         ]);
-        $request = $this->request('APPROVE');
+        $request = $this->request('PURCHASE');
 
-        $this->permissions(true, true, false);
+        $this->permissions(true, false);
         $this->actingAs($staff)
             ->post(route('part-requests.send-to-purchase', $request))
             ->assertForbidden();
@@ -113,7 +113,7 @@ class WarehousePermissionEnforcementTest extends TestCase
                 ->count()
         );
 
-        $this->permissions(true, true, true);
+        $this->permissions(true, true);
         $this->actingAs($staff)
             ->post(route('part-requests.send-to-purchase', $request))
             ->assertRedirect()

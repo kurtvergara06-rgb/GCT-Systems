@@ -52,19 +52,18 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
       });
     });
 
-  const importAttendanceModal = document.getElementById('importAttendanceModal');
+  const viewMechanicAttendanceModal = document.getElementById('viewMechanicAttendanceModal');
+  const viewMechanicAttendanceContent = document.getElementById('viewMechanicAttendanceContent');
+  const escapeDetail = (value) => String(value ?? '—')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 
-  document
-    .getElementById('openImportAttendanceModal')
-    ?.addEventListener('click', () => openModal(importAttendanceModal));
-
-  document
-    .getElementById('closeImportAttendanceModal')
-    ?.addEventListener('click', () => closeModal(importAttendanceModal));
-
-  document
-    .getElementById('cancelImportAttendanceModal')
-    ?.addEventListener('click', () => closeModal(importAttendanceModal));
+  ['closeViewMechanicAttendanceModal', 'dismissViewMechanicAttendanceModal'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('click', () => closeModal(viewMechanicAttendanceModal));
+  });
 
   const editMechanicAttendanceModal = document.getElementById(
     'editMechanicAttendanceModal'
@@ -82,8 +81,61 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
   const editStatus = document.getElementById('edit_status');
 
   document
+    .getElementById('closeEditMechanicAttendanceModal')
+    ?.addEventListener('click', () => closeModal(editMechanicAttendanceModal));
+
+  document
+    .getElementById('cancelEditMechanicAttendanceModal')
+    ?.addEventListener('click', () => closeModal(editMechanicAttendanceModal));
+
+  const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
+  const deleteAttendanceName = document.getElementById('deleteAttendanceName');
+  let selectedDeleteForm = null;
+
+  document
+    .getElementById('cancelDeleteAttendance')
+    ?.addEventListener('click', () => {
+      selectedDeleteForm = null;
+      closeModal(deleteAttendanceModal);
+    });
+
+  document
+    .getElementById('confirmDeleteAttendance')
+    ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
+
+  // Server-side search/filter replaces tbody rows. Bind actions on each newly
+  // inserted row without duplicating handlers on existing buttons.
+  const bindAttendanceRowActions = () => {
+  document.querySelectorAll('.open-view-mechanic-attendance-modal').forEach((button) => {
+      if (button.dataset.gctAttendanceActionBound) return;
+      button.dataset.gctAttendanceActionBound = '1';
+    button.addEventListener('click', () => {
+      const fields = [
+        ['Mechanic ID', button.dataset.mechanicId],
+        ['Mechanic Name', button.dataset.mechanicName],
+        ['Shift', button.dataset.shift],
+        ['Assigned Job', button.dataset.assignedJob],
+        ['Date', button.dataset.attendanceDate],
+        ['Time-in', button.dataset.timeIn],
+        ['Time-out', button.dataset.timeOut],
+        ['Status', button.dataset.status],
+      ];
+      if (viewMechanicAttendanceContent) {
+        viewMechanicAttendanceContent.innerHTML = fields.map(([label, value]) =>
+          '<div class="mechanic-attendance-detail-card"><strong>' + escapeDetail(label) +
+          '</strong><span>' + escapeDetail(value) + '</span></div>'
+        ).join('');
+      }
+      openModal(viewMechanicAttendanceModal);
+    });
+  });
+
+
+  document
     .querySelectorAll('.open-edit-attendance-modal')
     .forEach((button) => {
+      if (button.dataset.gctAttendanceActionBound) return;
+      button.dataset.gctAttendanceActionBound = '1';
       button.addEventListener('click', () => {
         editMechanicAttendanceForm?.setAttribute(
           'action',
@@ -106,21 +158,12 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
       });
     });
 
-  document
-    .getElementById('closeEditMechanicAttendanceModal')
-    ?.addEventListener('click', () => closeModal(editMechanicAttendanceModal));
-
-  document
-    .getElementById('cancelEditMechanicAttendanceModal')
-    ?.addEventListener('click', () => closeModal(editMechanicAttendanceModal));
-
-  const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
-  const deleteAttendanceName = document.getElementById('deleteAttendanceName');
-  let selectedDeleteForm = null;
 
   document
     .querySelectorAll('.open-delete-attendance-modal')
     .forEach((button) => {
+      if (button.dataset.gctAttendanceActionBound) return;
+      button.dataset.gctAttendanceActionBound = '1';
       button.addEventListener('click', (event) => {
         event.preventDefault();
 
@@ -139,34 +182,17 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
       });
     });
 
-  document
-    .getElementById('cancelDeleteAttendance')
-    ?.addEventListener('click', () => {
-      selectedDeleteForm = null;
-      closeModal(deleteAttendanceModal);
-    });
-
-  document
-    .getElementById('confirmDeleteAttendance')
-    ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
-
-  document
-    .querySelectorAll('.modal-overlay, .delete-modal-overlay, .success-modal-overlay')
-    .forEach((modal) => {
-      modal.addEventListener('click', (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
-        }
-      });
-    });
+  };
+  bindAttendanceRowActions();
+  document.addEventListener('ajax:content-updated', bindAttendanceRowActions);
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') {
       return;
     }
 
-    closeModal(importAttendanceModal);
     closeModal(editMechanicAttendanceModal);
+    closeModal(viewMechanicAttendanceModal);
     closeModal(deleteAttendanceModal);
   });
 });

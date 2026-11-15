@@ -37,7 +37,7 @@ Route::middleware([
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.issue');
                 Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')
-                    ->middleware('system.permission:warehouse,approve')
+                    ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.send-to-purchase');
             });
 

@@ -10,60 +10,25 @@
     ]"
 >
 
-    {{-- =====================================================
-        VALIDATION ERROR
-    ====================================================== --}}
-    @if($errors->any())
+    @php
+        $routeUser = auth()->user();
 
-        <div
-            id="routeValidationModal"
-            class="modal-overlay delete-modal-overlay show active"
-        >
+        $isOperationHead =
+            $routeUser
+            && strtolower(trim((string) $routeUser->department)) === 'operation'
+            && strtolower(trim((string) $routeUser->role)) === 'head';
 
-            <div class="modal-card delete-modal-box">
+        $canManageRoutes =
+            $isOperationHead
+            || (
+                $routeUser?->hasSystemPermission(
+                    'operation',
+                    'edit'
+                ) ?? false
+            );
+    @endphp
 
-                <div class="delete-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-
-                <h2>
-                    Form Error
-                </h2>
-
-                <p>
-                    Please check the route information.
-                </p>
-
-                <ul class="form-error-list">
-
-                    @foreach($errors->all() as $error)
-
-                        <li>
-                            {{ $error }}
-                        </li>
-
-                    @endforeach
-
-                </ul>
-
-                <div class="delete-modal-actions">
-
-                    <button
-                        type="button"
-                        id="closeRouteValidationModal"
-                        class="secondary-btn"
-                    >
-                        Okay
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    @endif
-
+    {{-- Validation errors are shown by the shared system toast and inline field feedback. --}}
 
     <div class="app">
 
@@ -117,7 +82,7 @@
     <x-ui.summary-card
         label="Total Stops"
         :value="$routeStats['stops']"
-        small="Stops in loaded routes"
+        small="Intermediate stops in existing routes"
         icon="fa-location-dot"
         color="purple"
     />
@@ -154,6 +119,7 @@
                     method="GET"
                     action="{{ route('operation.routes', [], false) }}"
                     class="toolbar routes-toolbar"
+                    data-server-filter="true"
                 >
 
                     <div class="search-box">
@@ -211,7 +177,8 @@
                     </div>
 
 
-                    <button
+                    @if($canManageRoutes)
+                                            <button
                         type="button"
                         class="new-route-btn"
                         id="openRouteModal"
@@ -220,6 +187,7 @@
 
                         New Route
                     </button>
+                    @endif
 
                 </form>
 
@@ -319,6 +287,9 @@
                                                 data-route-geometry='@json($route->route_geometry)'
                                             data-distance="{{ $route->distance_km }}"
                                             data-time="{{ $route->estimated_time_minutes }}"
+                                            data-calculated-distance="{{ $route->calculated_distance_km }}"
+                                            data-calculated-time="{{ $route->calculated_time_minutes }}"
+                                            data-distance-source="{{ $route->distance_source }}"
                                             data-status="{{ $route->status }}"
                                             data-stops="{{ $stopsJson }}"
                                         >
@@ -350,13 +321,34 @@
                                     <td>
 
                                         @if($route->estimated_time_minutes)
+                                            @php
+                                                $durationMinutes = (int) $route->estimated_time_minutes;
+                                                $durationHours = intdiv($durationMinutes, 60);
+                                                $remainingMinutes = $durationMinutes % 60;
 
-                                            {{ $route->estimated_time_minutes }} min
+                                                if ($durationHours > 0) {
+                                                    $durationLabel = $durationHours
+                                                        . ' '
+                                                        . ($durationHours === 1 ? 'hr' : 'hrs');
 
+                                                    if ($remainingMinutes > 0) {
+                                                        $durationLabel .= ' '
+                                                            . str_pad(
+                                                                (string) $remainingMinutes,
+                                                                2,
+                                                                '0',
+                                                                STR_PAD_LEFT
+                                                            )
+                                                            . ' min';
+                                                    }
+                                                } else {
+                                                    $durationLabel = $remainingMinutes . ' min';
+                                                }
+                                            @endphp
+
+                                            {{ $durationLabel }}
                                         @else
-
                                             —
-
                                         @endif
 
                                     </td>
@@ -406,61 +398,63 @@
                                             </button>
 
 
-                                            {{-- EDIT --}}
-                                            <button
-                                                type="button"
-                                                class="route-action edit edit-route-btn"
-                                                title="Edit Route"
-
-                                                data-id="{{ $route->id }}"
-                                                data-route-code="{{ $route->route_code }}"
-                                                data-route-name="{{ $route->route_name }}"
-                                                data-origin="{{ $route->origin }}"
-                                                data-destination="{{ $route->destination }}"
-                                                data-origin-address="{{ $route->origin_address }}"
-                                                data-origin-latitude="{{ $route->origin_latitude }}"
-                                                data-origin-longitude="{{ $route->origin_longitude }}"
-                                                data-origin-source="{{ $route->origin_source }}"
-                                                data-destination-address="{{ $route->destination_address }}"
-                                                data-destination-latitude="{{ $route->destination_latitude }}"
-                                                data-destination-longitude="{{ $route->destination_longitude }}"
-                                                data-destination-source="{{ $route->destination_source }}"
-                                                data-route-geometry='@json($route->route_geometry)'
-                                                data-distance="{{ $route->distance_km }}"
-                                                data-time="{{ $route->estimated_time_minutes }}"
-                                                data-status="{{ $route->status }}"
-                                                data-update-url="{{ route('operation.routes.update', $route->id, false) }}"
-                                                data-stops="{{ $stopsJson }}"
-                                            >
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </button>
-
-
-                                            {{-- DELETE --}}
-                                            <form
-                                                id="deleteRouteForm-{{ $route->id }}"
-                                                action="{{ route('operation.routes.destroy', $route->id, false) }}"
-                                                method="POST"
-                                                class="route-delete-form"
-                                            >
-
-                                                @csrf
-                                                @method('DELETE')
-
-
-                                                <button
-                                                    type="button"
-                                                    class="route-action delete open-delete-route-modal"
-                                                    title="Delete Route"
-
-                                                    data-form-id="deleteRouteForm-{{ $route->id }}"
-                                                    data-route-code="{{ $route->route_code }}"
-                                                    data-route-name="{{ $route->route_name }}"
-                                                >
+                                            @if($canManageRoutes)
+                                            {{-- Used routes must keep their historical definition. --}}
+                                            @if($route->trip_schedules_count > 0)
+                                                <button type="button" class="route-action edit gct-action-unavailable"
+                                                    data-has-schedules="1"
+                                                    disabled aria-disabled="true" title="Unavailable: route already used by a trip"
+                                                    aria-label="Edit unavailable: route already used by a trip">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button type="button" class="route-action delete gct-action-unavailable"
+                                                    disabled aria-disabled="true" title="Unavailable: route already used by a trip"
+                                                    aria-label="Delete unavailable: route already used by a trip">
                                                     <i class="fa-solid fa-trash"></i>
                                                 </button>
-
-                                            </form>
+                                            @else
+                                                <button
+                                                    type="button"
+                                                    class="route-action edit edit-route-btn"
+                                                    title="Edit Route"
+                                                    data-id="{{ $route->id }}"
+                                                    data-route-code="{{ $route->route_code }}"
+                                                    data-route-name="{{ $route->route_name }}"
+                                                    data-origin="{{ $route->origin }}"
+                                                    data-destination="{{ $route->destination }}"
+                                                    data-origin-address="{{ $route->origin_address }}"
+                                                    data-origin-latitude="{{ $route->origin_latitude }}"
+                                                    data-origin-longitude="{{ $route->origin_longitude }}"
+                                                    data-origin-source="{{ $route->origin_source }}"
+                                                    data-destination-address="{{ $route->destination_address }}"
+                                                    data-destination-latitude="{{ $route->destination_latitude }}"
+                                                    data-destination-longitude="{{ $route->destination_longitude }}"
+                                                    data-destination-source="{{ $route->destination_source }}"
+                                                    data-route-geometry='@json($route->route_geometry)'
+                                                    data-distance="{{ $route->distance_km }}"
+                                                    data-time="{{ $route->estimated_time_minutes }}"
+                                                    data-status="{{ $route->status }}"
+                                                    data-has-schedules="0"
+                                                    data-update-url="{{ route('operation.routes.update', $route->id, false) }}"
+                                                    data-stops="{{ $stopsJson }}"
+                                                >
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <form id="deleteRouteForm-{{ $route->id }}"
+                                                    action="{{ route('operation.routes.destroy', $route->id, false) }}"
+                                                    method="POST" class="route-delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="route-action delete open-delete-route-modal"
+                                                        title="Delete Route"
+                                                        data-form-id="deleteRouteForm-{{ $route->id }}"
+                                                        data-route-code="{{ $route->route_code }}"
+                                                        data-route-name="{{ $route->route_name }}">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            @endif
 
                                         </div>
 
@@ -516,10 +510,11 @@
         title="New Route"
         title-id="routeModalTitle"
 
-        description="Enter the route information and shuttle stops."
+        description="Update route information, shuttle stops, and map preview."
 
         icon="fa-map-location-dot"
-        size="large"
+        size="wide"
+        class="route-editor-overlay"
 
         form-id="routeForm"
 
@@ -552,6 +547,24 @@
         {{-- =====================================================
             ROUTE FIELDS
         ====================================================== --}}
+        <x-ui.form-section
+            title="Route Information"
+            subtitle="Enter the basic details for this route."
+            icon="fa-map-location-dot"
+            class="route-editor-section route-information-section"
+        >
+        <div
+            class="route-history-lock-note"
+            id="routeHistoricalLockNotice"
+            hidden
+        >
+            <i class="fa-solid fa-lock"></i>
+            <div>
+                <strong>Historical route details are protected.</strong>
+                <span>This route is already used by trip schedules. Create a new route variant to change its name, locations, stops, distance, or map path. Only Status can be changed here.</span>
+            </div>
+        </div>
+
         <div class="ui-form-grid">
 
             {{-- ROUTE ID --}}
@@ -565,7 +578,6 @@
                 icon="fa-hashtag"
 
                 readonly
-                full
             />
 
 
@@ -580,9 +592,12 @@
                 icon="fa-route"
 
                 required
-                full
             />
 
+
+            <p class="route-name-guidance">
+                Route Name is auto-filled from Origin and Destination, but you can edit it for a distinct route variant.
+            </p>
 
             {{-- ORIGIN --}}
             <x-ui.form-field
@@ -593,6 +608,7 @@
                 placeholder="Enter origin"
 
                 icon="fa-location-dot"
+                spellcheck="false"
 
                 required
             />
@@ -607,9 +623,12 @@
                 placeholder="Enter destination"
 
                 icon="fa-location-crosshairs"
+                spellcheck="false"
 
                 required
             />
+
+            <input type="hidden" name="editing_route_id" id="routeEditingId">
 
             <input type="hidden" name="origin_address" id="routeOriginAddress">
             <input type="hidden" name="origin_latitude" id="routeOriginLatitude">
@@ -631,36 +650,36 @@
 
             {{-- DISTANCE --}}
             <x-ui.form-field
-                label="Distance"
+                label="Distance (Auto)"
                 name="distance_km"
                 id="routeDistance"
 
                 type="number"
 
-                placeholder="0"
+                placeholder="Auto-calculated"
 
                 icon="fa-ruler-combined"
                 unit="KM"
 
                 min="0"
                 step="0.01"
+                readonly
             />
 
 
             {{-- ESTIMATED TIME --}}
             <x-ui.form-field
-                label="Estimated Travel Time"
-                name="estimated_time_minutes"
+                label="Estimated Travel Time (Auto)"
+                name="estimated_time_display"
                 id="routeTime"
 
-                type="number"
+                type="text"
 
-                placeholder="0"
+                placeholder="Auto-calculated"
 
                 icon="fa-clock"
-                unit="min"
 
-                min="1"
+                readonly
             />
 
 
@@ -684,6 +703,7 @@
             />
 
         </div>
+        </x-ui.form-section>
 
 
         {{-- =====================================================
@@ -691,8 +711,9 @@
         ====================================================== --}}
         <x-ui.form-section
             title="Shuttle Stops"
-            subtitle="Add intermediate stops between the origin and destination."
+            subtitle="Add, edit, or reorder the intermediate stops for this route."
             icon="fa-bus-simple"
+            class="route-editor-section route-stops-section"
         >
 
             <x-slot:action>
@@ -733,6 +754,7 @@
                                     value="{{ $stop }}"
                                     placeholder="Search or enter a stop"
                                     autocomplete="off"
+                                    spellcheck="false"
                                 >
                                 <input type="hidden" name="stop_addresses[]" value="{{ old('stop_addresses.' . $index) }}">
                                 <input type="hidden" name="stop_latitudes[]" value="{{ old('stop_latitudes.' . $index) }}">
@@ -801,8 +823,9 @@
 
         <x-ui.form-section
             title="Route Map Preview"
-            subtitle="Select GPS or map-search suggestions, or pin the active location manually."
+            subtitle="Visualize the route and its confirmed stops on the map."
             icon="fa-map-location-dot"
+            class="route-editor-section route-map-section"
         >
             <div class="route-form-map-toolbar">
                 <div class="route-map-active-field" id="routeMapActiveField">
@@ -839,9 +862,43 @@
             <div class="route-form-gps-map" id="routeFormGpsMap" aria-label="Interactive route map preview"></div>
 
             <p class="route-form-map-note">
-                Search results use OpenStreetMap data. Routing estimates use OSRM and do not include live traffic.
+                Search results use OpenStreetMap data. The road path uses OSRM; travel time is a conservative shuttle ETA and does not include live traffic.
             </p>
         </x-ui.form-section>
+
+        <div class="route-editor-summary" aria-label="Route summary">
+            <div class="route-editor-summary-item">
+                <span class="route-editor-summary-icon"><i class="fa-solid fa-route"></i></span>
+                <div>
+                    <strong id="routeEditorSummaryDistance">—</strong>
+                    <small>Total Distance</small>
+                </div>
+            </div>
+
+            <div class="route-editor-summary-item">
+                <span class="route-editor-summary-icon"><i class="fa-regular fa-clock"></i></span>
+                <div>
+                    <strong id="routeEditorSummaryTime">—</strong>
+                    <small>Estimated Time</small>
+                </div>
+            </div>
+
+            <div class="route-editor-summary-item">
+                <span class="route-editor-summary-icon"><i class="fa-solid fa-location-dot"></i></span>
+                <div>
+                    <strong id="routeEditorSummaryStops">0</strong>
+                    <small>Total Stops</small>
+                </div>
+            </div>
+
+            <div class="route-editor-summary-item">
+                <span class="route-editor-summary-icon"><i class="fa-solid fa-hashtag"></i></span>
+                <div>
+                    <strong id="routeEditorSummaryCode">—</strong>
+                    <small>Route ID</small>
+                </div>
+            </div>
+        </div>
 
     </x-ui.form-modal>
 
@@ -853,31 +910,26 @@
     VIEW ROUTE MODAL
 ========================================================= --}}
 <div
-    class="route-modal-overlay"
+    class="route-modal-overlay route-view-overlay"
     id="routeDetailsModal"
     aria-hidden="true"
 >
     <section
-        class="route-modal route-details-modal"
+        class="route-modal route-details-modal route-view-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="routeDetailsTitle"
     >
-        {{-- Modal Header --}}
-        <header class="route-details-header">
+        <header class="route-details-header route-view-header">
             <div class="route-details-title-group">
-                <div class="route-details-header-icon">
-                    <i class="fa-solid fa-route"></i>
+                <div class="route-details-header-icon route-view-header-icon">
+                    <i class="fa-solid fa-map-location-dot"></i>
                 </div>
 
                 <div>
-                    <h2 id="routeDetailsTitle">
-                        Route Details
-                    </h2>
-
-                    <p>
-                        Route information and shuttle stop sequence.
-                    </p>
+                    <span class="route-view-eyebrow">Route Management</span>
+                    <h2 id="routeDetailsTitle">Route Details</h2>
+                    <p>Review route information, map preview, and shuttle stop sequence.</p>
                 </div>
             </div>
 
@@ -891,110 +943,100 @@
             </button>
         </header>
 
-        {{-- Modal Body --}}
-        <div class="route-details-body">
-            <section class="route-details-grid">
-                {{-- Route ID --}}
-                <div class="route-detail-field">
-                    <span>Route ID</span>
-
-                    <strong id="viewRouteCode">
-                        —
-                    </strong>
-                </div>
-
-                {{-- Status --}}
-                <div class="route-detail-field">
-                    <span>Status</span>
-
-                    <div
-                        class="route-detail-value route-status-value"
-                        id="viewRouteStatus"
-                    >
-                        —
+        <div class="route-details-body route-view-body">
+            <section class="route-view-card route-view-information">
+                <div class="route-view-card-header">
+                    <div class="route-view-card-title">
+                        <span class="route-view-section-icon">
+                            <i class="fa-solid fa-route"></i>
+                        </span>
+                        <div>
+                            <h3>Route Information</h3>
+                            <p>Basic route details and current operating status.</p>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Route Name --}}
-                <div class="route-detail-field full">
-                    <span>Route Name</span>
+                <div class="route-details-grid route-view-grid">
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-solid fa-hashtag"></i> Route ID</span>
+                        <strong id="viewRouteCode">—</strong>
+                    </div>
 
-                    <strong id="viewRouteName">
-                        —
-                    </strong>
-                </div>
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-solid fa-circle-check"></i> Status</span>
+                        <div
+                            class="route-detail-value route-status-value"
+                            id="viewRouteStatus"
+                        >
+                            —
+                        </div>
+                    </div>
 
-                {{-- Origin --}}
-                <div class="route-detail-field">
-                    <span>Origin</span>
+                    <div class="route-detail-field route-view-field full">
+                        <span><i class="fa-solid fa-signature"></i> Route Name</span>
+                        <strong id="viewRouteName">—</strong>
+                    </div>
 
-                    <strong id="viewRouteOrigin">
-                        —
-                    </strong>
-                </div>
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-solid fa-location-dot"></i> Origin</span>
+                        <strong id="viewRouteOrigin">—</strong>
+                    </div>
 
-                {{-- Destination --}}
-                <div class="route-detail-field">
-                    <span>Destination</span>
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-solid fa-location-crosshairs"></i> Destination</span>
+                        <strong id="viewRouteDestination">—</strong>
+                    </div>
 
-                    <strong id="viewRouteDestination">
-                        —
-                    </strong>
-                </div>
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-solid fa-ruler-combined"></i> Distance</span>
+                        <strong id="viewRouteDistance">—</strong>
+                    </div>
 
-                {{-- Distance --}}
-                <div class="route-detail-field">
-                    <span>Distance</span>
-
-                    <strong id="viewRouteDistance">
-                        —
-                    </strong>
-                </div>
-
-                {{-- Estimated Time --}}
-                <div class="route-detail-field">
-                    <span>Estimated Time</span>
-
-                    <strong id="viewRouteTime">
-                        —
-                    </strong>
+                    <div class="route-detail-field route-view-field">
+                        <span><i class="fa-regular fa-clock"></i> Estimated Time</span>
+                        <strong id="viewRouteTime">—</strong>
+                    </div>
                 </div>
             </section>
 
-
-            {{-- =================================================
-                GPS TRIP MAP
-            ================================================== --}}
-            <section class="gps-map-section">
-                <div class="gps-map-heading">
-                    <div>
-                        <h3>GPS Trip Map</h3>
-                        <p>
-                            View processed GPS trip records and their
-                            recorded origin and destination coordinates.
-                        </p>
+            <section class="route-view-card route-view-map-card gps-map-section">
+                <div class="route-view-card-header">
+                    <div class="route-view-card-title">
+                        <span class="route-view-section-icon">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </span>
+                        <div>
+                            <h3>Route Map Preview</h3>
+                            <p>View the saved road route and confirmed route points.</p>
+                        </div>
                     </div>
 
-                    <span
-                        class="gps-record-count"
-                        id="gpsRecordCount"
-                    >
-                        {{ $gpsTripRecords->count() }} GPS Records
-                    </span>
                 </div>
 
-                <div class="gps-map-toolbar">
-                    <div class="gps-map-field">
-                        <label for="gpsTripSelect">
-                            GPS Trip Record
-                        </label>
+                <div class="route-view-map-toolbar">
+                    @if($gpsTripRecords->count() > 0)
+                        <div class="gps-map-field">
+                            <label for="gpsTripSelect">
+                                Optional GPS Trip Record
+                            </label>
 
-                        <select id="gpsTripSelect">
-                            <option value="">
-                                Select a GPS trip
-                            </option>
+                            <select id="gpsTripSelect">
+                                <option value="">
+                                    Show saved route
+                                </option>
+                            </select>
+                        </div>
+                    @else
+                        <select id="gpsTripSelect" hidden>
+                            <option value=""></option>
                         </select>
-                    </div>
+
+                        <div class="route-view-map-source">
+                            <i class="fa-solid fa-road"></i>
+                            Saved OSRM road route
+                        </div>
+                    @endif
 
                     <button
                         type="button"
@@ -1012,13 +1054,13 @@
                     id="gpsMapMessage"
                     role="status"
                 >
-                    Select a processed GPS trip to display it on the map.
+                    Loading the saved route map…
                 </div>
 
                 <div
-                    class="gps-trip-map"
+                    class="gps-trip-map route-view-map"
                     id="gpsTripMap"
-                    aria-label="GPS trip route map"
+                    aria-label="Saved route map preview"
                 ></div>
 
                 <div
@@ -1067,22 +1109,21 @@
                     </article>
                 </div>
 
-                <p class="gps-map-note">
-                    The line connects the recorded beginning and ending
-                    coordinates. It is a reference line, not the exact
-                    road path traveled.
+                <p class="gps-map-note route-view-map-note">
+                    Saved route geometry uses OSRM/OpenStreetMap. The displayed travel time is a conservative shuttle ETA and does not include live traffic.
                 </p>
             </section>
 
-            {{-- Horizontal Route Path --}}
-            <section class="route-path-section">
-                <div class="route-path-heading">
-                    <div>
-                        <h3>Route Path</h3>
-
-                        <p>
-                            Origin, intermediate shuttle stops, and destination.
-                        </p>
+            <section class="route-view-card route-path-section route-view-path-card">
+                <div class="route-view-card-header">
+                    <div class="route-view-card-title">
+                        <span class="route-view-section-icon">
+                            <i class="fa-solid fa-route"></i>
+                        </span>
+                        <div>
+                            <h3>Route Path</h3>
+                            <p>Origin, intermediate shuttle stops, and destination in sequence.</p>
+                        </div>
                     </div>
 
                     <span class="route-path-count" id="viewRouteStopCount">
@@ -1090,7 +1131,7 @@
                     </span>
                 </div>
 
-                <div class="horizontal-route-card">
+                <div class="horizontal-route-card route-view-path-scroll">
                     <div
                         class="horizontal-route-path"
                         id="viewRoutePath"
@@ -1102,8 +1143,6 @@
         </div>
     </section>
 </div>
-
-
 
 
     {{-- =========================================================
@@ -1145,6 +1184,8 @@
 @php
     $routeMapConfig = [
         'searchUrl' => route('operation.routes.location-search', [], false),
+
+        'reverseUrl' => route('operation.routes.reverse-location', [], false),
 
         'routingUrl' => route('operation.routes.calculate', [], false),
 

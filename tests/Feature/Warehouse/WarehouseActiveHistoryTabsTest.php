@@ -59,6 +59,7 @@ class WarehouseActiveHistoryTabsTest extends TestCase
             ->assertOk()
             ->assertSee('Active Part Requests')
             ->assertSee('PR-ACTIVE-TAB')
+            ->assertSee('send-purchase-btn', false)
             ->assertDontSee('PR-HISTORY-TAB');
 
         $history = $this->get(route('part-requests', ['view' => 'history']));

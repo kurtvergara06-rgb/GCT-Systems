@@ -348,30 +348,17 @@ class GctDateTimePicker {
     }
 
     timeControlsHtml() {
-        const minutes = Array.from({ length: 60 }, (_, index) => index);
-
         return `
             <div class="gct-time-controls">
                 <div class="gct-time-column">
-                    <label>Hour</label>
-                    <select class="gct-time-select" data-time-part="hour">
-                        ${Array.from({ length: 12 }, (_, index) => index + 1)
-                            .map((hour) => `<option value="${hour}" ${hour === this.timeHour ? 'selected' : ''}>${pad(hour)}</option>`)
-                            .join('')}
-                    </select>
+                    <label for="gctTimeHour">Hour</label>
+                    <input id="gctTimeHour" class="gct-time-select" type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-time-part="hour" value="${pad(this.timeHour)}" aria-label="Hour, 01 to 12">
                 </div>
-
                 <span class="gct-time-separator">:</span>
-
                 <div class="gct-time-column">
-                    <label>Minute</label>
-                    <select class="gct-time-select" data-time-part="minute">
-                        ${minutes
-                            .map((minute) => `<option value="${minute}" ${minute === this.timeMinute ? 'selected' : ''}>${pad(minute)}</option>`)
-                            .join('')}
-                    </select>
+                    <label for="gctTimeMinute">Minute</label>
+                    <input id="gctTimeMinute" class="gct-time-select" type="text" inputmode="numeric" autocomplete="off" maxlength="2" data-time-part="minute" value="${pad(this.timeMinute)}" aria-label="Minute, 00 to 59">
                 </div>
-
                 <div class="gct-period-toggle" role="group" aria-label="AM or PM">
                     <button type="button" data-period="AM" class="${this.timePeriod === 'AM' ? 'is-active' : ''}">AM</button>
                     <button type="button" data-period="PM" class="${this.timePeriod === 'PM' ? 'is-active' : ''}">PM</button>
@@ -381,13 +368,43 @@ class GctDateTimePicker {
     }
 
     bindTimeEvents(onApply) {
-        this.popover.querySelector('[data-time-part="hour"]')?.addEventListener('change', (event) => {
-            this.timeHour = Number(event.target.value);
-        });
+        const hour = this.popover.querySelector('[data-time-part="hour"]');
+        const minute = this.popover.querySelector('[data-time-part="minute"]');
+        const preview = this.popover.querySelector('.gct-time-preview span');
+        const previewPeriod = this.popover.querySelector('.gct-time-preview strong');
+        const updatePreview = () => {
+            if (preview) preview.textContent = `${pad(this.timeHour)}:${pad(this.timeMinute)}`;
+            if (previewPeriod) previewPeriod.textContent = this.timePeriod;
+        };
 
-        this.popover.querySelector('[data-time-part="minute"]')?.addEventListener('change', (event) => {
-            this.timeMinute = Number(event.target.value);
-        });
+        const bindNumeric = (input, min, max, update, next) => {
+            if (!input) return;
+            input.addEventListener('focus', () => input.select());
+            input.addEventListener('input', () => {
+                const digits = input.value.replace(/\\D/g, '').slice(0, 2);
+                input.value = digits;
+                const number = Number(digits);
+                if (digits.length === 2 && number >= min && number <= max) {
+                    update(number);
+                    updatePreview();
+                    next?.focus();
+                    next?.select();
+                }
+            });
+            input.addEventListener('blur', () => {
+                const number = Number(input.value);
+                if (input.value === '' || !Number.isInteger(number) || number < min || number > max) {
+                    input.value = pad(min === 1 ? this.timeHour : this.timeMinute);
+                } else {
+                    update(number);
+                    input.value = pad(number);
+                }
+                updatePreview();
+            });
+        };
+
+        bindNumeric(hour, 1, 12, (n) => { this.timeHour = n; }, minute);
+        bindNumeric(minute, 0, 59, (n) => { this.timeMinute = n; }, null);
 
         this.popover.querySelectorAll('[data-period]').forEach((button) => {
             button.addEventListener('click', () => {
@@ -395,10 +412,15 @@ class GctDateTimePicker {
                 this.popover.querySelectorAll('[data-period]').forEach((item) => {
                     item.classList.toggle('is-active', item === button);
                 });
+                updatePreview();
             });
         });
 
-        this.popover.querySelector('[data-action="apply-time"]')?.addEventListener('click', onApply);
+        this.popover.querySelector('[data-action="apply-time"]')?.addEventListener('click', () => {
+            hour?.blur();
+            minute?.blur();
+            onApply();
+        });
     }
 
     resolvedTimeValue() {
@@ -448,8 +470,14 @@ class GctDateTimePicker {
         this.popover.querySelector('.gct-picker-close-secondary')?.addEventListener('click', () => this.close());
 
         this.bindTimeEvents(() => {
-            this.activeInput.value = this.resolvedTimeValue();
-            dispatchPickerChange(this.activeInput);
+            const input = this.activeInput;
+            const value = this.resolvedTimeValue();
+            input.value = value;
+            dispatchPickerChange(input);
+            input.dispatchEvent(new CustomEvent('gct:time-selected', {
+                bubbles: true,
+                detail: { value },
+            }));
             this.close();
         });
     }
@@ -495,7 +523,11 @@ class GctDateTimePicker {
             return;
         }
 
-        const rect = this.activeTrigger.getBoundingClientRect();
+        // Batch actions may use an off-screen input while presenting this picker.
+        // Position against the visible action button when explicitly requested.
+        const anchorSelector = this.activeInput?.dataset.pickerAnchor;
+        const anchor = anchorSelector ? document.querySelector(anchorSelector) : null;
+        const rect = (anchor || this.activeTrigger).getBoundingClientRect();
         const margin = 10;
         const maxLeft = Math.max(margin, window.innerWidth - this.popover.offsetWidth - margin);
         let left = Math.min(Math.max(rect.left, margin), maxLeft);

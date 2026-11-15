@@ -1297,3 +1297,40 @@ body.sidebar-collapsed .main {
   }
 
 }
+
+/* Keep the profile controls visible when expanded menus exceed the viewport. */
+@media (min-width: 769px) {
+  .sidebar {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .sidebar .brand {
+    flex: 0 0 auto;
+  }
+
+  .sidebar .menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    padding-bottom: 10px;
+
+    /* Keep the sidebar scrollable without showing a visual scrollbar. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sidebar .menu::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  .sidebar .sidebar-profile-wrap {
+    flex: 0 0 auto;
+    margin-top: 12px;
+    padding-top: 14px;
+  }
+}

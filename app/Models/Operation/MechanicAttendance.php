@@ -25,15 +25,27 @@ class MechanicAttendance extends Model
     protected static function booted(): void
     {
         static::saving(function (MechanicAttendance $attendance): void {
-            $mechanic = Mechanic::query()
-                ->where('mechanic_name', $attendance->mechanic_name)
-                ->first();
+            $mechanics = Mechanic::query()
+                ->whereRaw(
+                    'LOWER(TRIM(mechanic_name)) = ?',
+                    [mb_strtolower(trim((string) $attendance->mechanic_name))]
+                )
+                ->limit(2)
+                ->get();
 
-            if (! $mechanic) {
+            if ($mechanics->isEmpty()) {
                 throw ValidationException::withMessages([
                     'mechanic_name' => 'Select an existing mechanic from the Mechanic Master List.',
                 ]);
             }
+
+            if ($mechanics->count() !== 1) {
+                throw ValidationException::withMessages([
+                    'mechanic_name' => 'This mechanic name is ambiguous. Use a unique Mechanic Master record before saving attendance.',
+                ]);
+            }
+
+            $mechanic = $mechanics->first();
 
             $attendance->mechanic_id = $mechanic->mechanic_id;
             $attendance->mechanic_name = $mechanic->mechanic_name;

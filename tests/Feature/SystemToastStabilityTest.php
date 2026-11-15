@@ -23,6 +23,51 @@ class SystemToastStabilityTest extends TestCase
         $this->assertStringNotContainsString('translateY(-10px)', $toastCss);
     }
 
+    public function test_all_transient_system_toasts_auto_dismiss_by_type(): void
+    {
+        $component = file_get_contents(
+            resource_path(
+                'views/components/ui/system-toast.blade.php'
+            )
+        );
+
+        $javascript = file_get_contents(
+            resource_path(
+                'js/Main-js/system-toast.js'
+            )
+        );
+
+        $this->assertStringNotContainsString(
+            "'timeout' => 0",
+            $component
+        );
+
+        $this->assertStringContainsString(
+            'const toastTimeoutByType = {',
+            $javascript
+        );
+
+        $this->assertStringContainsString(
+            'error: 7000',
+            $javascript
+        );
+
+        $this->assertStringContainsString(
+            'warning: 6000',
+            $javascript
+        );
+
+        $this->assertStringContainsString(
+            'resolveToastTimeout',
+            $javascript
+        );
+
+        $this->assertStringNotContainsString(
+            'duration <= 0',
+            $javascript
+        );
+    }
+
     public function test_dynamic_toasts_use_one_resettable_removal_lifecycle(): void
     {
         $source = file_get_contents(resource_path('js/Main-js/system-toast.js'));
@@ -30,7 +75,7 @@ class SystemToastStabilityTest extends TestCase
         $this->assertStringContainsString('const toastTimers = new WeakMap();', $source);
         $this->assertStringContainsString('const scheduleToastRemoval =', $source);
         $this->assertStringContainsString(
-            'attachToastBehavior(toast, options.timeout ?? removeDelay);',
+            'attachToastBehavior(',
             $source
         );
 

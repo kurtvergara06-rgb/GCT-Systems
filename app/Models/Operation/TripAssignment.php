@@ -7,6 +7,7 @@ use App\Models\Maintenance\Bus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TripAssignment extends Model
 {
@@ -51,6 +52,22 @@ class TripAssignment extends Model
         return $this->belongsTo(
             Bus::class,
             'original_bus_id'
+        );
+    }
+
+    public function dailyDriverReports(): HasMany
+    {
+        return $this->hasMany(
+            DailyDriverReport::class,
+            'trip_assignment_id'
+        );
+    }
+
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(
+            Incident::class,
+            'trip_assignment_id'
         );
     }
 

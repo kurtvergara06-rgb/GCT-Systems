@@ -44,15 +44,19 @@ class DriverAttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Keep the attendance record list in sync with the selected KPI date.
+        $request->validate(['attendance_date' => ['sometimes', 'required', 'date_format:Y-m-d']]);
+        $summaryDate = $request->input('attendance_date')
+            ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $query->whereDate('attendance_date', $summaryDate);
+
         $driverAttendances = $query
             ->latest('attendance_date')
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
-        $summaryDate = $request->filled('attendance_date')
-            ? Carbon::parse($request->attendance_date)->toDateString()
-            : today()->toDateString();
+
 
         $summaryQuery = DriverAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
@@ -70,7 +74,8 @@ class DriverAttendanceController extends Controller
             'absent',
             'late',
             'onDuty',
-            'nextDriverId'
+            'nextDriverId',
+            'summaryDate'
         ));
     }
 
@@ -100,6 +105,12 @@ class DriverAttendanceController extends Controller
             }
 
             return back()->withInput()->with('error', 'Select an existing driver from the Driver Master List.');
+        }
+
+        if ($driver->employment_status !== 'Active') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'driver_name' => 'Only active drivers can receive new attendance records.',
+            ]);
         }
 
         $validated['driver_id'] = $driver->driver_id;
