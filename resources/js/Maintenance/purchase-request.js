@@ -1,74 +1,17 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   function openModal(modal) {
-    if (!modal) return;
-
-    modal.classList.add('show');
-    modal.classList.add('active');
-    modal.style.display = 'flex';
+    if (modal) {
+      modal.classList.add('show');
+    }
   }
 
   function closeModal(modal) {
-    if (!modal) return;
-
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
-  }
-
-  function closeAllModals() {
-    document
-      .querySelectorAll(
-        '.modal-overlay, .delete-modal-overlay, .success-modal-overlay, .error-modal-overlay, .feedback-modal-overlay, .action-modal-overlay'
-      )
-      .forEach(function (modal) {
-        closeModal(modal);
-      });
-  }
-
-  function setValue(id, value) {
-    const element = document.getElementById(id);
-
-    if (!element) return;
-
-    if (value === undefined || value === null || value === 'null') {
-      element.value = '';
-      return;
+    if (modal) {
+      modal.classList.remove('show');
     }
-
-    element.value = value;
-  }
-
-  function escapeHtml(value) {
-    return String(value || '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
-  }
-
-  function normalizeUnit(unit) {
-    const cleanUnit = String(unit || '').trim().toLowerCase();
-
-    if (cleanUnit === 'liters') return 'liter';
-    if (cleanUnit === 'ltr') return 'liter';
-    if (cleanUnit === 'ltrs') return 'liter';
-    if (cleanUnit === 'piece') return 'pcs';
-    if (cleanUnit === 'pieces') return 'pcs';
-    if (cleanUnit === 'pc') return 'pcs';
-    if (cleanUnit === 'sets') return 'set';
-    if (cleanUnit === 'bottles') return 'bottle';
-    if (cleanUnit === 'boxes') return 'box';
-    if (cleanUnit === 'packs') return 'pack';
-    if (cleanUnit === 'pairs') return 'pair';
-    if (cleanUnit === 'rolls') return 'roll';
-    if (cleanUnit === 'tubes') return 'tube';
-
-    return cleanUnit;
   }
 
   function unitOptions(selectedUnit = '') {
-    const normalizedSelectedUnit = normalizeUnit(selectedUnit);
-
     const units = [
       'pcs',
       'set',
@@ -86,536 +29,471 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let html = '<option value="">Unit</option>';
 
-    units.forEach(function (unit) {
-      html += `<option value="${unit}" ${normalizedSelectedUnit === unit ? 'selected' : ''}>${unit}</option>`;
+    units.forEach((unit) => {
+      html += `<option value="${unit}" ${selectedUnit === unit ? 'selected' : ''}>${unit}</option>`;
     });
 
     return html;
   }
 
-  function parsePrParts(rawItem, rawQuantity) {
-    const itemText = String(rawItem || '').trim();
-    const fallbackQuantity = parseInt(rawQuantity || '1', 10) || 1;
-
-    if (!itemText) {
-      return [];
-    }
-
-    return itemText
-      .split(',')
-      .map(function (part, index) {
-        const cleanPart = part.trim();
-
-        if (!cleanPart) return null;
-
-        if (cleanPart.includes(' - Qty:')) {
-          const splitParts = cleanPart.split(' - Qty:');
-          const name = splitParts[0] ? splitParts[0].trim() : '';
-          const quantityWithUnit = splitParts[1] ? splitParts[1].trim() : '';
-
-          const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
-
-          return {
-            name: name,
-            quantity: match ? match[1] : '1',
-            unit: match && match[2] ? normalizeUnit(match[2]) : '',
-          };
-        }
-
-        const oldFormatMatch = cleanPart.match(/^(.*?)\s*\((\d+)\s*([^)]+)\)$/);
-
-        if (oldFormatMatch) {
-          return {
-            name: oldFormatMatch[1] ? oldFormatMatch[1].trim() : '',
-            quantity: oldFormatMatch[2] ? oldFormatMatch[2].trim() : '1',
-            unit: oldFormatMatch[3] ? normalizeUnit(oldFormatMatch[3]) : '',
-          };
-        }
-
-        return {
-          name: cleanPart,
-          quantity: index === 0 ? fallbackQuantity : 1,
-          unit: '',
-        };
-      })
-      .filter(function (part) {
-        return part && part.name;
-      });
+  function escapeInputValue(value) {
+    return String(value || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('"', '&quot;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
   }
 
-  function refreshPartIndexes(container, prefix) {
-    const rows = container.querySelectorAll('.pr-part-row');
+  function refreshPartIndexes(wrapper) {
+    if (!wrapper) return;
 
-    rows.forEach(function (row, index) {
-      const nameInput = row.querySelector('.pr-part-name');
-      const qtyInput = row.querySelector('.pr-part-qty');
-      const unitSelect = row.querySelector('.pr-part-unit');
+    wrapper.querySelectorAll('.part-needed-row').forEach((row, index) => {
+      const nameInput = row.querySelector('input[name*="[name]"]');
+      const quantityInput = row.querySelector('input[name*="[quantity]"]');
+      const unitSelect = row.querySelector('select[name*="[unit]"]');
 
       if (nameInput) {
-        nameInput.name = `${prefix}[${index}][name]`;
+        nameInput.name = `parts[${index}][name]`;
       }
 
-      if (qtyInput) {
-        qtyInput.name = `${prefix}[${index}][quantity]`;
+      if (quantityInput) {
+        quantityInput.name = `parts[${index}][quantity]`;
       }
 
       if (unitSelect) {
-        unitSelect.name = `${prefix}[${index}][unit]`;
+        unitSelect.name = `parts[${index}][unit]`;
       }
     });
   }
 
-  function createPartRow(part, index, prefix, isReadOnly, container) {
+  function createPartRow(index, part = {}, isReadonly = false) {
     const row = document.createElement('div');
-    row.className = 'pr-part-row';
-
-    const name = part && part.name ? part.name : '';
-    const quantity = part && part.quantity ? part.quantity : '1';
-    const unit = part && part.unit ? part.unit : '';
+    row.className = 'part-needed-row';
 
     row.innerHTML = `
       <input
         type="text"
-        name="${prefix}[${index}][name]"
-        class="pr-part-name"
-        value="${escapeHtml(name)}"
+        name="parts[${index}][name]"
         placeholder="Part name"
-        ${isReadOnly ? 'readonly disabled' : ''}
+        value="${escapeInputValue(part.name || '')}"
+        ${isReadonly ? 'disabled' : ''}
       >
 
       <input
         type="number"
-        name="${prefix}[${index}][quantity]"
-        class="pr-part-qty"
+        name="parts[${index}][quantity]"
         min="1"
-        value="${escapeHtml(quantity)}"
         placeholder="Qty"
-        ${isReadOnly ? 'readonly disabled' : ''}
+        value="${escapeInputValue(part.quantity || '')}"
+        ${isReadonly ? 'disabled' : ''}
       >
 
-      <select
-        name="${prefix}[${index}][unit]"
-        class="pr-part-unit"
-        ${isReadOnly ? 'disabled' : ''}
-      >
-        ${unitOptions(unit)}
+      <select name="parts[${index}][unit]" ${isReadonly ? 'disabled' : ''}>
+        ${unitOptions(part.unit || '')}
       </select>
 
-      <button
-        type="button"
-        class="remove-part-btn"
-        title="Remove Part"
-        ${isReadOnly ? 'style="display: none;"' : ''}
-      >
+      <button type="button" class="remove-part-btn" ${isReadonly ? 'disabled' : ''}>
         <i class="fa-solid fa-xmark"></i>
       </button>
     `;
 
-    const removeBtn = row.querySelector('.remove-part-btn');
-
-    if (removeBtn) {
-      removeBtn.addEventListener('click', function () {
-        row.remove();
-        refreshPartIndexes(container, prefix);
-      });
-    }
-
     return row;
   }
 
-  function renderPartsRows(containerId, rawItem, rawQuantity, options = {}) {
-    const container = document.getElementById(containerId);
-
-    if (!container) return;
-
-    const isReadOnly = options.isReadOnly || false;
-    const prefix = options.prefix || 'parts';
-    const parts = parsePrParts(rawItem, rawQuantity);
-
-    container.innerHTML = '';
-
-    if (isReadOnly) {
-      container.classList.add('view-only');
-    } else {
-      container.classList.remove('view-only');
-    }
-
-    if (parts.length === 0) {
-      const emptyRow = createPartRow(
-        {
-          name: '',
-          quantity: '1',
-          unit: '',
-        },
-        0,
-        prefix,
-        isReadOnly,
-        container
+  document.querySelectorAll('.close-feedback-modal, .feedback-ok-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const modal = button.closest(
+        '.success-modal-overlay, .delete-modal-overlay, .modal-overlay'
       );
 
-      container.appendChild(emptyRow);
-      return;
-    }
-
-    parts.forEach(function (part, index) {
-      const row = createPartRow(part, index, prefix, isReadOnly, container);
-      container.appendChild(row);
-    });
-  }
-
-  const prModal = document.getElementById('prModal');
-  const openPrModal = document.getElementById('openPrModal');
-  const closePrModal = document.getElementById('closePrModal');
-  const cancelPrModal = document.getElementById('cancelPrModal');
-  const addNewPrPartBtn = document.getElementById('addNewPrPartBtn');
-  const addEditPrPartBtn = document.getElementById('addEditPrPartBtn');
-
-  if (openPrModal && prModal) {
-    openPrModal.addEventListener('click', function () {
-      openModal(prModal);
-    });
-  }
-
-  if (closePrModal && prModal) {
-    closePrModal.addEventListener('click', function () {
-      closeModal(prModal);
-    });
-  }
-
-  if (cancelPrModal && prModal) {
-    cancelPrModal.addEventListener('click', function () {
-      closeModal(prModal);
-    });
-  }
-
-  const jobOrderSelect = document.getElementById('jobOrderSelect');
-  const busNoInput = document.getElementById('busNoInput');
-  const newPrPartsContainer = document.getElementById('newPrPartsContainer');
-  const editPrPartsContainer = document.getElementById('editPrPartsContainer');
-
-  if (newPrPartsContainer) {
-    const initialParts = newPrPartsContainer.dataset.initialParts || '';
-
-    renderPartsRows('newPrPartsContainer', initialParts, 1, {
-      isReadOnly: false,
-      prefix: 'parts',
-    });
-  }
-
-  if (jobOrderSelect) {
-    jobOrderSelect.addEventListener('change', function () {
-      const selected = jobOrderSelect.options[jobOrderSelect.selectedIndex];
-
-      if (!selected) return;
-
-      if (busNoInput) {
-        busNoInput.value = selected.dataset.bus || '';
+      if (modal) {
+        modal.classList.remove('show');
       }
-
-      renderPartsRows('newPrPartsContainer', selected.dataset.parts || '', 1, {
-        isReadOnly: false,
-        prefix: 'parts',
-      });
     });
-  }
-
-  if (addNewPrPartBtn && newPrPartsContainer) {
-    addNewPrPartBtn.addEventListener('click', function () {
-      const index = newPrPartsContainer.querySelectorAll('.pr-part-row').length;
-      const row = createPartRow(
-        { name: '', quantity: '1', unit: '' },
-        index,
-        'parts',
-        false,
-        newPrPartsContainer
-      );
-
-      newPrPartsContainer.appendChild(row);
-      refreshPartIndexes(newPrPartsContainer, 'parts');
-    });
-  }
-
-  const editPrModal = document.getElementById('editPrModal');
-  const editPrForm = document.getElementById('editPrForm');
-  const closeEditPrModal = document.getElementById('closeEditPrModal');
-  const cancelEditPrModal = document.getElementById('cancelEditPrModal');
-  const closeViewOnlyPr = document.getElementById('closeViewOnlyPr');
-
-  const editPrDescription = document.getElementById('editPrDescription');
-  const editPrMainActions = document.getElementById('editPrMainActions');
-  const viewOnlyActions = document.getElementById('viewOnlyActions');
-  const prApprovalActions = document.getElementById('prApprovalActions');
-
-  const approvePrForm = document.getElementById('approvePrForm');
-  const rejectPrForm = document.getElementById('rejectPrForm');
-  const approvePrBtn = document.getElementById('approvePrBtn');
-  const rejectPrBtn = document.getElementById('rejectPrBtn');
-
-  if (addEditPrPartBtn && editPrPartsContainer) {
-    addEditPrPartBtn.addEventListener('click', function () {
-      const index = editPrPartsContainer.querySelectorAll('.pr-part-row').length;
-      const row = createPartRow(
-        { name: '', quantity: '1', unit: '' },
-        index,
-        'parts',
-        false,
-        editPrPartsContainer
-      );
-
-      editPrPartsContainer.appendChild(row);
-      refreshPartIndexes(editPrPartsContainer, 'parts');
-    });
-  }
-
-  if (approvePrBtn && approvePrForm) {
-    approvePrBtn.addEventListener('click', function () {
-      if (!approvePrForm.action || approvePrForm.action.endsWith('#')) {
-        alert('No purchase request selected.');
-        return;
-      }
-
-      approvePrBtn.disabled = true;
-      approvePrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Approving...';
-
-      approvePrForm.submit();
-    });
-  }
-
-  if (rejectPrBtn && rejectPrForm) {
-    rejectPrBtn.addEventListener('click', function () {
-      if (!rejectPrForm.action || rejectPrForm.action.endsWith('#')) {
-        alert('No purchase request selected.');
-        return;
-      }
-
-      rejectPrBtn.disabled = true;
-      rejectPrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rejecting...';
-
-      rejectPrForm.submit();
-    });
-  }
-
-  function setPrModalMode(mode, status, canApprove) {
-    const isView = mode === 'view';
-    const isSubmitted = status === 'Submitted';
-
-    if (editPrDescription) {
-      editPrDescription.textContent = isView
-        ? 'This purchase request is view only.'
-        : 'You can edit this purchase request information.';
-    }
-
-    if (editPrMainActions) {
-      editPrMainActions.style.display = isView ? 'none' : 'flex';
-    }
-
-    if (viewOnlyActions) {
-      viewOnlyActions.style.display = isView ? 'flex' : 'none';
-    }
-
-    if (prApprovalActions) {
-      prApprovalActions.style.display =
-        !isView && isSubmitted && canApprove ? 'flex' : 'none';
-    }
-
-    if (addEditPrPartBtn) {
-      addEditPrPartBtn.style.display = isView ? 'none' : 'inline-flex';
-    }
-
-    const remarks = document.getElementById('edit_remarks');
-
-    if (remarks) {
-      remarks.readOnly = isView;
-    }
-
-    document
-      .querySelectorAll('#editPrPartsContainer input, #editPrPartsContainer select')
-      .forEach(function (field) {
-        if (isView) {
-          field.setAttribute('disabled', 'disabled');
-          field.setAttribute('readonly', 'readonly');
-        } else {
-          field.removeAttribute('disabled');
-          field.removeAttribute('readonly');
-        }
-      });
-
-    document
-      .querySelectorAll('#editPrPartsContainer .remove-part-btn')
-      .forEach(function (button) {
-        button.style.display = isView ? 'none' : 'inline-flex';
-      });
-  }
-
-  function fillPrModal(button, mode) {
-    const status = button.dataset.status || 'Submitted';
-    const canApprove = button.dataset.canApprove === '1';
-
-    if (editPrForm) {
-      editPrForm.action = button.dataset.updateUrl || '#';
-    }
-
-    if (approvePrForm) {
-      approvePrForm.action = button.dataset.approveUrl || '#';
-    }
-
-    if (rejectPrForm) {
-      rejectPrForm.action = button.dataset.rejectUrl || '#';
-    }
-
-    if (approvePrBtn) {
-      approvePrBtn.disabled = false;
-      approvePrBtn.innerHTML = '<i class="fa-solid fa-check"></i> Approve';
-    }
-
-    if (rejectPrBtn) {
-      rejectPrBtn.disabled = false;
-      rejectPrBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Reject';
-    }
-
-    setValue('edit_pr_no', button.dataset.prNo);
-    setValue('edit_job_order_no', button.dataset.jobOrderNo);
-    setValue('edit_bus_no', button.dataset.busNo);
-    setValue('edit_status_display', status);
-    setValue('edit_remarks', button.dataset.remarks);
-
-    renderPartsRows('editPrPartsContainer', button.dataset.item, button.dataset.quantity, {
-      isReadOnly: mode === 'view',
-      prefix: 'parts',
-    });
-
-    setPrModalMode(mode, status, canApprove);
-
-    openModal(editPrModal);
-  }
-
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest('.open-view-pr-modal');
-
-    if (!button) return;
-
-    event.preventDefault();
-    fillPrModal(button, 'view');
   });
 
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest('.open-edit-pr-modal');
+  const jobModal = document.getElementById('jobModal');
+  const openJobModal = document.getElementById('openJobModal');
+  const closeJobModal = document.getElementById('closeJobModal');
+  const cancelJobModal = document.getElementById('cancelJobModal');
 
-    if (!button) return;
+  if (openJobModal) {
+    openJobModal.addEventListener('click', () => openModal(jobModal));
+  }
 
-    event.preventDefault();
-    fillPrModal(button, 'edit');
+  if (closeJobModal) {
+    closeJobModal.addEventListener('click', () => closeModal(jobModal));
+  }
+
+  if (cancelJobModal) {
+    cancelJobModal.addEventListener('click', () => closeModal(jobModal));
+  }
+
+  function setupPartsRepeater(wrapperId, addButtonId) {
+    const wrapper = document.getElementById(wrapperId);
+    const addButton = document.getElementById(addButtonId);
+
+    if (!wrapper || !addButton) return;
+
+    addButton.addEventListener('click', () => {
+      const partIndex = wrapper.querySelectorAll('.part-needed-row').length;
+      const row = createPartRow(partIndex);
+
+      wrapper.appendChild(row);
+      refreshPartIndexes(wrapper);
+    });
+
+    wrapper.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.remove-part-btn');
+
+      if (!removeButton) return;
+
+      const row = removeButton.closest('.part-needed-row');
+
+      if (row) {
+        row.remove();
+        refreshPartIndexes(wrapper);
+      }
+    });
+
+    refreshPartIndexes(wrapper);
+  }
+
+  setupPartsRepeater('partsNeededWrapper', 'addPartBtn');
+
+  const editJobModal = document.getElementById('editJobModal');
+  const editJobForm = document.getElementById('editJobForm');
+
+  const closeEditJobModal = document.getElementById('closeEditJobModal');
+  const cancelEditJobModal = document.getElementById('cancelEditJobModal');
+  const closeViewOnlyJob = document.getElementById('closeViewOnlyJob');
+
+  const editJobOrderNo = document.getElementById('edit_job_order_no');
+  const editBusNo = document.getElementById('edit_bus_no');
+  const editProblemIssue = document.getElementById('edit_problem_issue');
+  const editMaintenanceType = document.getElementById('edit_maintenance_type');
+  const editStatus = document.getElementById('edit_status');
+  const editAssignedMechanic = document.getElementById('edit_assigned_mechanic');
+
+  const editPartsNeededWrapper = document.getElementById('editPartsNeededWrapper');
+  const editJobMainActions = document.getElementById('editJobMainActions');
+  const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
+  const editAddPartBtn = document.getElementById('editAddPartBtn');
+  const editModalSubtitle = document.getElementById('editModalSubtitle');
+  const editModeDescription = document.getElementById('editModeDescription');
+
+  function setEditModalReadonly(isReadonly) {
+    const fields = [
+      editBusNo,
+      editProblemIssue,
+      editMaintenanceType,
+      editStatus,
+      editAssignedMechanic,
+    ];
+
+    fields.forEach((field) => {
+      if (field) {
+        field.disabled = isReadonly;
+      }
+    });
+
+    if (editPartsNeededWrapper) {
+      editPartsNeededWrapper
+        .querySelectorAll('input, select, button')
+        .forEach((element) => {
+          element.disabled = isReadonly;
+        });
+    }
+
+    if (editAddPartBtn) {
+      editAddPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
+    }
+
+    if (editJobMainActions) {
+      editJobMainActions.style.display = isReadonly ? 'none' : 'flex';
+    }
+
+    if (viewOnlyJobActions) {
+      viewOnlyJobActions.style.display = isReadonly ? 'flex' : 'none';
+    }
+
+    if (editModalSubtitle) {
+      editModalSubtitle.textContent = isReadonly
+        ? 'View the selected job order details.'
+        : 'Review and update the selected job order.';
+    }
+
+    if (editModeDescription) {
+      editModeDescription.textContent = isReadonly
+        ? 'This job order is view only because it is completed or its purchase request is already approved / being processed.'
+        : 'Review and update the selected job order.';
+    }
+  }
+
+  function parseParts(partNeeded) {
+    if (!partNeeded) return [];
+
+    return partNeeded.split(',').map((part) => {
+      const cleanPart = part.trim();
+
+      if (cleanPart.includes(' - Qty:')) {
+        const pieces = cleanPart.split(' - Qty:');
+        const name = pieces[0] ? pieces[0].trim() : '';
+        const quantityWithUnit = pieces[1] ? pieces[1].trim() : '';
+
+        const match = quantityWithUnit.match(/^(\d+)\s*(.*)$/);
+
+        return {
+          name: name,
+          quantity: match ? match[1] : quantityWithUnit,
+          unit: match && match[2] ? match[2].trim() : '',
+        };
+      }
+
+      return {
+        name: cleanPart,
+        quantity: '',
+        unit: '',
+      };
+    });
+  }
+
+  function renderEditParts(partNeeded, isReadonly) {
+    if (!editPartsNeededWrapper) return;
+
+    const parts = parseParts(partNeeded);
+    const rows = parts.length > 0
+      ? parts
+      : [{ name: '', quantity: '', unit: '' }];
+
+    editPartsNeededWrapper.innerHTML = '';
+
+    rows.forEach((part, index) => {
+      const row = createPartRow(index, part, isReadonly);
+      editPartsNeededWrapper.appendChild(row);
+    });
+
+    refreshPartIndexes(editPartsNeededWrapper);
+  }
+
+  document.querySelectorAll('.open-edit-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+      const status = button.dataset.status || 'On Going';
+
+      const isCompleted = status === 'Completed';
+      const isViewOnly = button.dataset.viewOnly === '1';
+      const shouldBeViewOnly = isCompleted || isViewOnly;
+
+      if (editJobForm) {
+        editJobForm.action = `/job-orders/${id}`;
+      }
+
+      if (editJobOrderNo) {
+        editJobOrderNo.value = button.dataset.jobOrderNo || '';
+      }
+
+      if (editBusNo) {
+        editBusNo.value = button.dataset.busNo || '';
+      }
+
+      if (editProblemIssue) {
+        editProblemIssue.value = button.dataset.problemIssue || '';
+      }
+
+      if (editMaintenanceType) {
+        editMaintenanceType.value = button.dataset.maintenanceType || '';
+      }
+
+      if (editStatus) {
+        editStatus.value = status;
+      }
+
+      if (editAssignedMechanic) {
+        editAssignedMechanic.value = button.dataset.assignedMechanic || '';
+      }
+
+      renderEditParts(
+        button.dataset.partNeeded || '',
+        shouldBeViewOnly
+      );
+
+      setEditModalReadonly(shouldBeViewOnly);
+
+      openModal(editJobModal);
+    });
   });
 
-  if (closeEditPrModal && editPrModal) {
-    closeEditPrModal.addEventListener('click', function () {
-      closeModal(editPrModal);
+  if (editAddPartBtn && editPartsNeededWrapper) {
+    editAddPartBtn.addEventListener('click', () => {
+      const editPartIndex =
+        editPartsNeededWrapper.querySelectorAll('.part-needed-row').length;
+
+      const row = createPartRow(editPartIndex);
+
+      editPartsNeededWrapper.appendChild(row);
+      refreshPartIndexes(editPartsNeededWrapper);
+    });
+
+    editPartsNeededWrapper.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.remove-part-btn');
+
+      if (!removeButton) return;
+
+      const row = removeButton.closest('.part-needed-row');
+
+      if (row) {
+        row.remove();
+        refreshPartIndexes(editPartsNeededWrapper);
+      }
     });
   }
 
-  if (cancelEditPrModal && editPrModal) {
-    cancelEditPrModal.addEventListener('click', function () {
-      closeModal(editPrModal);
+  if (closeEditJobModal) {
+    closeEditJobModal.addEventListener('click', () => {
+      closeModal(editJobModal);
     });
   }
 
-  if (closeViewOnlyPr && editPrModal) {
-    closeViewOnlyPr.addEventListener('click', function () {
-      closeModal(editPrModal);
+  if (cancelEditJobModal) {
+    cancelEditJobModal.addEventListener('click', () => {
+      closeModal(editJobModal);
     });
   }
 
-  const deletePrModal = document.getElementById('deletePrModal');
-  const deletePrNo = document.getElementById('deletePrNo');
-  const cancelDeletePr = document.getElementById('cancelDeletePr');
-  const confirmDeletePr = document.getElementById('confirmDeletePr');
+  if (closeViewOnlyJob) {
+    closeViewOnlyJob.addEventListener('click', () => {
+      closeModal(editJobModal);
+    });
+  }
+
+  const deleteJobModal = document.getElementById('deleteJobModal');
+  const deleteJoNo = document.getElementById('deleteJoNo');
+  const cancelDeleteJob = document.getElementById('cancelDeleteJob');
+  const confirmDeleteJob = document.getElementById('confirmDeleteJob');
 
   let selectedDeleteForm = null;
 
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest('.open-delete-pr-modal');
+  document.querySelectorAll('.open-delete-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+      const joNo = button.dataset.joNo;
 
-    if (!button) return;
+      selectedDeleteForm = document.getElementById(`deleteForm-${id}`);
 
-    event.preventDefault();
+      if (deleteJoNo) {
+        deleteJoNo.textContent = joNo || 'this job order';
+      }
 
-    const id = button.dataset.id;
-
-    selectedDeleteForm = document.getElementById('deletePrForm-' + id);
-
-    if (deletePrNo) {
-      deletePrNo.textContent = button.dataset.prNo || 'this purchase request';
-    }
-
-    openModal(deletePrModal);
+      openModal(deleteJobModal);
+    });
   });
 
-  if (cancelDeletePr && deletePrModal) {
-    cancelDeletePr.addEventListener('click', function () {
+  if (cancelDeleteJob) {
+    cancelDeleteJob.addEventListener('click', () => {
       selectedDeleteForm = null;
-      closeModal(deletePrModal);
+      closeModal(deleteJobModal);
     });
   }
 
-  if (confirmDeletePr) {
-    confirmDeletePr.addEventListener('click', function () {
+  if (confirmDeleteJob) {
+    confirmDeleteJob.addEventListener('click', () => {
       if (selectedDeleteForm) {
-        confirmDeletePr.disabled = true;
-        confirmDeletePr.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
         selectedDeleteForm.submit();
       }
     });
   }
 
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest(
-      'button, [data-close-modal], [data-close-feedback]'
-    );
+  const finishJobModal = document.getElementById('finishJobModal');
+  const finishJoNo = document.getElementById('finishJoNo');
+  const cancelFinishJob = document.getElementById('cancelFinishJob');
+  const confirmFinishJob = document.getElementById('confirmFinishJob');
 
-    if (!button) return;
+  let selectedFinishForm = null;
 
-    const buttonText = button.textContent.trim().toLowerCase();
+  document.querySelectorAll('.open-finish-modal').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+      const joNo = button.dataset.joNo;
 
-    const isCloseButton =
-      buttonText === 'okay' ||
-      buttonText === 'ok' ||
-      buttonText === 'close' ||
-      button.classList.contains('success-ok-btn') ||
-      button.classList.contains('error-ok-btn') ||
-      button.classList.contains('feedback-ok-btn') ||
-      button.classList.contains('btn-ok') ||
-      button.hasAttribute('data-close-modal') ||
-      button.hasAttribute('data-close-feedback');
+      selectedFinishForm = document.getElementById(`finishForm-${id}`);
 
-    if (!isCloseButton) return;
+      if (finishJoNo) {
+        finishJoNo.textContent = joNo || 'this job order';
+      }
 
-    const modal =
-      button.closest('.modal-overlay') ||
-      button.closest('.delete-modal-overlay') ||
-      button.closest('.success-modal-overlay') ||
-      button.closest('.error-modal-overlay') ||
-      button.closest('.feedback-modal-overlay') ||
-      button.closest('.action-modal-overlay') ||
-      button.closest('[class*="modal-overlay"]');
-
-    closeModal(modal);
+      openModal(finishJobModal);
+    });
   });
+
+  if (cancelFinishJob) {
+    cancelFinishJob.addEventListener('click', () => {
+      selectedFinishForm = null;
+      closeModal(finishJobModal);
+    });
+  }
+
+  if (confirmFinishJob) {
+    confirmFinishJob.addEventListener('click', () => {
+      if (selectedFinishForm) {
+        selectedFinishForm.submit();
+      }
+    });
+  }
 
   document
     .querySelectorAll(
-      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay, .error-modal-overlay, .feedback-modal-overlay, .action-modal-overlay'
+      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
     )
-    .forEach(function (modal) {
-      modal.addEventListener('click', function (event) {
+    .forEach((modal) => {
+      modal.addEventListener('click', (event) => {
         if (event.target === modal) {
-          closeModal(modal);
+          modal.classList.remove('show');
         }
       });
     });
+});
 
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-      closeAllModals();
-    }
-  });
+document.addEventListener('DOMContentLoaded', function () {
+  const partStatusFilter = document.getElementById('partStatusFilter');
+
+  function slugStatus(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+/g, '-');
+  }
+
+  function updatePartStatusFilterColor() {
+    if (!partStatusFilter) return;
+
+    partStatusFilter.classList.remove(
+      'not-requested',
+      'submitted',
+      'approved',
+      'rejected',
+      'for-purchase',
+      'ordered',
+      'for-pick-up',
+      'for-delivery',
+      'delivered',
+      'picked-up',
+      'issued',
+      'no-parts-needed'
+    );
+
+    const value = partStatusFilter.value;
+
+    if (!value || value === 'All Part Statuses') return;
+
+    partStatusFilter.classList.add(slugStatus(value));
+  }
+
+  if (partStatusFilter) {
+    updatePartStatusFilterColor();
+
+    partStatusFilter.addEventListener('change', function () {
+      updatePartStatusFilterColor();
+    });
+  }
 });
