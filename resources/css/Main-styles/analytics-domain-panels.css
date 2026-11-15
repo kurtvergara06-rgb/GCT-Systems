@@ -1,0 +1,403 @@
+/* Shared Analytics domain panels, charts, and comparison lists. */
+.analytics-domain-content {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.analytics-domain-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, .85fr);
+    gap: 14px;
+}
+
+.analytics-domain-grid.equal {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-domain-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(15, 35, 71, .055);
+    overflow: hidden;
+}
+
+.analytics-domain-card .analytics-card-header {
+    margin-bottom: 14px;
+}
+
+.analytics-domain-kpi-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.analytics-line-chart {
+    position: relative;
+    min-height: 248px;
+}
+
+.analytics-line-chart svg {
+    display: block;
+    width: 100%;
+    height: 248px;
+    overflow: visible;
+}
+
+.analytics-chart-grid-line {
+    stroke: #e7edf5;
+    stroke-width: 1;
+}
+
+.analytics-chart-area {
+    fill: #dbeafe;
+    opacity: .72;
+    transform-origin: bottom center;
+}
+
+.analytics-chart-line {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.analytics-chart-point circle {
+    fill: #fff;
+    stroke: #2563eb;
+    stroke-width: 3;
+    cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform .16s ease, fill .16s ease, stroke .16s ease;
+}
+
+.analytics-chart-point:hover circle,
+.analytics-chart-point:focus-within circle {
+    fill: #eff6ff;
+    transform: scale(1.35);
+}
+
+.analytics-chart-point.is-partial circle {
+    stroke: #94a3b8;
+    stroke-dasharray: 2 2;
+}
+
+.analytics-chart-value {
+    fill: #0b2347;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.analytics-chart-label {
+    fill: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.analytics-chart-tooltip {
+    position: absolute;
+    z-index: 10;
+    min-width: 112px;
+    padding: 8px 10px;
+    border: 1px solid #d7e2f0;
+    border-radius: 9px;
+    background: rgba(11, 35, 71, .96);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(15, 35, 71, .18);
+    pointer-events: none;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.analytics-chart-tooltip strong,
+.analytics-chart-tooltip span {
+    display: block;
+}
+
+.analytics-chart-tooltip span {
+    margin-top: 2px;
+    color: #dbeafe;
+}
+
+.analytics-horizontal-bars {
+    display: grid;
+    gap: 12px;
+}
+
+.analytics-horizontal-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 14px;
+    align-items: end;
+}
+
+.analytics-horizontal-copy {
+    min-width: 0;
+}
+
+.analytics-horizontal-copy strong {
+    display: block;
+    overflow: hidden;
+    color: #0b2347;
+    font-size: 12px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.analytics-horizontal-copy span {
+    display: block;
+    margin-top: 2px;
+    color: #718096;
+    font-size: 9.5px;
+}
+
+.analytics-horizontal-value {
+    color: #0b2347;
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.analytics-horizontal-track {
+    grid-column: 1 / -1;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e7edf5;
+}
+
+.analytics-horizontal-track > span {
+    display: block;
+    width: var(--bar-width);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+.analytics-domain-card.is-chart-visible .analytics-horizontal-track > span {
+    animation: analytics-domain-bar-in .62s cubic-bezier(.22,.61,.36,1) forwards;
+}
+
+.analytics-domain-card.is-chart-visible .analytics-chart-line {
+    stroke-dasharray: 1200;
+    stroke-dashoffset: 1200;
+    animation: analytics-domain-line-in .8s ease-out forwards;
+}
+
+.analytics-domain-card.is-chart-visible .analytics-chart-area {
+    animation: analytics-domain-area-in .5s ease-out forwards;
+}
+
+.analytics-domain-card.is-chart-visible .analytics-chart-point {
+    animation: analytics-domain-point-in .34s ease-out .42s both;
+}
+
+.analytics-compact-empty {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 18px;
+    border: 1px dashed #d8e2ef;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #718096;
+    font-size: 11px;
+    text-align: center;
+}
+
+.analytics-compact-empty i {
+    color: #94a3b8;
+}
+
+.analytics-status-overview {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+}
+
+.analytics-status-ring {
+    --ring-active: 0deg;
+    --ring-maintenance: 0deg;
+    width: 150px;
+    height: 150px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: conic-gradient(
+        #16a34a 0deg var(--ring-active),
+        #f59e0b var(--ring-active) var(--ring-maintenance),
+        #cbd5e1 var(--ring-maintenance) 360deg
+    );
+    position: relative;
+}
+
+.analytics-status-ring::before {
+    content: '';
+    width: 106px;
+    height: 106px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+}
+
+.analytics-status-ring > div {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.analytics-status-ring strong {
+    display: block;
+    color: #0b2347;
+    font-size: 25px;
+    font-weight: 900;
+}
+
+.analytics-status-ring span {
+    color: #64748b;
+    font-size: 9px;
+}
+
+.analytics-status-legend {
+    display: grid;
+    gap: 8px;
+}
+
+.analytics-status-legend-row {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    border: 1px solid #e0e8f2;
+    border-radius: 9px;
+    background: #fbfdff;
+}
+
+.analytics-status-legend-row > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #526277;
+    font-size: 10.5px;
+}
+
+.analytics-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+}
+
+.analytics-status-dot.green { background: #16a34a; }
+.analytics-status-dot.yellow { background: #f59e0b; }
+.analytics-status-dot.red { background: #dc2626; }
+
+.analytics-status-legend-row strong {
+    color: #0b2347;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.analytics-record-list {
+    display: grid;
+    gap: 8px;
+    max-height: 320px;
+    overflow: auto;
+    padding-right: 3px;
+}
+
+.analytics-record-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fbfdff;
+}
+
+.analytics-record-icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    background: #eef4ff;
+    color: #1557d5;
+}
+
+.analytics-record-copy strong {
+    display: block;
+    color: #0b2347;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.analytics-record-copy span {
+    display: block;
+    margin-top: 2px;
+    color: #718096;
+    font-size: 9.5px;
+}
+
+.analytics-record-value {
+    color: #0b2347;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: right;
+}
+
+@keyframes analytics-domain-line-in { to { stroke-dashoffset: 0; } }
+@keyframes analytics-domain-area-in { from { opacity: 0; } to { opacity: .72; } }
+@keyframes analytics-domain-point-in { from { opacity: 0; transform: scale(.75); } to { opacity: 1; transform: scale(1); } }
+@keyframes analytics-domain-bar-in { to { transform: scaleX(1); } }
+
+@media (max-width: 1050px) {
+    .analytics-domain-grid,
+    .analytics-domain-grid.equal {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-domain-kpi-four {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 680px) {
+    .analytics-domain-kpi-four {
+        grid-template-columns: 1fr !important;
+    }
+
+    .analytics-status-overview {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .analytics-status-legend {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analytics-domain-card.is-chart-visible .analytics-horizontal-track > span,
+    .analytics-domain-card.is-chart-visible .analytics-chart-line,
+    .analytics-domain-card.is-chart-visible .analytics-chart-area,
+    .analytics-domain-card.is-chart-visible .analytics-chart-point {
+        animation: none;
+        transform: none;
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}

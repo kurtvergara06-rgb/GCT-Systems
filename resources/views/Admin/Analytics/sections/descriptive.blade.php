@@ -1,9 +1,0 @@
-@if($domain==='fuel')
-@include('Admin.Analytics.sections.descriptive-fuel')
-@elseif($domain==='inventory')
-@include('Admin.Analytics.sections.descriptive-inventory')
-@elseif($domain==='bus-health')
-@include('Admin.Analytics.sections.descriptive-bus-health')
-@else
-@include('Admin.Analytics.sections.descriptive-fleet')
-@endif

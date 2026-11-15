@@ -288,6 +288,217 @@
     line-height: 1.5;
 }
 
+/* =========================================================
+   DESCRIPTIVE ANALYTICS — APPROVED DASHBOARD DIRECTION
+========================================================= */
+
+.descriptive-analytics-page {
+    --analytics-gap: 12px;
+    --analytics-border: #dbe5f1;
+    --analytics-shadow: 0 4px 16px rgba(15, 35, 71, .055);
+}
+
+.descriptive-analytics-page .descriptive-toolbar {
+    margin-bottom: var(--analytics-gap);
+    padding: 11px 14px;
+}
+
+.descriptive-analytics-page .analytics-domain-tabs {
+    flex-wrap: nowrap;
+}
+
+.descriptive-analytics-page .analytics-domain-tabs a {
+    min-height: 38px;
+    white-space: nowrap;
+}
+
+.descriptive-analytics-page .analytics-stage-filters select {
+    min-width: 132px;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: var(--analytics-gap);
+    overflow: hidden;
+    border: 1px solid var(--analytics-border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: var(--analytics-shadow);
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi {
+    min-width: 0;
+    min-height: 100px;
+    margin: 0;
+    padding: 16px 14px;
+    border: 0;
+    border-right: 1px solid #e3eaf3;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:last-child {
+    border-right: 0;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi-icon {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi > div:last-child {
+    min-width: 0;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi span,
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi small {
+    white-space: normal;
+}
+
+.descriptive-analytics-page .descriptive-kpi-row .analytics-kpi strong {
+    white-space: nowrap;
+}
+
+.descriptive-analytics-page .descriptive-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(310px, .9fr);
+    gap: var(--analytics-gap);
+    margin-bottom: var(--analytics-gap);
+}
+
+.descriptive-analytics-page .descriptive-main-grid > .analytics-card {
+    min-width: 0;
+    min-height: 310px;
+}
+
+.descriptive-analytics-page .descriptive-trip-card .reference-line-chart,
+.descriptive-analytics-page .descriptive-trip-card .reference-line-chart svg {
+    min-height: 218px;
+    height: 218px;
+}
+
+.descriptive-analytics-page .descriptive-trip-card .reference-line-chart svg {
+    width: 100%;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .analytics-availability-layout {
+    min-height: 220px;
+    align-items: center;
+    grid-template-columns: minmax(150px, .95fr) minmax(165px, 1.05fr);
+    gap: 18px;
+}
+
+.descriptive-analytics-page .descriptive-availability-card .availability-ring {
+    width: 158px;
+    height: 158px;
+}
+
+.descriptive-analytics-page .descriptive-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1.18fr) minmax(250px, .92fr);
+    gap: var(--analytics-gap);
+    align-items: stretch;
+}
+
+.descriptive-analytics-page .descriptive-ranking-card {
+    min-width: 0;
+    min-height: 355px;
+}
+
+.descriptive-analytics-page .descriptive-ranking-card .refined-ranking-list {
+    gap: 0;
+}
+
+.descriptive-analytics-page .descriptive-ranking-card .refined-ranking-row {
+    min-height: 67px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.descriptive-analytics-page .descriptive-ranking-card .refined-ranking-meta {
+    margin-top: 4px;
+}
+
+.descriptive-analytics-page .descriptive-ranking-card .refined-metric-bar {
+    margin-top: 7px;
+}
+
+.descriptive-analytics-page .descriptive-summary-stack {
+    display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: var(--analytics-gap);
+    min-width: 0;
+}
+
+.descriptive-analytics-page .descriptive-summary-card {
+    min-width: 0;
+    min-height: 0;
+    padding-bottom: 12px;
+}
+
+.descriptive-analytics-page .descriptive-summary-card .analytics-card-header {
+    margin-bottom: 10px;
+}
+
+.descriptive-analytics-page .descriptive-summary-card .availability-breakdown {
+    gap: 7px;
+}
+
+.descriptive-analytics-page .descriptive-summary-card .availability-row {
+    min-height: 34px;
+    padding: 7px 10px;
+}
+
+.descriptive-analytics-page .descriptive-summary-card .availability-row strong {
+    white-space: nowrap;
+}
+
+.descriptive-analytics-page .descriptive-ranking-only-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--analytics-gap);
+}
+
+.descriptive-analytics-page .analytics-card,
+.descriptive-analytics-page .descriptive-kpi-row {
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.descriptive-analytics-page .reference-chart-dot,
+.descriptive-analytics-page .reference-chart-line,
+.descriptive-analytics-page .refined-metric-bar > span,
+.descriptive-analytics-page .availability-ring {
+    transition: .2s ease;
+}
+
+.descriptive-analytics-page .reference-chart-dot:hover {
+    r: 7;
+}
+
+.descriptive-analytics-page .refined-ranking-row:hover .refined-metric-bar > span {
+    filter: brightness(.92);
+}
+
+@media (max-width: 1280px) {
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi {
+        padding: 14px 10px;
+        gap: 9px;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi-icon {
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+    }
+
+    .descriptive-analytics-page .descriptive-bottom-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(220px, .78fr);
+    }
+}
+
 @media (max-width: 1100px) {
     .analytics-domain-toolbar {
         align-items: stretch;
@@ -305,6 +516,68 @@
     .analytics-stage-filters select {
         width: 100%;
         min-width: 0;
+    }
+
+    .descriptive-analytics-page .analytics-domain-tabs {
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-child(3) {
+        border-right: 0;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-child(-n + 3) {
+        border-bottom: 1px solid #e3eaf3;
+    }
+
+    .descriptive-analytics-page .descriptive-main-grid {
+        grid-template-columns: minmax(0, 1.4fr) minmax(290px, .9fr);
+    }
+
+    .descriptive-analytics-page .descriptive-bottom-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .descriptive-analytics-page .descriptive-summary-stack {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+    }
+}
+
+@media (max-width: 820px) {
+    .descriptive-analytics-page .descriptive-main-grid,
+    .descriptive-analytics-page .descriptive-bottom-grid,
+    .descriptive-analytics-page .descriptive-ranking-only-grid,
+    .descriptive-analytics-page .descriptive-summary-stack {
+        grid-template-columns: 1fr;
+    }
+
+    .descriptive-analytics-page .descriptive-summary-stack {
+        grid-column: auto;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi,
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-child(3) {
+        border-right: 1px solid #e3eaf3;
+        border-bottom: 1px solid #e3eaf3;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-child(even) {
+        border-right: 0;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-last-child(-n + 2) {
+        border-bottom: 0;
     }
 }
 
@@ -336,5 +609,22 @@
     .analytics-stage-page .analytics-kpi-strip-three,
     .analytics-recommendation-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .descriptive-analytics-page .descriptive-kpi-row {
+        grid-template-columns: 1fr;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi,
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-child(even),
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:nth-last-child(-n + 2) {
+        border-right: 0;
+        border-bottom: 1px solid #e3eaf3;
+    }
+
+    .descriptive-analytics-page .descriptive-kpi-row .analytics-kpi:last-child {
+        border-bottom: 0;
     }
 }
