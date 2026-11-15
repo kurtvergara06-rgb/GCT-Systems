@@ -290,6 +290,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('batch-file-processing');
         Route::post('/upload', 'upload')->name('batch-file-processing.upload');
         Route::get('/export', 'export')->name('batch-file-processing.export');
+
+        Route::delete('/{batchUpload}', 'destroy')
+            ->name('batch-file-processing.destroy');
+
+        Route::patch('/{batchUpload}/confirm', 'confirm')
+            ->name('batch-file-processing.confirm');
     });
 
 });
