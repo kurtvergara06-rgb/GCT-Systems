@@ -38,11 +38,6 @@
 
     </header>
 
-    @if(session('success'))
-        <div class="inc-wf-flash is-success" role="status">
-            <i class="fa-solid fa-circle-check"></i><span>{{ session('success') }}</span>
-        </div>
-    @endif
     @if(session('error') || $errors->any())
         <div class="inc-wf-flash is-error" role="alert">
             <i class="fa-solid fa-circle-exclamation"></i>

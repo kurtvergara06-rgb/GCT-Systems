@@ -36,7 +36,7 @@
 }
 
 /* Canonical solid-icon table delete buttons, including legacy record actions. */
-:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete) {
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete) {
     box-sizing: border-box;
     width: 32px !important;
     min-width: 32px !important;
@@ -48,25 +48,25 @@
     align-items: center;
     justify-content: center;
 }
-:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):not([aria-disabled="true"]) {
     background: #fef2f2 !important;
     border: 1px solid #fecaca !important;
     color: #dc2626 !important;
 }
-:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):hover {
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete):not(:disabled):not(.disabled):not(.gct-action-unavailable):hover {
     background: #fee2e2 !important;
     border-color: #fca5a5 !important;
     color: #b91c1c !important;
     transform: none !important;
 }
-:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete):is(:disabled, .disabled, .gct-action-unavailable, [aria-disabled="true"]) {
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete):is(:disabled, .disabled, .gct-action-unavailable, [aria-disabled="true"]) {
     background: #e5e7eb !important;
     border: 1px solid #d1d5db !important;
     color: #737373 !important;
     opacity: 1 !important;
     cursor: not-allowed !important;
 }
-:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete, .table-action-btn.delete) > i {
+:is(table, .data-table, .records-table) :is(.action-btn.delete, .gct-record-action.delete) > i {
     font-size: 13px !important;
     line-height: 1;
     color: inherit !important;
@@ -77,7 +77,6 @@
 :where(.app) :is(table, .data-table, .records-table) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
   .gct-record-action.view, .gct-record-action.edit, .gct-record-action.delete,
-  .table-action-btn.view, .table-action-btn.edit, .table-action-btn.delete,
   .trip-action.view, .trip-action.edit, .trip-action.delete
 ) {
   box-sizing: border-box;
@@ -97,14 +96,14 @@
 }
 :where(.app) :is(table, .data-table, .records-table) :is(
   .action-btn.view, .action-btn.edit, .gct-record-action.view, .gct-record-action.edit,
-  .table-action-btn.view, .table-action-btn.edit, .trip-action.view, .trip-action.edit
+  .trip-action.view, .trip-action.edit
 ):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
   color: #0057f8 !important;
   background: #edf5ff !important;
   border: 1px solid #bcd7ff !important;
 }
 :where(.app) :is(table, .data-table, .records-table) :is(
-  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete, .trip-action.delete
+  .action-btn.delete, .gct-record-action.delete, .trip-action.delete
 ):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]) {
   color: #dc2626 !important;
   background: #fef2f2 !important;
@@ -112,14 +111,14 @@
 }
 :where(.app) :is(table, .data-table, .records-table) :is(
   .action-btn.view, .action-btn.edit, .gct-record-action.view, .gct-record-action.edit,
-  .table-action-btn.view, .table-action-btn.edit, .trip-action.view, .trip-action.edit
+  .trip-action.view, .trip-action.edit
 ):not(:disabled):not(.disabled):hover {
   background: #dbeafe !important;
   border-color: #93c5fd !important;
   color: #1d4ed8 !important;
 }
 :where(.app) :is(table, .data-table, .records-table) :is(
-  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete, .trip-action.delete
+  .action-btn.delete, .gct-record-action.delete, .trip-action.delete
 ):not(:disabled):not(.disabled):hover {
   background: #fee2e2 !important;
   border-color: #fca5a5 !important;
@@ -128,7 +127,6 @@
 :where(.app) :is(table, .data-table, .records-table) :is(
   .action-btn.view, .action-btn.edit, .action-btn.delete,
   .gct-record-action.view, .gct-record-action.edit, .gct-record-action.delete,
-  .table-action-btn.view, .table-action-btn.edit, .table-action-btn.delete,
   .trip-action.view, .trip-action.edit, .trip-action.delete
 ):is(:disabled, .disabled, .gct-action-unavailable, .inc-action-disabled, [aria-disabled="true"]) {
   color: #737373 !important;
@@ -138,7 +136,7 @@
   cursor: not-allowed !important;
 }
 :where(.app) :is(table, .data-table, .records-table) :is(
-  .action-btn, .gct-record-action, .table-action-btn, .trip-action
+  .action-btn, .gct-record-action, .trip-action
 ):is(.view, .edit, .delete) > i {
   color: inherit !important;
   font-size: 13px !important;
@@ -251,7 +249,6 @@
 .app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
   .action-btn.view, .action-btn.edit,
   .gct-record-action.view, .gct-record-action.edit,
-  .table-action-btn.view, .table-action-btn.edit,
   .trip-action.view, .trip-action.edit,
   .fuel-action-btn.view, .fuel-action-btn.edit,
   .route-action.view, .route-action.edit,
@@ -266,7 +263,7 @@
   box-shadow: none !important;
 }
 .app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
-  .action-btn.delete, .gct-record-action.delete, .table-action-btn.delete,
+  .action-btn.delete, .gct-record-action.delete,
   .trip-action.delete, .fuel-action-btn.delete, .route-action.delete,
   .ddr-action.delete, .delete-btn
 ):not(:disabled):not(.disabled):not(.gct-action-unavailable):not(.inc-action-disabled):not([aria-disabled="true"]):hover {
@@ -275,10 +272,108 @@
   color: #fff !important;
 }
 .app :is(table, .data-table, .records-table, .table-wrap, .table-card) :is(
-  .action-btn, .gct-record-action, .table-action-btn, .trip-action,
+  .action-btn, .gct-record-action, .trip-action,
   .fuel-action-btn, .route-action, .assignment-action, .ddr-action,
   .view-btn, .edit-btn, .delete-btn, .pms-edit-task-btn,
   .schedule-action-btn
 ):hover > :is(i, svg, span) {
   color: inherit !important;
+}
+
+/* Reusable table-action component. Legacy action classes above remain in place
+   for pages not yet migrated; this contract applies only to x-ui.table-action. */
+.table-action-btn[data-ui-component="table-action"] {
+  --gct-action-bg: #edf5ff;
+  --gct-action-border: #bcd7ff;
+  --gct-action-color: #0057f8;
+  --gct-action-hover-bg: #2357a8;
+  --gct-action-hover-border: #2357a8;
+  --gct-action-hover-color: #fff;
+
+  box-sizing: border-box;
+  min-height: var(--gct-table-action-size);
+  border: 1px solid var(--gct-action-border);
+  border-radius: var(--gct-radius-control);
+  background: var(--gct-action-bg);
+  color: var(--gct-action-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gct-space-2);
+  font-family: var(--gct-font-family);
+  font-size: var(--gct-font-size-body);
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.table-action-btn[data-ui-component="table-action"].table-action-btn--icon {
+  width: var(--gct-table-action-size);
+  min-width: var(--gct-table-action-size);
+  height: var(--gct-table-action-size);
+  padding: 0;
+}
+
+.table-action-btn[data-ui-component="table-action"].table-action-btn--labeled {
+  width: auto;
+  min-width: 0;
+  height: var(--gct-control-height);
+  padding: 0 var(--gct-space-3);
+}
+
+.table-action-btn[data-ui-component="table-action"] > i {
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.table-action-btn.view[data-ui-component="table-action"],
+.table-action-btn.edit[data-ui-component="table-action"],
+.table-action-btn.review[data-ui-component="table-action"],
+.table-action-btn.close[data-ui-component="table-action"] {
+  --gct-action-bg: #edf5ff;
+  --gct-action-border: #bcd7ff;
+  --gct-action-color: #0057f8;
+}
+
+.table-action-btn[data-ui-component="table-action"]:not(:disabled):not([aria-disabled="true"]):hover {
+  border-color: var(--gct-action-hover-border);
+  background: var(--gct-action-hover-bg);
+  color: var(--gct-action-hover-color);
+}
+
+.table-action-btn[data-ui-component="table-action"]:is(.delete, .reject) {
+  --gct-action-bg: #fef2f2;
+  --gct-action-border: #fecaca;
+  --gct-action-color: #dc2626;
+  --gct-action-hover-bg: #dc2626;
+  --gct-action-hover-border: #dc2626;
+}
+
+.table-action-btn[data-ui-component="table-action"]:is(.approve, .receive) {
+  --gct-action-bg: #eaf9f0;
+  --gct-action-border: #c4ebd3;
+  --gct-action-color: #187646;
+  --gct-action-hover-bg: #187646;
+  --gct-action-hover-border: #187646;
+}
+
+.table-action-btn[data-ui-component="table-action"]:is(.submit, .create-po) {
+  --gct-action-bg: #fff5d6;
+  --gct-action-border: #f5cf62;
+  --gct-action-color: #795000;
+  --gct-action-hover-bg: #f5b800;
+  --gct-action-hover-border: #f5b800;
+  --gct-action-hover-color: #0b2347;
+}
+
+.table-action-btn[data-ui-component="table-action"]:is(:disabled, [aria-disabled="true"]) {
+  border-color: #d1d5db;
+  background: #e5e7eb;
+  color: #737373;
+  cursor: not-allowed;
+  opacity: 1;
 }

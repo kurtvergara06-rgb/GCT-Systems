@@ -640,21 +640,17 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $response = $this->actingAs($this->warehouseUser)->get(route('inventory'));
         $response
             ->assertOk()
-            ->assertDontSee('Issue Stock')
-            ->assertDontSee('Import Inventory Data')
-            ->assertDontSee('openIssueModal', false)
-            ->assertDontSee('openImportModal', false)
-            ->assertDontSee('issueModal', false)
-            ->assertDontSee('importModal', false);
+            ->assertSee('Issue Stock')
+            ->assertSee('id="issueModal"', false);
 
         preg_match('/<table class="inventory-table">.*?<\/table>/s', $response->getContent(), $matches);
         $table = $matches[0] ?? '';
 
         $this->assertNotSame('', $table);
-        $this->assertSame(8, substr_count($table, '<th>'));
-        $this->assertStringContainsString('<th>Item</th>', $table);
-        $this->assertStringContainsString('<th>Stock</th>', $table);
-        $this->assertStringContainsString('<th>Supplier</th>', $table);
+        $this->assertSame(9, substr_count($table, '<th>'));
+        $this->assertStringContainsString('<th>Item / Part</th>', $table);
+        $this->assertStringContainsString('<th>On Hand</th>', $table);
+        $this->assertStringContainsString('Supplier:', $table);
         $this->assertStringNotContainsString('<th>Last Updated</th>', $table);
         $this->assertStringContainsString('inventory-item-cell', $table);
         $this->assertStringContainsString('inventory-stock-cell', $table);
@@ -807,7 +803,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Maintenance Requests' => route('maintenance-requests'),
             'Inventory Restock' => route('inventory-restock'),
             'Purchase History' => route('maintenance-requests', ['view' => 'history']),
-            'Scheduled Purchase' => route('scheduled-purchase'),
         ];
 
         foreach ($pages as $label => $url) {

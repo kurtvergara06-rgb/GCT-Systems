@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Maintenance\FuelReportController;
+use App\Http\Controllers\Maintenance\ItemRequestController;
 use App\Http\Controllers\Maintenance\JobOrderController;
 use App\Http\Controllers\Maintenance\JobOrderIndexController;
 use App\Http\Controllers\Maintenance\MaintenanceDashboardController;
@@ -69,13 +70,25 @@ Route::middleware([
         Route::controller(JobOrderController::class)
             ->prefix('job-orders')
             ->group(function () {
+                Route::get('/{jobOrder}/approval-signature', 'approvalSignature')->middleware('system.permission:maintenance,view')->name('job-orders.approval-signature');
+                Route::get('/inventory-options', 'inventoryOptions')->name('job-orders.inventory-options');
+                Route::get('/specializations', 'specializationOptions')->name('job-orders.specializations');
                 Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');
+                Route::get('/duration-suggestion', 'durationSuggestion')->name('job-orders.duration-suggestion');
+                Route::post('/inventory-availability', 'inventoryAvailability')->name('job-orders.inventory-availability');
+                Route::post('/head-review-inventory-availability', 'headReviewInventoryAvailability')->name('job-orders.head-review-inventory-availability');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('job-orders.store');
                 Route::put('/{jobOrder}', 'update')->middleware('system.permission:maintenance,edit')->name('job-orders.update');
+                Route::post('/{jobOrder}/approve', 'approve')->middleware('system.permission:maintenance,approve')->name('job-orders.approve');
+                Route::post('/{jobOrder}/return-for-revision', 'returnForRevision')->middleware('system.permission:maintenance,approve')->name('job-orders.return-for-revision');
+                Route::post('/{jobOrder}/reject', 'reject')->middleware('system.permission:maintenance,approve')->name('job-orders.reject');
                 Route::post('/{jobOrder}/finish', 'finish')->middleware('system.permission:maintenance,edit')->name('job-orders.finish');
                 Route::post('/{jobOrder}/create-pr', 'createPurchaseRequest')->middleware('system.permission:maintenance,edit')->name('job-orders.create-pr');
                 Route::delete('/{jobOrder}', 'destroy')->middleware('system.permission:maintenance,edit')->name('job-orders.destroy');
             });
+
+        Route::get('/item-requests', [ItemRequestController::class, 'index'])->name('item-requests');
+        Route::post('/item-requests', [ItemRequestController::class, 'store'])->middleware('system.permission:maintenance,edit')->name('item-requests.store');
 
         Route::get('/purchase-requests', PurchaseRequestIndexController::class)
             ->name('purchase-requests');
@@ -83,6 +96,9 @@ Route::middleware([
         Route::controller(PurchaseRequestController::class)
             ->prefix('purchase-requests')
             ->group(function () {
+                Route::get('/job-orders/{jobOrder}/requisition-data', 'jobOrderData')
+                    ->middleware('system.permission:maintenance,view')
+                    ->name('purchase-requests.job-order-data');
                 Route::post('/', 'store')->middleware('system.permission:maintenance,edit')->name('purchase-requests.store');
                 Route::put('/{purchaseRequest}', 'update')->middleware('system.permission:maintenance,edit')->name('purchase-requests.update');
                 Route::post('/{purchaseRequest}/resubmit', 'resubmit')->middleware('system.permission:maintenance,edit')->name('purchase-requests.resubmit');

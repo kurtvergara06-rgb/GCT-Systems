@@ -6,6 +6,7 @@ use App\Events\SystemDataUpdated;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Maintenance\MaintenanceReferral;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
@@ -25,6 +26,7 @@ use App\Models\Warehouse\InventoryItem;
 use App\Models\Warehouse\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -507,7 +509,7 @@ class SystemBackendFullAuditTest extends TestCase
         $poResponse = $this->post(route('purchase-orders.store'), [
             'purchase_request_id' => $pr->id,
             'supplier_name' => 'Bendix Brakes Official',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'items' => [[
                 'pr_no' => $pr->pr_no,
                 'bus_no' => $pr->bus_no,
@@ -519,28 +521,18 @@ class SystemBackendFullAuditTest extends TestCase
         ]);
         $poResponse->assertRedirect('/purchase-orders');
         $po = PurchaseOrder::where('supplier_name', 'Bendix Brakes Official')->firstOrFail();
+        $this->assertSame('For Review', $po->status);
+
+        $this->patch(route('purchase-orders.approve', $po), [
+            'signature' => UploadedFile::fake()->create('purchase-head.png', 20, 'image/png'),
+        ])
+            ->assertRedirect('/purchase-orders');
+        $po->refresh();
         $this->assertSame('Ordered', $po->status);
 
         // 6.2 Maintenance Requests
         $this->get(route('maintenance-requests'))->assertOk();
 
-        // 6.3 Scheduled Purchase
-        $this->get(route('scheduled-purchase'))->assertOk();
-        $spResponse = $this->post(route('scheduled-purchase.store'), [
-            'schedule_name' => 'Monthly Engine Coolant Supply',
-            'item' => 'Fleet Coolant 50/50 Premix 20L',
-            'quantity' => 10,
-            'unit' => 'pails',
-            'estimated_cost' => 1800,
-            'supplier_name' => 'Caltex Lubricants',
-            'frequency' => 'Monthly',
-            'start_date' => now()->toDateString(),
-            'next_purchase_date' => now()->addMonth()->toDateString(),
-            'status' => 'Active',
-            'notes' => 'Automatic replenishment for depot maintenance',
-        ]);
-        $spResponse->assertRedirect();
-        $this->assertTrue(ScheduledPurchase::where('schedule_name', 'Monthly Engine Coolant Supply')->exists());
     }
 
     // =========================================================================
@@ -660,6 +652,11 @@ class SystemBackendFullAuditTest extends TestCase
         $this->assertSame($bus->bus_no, $jobOrder->bus_no);
         $this->assertSame($incident->id, $jobOrder->incident_id);
 
+        $this->actingAs($maintHead)->post(route('job-orders.return-for-revision', $jobOrder), [
+            'review_notes' => 'Assign a mechanic and specify the required replacement part.',
+        ])->assertRedirect();
+        $this->assertSame('Revision Required', $jobOrder->fresh()->review_status);
+
         // Assign mechanic
         $mechanic = Mechanic::create([
             'mechanic_id' => 'MEC-E2E-701',
@@ -686,37 +683,45 @@ class SystemBackendFullAuditTest extends TestCase
         ])->assertRedirect();
 
         $jobOrder->refresh();
-        $this->assertSame('On Going', $jobOrder->status);
+        $this->assertSame('For Review', $jobOrder->review_status);
+        $this->assertSame('On Hold', $jobOrder->status);
+
+        $this->actingAs($maintHead)->post(route('job-orders.approve', $jobOrder), [
+            'electronic_signature' => $maintHead->name,
+            'signature_image' => 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('img/gct_logo.png'))),
+            'duration_decision' => 'adjust',
+            'verified_duration_value' => 4,
+            'verified_duration_unit' => 'Hours',
+            'duration_adjustment_reason' => 'Verified duration for the incident repair.',
+        ])->assertRedirect();
+        $this->assertSame('Approved', $jobOrder->fresh()->review_status);
+        $this->assertSame('On Hold', $jobOrder->fresh()->status);
 
         // 7.7 Job Order creates Purchase Request
         $this->actingAs($maintStaff)
-            ->post(route('job-orders.create-pr', $jobOrder))
-            ->assertRedirect();
+            ->post(route('purchase-requests.store'), [
+                'job_order_no' => $jobOrder->job_order_no,
+                'bus_no' => $jobOrder->bus_no,
+            ])
+            ->assertRedirect(route('purchase-requests', ['record_view' => 'active'], false));
 
         $originalPr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->firstOrFail();
         $this->assertSame('Submitted', $originalPr->status);
-
-        // Maintenance Head approves PR
-        $this->actingAs($maintHead)
-            ->post(route('purchase-requests.approve', $originalPr))
-            ->assertRedirect();
-        $this->assertSame('Approved', $originalPr->fresh()->status);
 
         // Warehouse routes PR to Purchase
         $this->actingAs($warehouseHead)
             ->post(route('part-requests.send-to-purchase', $originalPr))
             ->assertRedirect();
 
-        $purchasePr = PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)
-            ->where('id', '!=', $originalPr->id)
-            ->firstOrFail();
+        $purchasePr = $originalPr->fresh();
         $this->assertSame('For Purchase', $purchasePr->status);
+        $this->assertSame(1, PurchaseRequest::where('job_order_no', $jobOrder->job_order_no)->count());
 
         // 7.8 Purchase creates Purchase Order
         $this->actingAs($purchaseHead)->post(route('purchase-orders.store'), [
             'purchase_request_id' => $purchasePr->id,
             'supplier_name' => 'Asian Transmission Corp',
-            'status' => 'Ordered',
+            'status' => 'For Review',
             'items' => [[
                 'pr_no' => $purchasePr->pr_no,
                 'bus_no' => $purchasePr->bus_no,
@@ -728,6 +733,15 @@ class SystemBackendFullAuditTest extends TestCase
         ])->assertRedirect('/purchase-orders');
 
         $po = PurchaseOrder::where('supplier_name', 'Asian Transmission Corp')->firstOrFail();
+        $this->assertSame('For Review', $po->status);
+
+        $this->actingAs($purchaseHead)
+            ->patch(route('purchase-orders.approve', $po), [
+                'signature' => UploadedFile::fake()->create('purchase-head.png', 20, 'image/png'),
+            ])
+            ->assertRedirect('/purchase-orders');
+
+        $po->refresh();
         $this->assertSame('Ordered', $po->status);
 
         // Update PO to For Delivery
@@ -737,22 +751,40 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 7.9 Warehouse receives delivery and posts inventory
         $this->actingAs($warehouseHead)
-            ->post(route('incoming-deliveries.receive', $po))
+            ->post(route('incoming-deliveries.receive', $po), ['received_quantities' => [1]])
             ->assertRedirect('/warehouse/incoming-deliveries');
 
         $inventoryItem = InventoryItem::where('item_name', 'Clutch Master Cylinder 24V')->firstOrFail();
         $this->assertSame(1, (int) $inventoryItem->quantity_available);
 
-        // 7.10 Maintenance approval is already complete; Warehouse Staff issues after receipt.
+        // 7.10 Physical stock-out uses the linked IR and signed SWIS handover.
+        $itemRequest = ItemRequest::create([
+            'job_order_id' => $jobOrder->id,
+            'requested_by' => $maintStaff->id,
+            'status' => 'Submitted',
+            'requested_parts' => [[
+                'name' => 'Clutch Master Cylinder 24V',
+                'quantity' => 1,
+                'unit' => 'pcs',
+                'inventory_item_id' => $inventoryItem->id,
+            ]],
+        ]);
         $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $originalPr))
-            ->assertRedirect();
+            ->post(route('warehouse.item-requests.issue', $itemRequest), [
+                'received_by' => $mechanic->mechanic_name,
+                'signed_slip' => UploadedFile::fake()->create('signed-issuance.pdf', 20, 'application/pdf'),
+                'handover_confirmed' => '1',
+                'issued_quantities' => [1],
+            ])
+            ->assertRedirect()->assertSessionHasNoErrors();
 
-        $this->assertSame('Issued', $originalPr->fresh()->status);
+        $this->assertSame('Delivered', $originalPr->fresh()->status);
+        $this->assertSame('Issued', $itemRequest->fresh()->status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(0, (int) $inventoryItem->fresh()->quantity_available);
 
         // 7.11 Maintenance completes Job Order
+        $jobOrder->update(['status' => 'On Going']);
         $this->actingAs($maintStaff)
             ->post(route('job-orders.finish', $jobOrder))
             ->assertRedirect();

@@ -203,8 +203,8 @@ class WarehouseDashboardController extends Controller
 
         $warehouseChartData = [
             'inventory' => [
-                'labels' => ['Sufficient', 'Low Stock', 'Out of Stock', 'For Reorder'],
-                'values' => [$availableStock, $lowStockItems, $outOfStock, $forReorder],
+                'labels' => ['Sufficient', 'Low Stock', 'Out of Stock'],
+                'values' => [$availableStock, $lowStockItems, $outOfStock],
             ],
             'statusDistribution' => [
                 'labels' => ['Sufficient Stock', 'Low Stock', 'Out of Stock'],

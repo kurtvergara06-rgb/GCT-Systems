@@ -41,6 +41,11 @@
         ? $options
         : collect($options)->toArray();
 
+    // Numeric-looking identifiers (for example bus number "100") are cast
+    // to integer array keys by PHP. Only treat integer keys as implicit values
+    // when the options are a true zero-based list.
+    $optionsAreList = array_is_list($fieldOptions);
+
     if (
         $isPmsJobOrderBus
         && $pmsBusNo !== ''
@@ -109,7 +114,7 @@
 
                 @php
                     $optionValue =
-                        is_int($key)
+                        $optionsAreList && is_int($key)
                             ? $option
                             : $key;
                 @endphp

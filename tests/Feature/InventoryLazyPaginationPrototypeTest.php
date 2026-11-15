@@ -18,6 +18,26 @@ class InventoryLazyPaginationPrototypeTest extends TestCase
         );
     }
 
+    public function test_inventory_page_uses_the_shared_records_toolbar_and_modal_initializer(): void
+    {
+        $view = file_get_contents(
+            resource_path('views/Warehouse/inventory.blade.php')
+        );
+
+        $this->assertStringContainsString(
+            'warehouse-inventory-page records-page',
+            $view
+        );
+        $this->assertStringContainsString(
+            '<x-ui.table-toolbar',
+            $view
+        );
+        $this->assertStringNotContainsString(
+            'class="inventory-toolbar"',
+            $view
+        );
+    }
+
     public function test_shared_paginator_supports_lazy_scroll_loading(): void
     {
         $source = file_get_contents(

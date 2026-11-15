@@ -126,6 +126,19 @@ class MaintenanceDashboardTest extends TestCase
             'estimated_duration_unit' => 'Hours',
         ]);
 
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-0004',
+            'bus_no' => $bus->bus_no,
+            'problem_issue' => 'Rejected repair must not count as completed.',
+            'maintenance_type' => 'Repair',
+            'status' => 'Completed',
+            'review_status' => 'Rejected',
+            'start_date' => now()->subDays(3),
+            'completion_date' => now()->subDays(2),
+            'estimated_duration_value' => 1,
+            'estimated_duration_unit' => 'Hours',
+        ]);
+
         $response = $this->actingAs($user)->get(route('maintenance-dashboard'));
 
         $response->assertStatus(200);

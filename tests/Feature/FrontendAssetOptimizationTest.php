@@ -29,10 +29,10 @@ class FrontendAssetOptimizationTest extends TestCase
         $driver = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
         $mechanic = file_get_contents(resource_path('views/Operation/Attendance/mechanic-attendance.blade.php'));
 
-        // DDR-based driver attendance is read-only; legacy batch assets remain
-        // available only to the separate attendance workflow.
-        $this->assertStringNotContainsString('resources/css/Operation/Attendance/batch-attendance.css', $driver);
+        // Both attendance pages expose permission-gated manual/import workflows.
+        // Driver attendance is DDR-verified, not a batch entry page.
         $this->assertStringNotContainsString('resources/js/Operation/Attendance/batch-attendance.js', $driver);
+        $this->assertStringContainsString('resources/js/Operation/Attendance/driver-attendance.js', $driver);
         $this->assertStringContainsString('resources/css/Operation/Attendance/batch-attendance.css', $mechanic);
         $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $mechanic);
     }

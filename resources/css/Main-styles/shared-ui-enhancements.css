@@ -189,9 +189,9 @@ button,
 }
 
 /* Stronger shared status pills for Poppins. */
-.badge,
+.badge:not([data-ui-component="status-badge"]),
 .bus-status,
-.status-badge,
+.status-badge:not([data-ui-component="status-badge"]),
 .attendance-status,
 .jo-status,
 .part-status,
@@ -212,52 +212,52 @@ button,
   white-space: nowrap;
 }
 
-.badge.ongoing,
-.badge.normal,
-.badge.open,
-.badge.issued,
-.badge.for-purchase,
-.status-badge.ongoing,
-.status-badge.in-progress {
+.badge.ongoing:not([data-ui-component="status-badge"]),
+.badge.normal:not([data-ui-component="status-badge"]),
+.badge.open:not([data-ui-component="status-badge"]),
+.badge.issued:not([data-ui-component="status-badge"]),
+.badge.for-purchase:not([data-ui-component="status-badge"]),
+.status-badge.ongoing:not([data-ui-component="status-badge"]),
+.status-badge.in-progress:not([data-ui-component="status-badge"]) {
   border-color: #a9c8ff;
   background: #dceaff;
   color: #0644b8;
 }
 
-.badge.hold,
-.badge.submitted,
-.badge.pending,
-.badge.pending-purchase,
-.badge.high,
-.badge.progress,
-.status-badge.hold,
-.status-badge.pending,
+.badge.hold:not([data-ui-component="status-badge"]),
+.badge.submitted:not([data-ui-component="status-badge"]),
+.badge.pending:not([data-ui-component="status-badge"]),
+.badge.pending-purchase:not([data-ui-component="status-badge"]),
+.badge.high:not([data-ui-component="status-badge"]),
+.badge.progress:not([data-ui-component="status-badge"]),
+.status-badge.hold:not([data-ui-component="status-badge"]),
+.status-badge.pending:not([data-ui-component="status-badge"]),
 .workflow-badge.for-fuel-entry {
   border-color: #f3ce65 !important;
   background: #fff0bd !important;
   color: #8a5600 !important;
 }
 
-.badge.completed,
-.badge.approved,
-.badge.available,
-.badge.low,
-.badge.delivered,
-.badge.in-stock,
-.status-badge.completed,
-.status-badge.approved,
+.badge.completed:not([data-ui-component="status-badge"]),
+.badge.approved:not([data-ui-component="status-badge"]),
+.badge.available:not([data-ui-component="status-badge"]),
+.badge.low:not([data-ui-component="status-badge"]),
+.badge.delivered:not([data-ui-component="status-badge"]),
+.badge.in-stock:not([data-ui-component="status-badge"]),
+.status-badge.completed:not([data-ui-component="status-badge"]),
+.status-badge.approved:not([data-ui-component="status-badge"]),
 .workflow-badge.completed {
   border-color: #8bdcab !important;
   background: #d7f7e3 !important;
   color: #087332 !important;
 }
 
-.badge.critical,
-.badge.not-available,
-.badge.rejected,
-.badge.urgent,
-.status-badge.rejected,
-.status-badge.urgent,
+.badge.critical:not([data-ui-component="status-badge"]),
+.badge.not-available:not([data-ui-component="status-badge"]),
+.badge.rejected:not([data-ui-component="status-badge"]),
+.badge.urgent:not([data-ui-component="status-badge"]),
+.status-badge.rejected:not([data-ui-component="status-badge"]),
+.status-badge.urgent:not([data-ui-component="status-badge"]),
 .workflow-badge.missing-gps,
 .workflow-badge.needs-review {
   border-color: #ffaaaa !important;
@@ -265,9 +265,9 @@ button,
   color: #b20f1b !important;
 }
 
-.badge.draft,
-.status-badge.draft,
-.status-badge.locked,
+.badge.draft:not([data-ui-component="status-badge"]),
+.status-badge.draft:not([data-ui-component="status-badge"]),
+.status-badge.locked:not([data-ui-component="status-badge"]),
 .workflow-badge.monitoring {
   border-color: #cbd5e1 !important;
   background: #edf2f7 !important;
@@ -537,28 +537,49 @@ button,
   white-space: nowrap !important;
 }
 
-/* Status components should remain readable even when page CSS is denser. */
+/* Canonical shared status-badge contract. App\Support\StatusBadge supplies the
+   semantic tone through data-status; CSS owns presentation only. */
 [data-ui-component="status-badge"] {
-  min-width: 92px !important;
-  min-height: 28px !important;
-  padding: 6px 12px !important;
-  border: 1px solid transparent !important;
-  border-radius: 999px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  letter-spacing: 0 !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  gap: 6px !important;
-  vertical-align: middle !important;
+  --gct-status-bg: #f3f6fa;
+  --gct-status-border: #dce5ed;
+  --gct-status-text: #63758c;
+
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: max-content;
+  max-width: 100%;
+  min-height: var(--gct-status-min-height);
+  height: auto;
+  padding: var(--gct-status-padding-block) var(--gct-status-padding-inline);
+  border: 1px solid var(--gct-status-border);
+  border-radius: var(--gct-status-radius);
+  background: var(--gct-status-bg);
+  color: var(--gct-status-text);
+  font-family: var(--gct-font-family);
+  font-size: var(--gct-status-font-size);
+  font-weight: 800;
+  line-height: var(--gct-line-height-tight);
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: center;
+  white-space: nowrap;
+  gap: var(--gct-status-gap);
+  vertical-align: middle;
+  box-shadow: none;
 }
 
 [data-ui-component="status-badge"] .status-badge__icon {
-  width: 1em;
-  flex: 0 0 1em;
-  color: currentColor;
-  font-size: 11px !important;
+  display: inline-block;
+  width: auto;
+  height: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font-size: var(--gct-status-icon-size);
   line-height: 1;
   text-align: center;
 }
@@ -566,46 +587,48 @@ button,
 [data-ui-component="status-badge"] .status-badge__label {
   min-width: 0;
   color: inherit;
-  line-height: 1;
+  font: inherit;
+  line-height: inherit;
 }
 
 [data-ui-component="status-badge"][data-status="positive"],
 [data-ui-component="status-badge"][data-status="success"] {
-  border-color: #8bdcab !important;
-  background: #d7f7e3 !important;
-  color: #087332 !important;
+  --gct-status-bg: #eaf9f0;
+  --gct-status-border: #c4ebd3;
+  --gct-status-text: #187646;
 }
 
 [data-ui-component="status-badge"][data-status="pending"],
 [data-ui-component="status-badge"][data-status="scheduled"],
 [data-ui-component="status-badge"][data-status="warning"] {
-  border-color: #f3ce65 !important;
-  background: #fff0bd !important;
-  color: #8a5600 !important;
+  --gct-status-bg: #fff5e2;
+  --gct-status-border: #f0dbac;
+  --gct-status-text: #9c6610;
 }
 
-[data-ui-component="status-badge"][data-status="progress"] {
-  border-color: #a9c8ff !important;
-  background: #dceaff !important;
-  color: #0644b8 !important;
+[data-ui-component="status-badge"][data-status="progress"],
+[data-ui-component="status-badge"][data-status="info"] {
+  --gct-status-bg: #edf4ff;
+  --gct-status-border: #d0e0fa;
+  --gct-status-text: #2762b0;
 }
 
 [data-ui-component="status-badge"][data-status="maintenance"] {
-  border-color: #f3ce65 !important;
-  background: #fff0bd !important;
-  color: #9a5b00 !important;
+  --gct-status-bg: #fff5e2;
+  --gct-status-border: #f0dbac;
+  --gct-status-text: #9c6610;
 }
 
 [data-ui-component="status-badge"][data-status="negative"] {
-  border-color: #ffaaaa !important;
-  background: #ffe0e0 !important;
-  color: #b20f1b !important;
+  --gct-status-bg: #fff0f2;
+  --gct-status-border: #f6cbd1;
+  --gct-status-text: #b83d4a;
 }
 
 [data-ui-component="status-badge"][data-status="neutral"] {
-  border-color: #cbd5e1 !important;
-  background: #edf2f7 !important;
-  color: #475569 !important;
+  --gct-status-bg: #f3f6fa;
+  --gct-status-border: #dce5ed;
+  --gct-status-text: #63758c;
 }
 
 /* Every shared action button keeps its meaning visible before hover. */

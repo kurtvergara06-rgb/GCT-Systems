@@ -287,6 +287,214 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         });
     });
 
+    // Persist newly created categories before offering them for mechanic selection.
+    const specializationCreateToggle = form.querySelector('[data-specialization-create-toggle]');
+    const specializationCreateName = form.querySelector('[data-specialization-create-name]');
+    const specializationCreateSave = form.querySelector('[data-specialization-create-save]');
+    const specializationCreateLabel = form.querySelector('[data-specialization-create-label]');
+    const specializationCreateFeedback = form.querySelector('[data-specialization-create-feedback]');
+    let specializationCreating = false;
+
+    const setSpecializationCreating = (enabled) => {
+        specializationCreating = enabled && !specializationReadOnly;
+        if (specializationCreateName) specializationCreateName.hidden = !specializationCreating;
+        if (specializationCreateLabel) specializationCreateLabel.textContent = specializationCreating ? 'Add' : 'New';
+        specializationCreateToggle?.setAttribute('aria-expanded', String(specializationCreating));
+        if (specializationCreating) specializationCreateName?.focus();
+    };
+
+    specializationCreateToggle?.addEventListener('click', async () => {
+        if (specializationReadOnly || !specializationCreateSave) return;
+        if (!specializationCreating) {
+            setSpecializationCreating(true);
+            return;
+        }
+        const name = String(specializationCreateName?.value || '').trim();
+        if (!name) {
+            if (specializationCreateFeedback) specializationCreateFeedback.textContent = 'Enter a specialization name.';
+            specializationCreateName?.focus();
+            return;
+        }
+        specializationCreateSave.disabled = true;
+        if (specializationCreateFeedback) specializationCreateFeedback.textContent = '';
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                || form.querySelector('input[name="_token"]')?.value;
+            const response = await fetch(specializationCreateSave.dataset.endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf || '' },
+                body: JSON.stringify({ name }),
+                credentials: 'same-origin',
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(Object.values(result.errors || {}).flat()[0] || result.message || 'Unable to save specialization.');
+            }
+            const saved = String(result.name || name);
+            if (!specializationOptions.some(button => button.dataset.specializationOption.toLowerCase() === saved.toLowerCase())) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'personnel-specialization-option tone-blue';
+                button.dataset.specializationOption = saved;
+                button.setAttribute('aria-pressed', 'false');
+                const label = document.createElement('span');
+                label.textContent = saved;
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-plus personnel-specialization-state-icon';
+                button.append(label, icon);
+                specializationPicker?.appendChild(button);
+                specializationOptions.push(button);
+            }
+            if (result.delete_url && ![...specializationPicker.querySelectorAll('[data-specialization-delete]')]
+                .some(button => button.dataset.specializationName.toLowerCase() === saved.toLowerCase())) {
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'personnel-specialization-delete-btn';
+                remove.dataset.specializationDelete = '';
+                remove.dataset.specializationName = saved;
+                remove.dataset.endpoint = result.delete_url;
+                remove.setAttribute('aria-label', 'Delete custom specialization ' + saved);
+                remove.title = 'Delete custom specialization ' + saved;
+                remove.style.cssText = 'min-height:18px;min-width:18px;padding:0 3px;font-size:10px;border:1px solid #fecaca;border-radius:6px;background:#fff1f2;color:#b91c1c;cursor:pointer;align-items:center;justify-content:center';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-xmark';
+                icon.setAttribute('aria-hidden', 'true');
+                remove.appendChild(icon);
+                specializationPicker.appendChild(remove);
+                renderSpecializationEditMode();
+            }
+            addSpecialization(saved);
+            if (specializationCreateName) specializationCreateName.value = '';
+            setSpecializationCreating(false);
+            if (specializationCreateFeedback) specializationCreateFeedback.textContent = '';
+            window.showSystemToast?.(saved + ' added successfully.', 'success', 'Specialization');
+        } catch (error) {
+            if (specializationCreateFeedback) specializationCreateFeedback.textContent = '';
+            window.showSystemToast?.(error.message, 'error', 'Specialization');
+            specializationCreateName?.focus();
+        } finally {
+            specializationCreateSave.disabled = false;
+        }
+    });
+
+    const specializationEditToggle = form.querySelector('[data-specialization-edit-toggle]');
+    const specializationEditLabel = form.querySelector('[data-specialization-edit-label]');
+    let specializationEditing = false;
+    const pendingSpecializationDeletes = new Set();
+
+    const renderSpecializationEditMode = () => {
+        specializationPicker?.querySelectorAll('[data-specialization-delete]').forEach((button) => {
+            button.hidden = !specializationEditing;
+            button.style.display = specializationEditing ? 'inline-flex' : 'none';
+            button.disabled = pendingSpecializationDeletes.has(button.dataset.specializationName.toLowerCase());
+            button.title = button.disabled ? 'Marked for deletion' : 'Remove custom specialization';
+        });
+        if (specializationEditLabel) specializationEditLabel.textContent = specializationEditing ? 'Save' : 'Edit';
+        specializationEditToggle?.setAttribute('aria-pressed', String(specializationEditing));
+    };
+
+    specializationPicker?.addEventListener('click', (event) => {
+        const remove = event.target.closest('[data-specialization-delete]');
+        if (!remove || !specializationEditing || specializationReadOnly) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const name = String(remove.dataset.specializationName || '').trim();
+        if (!name) return;
+        pendingSpecializationDeletes.add(name.toLowerCase());
+        const option = specializationOptions.find(button =>
+            String(button.dataset.specializationOption || '').toLowerCase() === name.toLowerCase()
+        );
+        option?.classList.add('is-pending-deletion');
+        renderSpecializationEditMode();
+    });
+
+    specializationEditToggle?.addEventListener('click', async () => {
+        if (specializationReadOnly) return;
+        if (!specializationEditing) {
+            specializationEditing = true;
+            setSpecializationCreating(false);
+            renderSpecializationEditMode();
+            return;
+        }
+        if (pendingSpecializationDeletes.size === 0) {
+            specializationEditing = false;
+            renderSpecializationEditMode();
+            return;
+        }
+        if (typeof window.openSystemConfirmation !== 'function') {
+            window.showSystemToast?.('Confirmation dialog is unavailable. Please reload the page.', 'error', 'Specializations');
+            return;
+        }
+        const confirmed = await new Promise((resolve) => {
+            let accepted = false;
+            window.openSystemConfirmation({
+                title: 'Delete Specializations?',
+                message: 'Delete the selected unused specializations? This action cannot be undone. Specializations assigned to mechanics will not be deleted.',
+                button: 'Yes, Delete',
+                type: 'delete',
+                closeOnConfirm: true,
+            }, () => {
+                accepted = true;
+                resolve(true);
+            });
+            // Cancellation leaves this promise pending; opening another confirmation
+            // replaces the callback. The pending promise does not mutate data.
+        });
+        if (!confirmed) return;
+        specializationEditToggle.disabled = true;
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+            || form.querySelector('input[name="_token"]')?.value;
+        let successes = 0;
+        let failures = [];
+        for (const button of [...specializationPicker.querySelectorAll('[data-specialization-delete]')]) {
+            const name = String(button.dataset.specializationName || '');
+            if (!pendingSpecializationDeletes.has(name.toLowerCase())) continue;
+            try {
+                const response = await fetch(button.dataset.endpoint, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf || '' },
+                    credentials: 'same-origin',
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Deletion failed.');
+                const option = specializationOptions.find(item =>
+                    String(item.dataset.specializationOption || '').toLowerCase() === name.toLowerCase()
+                );
+                if (option) {
+                    specializationOptions.splice(specializationOptions.indexOf(option), 1);
+                    option.remove();
+                }
+                button.remove();
+                pendingSpecializationDeletes.delete(name.toLowerCase());
+                selectedSpecializations = selectedSpecializations.filter(item => item.toLowerCase() !== name.toLowerCase());
+                successes += 1;
+            } catch (error) {
+                failures.push(name + ': ' + error.message);
+                const option = specializationOptions.find(item => item.dataset.specializationOption.toLowerCase() === name.toLowerCase());
+                option?.classList.remove('is-pending-deletion');
+                pendingSpecializationDeletes.delete(name.toLowerCase());
+            }
+        }
+        updateSpecializationControls();
+        specializationEditing = false;
+        renderSpecializationEditMode();
+        specializationEditToggle.disabled = false;
+        if (successes) window.showSystemToast?.(successes + ' specialization(s) deleted.', 'success', 'Specializations');
+        if (failures.length) window.showSystemToast?.(failures.join(' '), 'error', 'Unable to delete');
+    });
+
+    specializationCreateName?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            specializationCreateToggle?.click();
+        }
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            setSpecializationCreating(false);
+            specializationCreateToggle?.focus();
+        }
+    });
+
     const openModal = () => {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');

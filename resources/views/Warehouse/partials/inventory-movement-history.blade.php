@@ -4,6 +4,7 @@
 
 <div class="movement-history-content" data-movement-history-content>
   <div class="section-header item-history-header">
+    <div class="item-history-header-label"><i class="fa-solid fa-cube" aria-hidden="true"></i><span>Inventory item</span></div>
     <div>
       <h2>{{ $inventoryItem->item_name }}</h2>
       <p>
@@ -39,7 +40,7 @@
       <input type="hidden" name="modal" value="1">
     @endif
 
-    <div class="filter-group">
+    <div class="filter-group"><i class="fa-solid fa-filter" aria-hidden="true"></i>
       <select name="type" id="itemMovementTypeFilter" aria-label="Filter movement history by type">
         @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
           <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
@@ -48,10 +49,11 @@
     </div>
   </form>
 
-  <div class="table-wrap">
+  <div class="table-wrap movement-history-table-wrap">
     <table class="stock-movement-table">
       <thead>
         <tr>
+          <th>#</th>
           <th>Date / Time</th>
           <th>Movement</th>
           <th>Qty Change</th>
@@ -63,6 +65,7 @@
       </thead>
       <tbody>
         @forelse($movements as $movement)
+
           @php
             $movementClass = match($movement->movement_type) {
               'Stock In' => 'stock-in',
@@ -78,6 +81,7 @@
             };
           @endphp
           <tr>
+            <td class="movement-row-number">{{ $movements->firstItem() + $loop->index }}</td>
             <td>
               <div class="movement-date">
                 <span>{{ $movement->created_at->format('M d, Y') }}</span>
@@ -108,7 +112,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="7" class="empty-stock-movements">
+            <td colspan="8" class="empty-stock-movements">
               <x-ui.empty-state
                 class="stock-movement-empty-state"
                 icon="fa-clock-rotate-left"

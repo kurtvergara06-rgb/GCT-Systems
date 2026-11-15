@@ -101,15 +101,6 @@
                 subtitle="{{ $incident->incident_no }} — {{ $incident->incident_type }}"
             />
 
-            @if (session('success') && !request()->boolean('embedded'))
-                <div class="inc-alert inc-alert-success" role="alert">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <strong>{{ session('success') }}</strong>
-                    </div>
-                </div>
-            @endif
-
             @if (session('error') && !request()->boolean('embedded'))
                 <div class="inc-alert inc-alert-error" role="alert">
                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -156,9 +147,6 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
-            <div class="inc-workflow-information-note"><i class="fa-solid fa-circle-info"></i>
-                <span>Timeline states represent saved system records, not tasks assigned to the OIC. Reserve deployment and maintenance referral depend on the incident type and actual response.</span>
             </div>
 
             <div class="inc-show-layout">

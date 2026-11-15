@@ -444,3 +444,45 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Shift-free mechanic attendance: one compact toolbar; driver layout unchanged. */
+.batch-attendance-mechanic .batch-attendance-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.batch-attendance-mechanic .batch-attendance-controls > label:first-child {
+  flex: 0 0 174px;
+  min-width: 150px;
+}
+.batch-attendance-mechanic .batch-attendance-controls > label:nth-child(2) {
+  display: none !important;
+}
+.batch-attendance-mechanic .batch-action-row {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.batch-attendance-mechanic .batch-control-btn {
+  width: auto;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+.batch-attendance-mechanic .batch-attendance-table th:nth-child(3),
+.batch-attendance-mechanic .batch-attendance-table td:nth-child(3),
+.batch-attendance-mechanic .batch-attendance-table th:nth-child(4),
+.batch-attendance-mechanic .batch-attendance-table td:nth-child(4) {
+  display: none !important;
+}
+@media (max-width: 780px) {
+  .batch-attendance-mechanic .batch-attendance-controls > label:first-child { flex: 1 1 100%; }
+  .batch-attendance-mechanic .batch-action-row { flex-direction: row; }
+  .batch-attendance-mechanic .batch-control-btn { width: auto; white-space: normal; }
+}

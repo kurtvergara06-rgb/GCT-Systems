@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
+use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -53,8 +54,17 @@ class FuelReportController extends Controller
                 ->whereYear('report_date', now()->year);
         }
 
+        TableSort::apply($query, $request, [
+            'report_date' => 'report_date',
+            'bus_no' => 'bus_no',
+            'driver_name' => 'driver_name',
+            'distance_km' => 'distance_km',
+            'fuel_liters' => 'fuel_liters',
+            'km_per_liter' => 'km_per_liter',
+            'status' => 'status',
+        ], 'report_date', 'desc');
+
         $fuelReports = $query
-            ->orderByDesc('report_date')
             ->orderByDesc('id')
             ->get();
 

@@ -759,39 +759,34 @@ class LinkedJobOrderResetService
 
     private function releaseMechanicIfAvailable(string $mechanicName, string $jobOrderNo): bool
     {
-        if ($mechanicName === '') {
+        $mechanicNames = collect(preg_split('/\s*,\s*/', $mechanicName) ?: [])->filter()->unique();
+        if ($mechanicNames->isEmpty()) {
             return false;
         }
 
-        $stillAssigned = JobOrder::query()
-            ->where('assigned_mechanic', $mechanicName)
-            ->where('status', '!=', 'Completed')
-            ->exists();
+        $released = false;
+        foreach ($mechanicNames as $name) {
+            if (JobOrder::query()->assignedToMechanic($name)->open()->exists()) {
+                continue;
+            }
 
-        if ($stillAssigned) {
-            return false;
+            $attendance = MechanicAttendance::query()
+                ->where('mechanic_name', $name)
+                ->whereDate('attendance_date', today())
+                ->latest('id')->lockForUpdate()->first();
+            if (! $attendance || $attendance->status !== 'On Duty') {
+                continue;
+            }
+
+            $updates = ['status' => 'Present'];
+            if (trim((string) $attendance->assigned_job) === $jobOrderNo) {
+                $updates['assigned_job'] = null;
+            }
+            $attendance->update($updates);
+            $released = true;
         }
 
-        $attendance = MechanicAttendance::query()
-            ->where('mechanic_name', $mechanicName)
-            ->whereDate('attendance_date', today())
-            ->latest('id')
-            ->lockForUpdate()
-            ->first();
-
-        if (! $attendance || $attendance->status !== 'On Duty') {
-            return false;
-        }
-
-        $updates = ['status' => 'Present'];
-
-        if (trim((string) $attendance->assigned_job) === $jobOrderNo) {
-            $updates['assigned_job'] = null;
-        }
-
-        $attendance->update($updates);
-
-        return true;
+        return $released;
     }
 
     private function releaseBusIfAvailable(string $busNo): ?Bus
@@ -807,7 +802,7 @@ class LinkedJobOrderResetService
 
         $hasActiveJobOrder = JobOrder::query()
             ->where('bus_no', $busNo)
-            ->where('status', '!=', 'Completed')
+            ->open()
             ->exists();
 
         if ($hasActiveJobOrder) {

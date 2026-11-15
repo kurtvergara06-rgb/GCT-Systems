@@ -1,0 +1,263 @@
+/* Purchase History only.
+   The shared Purchase table styles remain authoritative; this file owns
+   History's row layout, parts disclosures, View action and status pill. */
+
+.purchase-history-page .purchase-history-reference-table {
+  min-width: 880px;
+}
+
+.purchase-history-page .purchase-history-reference-table tbody tr {
+  height: 59px;
+}
+
+.purchase-history-page .purchase-history-reference-table td {
+  padding: 10px 12px !important;
+  vertical-align: middle;
+}
+
+/* Requested item preview and the additional parts disclosure. */
+.purchase-history-page .purchase-history-reference-table .requested-pr-part {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  width: 100%;
+}
+
+.purchase-history-page .purchase-history-reference-table .requested-pr-part > strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.purchase-history-page .purchase-history-reference-table td.requested-pr-part-qty {
+  font-size: 11px;
+  text-align: left;
+}
+
+.purchase-history-page .purchase-history-reference-table td.requested-pr-part-qty > strong {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more {
+  position: relative;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+}
+
+.purchase-history-page .purchase-history-reference-table .requested-pr-part-qty > details.requested-pr-more {
+  margin-top: 5px;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more > summary {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: 4px 7px;
+  border: 1px solid #d3e3f8;
+  border-radius: 5px;
+  background: #edf4ff;
+  color: #2456a1;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.25;
+  white-space: nowrap;
+  list-style: none;
+  cursor: pointer;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more:not([open]) > *:not(summary) {
+  display: none !important;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more[open] {
+  z-index: 30;
+}
+
+.purchase-history-page .purchase-history-reference-table details.requested-pr-more[open] > .requested-pr-more-panel {
+  display: block;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 31;
+  width: max-content;
+  min-width: 155px;
+  max-width: 260px;
+  padding: 7px 9px;
+  border: 1px solid #d6e2f2;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(21,49,83,.14);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.purchase-history-page .purchase-history-table-wrap {
+  overflow: visible !important;
+}
+
+/* A standalone pill avoids old generic .badge width/spacing overrides. */
+.purchase-history-page .purchase-history-reference-table td.purchase-history-status-cell {
+  padding: 10px 6px !important;
+  text-align: center;
+  overflow: visible;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  gap: 7px;
+  min-width: 116px;
+  max-width: 100%;
+  height: 31px;
+  padding: 0 10px;
+  border: 1px solid #b9e7cb;
+  border-radius: 5px;
+  background: #e4f7ec;
+  color: #16814d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill i,
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill > span {
+  display: inline-block;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill[data-status-tone="warning"] {
+  background: #fff5e6;
+  border-color: #eed5a7;
+  color: #946010;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill:is([data-status-tone="danger"], [data-status-tone="negative"]) {
+  background: #fff0f0;
+  border-color: #f1c8cc;
+  color: #b52e40;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill[data-status-tone="info"] {
+  background: #eaf2ff;
+  border-color: #ccdff8;
+  color: #245a9c;
+}
+
+.purchase-history-page .purchase-history-reference-table .purchase-history-status-pill[data-status-tone="neutral"] {
+  background: #f0f3f7;
+  border-color: #d7dfe8;
+  color: #53657c;
+}
+
+/* No outer gray action tray; one blue View button only. */
+.purchase-history-page .purchase-history-reference-table td.requested-pr-actions-cell {
+  text-align: center;
+}
+
+.purchase-history-page .purchase-history-reference-table td.requested-pr-actions-cell > .record-actions {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: max-content !important;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn {
+  appearance: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 78px;
+  min-width: 78px;
+  height: 29px;
+  margin: 0;
+  padding: 0 9px;
+  border: 1px solid #b9d8ff;
+  border-radius: 6px;
+  background: #e7f2ff;
+  color: #1659b7;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn::before,
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn::after {
+  content: none;
+}
+
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn > i,
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn > span {
+  position: static;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn:hover {
+  border-color: #1457b8;
+  background: #1762ce;
+  color: #fff;
+}
+
+.purchase-history-page .purchase-history-reference-table button.purchase-history-view-btn:focus-visible {
+  outline: 2px solid #8eb7ef;
+  outline-offset: 2px;
+}
+
+@media (max-width: 980px) {
+  .purchase-history-page .purchase-history-table-wrap {
+    overflow-x: auto !important;
+  }
+  .purchase-history-page .purchase-history-reference-table {
+    min-width: 940px;
+  }
+}

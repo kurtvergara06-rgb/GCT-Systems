@@ -2048,3 +2048,8 @@
     padding: 13px 14px 14px;
   }
 }
+
+/* Separate PMS table controls from the records header without changing shared toolbars. */
+.pms-page .pms-table-card > .gct-table-toolbar {
+  margin-bottom: 16px;
+}

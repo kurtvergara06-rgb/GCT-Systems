@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\EmailDeliveryException;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
 use App\Services\EmailOtpService;
@@ -45,9 +46,12 @@ class RegistrationController extends Controller
             'onboarding_completed_at' => null,
         ]));
 
+        $deliveryFailed = false;
+
         try {
             $otp->send($user);
-        } catch (\Throwable $exception) {
+        } catch (EmailDeliveryException $exception) {
+            $deliveryFailed = true;
             Log::warning('Employee verification mail could not be delivered.', [
                 'user_id' => $user->id,
                 'error' => $exception->getMessage(),
@@ -56,7 +60,11 @@ class RegistrationController extends Controller
 
         $request->session()->put('registration_otp_user_id', $user->id);
 
-        return redirect()->route('verification.otp');
+        $response = redirect()->route('verification.otp');
+
+        return $deliveryFailed
+            ? $response->with('error', 'The verification code could not be sent. Please try Resend Code.')
+            : $response;
     }
 
     public function verify(Request $request, int $id, string $hash): RedirectResponse

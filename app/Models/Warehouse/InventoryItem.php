@@ -20,6 +20,7 @@ class InventoryItem extends Model
         'unit',
         'unit_of_measurement',
         'reorder_level',
+        'safety_stock',
         'status',
         'source',
         'supplier',
@@ -31,6 +32,7 @@ class InventoryItem extends Model
         'on_hand' => 'integer',
         'quantity_available' => 'integer',
         'reorder_level' => 'integer',
+        'safety_stock' => 'integer',
     ];
 
     public function movements(): HasMany

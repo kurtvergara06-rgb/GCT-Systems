@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Warehouse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
+use App\Models\Maintenance\ItemRequest;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
+use App\Services\Maintenance\PartsReservationService;
+use App\Services\Maintenance\ItemRequestPartsService;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +24,11 @@ class IncomingDeliveryController extends Controller
 {
     use SystemDataUpdateBroadcaster;
 
-    public function __construct(private InventoryLedgerService $ledger) {}
+    public function __construct(
+        private InventoryLedgerService $ledger,
+        private PartsReservationService $reservations,
+        private ItemRequestPartsService $irParts
+    ) {}
 
     public function index(Request $request)
     {
@@ -42,9 +49,9 @@ class IncomingDeliveryController extends Controller
             $statusOptions = ['Delivered', 'Picked Up'];
         } else {
             $deliveryQuery
-                ->whereIn('status', ['For Delivery', 'For Pick-up'])
+                ->whereIn('status', ['Ordered', 'For Delivery', 'For Pick-up'])
                 ->whereNull('inventory_posted_at');
-            $statusOptions = ['For Delivery', 'For Pick-up'];
+            $statusOptions = ['Ordered', 'For Delivery', 'For Pick-up'];
         }
 
         if ($request->filled('search')) {
@@ -67,7 +74,7 @@ class IncomingDeliveryController extends Controller
             ->withQueryString();
 
         $activeCount = PurchaseOrder::query()
-            ->whereIn('status', ['For Delivery', 'For Pick-up'])
+            ->whereIn('status', ['Ordered', 'For Delivery', 'For Pick-up'])
             ->whereNull('inventory_posted_at')
             ->count();
 
@@ -95,11 +102,11 @@ class IncomingDeliveryController extends Controller
         );
     }
 
-    public function receive(PurchaseOrder $purchaseOrder): RedirectResponse
+    public function receive(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->authorizeWarehouseCapability('edit');
 
-        DB::transaction(function () use ($purchaseOrder): void {
+        DB::transaction(function () use ($purchaseOrder, $request): void {
             $lockedOrder = PurchaseOrder::query()
                 ->whereKey($purchaseOrder->id)
                 ->lockForUpdate()
@@ -112,6 +119,7 @@ class IncomingDeliveryController extends Controller
             }
 
             $receivedStatus = match ($lockedOrder->status) {
+                'Ordered' => 'Delivered',
                 'For Delivery' => 'Delivered',
                 'For Pick-up' => 'Picked Up',
                 default => null,
@@ -119,13 +127,48 @@ class IncomingDeliveryController extends Controller
 
             if (! $receivedStatus) {
                 throw ValidationException::withMessages([
-                    'delivery' => 'Only purchase orders marked For Delivery or For Pick-up may be received.',
+                    'delivery' => 'Only ordered purchase orders awaiting receipt may be received.',
                 ]);
             }
 
             $items = $this->validatedReceiptItems($lockedOrder);
 
-            foreach ($items as $item) {
+            $cumulative = $lockedOrder->received_quantities ?? [];
+            $posted = [];
+            $requestedQuantities = $request->input('received_quantities', []);
+            if (! is_array($requestedQuantities)) {
+                throw ValidationException::withMessages(['delivery' => 'Invalid received quantities.']);
+            }
+            if ($requestedQuantities === []) {
+                throw ValidationException::withMessages(['delivery' => 'Enter actual received quantities for every PO item before confirming receipt.']);
+            }
+            foreach ($items as $index => $item) {
+                $already = (int) ($cumulative[$index] ?? 0);
+                $remaining = $item['quantity'] - $already;
+                if ($remaining < 0) {
+                    throw ValidationException::withMessages(['delivery' => 'Recorded receipts exceed the PO quantity.']);
+                }
+                if (! array_key_exists($index, $requestedQuantities)) {
+                    throw ValidationException::withMessages(['delivery' => 'Provide an actual received quantity (use 0 if none) for every PO line.']);
+                }
+                $raw = $requestedQuantities[$index];
+                if (! is_scalar($raw) || ! preg_match('/^\\d+$/', (string) $raw)) {
+                    throw ValidationException::withMessages(['delivery' => 'Received quantities must be nonnegative whole numbers.']);
+                }
+                $quantity = (int) $raw;
+                if ($quantity > $remaining) {
+                    throw ValidationException::withMessages(['delivery' => 'Received quantity exceeds the outstanding balance.']);
+                }
+                $posted[$index] = $quantity;
+                $cumulative[$index] = $already + $quantity;
+            }
+            if (array_sum($posted) === 0) {
+                throw ValidationException::withMessages(['delivery' => 'Enter at least one received item quantity.']);
+            }
+
+            foreach ($items as $index => $item) {
+                if ($posted[$index] === 0) continue;
+                $item['quantity'] = $posted[$index];
                 foreach ($this->splitItemNames($item['name']) as $itemName) {
                     $inventoryItem = $this->findInventoryItemForUpdate($itemName);
 
@@ -164,12 +207,22 @@ class IncomingDeliveryController extends Controller
                 }
             }
 
+            $complete = collect($items)->every(fn ($item, $index) =>
+                (int) ($cumulative[$index] ?? 0) === $item['quantity']
+            );
             $lockedOrder->forceFill([
-                'status' => $receivedStatus,
-                'inventory_posted_at' => now(),
+                'received_quantities' => $cumulative,
+                'status' => $complete ? $receivedStatus : $lockedOrder->status,
+                'inventory_posted_at' => $complete ? now() : null,
             ])->save();
 
-            $this->syncRelatedRequestsAndJobOrders($lockedOrder, $receivedStatus);
+            if ($complete) {
+                $this->syncRelatedRequestsAndJobOrders($lockedOrder, $receivedStatus);
+            }
+            // Reassess the approved JO only after the receipt stock-in is posted.
+            // This reserves newly available quantities for its existing approved
+            // release policy; it does not create an IR, deduct stock, or issue SWIS.
+            $this->reserveReceivedPartsForLinkedJobOrders($lockedOrder);
         });
 
         $this->broadcastSystemDataUpdated(
@@ -238,9 +291,95 @@ class IncomingDeliveryController extends Controller
                 JobOrder::query()
                     ->where('job_order_no', $request->job_order_no)
                     ->whereNotNull('part_needed')
+                    // Receiving stock cannot undo an already recorded JO handover.
+                    ->whereNotIn('part_status', ['Issued', 'Partial'])
                     ->update(['part_status' => $status]);
             }
         });
+    }
+
+    /** Replenished quantities must not be taken by another JO while awaiting IR handover. */
+    private function reserveReceivedPartsForLinkedJobOrders(PurchaseOrder $purchaseOrder): void
+    {
+        $prNumbers = collect($purchaseOrder->items ?? [])
+            ->pluck('pr_no')
+            ->filter()
+            ->map(fn ($prNo) => $this->normalizePrNo((string) $prNo))
+            ->filter()->unique()->values();
+
+        $requests = MaintenanceRequest::query()
+            ->where(function ($query) use ($purchaseOrder, $prNumbers): void {
+                if ($purchaseOrder->purchase_request_id) {
+                    $query->whereKey($purchaseOrder->purchase_request_id);
+                    if ($prNumbers->isNotEmpty()) {
+                        $query->orWhereIn('pr_no', $prNumbers);
+                    }
+                } elseif ($prNumbers->isNotEmpty()) {
+                    $query->whereIn('pr_no', $prNumbers);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            })
+            ->whereNotNull('job_order_no')
+            ->where('job_order_no', '!=', 'RESTOCK')
+            ->get();
+
+        $jobNos = $requests->pluck('job_order_no')->filter()->unique();
+        if ($jobNos->isEmpty()) {
+            return;
+        }
+
+        // Stable row order and existing transaction protect against competing
+        // IR submissions; topUp itself locks inventory and avoids double reservations.
+        JobOrder::query()->whereIn('job_order_no', $jobNos)
+            ->where('review_status', 'Approved')
+            ->where('status', '!=', 'Completed')
+            ->orderBy('id')
+            ->lockForUpdate()->get()
+            ->each(function (JobOrder $jobOrder): void {
+                $this->reservations->topUp($jobOrder);
+                $this->refreshSubmittedItemRequest($jobOrder);
+            });
+    }
+
+    /**
+     * Only a wholly unissued IR may grow after replenishment. A previously
+     * issued IR is an immutable handover record; Maintenance must create its
+     * next linked IR from the remaining-JO suggestion instead.
+     */
+    private function refreshSubmittedItemRequest(JobOrder $jobOrder): void
+    {
+        $ir = ItemRequest::query()
+            ->where('job_order_id', $jobOrder->id)
+            ->where('status', 'Submitted')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$ir) {
+            return;
+        }
+
+        $additionalParts = $this->irParts->availableParts((string) $jobOrder->part_needed, $jobOrder);
+        if ($additionalParts === []) {
+            return;
+        }
+
+        $parts = collect($ir->requested_parts ?? []);
+        foreach ($additionalParts as $newPart) {
+            $index = $parts->search(fn ($part) =>
+                (int) ($part['inventory_item_id'] ?? 0) === (int) ($newPart['inventory_item_id'] ?? 0)
+                && mb_strtolower(trim((string) ($part['name'] ?? ''))) === mb_strtolower(trim((string) ($newPart['name'] ?? '')))
+                && mb_strtolower(trim((string) ($part['unit'] ?? ''))) === mb_strtolower(trim((string) ($newPart['unit'] ?? '')))
+            );
+            if ($index === false) {
+                $parts->push($newPart);
+            } else {
+                $part = $parts[$index];
+                $part['quantity'] = (int) ($part['quantity'] ?? 0) + (int) $newPart['quantity'];
+                $parts[$index] = $part;
+            }
+        }
+        $ir->update(['requested_parts' => $parts->values()->all()]);
     }
 
     private function findInventoryItemForUpdate(string $itemName): ?InventoryItem

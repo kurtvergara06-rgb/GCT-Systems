@@ -8,10 +8,20 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     modal.classList.add('active');
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
+    delete modal.dataset.gsapClosing;
+
+    const scrollable = modal.querySelector(
+      '.ui-form-modal-scrollable, .inventory-details-scrollable, .inventory-movement-modal__body'
+    );
+    if (scrollable) {
+      scrollable.scrollTop = 0;
+    }
 
     if (window.GCTModalBackdrop?.sync) {
       window.GCTModalBackdrop.sync();
     }
+
+    window.GCTSystemAnimations?.animateModalOpen?.(modal);
   }
 
   function closeModal(modal) {
@@ -19,13 +29,19 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
       return;
     }
 
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
+    const finishClose = function () {
+      modal.classList.remove('show');
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
 
-    if (window.GCTModalBackdrop?.sync) {
-      window.GCTModalBackdrop.sync();
+      if (window.GCTModalBackdrop?.sync) {
+        window.GCTModalBackdrop.sync();
+      }
+    };
+
+    if (!window.GCTSystemAnimations?.animateModalClose?.(modal, finishClose)) {
+      finishClose();
     }
   }
 
@@ -100,7 +116,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     const row = document.createElement('tr');
     row.className = 'empty-row inventory-client-empty gct-empty-table-row';
-    row.innerHTML = `<td colspan="8" class="empty-row gct-empty-cell" style="text-align: center; padding: 48px 20px; background: transparent; border-bottom: 0;">
+    row.innerHTML = `<td colspan="9" class="empty-row gct-empty-cell" style="text-align: center; padding: 48px 20px; background: transparent; border-bottom: 0;">
       <div class="gct-empty-content" role="status" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: 0 auto; max-width: 440px; text-align: center;">
         <i class="fa-solid fa-boxes-stacked gct-empty-icon" style="font-size: 32px; color: #cbd5e1; line-height: 1;" aria-hidden="true"></i>
         <strong class="gct-empty-title" style="font-size: 15px; font-weight: 700; color: #0b2344;">No Inventory Items Found</strong>
@@ -132,12 +148,13 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
 
     inventoryRows().forEach(function (row) {
       const cells = row.cells;
-      const categoryText = String(cells[1]?.textContent || '').trim().toLowerCase();
+      const categoryText = String(cells[2]?.textContent || '').trim().toLowerCase();
       const searchableText = [
         cells[0]?.textContent,
         cells[1]?.textContent,
-        cells[5]?.textContent,
-        cells[6]?.textContent,
+        cells[2]?.textContent,
+        cells[7]?.textContent,
+        cells[8]?.textContent,
       ].join(' ').toLowerCase();
 
       const matchesSearch = !search || searchableText.includes(search);
@@ -305,10 +322,10 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
         ?.textContent
         ?.trim();
 
+      // The item name is already displayed prominently within the content.
+      // Keep the redesigned modal title stable rather than repeating the name.
       if (movementHistoryTitle) {
-        movementHistoryTitle.textContent = itemName
-          ? `Movement History — ${itemName}`
-          : 'Movement History';
+        movementHistoryTitle.textContent = 'Movement History';
       }
 
       movementHistoryContent.scrollTop = 0;
@@ -477,51 +494,18 @@ window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehou
     setInputValue('edit_item_code', editButton.dataset.code);
     setInputValue('edit_item_name', editButton.dataset.name);
     setInputValue('edit_category', editButton.dataset.category);
-    setInputValue('edit_quantity', editButton.dataset.quantity);
+    const onHandLabel = document.getElementById('edit_quantity');
+    if (onHandLabel) onHandLabel.textContent = editButton.dataset.quantity ?? '—';
     setInputValue('edit_unit', editButton.dataset.unit);
+    const onHandUnit = document.getElementById('edit_onhand_unit');
+    if (onHandUnit) onHandUnit.textContent = editButton.dataset.unit || 'pcs';
     setInputValue('edit_reorder', editButton.dataset.reorder);
+    setInputValue('edit_safety_stock', editButton.dataset.safetyStock);
     setInputValue('edit_supplier', editButton.dataset.supplier);
     setInputValue('edit_location', editButton.dataset.location);
-    setInputValue('edit_adjustment_reason', '');
-
-    editForm.dataset.originalQuantity = String(editButton.dataset.quantity ?? '');
-    updateAdjustmentReasonRequirement();
 
     openModal(editModal);
   });
-
-  function updateAdjustmentReasonRequirement() {
-    if (!editForm) {
-      return;
-    }
-
-    const quantityInput = document.getElementById('edit_quantity');
-    const reasonInput = document.getElementById('edit_adjustment_reason');
-    const requiredMark = document.getElementById('editAdjustmentRequiredMark');
-    const helpText = document.getElementById('editAdjustmentHelp');
-
-    if (!quantityInput || !reasonInput) {
-      return;
-    }
-
-    const originalQuantity = String(editForm.dataset.originalQuantity ?? '');
-    const currentQuantity = String(quantityInput.value ?? '');
-    const quantityChanged = originalQuantity !== '' && currentQuantity !== originalQuantity;
-
-    reasonInput.required = quantityChanged;
-
-    if (requiredMark) {
-      requiredMark.hidden = !quantityChanged;
-    }
-
-    if (helpText) {
-      helpText.textContent = quantityChanged
-        ? 'Required because Quantity Available has been changed.'
-        : 'No reason is required when stock quantity remains unchanged.';
-    }
-  }
-
-  document.getElementById('edit_quantity')?.addEventListener('input', updateAdjustmentReasonRequirement);
 
   /*
   |--------------------------------------------------------------------------

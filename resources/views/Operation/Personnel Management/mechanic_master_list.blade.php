@@ -61,11 +61,10 @@
                 <a class="personnel-record-tab {{ request('tab', 'active') !== 'history' ? 'is-active' : '' }}" href="{{ route($mechanicRouteNames['index'], [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'active'])) }}"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Active Mechanics</a>
                 <a class="personnel-record-tab {{ request('tab') === 'history' ? 'is-active' : '' }}" href="{{ route($mechanicRouteNames['index'], [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'history'])) }}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History</a>
             </nav>
-            <x-ui.table-toolbar action="{{ route($mechanicRouteNames['index'], [], false) }}" search-label="Search Mechanics" search-placeholder="Search ID, name, shift, or specialization..." :filter-count="(int) request()->filled('specialization') + (int) request()->filled('shift')" filter-title="Filter Mechanics" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'shift' => 'Default Shift', 'employment_status' => 'Status']" default-sort="mechanic_name">
+            <x-ui.table-toolbar action="{{ route($mechanicRouteNames['index'], [], false) }}" search-label="Search Mechanics" search-placeholder="Search ID, name, or specialization..." :filter-count="(int) request()->filled('specialization')" filter-title="Filter Mechanics" :sort-options="['mechanic_name' => 'Mechanic Name', 'mechanic_id' => 'Mechanic ID', 'employment_status' => 'Status']" default-sort="mechanic_name">
                 <x-slot:hidden><input type="hidden" name="tab" value="{{ request('tab') === 'history' ? 'history' : 'active' }}"></x-slot:hidden>
                 <x-slot:filters>
                     <x-ui.table-toolbar-field label="Specialization" name="specialization"><option value="">All Specializations</option>@foreach($specializationOptions as $specialization)<option value="{{ $specialization }}" @selected(request('specialization') === $specialization)>{{ $specialization }}</option>@endforeach</x-ui.table-toolbar-field>
-                    <x-ui.table-toolbar-field label="Default Shift" name="shift"><option value="">All Shifts</option>@foreach(['Morning', 'Afternoon'] as $shift)<option value="{{ $shift }}" @selected(request('shift') === $shift)>{{ $shift }}</option>@endforeach</x-ui.table-toolbar-field>
                 </x-slot:filters>
             </x-ui.table-toolbar></div>
 
@@ -79,17 +78,15 @@
                     <colgroup>
                         <col class="mechanic-col-id">
                         <col class="mechanic-col-name">
-                        <col class="mechanic-col-shift">
                         <col class="mechanic-col-specializations">
                         <col class="mechanic-col-status">
                         <col class="mechanic-col-actions">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>Mechanic ID</th>
-                            <th>Mechanic</th>
-                            <th>Default Shift</th>
-                            <th>Specializations</th>
+                            <th class="mechanic-table-strong-heading">Mechanic ID</th>
+                            <th class="mechanic-table-strong-heading">Mechanic</th>
+                            <th class="mechanic-table-strong-heading">Specializations</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -102,7 +99,6 @@
                             $mechanicRecord = e(json_encode([
                                 'mechanic_id' => $mechanic->mechanic_id,
                                 'mechanic_name' => $mechanic->mechanic_name,
-                                'shift' => $mechanic->shift,
                                 'contact_number' => $mechanic->contact_number,
                                 'specialization' => $mechanic->specialization_canonical ?? $mechanic->specialization,
                                 'employment_status' => $mechanic->employment_status,
@@ -119,7 +115,6 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="gct-pill gct-pill--shift-{{ strtolower($mechanic->shift) }}">{{ $mechanic->shift }}</span></td>
                             <td>
                                 @if($mechanicSpecializations->isNotEmpty())
                                     @php
@@ -241,19 +236,6 @@
             </label>
 
             <label class="personnel-input-field">
-                <span>Default Shift <span class="personnel-required">*</span></span>
-                <div class="personnel-input-shell">
-                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                    <select name="shift" required>
-                        <option value="">Select shift</option>
-                        @foreach(['Morning'] as $shift)
-                            <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </label>
-
-            <label class="personnel-input-field">
                 <span>Contact Number</span>
                 <div class="personnel-input-shell">
                     <i class="fa-solid fa-phone" aria-hidden="true"></i>
@@ -270,12 +252,22 @@
                         </div>
                     </div>
 
-                    <div class="personnel-specialization-search">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <input type="search" placeholder="Search specializations..." data-specialization-search autocomplete="off">
-                    </div>
+                    @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
+                        <div class="personnel-specialization-inline-create" style="display:flex;align-items:center;gap:8px;max-width:100%;min-width:0;margin-left:auto">
+                            <input type="text" data-specialization-create-name maxlength="100" hidden placeholder="New specialization name" aria-label="New specialization name" style="width:200px;max-width:min(200px,45vw);height:32px;padding:0 10px;border:1px solid #d8e2ef;border-radius:8px;font-size:11px;box-sizing:border-box">
+                            <button type="button" class="personnel-specialization-create-btn" data-specialization-create-toggle data-specialization-create-save data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.store') }}" aria-expanded="false" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:0 10px;background:#ffc400;border:0;border-radius:8px;font-size:11px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i><span data-specialization-create-label>New</span>
+                            </button>
+                            <button type="button" data-specialization-edit-toggle aria-pressed="false" style="min-height:32px;padding:0 10px;border:1px solid #d8e2ef;background:#fff;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i> <span data-specialization-edit-label>Edit</span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
+                @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit'))
+                    <small data-specialization-create-feedback role="status" aria-live="polite"></small>
+                @endif
                 <input type="hidden" name="specialization" value="{{ old('specialization') }}" data-specialization-value>
 
                 <div class="personnel-specialization-picker" data-specialization-picker>
@@ -318,6 +310,19 @@
                             <span>{{ $specialization }}</span>
                             <i class="fa-solid fa-plus personnel-specialization-state-icon" aria-hidden="true"></i>
                         </button>
+                        @if(request()->routeIs('maintenance.personnel.mechanics') && auth()->user()?->hasSystemPermission('maintenance', 'edit') && $customSpecializationIds->has($specialization))
+                            <button type="button"
+                                class="personnel-specialization-delete-btn"
+                                data-specialization-delete
+                                hidden
+                                data-specialization-name="{{ $specialization }}"
+                                data-endpoint="{{ route('maintenance.personnel.mechanics.specializations.destroy', $customSpecializationIds->get($specialization)) }}"
+                                aria-label="Delete custom specialization {{ $specialization }}"
+                                title="Delete custom specialization {{ $specialization }}"
+                                style="min-height:18px;min-width:18px;padding:0 3px;font-size:10px;border:1px solid #fecaca;border-radius:6px;background:#fff1f2;color:#b91c1c;cursor:pointer;align-items:center;justify-content:center">
+                                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                            </button>
+                        @endif
                     @endforeach
                 </div>
 

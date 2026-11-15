@@ -47,6 +47,22 @@ class AccountController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        // PHP may reject an upload before Laravel can inspect its image contents.
+        // Report the underlying upload condition rather than a generic validation error.
+        $avatar = $request->file('avatar');
+        if ($avatar && ! $avatar->isValid()) {
+            $message = match ($avatar->getError()) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'The profile photo exceeds the server upload limit (2 MB). Choose a smaller image.',
+                UPLOAD_ERR_PARTIAL => 'The profile photo was only partially uploaded. Please try again.',
+                UPLOAD_ERR_NO_TMP_DIR => 'The server temporary upload directory is unavailable. Contact your administrator.',
+                UPLOAD_ERR_CANT_WRITE => 'The server could not write the uploaded photo. Contact your administrator.',
+                UPLOAD_ERR_EXTENSION => 'A server extension blocked the photo upload. Contact your administrator.',
+                default => 'The profile photo upload failed. Please try again.',
+            };
+
+            return back()->withErrors(['avatar' => $message]);
+        }
+
         $validated = $request->validate([
             'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);

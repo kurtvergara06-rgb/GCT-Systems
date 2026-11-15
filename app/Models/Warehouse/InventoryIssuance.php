@@ -15,10 +15,14 @@ class InventoryIssuance extends Model
         'reference_no',
         'issued_by',
         'issued_at',
+        'signed_slip_path',
+        'received_by',
+        'handover_confirmed_at',
     ];
 
     protected $casts = [
         'issued_at' => 'datetime',
+        'handover_confirmed_at' => 'datetime',
     ];
 
     public function issuer(): BelongsTo

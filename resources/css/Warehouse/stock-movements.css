@@ -677,3 +677,90 @@
 .item-history-toolbar {
   margin-bottom: 12px;
 }
+
+
+/* Let the page scroll normally; keep only horizontal overflow for narrow screens. */
+.stock-movement-page .stock-movement-card .table-wrap {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
+  scrollbar-width: auto;
+}
+.stock-movement-page .stock-movement-card .stock-movement-table {
+  max-height: none !important;
+}
+.stock-movement-page .stock-movement-reference-link {
+  text-decoration: none;
+  cursor: pointer;
+  color: #124ca0;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.stock-movement-page .stock-movement-reference-link:hover,
+.stock-movement-page .stock-movement-reference-link:focus-visible {
+  background: #eaf2ff;
+  border-color: #9abcee;
+  text-decoration: underline;
+  outline-offset: 2px;
+}
+.stock-movement-page .stock-movement-reference-link i {
+  font-size: 9px;
+  opacity: .8;
+}
+
+
+/* Give the toolbar room to breathe above the stock movement records. */
+.stock-movement-page .stock-movement-card .table-toolbar,
+.stock-movement-page .stock-movement-card [data-table-toolbar] {
+  margin-bottom: 16px !important;
+}
+.stock-movement-page .stock-movement-card .table-wrap {
+  margin-top: 14px !important;
+}
+
+
+/* Shared table-wrap scrolling pattern, with the heading anchored inside the panel. */
+.stock-movement-page .stock-movement-card .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.stock-movement-record-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  color: #506785;
+  background: #f7faff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.stock-movement-record-count strong { color: #143f7a; font-size: 13px; }
+.stock-movement-page .stock-movement-card .stock-movement-scroll-table {
+  width: 100%;
+  max-height: min(440px, 52vh) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  border-radius: 9px;
+  margin-top: 16px !important;
+}
+.stock-movement-scroll-table .stock-movement-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--sm-head);
+}
+.stock-movement-scroll-table:focus-visible {
+  outline: 2px solid #7aa6e8;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .stock-movement-record-count { padding: 6px 8px; }
+  .stock-movement-page .stock-movement-card .stock-movement-scroll-table {
+    max-height: 55vh !important;
+  }
+}

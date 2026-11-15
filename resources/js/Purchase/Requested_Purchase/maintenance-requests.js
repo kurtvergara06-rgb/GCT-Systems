@@ -1,10 +1,76 @@
 window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests', '.purchase-maintenance-requests-page', function () {
+  // Render parts breakdown above table clipping/stacking contexts, like the
+  // Maintenance mechanic "+N more" popover. The row never expands.
+  let partsPopover = null;
+  let activePartsTrigger = null;
+
+  function closePartsPopover() {
+    partsPopover?.remove();
+    partsPopover = null;
+    if (activePartsTrigger) {
+      activePartsTrigger.setAttribute('aria-expanded', 'false');
+      activePartsTrigger = null;
+    }
+  }
+
+  function placePartsPopover(trigger) {
+    if (!partsPopover || !trigger.isConnected) {
+      closePartsPopover();
+      return;
+    }
+    const bounds = trigger.getBoundingClientRect();
+    const width = Math.min(320, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12));
+    const topBelow = bounds.bottom + 7;
+    const availableBelow = window.innerHeight - topBelow - 12;
+    const height = Math.min(partsPopover.scrollHeight, 250);
+    const top = availableBelow < height && bounds.top > height + 16
+      ? Math.max(12, bounds.top - height - 7)
+      : topBelow;
+    Object.assign(partsPopover.style, {
+      position: 'fixed', top: top + 'px', left: left + 'px',
+      width: width + 'px', maxHeight: Math.max(100, window.innerHeight - top - 12) + 'px'
+    });
+  }
+
+  document.querySelectorAll('.requested-pr-more > summary').forEach((trigger) => {
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (activePartsTrigger === trigger) {
+        closePartsPopover();
+        return;
+      }
+      closePartsPopover();
+      const content = trigger.parentElement.querySelector('.requested-pr-more-panel');
+      if (!content) return;
+      partsPopover = content.cloneNode(true);
+      partsPopover.classList.add('requested-pr-floating-popover');
+      document.body.appendChild(partsPopover);
+      activePartsTrigger = trigger;
+      trigger.setAttribute('aria-expanded', 'true');
+      placePartsPopover(trigger);
+    });
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (partsPopover && !partsPopover.contains(event.target) &&
+        !activePartsTrigger?.contains(event.target)) closePartsPopover();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePartsPopover();
+  });
+  window.addEventListener('resize', closePartsPopover);
+  window.addEventListener('scroll', closePartsPopover, true);
+
   function openModal(modal) {
     if (!modal) return;
 
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.querySelector('.shared-pr-details-scrollable')?.scrollTo({ top: 0 });
+    modal.querySelectorAll('.shared-pr-extra-details[open]').forEach((details) => details.removeAttribute('open'));
   }
 
   function closeModal(modal) {
@@ -13,6 +79,7 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     modal.classList.remove('show');
     modal.classList.remove('active');
     modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   function setField(id, value, fallback = '—') {
@@ -34,15 +101,6 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     } else {
       element.textContent = finalValue;
     }
-  }
-
-  function escapeHtml(value) {
-    return String(value || '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
   }
 
   function splitQuantityAndUnit(value) {
@@ -187,13 +245,50 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
       name: parsed.name,
       quantity: parsed.quantity,
       unit: rawUnit ? rawUnit : parsed.unit,
+      onHand: part.physical_on_hand_display || part.available_display || part.on_hand_display ||
+        String(part.physical_on_hand ?? part.available ?? 0) + ' ' + (rawUnit || parsed.unit || ''),
     };
+  }
+
+  function renderSharedParts(container, parts) {
+    if (!container) return;
+    container.replaceChildren();
+
+    if (!Array.isArray(parts) || parts.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'shared-pr-empty';
+      empty.textContent = 'No parts found.';
+      container.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement('div');
+    table.className = 'shared-pr-parts-table';
+    const head = document.createElement('div');
+    head.className = 'shared-pr-parts-head';
+    ['Part Name', 'Quantity', 'On Hand'].forEach((label) => {
+      const cell = document.createElement('span');
+      cell.textContent = label;
+      head.appendChild(cell);
+    });
+    table.appendChild(head);
+
+    parts.forEach((part) => {
+      const row = document.createElement('div');
+      row.className = 'shared-pr-parts-row';
+      [part.name || '—', `${part.quantity || 1} ${part.unit || ''}`.trim(), part.onHand || '—'].forEach((value) => {
+        const cell = document.createElement('span');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
+      table.appendChild(row);
+    });
+    container.appendChild(table);
   }
 
   function renderRequestedParts(button) {
     const container = document.getElementById('viewRequestedPartsContainer');
-
-    if (!container) return;
+    const stockReference = document.getElementById('viewRequestedStockReference');
 
     let parts = [];
 
@@ -215,32 +310,43 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
 
     if (!Array.isArray(parts) || parts.length === 0) {
       parts = parseRequestedParts(button.dataset.item, button.dataset.quantity);
+      parts = parts.map((part) => ({ ...part, onHand: '—' }));
     }
 
-    if (!Array.isArray(parts) || parts.length === 0) {
-      container.innerHTML = `
-        <div class="requested-pr-breakdown-row">
-          <span>—</span>
-          <span>—</span>
-          <span>—</span>
-        </div>
-      `;
-      return;
+    renderSharedParts(container, parts);
+    renderSharedParts(stockReference, parts);
+    setField('viewRequestedPartsCount', parts.length ? `${parts.length} ${parts.length === 1 ? 'part' : 'parts'}` : '0 parts');
+  }
+
+  function fillHeadAuthorization(modal, source) {
+    if (!modal || !source) return;
+    const name = modal.querySelector('[data-pr-head-name]');
+    const status = modal.querySelector('[data-pr-head-status]');
+    const date = modal.querySelector('[data-pr-head-date]');
+    const image = modal.querySelector('[data-pr-head-signature]');
+    const unavailable = modal.querySelector('[data-pr-head-no-signature]');
+    if (name) name.textContent = source.joApprover || 'Not available';
+    if (status) status.textContent = 'Linked JO: ' + (source.joApprovalStatus || 'Not verified');
+    if (date) date.textContent = source.joApprovedAt || '';
+    const signatureUrl = source.joApprovalSignature || '';
+    if (image) {
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+        if (unavailable) { unavailable.hidden = false; unavailable.textContent = 'JO signature unavailable'; }
+      };
+      image.onload = () => {
+        image.hidden = false;
+        if (unavailable) unavailable.hidden = true;
+      };
+      image.hidden = true;
+      if (signatureUrl) image.src = signatureUrl;
+      else image.removeAttribute('src');
     }
-
-    let html = '';
-
-    parts.forEach(function (part) {
-      html += `
-        <div class="requested-pr-breakdown-row">
-          <span>${escapeHtml(part.name || '—')}</span>
-          <span>${escapeHtml(part.quantity || '1')}</span>
-          <span>${escapeHtml(part.unit || '—')}</span>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
+    if (unavailable) {
+      unavailable.hidden = Boolean(signatureUrl);
+      unavailable.textContent = 'JO signature unavailable';
+    }
   }
 
   const viewRequestedPrModal = document.getElementById('viewRequestedPrModal');
@@ -258,11 +364,24 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     setField('viewRequestedJoNo', button.dataset.jobOrderNo);
     setField('viewRequestedBusNo', button.dataset.busNo);
     setField('viewRequestedCreated', button.dataset.created);
+    setField('viewRequestedBy', button.dataset.requestedBy);
     setField('viewRequestedRemarks', button.dataset.remarks, 'No remarks');
+    setField('viewRequestedStatus', button.dataset.status);
+    setField('viewRequestedStatusBadge', button.dataset.status);
+    fillHeadAuthorization(viewRequestedPrModal, button.dataset);
+
+    const createPoForm = document.getElementById('requestedPrCreatePoForm');
+    if (createPoForm) {
+      const createUrl = button.dataset.createPoUrl || '';
+      createPoForm.hidden = !createUrl;
+      if (createUrl) createPoForm.action = createUrl;
+      else createPoForm.removeAttribute('action');
+    }
 
     renderRequestedParts(button);
 
     openModal(viewRequestedPrModal);
+    closeRequestedPrModal?.focus();
   });
 
   if (closeRequestedPrModal) {
@@ -277,16 +396,8 @@ window.GCTPartialNavigation.registerInitializer('purchase-maintenance-requests',
     });
   }
 
-  if (viewRequestedPrModal) {
-    viewRequestedPrModal.addEventListener('click', function (event) {
-      if (event.target === viewRequestedPrModal) {
-        closeModal(viewRequestedPrModal);
-      }
-    });
-  }
-
   document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && viewRequestedPrModal?.classList.contains('show')) {
       closeModal(viewRequestedPrModal);
     }
   });

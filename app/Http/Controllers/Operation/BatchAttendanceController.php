@@ -50,8 +50,6 @@ class BatchAttendanceController extends Controller
 
         $people = $personModel::query()
             ->where('employment_status', 'Active')
-            ->when($type === 'mechanic', fn ($query) => $query->where('shift', 'Morning'))
-            ->when($type === 'mechanic' && $shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->orderBy($nameColumn)
             ->get();
 
@@ -89,7 +87,7 @@ class BatchAttendanceController extends Controller
                 'person_id' => $personId,
                 'recorded' => $record !== null && ! in_array($record->status, ['Unmarked', null, ''], true),
                 'name' => (string) $person->{$nameColumn},
-                'shift' => $type === 'driver' ? 'Morning' : (string) $person->shift,
+                'shift' => 'Morning', // Legacy persistence only; mechanic shift is no longer user-selected.
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
@@ -200,12 +198,14 @@ class BatchAttendanceController extends Controller
                             "rows.{$index}.person_id" => 'Attendance is linked to a trip assignment and cannot be changed through batch attendance.',
                         ]);
                     }
-                    if ($type === 'mechanic' && JobOrder::query()
-                        ->where('assigned_mechanic', $person->mechanic_name)
+                    $hasOngoingJo = $type === 'mechanic' && JobOrder::query()
+                        ->assignedToMechanic($person->mechanic_name, $person->mechanic_id)
                         ->where('status', 'On Going')
-                        ->exists()) {
+                        ->where('review_status', 'Approved')
+                        ->exists();
+                    if ($hasOngoingJo && in_array($row['status'], ['Absent', 'On Leave'], true)) {
                         throw ValidationException::withMessages([
-                            "rows.{$index}.person_id" => 'This mechanic has an ongoing Job Order. Attendance must not be changed through the batch.',
+                            "rows.{$index}.status" => 'This mechanic has an approved ongoing Job Order. Resolve the assignment before marking Absent or On Leave.',
                         ]);
                     }
 
@@ -302,8 +302,15 @@ class BatchAttendanceController extends Controller
         }
 
         if ($type === 'mechanic') {
-            return trim((string) ($record?->assigned_job ?? '')) !== ''
-                ? 'On Job'
+            $mechanic = Mechanic::query()->where('mechanic_id', $personId)->first();
+            $onApprovedJo = $mechanic && JobOrder::query()
+                ->assignedToMechanic($mechanic->mechanic_name, $mechanic->mechanic_id)
+                ->where('status', 'On Going')
+                ->where('review_status', 'Approved')
+                ->exists();
+
+            return $onApprovedJo || trim((string) ($record?->assigned_job ?? '')) !== ''
+                ? 'On Duty'
                 : 'Available';
         }
 

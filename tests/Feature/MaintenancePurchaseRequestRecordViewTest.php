@@ -51,9 +51,19 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
         $response->assertDontSee('PR-2026-ISSUED-02');
         $response->assertSee('data-maintenance-record-tab-link="active"', false);
         $response->assertSee('class="maintenance-record-tab is-active"', false);
-        $response->assertSee('id="openPrModal"', false);
+        $response->assertDontSee('id="openPrModal"', false);
         $response->assertSee('data-lazy-pagination="false"', false);
         $response->assertSee('data-server-filter="false"', false);
+        $response->assertSee('Request Overview');
+        $response->assertSee('Head Approval');
+        $response->assertSee('Parts &amp; Warehouse', false);
+        $response->assertSee('Missing Parts');
+        $response->assertSee('Request Details');
+        $response->assertSee('Requested By');
+        $response->assertDontSee('Warehouse Acknowledgment');
+        $response->assertDontSee('id="printPrPreview"', false);
+        $response->assertSee('id="cancelPrModal"', false);
+        $response->assertSee('id="createPrBtn"', false);
     }
 
     public function test_history_request_returns_200_and_includes_issued_and_marks_history_tab(): void
@@ -121,7 +131,7 @@ class MaintenancePurchaseRequestRecordViewTest extends TestCase
 
         $activeResponse = $this->actingAs($user)->get(route('purchase-requests'));
         $activeResponse->assertStatus(200);
-        $activeResponse->assertSee('id="openPrModal"', false);
+        $activeResponse->assertDontSee('id="openPrModal"', false);
 
         $historyResponse = $this->actingAs($user)->get(route('purchase-requests', ['record_view' => 'history']));
         $historyResponse->assertStatus(200);

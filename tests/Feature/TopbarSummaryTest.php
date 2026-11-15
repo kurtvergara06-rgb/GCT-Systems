@@ -12,6 +12,55 @@ class TopbarSummaryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_unknown_department_cannot_read_other_departments_notifications(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Unassigned',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        TopbarNotification::create([
+            'module' => 'Maintenance',
+            'entity' => 'MaintenanceReferral',
+            'action' => 'created',
+            'record_id' => 42,
+            'message' => 'Maintenance-only breakdown information.',
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 0)
+            ->assertJsonCount(0, 'notifications')
+            ->assertJsonCount(0, 'recent_activity');
+    }
+
+    public function test_operation_user_cannot_read_maintenance_notification(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
+
+        TopbarNotification::create([
+            'module' => 'Maintenance',
+            'entity' => 'MaintenanceReferral',
+            'action' => 'created',
+            'record_id' => 42,
+            'message' => 'Maintenance-only breakdown information.',
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('topbar.summary'))
+            ->assertOk()
+            ->assertJsonPath('unread_count', 0)
+            ->assertJsonCount(0, 'notifications');
+    }
+
     public function test_authenticated_user_can_read_and_clear_topbar_notifications(): void
     {
         $user = User::factory()->create([

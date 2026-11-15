@@ -23,28 +23,7 @@
         title="Fuel Reports"
         subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
       />
-      @if(session('error'))
-        <div class="fuel-alert error">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <span>{{ session('error') }}</span>
-        </div>
-      @endif
 
-      @if($errors->any())
-        <div class="fuel-alert error">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-
-          <div>
-            <strong>Please correct the following:</strong>
-
-            <ul>
-              @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-              @endforeach
-            </ul>
-          </div>
-        </div>
-      @endif
 
       {{-- SUMMARY --}}
       <section data-ajax-region="summary" class="stats-grid fuel-stats-grid">
@@ -155,43 +134,36 @@
           </div>
         </div>
 
-        <div class="daily-monitoring-toolbar">
-          <form method="GET" action="{{ route('fuel-reports') }}" class="daily-monitoring-filters">
-            <div class="daily-filter-field">
-              <label for="monitorDate">Monitoring Date</label>
-              <input
-                type="date"
-                id="monitorDate"
-                name="monitor_date"
-                value="{{ $monitorDate }}"
-                onchange="this.form.submit()"
-              >
-            </div>
-
-            <div class="daily-filter-field">
-              <label for="monitorFilter">Show</label>
-              <select
-                id="monitorFilter"
-                name="monitor_filter"
-                onchange="this.form.submit()"
-              >
+        <div class="fuel-record-controls daily-monitoring-controls">
+          <x-ui.table-toolbar
+            :action="route('fuel-reports')"
+            form-id="dailyFuelMonitoringToolbar"
+            :show-search="false"
+            :filter-count="(int) ($monitorDate !== today()->toDateString()) + (int) ($monitorFilter !== 'all')"
+            filter-title="Filter Daily Fuel Monitoring"
+            button-id="openFuelModal"
+            button-label="Manual Entry"
+            button-icon="fa-plus"
+            data-server-filter="true"
+          >
+            <x-slot:hidden>
+              @if(request()->filled('search'))
+                <input type="hidden" name="search" value="{{ request('search') }}">
+              @endif
+              <input type="hidden" name="date_filter" value="{{ request('date_filter', 'This Month') }}">
+              <input type="hidden" name="sort" value="{{ request('sort', 'report_date') }}">
+              <input type="hidden" name="sort_direction" value="{{ request('sort_direction', 'desc') }}">
+            </x-slot:hidden>
+            <x-slot:filters>
+              <x-ui.table-toolbar-field label="Monitoring Date" name="monitor_date" type="date" :value="$monitorDate" />
+              <x-ui.table-toolbar-field label="Show" name="monitor_filter" default="all">
                 <option value="all" @selected($monitorFilter === 'all')>All Buses</option>
                 <option value="needs-entry" @selected($monitorFilter === 'needs-entry')>Needs Fuel Entry</option>
                 <option value="completed" @selected($monitorFilter === 'completed')>Completed</option>
                 <option value="needs-review" @selected($monitorFilter === 'needs-review')>Needs Review</option>
-              </select>
-            </div>
-          </form>
-
-          <button
-            type="button"
-            class="primary-btn manual-entry-btn"
-            id="openFuelModal"
-            title="Use manual entry only for exceptional cases"
-          >
-            <i class="fa-solid fa-plus"></i>
-            Manual Entry
-          </button>
+              </x-ui.table-toolbar-field>
+            </x-slot:filters>
+          </x-ui.table-toolbar>
         </div>
 
         <form
@@ -321,6 +293,41 @@
             <h2>Recent Fuel Entries</h2>
             <p>Latest saved fuel entries for quick verification and audit.</p>
           </div>
+        </div>
+
+        <div class="fuel-record-controls recent-fuel-controls">
+          <x-ui.table-toolbar
+            :action="route('fuel-reports')"
+            form-id="recentFuelEntriesToolbar"
+            search-label="Search Fuel Entries"
+            search-placeholder="Search bus, driver, status, or distance source..."
+            :filter-count="(int) (request('date_filter', 'This Month') !== 'This Month')"
+            filter-title="Filter Fuel Entries"
+            :sort-options="[
+              'report_date' => 'Report Date',
+              'bus_no' => 'Bus ID',
+              'driver_name' => 'Driver',
+              'distance_km' => 'Distance',
+              'fuel_liters' => 'Fuel Used',
+              'km_per_liter' => 'Efficiency',
+              'status' => 'Status',
+            ]"
+            default-sort="report_date"
+            default-direction="desc"
+            data-server-filter="true"
+          >
+            <x-slot:hidden>
+              <input type="hidden" name="monitor_date" value="{{ $monitorDate }}">
+              <input type="hidden" name="monitor_filter" value="{{ $monitorFilter }}">
+            </x-slot:hidden>
+            <x-slot:filters>
+              <x-ui.table-toolbar-field label="Date Range" name="date_filter" default="This Month">
+                @foreach(['This Month', 'Today', 'This Week', 'All Dates'] as $dateFilter)
+                  <option value="{{ $dateFilter }}" @selected(request('date_filter', 'This Month') === $dateFilter)>{{ $dateFilter }}</option>
+                @endforeach
+              </x-ui.table-toolbar-field>
+            </x-slot:filters>
+          </x-ui.table-toolbar>
         </div>
 
         <div class="table-wrap">

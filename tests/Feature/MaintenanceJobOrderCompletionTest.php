@@ -338,6 +338,10 @@ class MaintenanceJobOrderCompletionTest extends TestCase
             'part_status' => 'Issued',
         ]);
 
+        JobOrder::query()
+            ->whereKey([$joNoParts->id, $joPartsPending->id, $joPartsIssued->id, $joOnHold->id, $joCompleted->id])
+            ->update(['review_status' => 'Approved']);
+
         $response = $this
             ->actingAs($this->maintenanceUser)
             ->get(route('job-orders'));
@@ -357,7 +361,8 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $response->assertSee('action="' . route('job-orders.finish', $joPartsIssued->id) . '"', false);
 
         // Locked buttons with appropriate reasons
-        $response->assertSee('Cannot complete until required parts are issued by warehouse.');
+        // Approved JOs with unissued required parts are intentionally displayed
+        // as On Hold, so the UI exposes the stronger operational lock reason.
         $response->assertSee('Cannot complete while job order is on hold.');
 
         // Completed row displays completion date format on the history tab

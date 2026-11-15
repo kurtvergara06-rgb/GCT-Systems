@@ -779,3 +779,475 @@
     width: 100%;
   }
 }
+
+/* Compact Purchase restock table: source, status, item expansion, quantity and date */
+.inventory-restock-page .restock-table { min-width: 0; }
+.inventory-restock-page .restock-table th,
+.inventory-restock-page .restock-table td { padding: 10px 9px; }
+.inventory-restock-page .restock-table th:nth-child(3),
+.inventory-restock-page .restock-table td:nth-child(3) { width: 24%; }
+.inventory-restock-page .restock-table th:nth-child(4),
+.inventory-restock-page .restock-table td:nth-child(4) { width: 10%; }
+.inventory-restock-page .source-badge {
+  min-width: 0; min-height: 23px; padding: 4px 8px; border-radius: 6px;
+  gap: 5px; font-size: 10px; font-weight: 700;
+}
+.inventory-restock-page .restock-status-cell .status-badge,
+.inventory-restock-page .restock-status-cell [class*="status-badge"] {
+  min-width: 0; min-height: 23px; padding: 4px 8px;
+  border-radius: 6px; font-size: 10px; line-height: 1.2; gap: 5px;
+}
+.inventory-restock-page .restock-item-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.inventory-restock-page .restock-item-name { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.inventory-restock-page .restock-item-more { position: relative; display: inline-block; }
+.inventory-restock-page .restock-item-more summary {
+  color: #0b40b5; cursor: pointer; font-size: 10px; font-weight: 700;
+  white-space: nowrap; list-style: none;
+}
+.inventory-restock-page .restock-item-more summary::-webkit-details-marker { display: none; }
+.inventory-restock-page .restock-item-more summary i { font-size: 8px; }
+.inventory-restock-page .restock-item-popover {
+  position: absolute; z-index: 15; top: calc(100% + 5px); left: 0;
+  width: max-content; min-width: 190px; max-width: min(320px, 65vw);
+  padding: 7px 10px; background: #fff; border: 1px solid #dbe5f2;
+  border-radius: 8px; box-shadow: 0 10px 26px rgba(20,42,82,.15);
+}
+.inventory-restock-page .restock-item-popover > div {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 5px 0; font-size: 11px; white-space: normal;
+}
+.inventory-restock-page .restock-item-popover > div + div { border-top: 1px solid #e8eef5; }
+.inventory-restock-page .restock-quantity { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.inventory-restock-page .restock-created-date { display: flex; flex-direction: column; gap: 3px; align-items: center; line-height: 1.25; }
+.inventory-restock-page .restock-created-date strong { font-size: 11px; font-weight: 700; white-space: nowrap; }
+.inventory-restock-page .restock-created-date small { font-size: 10px; font-weight: 400; color: #64748b; }
+.inventory-restock-page .restock-table td:nth-child(6) { white-space: normal; }
+.inventory-restock-page .restock-card .table-wrap { overflow-x: auto; overflow-y: visible; }
+@media (max-width: 900px) { .inventory-restock-page .restock-table { min-width: 850px; } }
+
+
+/* Inventory Restock: matched compact rectangular Source / Status badges */
+.inventory-restock-page .restock-table td:nth-child(2) .source-badge {
+  display: inline-flex !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 9px !important;
+  border: 1px solid #f3d38c !important;
+  border-radius: 6px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box;
+}
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  display: inline-flex !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 9px !important;
+  border-radius: 6px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+
+/* Restore readable badge sizing; box-style status only. */
+.inventory-restock-page .restock-table td:nth-child(2) .source-badge {
+  width: auto !important;
+  min-width: 102px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 6px 11px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  border-radius: 6px !important;
+}
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  width: fit-content !important;
+  min-width: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 5px 10px !important;
+  font-size: 10px !important;
+  border-radius: 6px !important;
+}
+/* Expand extra items inside their row rather than clipping an absolute overlay. */
+.inventory-restock-page .restock-item-more[open] {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.inventory-restock-page .restock-item-more[open] .restock-item-popover {
+  position: static !important;
+  z-index: auto;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 6px;
+  box-shadow: none;
+}
+.inventory-restock-page .restock-table tbody tr:has(.restock-item-more[open]) {
+  height: auto;
+}
+
+
+/* Floating +N details: keep row height stable and draw above table boundaries. */
+.inventory-restock-page .restock-item-more[open] { flex-basis: auto; }
+.inventory-restock-page .restock-item-more .restock-item-popover,
+.inventory-restock-page .restock-item-more[open] .restock-item-popover {
+  position: fixed !important;
+  z-index: 100005 !important;
+  display: none;
+  min-width: 210px;
+  width: max-content;
+  max-width: min(340px, 90vw);
+  margin: 0;
+  box-shadow: 0 12px 30px rgba(15, 35, 65, .16);
+}
+.inventory-restock-page .restock-item-more[open] .restock-item-popover { display: block; }
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  font-size: 12px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 5px 11px !important;
+}
+
+
+/* Final compact badge sizing: readable 12px text without oversized status boxes. */
+.inventory-restock-page .restock-table td:nth-child(2) .source-badge {
+  font-size: 12px !important;
+  min-width: 0 !important;
+  width: fit-content !important;
+  height: 27px !important;
+  min-height: 27px !important;
+  padding: 3px 9px !important;
+  gap: 5px;
+}
+.inventory-restock-page .restock-table td.restock-status-cell .status-badge,
+.inventory-restock-page .restock-table td.restock-status-cell [class*="status-badge"] {
+  font-size: 12px !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  height: 27px !important;
+  min-height: 27px !important;
+  padding: 3px 7px !important;
+  gap: 4px !important;
+  border-radius: 6px !important;
+}
+
+
+/* Match Maintenance Requisitions' compact, solid status badge presentation. */
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 106px !important;
+  max-width: 100% !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 11px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  border-radius: 5px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+}
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] .status-badge__icon {
+  font-size: 11px !important;
+}
+main.inventory-restock-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] .status-badge__label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+/* Action controls: eliminate double framing/extra outline, retain button hit areas. */
+main.inventory-restock-page .restock-table td:last-child .record-actions {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+main.inventory-restock-page .restock-table td:last-child .record-actions .action-btn {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+main.inventory-restock-page .restock-table td:last-child .record-actions .action-btn:focus-visible {
+  outline: 2px solid #0b40b5 !important;
+  outline-offset: 2px;
+}
+
+
+/* Consistent breathing room between Search / Filter / Sort and table header. */
+main.inventory-restock-page .restock-card .restock-toolbar,
+main.inventory-restock-page .restock-card .records-toolbar {
+  margin-bottom: 16px !important;
+}
+main.inventory-restock-page .restock-card .records-table-wrap {
+  margin-top: 0 !important;
+}
+
+
+/* Restock table balance and single Review action. */
+main.inventory-restock-page .restock-card .records-table-wrap {
+  margin-top: 2px !important;
+}
+main.inventory-restock-page .restock-table th,
+main.inventory-restock-page .restock-table td {
+  padding-top: 13px !important;
+  padding-bottom: 13px !important;
+}
+main.inventory-restock-page .restock-item-more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid #d0dff5;
+  background: #eff5ff;
+  border-radius: 5px;
+  font-size: 10px;
+}
+main.inventory-restock-page .restock-table .restock-review-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  height: 31px;
+  padding: 0 13px;
+  border: 1px solid #bfd6ff;
+  border-radius: 6px;
+  background: #eff5ff;
+  color: #0b40b5;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+main.inventory-restock-page .restock-table .restock-review-btn:hover { background: #dceaff; }
+.restock-view-overlay .restock-review-create-po:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  height: 36px;
+  border: 1px solid #eab94c;
+  border-radius: 8px;
+  background: #ffca15;
+  color: #0b2545;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.restock-view-overlay .restock-review-create-po[hidden] { display: none !important; }
+
+
+/* Inventory Restock Active / History navigation, matching Purchase requisition tabs. */
+main.inventory-restock-page .restock-record-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid #d9e4f3;
+  border-radius: 8px;
+  background: #f2f6fc;
+}
+main.inventory-restock-page .restock-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #526681;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+main.inventory-restock-page .restock-record-tab.is-active {
+  border-color: #cbdcf2;
+  background: #fff;
+  color: #0b40b5;
+  box-shadow: 0 1px 4px rgba(15, 35, 65, .07);
+}
+main.inventory-restock-page .restock-record-tab:hover { color: #0b40b5; }
+
+
+/* Single aligned controls row: tabs left, search/filter/sort right. */
+main.inventory-restock-page .restock-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 14px;
+  align-items: center;
+}
+main.inventory-restock-page .restock-card > .section-header,
+main.inventory-restock-page .restock-card > .records-table-wrap,
+main.inventory-restock-page .restock-card > .table-footer {
+  grid-column: 1 / -1;
+}
+main.inventory-restock-page .restock-card > .restock-record-tabs {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0 !important;
+  align-self: center;
+}
+main.inventory-restock-page .restock-card > .restock-toolbar,
+main.inventory-restock-page .restock-card > .records-toolbar {
+  grid-column: 2;
+  grid-row: 2;
+  width: auto;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center;
+  justify-self: end;
+  border: 0 !important;
+  background: transparent !important;
+}
+main.inventory-restock-page .restock-card > .records-table-wrap {
+  grid-row: 3;
+  margin-top: 12px !important;
+}
+@media (max-width: 760px) {
+  main.inventory-restock-page .restock-card { grid-template-columns: 1fr; }
+  main.inventory-restock-page .restock-card > .restock-record-tabs,
+  main.inventory-restock-page .restock-card > .restock-toolbar,
+  main.inventory-restock-page .restock-card > .records-toolbar {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+  }
+  main.inventory-restock-page .restock-card > .restock-toolbar,
+  main.inventory-restock-page .restock-card > .records-toolbar { margin-top: 8px !important; }
+  main.inventory-restock-page .restock-card > .records-table-wrap { grid-row: auto; }
+}
+
+
+/* Signed Warehouse authorization, styled to match Purchase Order head review. */
+.restock-view-overlay .restock-view-modal { width: min(960px, 96vw); max-height: 89vh; }
+.restock-view-overlay .restock-review-eyebrow { display: block; color: #0b40b5; font-size: 10px; font-weight: 800; letter-spacing: .08em; margin-bottom: 5px; }
+.restock-view-overlay .restock-authorization {
+  grid-column: 1 / -1; border: 1px solid #d8e5f6; border-radius: 10px; padding: 12px;
+  background: #fff;
+}
+.restock-view-overlay .restock-authorization-heading { font-size: 13px; font-weight: 800; color: #0c2c57; margin-bottom: 12px; }
+.restock-view-overlay .restock-authorization-heading i { color: #1258c9; margin-right: 6px; }
+.restock-view-overlay .restock-authorization-content { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); gap: 14px; align-items: stretch; }
+.restock-view-overlay .restock-authorization-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: center; }
+.restock-view-overlay .restock-authorization-details > div { padding: 10px; border-bottom: 1px solid #e8eef6; min-width: 0; }
+.restock-view-overlay .restock-authorization-details small, .restock-view-overlay .restock-authorization-signature small { display: block; font-size: 10px; font-weight: 700; color: #577092; text-transform: uppercase; margin-bottom: 6px; }
+.restock-view-overlay .restock-authorization-details strong { display: block; font-size: 12px; color: #152e4e; overflow-wrap: anywhere; }
+.restock-view-overlay .restock-authorization-signature {
+  display: flex; flex-direction: column; justify-content: center; text-align: center;
+  padding: 10px; background: #f1f6fe; border: 1px solid #d9e6f7; border-radius: 8px; min-height: 150px;
+}
+.restock-view-overlay .restock-authorization-signature img { width: 100%; max-height: 105px; object-fit: contain; background: white; }
+.restock-view-overlay .restock-authorization-signature img[hidden], .restock-view-overlay .restock-authorization-signature p[hidden] { display: none !important; }
+.restock-view-overlay .restock-authorization-signature p { color: #64748b; font-size: 11px; }
+.restock-view-overlay .restock-authorization-signature strong { display: block; padding-top: 6px; color: #123257; font-size: 12px; }
+.restock-view-overlay .restock-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+@media (max-width: 700px) { .restock-view-overlay .restock-authorization-content { grid-template-columns: 1fr; } .restock-view-overlay .restock-authorization-details { grid-template-columns: 1fr; } }
+
+
+/* Restock Review: Purchase Head modal proportions, compact cards, scrollable body, fixed footer. */
+.restock-view-overlay .restock-view-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(970px, 96vw);
+  max-height: min(795px, 91vh);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 13px;
+}
+.restock-view-overlay .restock-modal-header {
+  flex: 0 0 auto;
+  padding: 18px 20px 14px;
+  margin: 0;
+  align-items: center;
+  background: #fff;
+}
+.restock-view-overlay .restock-modal-header h2 { font-size: 18px; margin: 0 0 5px; }
+.restock-view-overlay .restock-modal-header p { font-size: 11px; }
+.restock-view-overlay .restock-close-btn { width: 32px; min-width: 32px; height: 32px; font-size: 13px; }
+.restock-view-overlay .restock-review-content {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin; scrollbar-color: #9aa8ba transparent;
+}
+.restock-view-overlay .restock-review-meta {
+  display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  border: 1px solid #d8e5f6; border-radius: 8px; overflow: hidden;
+}
+.restock-view-overlay .restock-review-meta > div {
+  display: flex; align-items: center; gap: 9px; min-width: 0;
+  padding: 10px 11px; border-right: 1px solid #d8e5f6;
+}
+.restock-view-overlay .restock-review-meta > div:last-child { border-right: 0; }
+.restock-view-overlay .restock-review-meta > div > span:last-child { min-width: 0; }
+.restock-view-overlay .restock-meta-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 29px; min-width: 29px; height: 29px; border-radius: 6px;
+  background: #edf4ff; color: #1055bb; font-size: 12px;
+}
+.restock-view-overlay .restock-review-meta small {
+  display: block; color: #71839d; font-size: 9px; font-weight: 700; text-transform: uppercase;
+}
+.restock-view-overlay .restock-review-meta strong {
+  display: block; font-size: 11px; font-weight: 800; color: #112c50;
+  margin-top: 3px; overflow-wrap: anywhere;
+}
+.restock-view-overlay .restock-review-section {
+  border: 1px solid #d8e5f6; border-radius: 8px; padding: 11px;
+  background: #fff; min-width: 0;
+}
+.restock-view-overlay .restock-review-section h3 {
+  margin: 0 0 10px; font-size: 12px; font-weight: 800; color: #102d54;
+}
+.restock-view-overlay .restock-review-section h3 i { color: #1259c9; margin-right: 7px; }
+.restock-view-overlay .restock-authorization-content {
+  grid-template-columns: minmax(0, 1.8fr) minmax(235px, 1fr);
+  gap: 11px;
+}
+.restock-view-overlay .restock-authorization-details { gap: 0; }
+.restock-view-overlay .restock-authorization-details > div { padding: 9px 10px; }
+.restock-view-overlay .restock-authorization-signature { min-height: 118px; padding: 8px; }
+.restock-view-overlay .restock-authorization-signature img { max-height: 90px; }
+.restock-view-overlay .restock-breakdown-head,
+.restock-view-overlay .restock-breakdown-row {
+  grid-template-columns: minmax(0,1fr) 115px 100px;
+}
+.restock-view-overlay .restock-breakdown-head { font-size: 10px; }
+.restock-view-overlay .restock-breakdown-row { font-size: 12px; }
+.restock-view-overlay .restock-review-remarks {
+  margin: 0; padding: 9px 10px; font-size: 12px; color: #334155;
+  background: #f7faff; border-radius: 6px; white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.restock-view-overlay .restock-modal-footer {
+  flex: 0 0 auto; margin: 0; padding: 10px 16px;
+  border-top: 1px solid #dae4f0; background: #fff;
+}
+@media(max-width: 750px) {
+  .restock-view-overlay .restock-review-meta { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .restock-view-overlay .restock-review-meta > div:nth-child(2) { border-right: 0; }
+  .restock-view-overlay .restock-review-meta > div:nth-child(-n+2) { border-bottom: 1px solid #d8e5f6; }
+  .restock-view-overlay .restock-authorization-content { grid-template-columns: 1fr; }
+}

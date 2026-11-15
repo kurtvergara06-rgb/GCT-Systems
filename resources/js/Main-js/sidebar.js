@@ -1,3 +1,5 @@
+import gsap from 'gsap';
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const body = document.body;
@@ -12,6 +14,95 @@ document.addEventListener('DOMContentLoaded', function () {
     const shellId = sidebar?.dataset.gctShell || 'default';
     const dropdownStorageKey = `gct-sidebar-dropdowns:${shellId}`;
     let sidebarMotionTimer = null;
+    let sidebarObserver = null;
+
+    const prefersReducedMotion = () => {
+        if (
+            window.__GCT_FORCE_MOTION__ === true
+            || window.__GCT_ENABLE_MOTION__ === true
+            || document.documentElement.dataset.gctMotion === 'enabled'
+        ) {
+            return false;
+        }
+
+        return (
+            window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+        );
+    };
+
+    const animateSidebarActiveItem = () => {
+        const activeItems = document.querySelectorAll(
+            '#appSidebar .menu-item.active, '
+            + '#appSidebar .submenu-item.active'
+        );
+
+        if (!activeItems.length) return;
+
+        const reduced = prefersReducedMotion();
+        const xOffset = reduced ? -7 : -14;
+
+        gsap.fromTo(
+            activeItems,
+            {
+                opacity: 0.55,
+                x: xOffset,
+            },
+            {
+                opacity: 1,
+                x: 0,
+                duration: reduced ? 0.28 : 0.38,
+                ease: 'power3.out',
+                clearProps: 'opacity,transform',
+            }
+        );
+    };
+
+    const animateSidebarShellState = () => {
+        if (!sidebar) return;
+
+        const reduced = prefersReducedMotion();
+        const icons = sidebar.querySelectorAll(
+            '.brand-icon, '
+            + '.menu-item > i, '
+            + '.submenu-item > i'
+        );
+
+        if (!icons.length) return;
+
+        gsap.fromTo(
+            icons,
+            {
+                opacity: reduced ? 0.78 : 0.6,
+                scale: reduced ? 0.97 : 0.92,
+            },
+            {
+                opacity: 1,
+                scale: 1,
+                duration: reduced ? 0.18 : 0.26,
+                stagger: reduced ? 0.01 : 0.02,
+                ease: 'power2.out',
+                clearProps: 'opacity,transform',
+            }
+        );
+    };
+
+    const ensureSidebarObserver = () => {
+        sidebarObserver?.disconnect();
+        sidebarObserver = null;
+
+        if (!sidebar) return;
+
+        sidebarObserver = new MutationObserver((mutations) => {
+            if (mutations.some((mutation) => mutation.target === sidebar)) {
+                animateSidebarShellState();
+            }
+        });
+
+        sidebarObserver.observe(sidebar, {
+            attributes: true,
+            attributeFilter: ['class'],
+        });
+    };
 
     const ensureSidebarMotionStyles = () => {
         if (document.getElementById('gctSidebarMotionStyles')) return;
@@ -81,6 +172,8 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     ensureSidebarMotionStyles();
+    ensureSidebarObserver();
+    animateSidebarActiveItem();
 
 
     /* =========================================================
@@ -208,6 +301,63 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         );
     }
+
+    document.addEventListener('pointerover', function (event) {
+        const item = event.target.closest?.(
+            '#appSidebar .menu-item, '
+            + '#appSidebar .submenu-item'
+        );
+
+        if (
+            !item
+            || (
+                event.relatedTarget instanceof Node
+                && item.contains(event.relatedTarget)
+            )
+        ) {
+            return;
+        }
+
+        const hoverTargets = item.querySelectorAll(
+            ':scope > i:not(.dropdown-arrow), :scope > span'
+        );
+
+        gsap.to(hoverTargets.length ? hoverTargets : item, {
+            x: 10,
+            duration: 0.24,
+            ease: 'power2.out',
+            overwrite: true,
+        });
+    });
+
+    document.addEventListener('pointerout', function (event) {
+        const item = event.target.closest?.(
+            '#appSidebar .menu-item, '
+            + '#appSidebar .submenu-item'
+        );
+
+        if (
+            !item
+            || (
+                event.relatedTarget instanceof Node
+                && item.contains(event.relatedTarget)
+            )
+        ) {
+            return;
+        }
+
+        const hoverTargets = item.querySelectorAll(
+            ':scope > i:not(.dropdown-arrow), :scope > span'
+        );
+
+        gsap.to(hoverTargets.length ? hoverTargets : item, {
+            x: 0,
+            duration: 0.24,
+            ease: 'power2.out',
+            overwrite: true,
+            clearProps: 'transform',
+        });
+    });
 
 
     /* =========================================================
@@ -360,6 +510,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // user's manual dropdown choices immediately after the destination is ready.
     window.addEventListener('gct:navigation-ready', function () {
         applyDropdownState();
+        ensureSidebarObserver();
+        animateSidebarActiveItem();
     });
 
     // Expose the restore helper so the partial-navigation layer can reapply it

@@ -191,7 +191,7 @@ class MaintenanceJobOrderDeletionTest extends TestCase
         $this->assertSame('PR-KEEP-0005', $purchaseOrder->items[0]['pr_no']);
     }
 
-    public function test_job_order_page_enables_delete_only_for_rejected_linked_purchase_request(): void
+    public function test_job_order_page_does_not_expose_row_delete_shortcuts(): void
     {
         $rejectedJobOrder = $this->createJobOrder('JO-DELETE-UI-01', 'Rejected');
         $this->createPurchaseRequest(
@@ -212,9 +212,9 @@ class MaintenanceJobOrderDeletionTest extends TestCase
             ->get(route('job-orders'));
 
         $response->assertOk();
-        $response->assertSee('Delete Rejected Job Order and Purchase Request');
-        $response->assertSee('data-rejected-pr="1"', false);
-        $response->assertSee('Cannot delete: this Job Order has an active linked Purchase Request.');
+        $response->assertSee('Delete Job Order?');
+        $response->assertDontSee('data-rejected-pr=', false);
+        $response->assertDontSee('open-delete-modal', false);
     }
 
     private function createJobOrder(string $jobOrderNo, string $partStatus): JobOrder
@@ -229,6 +229,7 @@ class MaintenanceJobOrderDeletionTest extends TestCase
             'start_date' => now(),
             'status' => 'On Going',
             'part_status' => $partStatus,
+            'review_status' => 'Approved',
         ]);
     }
 

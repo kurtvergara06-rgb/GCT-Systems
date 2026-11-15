@@ -3,15 +3,15 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
     'resources/css/Purchase/purchase-module-ui.css',
+    'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
     'resources/js/Purchase/Requested_Purchase/inventory-restock.js'
   ]"
 >
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main inventory-restock-page purchase-module-page records-page">
+    <main class="main purchase-module-page records-page inventory-restock-page">
       <x-layout.topbar
         title="Inventory Restock"
         subtitle="Automatic restock requests from warehouse inventory"
@@ -54,13 +54,40 @@
           <div>
             <span class="purchase-section-eyebrow">INVENTORY REPLENISHMENT</span>
             <h2>Inventory Restock Records</h2>
-            <p>Only active automatic warehouse restock requests are shown here. Completed records are available in Purchase History.</p>
+            <p>Warehouse inventory restocking requests, separated into active records and completed history.</p>
           </div>
-          <span class="purchase-section-count">{{ $restockRequests->total() }} active</span>
         </div>
 
-        <x-ui.table-toolbar action="{{ route('inventory-restock', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Inventory Restock" search-placeholder="Search restock no., item, or status..." :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')" filter-title="Filter Inventory Restock" :sort-options="['created_at' => 'Created Date', 'pr_no' => 'Restock Number', 'status' => 'Status']" default-sort="created_at" default-direction="desc">
-          <x-slot:filters><x-ui.table-toolbar-field label="Status" name="status" default="All States"><option value="All States">All States</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field></x-slot:filters>
+        <nav class="restock-record-tabs" aria-label="Inventory restock record views">
+          <a href="{{ route('inventory-restock', ['record_view' => 'active']) }}" class="restock-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}" @if($recordView === 'active') aria-current="page" @endif>
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Active
+          </a>
+          <a href="{{ route('inventory-restock', ['record_view' => 'history']) }}" class="restock-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}" @if($recordView === 'history') aria-current="page" @endif>
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> History
+          </a>
+        </nav>
+
+        <x-ui.table-toolbar
+          action="{{ route('inventory-restock', [], false) }}"
+          class="restock-toolbar records-toolbar"
+          data-server-filter="true"
+          search-label="Search Inventory Restock Requests"
+          search-placeholder="Search restock no., item, or status..."
+          :filter-count="(int) (request()->filled('status') && request('status') !== 'All States')"
+          filter-title="Filter Restock Requests"
+          :sort-options="['created_at' => 'Created Date', 'pr_no' => 'Restock Number', 'status' => 'Status']"
+          default-sort="created_at"
+          default-direction="desc"
+        >
+          <x-slot:hidden><input type="hidden" name="record_view" value="{{ $recordView }}"></x-slot:hidden>
+          <x-slot:filters>
+            <x-ui.table-toolbar-field label="Status" name="status" default="All States">
+              <option value="All States">All States</option>
+              @foreach(($statuses ?? []) as $status)
+                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+              @endforeach
+            </x-ui.table-toolbar-field>
+          </x-slot:filters>
         </x-ui.table-toolbar>
 
         <div class="table-wrap records-table-wrap">
@@ -101,61 +128,91 @@
                     $unit = trim($matches[3] ?? '—') ?: '—';
                   }
 
-                  $quantityDisplay = trim($quantity . ' ' . ($unit !== '—' ? $unit : ''));
+                  $structuredItems = collect(json_decode((string) ($restockRequest->restock_items ?? ''), true) ?: [])
+                    ->filter(fn ($line) => is_array($line) && trim((string) ($line['name'] ?? '')) !== '')
+                    ->values();
+                  $displayItems = $structuredItems->isNotEmpty()
+                    ? $structuredItems->map(fn ($line) => [
+                        'name' => trim((string) $line['name']),
+                        'quantity' => (int) ($line['quantity'] ?? 0),
+                        'unit' => trim((string) ($line['unit'] ?? '')),
+                      ])->values()
+                    : collect([['name' => $itemName, 'quantity' => (int) $quantity, 'unit' => $unit === '—' ? '' : $unit]]);
+                  $firstItem = $displayItems->first();
+                  $itemName = $firstItem['name'];
+                  $quantity = $firstItem['quantity'];
+                  $unit = $firstItem['unit'] ?: '—';
+                  $extraCount = max(0, $displayItems->count() - 1);
+                  $quantityDisplay = $extraCount ? $displayItems->count().' items' : trim($quantity.' '.($unit !== '—' ? $unit : ''));
+                  $createdAt = $restockRequest->created_at;
+
                 @endphp
 
                 <tr>
                   <td>
                     <strong class="restock-no">{{ $restockRequest->display_pr_no }}</strong>
                   </td>
-                  <td><span class="source-badge">Auto Restock</span></td>
-                  <td>{{ $itemName }}</td>
-                  <td class="center-text">{{ $quantityDisplay }}</td>
-                  <td class="center-text">
+                  <td><span class="source-badge"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Auto Restock</span></td>
+                  <td>
+                    <div class="restock-item-summary">
+                      <span class="restock-item-name">{{ $itemName }}</span>
+                      @if($extraCount)
+                        <details class="restock-item-more">
+                          <summary>+{{ $extraCount }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                          <div class="restock-item-popover">
+                            @foreach($displayItems->skip(1) as $line)
+                              <div><span>{{ $line['name'] }}</span><strong>{{ $line['quantity'] }} {{ $line['unit'] }}</strong></div>
+                            @endforeach
+                          </div>
+                        </details>
+                      @endif
+                    </div>
+                  </td>
+                  <td class="center-text"><span class="restock-quantity">{{ $quantityDisplay }}</span></td>
+                  <td class="center-text restock-status-cell">
                     <x-ui.status-badge
-                      :status="$restockRequest->status ?? '—'"
+                      :status="$restockRequest->purchasing_display_status ?? $restockRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
                   <td>
-                    {{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}
+                    @if($createdAt)
+                      <div class="restock-created-date"><strong>{{ $createdAt->format('M d, Y') }}</strong><small>{{ $createdAt->format('l') }}</small></div>
+                    @else
+                      —
+                    @endif
                   </td>
                   <td class="center-text">
                     <div class="actions record-actions">
                       <button
                         type="button"
-                        class="action-btn view open-restock-view-modal"
-                        title="View Details"
+                        class="restock-review-btn open-restock-view-modal"
+                        title="{{ $recordView === 'history' ? 'View Completed Restocking Request' : 'Review Restocking Request' }}"
                         data-restock-no="{{ $restockRequest->display_pr_no }}"
                         data-source-type="{{ $restockRequest->source_type ?? 'Auto Restock' }}"
                         data-item="{{ $itemName }}"
                         data-quantity="{{ $quantity }}"
                         data-unit="{{ $unit }}"
-                        data-status="{{ $restockRequest->status ?? '—' }}"
+                        data-status="{{ $restockRequest->purchasing_display_status ?? $restockRequest->status ?? '—' }}"
                         data-created="{{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}"
                         data-remarks="{{ $restockRequest->remarks ?? 'No remarks' }}"
+                        data-items="{{ $displayItems->toJson() }}"
+                        data-approved-by="{{ $restockRequest->requester?->name ?? 'Warehouse Head' }}"
+                        data-approved-at="{{ $restockRequest->warehouse_approved_at ? \Illuminate\Support\Carbon::parse($restockRequest->warehouse_approved_at)->format('M d, Y h:i A') : '—' }}"
+                        data-purpose="{{ $restockRequest->purpose ?? 'Inventory replenishment' }}"
+                        data-approval-notes="{{ $restockRequest->restock_approval_notes ?? 'None' }}"
+                        data-signature-url="{{ $restockRequest->restock_signature_path ? route('inventory-restock.approval-signature', $restockRequest->id) : '' }}"
+                        data-create-po-url="{{ ($restockRequest->status ?? '') === 'For Purchase' ? route('purchase-orders', ['create_from_pr' => $restockRequest->id]) : '' }}"
                       >
-                        <i class="fa-solid fa-eye"></i>
+                        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
                       </button>
-
-                      @if(($restockRequest->status ?? '') === 'For Purchase')
-                        <a
-                          href="{{ route('purchase-orders', ['create_from_pr' => $restockRequest->id]) }}"
-                          class="action-btn create-po"
-                          title="Create Purchase Order"
-                        >
-                          <i class="fa-solid fa-cart-plus"></i>
-                        </a>
-                      @endif
                     </div>
                   </td>
                 </tr>
               @empty
                 <x-ui.empty-row
                   colspan="7"
-                  icon="fa-boxes-packing"
-                  message="No Inventory Restock Requests Found"
-                  description="No restock requisitions currently require purchasing action."
+                  message="No active inventory restock requests found."
                 />
               @endforelse
             </tbody>
@@ -167,62 +224,58 @@
     </main>
   </div>
 
-  <div id="restockViewModal" class="modal-overlay restock-view-overlay">
-    <div class="restock-view-modal">
-      <div class="restock-modal-header">
+  <div id="restockViewModal" class="modal-overlay restock-view-overlay" role="presentation">
+    <div class="restock-view-modal" role="dialog" aria-modal="true" aria-labelledby="restockReviewTitle">
+      <header class="restock-modal-header">
         <div>
-          <h2>Inventory Restock Details</h2>
-          <h3>Restock Information</h3>
-          <p>This is a read-only view of the selected automatic restock request.</p>
+          <span class="restock-review-eyebrow">WAREHOUSE HEAD AUTHORIZATION</span>
+          <h2 id="restockReviewTitle">Review Inventory Restock Request</h2>
+          <p>Verify the signed Warehouse request and item quantities before creating a Purchase Order.</p>
         </div>
-        <button type="button" id="closeRestockViewModal" class="restock-close-btn">
-          <i class="fa-solid fa-xmark"></i>
+        <button type="button" id="closeRestockViewModal" class="restock-close-btn" aria-label="Close review">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
-      </div>
-
-      <div class="restock-form-grid">
-        <div class="restock-field">
-          <label>Restock No.</label>
-          <input id="viewRestockNo" type="text" value="—" readonly>
+      </header>
+      <div class="restock-review-content">
+        <div class="restock-review-meta">
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-file-lines"></i></span><span><small>Restock Number</small><strong id="viewRestockNo">—</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-boxes-stacked"></i></span><span><small>Source</small><strong id="viewRestockSource">Auto Restock</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-calendar-days"></i></span><span><small>Date Created</small><strong id="viewRestockCreated">—</strong></span></div>
+          <div><span class="restock-meta-icon"><i class="fa-solid fa-cart-shopping"></i></span><span><small>Status</small><strong id="viewRestockStatus">—</strong></span></div>
         </div>
-        <div class="restock-field">
-          <label>Source</label>
-          <input id="viewRestockSource" type="text" value="Auto Restock" readonly>
-        </div>
-        <div class="restock-field">
-          <label>Status</label>
-          <input id="viewRestockStatus" type="text" value="—" readonly>
-        </div>
-        <div class="restock-field">
-          <label>Date Created</label>
-          <input id="viewRestockCreated" type="text" value="—" readonly>
-        </div>
-
-        <div class="restock-field restock-full">
-          <label>Requested Item / Part</label>
-          <div class="restock-breakdown-box">
-            <div class="restock-breakdown-head">
-              <span>Part Name</span>
-              <span>Quantity</span>
-              <span>Unit</span>
+        <section class="restock-review-section restock-authorization" aria-label="Warehouse Head authorization">
+          <h3><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Warehouse Head Authorization</h3>
+          <div class="restock-authorization-content">
+            <div class="restock-authorization-details">
+              <div><small>Approved By</small><strong id="viewRestockApprovedBy">—</strong></div>
+              <div><small>Approved At</small><strong id="viewRestockApprovedAt">—</strong></div>
+              <div><small>Purpose</small><strong id="viewRestockPurpose">—</strong></div>
+              <div><small>Authorization Notes</small><strong id="viewRestockApprovalNotes">—</strong></div>
             </div>
-            <div class="restock-breakdown-row">
-              <span id="viewRestockItem">—</span>
-              <span id="viewRestockQuantity">—</span>
-              <span id="viewRestockUnit">—</span>
+            <div class="restock-authorization-signature">
+              <small>AUTHORIZED WAREHOUSE SIGNATURE</small>
+              <img id="viewRestockSignature" alt="Warehouse Head approval signature" hidden>
+              <p id="viewRestockSignatureUnavailable">Signature unavailable for this record</p>
+              <strong id="viewRestockSignatureName">—</strong>
             </div>
           </div>
-        </div>
-
-        <div class="restock-field restock-full">
-          <label>Remarks</label>
-          <textarea id="viewRestockRemarks" rows="3" readonly>No remarks</textarea>
-        </div>
+        </section>
+        <section class="restock-review-section">
+          <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Requested Items</h3>
+          <div class="restock-breakdown-box">
+            <div class="restock-breakdown-head"><span>Part Name</span><span>Quantity</span><span>Unit</span></div>
+            <div class="restock-breakdown-list" id="viewRestockItems"></div>
+          </div>
+        </section>
+        <section class="restock-review-section">
+          <h3><i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Request Remarks</h3>
+          <p class="restock-review-remarks" id="viewRestockRemarks">No remarks</p>
+        </section>
       </div>
-
-      <div class="restock-modal-footer">
+      <footer class="restock-modal-footer">
         <button type="button" id="closeRestockViewModalBottom" class="restock-close-bottom">Close</button>
-      </div>
+        <a id="restockReviewCreatePo" class="restock-review-create-po" href="#" hidden><i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Create PO</a>
+      </footer>
     </div>
   </div>
 </x-layout.app>

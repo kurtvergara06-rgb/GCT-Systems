@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\MaintenanceReferral;
 use App\Traits\SystemDataUpdateBroadcaster;
+use App\Services\Maintenance\JobOrderWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 class ReferralJobOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    public function __construct(private readonly JobOrderWorkflowService $workflow) {}
 
     public function store(MaintenanceReferral $maintenanceReferral): RedirectResponse
     {
@@ -38,7 +41,7 @@ class ReferralJobOrderController extends Controller
 
         $activeJobOrder = JobOrder::query()
             ->where('bus_no', $busNo)
-            ->where('status', '!=', 'Completed')
+            ->open()
             ->first();
 
         if ($activeJobOrder) {
@@ -55,6 +58,25 @@ class ReferralJobOrderController extends Controller
 
             if ($lockedReferral->status !== 'Approved' || $lockedReferral->jobOrder()->exists()) {
                 abort(409, 'This referral has already been processed.');
+            }
+
+            // Serialize referral-based Job Order creation for the same bus.
+            // Lock the bus before checking for an active Job Order so concurrent
+            // requests for different referrals cannot both pass the check.
+            $lockedBus = \App\Models\Maintenance\Bus::query()
+                ->whereKey($incident->bus_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedBus->bus_no !== $busNo) {
+                abort(409, 'The referred bus changed. Please retry.');
+            }
+
+            if (JobOrder::query()
+                ->where('bus_no', $busNo)
+                ->open()
+                ->exists()) {
+                abort(409, 'This bus already has an active Job Order.');
             }
 
             $year = now()->format('Y');
@@ -92,10 +114,6 @@ class ReferralJobOrderController extends Controller
                 }
             }
 
-            if ($incident->bus) {
-                $incident->bus->placeUnderMaintenance();
-            }
-
             $jobOrder = JobOrder::create([
                 'job_order_no' => $jobOrderNo,
                 'bus_no' => $busNo,
@@ -105,11 +123,15 @@ class ReferralJobOrderController extends Controller
                 'maintenance_type' => 'Repair',
                 'assigned_mechanic' => null,
                 'part_needed' => null,
-                'start_date' => now(),
+                'start_date' => null,
                 'completion_date' => null,
                 'status' => 'On Hold',
-                'part_status' => 'No Parts Needed',
+                'part_status' => 'No Parts Required',
+                'review_status' => 'For Review',
+                'created_by' => auth()->id(),
             ]);
+
+            $this->workflow->audit($jobOrder, 'created_from_referral', null, 'For Review', 'Submitted from an approved maintenance referral.');
 
             $lockedReferral->update(['status' => 'Job Order Created']);
 
@@ -136,7 +158,7 @@ class ReferralJobOrderController extends Controller
 
         return redirect()
             ->route('job-orders', ['search' => $jobOrder->job_order_no])
-            ->with('success', "Job Order {$jobOrder->job_order_no} created from incident {$incident->incident_no}. Assign a mechanic to continue the repair workflow.");
+            ->with('success', "Job Order {$jobOrder->job_order_no} was submitted from incident {$incident->incident_no} for Maintenance Head review.");
     }
 
     private function authorizeJobOrderCreation(): void

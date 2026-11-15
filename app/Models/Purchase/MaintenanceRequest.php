@@ -2,11 +2,15 @@
 
 namespace App\Models\Purchase;
 
+use App\Models\Admin\User;
 use App\Services\PartParser;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MaintenanceRequest extends Model
 {
+    private array $displayPartsBreakdown = [];
+
     protected $table = 'purchase_requests';
 
     protected $fillable = [
@@ -23,6 +27,11 @@ class MaintenanceRequest extends Model
     protected $casts = [
         'quantity' => 'integer',
     ];
+
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
 
     public function getDisplayPrNoAttribute(): string
     {
@@ -69,7 +78,16 @@ class MaintenanceRequest extends Model
 
     public function getPartsBreakdownAttribute(): array
     {
-        return $this->parseItemParts();
+        return $this->displayPartsBreakdown !== []
+            ? $this->displayPartsBreakdown
+            : $this->parseItemParts();
+    }
+
+    public function withDisplayPartsBreakdown(array $parts): static
+    {
+        $this->displayPartsBreakdown = $parts;
+
+        return $this;
     }
 
     private function parseItemParts(): array

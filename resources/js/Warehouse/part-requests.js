@@ -5,15 +5,335 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+
+    if (window.GCTModalBackdrop?.sync) {
+      window.GCTModalBackdrop.sync();
+    }
+
+    window.GCTSystemAnimations?.animateModalOpen?.(modal);
   }
 
   function closeModal(modal) {
     if (!modal) return;
 
-    modal.classList.remove('show');
-    modal.classList.remove('active');
-    modal.style.display = 'none';
+    const finishClose = function () {
+      modal.classList.remove('show');
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+
+      if (window.GCTModalBackdrop?.sync) {
+        window.GCTModalBackdrop.sync();
+      }
+    };
+
+    if (!window.GCTSystemAnimations?.animateModalClose?.(modal, finishClose)) {
+      finishClose();
+    }
   }
+
+  const restockPrModal = document.getElementById('warehouseRestockPrModal');
+  document.querySelector('[data-open-restock-pr]')?.addEventListener('click', function (event) {
+    event.preventDefault();
+    openModal(restockPrModal);
+  });
+
+  // Signature input is a local preview only; it is not submitted or stored.
+  const signatureCanvas = restockPrModal?.querySelector('#restockPrSignatureCanvas');
+  const signaturePreview = restockPrModal?.querySelector('#restockPrSignaturePreview');
+  const signatureUpload = restockPrModal?.querySelector('#restockPrSignatureUpload');
+  const signatureMessage = restockPrModal?.querySelector('#restockPrSignatureMessage');
+  const signatureClear = restockPrModal?.querySelector('#restockPrClearSignature');
+  const signatureContext = signatureCanvas?.getContext('2d');
+  let signatureDrawing = false;
+  let signatureHasInk = false;
+  let signatureObjectUrl = null;
+  if (signatureContext) {
+    signatureContext.strokeStyle = '#123c76';
+    signatureContext.lineWidth = 3;
+    signatureContext.lineJoin = 'round';
+    signatureContext.lineCap = 'round';
+  }
+  function signaturePosition(event) {
+    const rect = signatureCanvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * signatureCanvas.width / rect.width,
+      y: (event.clientY - rect.top) * signatureCanvas.height / rect.height,
+    };
+  }
+  signatureCanvas?.addEventListener('pointerdown', function (event) {
+    if (!signatureContext || !signaturePreview.hidden) return;
+    signatureDrawing = true;
+    signatureHasInk = true;
+    signatureCanvas.setPointerCapture(event.pointerId);
+    const point = signaturePosition(event);
+    signatureContext.beginPath();
+    signatureContext.moveTo(point.x, point.y);
+    signatureContext.lineTo(point.x + 0.1, point.y + 0.1);
+    signatureContext.stroke();
+    event.preventDefault();
+  });
+  signatureCanvas?.addEventListener('pointermove', function (event) {
+    if (!signatureDrawing || !signatureContext) return;
+    const point = signaturePosition(event);
+    signatureContext.lineTo(point.x, point.y);
+    signatureContext.stroke();
+    event.preventDefault();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
+    signatureCanvas?.addEventListener(name, function () { signatureDrawing = false; });
+  });
+  signatureClear?.addEventListener('click', function () {
+    signatureDrawing = false;
+    signatureHasInk = false;
+    signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
+    signatureObjectUrl = null;
+    if (signaturePreview) {
+      signaturePreview.removeAttribute('src');
+      signaturePreview.hidden = true;
+    }
+    if (signatureUpload) signatureUpload.value = '';
+    if (signatureMessage) signatureMessage.textContent = 'Signature cleared. Draw above or upload an image.';
+  });
+  const cropDialog = restockPrModal?.querySelector('#restockPrCropDialog');
+  // Escape the scrollable parent modal so crop positioning is viewport-relative.
+  if (cropDialog) document.body.appendChild(cropDialog);
+  const cropCanvas = document.getElementById('restockPrCropCanvas');
+  const cropContext = cropCanvas?.getContext('2d');
+  const cropZoom = document.getElementById('restockPrCropZoom');
+  let cropImage = null;
+  let cropUrl = null;
+  let cropOffset = { x: 0, y: 0 };
+  let cropDrag = null;
+  function renderCrop() {
+    if (!cropImage || !cropContext) return;
+    const w = cropCanvas.width, h = cropCanvas.height;
+    const fit = Math.max(w / cropImage.naturalWidth, h / cropImage.naturalHeight);
+    const scale = fit * Number(cropZoom.value);
+    const dw = cropImage.naturalWidth * scale, dh = cropImage.naturalHeight * scale;
+    cropOffset.x = Math.min((dw - w) / 2, Math.max((w - dw) / 2, cropOffset.x));
+    cropOffset.y = Math.min((dh - h) / 2, Math.max((h - dh) / 2, cropOffset.y));
+    cropContext.clearRect(0, 0, w, h);
+    cropContext.fillStyle = '#ffffff';
+    cropContext.fillRect(0, 0, w, h);
+    cropContext.drawImage(cropImage, (w - dw) / 2 + cropOffset.x, (h - dh) / 2 + cropOffset.y, dw, dh);
+  }
+  function cancelCrop() {
+    if (cropDialog) cropDialog.hidden = true;
+    if (cropUrl) URL.revokeObjectURL(cropUrl);
+    cropUrl = null;
+    cropImage = null;
+    if (signatureUpload) signatureUpload.value = '';
+  }
+  signatureUpload?.addEventListener('change', function () {
+    const file = signatureUpload.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      signatureUpload.value = '';
+      if (signatureMessage) signatureMessage.textContent = 'Choose a PNG, JPG or WEBP image no larger than 5 MB.';
+      return;
+    }
+    cropUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = function () {
+      cropImage = image;
+      cropOffset = { x: 0, y: 0 };
+      cropZoom.value = '1';
+      cropDialog.hidden = false;
+      renderCrop();
+    };
+    image.onerror = function () {
+      cancelCrop();
+      if (signatureMessage) signatureMessage.textContent = 'Unable to open that image. Please select a different file.';
+    };
+    image.src = cropUrl;
+  });
+  cropZoom?.addEventListener('input', renderCrop);
+  cropCanvas?.addEventListener('pointerdown', function (event) {
+    if (!cropImage) return;
+    cropDrag = { x: event.clientX, y: event.clientY };
+    cropCanvas.setPointerCapture(event.pointerId);
+  });
+  cropCanvas?.addEventListener('pointermove', function (event) {
+    if (!cropDrag) return;
+    const rect = cropCanvas.getBoundingClientRect();
+    cropOffset.x += (event.clientX - cropDrag.x) * cropCanvas.width / rect.width;
+    cropOffset.y += (event.clientY - cropDrag.y) * cropCanvas.height / rect.height;
+    cropDrag = { x: event.clientX, y: event.clientY };
+    renderCrop();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (name) {
+    cropCanvas?.addEventListener(name, function () { cropDrag = null; });
+  });
+  ['restockPrCropClose', 'restockPrCropCancel'].forEach(function (id) {
+    restockPrModal?.querySelector('#' + id)?.addEventListener('click', cancelCrop);
+  });
+  document.getElementById('restockPrCropConfirm')?.addEventListener('click', function () {
+    if (!cropImage || !cropCanvas || !signaturePreview) return;
+    if (signatureObjectUrl) URL.revokeObjectURL(signatureObjectUrl);
+    signatureObjectUrl = null;
+    signaturePreview.src = cropCanvas.toDataURL('image/png');
+    signaturePreview.hidden = false;
+    signatureContext?.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    if (signatureMessage) signatureMessage.textContent = 'Cropped signature ready for preview. PR submission is still unavailable.';
+    cancelCrop();
+  });
+
+
+  // The generic close handler does not treat X or Cancel as close actions.
+  // Bind only this dialog's explicit controls; never close on backdrop clicks.
+  restockPrModal?.querySelectorAll('button.closeModal').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      closeModal(restockPrModal);
+    });
+  });
+
+  const restockPrItems = document.getElementById('restockPrItems');
+  const restockPrTemplate = restockPrModal?.querySelector('.warehouse-restock-pr-template .warehouse-restock-pr-item');
+  const addRestockItem = document.getElementById('restockPrAddItem');
+  const restockPrForm = document.getElementById('warehouseRestockPrForm');
+
+  function addRestockItemRow() {
+    if (!restockPrItems || !restockPrTemplate) return;
+    const row = restockPrTemplate.cloneNode(true);
+    row.querySelectorAll('.restock-pr-item-select, .restock-pr-item-qty').forEach(function (field) { field.required = true; });
+    restockPrItems.appendChild(row);
+    updateRestockRemovalButtons();
+  }
+  function updateRestockRemovalButtons() {
+    restockPrItems?.querySelectorAll('.warehouse-restock-remove-item').forEach(function (button) {
+      button.disabled = restockPrItems.children.length <= 1;
+    });
+  }
+  addRestockItem?.addEventListener('click', addRestockItemRow);
+  restockPrItems?.addEventListener('click', function (event) {
+    if (!event.target.closest('.warehouse-restock-remove-item')) return;
+    event.target.closest('.warehouse-restock-pr-item')?.remove();
+    updateRestockRemovalButtons();
+  });
+  restockPrItems?.addEventListener('change', function (event) {
+    const select = event.target.closest('.restock-pr-item-select');
+    if (!select) return;
+    const row = select.closest('.warehouse-restock-pr-item');
+    const option = select.selectedOptions[0];
+    const info = row?.querySelector('.warehouse-restock-stock-info');
+    if (!info) return;
+    info.textContent = option?.value
+      ? 'On hand: ' + (option.dataset.stock || '0') + ' ' + (option.dataset.unit || '') +
+        ' · Reorder point: ' + (option.dataset.rop || '0') +
+        ' · Safety stock: ' + (option.dataset.safety || 'Not set') +
+        (option.dataset.supplier ? ' · Supplier: ' + option.dataset.supplier : '')
+      : 'Select an item to view its stock, reorder point and safety stock.';
+  });
+  if (restockPrItems && !restockPrItems.children.length) addRestockItemRow();
+  restockPrForm?.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const submit = restockPrForm.querySelector('[type="submit"]');
+    if (submit.disabled) return;
+    const rows = [...restockPrItems.querySelectorAll('.warehouse-restock-pr-item')];
+    const items = rows.map(function (row) {
+      return {
+        inventory_item_id: row.querySelector('.restock-pr-item-select')?.value,
+        quantity: row.querySelector('.restock-pr-item-qty')?.value,
+      };
+    });
+    // Ignore completely empty optional rows; validate each selected line separately.
+    const activeRows = rows.map((row, index) => ({ row, index, item: items[index] }))
+      .filter(({ item }) => item.inventory_item_id || String(item.quantity || '').trim());
+    const validItems = activeRows.map(({ item }) => item);
+    const invalid = activeRows.find(({ item }) =>
+      !item.inventory_item_id || !/^[1-9]\d*$/.test(String(item.quantity || '').trim()));
+    const firstDuplicate = validItems.find((item, index) =>
+      validItems.findIndex(candidate => candidate.inventory_item_id === item.inventory_item_id) !== index);
+    if (!validItems.length || invalid || firstDuplicate) {
+      let message = 'Add at least one inventory item and quantity.';
+      if (invalid) message = 'Complete inventory row ' + (invalid.index + 1) + ': select an item and enter a positive whole-number quantity.';
+      if (firstDuplicate) {
+        const match = activeRows.find(({ item }) => item.inventory_item_id === firstDuplicate.inventory_item_id);
+        const name = match?.row.querySelector('.restock-pr-item-select')?.selectedOptions?.[0]?.textContent?.trim() || 'This item';
+        message = name + ' is selected more than once. Combine its quantities into one row.';
+      }
+      if (signatureMessage) signatureMessage.textContent = message;
+      (invalid?.row || activeRows.find(({ item }) => item.inventory_item_id === firstDuplicate?.inventory_item_id)?.row)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    if (signaturePreview.hidden && !signatureHasInk) {
+      if (signatureMessage) signatureMessage.textContent = 'Please draw or upload a signature before submitting.';
+      return;
+    }
+    const canvasBlob = await new Promise(resolve => {
+      if (signaturePreview.hidden) {
+        signatureCanvas.toBlob(resolve, 'image/png');
+      } else {
+        const image = new Image();
+        image.onload = function () {
+          const canvas = document.createElement('canvas');
+          canvas.width = signatureCanvas.width;
+          canvas.height = signatureCanvas.height;
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(resolve, 'image/png');
+        };
+        image.onerror = () => resolve(null);
+        image.src = signaturePreview.src;
+      }
+    });
+    if (!canvasBlob) {
+      if (signatureMessage) signatureMessage.textContent = 'Could not process the signature. Try again.';
+      return;
+    }
+    const form = new FormData();
+    form.append('_token', restockPrForm.querySelector('[name="_token"]').value);
+    form.append('purpose', restockPrModal.querySelector('#restockPrPurpose').value);
+    form.append('remarks', restockPrModal.querySelector('#restockPrRemarks').value);
+    form.append('approval_notes', restockPrModal.querySelector('#restockPrApprovalNotes').value);
+    form.append('signature', canvasBlob, 'restock-signature.png');
+    validItems.forEach((item, index) => {
+      form.append('items[' + index + '][inventory_item_id]', item.inventory_item_id);
+      form.append('items[' + index + '][quantity]', item.quantity);
+    });
+    submit.disabled = true;
+    try {
+      const response = await fetch(restockPrForm.action, {
+        method: 'POST',
+        body: form,
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const result = await response.json().catch(() => ({ message: response.status === 419 ? 'Session expired. Refresh the page and try again.' : 'Server returned an unexpected response (HTTP ' + response.status + ').' }));
+      if (!response.ok) {
+        const validation = result.errors ? Object.values(result.errors).flat().join(' ') : result.message;
+        throw new Error(validation || 'Purchase Request could not be saved.');
+      }
+      // Confirm the server-created identifier before returning to the records page.
+      const prNumber = String(result.pr_no || 'Purchase Request');
+      const successOverlay = document.createElement('div');
+      successOverlay.className = 'warehouse-restock-submit-confirmation';
+      successOverlay.setAttribute('role', 'dialog');
+      successOverlay.setAttribute('aria-modal', 'true');
+      successOverlay.setAttribute('aria-label', 'Purchase Request submitted');
+      const confirmation = document.createElement('div');
+      confirmation.className = 'warehouse-restock-submit-confirmation-box';
+      const heading = document.createElement('h3');
+      heading.textContent = 'Purchase Request Submitted';
+      const description = document.createElement('p');
+      description.textContent = prNumber + ' has been saved and forwarded to Purchasing.';
+      const okay = document.createElement('button');
+      okay.type = 'button';
+      okay.textContent = 'View Restocking Requests';
+      okay.addEventListener('click', () => window.location.assign('/part-requests?view=active'));
+      confirmation.append(heading, description, okay);
+      successOverlay.appendChild(confirmation);
+      document.body.appendChild(successOverlay);
+      okay.focus();
+    } catch (error) {
+      if (signatureMessage) { signatureMessage.textContent = error.message || 'Submission failed. Please try again.'; signatureMessage.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+      console.error('Warehouse restocking PR submission failed:', error);
+    } finally {
+      submit.disabled = false;
+    }
+  });
 
   function closeAllModals() {
     document
@@ -62,19 +382,19 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       .replace(/\s+/g, '-');
   }
 
-  function renderPartsBreakdown(parts) {
-    const container = document.getElementById('view_parts_breakdown');
+  function renderPartsBreakdown(parts, containerId = 'view_parts_breakdown') {
+    const container = document.getElementById(containerId);
 
     if (!container) return;
 
     if (!Array.isArray(parts) || parts.length === 0) {
-      container.innerHTML = '<div class="parts-breakdown-empty">No parts found.</div>';
+      container.innerHTML = '<div class="shared-pr-empty">No parts found.</div>';
       return;
     }
 
     let html = `
-      <div class="parts-breakdown-table no-status">
-        <div class="parts-breakdown-head no-status">
+      <div class="shared-pr-parts-table">
+        <div class="shared-pr-parts-head">
           <span>Part Name</span>
           <span>Quantity</span>
           <span>On Hand</span>
@@ -83,10 +403,10 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
     parts.forEach(function (part) {
       html += `
-        <div class="parts-breakdown-row no-status">
-          <span class="part-name">${escapeHtml(part.name || '—')}</span>
+        <div class="shared-pr-parts-row">
+          <span class="part-name">${escapeHtml(String(part.name || '—').replace(/\s*\[item:\d+\]/gi, '').trim())}</span>
           <span>${escapeHtml(part.needed_display || part.needed || '0')}</span>
-          <span>${escapeHtml(part.available_display || part.available || '0')}</span>
+          <span>${escapeHtml(part.physical_on_hand_display || part.available_display || part.available || '0')}</span>
         </div>
       `;
     });
@@ -95,6 +415,41 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
 
     container.innerHTML = html;
   }
+
+  // Warehouse restocking requests use their own read-only detail view, not Maintenance JO/IR controls.
+  const warehouseRestockView = document.getElementById('warehouseRestockViewModal');
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-restock-warehouse-view');
+    if (!button || !warehouseRestockView) return;
+    event.preventDefault();
+    const read = (id, value) => {
+      const field = warehouseRestockView.querySelector('#' + id);
+      if (field) field.textContent = value || '—';
+    };
+    read('warehouseRestockViewNo', button.dataset.prNo);
+    read('warehouseRestockViewStatus', button.dataset.status);
+    read('warehouseRestockViewPurpose', button.dataset.purpose);
+    read('warehouseRestockViewRemarks', button.dataset.remarks);
+    let parts = [];
+    try { parts = JSON.parse(button.dataset.parts || '[]'); } catch (_) {}
+    const tbody = warehouseRestockView.querySelector('#warehouseRestockViewLines');
+    if (tbody) {
+      tbody.replaceChildren();
+      parts.forEach((part) => {
+        const tr = document.createElement('tr');
+        [part.name, part.quantity, part.unit].forEach((value) => {
+          const td = document.createElement('td');
+          td.textContent = String(value ?? '—');
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+    openModal(warehouseRestockView);
+  });
+  warehouseRestockView?.querySelectorAll('.warehouse-restock-view-close').forEach((button) => {
+    button.addEventListener('click', () => closeModal(warehouseRestockView));
+  });
 
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
@@ -119,9 +474,14 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     setField('view_job_order_no', button.dataset.jobOrderNo);
     setField('view_bus_no', button.dataset.busNo);
     setField('view_created', button.dataset.created);
+    setField('view_requested_by', button.dataset.requestedBy);
+    setField('view_processing', button.dataset.warehouseStatus || button.dataset.status);
     setField('view_remarks', button.dataset.remarks, 'No remarks');
+    setField('view_pr_parts_count', Array.isArray(parts) ? `${parts.length} ${parts.length === 1 ? 'part' : 'parts'}` : '0 parts');
+    setField('view_warehouse_status_badge', button.dataset.warehouseStatus || button.dataset.status);
 
     renderPartsBreakdown(parts);
+    renderPartsBreakdown(parts, 'view_stock_reference');
 
     openModal(viewPrModal);
   });

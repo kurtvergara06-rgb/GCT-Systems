@@ -2372,3 +2372,17 @@
     font-weight: 700;
 }
 .personnel-master-page .personnel-record-tabs { min-height: 44px; }
+
+/* Custom mechanic specialization edit mode */
+.personnel-specialization-option.is-pending-deletion {
+  opacity: .45;
+  text-decoration: line-through;
+}
+.personnel-specialization-delete-btn[hidden] {
+  display: none !important;
+}
+
+/* Emphasize the three primary Mechanic Master List headings. */
+.personnel-master-table thead th.mechanic-table-strong-heading {
+  font-weight: 800;
+}

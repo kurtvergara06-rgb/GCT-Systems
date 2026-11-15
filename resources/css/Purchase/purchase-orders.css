@@ -540,6 +540,39 @@
   gap: 14px 24px !important;
 }
 
+.po-request-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #f7faff;
+}
+
+.po-request-context[hidden] {
+  display: none;
+}
+
+.po-request-context dt {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.po-request-context dd {
+  margin: 0;
+  color: #24364e;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.po-request-context-remarks {
+  grid-column: 1 / -1;
+}
+
 .po-form-group {
   width: 100%;
 }
@@ -981,3 +1014,600 @@
     width: 100%;
   }
 }
+
+
+/* Official paper-PO inspired layout, without introducing a second form workflow. */
+.purchase-orders-page ~ #poModal .po-modal-box,
+#poModal .po-modal-box { max-width: 1020px; }
+#poModal .po-paper-header-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#poModal .po-form-group input,
+#poModal .po-form-group select,
+#poModal .po-form-group textarea { max-width: 100%; box-sizing: border-box; }
+#poModal .po-form-group textarea { width: 100%; resize: vertical; min-height: 74px; }
+#poModal .po-paper-bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, .9fr); align-items: start; gap: 16px; }
+#poModal .po-purpose-field { display: flex; flex-direction: column; gap: 8px; }
+#poModal .po-purpose-hint { margin: 0; font-size: 11px; color: #71829a; }
+#poModal .po-summary-card { min-width: 0; }
+#poModal .po-summary-row.po-adjustment { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 10px; align-items: center; }
+#poModal .po-summary-row.po-adjustment label { font-size: 12px; font-weight: 600; color: #344865; }
+#poModal .po-summary-row.po-adjustment input { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid #d6e2ef; border-radius: 7px; background: white; text-align: right; }
+#poModal .po-approval-roles { padding: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+#poModal .po-approval-roles > div { display: flex; flex-direction: column; gap: 7px; padding: 11px; border: 1px solid #e1e9f3; border-radius: 8px; background: #f7faff; min-width: 0; }
+#poModal .po-approval-roles span { color: #71829a; font-size: 11px; }
+#poModal .po-approval-roles strong { color: #203b60; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  #poModal .po-paper-header-grid,
+  #poModal .po-paper-bottom-grid { grid-template-columns: minmax(0, 1fr); }
+  #poModal .po-approval-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+
+/* Linked PR items are sourced from the requisition: only purchasing costs are entered. */
+#poModal .po-has-locked-pr-items .po-items-header,
+#poModal .po-has-locked-pr-items .po-item-row {
+  grid-template-columns: minmax(0, 1.8fr) 82px 95px minmax(100px, 130px) minmax(110px, 145px) !important;
+}
+#poModal .po-has-locked-pr-items .po-item-action-heading,
+#poModal .po-has-locked-pr-items .remove-po-item-btn,
+#poModal .po-has-locked-pr-items #addPoItemBtn { display: none !important; }
+#poModal .po-prefilled-readonly { background: #f2f6fc !important; color: #284365; cursor: default; border-color: #e1e9f4; }
+#poModal .po-purpose-field { justify-content: flex-start; }
+#poModal .po-purpose-field textarea { min-height: 90px; }
+
+
+/* Final PO modal layout: compact form based on the approved visual reference. */
+#poModal .po-modal-box { width:min(980px, 96vw) !important; max-width:980px !important; padding:0 !important; max-height:90vh !important; display:flex; flex-direction:column; overflow:hidden !important; }
+#poModal .po-modal-header { flex:none; padding:18px 24px 14px; margin:0; border-bottom:1px solid #e0e8f3; background:#fff; }
+#poModal .po-modal-header h2 { font-size:21px; }
+#poModal .po-form { min-height:0; overflow-y:auto; padding:14px 24px 0; box-sizing:border-box; }
+#poModal .po-form-section { margin-bottom:13px; border:1px solid #dce7f5; border-radius:12px; overflow:hidden; background:#fff; }
+#poModal .po-form-section-header { background:#f2f7ff; }
+#poModal .po-form-section-body { padding:14px 16px; }
+#poModal .po-paper-header-grid { gap:11px 22px !important; }
+#poModal .po-form-group label { margin-bottom:5px; }
+#poModal .po-form input, #poModal .po-form select { min-height:38px; }
+#poModal .po-request-reference { grid-column:1 / -1; }
+#poModal .po-request-context { grid-template-columns:minmax(0,1fr) minmax(0,.9fr) minmax(0,1.7fr); gap:0; padding:13px 0; background:#f3f7fe; }
+#poModal .po-request-context > div { min-width:0; padding:0 13px; }
+#poModal .po-request-context > div + div { border-left:1px solid #d9e5f4; }
+#poModal .po-request-context-remarks { grid-column:auto; }
+#poModal .po-items-header, #poModal .po-item-row { gap:8px !important; align-items:center; }
+#poModal .po-has-locked-pr-items .po-items-header,
+#poModal .po-has-locked-pr-items .po-item-row { grid-template-columns:minmax(0,2.6fr) minmax(55px,.55fr) minmax(65px,.65fr) minmax(90px,1fr) minmax(95px,1fr) !important; }
+#poModal .po-items-section { margin-bottom:8px; }
+#poModal .po-bottom-grid.po-paper-bottom-grid { display:grid !important; grid-template-columns:minmax(0,1.25fr) minmax(285px,.95fr) !important; gap:12px !important; align-items:stretch; margin-top:12px !important; }
+#poModal .po-bottom-grid .po-purpose-field { justify-content:flex-start; border:1px solid #dce7f5; border-radius:10px; padding:13px; min-width:0; }
+#poModal .po-purpose-field textarea { min-height:135px; flex:1; }
+#poModal .po-summary-card { width:auto; min-width:0; margin:0; }
+#poModal .po-summary-row.po-adjustment { grid-template-columns:minmax(0,1fr) 105px; }
+#poModal .po-modal-actions { position:sticky; bottom:0; z-index:5; margin:0 -24px; padding:12px 24px; border-top:1px solid #e1e8f2; background:#fff; }
+@media (max-width:760px) {
+  #poModal .po-modal-header {padding:14px 16px;}
+  #poModal .po-form {padding:12px 14px 0;}
+  #poModal .po-paper-header-grid {grid-template-columns:minmax(0,1fr) !important;}
+  #poModal .po-request-context {grid-template-columns:minmax(0,1fr); gap:9px;}
+  #poModal .po-request-context > div + div {border-left:0; border-top:1px solid #d9e5f4; padding-top:9px;}
+  #poModal .po-bottom-grid.po-paper-bottom-grid {grid-template-columns:minmax(0,1fr) !important;}
+  #poModal .po-modal-actions {margin:0 -14px; padding:10px 14px;}
+}
+
+
+/* Match Parts Requisitions record-table typography, proportions and compact badges. */
+main.purchase-orders-page .purchase-order-card .records-table-wrap { width:100%; overflow-x:auto; }
+main.purchase-orders-page .purchase-order-card .records-table { width:100%; min-width:1050px; table-layout:fixed; }
+main.purchase-orders-page .purchase-order-card .records-table th,
+main.purchase-orders-page .purchase-order-card .records-table td {
+  box-sizing:border-box; padding:12px 10px !important; vertical-align:middle;
+  text-align:left; font-family:inherit; white-space:normal;
+}
+main.purchase-orders-page .purchase-order-card .records-table th {
+  background:#eef3fb; color:#123052; font-size:10px; font-weight:800;
+  letter-spacing:.025em; line-height:1.25;
+}
+main.purchase-orders-page .purchase-order-card .records-table td {
+  color:#18365c; font-size:11px; font-weight:650; line-height:1.35;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(1) {width:10%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:17%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(3) {width:12%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:15%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(5) {width:7%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(6) {width:10%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(7) {width:12%;text-align:center;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(8) {width:10%;text-align:left;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9) {width:6%;text-align:right;}
+main.purchase-orders-page .purchase-order-card .records-table td strong,
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-qty,
+main.purchase-orders-page .purchase-order-card .po-amount {font-family:inherit;font-size:11px;font-weight:750;color:#18365c;}
+main.purchase-orders-page .purchase-order-card .po-number-cell {min-width:0;}
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-number-cell strong {white-space:nowrap;}
+main.purchase-orders-page .purchase-order-card .po-request-type {font-family:inherit;font-size:10px;line-height:1.25;white-space:normal;}
+main.purchase-orders-page .purchase-order-card .po-date {min-width:0;}
+main.purchase-orders-page .purchase-order-card .po-date strong {font-size:11px;font-weight:800;color:#17375f;}
+main.purchase-orders-page .purchase-order-card .po-date small {font-size:10px;color:#6981a1;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell {overflow:visible;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] {
+  display:inline-flex !important; align-items:center; justify-content:center;
+  width:max-content !important; max-width:100% !important; min-width:0 !important;
+  height:27px !important; min-height:27px !important;
+  padding:5px 10px !important; gap:5px !important;
+  box-sizing:border-box; border-radius:999px !important;
+  font-family:inherit !important; font-size:11px !important;
+  font-weight:750 !important; white-space:nowrap !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__icon {
+  width:11px !important; min-width:11px !important; height:auto !important;
+  min-height:0 !important; margin:0 !important; padding:0 !important;
+  flex:0 0 11px !important; font-size:11px !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
+  width:auto !important; min-width:0 !important; min-height:0 !important;
+  margin:0 !important; padding:0 !important; font-size:11px !important;
+  font-weight:750 !important; line-height:1.1 !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions {display:inline-flex; gap:5px; align-items:center; justify-content:flex-end; white-space:nowrap;}
+main.purchase-orders-page .purchase-order-card .record-actions .action-btn {
+  display:inline-flex; width:30px; min-width:30px; height:30px; min-height:30px;
+  padding:0; align-items:center; justify-content:center; border-radius:7px;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9) {width:10%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(2) {width:15%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(4) {width:13%;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(7) {width:13%;}
+
+
+/* PO request-type indicators and unclipped item breakdown previews. */
+main.purchase-orders-page .purchase-order-card .po-request-type {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  padding:5px 8px; border:1px solid #caddf5; border-radius:999px;
+  background:#edf5ff; color:#1b5294; font-size:10px; font-weight:750;
+  line-height:1.1; white-space:nowrap;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type.inventory-restock {
+  background:#f0f7f0; color:#35734a; border-color:#cce7d4;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type.manual-purchase {
+  background:#f3f5f9; color:#58657a; border-color:#dce3ec;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview {
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-width:0;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview > strong {
+  min-width:0; overflow-wrap:anywhere; font-size:11px; font-weight:750;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger {
+  display:inline-flex; align-items:center; justify-content:center; gap:5px;
+  flex:none; padding:4px 7px; border:1px solid #c9ddff; border-radius:6px;
+  background:#edf4ff; color:#17509a; font-family:inherit;
+  font-size:10px; font-weight:750; cursor:pointer; white-space:nowrap;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger[aria-expanded="true"] i {transform:rotate(180deg);}
+.po-items-more-source[hidden] {display:none !important;}
+.po-items-floating-popover {
+  z-index:2147483000 !important; overflow-y:auto; box-sizing:border-box;
+  padding:8px 12px; border:1px solid #d7e4f4; border-radius:11px;
+  background:#fff; box-shadow:0 15px 35px rgba(17,44,77,.17);
+  color:#19385b; font-family:inherit;
+}
+.po-items-floating-popover .po-items-more-row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; padding:10px 2px; font-size:11px; line-height:1.35;
+}
+.po-items-floating-popover .po-items-more-row + .po-items-more-row {border-top:1px solid #e5edf6;}
+.po-items-floating-popover .po-items-more-row strong {flex:none; font-size:11px; white-space:nowrap;}
+
+
+/* Cross-module readability parity: Maintenance Item Requests is the font-size reference. */
+main.purchase-orders-page .purchase-order-card .records-table th {
+  font-size:11px !important;
+  line-height:1.35 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table td {
+  font-size:12px !important;
+  line-height:1.4 !important;
+  padding-top:15px !important;
+  padding-bottom:15px !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table td strong,
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-qty,
+main.purchase-orders-page .purchase-order-card .po-amount,
+main.purchase-orders-page .purchase-order-card .po-item-preview > strong {
+  font-size:12px !important;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type {
+  font-size:11px !important;
+  padding:6px 9px !important;
+  min-height:27px;
+  box-sizing:border-box;
+}
+main.purchase-orders-page .purchase-order-card .po-date strong {font-size:12px !important;}
+main.purchase-orders-page .purchase-order-card .po-date small {font-size:11px !important;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] {
+  font-size:12px !important;
+  min-height:29px !important;
+  height:29px !important;
+  padding:5px 10px !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
+  font-size:12px !important;
+  line-height:1.2 !important;
+}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__icon {
+  font-size:11px !important;
+}
+
+
+/* Unified Purchase table text scale: match Parts Requisitions exactly. */
+main.purchase-orders-page .purchase-order-card .records-table {
+  font-family:inherit !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table thead th {
+  font-family:inherit !important; font-size:11px !important; font-weight:800 !important;
+  line-height:1.35 !important; letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td {
+  font-family:inherit !important; font-size:12px !important; font-weight:650 !important;
+  line-height:1.4 !important; vertical-align:middle !important;
+}
+main.purchase-orders-page .purchase-order-card .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .po-item-preview > strong,
+main.purchase-orders-page .purchase-order-card .po-reference,
+main.purchase-orders-page .purchase-order-card .po-qty,
+main.purchase-orders-page .purchase-order-card .po-amount,
+main.purchase-orders-page .purchase-order-card .po-date strong {
+  font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type,
+main.purchase-orders-page .purchase-order-card .po-request-type i {
+  font-family:inherit; font-size:12px !important; font-weight:750 !important;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type i {font-family:"Font Awesome 6 Free" !important;font-weight:900 !important;}
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"],
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"] .status-badge__label {
+  font-family:inherit !important; font-size:12px !important; font-weight:750 !important;
+}
+
+
+/* Reference-matched PO table typography: reference first, then readable item label. */
+main.purchase-orders-page .purchase-order-card .records-table thead th {
+  font-family:inherit !important;
+  font-size:11px !important;
+  font-weight:750 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:500 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-item-preview > strong {
+  font-family:inherit !important;
+  font-size:12px !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(5) .po-qty,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(6) .po-amount {
+  font-size:12px !important;
+  font-weight:650 !important;
+}
+
+/* Same proportional UI font for PO and PR references; no monospace/reference font. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+  font-family: inherit !important;
+  font-variant-numeric: normal !important;
+  font-feature-settings: normal !important;
+  letter-spacing: 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(2) {width:12% !important; text-align:left;}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(3) {width:15% !important; text-align:left;}
+
+
+/* Single, prominent review action for Head approval of pending POs. */
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action {
+  width:auto !important; min-width:92px !important; height:32px !important;
+  padding:0 11px !important; gap:7px; border:1px solid #bfd6f5 !important;
+  background:#eaf3ff !important; color:#17509a !important;
+  font-family:inherit; font-size:12px; font-weight:750;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action:hover {
+  border-color:#7da9e9 !important; background:#dcecff !important;
+}
+
+/* Purchase Orders records: clean Review action and rectangular Source status. */
+main.purchase-orders-page .purchase-order-card .record-actions {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline-offset: 2px;
+}
+main.purchase-orders-page .purchase-order-card .po-request-type {
+  border-radius: 5px;
+  min-height: 28px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
+
+
+/* Purchase Orders records use the Purchase Requisitions visual rhythm.
+   Preserve PO-specific columns and status semantics. */
+main.purchase-orders-page .purchase-order-card.records-card{
+  padding:16px !important;
+}
+main.purchase-orders-page .purchase-order-card .purchase-record-header{
+  margin-bottom:0 !important;
+  align-items:flex-start !important;
+}
+main.purchase-orders-page .purchase-order-card .purchase-record-header .section-heading{
+  display:block !important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-controls{
+  margin:8px 0 12px !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-actions{
+  margin-left:auto !important;
+  width:auto !important;
+  justify-content:flex-end !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table thead th{
+  padding:11px 12px !important;
+  background:#edf3fb !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td{
+  padding:13px 12px !important;
+  vertical-align:middle !important;
+}
+main.purchase-orders-page .purchase-order-card .po-item-preview{
+  display:flex !important;
+  align-items:flex-start !important;
+  flex-direction:column !important;
+  gap:5px !important;
+}
+main.purchase-orders-page .purchase-order-card .po-items-more-trigger{
+  margin:0 !important;
+  border:1px solid #cbdffc !important;
+  border-radius:5px !important;
+  background:#edf5ff !important;
+  color:#17529d !important;
+  transform:none !important;
+}
+main.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box{
+  border-radius:5px !important;
+  min-height:28px !important;
+  padding:6px 10px !important;
+  background:#edf5ff !important;
+  border:1px solid #bdd6fb !important;
+  color:#15549e !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action{
+  min-width:88px !important;
+  height:31px !important;
+  padding:0 12px !important;
+  border:1px solid #bdd6fb !important;
+  border-radius:5px !important;
+  background:#edf5ff !important;
+  color:#15549e !important;
+  transform:none !important;
+  transition:background-color .16s ease,color .16s ease,border-color .16s ease !important;
+}
+main.purchase-orders-page .purchase-order-card .record-actions .po-review-action:hover{
+  background:#d8e9ff !important;
+  border-color:#91b8ee !important;
+  transform:none !important;
+}
+@media(max-width:720px){
+  main.purchase-orders-page .purchase-order-card .po-record-actions{width:100% !important}
+  main.purchase-orders-page .purchase-order-card .po-record-controls{justify-content:stretch !important}
+}
+
+
+/* PO records: consistent ID typography and right-aligned actions. */
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):last-child{text-align:right!important}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child{padding-right:12px!important}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions{
+  display:flex!important;width:100%!important;justify-content:flex-end!important;
+  align-items:center!important;gap:6px!important;margin-left:auto!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:first-child .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference{
+  display:inline-flex!important;align-items:center!important;
+  font-family:inherit!important;font-size:11px!important;font-weight:750!important;
+  line-height:1.25!important;letter-spacing:0!important;
+  font-variant-numeric:normal!important;font-feature-settings:normal!important;
+  color:#17385f!important;
+}
+
+
+/* Keep first PO item and expand trigger together; keep actions compact and aligned. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-item-preview{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-start!important;flex-wrap:nowrap!important;gap:7px!important;min-width:0;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-item-preview>strong{
+  flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(3) .po-items-more-trigger{
+  flex:0 0 auto;margin:0!important;white-space:nowrap!important;min-height:24px;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-end!important;gap:6px!important;flex-wrap:nowrap!important;
+  margin:0 0 0 auto!important;padding:0!important;width:100%!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.action-btn,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.ui-action-button{
+  flex:0 0 30px!important;width:30px!important;height:30px!important;
+  min-width:30px!important;min-height:30px!important;max-width:30px!important;
+  padding:0!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;margin:0!important;transform:none!important;
+  transition:background-color .15s ease,border-color .15s ease,color .15s ease!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.action-btn:hover{
+  transform:none!important;
+}
+
+
+/* Final Actions column alignment: header and icons share the same centered cell. */
+main.purchase-orders-page .purchase-order-card .records-table :is(th,td):nth-child(9){
+  width:12%!important;min-width:122px!important;text-align:center!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9){
+  padding:12px 8px!important;vertical-align:middle!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;width:100%!important;margin:0!important;white-space:nowrap!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions>.action-btn{
+  flex:0 0 30px!important;width:30px!important;height:30px!important;
+  min-width:30px!important;min-height:30px!important;
+  border-radius:6px!important;line-height:1!important;
+}
+
+
+/* Match Purchase Requisitions blue outlined View control on Ordered POs. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.po-labeled-view{
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 88px!important;width:88px!important;min-width:88px!important;max-width:88px!important;
+  height:31px!important;min-height:31px!important;gap:7px!important;padding:0 12px!important;
+  border:1px solid #bdd6fb!important;border-radius:6px!important;background:#edf5ff!important;
+  color:#15549e!important;font-family:inherit!important;font-size:11px!important;font-weight:700!important;
+  white-space:nowrap!important;transform:none!important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:last-child .record-actions>.po-labeled-view:hover{
+  background:#dcecff!important;border-color:#98c0f7!important;transform:none!important;
+}
+
+
+/* Purchase Order read-only details — shared GCT card language. */
+.po-detail-overlay{position:fixed!important;inset:0!important;z-index:1100;align-items:center;justify-content:center;background:rgba(15,33,60,.5);padding:16px}
+.po-detail-dialog{display:flex;flex-direction:column;width:min(1080px,calc(100vw - 32px));max-height:calc(100dvh - 32px);min-height:0;overflow:hidden;border-radius:16px;background:white;box-shadow:0 22px 70px #102b4c38;color:#142e54}
+.po-detail-header,.po-detail-footer{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:white;border-bottom:1px solid #dce7f4}
+.po-detail-header h2{font-size:20px;font-weight:800;margin:0;color:#102d53}
+.po-detail-header p{font-size:12px;color:#70819c;margin:4px 0 0}
+.po-detail-header button,.po-detail-footer button{padding:8px 12px;border:1px solid #d3e1f4;background:#fff;border-radius:7px;color:#193b6b;cursor:pointer}
+.po-detail-footer{border-top:1px solid #dce7f4;border-bottom:0;justify-content:flex-end}
+.po-detail-body{overflow-y:auto;min-height:0;padding:16px 20px;background:#f9fbff;display:flex;flex-direction:column;gap:13px}
+.po-detail-card{border:1px solid #d9e6f6;border-radius:10px;padding:14px;background:#fff}
+.po-detail-card h3{font-size:14px;font-weight:800;color:#173a6a;margin:0 0 12px}
+.po-detail-card h3 i{color:#1764c4;margin-right:8px}
+.po-detail-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.po-detail-facts>div{padding:10px;background:#f7faff;border-radius:7px;border:1px solid #e3ecf9;min-width:0}
+.po-detail-facts small,.po-detail-signature-card small{display:block;color:#7287a2;font-size:11px;margin-bottom:5px}
+.po-detail-facts strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.po-detail-table-scroll{overflow-x:auto}
+.po-detail-table-scroll table{width:100%;border-collapse:collapse;font-family:inherit;font-size:12px}
+.po-detail-table-scroll th{background:#eaf1fa;text-align:left;padding:11px;font-size:10px;color:#2f4d76}
+.po-detail-table-scroll td{padding:11px;border-bottom:1px solid #e4ebf5}
+.po-detail-total{display:flex;gap:15px;justify-content:flex-end;padding:13px 4px 3px;color:#155cc4;font-size:14px;font-weight:800}
+.po-detail-signatures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.po-detail-signature-card{display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid #d6e5f6;border-radius:9px;background:#f1f7ff;padding:14px;min-width:0}
+.po-detail-signature-card:nth-child(2){background:#f3fbf6;border-color:#d7eddf}
+.po-detail-signature-card h4{align-self:flex-start;font-size:12px;font-weight:800;margin:0 0 6px}
+.po-detail-signature-card>strong{font-size:12px}
+.po-detail-signature-image{display:flex;align-items:center;justify-content:center;width:100%;height:135px;background:white;border-radius:7px}
+.po-detail-signature-image img{max-width:100%;max-height:130px;object-fit:contain}
+.po-detail-signature-image p{font-size:11px;color:#71849b}
+@media(max-width:700px){.po-detail-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.po-detail-signatures{grid-template-columns:1fr}.po-detail-body{padding:12px}}
+
+
+/* PO details reference styling: soft icon tiles, status chip, aligned signatures. */
+.po-detail-facts>div{position:relative;padding:12px 10px 12px 46px;min-height:58px;background:#fff}
+.po-detail-facts strong{font-size:12px;line-height:1.4}
+.po-detail-facts #poDetailStatus{display:inline-flex;align-items:center;width:max-content;border:1px solid #f2cb79;border-radius:5px;padding:4px 10px;background:#fff1d6;color:#9b6000}
+.po-detail-signature-card{min-height:215px;justify-content:space-between}
+.po-detail-signature-image{height:135px;margin:8px 0;background:#fff}
+.po-detail-signature-card>strong{margin-top:4px;font-size:13px}
+.po-detail-signature-card>small{margin:0;font-size:11px}
+
+
+/* PO detail facts use real FA elements, avoiding literal glyph hex text. */
+.po-detail-facts>div:before{content:none!important;display:none!important}
+.po-detail-facts>div{display:flex;align-items:center;gap:10px;padding:12px!important}
+.po-detail-fact-icon{flex:0 0 30px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;background:#eaf2ff;color:#1767ca}
+.po-detail-fact-icon i{font-size:13px}
+.po-detail-fact-copy{display:flex;flex-direction:column;min-width:0;gap:3px}
+.po-detail-fact-copy small{margin:0}
+
+
+/* Purchase Orders: visible Active / History navigation. */
+main.purchase-orders-page .po-record-tabs{
+  display:flex;align-items:center;gap:8px;margin:14px 16px 6px;
+  padding:4px;background:#f4f7fc;border:1px solid #e0e9f6;border-radius:9px;
+  width:max-content;max-width:calc(100% - 32px);
+}
+main.purchase-orders-page .po-record-tab{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-width:110px;min-height:33px;padding:8px 15px;border:1px solid transparent;
+  border-radius:7px;text-decoration:none;font-size:12px;font-weight:700;
+  color:#627891;transition:background-color .15s ease,color .15s ease,border-color .15s ease;
+}
+main.purchase-orders-page .po-record-tab:hover{background:#e9f2ff;color:#164b8a}
+main.purchase-orders-page .po-record-tab.is-active{
+  background:white;color:#1555a4;border-color:#cce0fc;box-shadow:0 1px 4px #183c6215;
+}
+main.purchase-orders-page .po-record-tab:focus-visible{outline:2px solid #2068c7;outline-offset:2px}
+
+/* PO tabs: allow the tab group to size to both complete labels, never clip History. */
+main.purchase-orders-page .purchase-order-card .po-record-tabs{
+  display:inline-flex!important;grid-template-columns:none!important;
+  align-items:center!important;gap:4px!important;
+  width:max-content!important;min-width:max-content!important;max-width:none!important;
+  overflow:visible!important;margin:0!important;padding:4px!important;
+}
+main.purchase-orders-page .purchase-order-card .po-record-tabs .po-record-tab{
+  flex:0 0 auto!important;width:108px!important;min-width:108px!important;
+  max-width:none!important;height:34px!important;min-height:34px!important;
+  padding:0 12px!important;box-sizing:border-box!important;
+  overflow:visible!important;white-space:nowrap!important;line-height:1.2!important;
+}
+/* The generic action-icon rule constrained the labeled Review to 30px. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9)
+.record-actions>.po-review-action{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 auto!important;width:auto!important;min-width:88px!important;max-width:none!important;
+  height:32px!important;min-height:32px!important;padding:0 12px!important;
+  gap:7px!important;white-space:nowrap!important;line-height:1!important;
+}
+
+
+/* Compact PO receipt progress shared by Warehouse and Purchasing tables. */
+.po-receipt-progress { width: 155px; max-width:100%; margin:0 auto; display:flex; flex-direction:column; gap:5px; font-variant-numeric:tabular-nums; }
+.po-receipt-top { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:10px; color:#61748e; }
+.po-receipt-top strong { font-size:12px; color:#17345b; font-weight:800; }
+.po-receipt-track { height:6px; width:100%; border-radius:999px; background:#e4ebf4; overflow:hidden; }
+.po-receipt-track > span { display:block; height:100%; border-radius:999px; background:#2563eb; transition:width .2s ease; }
+.po-receipt-track > span.is-complete { background:#16a34a; }
+.po-receipt-bottom { display:flex; justify-content:space-between; align-items:center; gap:5px; white-space:nowrap; font-size:9px; font-weight:650; }
+.po-receipt-done { color:#168349; }
+.po-receipt-left { color:#a76a16; }
+
+
+/* Compact receiving progress: received/ordered + one slim bar + remaining. */
+.po-receipt-progress { width: 124px; max-width: 100%; gap: 3px; }
+.po-receipt-compact { display:flex; align-items:center; gap:7px; min-width:0; }
+.po-receipt-compact > strong { font-size:11px; font-weight:800; color:#17345b; white-space:nowrap; min-width:34px; text-align:left; }
+.po-receipt-compact .po-receipt-track { flex:1; min-width:25px; height:5px; }
+.po-receipt-progress .po-receipt-bottom { justify-content:flex-start; }
+.po-receipt-progress .po-receipt-left { font-size:9px; font-weight:600; white-space:nowrap; }

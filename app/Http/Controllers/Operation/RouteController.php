@@ -791,10 +791,10 @@ class RouteController extends Controller
         );
 
         $freshKey =
-            'route-osrm:v4:'.$cacheHash;
+            'route-osrm:v5:'.$cacheHash;
 
         $staleKey =
-            'route-osrm-stale:v2:'.$cacheHash;
+            'route-osrm-stale:v3:'.$cacheHash;
 
         $cached = Cache::get($freshKey);
 
@@ -813,6 +813,10 @@ class RouteController extends Controller
                         'geometries' => 'geojson',
                         'steps' => 'false',
                         'alternatives' => 'false',
+                        // Prevent a U-turn at an intermediate shuttle stop when a
+                        // forward drivable road connection exists. The ordered
+                        // waypoints are never silently rearranged.
+                        'continue_straight' => 'true',
                     ]
                 )
                 ->throw();

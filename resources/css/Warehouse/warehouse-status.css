@@ -1,0 +1,115 @@
+/*
+ * Warehouse status typography contract.
+ *
+ * Warehouse workflow badges use one readable, consistent geometry
+ * across Item Requests, Purchase Requests, deliveries, and stock movements. Semantic colors
+ * remain owned by the existing status classes and App\Support\StatusBadge.
+ */
+.app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
+  [data-ui-component="status-badge"],
+  .warehouse-ir-stock-status,
+  .warehouse-ir-process-status,
+  .warehouse-status-pill,
+  .warehouse-jo-availability,
+  .delivery-status,
+  .movement-badge,
+  .warehouse-status
+) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-family: var(--gct-font-family, 'Poppins', sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
+  [data-ui-component="status-badge"],
+  .warehouse-ir-stock-status,
+  .warehouse-ir-process-status,
+  .warehouse-status-pill,
+  .warehouse-jo-availability,
+  .delivery-status,
+  .movement-badge,
+  .warehouse-status
+) :is(i, .status-badge__icon) {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  [data-ui-component="status-badge"] .status-badge__label {
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+/* Enforce the shared geometry after legacy page-level declarations.
+ * Keep each badge's semantic background, border color, and text color.
+ */
+.app:has(#appSidebar[data-gct-shell="warehouse"]) :is(
+  .warehouse-ir-page .ir-table tbody td .warehouse-ir-stock-status,
+  .warehouse-ir-page .ir-table tbody td .warehouse-ir-process-status,
+  .warehouse-ir-page .ir-table tbody td .warehouse-ir-policy,
+  .warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-stock-status,
+  .warehouse-part-main .warehouse-part-table tbody td .warehouse-ir-process-status,
+  .warehouse-part-main .warehouse-part-table-clean tbody td .warehouse-ir-stock-status,
+  .warehouse-part-main .warehouse-part-table-clean tbody td .warehouse-ir-process-status,
+  .incoming-delivery-page .incoming-delivery-table .delivery-status,
+  .incoming-delivery-page .incoming-delivery-table [data-ui-component="status-badge"],
+  .warehouse-status-pill, .warehouse-jo-availability, .movement-badge, .warehouse-status
+) {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 7px 12px !important;
+  border-radius: 8px !important;
+  font-family: var(--gct-font-family, 'Poppins', sans-serif) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+/* Incoming Deliveries uses Maintenance-sized statuses and labeled actions.
+ * Keep this exception after the Warehouse-wide compact badge contract.
+ */
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table [data-ui-component="status-badge"],
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table .delivery-status {
+  height: 34px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.app:has(#appSidebar[data-gct-shell="warehouse"])
+  .incoming-delivery-page .incoming-delivery-table .receive-delivery-btn {
+  min-width: 96px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 15px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 8px;
+}

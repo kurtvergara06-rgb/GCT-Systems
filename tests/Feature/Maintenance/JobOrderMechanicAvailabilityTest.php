@@ -45,6 +45,31 @@ class JobOrderMechanicAvailabilityTest extends TestCase
         ]);
     }
 
+    public function test_change_oil_lists_attended_mechanic_with_lubrication_skill(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-LUBE-01', 'Lubrication Mechanic');
+        $mechanic->update(['specialization' => 'Lubrication']);
+        $this->attendance($mechanic, 'Present');
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics', ['maintenance_job' => 'Change Oil']))
+            ->assertOk()
+            ->assertJsonFragment(['mechanic_name' => 'Lubrication Mechanic']);
+    }
+
+    public function test_change_oil_does_not_show_specialized_mechanic_without_attendance(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-LUBE-02', 'Off Duty Lubrication Mechanic');
+        $mechanic->update(['specialization' => 'Lubrication']);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics', ['maintenance_job' => 'Change Oil']))
+            ->assertOk()
+            ->assertJsonMissing(['mechanic_name' => 'Off Duty Lubrication Mechanic']);
+    }
+
     public function test_on_duty_attendance_is_available_when_no_active_job_exists(): void
     {
         $user = $this->maintenanceUser();
@@ -138,7 +163,7 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ]);
     }
 
-    public function test_new_job_order_accepts_free_on_duty_attendance_and_marks_job_ongoing(): void
+    public function test_new_job_order_accepts_free_on_duty_attendance_and_submits_for_review(): void
     {
         $user = $this->maintenanceUser();
         $mechanic = $this->mechanic('MEC-CREATE-01', 'Create Ready Mechanic');
@@ -169,8 +194,10 @@ class JobOrderMechanicAvailabilityTest extends TestCase
         $this->assertDatabaseHas('job_orders', [
             'bus_no' => 'BUS-CREATE-01',
             'assigned_mechanic' => 'Create Ready Mechanic',
-            'status' => 'On Going',
+            'status' => 'On Hold',
+            'review_status' => 'For Review',
         ]);
+        $this->assertSame('Active', Bus::where('bus_no', 'BUS-CREATE-01')->firstOrFail()->status);
     }
 
     public function test_philippine_business_date_finds_next_day_attendance_before_utc_midnight(): void
@@ -239,7 +266,69 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             ->assertOk()
             ->assertViewHas('totalMechanics', 2)
             ->assertViewHas('availableMechanics', 1)
-            ->assertViewHas('onDutyMechanics', 1);
+            // 'onDutyMechanics' measures Working (started JO), not attendance Present.
+            ->assertViewHas('onDutyMechanics', 0);
     }
 
+
+    public function test_submitted_job_order_reserves_mechanic_before_head_approval(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-PENDING-01', 'Pending Approval Mechanic');
+        $this->attendance($mechanic, 'Present');
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-PENDING-0001',
+            'bus_no' => 'BUS-PENDING-01',
+            'problem_issue' => 'Brake inspection',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => $mechanic->mechanic_name,
+            'status' => 'On Hold',
+            'review_status' => 'For Review',
+        ]);
+        $jobOrder->mechanicAssignments()->create([
+            'mechanic_id' => $mechanic->id,
+            'mechanic_name' => $mechanic->mechanic_name,
+        ]);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()
+            ->assertJsonMissing(['mechanic_name' => $mechanic->mechanic_name]);
+
+        $jobOrder->update(['review_status' => 'Rejected']);
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()
+            ->assertJsonFragment(['mechanic_name' => $mechanic->mechanic_name]);
+    }
+
+    public function test_approved_on_hold_job_reserves_mechanic_until_completed(): void
+    {
+        $user = $this->maintenanceUser();
+        $mechanic = $this->mechanic('MEC-HOLD-01', 'Waiting For Parts Mechanic');
+        $this->attendance($mechanic, 'On Duty');
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-HOLD-0001',
+            'bus_no' => 'BUS-HOLD-01',
+            'problem_issue' => 'Waiting for parts',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => $mechanic->mechanic_name,
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+        ]);
+        $jobOrder->mechanicAssignments()->create([
+            'mechanic_id' => $mechanic->id,
+            'mechanic_name' => $mechanic->mechanic_name,
+        ]);
+
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()->assertJsonMissing(['mechanic_name' => $mechanic->mechanic_name]);
+
+        $jobOrder->update(['status' => 'Completed']);
+        $this->actingAs($user)->withoutMiddleware()
+            ->getJson(route('job-orders.available-mechanics'))
+            ->assertOk()->assertJsonFragment(['mechanic_name' => $mechanic->mechanic_name]);
+    }
 }

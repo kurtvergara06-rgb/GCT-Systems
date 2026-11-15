@@ -64,6 +64,19 @@ class Bus extends Model
      * status that should be restored after the final maintenance workflow is
      * released.
      */
+    /**
+     * A bus already dispatched on an unfinished trip is not physically
+     * available for selection in a newly created Maintenance Job Order.
+     */
+    public function hasOngoingDispatch(): bool
+    {
+        return $this->tripAssignments()
+            ->whereHas('tripSchedule', fn ($query) => $query
+                ->where('status', 'Dispatched')
+                ->whereNull('actual_arrival_time'))
+            ->exists();
+    }
+
     public function placeUnderMaintenance(): bool
     {
         if ($this->status === 'Under Maintenance') {

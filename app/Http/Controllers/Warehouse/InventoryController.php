@@ -59,12 +59,23 @@ class InventoryController extends Controller
             ->paginate(8)
             ->withQueryString();
 
+        // Actual stock stays unchanged on JO reservation. Show committed and free balances separately.
+        $reservedByItem = \App\Models\Maintenance\JobOrderPartReservation::query()
+            ->whereIn('inventory_item_id', $inventoryItems->getCollection()->pluck('id'))
+            ->select('inventory_item_id', \Illuminate\Support\Facades\DB::raw('SUM(quantity) as reserved'))
+            ->groupBy('inventory_item_id')
+            ->pluck('reserved', 'inventory_item_id');
+
         $categories = $inventoryScope()
             ->whereNotNull('category')
             ->where('category', '!=', '')
             ->distinct()
             ->orderBy('category')
             ->pluck('category');
+
+        $suppliers = $inventoryScope()->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->distinct()->orderBy('supplier')->pluck('supplier');
 
         $totalItemsInStock = $inventoryScope()->count();
 
@@ -82,15 +93,22 @@ class InventoryController extends Controller
             ->count();
 
         $itemsAtRisk = $forecastedStockouts;
+        $issueItems = InventoryItem::query()
+            ->where('quantity_available', '>', 0)
+            ->orderBy('item_name')
+            ->get();
 
         return view('Warehouse.inventory', compact(
             'inventoryItems',
+            'reservedByItem',
             'categories',
+            'suppliers',
             'totalItemsInStock',
             'lowStockAlerts',
             'criticalItems',
             'forecastedStockouts',
-            'itemsAtRisk'
+            'itemsAtRisk',
+            'issueItems'
         ));
     }
 
@@ -113,6 +131,7 @@ class InventoryController extends Controller
             'unit' => ['nullable', 'string', 'max:255'],
             'unit_of_measurement' => ['required', 'string', 'max:255'],
             'reorder_level' => ['required', 'integer', 'min:0'],
+            'safety_stock' => ['nullable', 'integer', 'min:0', 'lte:reorder_level'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
@@ -161,7 +180,7 @@ class InventoryController extends Controller
                 );
             }
 
-            $this->createAutoRestockRequestIfNeeded($inventoryItem);
+            // Low-stock items remain visible in Inventory alerts; a Warehouse Head must authorize the restock PR.
         });
 
         if ($inventoryItem) {
@@ -189,86 +208,30 @@ class InventoryController extends Controller
         $this->authorizeWarehouseEdit();
 
         $validated = $request->validate([
-            'item_code' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('inventory_items', 'item_code')
-                    ->ignore($inventoryItem->id),
-            ],
-            'parts_name' => ['nullable', 'string', 'max:255'],
             'item_name' => ['required', 'string', 'max:255'],
-            'category' => ['nullable', 'string', 'max:255'],
-            'on_hand' => ['required', 'integer', 'min:0'],
-            'quantity_available' => ['nullable', 'integer', 'min:0'],
-            'unit' => ['nullable', 'string', 'max:255'],
-            'unit_of_measurement' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:255'],
             'reorder_level' => ['required', 'integer', 'min:0'],
+            'safety_stock' => ['nullable', 'integer', 'min:0', 'lte:reorder_level'],
             'supplier' => ['nullable', 'string', 'max:255'],
-            'location' => ['nullable', 'string', 'max:255'],
             'storage_location' => ['nullable', 'string', 'max:255'],
-            'adjustment_reason' => ['nullable', 'string', 'max:500'],
-        ], [
-            'item_code.unique' => 'The item code already belongs to another inventory item.',
         ]);
 
-        $targetStock = (int) $validated['on_hand'];
-        $adjustmentReason = trim((string) ($validated['adjustment_reason'] ?? ''));
-
-        unset($validated['on_hand'], $validated['quantity_available'], $validated['adjustment_reason']);
-
-        DB::transaction(function () use ($validated, $targetStock, $adjustmentReason, $inventoryItem) {
+        DB::transaction(function () use ($validated, $inventoryItem): void {
             $lockedItem = InventoryItem::query()
                 ->whereKey($inventoryItem->id)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $validated['parts_name'] =
-                $validated['parts_name']
-                ?? $validated['item_name'];
 
-            $validated['unit'] =
-                $validated['unit']
-                ?? $validated['unit_of_measurement'];
-
-            $validated['location'] =
-                $validated['location']
-                ?? $validated['storage_location']
-                ?? null;
-
+            // Item edits never adjust physical inventory or overwrite immutable
+            // identifiers. All quantity changes must go through the ledger.
+            $validated['parts_name'] = $validated['item_name'];
+            $validated['location'] = $validated['storage_location'] ?? null;
             $validated['status'] = $this->inventoryStatus(
-                $targetStock,
+                (int) ($lockedItem->quantity_available ?? $lockedItem->on_hand ?? 0),
                 (int) $validated['reorder_level']
             );
-
             $lockedItem->update($validated);
-
-            $freshItem = $lockedItem->fresh();
-
-            $previousStock = (int) (
-                $freshItem->on_hand
-                ?? $freshItem->quantity_available
-                ?? 0
-            );
-
-            if ($targetStock !== $previousStock) {
-                if ($adjustmentReason === '') {
-                    throw ValidationException::withMessages([
-                        'adjustment_reason' => 'A reason is required when changing inventory quantity.',
-                    ]);
-                }
-
-                $this->ledger->adjustTo(
-                    $freshItem,
-                    $targetStock,
-                    $freshItem->item_code ?? $freshItem->item_name,
-                    'Manual inventory adjustment: '.$adjustmentReason,
-                    auth()->id()
-                );
-            }
-
-            $this->createAutoRestockRequestIfNeeded(
-                $freshItem
-            );
+            // Editing thresholds does not create an unsigned purchase request.
         });
 
         $this->broadcastSystemDataUpdated(
@@ -449,8 +412,8 @@ class InventoryController extends Controller
 
                 if ($inventoryItem) {
                     $previousStock = (int) (
-                        $inventoryItem->on_hand
-                        ?? $inventoryItem->quantity_available
+                        $inventoryItem->quantity_available
+                ?? $inventoryItem->on_hand
                         ?? 0
                     );
 
@@ -495,9 +458,7 @@ class InventoryController extends Controller
                     $created++;
                 }
 
-                $this->createAutoRestockRequestIfNeeded(
-                    $inventoryItem->fresh()
-                );
+                // Imported low-stock inventory is flagged in the dashboard, not auto-purchased.
             }
         });
 
@@ -540,7 +501,7 @@ class InventoryController extends Controller
                 ->whereKey($itemId)
                 ->lockForUpdate()
                 ->firstOrFail();
-            $current = (int) ($item->on_hand ?? $item->quantity_available ?? 0);
+            $current = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
 
             if ($quantity > $current) {
                 throw ValidationException::withMessages([
@@ -629,108 +590,6 @@ class InventoryController extends Controller
             .'-'
             .str_pad(
                 (string) ($lastNumber + 1),
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-    }
-
-    private function syncAutoRestockRequests(): void
-    {
-        $lowStockItems = InventoryItem::query()
-            ->whereColumn('quantity_available', '<=', 'reorder_level')
-            ->where('reorder_level', '>', 0)
-            ->get();
-
-        foreach ($lowStockItems as $inventoryItem) {
-            $this->createAutoRestockRequestIfNeeded($inventoryItem);
-        }
-    }
-
-    private function createAutoRestockRequestIfNeeded(
-        InventoryItem $inventoryItem
-    ): void {
-        $itemName = $this->getInventoryItemName($inventoryItem);
-        $unit = $this->getInventoryUnit($inventoryItem);
-
-        $onHand = (int) (
-            $inventoryItem->on_hand
-            ?? $inventoryItem->quantity_available
-            ?? 0
-        );
-
-        $reorderLevel = (int) (
-            $inventoryItem->reorder_level
-            ?? 0
-        );
-
-        if ($itemName === '' || $reorderLevel <= 0) {
-            return;
-        }
-
-        if ($onHand > $reorderLevel) {
-            return;
-        }
-
-        $existingActiveRequest = MaintenanceRequest::query()
-            ->where('source_type', 'Auto Restock')
-            ->where(function ($q) use ($itemName) {
-                $q->where('item', 'like', "{$itemName}%")
-                    ->orWhere('remarks', 'like', "%{$itemName}%");
-            })
-            ->whereIn('status', [
-                'For Purchase',
-                'Ordered',
-                'For Pick-up',
-                'For Delivery',
-                'Delivered',
-                'Picked Up',
-            ])
-            ->exists();
-
-        if ($existingActiveRequest) {
-            return;
-        }
-
-        $neededQuantity = max(
-            $reorderLevel - $onHand,
-            1
-        );
-
-        MaintenanceRequest::create([
-            'pr_no' => $this->generateRestockPrNo(),
-            'job_order_no' => 'RESTOCK',
-            'bus_no' => 'RESTOCK',
-            'item' => "{$itemName} - Qty: {$neededQuantity} {$unit}",
-            'quantity' => $neededQuantity,
-            'status' => 'For Purchase',
-            'source_type' => 'Auto Restock',
-            'remarks' => 'Auto restock request from Warehouse Inventory. '
-                ."{$itemName} is below reorder level. "
-                ."Current stock: {$onHand} {$unit}. "
-                ."Reorder level: {$reorderLevel} {$unit}.",
-        ]);
-    }
-
-    private function generateRestockPrNo(): string
-    {
-        $year = now()->format('Y');
-
-        $latest = MaintenanceRequest::query()
-            ->where('pr_no', 'like', "RST-{$year}-%")
-            ->orderByDesc('id')
-            ->first();
-
-        if (! $latest || ! $latest->pr_no) {
-            return "RST-{$year}-0001";
-        }
-
-        $lastNumber = (int) substr($latest->pr_no, -4);
-        $nextNumber = $lastNumber + 1;
-
-        return "RST-{$year}-"
-            .str_pad(
-                (string) $nextNumber,
                 4,
                 '0',
                 STR_PAD_LEFT

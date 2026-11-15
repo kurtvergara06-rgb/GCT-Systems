@@ -13,15 +13,15 @@
     }
 @endphp
 
-<div {{ $attributes->merge(['class' => 'ui-empty-state gct-empty-content']) }} style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 48px 20px; margin: 0 auto; max-width: 440px; text-align: center;">
-    <div class="ui-empty-state-icon" style="line-height: 1;">
-        <i class="fa-solid {{ $iconClass }} gct-empty-icon" style="font-size: 32px; color: #cbd5e1;" aria-hidden="true"></i>
+<div {{ $attributes->merge(['class' => 'ui-empty-state gct-empty-content']) }}>
+    <div class="ui-empty-state-icon">
+        <i class="fa-solid {{ $iconClass }} gct-empty-icon" aria-hidden="true"></i>
     </div>
 
-    <strong class="gct-empty-title" style="font-size: 15px; font-weight: 700; color: #0b2344;">{{ $title }}</strong>
+    <strong class="gct-empty-title">{{ $title }}</strong>
 
     @if($resolvedDescription)
-        <p class="gct-empty-description" style="font-size: 13px; margin: 0; color: #64748b; line-height: 1.5; max-width: 420px;">{{ $resolvedDescription }}</p>
+        <p class="gct-empty-description">{{ $resolvedDescription }}</p>
     @endif
 
     {{ $slot }}
