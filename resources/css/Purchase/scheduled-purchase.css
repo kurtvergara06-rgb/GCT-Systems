@@ -1,0 +1,263 @@
+/* SCHEDULED PURCHASE PAGE ONLY */
+
+/* MAIN CONTAINER */
+.schedule-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+/* TOOLBAR - SAME FONT STYLE AS IMAGE 2 */
+.schedule-card .toolbar {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  box-shadow: none;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.schedule-card .toolbar * {
+  font-family: "Poppins", sans-serif;
+}
+
+.schedule-card .search-box {
+  flex: 1;
+  position: relative;
+}
+
+.schedule-card .search-box i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.schedule-card .search-box input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 16px 0 44px;
+  outline: none;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.schedule-card .search-box input::placeholder {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.schedule-card .toolbar select {
+  height: 40px;
+  min-width: 130px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0 12px;
+  color: var(--text);
+  outline: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.schedule-card .primary-btn {
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
+  color: #061f3b;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* CARD GRID */
+.supplier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* CARD */
+.supplier-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(12, 35, 68, 0.05);
+  transition: 0.25s ease;
+}
+
+.supplier-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* CARD HEADER */
+.supplier-header {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.supplier-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.supplier-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #fff3cd;
+  color: var(--orange);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex: 0 0 42px;
+}
+
+.supplier-title h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.supplier-title p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* STATUS */
+.status {
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status.active {
+  background: #ddf8e7;
+  color: var(--green);
+}
+
+.status.paused {
+  background: #e7f0ff;
+  color: var(--blue);
+}
+
+.status.due {
+  background: #fff3cd;
+  color: #b77900;
+}
+
+/* CARD BODY */
+.supplier-body {
+  padding: 14px;
+}
+
+.supplier-body p {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.supplier-body i {
+  width: 16px;
+  color: var(--muted);
+}
+
+/* TAGS */
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.tags span {
+  background: #f1f5f9;
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* FOOTER */
+.supplier-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.supplier-footer span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.supplier-footer button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #fff3cd;
+  color: var(--orange);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.supplier-footer button:hover {
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .supplier-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .schedule-card .toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .supplier-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px;
+  }
+}
