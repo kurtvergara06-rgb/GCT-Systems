@@ -17,7 +17,7 @@
     $stageUrl = route('analytics.stage', ['stage' => $stage], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
     $pageAssets = [
-        'resources/css/Admin/Analytics/analytics-stage-hub.css',
+        'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
     ];
 @endphp
 

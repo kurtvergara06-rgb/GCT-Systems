@@ -11,7 +11,6 @@ export default defineConfig({
                 // MAIN APPLICATION
                 // ======================================================
 
-                'resources/css/app.css',
                 'resources/js/app.js',
 
                 // ======================================================
@@ -84,12 +83,11 @@ export default defineConfig({
                 // ADMIN — ANALYTICS
                 // ======================================================
 
-                'resources/css/Admin/Analytics/overview.css',
-                'resources/css/Admin/Analytics/analytics-stage-hub.css',
-                'resources/css/Admin/Analytics/fleet-trip.css',
-                'resources/css/Admin/Analytics/fleet-trip-tabs.css',
-                'resources/css/Admin/Analytics/fleet-trip-redesign.css',
-                'resources/css/Admin/Analytics/fleet-trip-rankings.css',
+                'resources/css/Admin/Analytics/overview/overview.css',
+                'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
+                'resources/css/Admin/Analytics/overview/fleet-trip.css',
+                'resources/css/Admin/Analytics/overview/fleet-trip-redesign.css',
+                'resources/css/Admin/Analytics/overview/fleet-trip-rankings.css',
                 'resources/css/Admin/Analytics/descriptive/all.css',
                 'resources/css/Admin/Analytics/descriptive/fleet-trip.css',
                 'resources/css/Admin/Analytics/descriptive/fuel.css',
@@ -121,8 +119,6 @@ export default defineConfig({
 
                 'resources/js/Maintenance/fuel-reports.js',
                 'resources/js/Maintenance/job-order.js',
-                'resources/js/Maintenance/mechanic-attendance.js',
-                'resources/js/Maintenance/mechanic-list.js',
                 'resources/js/Maintenance/pms-scheduling.js',
                 'resources/js/Maintenance/purchase-requests.js',
 
