@@ -120,14 +120,6 @@
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        class="pms-add-btn"
-                        data-open-add-pms
-                    >
-                        <i class="fa-solid fa-plus"></i>
-                        Add PMS Schedule
-                    </button>
                 </div>
 
                 <form method="GET" action="{{ route('PMS-Scheduling') }}">
@@ -176,10 +168,6 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="pms-filter-btn">
-                            <i class="fa-solid fa-filter"></i>
-                            Filter
-                        </button>
                     </div>
                 </form>
 
@@ -270,14 +258,14 @@
                                                     class="create-pms-jo-btn"
                                                     title="Create PMS Job Order"
                                                 >
-                                                    <i class="fa-solid fa-clipboard-plus"></i>
+                                                    <i class="fa-solid fa-file-circle-plus"></i>
                                                 </a>
                                             @endif
 
                                             <button
                                                 type="button"
                                                 class="edit open-edit-pms"
-                                                title="Edit PMS Schedule"
+                                                title="Edit PMS Information"
                                                 data-action="{{ route('pms-schedules.update', $row->schedule) }}"
                                                 data-bus-no="{{ $row->bus_no }}"
                                                 data-last-pms-km="{{ $row->last_pms_km }}"
@@ -285,7 +273,7 @@
                                                 data-maintenance-type="{{ $row->maintenance_type }}"
                                                 data-recommended-date="{{ $row->recommended_date ? \Carbon\Carbon::parse($row->recommended_date)->format('Y-m-d') : '' }}"
                                             >
-                                                <i class="fa-solid fa-pen"></i>
+                                                <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
 
                                             <form
@@ -317,179 +305,9 @@
                         </tbody>
                     </table>
                 </div>
+
+                <x-ui.table-footer :items="$rows" />
             </section>
-
-            <div class="pms-modal-overlay" id="addPmsModal">
-                <div class="pms-modal">
-                    <div class="pms-modal-header">
-                        <div>
-                            <h2>Add PMS Schedule</h2>
-                            <p>Select a bus with processed GPS mileage data.</p>
-                        </div>
-
-                        <button
-                            type="button"
-                            class="pms-close-btn"
-                            data-close-add-pms
-                        >
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <form action="{{ route('pms-schedules.store') }}" method="POST">
-                        @csrf
-
-                        <div class="pms-form-grid">
-                            <div class="form-group">
-                                <label for="pmsBusSelect">Vehicle ID / Bus No.</label>
-
-                                <select
-                                    name="bus_no"
-                                    id="pmsBusSelect"
-                                    required
-                                >
-                                    <option value="">
-                                        Select processed GPS bus
-                                    </option>
-
-                                    @foreach($processedBuses as $bus)
-                                        <option
-                                            value="{{ $bus->bus_no }}"
-                                            data-current-km="{{ $bus->current_km }}"
-                                            data-gps-date="{{ $bus->gps_report_date ? \Carbon\Carbon::parse($bus->gps_report_date)->format('M d, Y h:i A') : '' }}"
-                                        >
-                                            {{ $bus->bus_no }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="currentGpsKm">Current GPS KM</label>
-
-                                <input
-                                    type="text"
-                                    id="currentGpsKm"
-                                    readonly
-                                    placeholder="Select a bus first"
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="gpsReportDate">GPS Report Date</label>
-
-                                <input
-                                    type="text"
-                                    id="gpsReportDate"
-                                    readonly
-                                    placeholder="Select a bus first"
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="lastPmsKm">Last PMS KM</label>
-
-                                <input
-                                    id="lastPmsKm"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    name="last_pms_km"
-                                    placeholder="Enter last completed PMS KM"
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="pmsIntervalKm">PMS Interval KM</label>
-
-                                <input
-                                    id="pmsIntervalKm"
-                                    type="number"
-                                    step="0.01"
-                                    min="1"
-                                    name="pms_interval_km"
-                                    value="5000"
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="nextPmsKm">Next PMS KM</label>
-
-                                <input
-                                    type="text"
-                                    id="nextPmsKm"
-                                    readonly
-                                    placeholder="Automatic"
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="pmsStatusPreview">Predicted Status</label>
-
-                                <input
-                                    type="text"
-                                    id="pmsStatusPreview"
-                                    readonly
-                                    placeholder="Automatic"
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="maintenanceType">Maintenance Type</label>
-
-                                <select
-                                    name="maintenance_type"
-                                    id="maintenanceType"
-                                    required
-                                >
-                                    <option value="Preventive Maintenance">
-                                        Preventive Maintenance
-                                    </option>
-
-                                    <option value="Oil Change">
-                                        Oil Change
-                                    </option>
-
-                                    <option value="Brake Inspection">
-                                        Brake Inspection
-                                    </option>
-
-                                    <option value="Regular Check-up">
-                                        Regular Check-up
-                                    </option>
-                                </select>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label for="recommendedDate">Recommended Date</label>
-
-                                <input
-                                    type="date"
-                                    id="recommendedDate"
-                                    name="recommended_date"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="pms-modal-actions">
-                            <button
-                                type="button"
-                                class="pms-cancel-btn"
-                                data-close-add-pms
-                            >
-                                Cancel
-                            </button>
-
-                            <button type="submit" class="pms-save-btn">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                                Save PMS Schedule
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
 
             <div class="pms-modal-overlay" id="editPmsModal">
                 <div class="pms-modal">

@@ -104,7 +104,13 @@
             }
         }
 
-        $tableSubtitle = 'Only processed GPS trip records are shown here and ready for analytics and reporting.';
+        $tableSubtitle = $selectedBatch
+            ? (
+                $selectedBatch->status === 'Processed'
+                    ? 'Showing processed trip records from: ' . $selectedBatch->file_name
+                    : 'Select a processed uploaded file to view its structured trip records.'
+            )
+            : 'Select a processed uploaded file to view its structured trip records.';
     @endphp
 
     <div class="app">
@@ -378,16 +384,6 @@
                         @endforelse
                     </div>
 
-                    @if($selectedBatch && $allSelectedRecords->isNotEmpty())
-                        <button
-                            type="button"
-                            class="view-files-btn"
-                            data-open-records-modal
-                        >
-                            View Cleaned Records
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    @endif
                 </div>
 
                 <div class="panel-card extracted-preview-card">
@@ -445,16 +441,6 @@
                             <p>Cleaned structured values from the selected trip record.</p>
                         </div>
 
-                        @if($selectedBatch && $allSelectedRecords->isNotEmpty())
-                            <button
-                                type="button"
-                                class="view-all-records-btn parsed-view-records-btn"
-                                data-open-records-modal
-                            >
-                                <i class="fa-solid fa-table-list"></i>
-                                View Cleaned Records
-                            </button>
-                        @endif
                     </div>
 
                     <div class="parsed-fields-list">
@@ -471,7 +457,14 @@
             <section class="table-card structured-records-card">
                 <div class="section-header">
                     <div>
-                        <h2>Structured Trip Records</h2>
+                        <h2>
+                            Structured Trip Records
+                            @if($selectedBatch)
+                                <span class="selected-batch-label">
+                                    {{ $selectedBatch->file_name }}
+                                </span>
+                            @endif
+                        </h2>
                         <p>{{ $tableSubtitle }}</p>
                     </div>
 
@@ -481,6 +474,14 @@
                             action="{{ route('batch-file-processing') }}"
                             class="batch-search-form"
                         >
+                            @if($selectedBatch)
+                                <input
+                                    type="hidden"
+                                    name="batch_id"
+                                    value="{{ $selectedBatch->id }}"
+                                >
+                            @endif
+
                             <div class="mini-search">
                                 <i class="fa-solid fa-magnifying-glass"></i>
 
@@ -496,6 +497,7 @@
                         @if($records->total() > 0)
                             <a
                                 href="{{ route('batch-file-processing.export', [
+                                    'batch_id' => $selectedBatch?->id,
                                     'search' => request('search'),
                                 ]) }}"
                                 class="primary-btn export-btn"
@@ -550,6 +552,7 @@
                                     <td>
                                         <a
                                             href="{{ route('batch-file-processing', [
+                                                'batch_id' => $selectedBatch?->id,
                                                 'selected_record' => $record->id,
                                                 'search' => request('search'),
                                             ]) }}"
@@ -563,7 +566,11 @@
                             @empty
                                 <tr>
                                     <td colspan="15" class="empty-users">
-                                        No processed trip records available yet.
+                                        @if($selectedBatch && $selectedBatch->status !== 'Processed')
+                                            This selected file is still {{ $selectedBatch->status }}. Mark it as Processed first.
+                                        @else
+                                            Select a processed uploaded file to view its trip records here.
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse
@@ -579,30 +586,35 @@
                     </p>
 
                     @if($records->hasPages())
-                        <div class="batch-pagination">
+                        <div class="batch-simple-pagination">
                             @if($records->onFirstPage())
-                                <span class="page-arrow disabled">&lsaquo;</span>
+                                <span class="simple-page-button disabled">
+                                    Previous
+                                </span>
                             @else
-                                <a href="{{ $records->previousPageUrl() }}" class="page-arrow">
-                                    &lsaquo;
+                                <a
+                                    href="{{ $records->previousPageUrl() }}"
+                                    class="simple-page-button"
+                                >
+                                    Previous
                                 </a>
                             @endif
 
-                            @for($page = 1; $page <= $records->lastPage(); $page++)
-                                <a
-                                    href="{{ $records->url($page) }}"
-                                    class="page-number {{ $records->currentPage() === $page ? 'active' : '' }}"
-                                >
-                                    {{ $page }}
-                                </a>
-                            @endfor
+                            <span class="simple-page-info">
+                                Page {{ $records->currentPage() }} of {{ $records->lastPage() }}
+                            </span>
 
                             @if($records->hasMorePages())
-                                <a href="{{ $records->nextPageUrl() }}" class="page-arrow">
-                                    &rsaquo;
+                                <a
+                                    href="{{ $records->nextPageUrl() }}"
+                                    class="simple-page-button"
+                                >
+                                    Next
                                 </a>
                             @else
-                                <span class="page-arrow disabled">&rsaquo;</span>
+                                <span class="simple-page-button disabled">
+                                    Next
+                                </span>
                             @endif
                         </div>
                     @endif
@@ -1012,7 +1024,7 @@
                         All related trip records will also be removed.
                     </p>
 
-                    <form id="batchDeleteForm" method="POST" action="{{ url('/batch-file-processing/0') }}">
+                    <form id="batchDeleteForm" method="POST" action="">
                         @csrf
                         @method('DELETE')
 

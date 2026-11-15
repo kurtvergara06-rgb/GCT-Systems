@@ -59,11 +59,6 @@
                             'route' => 'mechanic-attendance',
                             'icon' => 'fa-users-gear'
                         ],
-                        [
-                            'label' => 'Available Mechanics',
-                            'route' => 'available-mechanics',
-                            'icon' => 'fa-user-check'
-                        ],
                     ]
                 ],
             ]"
@@ -211,7 +206,18 @@
                                     <td>{{ number_format($bus->next_pms_km, 2) }} km</td>
 
                                     <td>
-                                        <x-ui.status-badge :status="$bus->status" />
+                                        @php
+                                            $statusClass = match ($bus->status) {
+                                                'Active' => 'status-active',
+                                                'Under Maintenance' => 'status-maintenance',
+                                                'Inactive' => 'status-inactive',
+                                                default => 'status-default',
+                                            };
+                                        @endphp
+
+                                        <span class="bus-status {{ $statusClass }}">
+                                            {{ $bus->status }}
+                                        </span>
                                     </td>
 
                                     <td>

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function openModal(modal) {
     if (modal) {
       modal.classList.add('show');
+      modal.classList.add('active');
     }
   }
 
@@ -179,9 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const editProblemIssue = document.getElementById('edit_problem_issue');
   const editMaintenanceType = document.getElementById('edit_maintenance_type');
   const editStatus = document.getElementById('edit_status');
-  const editAssignedMechanic = document.getElementById('edit_assigned_mechanic');
+  const editAssignedMechanic = document.getElementById(
+    'edit_assigned_mechanic'
+  );
 
-  const editPartsNeededWrapper = document.getElementById('editPartsNeededWrapper');
+  const editPartsNeededWrapper = document.getElementById(
+    'editPartsNeededWrapper'
+  );
+
   const editJobMainActions = document.getElementById('editJobMainActions');
   const viewOnlyJobActions = document.getElementById('viewOnlyJobActions');
   const editAddPartBtn = document.getElementById('editAddPartBtn');
@@ -297,6 +303,41 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshPartIndexes(editPartsNeededWrapper);
   }
 
+  function setEditMechanicOptions(currentMechanic = '') {
+    if (!editAssignedMechanic) {
+      return;
+    }
+
+    const currentValue = String(currentMechanic || '').trim();
+
+    const oldCurrentOption = Array.from(editAssignedMechanic.options).find(
+      (option) => option.dataset.currentAssignment === 'true'
+    );
+
+    if (oldCurrentOption) {
+      oldCurrentOption.remove();
+    }
+
+    const alreadyExists = Array.from(editAssignedMechanic.options).some(
+      (option) => option.value === currentValue
+    );
+
+    if (currentValue && !alreadyExists) {
+      const currentOption = document.createElement('option');
+
+      currentOption.value = currentValue;
+      currentOption.textContent = `${currentValue} (Current assignment)`;
+      currentOption.dataset.currentAssignment = 'true';
+
+      editAssignedMechanic.insertBefore(
+        currentOption,
+        editAssignedMechanic.options[1] || null
+      );
+    }
+
+    editAssignedMechanic.value = currentValue;
+  }
+
   document.querySelectorAll('.open-edit-modal').forEach((button) => {
     button.addEventListener('click', (event) => {
       event.preventDefault();
@@ -332,9 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editStatus.value = status;
       }
 
-      if (editAssignedMechanic) {
-        editAssignedMechanic.value = button.dataset.assignedMechanic || '';
-      }
+      setEditMechanicOptions(button.dataset.assignedMechanic || '');
 
       renderEditParts(
         button.dataset.partNeeded || '',
@@ -532,25 +571,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-});
 
-document.addEventListener('DOMContentLoaded', () => {
   async function refreshAvailableMechanicsDropdown() {
-    const jobModal = document.getElementById('jobModal');
-
-    if (!jobModal) {
-      return;
-    }
-
-    const mechanicSelect = jobModal.querySelector(
-      'select[name="assigned_mechanic"]'
+    const newJobMechanicSelect = document.querySelector(
+      '#jobModal select[name="assigned_mechanic"]'
     );
-
-    if (!mechanicSelect) {
-      return;
-    }
-
-    const selectedMechanic = mechanicSelect.value;
 
     try {
       const response = await fetch('/job-orders/available-mechanics', {
@@ -567,29 +592,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const mechanics = await response.json();
 
-      mechanicSelect.innerHTML = '';
+      if (newJobMechanicSelect) {
+        const selectedMechanic = newJobMechanicSelect.value;
 
-      const defaultOption = document.createElement('option');
+        newJobMechanicSelect.innerHTML = '';
 
-      defaultOption.value = '';
-      defaultOption.textContent = mechanics.length
-        ? 'Select Available Mechanic'
-        : 'No available mechanic - JO will be On Hold';
+        const defaultOption = document.createElement('option');
 
-      mechanicSelect.appendChild(defaultOption);
+        defaultOption.value = '';
+        defaultOption.textContent = mechanics.length
+          ? 'Select Available Mechanic'
+          : 'No available mechanic - JO will be On Hold';
 
-      mechanics.forEach((mechanic) => {
-        const option = document.createElement('option');
+        newJobMechanicSelect.appendChild(defaultOption);
 
-        option.value = mechanic.mechanic_name;
-        option.textContent = mechanic.mechanic_name;
+        mechanics.forEach((mechanic) => {
+          const option = document.createElement('option');
 
-        if (mechanic.mechanic_name === selectedMechanic) {
-          option.selected = true;
-        }
+          option.value = mechanic.mechanic_name;
+          option.textContent = mechanic.mechanic_name;
 
-        mechanicSelect.appendChild(option);
-      });
+          if (mechanic.mechanic_name === selectedMechanic) {
+            option.selected = true;
+          }
+
+          newJobMechanicSelect.appendChild(option);
+        });
+      }
+
+      if (editAssignedMechanic) {
+        const currentAssigned = editAssignedMechanic.value;
+
+        Array.from(editAssignedMechanic.options)
+          .filter(
+            (option) =>
+              option.value !== '' &&
+              option.dataset.currentAssignment !== 'true'
+          )
+          .forEach((option) => option.remove());
+
+        mechanics.forEach((mechanic) => {
+          const exists = Array.from(editAssignedMechanic.options).some(
+            (option) => option.value === mechanic.mechanic_name
+          );
+
+          if (!exists) {
+            const option = document.createElement('option');
+
+            option.value = mechanic.mechanic_name;
+            option.textContent = mechanic.mechanic_name;
+
+            editAssignedMechanic.appendChild(option);
+          }
+        });
+
+        setEditMechanicOptions(currentAssigned);
+      }
     } catch (error) {
       console.error(
         'Unable to update available mechanic dropdown:',

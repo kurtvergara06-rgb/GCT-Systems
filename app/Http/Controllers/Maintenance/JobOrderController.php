@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
+use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Models\Maintenance\PmsSchedule;
 use App\Models\Operation\MechanicAttendance;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
@@ -114,6 +116,12 @@ class JobOrderController extends Controller
             ->orderBy('bus_no')
             ->get();
 
+        $pmsCreate = null;
+
+        if ($request->boolean('create_pms') && $request->filled('pms_schedule_id')) {
+            $pmsCreate = PmsSchedule::find($request->integer('pms_schedule_id'));
+        }
+
         return view('Maintenance.job-order', compact(
             'jobOrders',
             'onHold',
@@ -123,7 +131,8 @@ class JobOrderController extends Controller
             'nextJobOrderNo',
             'availableMechanics',
             'allMechanics',
-            'buses'
+            'buses',
+            'pmsCreate'
         ));
     }
 
@@ -161,9 +170,41 @@ class JobOrderController extends Controller
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
+            'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
         ]);
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
+
+        $pmsSchedule = null;
+
+        if (! empty($validated['pms_schedule_id'])) {
+            $pmsSchedule = PmsSchedule::findOrFail($validated['pms_schedule_id']);
+
+            if ($validated['bus_no'] !== $pmsSchedule->bus_no) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'The selected bus does not match the PMS schedule.');
+            }
+
+            if ($validated['maintenance_type'] !== 'PMS') {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'A PMS schedule can only create a PMS Job Order.');
+            }
+
+            $hasActivePmsJobOrder = JobOrder::query()
+                ->where('pms_schedule_id', $pmsSchedule->id)
+                ->where('status', '!=', 'Completed')
+                ->exists();
+
+            if ($hasActivePmsJobOrder) {
+                return redirect()
+                    ->route('PMS-Scheduling')
+                    ->with('error', 'This PMS schedule already has an active Job Order.');
+            }
+        }
 
         $parts = $this->partParser->normalizePartsInput(
             $request->parts ?? []
@@ -219,6 +260,11 @@ class JobOrderController extends Controller
                 ? 'Not Requested'
                 : 'No Parts Needed',
         ]);
+
+        if ($pmsSchedule) {
+            $jobOrder->pms_schedule_id = $pmsSchedule->id;
+            $jobOrder->save();
+        }
 
         if ($assignedMechanic) {
             $this->setMechanicStatus($assignedMechanic, 'On Duty');
@@ -488,6 +534,113 @@ class JobOrderController extends Controller
                     'error',
                     'This job order cannot be finished yet. The part status must be Issued or Rejected first.'
                 );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PMS RESET AFTER COMPLETION
+        |--------------------------------------------------------------------------
+        | A PMS Job Order updates both:
+        | - pms_schedules
+        | - buses (Bus Master List)
+        |--------------------------------------------------------------------------
+        */
+        if ($jobOrder->maintenance_type === 'PMS') {
+            if (! $jobOrder->pms_schedule_id) {
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'This PMS Job Order is not linked to a PMS schedule.'
+                    );
+            }
+
+            $pmsSchedule = PmsSchedule::find($jobOrder->pms_schedule_id);
+
+            if (! $pmsSchedule) {
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'The linked PMS schedule was not found.'
+                    );
+            }
+
+            $bus = Bus::whereRaw(
+                'UPPER(TRIM(bus_no)) = ?',
+                [strtoupper(trim($jobOrder->bus_no))]
+            )->first();
+
+            if (! $bus) {
+                return redirect()
+                    ->back()
+                    ->with(
+                        'error',
+                        'The matching bus was not found in Bus Master List.'
+                    );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Get the latest PROCESSED GPS mileage directly.
+            |--------------------------------------------------------------------------
+            | Bus Master List may not yet have latest_gps_km, so PMS must not
+            | fall back to 0.00 when the Job Order is completed.
+            */
+            $latestGps = GpsTripRecord::query()
+                ->whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [strtoupper(trim($jobOrder->bus_no))]
+                )
+                ->whereNotNull('mileage_km')
+                ->whereHas('batchUpload', function ($query) {
+                    $query->where('status', 'Processed');
+                })
+                ->orderByDesc('beginning_at')
+                ->orderByDesc('id')
+                ->first();
+
+            $completedPmsKm = $latestGps
+                ? (float) $latestGps->mileage_km
+                : ($bus->latest_gps_km !== null
+                    ? (float) $bus->latest_gps_km
+                    : (float) $pmsSchedule->last_pms_km);
+
+            $intervalKm = (float) $pmsSchedule->pms_interval_km;
+
+            if ($intervalKm <= 0) {
+                $intervalKm = 5000;
+            }
+
+            $nextPmsKm = $completedPmsKm + $intervalKm;
+
+            $pmsSchedule->update([
+                'last_pms_km' => $completedPmsKm,
+                'pms_interval_km' => $intervalKm,
+                'next_pms_km' => $nextPmsKm,
+            ]);
+
+            $busUpdateData = [
+                'last_pms_km' => $completedPmsKm,
+                'pms_interval_km' => $intervalKm,
+                'next_pms_km' => $nextPmsKm,
+            ];
+
+            if ($latestGps) {
+                $busUpdateData['latest_gps_km'] = $completedPmsKm;
+                $busUpdateData['latest_gps_at'] = $latestGps->beginning_at
+                    ?? $latestGps->created_at;
+            }
+
+            $bus->update($busUpdateData);
+
+            $this->broadcastSystemDataUpdated(
+                'Operation',
+                'Bus',
+                'updated',
+                $bus->id,
+                'A completed PMS Job Order updated the bus PMS mileage.'
+            );
         }
 
         $jobOrder->update([
