@@ -7,6 +7,7 @@ use App\Models\Maintenance\Bus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 
 class IncidentReplacement extends Model
 {
@@ -23,6 +24,40 @@ class IncidentReplacement extends Model
     protected $casts = [
         'dispatched_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (IncidentReplacement $replacement): void {
+            if (
+                ! Schema::hasColumn('trip_assignments', 'original_bus_id')
+            ) {
+                return;
+            }
+
+            $incident = $replacement->incident()->first();
+
+            if (! $incident?->trip_schedule_id) {
+                return;
+            }
+
+            $assignment = TripAssignment::query()
+                ->where('trip_schedule_id', $incident->trip_schedule_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $assignment) {
+                return;
+            }
+
+            if (! $assignment->original_bus_id) {
+                $assignment->original_bus_id = $replacement->original_bus_id
+                    ?: $assignment->bus_id;
+            }
+
+            $assignment->bus_id = $replacement->replacement_bus_id;
+            $assignment->save();
+        });
+    }
 
     public function incident(): BelongsTo
     {

@@ -1,12 +1,15 @@
-fastapi
-uvicorn[standard]
-python-multipart
-pydantic
-pymupdf
-spacy
-pandas
-numpy
-scikit-learn
-joblib
-pymysql
-torch
+# Bounded dependency ranges prevent accidental major-version upgrades.
+# After a tested production build, generate an exact lock/constraints file for
+# byte-for-byte reproducible Python deployments.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9,<1
+pydantic>=2.9,<3
+pymupdf>=1.24,<2
+spacy>=3.8,<4
+pandas>=2.2,<4
+numpy>=2.0,<3
+scikit-learn>=1.5,<2
+joblib>=1.4,<2
+pymysql>=1.1,<2
+torch>=2.6,<3
