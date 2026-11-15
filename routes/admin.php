@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AnalyticsOverviewController;
 use App\Http\Controllers\Admin\BatchFileProcessingController;
 use App\Http\Controllers\Admin\DataHistoryController;
 use Illuminate\Support\Facades\Route;
@@ -73,7 +74,7 @@ Route::get(
 )->name('admin.data-history.show');
 
 Route::redirect('/analytics', '/analytics/overview')->name('analytics');
-Route::view('/analytics/overview', 'Admin.Analytics.overview')
+Route::get('/analytics/overview', [AnalyticsOverviewController::class, 'index'])
     ->name('analytics.overview');
 
 Route::view(

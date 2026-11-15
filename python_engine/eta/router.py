@@ -41,6 +41,10 @@ class EtaStatusResponse(BaseModel):
     success: bool
     model_ready: bool
     source: str
+    data_source: str
+    dataset_type: str
+    is_production_model: bool
+    model_type: str
     sample_count: int
     model_path: str
     reason: str
@@ -53,6 +57,10 @@ def eta_model_status() -> EtaStatusResponse:
         success=True,
         model_ready=readiness.ml_ready,
         source=readiness.source,
+        data_source="genuine",
+        dataset_type="GENUINE GCT GPS RECORDS",
+        is_production_model=readiness.ml_ready,
+        model_type="Production Model" if readiness.ml_ready else "MODEL NOT READY",
         sample_count=readiness.sample_count,
         model_path=str(readiness.model_path or ""),
         reason=readiness.reason,
