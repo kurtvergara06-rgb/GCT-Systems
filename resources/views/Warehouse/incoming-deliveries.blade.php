@@ -29,10 +29,10 @@
       icon="fa-warehouse"
       :items="[
         [
-    'label' => 'Dashboard',
-    'route' => 'warehouse.dashboard',
-    'icon' => 'fa-table-cells-large',
-],
+            'label' => 'Dashboard',
+            'route' => 'warehouse.dashboard',
+            'icon' => 'fa-table-cells-large',
+        ],
         [
           'label' => 'Inventory',
           'route' => 'inventory',
