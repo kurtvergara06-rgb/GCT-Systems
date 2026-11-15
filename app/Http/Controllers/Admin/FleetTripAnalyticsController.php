@@ -18,6 +18,13 @@ class FleetTripAnalyticsController extends Controller
         Request $request,
         FleetTripPredictionService $predictionService
     ): View {
+        return view('Admin.Analytics.fleet-trip', $this->data($request, $predictionService));
+    }
+
+    public function data(
+        Request $request,
+        FleetTripPredictionService $predictionService
+    ): array {
         $period = $this->normalizePeriod((string) $request->input('period', 'this-month'));
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         [$periodStart, $periodEnd, $periodLabel] = $this->periodBounds($period);
@@ -79,7 +86,7 @@ class FleetTripAnalyticsController extends Controller
             $predictionService
         );
 
-        return view('Admin.Analytics.fleet-trip', [
+        return [
             'period' => $period,
             'periodLabel' => $periodLabel,
             'selectedBus' => $selectedBus,
@@ -100,7 +107,7 @@ class FleetTripAnalyticsController extends Controller
             'busActivity' => $busActivity,
             'diagnostics' => $diagnostics,
             'prediction' => $prediction,
-        ]);
+        ];
     }
 
     private function recordsQuery(Carbon $start, Carbon $end, string $selectedBus)
