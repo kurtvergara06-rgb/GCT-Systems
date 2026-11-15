@@ -96,7 +96,7 @@ class BusController extends Controller
             })
             ->count();
 
-        return view('Operation.bus-master-list', compact(
+        return view('Operation.Shuttle_Bus_Management.bus-master-list', compact(
             'buses',
             'totalBuses',
             'activeBuses',

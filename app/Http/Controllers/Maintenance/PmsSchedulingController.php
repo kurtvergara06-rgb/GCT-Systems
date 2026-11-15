@@ -147,7 +147,7 @@ class PmsSchedulingController extends Controller
             ->whereDate('created_at', today())
             ->count();
 
-        return view('Maintenance.PMS-Scheduling', compact(
+        return view('Maintenance.pms-scheduling', compact(
             'rows',
             'processedBuses',
             'gpsRecordsToday',

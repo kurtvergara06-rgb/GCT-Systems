@@ -24,8 +24,9 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
-
+        /** @var \App\Models\User $user */
+            $user = Auth::user();
+    
         if (($user->status ?? 'Active') !== 'Active') {
             Auth::logout();
 

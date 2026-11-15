@@ -3,7 +3,7 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Operation/routes.css',
+        'resources/css/Operation/Routes/routes-stops.css',
         'resources/js/Main-js/sidebar.js',
         'resources/js/Operation/routes.js'
     ]"

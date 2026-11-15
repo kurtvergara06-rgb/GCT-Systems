@@ -3,9 +3,9 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
-    'resources/css/Maintenance/purchase-request.css',
+    'resources/css/Maintenance/purchase-requests.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Maintenance/purchase-request.js'
+    'resources/js/Maintenance/purchase-requests.js'
   ]"
 >
 

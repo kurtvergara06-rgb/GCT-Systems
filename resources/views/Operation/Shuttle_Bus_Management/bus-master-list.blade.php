@@ -3,9 +3,9 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Operation/bus-master-list.css',
+        'resources/css/Operation/Shuttle_Bus_Management/bus-master-list.css',
         'resources/js/Main-js/sidebar.js',
-        'resources/js/Operation/bus-master-list.js'
+        'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js'
     ]"
 >
     <div class="app">

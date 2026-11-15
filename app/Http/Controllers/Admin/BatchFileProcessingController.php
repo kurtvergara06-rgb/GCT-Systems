@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Auth;
 
 class BatchFileProcessingController extends Controller
 {
@@ -126,7 +127,7 @@ class BatchFileProcessingController extends Controller
 
         $recordsExtracted = GpsTripRecord::count();
 
-        return view('Admin.Data Management.batch-file-processing', compact(
+        return view('Admin.Data_Management.batch-file-processing', compact(
             'batches',
             'records',
             'selectedRecord',
@@ -172,7 +173,7 @@ class BatchFileProcessingController extends Controller
             'file_path' => $filePath,
             'file_type' => $extension,
             'bus_no' => 'Multiple Buses',
-            'uploaded_by' => auth()->id(),
+            'uploaded_by' => Auth::id(),
             'status' => 'Processing',
             'total_records' => 0,
             'processed_records' => 0,

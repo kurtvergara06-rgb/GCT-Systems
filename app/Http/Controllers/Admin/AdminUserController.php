@@ -7,6 +7,7 @@ use App\Models\Admin\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class AdminUserController extends Controller
 {
@@ -185,7 +186,7 @@ class AdminUserController extends Controller
 
     public function destroy(User $user)
     {
-        if (auth()->id() === $user->id) {
+        if (Auth::id() === $user->id) {
             return redirect()
                 ->route('admin.users')
                 ->with('error', 'You cannot delete your own account.');

@@ -45,7 +45,7 @@ class MechanicAttendanceController extends Controller
 
         $nextMechanicId = $this->generateMechanicId();
 
-        return view('Operation.mechanic-attendance', compact(
+        return view('Operation.Attendance.mechanic-attendance', compact(
             'mechanicAttendances',
             'present',
             'absent',

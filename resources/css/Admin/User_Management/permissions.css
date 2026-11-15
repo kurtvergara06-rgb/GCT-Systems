@@ -1,0 +1,392 @@
+.permission-main {
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.permission-card {
+  background: #ffffff;
+  border: 1px solid #dce5f2;
+  border-radius: 18px;
+  padding: 24px;
+  margin-top: 18px;
+  box-shadow: 0 14px 34px rgba(12, 35, 68, 0.08);
+}
+
+.permission-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.permission-card-header h2 {
+  margin: 0;
+  color: #0b2344;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.permission-card-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   LEGEND
+========================================================= */
+
+.permission-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0b2344;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.legend-item i {
+  color: #16a34a;
+}
+
+.legend-item.denied i {
+  color: #64748b;
+}
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.permission-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  padding: 10px;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.permission-table {
+  width: 100%;
+  min-width: 1220px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #ffffff;
+}
+
+.permission-table th,
+.permission-table td {
+  border-right: 1px solid #e5eaf2;
+  border-bottom: 1px solid #dce5f2;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.permission-table th:last-child,
+.permission-table td:last-child {
+  border-right: none;
+}
+
+.permission-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.permission-table th {
+  height: 50px;
+  padding: 12px 14px;
+  color: #0b2344;
+  background: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.permission-table td {
+  height: 52px;
+  padding: 12px 14px;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.permission-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.permission-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* =========================================================
+   ROLE COLUMN
+========================================================= */
+
+.role-header {
+  width: 165px;
+  text-align: left !important;
+  padding-left: 18px !important;
+  background: #ffffff !important;
+}
+
+.role-cell {
+  text-align: left !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+  background: #ffffff;
+}
+
+/* =========================================================
+   MODULE HEADERS
+========================================================= */
+
+.module-header {
+  height: 50px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  color: #0b2344 !important;
+  font-size: 12px !important;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.module-header.shuttle {
+  background: #c8f4f4 !important;
+}
+
+.module-header.maintenance {
+  background: #c9f7d0 !important;
+}
+
+.module-header.driver {
+  background: #fff28a !important;
+}
+
+.module-header.purchasing {
+  background: #dcd9e8 !important;
+}
+
+.module-header.warehouse {
+  background: #eaa2e4 !important;
+}
+
+.permission-action-row th {
+  height: 44px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  color: #0b2344;
+  background: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* =========================================================
+   ROLE BADGES
+========================================================= */
+
+.role-badge {
+  min-width: 136px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.role-badge.system {
+  background: #fecaca;
+}
+
+.role-badge.operation {
+  background: #67e8f9;
+}
+
+.role-badge.operation-staff {
+  background: #a5f3fc;
+}
+
+.role-badge.maintenance-head {
+  background: #bbf7d0;
+}
+
+.role-badge.maintenance-staff {
+  background: #dcfce7;
+}
+
+.role-badge.purchase-head {
+  background: #dbeafe;
+}
+
+.role-badge.purchase-staff {
+  background: #e0e7ff;
+}
+
+.role-badge.warehouse-head {
+  background: #fbcfe8;
+}
+
+.role-badge.warehouse-staff {
+  background: #fae8ff;
+}
+
+/* Backward compatibility if your Blade still uses purchasing-* temporarily */
+.role-badge.purchasing-head {
+  background: #dbeafe;
+}
+
+.role-badge.purchasing-staff {
+  background: #e0e7ff;
+}
+
+/* =========================================================
+   PERMISSION ICONS
+========================================================= */
+
+.permission-check,
+.permission-deny {
+  width: 21px;
+  height: 21px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.permission-check {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.22);
+}
+
+.permission-deny {
+  background: #f8fafc;
+  border: 1px solid #94a3b8;
+  color: #64748b;
+}
+
+.permission-table th:not(.role-header),
+.permission-table td:not(.role-cell) {
+  min-width: 74px;
+}
+
+/* =========================================================
+   RBAC NOTE
+========================================================= */
+
+.permission-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.permission-note-title {
+  margin: 0 0 8px;
+  color: #0b40b5;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.permission-note-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.permission-note-list strong {
+  color: #0f172a;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.admin-footer {
+  margin-top: 48px;
+  padding: 16px 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  border-top: 1px solid #dce5f2;
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.permission-table-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+
+.permission-table-wrap::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.permission-table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+  .permission-card-header {
+    flex-direction: column;
+  }
+
+  .permission-legend {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .permission-card {
+    padding: 14px;
+  }
+
+  .permission-card-header {
+    margin-bottom: 16px;
+  }
+
+  .permission-table-wrap {
+    padding: 6px;
+  }
+
+  .permission-note {
+    padding: 12px;
+  }
+}
+
+.permission-note-title {
+    font-size: 12px;
+}
+
+.permission-note-list {
+    font-size: 12px;
+}
