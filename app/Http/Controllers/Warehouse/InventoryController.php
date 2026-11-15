@@ -7,7 +7,6 @@ use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Warehouse\InventoryIssuance;
 use App\Models\Warehouse\InventoryIssuanceItem;
 use App\Models\Warehouse\InventoryItem;
-use App\Models\Warehouse\StockMovement;
 use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -66,10 +65,6 @@ class InventoryController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        $issueItems = InventoryItem::query()
-            ->orderBy('item_name')
-            ->get(['id', 'item_code', 'item_name', 'parts_name', 'on_hand', 'quantity_available', 'unit', 'unit_of_measurement']);
-
         $totalItemsInStock = InventoryItem::count();
 
         $lowStockAlerts = InventoryItem::query()
@@ -90,7 +85,6 @@ class InventoryController extends Controller
         return view('Warehouse.inventory', compact(
             'inventoryItems',
             'categories',
-            'issueItems',
             'totalItemsInStock',
             'lowStockAlerts',
             'criticalItems',

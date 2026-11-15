@@ -21,26 +21,14 @@
         <x-ui.summary-card label="Total Movements" value="{{ $totalMovements }}" small="Recorded stock transactions" icon="fa-right-left" color="blue" />
         <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Inventory received" icon="fa-arrow-down" color="green" />
         <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Inventory issued" icon="fa-arrow-up" color="red" />
-        <x-ui.summary-card label="Genuine (App)" value="{{ $genuineTransactions }}" small="Real operational records" icon="fa-check" color="purple" />
+        <x-ui.summary-card label="System Transactions" value="{{ $genuineTransactions }}" small="Recorded through live workflows" icon="fa-check" color="purple" />
       </section>
-
-      @if($demoTransactions > 0)
-        <div class="history-demo-notice">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>
-            <strong>{{ $demoTransactions }}</strong> movement{{ $demoTransactions === 1 ? '' : 's' }} are legacy sample rows
-            labelled <span class="source-badge source-badge--demo">Demo</span>.
-            They were created by the demo seeder, are isolated from genuine records,
-            and are excluded from model training data.
-          </span>
-        </div>
-      @endif
 
       <section data-ajax-region="records" class="table-card stock-movement-card">
         <div class="section-header">
           <div>
             <h2>Stock Movement History</h2>
-            <p>Genuine (App) transactions plus isolated legacy demo rows.</p>
+            <p>Complete inventory transaction and adjustment history.</p>
           </div>
         </div>
 
@@ -51,7 +39,7 @@
           </div>
 
           <div class="filter-group">
-            <select name="type" id="movementTypeFilter">
+            <select name="type" id="movementTypeFilter" aria-label="Movement type">
               @foreach(['All Types', 'Stock In', 'Stock Out', 'Adjustment'] as $type)
                 <option value="{{ $type }}" @selected(request('type', 'All Types') === $type)>{{ $type }}</option>
               @endforeach
@@ -59,18 +47,18 @@
           </div>
 
           <div class="filter-group">
-            <select name="source" id="movementSourceFilter">
-              @foreach(['All Sources', 'app', 'demo'] as $source)
-                <option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source === 'app' ? 'App' : ($source === 'demo' ? 'Demo' : $source) }}</option>
+            <select name="date_filter" id="movementDateFilter" aria-label="Date range">
+              @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
+                <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
               @endforeach
             </select>
           </div>
 
           <div class="filter-group">
-            <select name="date_filter" id="movementDateFilter">
-              @foreach(['All Dates', 'Today', 'This Week', 'This Month'] as $dateFilter)
-                <option value="{{ $dateFilter }}" @selected(request('date_filter', 'All Dates') === $dateFilter)>{{ $dateFilter }}</option>
-              @endforeach
+            <select name="source" id="movementSourceFilter" aria-label="Record origin">
+              <option value="All Sources" @selected(request('source', 'All Sources') === 'All Sources')>All Records</option>
+              <option value="app" @selected(request('source') === 'app')>System Transactions</option>
+              <option value="simulated" @selected(request('source') === 'simulated')>Simulated</option>
             </select>
           </div>
         </form>
@@ -82,7 +70,7 @@
                 <th>Date / Time</th>
                 <th>Item / Part</th>
                 <th>Reference</th>
-                <th>Source</th>
+                <th>Record Origin</th>
                 <th>Movement</th>
                 <th>Qty</th>
                 <th>Previous</th>
@@ -127,8 +115,8 @@
                     @endif
                   </td>
                   <td>
-                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'demo' }}">
-                      {{ $movement->source === 'app' ? 'App' : 'Demo' }}
+                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
+                      {{ $movement->source === 'app' ? 'System' : 'Simulated' }}
                     </span>
                   </td>
                   <td>

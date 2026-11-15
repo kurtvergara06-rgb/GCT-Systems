@@ -24,7 +24,7 @@ class ExportDemoDelayData extends Command
     protected $signature = 'delay:export-demo
         {--path= : Override output path (default: training_data/delay/demo_delay_training.csv)}';
 
-    protected $description = 'Export frontend-visible DEMO DDR history for Delay Model #3 client demonstration';
+    protected $description = 'Export realistic simulated DDR history for Delay Model #3';
 
     public function handle(DailyDriverReportScheduleMatchService $matcher): int
     {
@@ -34,9 +34,8 @@ class ExportDemoDelayData extends Command
         $reports = DailyDriverReport::query()
             ->with(['bus', 'tripSchedule.shuttleRoute', 'tripSchedule.assignment', 'tripAssignment'])
             ->where(function ($query): void {
-                $query->where('trip_ticket', 'like', 'TRIP-DEMO-%')
-                    ->orWhereHas('tripSchedule', fn ($schedule) =>
-                        $schedule->where('trip_code', 'like', 'TRIP-DEMO-%'));
+                $query->where('trip_ticket', 'like', 'TRIP-GCT-%')
+                    ->orWhereHas('tripSchedule', fn ($schedule) => $schedule->where('trip_code', 'like', 'TRIP-GCT-%'));
             })
             ->orderBy('report_date')
             ->orderBy('departure_time')
@@ -58,16 +57,19 @@ class ExportDemoDelayData extends Command
             $schedule = $matcher->match($report);
             if (! $schedule) {
                 $exclusions['unmatched']++;
+
                 continue;
             }
 
-            if (! str_starts_with((string) $schedule->trip_code, 'TRIP-DEMO-')) {
+            if (! str_starts_with((string) $schedule->trip_code, 'TRIP-GCT-')) {
                 $exclusions['non_demo']++;
+
                 continue;
             }
 
             if (strtolower((string) $schedule->status) === 'cancelled') {
                 $exclusions['cancelled']++;
+
                 continue;
             }
 
@@ -84,6 +86,7 @@ class ExportDemoDelayData extends Command
                 || ! $comparison['actual_arrival']
             ) {
                 $exclusions['missing_timing']++;
+
                 continue;
             }
 
@@ -116,16 +119,19 @@ class ExportDemoDelayData extends Command
 
             if ($scheduledDuration < 10) {
                 $exclusions['short_schedule']++;
+
                 continue;
             }
             if ($actualDuration <= 0 || $actualDuration > 720) {
                 $exclusions['implausible_duration']++;
+
                 continue;
             }
 
             $duplicateKey = $report->report_date->toDateString().'|'.$report->trip_ticket;
             if (isset($seen[$duplicateKey])) {
                 $exclusions['duplicate']++;
+
                 continue;
             }
             $seen[$duplicateKey] = true;
@@ -165,7 +171,8 @@ class ExportDemoDelayData extends Command
 
         $handle = fopen($path, 'w');
         if ($handle === false) {
-            $this->error('Could not open demo export path: '.$path);
+            $this->error('Could not open simulated-data export path: '.$path);
+
             return self::FAILURE;
         }
 
@@ -180,16 +187,16 @@ class ExportDemoDelayData extends Command
             json_encode([
                 'exported_at' => now()->toISOString(),
                 'source' => 'demo',
-                'dataset_type' => 'DEMO / SYNTHETIC FRONTEND DATA',
+                'dataset_type' => 'REALISTIC SIMULATED OPERATIONAL DATA',
                 'reports_processed' => $reports->count(),
                 'matched_rows' => count($rows),
                 'exclusions' => $exclusions,
             ], JSON_PRETTY_PRINT)
         );
 
-        $this->info('DEMO delay export written: '.$path);
-        $this->info('Frontend demo DDR processed: '.$reports->count().' | Matched rows: '.count($rows));
-        $this->warn('DEMO / SYNTHETIC DATA ONLY - never present this export as genuine GCT operational history.');
+        $this->info('Simulated delay export written: '.$path);
+        $this->info('Simulated DDR processed: '.$reports->count().' | Matched rows: '.count($rows));
+        $this->warn('SIMULATED DATA ONLY - never present this export as genuine GCT operational history.');
 
         return count($rows) > 0 ? self::SUCCESS : self::FAILURE;
     }

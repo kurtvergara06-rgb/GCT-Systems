@@ -806,6 +806,325 @@
 
 
 /* =========================================================
+   WAREHOUSE ACTION LISTS & ROWS
+========================================================= */
+
+.warehouse-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.warehouse-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--wh-border);
+  border-radius: 12px;
+  background: #ffffff;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.warehouse-action-row:hover {
+  background: #f8fbff;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.warehouse-action-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.warehouse-action-icon.yellow {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.warehouse-action-icon.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.warehouse-action-icon.blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.warehouse-action-icon.red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.warehouse-action-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.warehouse-action-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.warehouse-action-title-row strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wh-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.action-ref-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e40af;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 1px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.action-sub-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-sub-badge.bus-badge {
+  color: #0369a1;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.action-supplier-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.warehouse-action-desc {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.warehouse-action-desc strong {
+  color: #0f172a;
+}
+
+.warehouse-action-desc time {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.warehouse-action-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.action-status-pill.status-approved {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.action-status-pill.status-for-purchase {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.action-status-pill.status-ordered {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.action-status-pill.status-for-delivery {
+  background: #e0e7ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+.action-status-pill.status-for-pickup {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.action-status-pill.status-critical {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.action-status-pill.status-low {
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.action-status-pill.status-stock-in {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.action-status-pill.status-stock-out {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.action-status-pill.status-adjustment {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+.warehouse-row-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid var(--wh-border);
+  background: #ffffff;
+  color: var(--wh-blue);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.warehouse-row-btn:hover {
+  background: var(--wh-blue);
+  color: #ffffff;
+  border-color: var(--wh-blue);
+}
+
+.warehouse-row-btn.receive-btn {
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.warehouse-row-btn.receive-btn:hover {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+/* Stock Distribution Summary Strip */
+.warehouse-stock-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.stock-summary-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.stock-summary-pill .stock-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stock-summary-pill.available .stock-pill-dot {
+  background: #16a34a;
+}
+
+.stock-summary-pill.low .stock-pill-dot {
+  background: #eab308;
+}
+
+.stock-summary-pill.critical .stock-pill-dot {
+  background: #dc2626;
+}
+
+.stock-summary-pill .stock-pill-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  flex: 1;
+}
+
+.stock-summary-pill strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.text-green {
+  color: #16a34a;
+}
+
+.text-blue {
+  color: #2563eb;
+}
+
+
+/* =========================================================
    RESPONSIVE
 ========================================================= */
 
@@ -816,16 +1135,10 @@
   }
 
   .warehouse-bottom-grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-  .recent-inventory-card {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 
 }
-
 
 @media (max-width: 768px) {
 
@@ -833,32 +1146,29 @@
     grid-template-columns: 1fr;
   }
 
-  .warehouse-bottom-grid {
+  .warehouse-stock-summary-strip {
     grid-template-columns: 1fr;
   }
 
-  .recent-inventory-card {
-    grid-column: auto;
+  .warehouse-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .warehouse-action-meta {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .dashboard-card-header {
     flex-direction: column;
-
     align-items: stretch;
+    gap: 8px;
   }
 
   .dashboard-view-link {
     width: fit-content;
-  }
-
-  .dashboard-mini-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .recent-warehouse-heading {
-    flex-direction: column;
-
-    align-items: flex-start;
   }
 
 }

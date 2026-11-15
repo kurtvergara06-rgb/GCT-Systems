@@ -35,9 +35,9 @@ class InventoryMovementController extends Controller
             ->where('movement_type', 'Adjustment')
             ->count();
 
-        $demotedMovements = StockMovement::query()
+        $simulatedMovements = StockMovement::query()
             ->where('inventory_item_id', $inventoryItem->id)
-            ->where('source', 'demo')
+            ->where('source', 'simulated')
             ->count();
 
         return view(
@@ -48,7 +48,7 @@ class InventoryMovementController extends Controller
                 'stockIn',
                 'stockOut',
                 'adjustments',
-                'demotedMovements'
+                'simulatedMovements'
             )
         );
     }

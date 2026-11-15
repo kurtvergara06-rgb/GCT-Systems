@@ -83,7 +83,7 @@
   },
   "part_metadata": {
     "54": {
-      "name": "[DEMO] Brake Pad Set",
+      "name": "Brake Pad Set",
       "category": "Brakes",
       "unit": "set",
       "reorder_level": 12,
@@ -95,7 +95,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "55": {
-      "name": "[DEMO] Oil Filter",
+      "name": "Oil Filter",
       "category": "Filters",
       "unit": "pcs",
       "reorder_level": 15,
@@ -107,7 +107,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "56": {
-      "name": "[DEMO] Fuel Filter",
+      "name": "Fuel Filter",
       "category": "Filters",
       "unit": "pcs",
       "reorder_level": 12,
@@ -119,7 +119,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "57": {
-      "name": "[DEMO] Air Filter",
+      "name": "Air Filter",
       "category": "Filters",
       "unit": "pcs",
       "reorder_level": 10,
@@ -131,7 +131,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "58": {
-      "name": "[DEMO] Fan Belt",
+      "name": "Fan Belt",
       "category": "Engine",
       "unit": "pcs",
       "reorder_level": 8,
@@ -143,7 +143,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "59": {
-      "name": "[DEMO] Alternator Belt",
+      "name": "Alternator Belt",
       "category": "Engine",
       "unit": "pcs",
       "reorder_level": 8,
@@ -155,7 +155,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "60": {
-      "name": "[DEMO] 12V Battery",
+      "name": "12V Battery",
       "category": "Electrical",
       "unit": "pcs",
       "reorder_level": 6,
@@ -167,7 +167,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "61": {
-      "name": "[DEMO] Headlight Bulb",
+      "name": "Headlight Bulb",
       "category": "Electrical",
       "unit": "pcs",
       "reorder_level": 20,
@@ -179,7 +179,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "62": {
-      "name": "[DEMO] Tail Light Bulb",
+      "name": "Tail Light Bulb",
       "category": "Electrical",
       "unit": "pcs",
       "reorder_level": 20,
@@ -191,7 +191,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "63": {
-      "name": "[DEMO] Wheel Bearing",
+      "name": "Wheel Bearing",
       "category": "Suspension",
       "unit": "pcs",
       "reorder_level": 10,
@@ -203,7 +203,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "64": {
-      "name": "[DEMO] Brake Shoe Set",
+      "name": "Brake Shoe Set",
       "category": "Brakes",
       "unit": "set",
       "reorder_level": 8,
@@ -215,7 +215,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "65": {
-      "name": "[DEMO] Clutch Disc",
+      "name": "Clutch Disc",
       "category": "Drivetrain",
       "unit": "pcs",
       "reorder_level": 5,
@@ -227,7 +227,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "66": {
-      "name": "[DEMO] Coolant Hose",
+      "name": "Coolant Hose",
       "category": "Cooling",
       "unit": "pcs",
       "reorder_level": 10,
@@ -239,7 +239,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "67": {
-      "name": "[DEMO] Radiator Cap",
+      "name": "Radiator Cap",
       "category": "Cooling",
       "unit": "pcs",
       "reorder_level": 12,
@@ -251,7 +251,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "68": {
-      "name": "[DEMO] Wiper Blade Pair",
+      "name": "Wiper Blade Pair",
       "category": "Body",
       "unit": "pair",
       "reorder_level": 12,
@@ -263,7 +263,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "69": {
-      "name": "[DEMO] Engine Oil 15W-40",
+      "name": "Engine Oil 15W-40",
       "category": "Fluids",
       "unit": "liter",
       "reorder_level": 80,
@@ -275,7 +275,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "70": {
-      "name": "[DEMO] Gear Oil",
+      "name": "Gear Oil",
       "category": "Fluids",
       "unit": "liter",
       "reorder_level": 40,
@@ -287,7 +287,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "71": {
-      "name": "[DEMO] Engine Coolant",
+      "name": "Engine Coolant",
       "category": "Fluids",
       "unit": "liter",
       "reorder_level": 50,
@@ -299,7 +299,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "72": {
-      "name": "[DEMO] Grease Cartridge",
+      "name": "Grease Cartridge",
       "category": "Fluids",
       "unit": "pcs",
       "reorder_level": 20,
@@ -311,7 +311,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "73": {
-      "name": "[DEMO] Bus Tire 10R22.5",
+      "name": "Bus Tire 10R22.5",
       "category": "Tires",
       "unit": "pcs",
       "reorder_level": 10,
@@ -323,7 +323,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "74": {
-      "name": "[DEMO] Inner Tube 10R22.5",
+      "name": "Inner Tube 10R22.5",
       "category": "Tires",
       "unit": "pcs",
       "reorder_level": 12,
@@ -335,7 +335,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "75": {
-      "name": "[DEMO] Air Dryer Cartridge",
+      "name": "Air Dryer Cartridge",
       "category": "Pneumatic",
       "unit": "pcs",
       "reorder_level": 8,
@@ -347,7 +347,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "76": {
-      "name": "[DEMO] Fuel Hose",
+      "name": "Fuel Hose",
       "category": "Engine",
       "unit": "meter",
       "reorder_level": 15,
@@ -359,7 +359,7 @@
       "mean_days_since_last_issue": 7.0
     },
     "77": {
-      "name": "[DEMO] Fuse Assortment",
+      "name": "Fuse Assortment",
       "category": "Electrical",
       "unit": "box",
       "reorder_level": 8,

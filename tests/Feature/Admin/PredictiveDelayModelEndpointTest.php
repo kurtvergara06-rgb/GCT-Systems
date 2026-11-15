@@ -24,6 +24,8 @@ class PredictiveDelayModelEndpointTest extends TestCase
 
     public function test_delay_prediction_endpoint_builds_pre_trip_context_for_displayed_trip(): void
     {
+        config()->set('services.ai.allow_demo_models', true);
+
         [$schedule, $user] = $this->seedScheduledTrip();
 
         $departureAt = $schedule->trip_date->copy()->setTime(8, 0);
@@ -147,6 +149,67 @@ class PredictiveDelayModelEndpointTest extends TestCase
             ->assertJsonPath('model_ready', false)
             ->assertJsonPath("predictions.{$schedule->trip_code}.available", false)
             ->assertJsonPath("predictions.{$schedule->trip_code}.prediction", null);
+
+        Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/delay/predict'));
+    }
+
+    public function test_delay_prediction_endpoint_blocks_demo_model_when_demo_mode_is_disabled(): void
+    {
+        config()->set('services.ai.allow_demo_models', false);
+
+        [$schedule, $user] = $this->seedScheduledTrip();
+
+        Http::fake([
+            self::STATUS_URL => Http::response([
+                'success' => true,
+                'model_ready' => true,
+                'dataset_type' => 'SAMPLE / DEMONSTRATION',
+                'data_source' => 'sample',
+                'is_production_model' => false,
+            ]),
+            self::PREDICT_URL => Http::response([
+                'success' => true,
+                'predicted_delay_minutes' => 99,
+            ]),
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('analytics.delay-predictions', [
+                'trip_codes' => [$schedule->trip_code],
+            ]))
+            ->assertOk()
+            ->assertJsonPath('model_ready', false)
+            ->assertJsonPath('model_reported_ready', true)
+            ->assertJsonPath('demo_mode_enabled', false)
+            ->assertJsonPath("predictions.{$schedule->trip_code}.available", false);
+
+        Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/delay/predict'));
+    }
+
+    public function test_delay_prediction_endpoint_blocks_demo_model_in_production_even_when_opted_in(): void
+    {
+        $this->app->detectEnvironment(fn (): string => 'production');
+        config()->set('services.ai.allow_demo_models', true);
+
+        [$schedule, $user] = $this->seedScheduledTrip();
+
+        Http::fake([
+            self::STATUS_URL => Http::response([
+                'success' => true,
+                'model_ready' => true,
+                'data_source' => 'sample',
+                'is_production_model' => false,
+            ]),
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('analytics.delay-predictions', [
+                'trip_codes' => [$schedule->trip_code],
+            ]))
+            ->assertOk()
+            ->assertJsonPath('model_ready', false)
+            ->assertJsonPath('model_reported_ready', true)
+            ->assertJsonPath('demo_mode_enabled', false);
 
         Http::assertNotSent(fn ($request): bool => str_ends_with($request->url(), '/delay/predict'));
     }

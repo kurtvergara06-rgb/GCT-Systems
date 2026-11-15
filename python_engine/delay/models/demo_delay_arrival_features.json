@@ -24,63 +24,63 @@
   "source": "sample",
   "encoders": {
     "route_encodings": {
-      "DEMO-RT-01": 0,
-      "DEMO-RT-02": 1,
-      "DEMO-RT-03": 2,
-      "DEMO-RT-04": 3,
-      "DEMO-RT-05": 4
+      "GCT-RT-01": 0,
+      "GCT-RT-02": 1,
+      "GCT-RT-03": 2,
+      "GCT-RT-04": 3,
+      "GCT-RT-05": 4
     },
     "bus_encodings": {
-      "DEMO-BUS-101": 0,
-      "DEMO-BUS-102": 1,
-      "DEMO-BUS-103": 2,
-      "DEMO-BUS-104": 3,
-      "DEMO-BUS-105": 4,
-      "DEMO-BUS-106": 5,
-      "DEMO-BUS-107": 6,
-      "DEMO-BUS-108": 7
+      "GCT-201": 0,
+      "GCT-202": 1,
+      "GCT-203": 2,
+      "GCT-204": 3,
+      "GCT-205": 4,
+      "GCT-206": 5,
+      "GCT-207": 6,
+      "GCT-208": 7
     },
     "driver_encodings": {
-      "DEMO-DRV-001": 0,
-      "DEMO-DRV-002": 1,
-      "DEMO-DRV-003": 2,
-      "DEMO-DRV-004": 3,
-      "DEMO-DRV-005": 4,
-      "DEMO-DRV-006": 5,
-      "DEMO-DRV-007": 6,
-      "DEMO-DRV-008": 7
+      "GCT-DRV-001": 0,
+      "GCT-DRV-002": 1,
+      "GCT-DRV-003": 2,
+      "GCT-DRV-004": 3,
+      "GCT-DRV-005": 4,
+      "GCT-DRV-006": 5,
+      "GCT-DRV-007": 6,
+      "GCT-DRV-008": 7
     }
   },
   "route_metadata": {
-    "DEMO-RT-01": {
+    "GCT-RT-01": {
       "distance_km": 31.5,
       "duration_minutes": 55.0,
       "prior_delay_mean": 0.0,
       "prior_delay_rate": 0.0,
       "n_obs": 92
     },
-    "DEMO-RT-02": {
+    "GCT-RT-02": {
       "distance_km": 23.4,
       "duration_minutes": 45.0,
       "prior_delay_mean": 0.0,
       "prior_delay_rate": 0.0,
       "n_obs": 92
     },
-    "DEMO-RT-03": {
+    "GCT-RT-03": {
       "distance_km": 28.7,
       "duration_minutes": 50.0,
       "prior_delay_mean": 0.0,
       "prior_delay_rate": 0.0,
       "n_obs": 92
     },
-    "DEMO-RT-04": {
+    "GCT-RT-04": {
       "distance_km": 26.2,
       "duration_minutes": 50.0,
       "prior_delay_mean": 0.0,
       "prior_delay_rate": 0.0,
       "n_obs": 92
     },
-    "DEMO-RT-05": {
+    "GCT-RT-05": {
       "distance_km": 43.8,
       "duration_minutes": 70.0,
       "prior_delay_mean": 0.0,
@@ -89,69 +89,69 @@
     }
   },
   "driver_metadata": {
-    "DEMO-DRV-001": {
+    "GCT-DRV-001": {
       "prior_delay_mean": 7.965087719298245,
       "n_obs": 57
     },
-    "DEMO-DRV-002": {
+    "GCT-DRV-002": {
       "prior_delay_mean": 13.912105263157894,
       "n_obs": 57
     },
-    "DEMO-DRV-003": {
+    "GCT-DRV-003": {
       "prior_delay_mean": 8.309827586206897,
       "n_obs": 58
     },
-    "DEMO-DRV-004": {
+    "GCT-DRV-004": {
       "prior_delay_mean": 14.743620689655172,
       "n_obs": 58
     },
-    "DEMO-DRV-005": {
+    "GCT-DRV-005": {
       "prior_delay_mean": 14.431896551724138,
       "n_obs": 58
     },
-    "DEMO-DRV-006": {
+    "GCT-DRV-006": {
       "prior_delay_mean": 9.132241379310344,
       "n_obs": 58
     },
-    "DEMO-DRV-007": {
+    "GCT-DRV-007": {
       "prior_delay_mean": 14.124912280701755,
       "n_obs": 57
     },
-    "DEMO-DRV-008": {
+    "GCT-DRV-008": {
       "prior_delay_mean": 9.652807017543859,
       "n_obs": 57
     }
   },
   "bus_metadata": {
-    "DEMO-BUS-101": {
+    "GCT-201": {
       "n_obs": 58,
       "mean_route_prior_delay": 11.088103448275863
     },
-    "DEMO-BUS-102": {
+    "GCT-202": {
       "n_obs": 58,
       "mean_route_prior_delay": 10.961724137931034
     },
-    "DEMO-BUS-103": {
+    "GCT-203": {
       "n_obs": 58,
       "mean_route_prior_delay": 11.386896551724139
     },
-    "DEMO-BUS-104": {
+    "GCT-204": {
       "n_obs": 58,
       "mean_route_prior_delay": 11.467758620689654
     },
-    "DEMO-BUS-105": {
+    "GCT-205": {
       "n_obs": 57,
       "mean_route_prior_delay": 11.980526315789476
     },
-    "DEMO-BUS-106": {
+    "GCT-206": {
       "n_obs": 57,
       "mean_route_prior_delay": 12.189649122807017
     },
-    "DEMO-BUS-107": {
+    "GCT-207": {
       "n_obs": 57,
       "mean_route_prior_delay": 11.725087719298244
     },
-    "DEMO-BUS-108": {
+    "GCT-208": {
       "n_obs": 57,
       "mean_route_prior_delay": 11.800701754385962
     }

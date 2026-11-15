@@ -52,12 +52,12 @@ def _prepare_exported(source: str, paths) -> int:
         try:
             wide = build_demo_features(load_demo_csv(paths["csv"]))
         except (FileNotFoundError, ValueError) as exc:
-            _print_divider("DELAY DEMO DATA NOT READY")
+            _print_divider("DELAY SIMULATED DATA NOT READY")
             print(str(exc))
-            print("\nRun `php artisan db:seed --class=ClientDemoDataSeeder` and "
+            print("\nRun `php artisan db:seed --class=RealisticSampleDataSeeder` and "
                   "`php artisan delay:export-demo`, then re-run this command.")
             return 2
-        label = "FRONTEND DEMO / SYNTHETIC dataset"
+        label = "REALISTIC SIMULATED dataset"
 
     report = readiness_report(wide)
     _print_divider(f"Delay {label} report")

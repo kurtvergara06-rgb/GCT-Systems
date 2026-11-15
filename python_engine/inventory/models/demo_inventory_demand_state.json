@@ -3,7 +3,7 @@
   "model_version": "1.0.0",
   "sklearn_version": "1.9.0",
   "training_source": "sample",
-  "trained_at": "2026-09-24T02:41:38.084860+00:00",
+  "trained_at": "2026-09-28T09:45:42.193419+00:00",
   "feature_schema_version": "1.0",
   "model_ready": true,
   "message": "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)",
@@ -14,10 +14,10 @@
   "n_train": 336,
   "n_test": 96,
   "metrics": {
-    "mae": 0.6188739751126674,
-    "rmse": 0.7994080141565173,
-    "r2": 0.8094748303808199,
-    "train_mae": 0.49191794645655984
+    "mae": 0.6188739751126675,
+    "rmse": 0.7994080141565175,
+    "r2": 0.8094748303808198,
+    "train_mae": 0.49191794645655973
   },
   "target_range": {
     "min": 1.0,

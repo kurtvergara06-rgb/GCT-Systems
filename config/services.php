@@ -42,6 +42,11 @@ return [
         ),
     ],
 
+    'ai' => [
+        // Safe by default: sample-backed models require an explicit opt-in.
+        'allow_demo_models' => env('ALLOW_DEMO_ML', false),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Delay-prediction (Model #3)
@@ -89,15 +94,15 @@ return [
     ],
 
     'operation_ai' => [
-    'base_url' => env(
-        'OPERATION_AI_BASE_URL',
-        'http://127.0.0.1:8000'
-    ),
+        'base_url' => env(
+            'OPERATION_AI_BASE_URL',
+            'http://127.0.0.1:8000'
+        ),
 
-    'timeout' => (int) env(
-        'OPERATION_AI_TIMEOUT',
-        5
-    ),
-],
+        'timeout' => (int) env(
+            'OPERATION_AI_TIMEOUT',
+            5
+        ),
+    ],
 
 ];
