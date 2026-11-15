@@ -290,7 +290,7 @@
                 @if($itemRoute)
 
                     <a
-                        href="{{ route($itemRoute, [], false) }}"
+                        href="{{ route($item['route'], [], false) }}"
                         class="menu-item {{ $isParentActive ? 'active' : '' }}"
                         title="{{ $item['label'] ?? 'Menu' }}"
                     >
