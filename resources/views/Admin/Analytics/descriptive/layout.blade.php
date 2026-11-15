@@ -25,6 +25,14 @@
 
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
 
+    /*
+     * All and Fleet & Trip share the same overview layout (KPI strip, main
+     * grid, rankings, side stack, and footer grids). descriptive/all.css is
+     * scoped under the shared descriptive-overview-domain class so both
+     * domains are covered consistently.
+     */
+    $usesOverviewLayout = in_array($activeDomain, ['all', 'fleet-trip'], true);
+
     $trendCount = max(1, $trend->count());
     $tripChartData = $trend->values()->map(function ($bucket, $index) use ($trendCount) {
         return [
@@ -106,14 +114,23 @@
     }
 
     $pageAssets[] = 'resources/css/Admin/Analytics/analytics-stage-hub.css';
-    $pageAssets[] = $domainStyles[$activeDomain];
+
+    $overviewStyle = 'resources/css/Admin/Analytics/descriptive/all.css';
+
+    if ($usesOverviewLayout) {
+        $pageAssets[] = $overviewStyle;
+    }
+
+    if ($domainStyles[$activeDomain] !== $overviewStyle || !$usesOverviewLayout) {
+        $pageAssets[] = $domainStyles[$activeDomain];
+    }
 @endphp
 
 <x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
-        <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}">
+        <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}{{ $usesOverviewLayout ? ' descriptive-overview-domain' : '' }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
