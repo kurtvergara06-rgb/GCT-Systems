@@ -31,7 +31,6 @@ import './Main-js/loading-state.js';
 import './Main-js/ajax-regions.js';
 import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
-import './Main-js/analytics-smooth-line.js';
 import './Main-js/analytics-domain-panels.js';
 import './Maintenance/maintenance-ui-enhancements.js';
 
