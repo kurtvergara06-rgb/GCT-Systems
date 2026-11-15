@@ -132,6 +132,7 @@ export default defineConfig({
 
                 'resources/css/Operation/Routes/routes-stops.css',
                 'resources/js/Operation/Routes/routes-stops.js',
+                'resources/js/Operation/Scheduling_And_Dispatch/auto-scheduling.js',
 
                 // ======================================================
                 // OPERATION — SHUTTLE BUS MANAGEMENT
