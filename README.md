@@ -6,14 +6,80 @@ Fleet and operations management system for Maintenance, Warehouse, Purchase, Ope
 
 ## Architecture
 
-Dual-engine architecture:
+### Overview
 
-- **Laravel Backend** (PHP): Core business logic, authentication, database, realtime events
-- **Python FastAPI Microservice**: NLP extraction, ML-powered analytics, auto-scheduling AI
+GCT Systems is a **two-engine web application**:
 
-Communication: Laravel calls the Python engine via `NLP_API_URL` environment variable.
+- **Laravel Application** (PHP): the primary web app. Handles authentication, role-based access, all business logic, MySQL persistence, scheduled jobs, and realtime event broadcasting.
+- **Python FastAPI Microservice**: an auxiliary ML/NLP engine. Performs PDF extraction and entity recognition, business analytics/forecasting, and ML-powered trip auto-scheduling.
 
-Realtime flow: Server broadcasts events → Laravel Reverb → Echo client → AJAX region refresh (no full page reloads).
+The Laravel app owns the database (MySQL 8.4), the user interface (Blade + Vanilla JS + Tailwind), and the public web/realtime surface. The Python engine is stateless and calling it is best-effort: if it is unreachable, Laravel falls back to deterministic/heuristic logic so core operations keep working.
+
+### Component Diagram
+
+```mermaid
+flowchart TB
+    subgraph Browser["Browser"]
+        UI["Blade views · Vanilla JS · Tailwind CSS"]
+        ECHO["Echo client (WSS) · AJAX regions"]
+    end
+
+    subgraph RenderWeb["Render — Web Service"]
+        NGINX["Nginx (port 10000)"] --> FPM["PHP-FPM"]
+        FPM --> LARAVEL["Laravel App"]
+    end
+
+    subgraph RenderWS["Render — Reverb Service"]
+        REVERB["Laravel Reverb (WebSocket)"]
+    end
+
+    PYTHON["Python FastAPI Engine<br/>NLP · Analytics · Operation AI<br/>(spaCy, scikit-learn, PyTorch)"]
+    MYSQL[("MySQL (Aiven)")]
+
+    UI -- "HTTP (HTTPS 443)" --> NGINX
+    ECHO -- "WebSocket (WSS)" --> REVERB
+
+    LARAVEL -- "PHP-FPM / Nginx" --> UI
+    REVERB -- "broadcast" --> ECHO
+    REVERB -- "AJAX region refresh" --> UI
+
+    LARAVEL <--> MYSQL
+    LARAVEL -- "HTTP (NLP_API_URL)" --> PYTHON
+    PYTHON -- "AI responses (best-effort)" --> LARAVEL
+```
+
+### Request Flow
+
+1. The browser loads the SPA-style Blade pages from the Laravel app over HTTPS (terminated by Render; Nginx listens on port 10000 and forwards PHP to PHP-FPM).
+2. Laravel middleware authenticates the user and enforces role-based access (`role` middleware) across the Admin, Maintenance, Purchase, Operation, Warehouse, and Analytics route groups.
+3. Controllers interact with Eloquent models and service classes, persist state to **MySQL**, and broadcast realtime events when data changes.
+4. For AI features (PDF ingestion, dashboards, auto-scheduling), controllers call the **Python FastAPI engine** over HTTP using `NLP_API_URL`. Responses are degraded gracefully when the engine is unavailable.
+5. `RecordSystemActivity` middleware writes to the audit trail for meaningful mutations only (see [Activity Log Policy](#activity-log-policy)).
+
+### Realtime & Live Updates
+
+- Server-side events are broadcast through **Laravel Reverb** (WebSocket server).
+- Reverb runs in production as a **separate Render service** using the same Docker image but overriding the start command with `start-reverb.sh` (port 10000 of that service).
+- The browser connects over WSS via **Laravel Echo**; received events trigger a refresh of `data-ajax-region` sections instead of a full page reload.
+
+### Background Processing
+
+- A **Supervisor** process inside the production container supervises PHP-FPM, Nginx, and the Laravel scheduler loop (`artisan schedule:run` every 60s).
+- Scheduled tasks live in `routes/console.php` (e.g. daily activity-log pruning at 02:30) and ML training pipelines in the Python engine.
+
+### Module Layout
+
+Feature code is organized by business domain in both layers:
+
+| Layer | Admin | Maintenance | Operation | Purchase | Warehouse |
+|-------|-------|-------------|-----------|----------|-----------|
+| `app/Http/Controllers/` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `app/Models/` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `resources/views/` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `resources/js/` + `css/` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `routes/*.php` | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Shared UI lives in `resources/views/components/`; cross-cutting services (activity log, dashboard summaries, AI orchestration) live in `app/Services/`.
 
 ## Technology Stack
 
