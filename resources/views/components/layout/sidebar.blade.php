@@ -231,6 +231,7 @@
             [
                 'label' => 'Analytics',
                 'icon' => 'fa-chart-line',
+                'active_routes' => ['analytics', 'analytics.*'],
                 'children' => [
                     [
                         'label' => 'Overview',
@@ -240,9 +241,9 @@
                     ],
                     [
                         'label' => '5.1 Descriptive',
-                        'url' => route('analytics.stage', ['stage' => 'descriptive'], false),
+                        'route' => 'analytics.descriptive',
                         'icon' => 'fa-chart-column',
-                        'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'descriptive',
+                        'active_routes' => ['analytics.descriptive'],
                     ],
                     [
                         'label' => '5.2 Diagnostic',
