@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'nlp' => [
+        'api_url' => env('NLP_API_URL', 'http://127.0.0.1:8000'),
+    ],
+
 ];
