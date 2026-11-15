@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryItem;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     /*
     |--------------------------------------------------------------------------
     | Active statuses only
@@ -233,6 +236,14 @@ class WarehousePartRequestController extends Controller
                 'part_status' => 'Issued',
             ]);
 
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'Warehouse issued a purchase request.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Parts issued successfully.');
@@ -279,7 +290,7 @@ class WarehousePartRequestController extends Controller
         $missingTotalQuantity = collect($missingParts)->sum('needed');
         $missingPrNo = $this->generateMissingPrNo($purchaseRequest->pr_no);
 
-        PurchaseRequest::create([
+        $missingPurchaseRequest = PurchaseRequest::create([
             'pr_no' => $missingPrNo,
             'job_order_no' => $purchaseRequest->job_order_no,
             'bus_no' => $purchaseRequest->bus_no,
@@ -290,6 +301,14 @@ class WarehousePartRequestController extends Controller
             'remarks' => 'Missing parts from ' . $purchaseRequest->pr_no . '. Only unavailable parts were sent to Purchase Department.',
             'date_requested' => now(),
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Warehouse',
+            'PurchaseRequest',
+            'created',
+            $missingPurchaseRequest->id,
+            'Warehouse sent missing parts to Purchase Department.'
+        );
 
         $oldRemarks = trim($purchaseRequest->remarks ?? '');
 

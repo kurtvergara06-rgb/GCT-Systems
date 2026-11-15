@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",
+        "laravel/reverb": "^1.0",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
@@ -33,6 +34,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Database\\Factories\\": "database/factories/",
             "Tests\\": "tests/"
         }
     },

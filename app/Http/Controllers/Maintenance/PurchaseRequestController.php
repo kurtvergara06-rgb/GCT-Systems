@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Services\PartParser;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     private array $statuses = [
         'Submitted',
         'Approved',
@@ -34,7 +37,7 @@ class PurchaseRequestController extends Controller
     private function canApprovePurchaseRequest(): bool
     {
         if (! Auth::check()) {
-        return false;
+            return false;
         }
 
         $user = Auth::user();
@@ -42,10 +45,6 @@ class PurchaseRequestController extends Controller
         $role = strtolower(trim($user->role ?? ''));
         $department = strtolower(trim($user->department ?? ''));
 
-        /*
-         * Admin role is removed.
-         * Only Maintenance Head can approve/reject.
-         */
         return $department === 'maintenance' && $role === 'head';
     }
 
@@ -129,7 +128,6 @@ class PurchaseRequestController extends Controller
         }
 
         $statuses = $this->statuses;
-
         $isMaintenanceAdmin = $this->canApprovePurchaseRequest();
 
         return view('Maintenance.purchase-requests', compact(
@@ -152,26 +150,29 @@ class PurchaseRequestController extends Controller
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255',
             'bus_no' => 'required|string|max:255',
-
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
-
             'item' => 'nullable|string|max:1000',
             'quantity' => 'nullable|integer|min:1',
-
             'remarks' => 'nullable|string|max:1000',
         ]);
 
-        if (strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' || strtoupper(trim($validated['bus_no'])) === 'RESTOCK') {
+        if (
+            strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' ||
+            strtoupper(trim($validated['bus_no'])) === 'RESTOCK'
+        ) {
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', 'Inventory restock requests are not allowed in Maintenance Purchase Requests.');
         }
 
-        $jobOrder = JobOrder::where('job_order_no', $validated['job_order_no'])->first();
+        $jobOrder = JobOrder::where(
+            'job_order_no',
+            $validated['job_order_no']
+        )->first();
 
         if (! $jobOrder) {
             return redirect()
@@ -180,7 +181,10 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Selected job order was not found.');
         }
 
-        $hasActiveRequest = PurchaseRequest::where('job_order_no', $validated['job_order_no'])
+        $hasActiveRequest = PurchaseRequest::where(
+            'job_order_no',
+            $validated['job_order_no']
+        )
             ->where('pr_no', 'not like', '%-P')
             ->where(function ($query) {
                 $query->whereNull('source_type')
@@ -201,7 +205,9 @@ class PurchaseRequestController extends Controller
         if (count($parts) === 0 && $request->filled('item')) {
             $parts[] = [
                 'name' => trim($request->item),
-                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'quantity' => (int) ($request->quantity ?? 1) > 0
+                    ? (int) ($request->quantity ?? 1)
+                    : 1,
                 'unit' => trim($request->unit ?? ''),
             ];
         }
@@ -230,6 +236,14 @@ class PurchaseRequestController extends Controller
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Submitted');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'created',
+            $purchaseRequest->id,
+            'A maintenance purchase request was created.'
+        );
+
         return redirect()
             ->route('purchase-requests')
             ->with('success', 'Purchase request created successfully.');
@@ -252,26 +266,29 @@ class PurchaseRequestController extends Controller
         $validated = $request->validate([
             'job_order_no' => 'required|string|max:255',
             'bus_no' => 'required|string|max:255',
-
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
             'parts.*.unit' => 'nullable|string|max:50',
-
             'item' => 'nullable|string|max:1000',
             'quantity' => 'nullable|integer|min:1',
-
             'remarks' => 'nullable|string|max:1000',
         ]);
 
-        if (strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' || strtoupper(trim($validated['bus_no'])) === 'RESTOCK') {
+        if (
+            strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' ||
+            strtoupper(trim($validated['bus_no'])) === 'RESTOCK'
+        ) {
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', 'Inventory restock requests are not allowed in Maintenance Purchase Requests.');
         }
 
-        $jobOrder = JobOrder::where('job_order_no', $validated['job_order_no'])->first();
+        $jobOrder = JobOrder::where(
+            'job_order_no',
+            $validated['job_order_no']
+        )->first();
 
         if (! $jobOrder) {
             return redirect()
@@ -285,7 +302,9 @@ class PurchaseRequestController extends Controller
         if (count($parts) === 0 && $request->filled('item')) {
             $parts[] = [
                 'name' => trim($request->item),
-                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'quantity' => (int) ($request->quantity ?? 1) > 0
+                    ? (int) ($request->quantity ?? 1)
+                    : 1,
                 'unit' => trim($request->unit ?? ''),
             ];
         }
@@ -312,10 +331,16 @@ class PurchaseRequestController extends Controller
         ]);
 
         if ($oldJobOrderNo !== $purchaseRequest->job_order_no) {
-            $oldJobOrder = JobOrder::where('job_order_no', $oldJobOrderNo)->first();
+            $oldJobOrder = JobOrder::where(
+                'job_order_no',
+                $oldJobOrderNo
+            )->first();
 
             if ($oldJobOrder) {
-                $hasOtherRequest = PurchaseRequest::where('job_order_no', $oldJobOrderNo)
+                $hasOtherRequest = PurchaseRequest::where(
+                    'job_order_no',
+                    $oldJobOrderNo
+                )
                     ->where('pr_no', 'not like', '%-P')
                     ->where(function ($query) {
                         $query->whereNull('source_type')
@@ -331,7 +356,18 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        $this->updateRelatedJobOrderPartStatus($purchaseRequest, $purchaseRequest->status);
+        $this->updateRelatedJobOrderPartStatus(
+            $purchaseRequest,
+            $purchaseRequest->status
+        );
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was updated.'
+        );
 
         return redirect()
             ->back()
@@ -362,6 +398,14 @@ class PurchaseRequestController extends Controller
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Approved');
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was approved.'
+        );
 
         return redirect()
             ->back()
@@ -394,6 +438,14 @@ class PurchaseRequestController extends Controller
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Rejected');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was rejected.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase request rejected successfully.');
@@ -419,6 +471,14 @@ class PurchaseRequestController extends Controller
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'For Purchase');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked For Purchase.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase request sent to purchase successfully.');
@@ -437,6 +497,14 @@ class PurchaseRequestController extends Controller
         ]);
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Delivered');
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked Delivered.'
+        );
 
         return redirect()
             ->back()
@@ -458,6 +526,14 @@ class PurchaseRequestController extends Controller
 
         $this->updateRelatedJobOrderPartStatus($purchaseRequest, 'Issued');
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'status_updated',
+            $purchaseRequest->id,
+            'A maintenance purchase request was marked Issued.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase request issued successfully.');
@@ -471,6 +547,7 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Inventory restock requests cannot be deleted from Maintenance.');
         }
 
+        $purchaseRequestId = $purchaseRequest->id;
         $jobOrderNo = $purchaseRequest->job_order_no;
 
         $purchaseRequest->delete();
@@ -478,7 +555,10 @@ class PurchaseRequestController extends Controller
         $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
 
         if ($jobOrder && ! empty($jobOrder->part_needed)) {
-            $hasOtherRequest = PurchaseRequest::where('job_order_no', $jobOrderNo)
+            $hasOtherRequest = PurchaseRequest::where(
+                'job_order_no',
+                $jobOrderNo
+            )
                 ->where('pr_no', 'not like', '%-P')
                 ->where(function ($query) {
                     $query->whereNull('source_type')
@@ -493,6 +573,14 @@ class PurchaseRequestController extends Controller
             }
         }
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'PurchaseRequest',
+            'deleted',
+            $purchaseRequestId,
+            'A maintenance purchase request was deleted.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase request deleted successfully.');
@@ -505,13 +593,18 @@ class PurchaseRequestController extends Controller
             || strtolower(trim($purchaseRequest->source_type ?? '')) === 'inventory restock';
     }
 
-    private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
-    {
+    private function updateRelatedJobOrderPartStatus(
+        PurchaseRequest $purchaseRequest,
+        string $partStatus
+    ): void {
         if ($this->isRestockRequest($purchaseRequest)) {
             return;
         }
 
-        $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
+        $jobOrder = JobOrder::where(
+            'job_order_no',
+            $purchaseRequest->job_order_no
+        )->first();
 
         if (! $jobOrder) {
             return;
@@ -526,7 +619,11 @@ class PurchaseRequestController extends Controller
     {
         $year = now()->format('Y');
 
-        $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
+        $lastPr = PurchaseRequest::where(
+            'pr_no',
+            'like',
+            "PR-{$year}-%"
+        )
             ->where('pr_no', 'not like', '%-P')
             ->orderByDesc('id')
             ->first();
@@ -537,16 +634,28 @@ class PurchaseRequestController extends Controller
 
         preg_match('/PR-' . $year . '-(\d+)/', $lastPr->pr_no, $matches);
 
-        $nextNumber = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
+        $nextNumber = isset($matches[1])
+            ? (int) $matches[1] + 1
+            : 1;
 
-        $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        $newPrNo = 'PR-' . $year . '-' . str_pad(
+            $nextNumber,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
 
         while (PurchaseRequest::where('pr_no', $newPrNo)->exists()) {
             $nextNumber++;
-            $newPrNo = 'PR-' . $year . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            $newPrNo = 'PR-' . $year . '-' . str_pad(
+                $nextNumber,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
         }
 
         return $newPrNo;
     }
-
 }

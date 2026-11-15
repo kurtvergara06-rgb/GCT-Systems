@@ -8,12 +8,15 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
 use App\Models\Warehouse\InventoryItem;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PurchaseOrderController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     private array $statuses = [
         'Ordered',
         'For Pick-up',
@@ -147,8 +150,10 @@ class PurchaseOrderController extends Controller
             $maintenanceRequest = $this->findFirstMaintenanceRequest($items);
         }
 
-        DB::transaction(function () use ($validated, $items, $totals, $maintenanceRequest) {
-            $purchaseOrder = PurchaseOrder::create([
+        $newPurchaseOrder = null;
+
+        DB::transaction(function () use ($validated, $items, $totals, $maintenanceRequest, &$newPurchaseOrder) {
+            $newPurchaseOrder = PurchaseOrder::create([
                 'po_no' => $this->generatePoNo(),
                 'po_date' => now()->toDateString(),
                 'purchase_request_id' => $maintenanceRequest?->id,
@@ -166,12 +171,22 @@ class PurchaseOrderController extends Controller
                 'status' => $validated['status'],
             ]);
 
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($newPurchaseOrder, $validated['status']);
 
             if ($this->isInventoryPostingStatus($validated['status'])) {
-                $this->postPurchaseOrderToInventory($purchaseOrder);
+                $this->postPurchaseOrderToInventory($newPurchaseOrder);
             }
         });
+
+        if ($newPurchaseOrder) {
+            $this->broadcastSystemDataUpdated(
+                'Purchase',
+                'PurchaseOrder',
+                'created',
+                $newPurchaseOrder->id,
+                'A new purchase order was created.'
+            );
+        }
 
         return redirect()
             ->route('purchase-orders')
@@ -258,6 +273,14 @@ class PurchaseOrderController extends Controller
             }
         });
 
+        $this->broadcastSystemDataUpdated(
+            'Purchase',
+            'PurchaseOrder',
+            'updated',
+            $purchaseOrder->id,
+            'A purchase order was updated.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase order updated successfully.');
@@ -281,6 +304,14 @@ class PurchaseOrderController extends Controller
             }
         });
 
+        $this->broadcastSystemDataUpdated(
+            'Purchase',
+            'PurchaseOrder',
+            'status_updated',
+            $purchaseOrder->id,
+            'A purchase order status was updated.'
+        );
+
         return redirect()
             ->back()
             ->with('success', 'Purchase order status updated successfully.');
@@ -288,6 +319,8 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
+        $purchaseOrderId = $purchaseOrder->id;
+
         DB::transaction(function () use ($purchaseOrder) {
             $maintenanceRequest = $purchaseOrder->maintenanceRequest;
 
@@ -301,6 +334,14 @@ class PurchaseOrderController extends Controller
                 $this->updateRelatedJobOrderPartStatus($maintenanceRequest, 'For Purchase');
             }
         });
+
+        $this->broadcastSystemDataUpdated(
+            'Purchase',
+            'PurchaseOrder',
+            'deleted',
+            $purchaseOrderId,
+            'A purchase order was deleted.'
+        );
 
         return redirect()
             ->back()

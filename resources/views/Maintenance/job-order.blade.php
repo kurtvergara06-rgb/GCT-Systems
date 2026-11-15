@@ -255,6 +255,11 @@
                     && !$isCompleted
                     && in_array($jobOrder->part_status, [null, 'Not Requested', 'Rejected'], true);
 
+                  $hasActivePr = $hasNeededParts
+                    && !$isCompleted
+                    && !$canCreatePr
+                    && $jobOrder->part_status !== 'Issued';
+
                   $partStatusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $partStatus));
                 @endphp
 
@@ -315,7 +320,7 @@
                     @if(!$jobOrder->part_needed || $partStatus === '----')
                       <span class="empty">----</span>
                     @else
-                      <x-ui.status-badge 
+                      <x-ui.status-badge
                         :status="$partStatus"
                         type="job"
                       />
@@ -355,6 +360,17 @@
                             <i class="fa-solid fa-file-circle-plus"></i>
                           </button>
                         </form>
+
+                      @elseif($hasActivePr)
+                        <button
+                          type="button"
+                          class="action-btn"
+                          title="Purchase Request already created"
+                          disabled
+                          style="opacity: 0.55; cursor: not-allowed;"
+                        >
+                          <i class="fa-solid fa-file-circle-check"></i>
+                        </button>
                       @endif
 
                       <form

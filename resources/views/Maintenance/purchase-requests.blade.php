@@ -120,11 +120,11 @@
         />
 
         <x-ui.summary-card
-          label="Issued"
-          value="{{ $issued }}"
-          small="Released parts"
-          icon="fa-box-open"
-          color="green"
+          label="For Purchase"
+          value="{{ $forPurchase ?? 0 }}"
+          small="Ready to purchase"
+          icon="fa-cart-shopping"
+          color="blue"
         />
 
       </section>
@@ -388,7 +388,16 @@
           >
             {{-- JS creates rows here --}}
           </div>
+        </div>
 
+        <div class="pr-jo-form-group full-width">
+          <button type="button" id="addNewPrPartBtn" class="add-part-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add another part
+          </button>
+        </div>
+
+        <div class="pr-jo-form-group full-width">
           <small>Add each part separately so Warehouse can check inventory correctly.</small>
         </div>
 
@@ -466,6 +475,13 @@
           <div id="editPrPartsContainer" class="pr-parts-container">
             {{-- JS creates rows here --}}
           </div>
+        </div>
+
+        <div class="pr-jo-form-group full-width">
+          <button type="button" id="addEditPrPartBtn" class="add-part-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add another part
+          </button>
         </div>
 
         <div class="pr-jo-form-group full-width">
