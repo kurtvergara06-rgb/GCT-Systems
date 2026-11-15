@@ -27,7 +27,7 @@
 
   <div class="app">
 
-   <x-layout.sidebar
+  <x-layout.sidebar
     department="Operation"
     subtitle="Operation Module"
     icon="fa-bus"
@@ -67,18 +67,35 @@
         ],
 
         [
+            'label' => 'Personnel Management',
+            'icon' => 'fa-address-book',
+            'children' => [
+                [
+                    'label' => 'Driver Master List',
+                    'route' => 'operation.personnel.drivers',
+                    'icon' => 'fa-id-card',
+                ],
+                [
+                    'label' => 'Mechanic Master List',
+                    'route' => 'operation.personnel.mechanics',
+                    'icon' => 'fa-users-gear',
+                ],
+            ],
+        ],
+
+        [
             'label' => 'Attendance',
             'icon' => 'fa-calendar-check',
             'children' => [
                 [
                     'label' => 'Driver Attendance',
                     'route' => 'driver-attendance',
-                    'icon' => 'fa-id-card',
+                    'icon' => 'fa-user-check',
                 ],
                 [
                     'label' => 'Mechanic Attendance',
                     'route' => 'mechanic-attendance',
-                    'icon' => 'fa-users-gear',
+                    'icon' => 'fa-clipboard-user',
                 ],
             ],
         ],
