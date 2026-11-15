@@ -83,3 +83,11 @@ Thumbs.db
 *.csv
 
 ca.pem
+
+# Python engine
+python_engine/.venv/
+python_engine/venv/
+python_engine/**/__pycache__/
+python_engine/**/*.pyc
+python_engine/uploads/*
+!python_engine/uploads/.gitkeep
