@@ -15,11 +15,16 @@ class SystemDataUpdated implements ShouldBroadcastNow
     public string $module;
     public string $entity;
     public string $action;
-    public $record_id;
+    public mixed $record_id;
     public string $message;
 
-    public function __construct(string $module, string $entity, string $action, $record_id, string $message)
-    {
+    public function __construct(
+        string $module,
+        string $entity,
+        string $action,
+        mixed $record_id,
+        string $message
+    ) {
         $this->module = $module;
         $this->entity = $entity;
         $this->action = $action;
@@ -27,9 +32,11 @@ class SystemDataUpdated implements ShouldBroadcastNow
         $this->message = $message;
     }
 
-    public function broadcastOn(): Channel
+    public function broadcastOn(): array
     {
-        return new Channel('system-updates');
+        return [
+            new Channel('system-updates'),
+        ];
     }
 
     public function broadcastWith(): array
