@@ -133,8 +133,8 @@ const ensureReferenceChartStyles = () => {
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-grid {
             stroke: #dce5f0;
             stroke-width: 1;
-            stroke-dasharray: 5 6;
-            opacity: .9;
+            stroke-dasharray: 4 7;
+            opacity: .78;
         }
 
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-area,
@@ -145,7 +145,7 @@ const ensureReferenceChartStyles = () => {
 
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-line,
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired:hover .reference-chart-line {
-            stroke-width: 2.6 !important;
+            stroke-width: 2.7 !important;
             filter: none !important;
             animation-iteration-count: 1 !important;
         }
@@ -158,10 +158,10 @@ const ensureReferenceChartStyles = () => {
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot {
             fill: #ffffff;
             stroke: #2563eb;
-            stroke-width: 2.5;
+            stroke-width: 2.35;
             transform-box: fill-box;
             transform-origin: center;
-            transition: transform .16s ease, fill .16s ease, stroke-width .16s ease, opacity .16s ease;
+            transition: transform .24s cubic-bezier(.22,.61,.36,1), fill .2s ease, stroke-width .2s ease, opacity .2s ease, filter .2s ease;
         }
 
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired:hover .reference-chart-dot {
@@ -173,13 +173,20 @@ const ensureReferenceChartStyles = () => {
             fill: #2563eb;
             stroke: #ffffff;
             stroke-width: 3;
-            transform: scale(1.45) !important;
-            filter: drop-shadow(0 2px 4px rgba(37, 99, 235, .26));
+            transform: scale(1.48) !important;
+            filter: drop-shadow(0 3px 6px rgba(37, 99, 235, .25));
         }
 
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot.is-partial {
+            fill: #ffffff;
             stroke: #94a3b8;
             stroke-dasharray: 2 2;
+        }
+
+        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-dot.is-partial.is-active {
+            fill: #94a3b8;
+            stroke: #ffffff;
+            stroke-dasharray: none;
         }
 
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-label {
@@ -188,17 +195,23 @@ const ensureReferenceChartStyles = () => {
             font-weight: 650;
         }
 
+        .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-y-label {
+            fill: #94a3b8;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
         .fleet-trip-page .reference-line-chart.is-nuxt-inspired .reference-chart-crosshair {
             stroke: #64748b;
             stroke-width: 1;
-            opacity: .72;
+            opacity: .58;
             pointer-events: none;
         }
 
         .reference-chart-hover-tooltip {
             position: absolute;
             z-index: 30;
-            min-width: 154px;
+            min-width: 156px;
             padding: 10px 12px;
             border: 1px solid rgba(148, 163, 184, .24);
             border-radius: 10px;
@@ -206,15 +219,17 @@ const ensureReferenceChartStyles = () => {
             color: #f8fafc;
             box-shadow: 0 14px 34px rgba(15, 23, 42, .2);
             pointer-events: none;
-            transform: translate(-50%, calc(-100% - 14px));
+            transform: translate(-50%, calc(-100% - 14px)) translateY(5px) scale(.985);
             opacity: 0;
             visibility: hidden;
-            transition: opacity .12s ease, visibility .12s ease;
+            transition: left .22s cubic-bezier(.22,.61,.36,1), top .22s cubic-bezier(.22,.61,.36,1), opacity .16s ease, transform .18s ease, visibility .16s ease;
+            will-change: left, top, transform, opacity;
         }
 
         .reference-chart-hover-tooltip.is-visible {
             opacity: 1;
             visibility: visible;
+            transform: translate(-50%, calc(-100% - 14px)) translateY(0) scale(1);
         }
 
         .reference-chart-hover-tooltip strong {
@@ -284,13 +299,37 @@ const bindReferenceLineChart = (chart) => {
     ensureReferenceChartStyles();
 
     const namespace = 'http://www.w3.org/2000/svg';
+    const line = svg.querySelector('.reference-chart-line');
+    const points = dots.map((dot, index) => ({
+        dot,
+        label: (labels[index]?.textContent || '').trim(),
+        value: (values[index]?.textContent || '0').trim(),
+        numericValue: Number((values[index]?.textContent || '0').trim()) || 0,
+        x: Number(dot.getAttribute('cx') || 0),
+        y: Number(dot.getAttribute('cy') || 0),
+    }));
+
+    const gridY = [44, 81.5, 119, 156.5, 194];
+    const maxValue = Math.max(1, ...points.map((point) => point.numericValue));
+    gridY.forEach((y, index) => {
+        const axisLabel = document.createElementNS(namespace, 'text');
+        const ratio = 1 - (index / (gridY.length - 1));
+        axisLabel.setAttribute('x', '32');
+        axisLabel.setAttribute('y', String(y + 3));
+        axisLabel.setAttribute('text-anchor', 'end');
+        axisLabel.setAttribute('class', 'reference-chart-y-label');
+        axisLabel.textContent = String(Math.round(maxValue * ratio));
+        svg.insertBefore(axisLabel, svg.firstChild);
+    });
+
     const crosshair = document.createElementNS(namespace, 'line');
     crosshair.setAttribute('class', 'reference-chart-crosshair');
-    crosshair.setAttribute('y1', '28');
+    crosshair.setAttribute('x1', String(points[0].x));
+    crosshair.setAttribute('x2', String(points[0].x));
+    crosshair.setAttribute('y1', '34');
     crosshair.setAttribute('y2', '194');
     crosshair.style.display = 'none';
 
-    const line = svg.querySelector('.reference-chart-line');
     if (line) {
         svg.insertBefore(crosshair, line);
     } else {
@@ -301,17 +340,58 @@ const bindReferenceLineChart = (chart) => {
     tooltip.className = 'reference-chart-hover-tooltip';
     tooltip.setAttribute('role', 'status');
     tooltip.setAttribute('aria-live', 'polite');
+
+    const tooltipTitle = document.createElement('strong');
+    const tooltipRow = document.createElement('div');
+    tooltipRow.className = 'reference-chart-tooltip-row';
+    const tooltipSeries = document.createElement('span');
+    tooltipSeries.className = 'reference-chart-tooltip-series';
+    const tooltipDot = document.createElement('i');
+    tooltipDot.className = 'reference-chart-tooltip-dot';
+    const tooltipSeriesText = document.createTextNode('Trips Processed');
+    const tooltipValue = document.createElement('b');
+
+    tooltipSeries.append(tooltipDot, tooltipSeriesText);
+    tooltipRow.append(tooltipSeries, tooltipValue);
+    tooltip.append(tooltipTitle, tooltipRow);
     chart.appendChild(tooltip);
 
-    const points = dots.map((dot, index) => ({
-        dot,
-        label: (labels[index]?.textContent || '').trim(),
-        value: (values[index]?.textContent || '0').trim(),
-        x: Number(dot.getAttribute('cx') || 0),
-        y: Number(dot.getAttribute('cy') || 0),
-    }));
+    dots.forEach((dot, index) => {
+        dot.style.animationDelay = `${0.46 + (index * 0.075)}s`;
+        if (labels[index]) {
+            labels[index].style.animationDelay = `${0.58 + (index * 0.055)}s`;
+        }
+    });
 
     let activeIndex = -1;
+    let currentCrosshairX = points[0].x;
+    let targetCrosshairX = points[0].x;
+    let crosshairFrame = null;
+
+    const animateCrosshair = () => {
+        const delta = targetCrosshairX - currentCrosshairX;
+        currentCrosshairX += delta * 0.22;
+
+        if (Math.abs(delta) < 0.08) {
+            currentCrosshairX = targetCrosshairX;
+        }
+
+        crosshair.setAttribute('x1', currentCrosshairX.toFixed(2));
+        crosshair.setAttribute('x2', currentCrosshairX.toFixed(2));
+
+        if (currentCrosshairX !== targetCrosshairX) {
+            crosshairFrame = requestAnimationFrame(animateCrosshair);
+        } else {
+            crosshairFrame = null;
+        }
+    };
+
+    const moveCrosshair = (x) => {
+        targetCrosshairX = x;
+        if (!crosshairFrame) {
+            crosshairFrame = requestAnimationFrame(animateCrosshair);
+        }
+    };
 
     const hideActivePoint = () => {
         if (activeIndex >= 0) {
@@ -334,19 +414,13 @@ const bindReferenceLineChart = (chart) => {
 
         activeIndex = index;
         point.dot.classList.add('is-active');
-        crosshair.setAttribute('x1', String(point.x));
-        crosshair.setAttribute('x2', String(point.x));
         crosshair.style.display = '';
+        moveCrosshair(point.x);
 
         const cleanLabel = point.label.replace(/\*$/, '');
         const partialText = point.label.endsWith('*') ? ' (partial)' : '';
-        tooltip.innerHTML = `
-            <strong>${cleanLabel}${partialText}</strong>
-            <div class="reference-chart-tooltip-row">
-                <span class="reference-chart-tooltip-series"><i class="reference-chart-tooltip-dot"></i>Trips Processed</span>
-                <b>${point.value}</b>
-            </div>
-        `;
+        tooltipTitle.textContent = `${cleanLabel}${partialText}`;
+        tooltipValue.textContent = point.value;
 
         const chartRect = chart.getBoundingClientRect();
         const svgRect = svg.getBoundingClientRect();
@@ -356,8 +430,8 @@ const bindReferenceLineChart = (chart) => {
         const left = (svgRect.left - chartRect.left) + (point.x * scaleX);
         const top = (svgRect.top - chartRect.top) + (point.y * scaleY);
 
-        tooltip.style.left = `${Math.max(82, Math.min(chartRect.width - 82, left))}px`;
-        tooltip.style.top = `${Math.max(68, top)}px`;
+        tooltip.style.left = `${Math.max(84, Math.min(chartRect.width - 84, left))}px`;
+        tooltip.style.top = `${Math.max(70, top)}px`;
         tooltip.classList.add('is-visible');
     };
 
@@ -373,7 +447,10 @@ const bindReferenceLineChart = (chart) => {
     };
 
     svg.addEventListener('pointermove', (event) => {
-        showPoint(nearestPointIndex(event.clientX));
+        const nextIndex = nearestPointIndex(event.clientX);
+        if (nextIndex !== activeIndex) {
+            showPoint(nextIndex);
+        }
     });
 
     svg.addEventListener('pointerleave', hideActivePoint);
