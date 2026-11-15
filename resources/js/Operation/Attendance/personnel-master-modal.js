@@ -123,7 +123,8 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         const query = busSearch.value.trim().toLowerCase();
         let count = 0;
         busOptions.forEach((option) => {
-            const match = option.textContent.toLowerCase().includes(query);
+            const match = !option.querySelector('[data-driver-bus-checkbox]')?.disabled
+                && option.textContent.toLowerCase().includes(query);
             option.hidden = !match;
             if (match) count++;
         });
@@ -317,9 +318,18 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             const assignedToAnotherDriver = ownerId !== '' && ownerId !== currentDriverId;
             check.disabled = assignedToAnotherDriver;
             if (assignedToAnotherDriver) check.checked = false;
-            option.hidden = false;
-            option.title = assignedToAnotherDriver ? 'Already assigned to another driver' : '';
+            option.hidden = assignedToAnotherDriver;
+            option.title = '';
         });
+        const query = busSearch?.value.trim().toLowerCase() || '';
+        let availableCount = 0;
+        busOptions.forEach((option) => {
+            const check = option.querySelector('[data-driver-bus-checkbox]');
+            const match = !check?.disabled && option.textContent.toLowerCase().includes(query);
+            option.hidden = !match;
+            if (match) availableCount++;
+        });
+        if (busEmpty) busEmpty.hidden = availableCount > 0;
         updateBusPicker();
     };
 
