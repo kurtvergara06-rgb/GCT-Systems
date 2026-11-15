@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Driver &amp; Bus Assignment Sheet - {{ $selectedTripDate }}</title>
+    <title>FROMS - Driver &amp; Bus Assignment Sheet - {{ $selectedTripDate }}</title>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 24px; font: 13px/1.5 Arial, sans-serif; color: #15253c; }
+        body { margin: 24px; font: 13px/1.5 'Poppins', Arial, sans-serif; color: #15253c; }
         header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 2px solid #18375c; padding-bottom: 15px; margin-bottom: 18px; }
         h1 { font-size: 21px; margin: 0 0 4px; }
         h2 { font-size: 14px; margin: 0; }
         .muted { color: #52637b; }
         .toolbar { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 20px; }
-        .toolbar button, .toolbar a { border: 1px solid #cbd5e1; background: white; color: #173557; padding: 9px 14px; border-radius: 7px; text-decoration: none; cursor: pointer; font-weight: bold; }
-        .toolbar button { background: #fbbf24; color: #101f35; border-color: #fbbf24; }
+        .toolbar button, .toolbar a { display: inline-flex; align-items: center; min-height: 40px; border: 1px solid #cbd5e1; background: white; color: #173557; padding: 8px 16px; border-radius: 9px; text-decoration: none; cursor: pointer; font-weight: 700; font-size: 13px; }
+        .toolbar button { background: #fbbf24; color: #101f35; border-color: #e5a000; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { padding: 9px 7px; border: 1px solid #cbd5e1; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
-        th { background: #edf2f8; font-size: 11px; text-transform: uppercase; }
+        th { background: #edf2f8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #334155; }
         tbody tr:nth-child(even) { background: #fafcff; }
         .meta { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
         .signatures { display: flex; justify-content: space-between; gap: 35px; margin-top: 65px; }

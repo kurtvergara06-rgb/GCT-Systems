@@ -115,8 +115,8 @@
                 @endphp
 
                 <tr>
-                  <td>{{ $attendance->driver_id }}</td>
-                  <td>{{ $attendance->driver_name }}</td>
+                  <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
+                  <td><strong>{{ $attendance->driver_name }}</strong></td>
                   <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
                   <td>
                     @if($primaryAssignment)

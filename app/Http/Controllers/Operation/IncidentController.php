@@ -462,17 +462,6 @@ class IncidentController extends Controller
         );
     }
 
-    public function edit(Incident $incident): View
-    {
-        abort_unless($incident->status === 'Reported'
-            && ! $incident->maintenanceReferral()->exists()
-            && ! $incident->replacement()->exists()
-            && $incident->responses()->count() <= 1, 403,
-            'This incident has already entered an operational workflow and cannot be edited.');
-
-        return view('Operation.Incidents.edit', compact('incident'));
-    }
-
     public function updateDetails(Request $request, Incident $incident): RedirectResponse
     {
         $validated = $request->validate([

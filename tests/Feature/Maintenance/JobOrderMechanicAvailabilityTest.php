@@ -40,7 +40,7 @@ class JobOrderMechanicAvailabilityTest extends TestCase
             'mechanic_id' => $mechanic->mechanic_id,
             'mechanic_name' => $mechanic->mechanic_name,
             'shift' => $mechanic->shift,
-            'attendance_date' => today(),
+            'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
             'status' => $status,
         ]);
     }

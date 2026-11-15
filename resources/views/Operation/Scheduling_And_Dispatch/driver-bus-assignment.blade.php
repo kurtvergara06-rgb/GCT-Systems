@@ -326,7 +326,7 @@
                                                 <div class="assignment-bus-cell">
                                                     <span class="assignment-resource-icon"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
                                                     <div class="assignment-bus-info">
-                                                        <strong>{{ $bus?->plate_no ?: 'Plate not recorded' }}</strong>
+                                                        <strong>{{ $bus ? trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) : 'Plate not recorded' }}</strong>
                                                         <span>{{ $bus?->bus_model ?: 'Model not recorded' }}</span>
                                                         @php
                                                             $slotBreakdown = $trip->incidents
@@ -596,7 +596,7 @@
                     <div class="resource-filter-bar" data-resource-filter="buses">
                         <label class="resource-filter-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" placeholder="Search plate number or model..." aria-label="Search visible unallocated buses"></label>
                     </div>
-                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Plate Number</span><span>Model</span><span>Status</span></div>
+                    <div class="resource-list-head resource-list-head--buses" aria-hidden="true"><span>Bus ID · Plate</span><span>Model</span><span>Status</span></div>
                     @forelse($availableBuses as $bus)
                         <div class="resource-record" data-resource-row="buses" data-resource-text="{{ strtolower($bus->plate_no.' '.$bus->bus_model.' '.$bus->bus_no) }}" data-resource-category="{{ strtolower($bus->bus_model) }}">
                             <div class="bus-resource-icon">
@@ -604,7 +604,7 @@
                             </div>
 
                             <div class="resource-record-info">
-                                <strong>{{ $bus->plate_no ?: 'Plate not recorded' }}</strong>
+                                <strong>{{ trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) ?: 'Plate not recorded' }}</strong>
                                 <span class="resource-mobile-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>
                             </div>
                             <span class="resource-row-detail">{{ $bus->bus_model ?: 'Operational bus' }}</span>

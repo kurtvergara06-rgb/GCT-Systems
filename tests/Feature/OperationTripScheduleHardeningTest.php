@@ -553,7 +553,9 @@ class OperationTripScheduleHardeningTest extends TestCase
     {
         $user = $this->operationUser();
         $route = $this->route();
-        $date = now()->addDay()->toDateString();
+        $date = now(config('app.business_timezone', 'Asia/Manila'))
+            ->addDay()
+            ->toDateString();
 
         $this->actingAs($user)
             ->post(route('trip-schedule.store'), [

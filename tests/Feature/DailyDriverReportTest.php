@@ -33,7 +33,7 @@ class DailyDriverReportTest extends TestCase
         ]);
     }
 
-    public function test_index_and_create_pages_render(): void
+    public function test_index_page_renders_with_encode_modal(): void
     {
         $this->actingAs($this->user)
             ->get(route('daily-driver-reports'))
@@ -41,11 +41,6 @@ class DailyDriverReportTest extends TestCase
             ->assertSee('Daily Drivers Report')
             ->assertSee('openEncodeReportModal')
             ->assertSee('ddrEncodeModal');
-
-        $this->actingAs($this->user)
-            ->get(route('daily-driver-reports.create'))
-            ->assertOk()
-            ->assertSee('Encode Daily Driver Report');
     }
 
     public function test_operation_staff_without_edit_permission_can_view_but_not_encode(): void
@@ -149,9 +144,9 @@ class DailyDriverReportTest extends TestCase
         ];
 
         $this->actingAs($this->user)
-            ->from(route('daily-driver-reports.create'))
+            ->from(route('daily-driver-reports'))
             ->post(route('daily-driver-reports.store'), $payload)
-            ->assertRedirect(route('daily-driver-reports.create'))
+            ->assertRedirect(route('daily-driver-reports'))
             ->assertSessionHas('error');
 
         $this->assertDatabaseCount('daily_driver_reports', 0);
@@ -171,9 +166,9 @@ class DailyDriverReportTest extends TestCase
         ]];
 
         $this->actingAs($this->user)
-            ->from(route('daily-driver-reports.create'))
+            ->from(route('daily-driver-reports'))
             ->post(route('daily-driver-reports.store'), $payload)
-            ->assertRedirect(route('daily-driver-reports.create'))
+            ->assertRedirect(route('daily-driver-reports'))
             ->assertSessionHas('error');
 
         $this->assertDatabaseCount('daily_driver_reports', 0);
@@ -197,9 +192,9 @@ class DailyDriverReportTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->from(route('daily-driver-reports.create'))
+            ->from(route('daily-driver-reports'))
             ->post(route('daily-driver-reports.store'), $this->validPayload())
-            ->assertRedirect(route('daily-driver-reports.create'))
+            ->assertRedirect(route('daily-driver-reports'))
             ->assertSessionHas('error');
 
         $this->assertDatabaseCount('daily_driver_reports', 1);
@@ -211,7 +206,7 @@ class DailyDriverReportTest extends TestCase
         $payload['passengers'] = -3;
 
         $this->actingAs($this->user)
-            ->from(route('daily-driver-reports.create'))
+            ->from(route('daily-driver-reports'))
             ->post(route('daily-driver-reports.store'), $payload)
             ->assertSessionHasErrors('passengers');
 
@@ -219,7 +214,7 @@ class DailyDriverReportTest extends TestCase
         $payload['arrival_time'] = '99:99';
 
         $this->actingAs($this->user)
-            ->from(route('daily-driver-reports.create'))
+            ->from(route('daily-driver-reports'))
             ->post(route('daily-driver-reports.store'), $payload)
             ->assertSessionHasErrors('arrival_time');
 

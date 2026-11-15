@@ -241,11 +241,11 @@
                                                             title="View Details"
                                                             data-trip='@json($viewTripData)'
                                                         />
-                                                        @if($canEdit)
-                                                            <x-ui.action-button
+                                                                                                                    <x-ui.action-button
                                                                 type="edit"
                                                                 class="trip-action edit-trip"
-                                                                title="Edit"
+                                                                title="{{ $canEdit ? 'Edit' : 'Editing unavailable for this trip' }}"
+                                                                :disabled="! $canEdit"
                                                                 data-id="{{ $trip->id }}"
                                                                 data-trip-code="{{ $trip->trip_code }}"
                                                                 data-trip-date="{{ $trip->trip_date?->format('Y-m-d') }}"
@@ -259,8 +259,6 @@
                                                                 data-update-url="{{ route('trip-schedule.update', $trip->id, false) }}"
                                                                 data-allow-past="{{ $isHistorical ? 'true' : 'false' }}"
                                                             />
-                                                        @endif
-                                                        @if($canDelete)
                                                             <form
                                                                 id="deleteTripForm-{{ $trip->id }}"
                                                                 method="POST"
@@ -275,12 +273,12 @@
                                                                 <x-ui.action-button
                                                                     type="delete"
                                                                     class="trip-action delete-trip"
-                                                                    title="Delete"
+                                                                    title="{{ $canDelete ? 'Delete' : 'Deleting unavailable for this trip' }}"
+                                                                    :disabled="! $canDelete"
                                                                     data-form-id="deleteTripForm-{{ $trip->id }}"
                                                                     data-trip-code="{{ $trip->trip_code }}"
                                                                 />
                                                             </form>
-                                                        @endif
                                                     </div>
                                                 </div>
                                             </td>

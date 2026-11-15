@@ -94,7 +94,7 @@ class TripAssignmentController extends Controller
         }
 
         $query->whereDate('trip_date', $selectedTripDate);
-        $now = now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d H:i:s');
+        $nowTimestamp = now(config('app.business_timezone', 'Asia/Manila'))->format('Y-m-d H:i:s');
         $driver = DB::connection()->getDriverName();
         $endExpression = $driver === 'sqlite'
             ? "CASE WHEN estimated_arrival_date IS NOT NULL THEN datetime(estimated_arrival_date || ' ' || estimated_arrival_time) ELSE datetime(trip_date || ' ' || estimated_arrival_time, CASE WHEN time(estimated_arrival_time) <= time(departure_time) THEN '+1 day' ELSE '+0 day' END) END"
@@ -103,7 +103,7 @@ class TripAssignmentController extends Controller
         // All other views remain scoped to future/ongoing assignment windows.
         if ($request->input('status') !== 'Missed') {
             $query->whereNotIn('status', ['Completed', 'Cancelled', 'Missed'])
-                ->whereRaw("($endExpression) > ?", [$now]);
+                ->whereRaw("($endExpression) > ?", [$nowTimestamp]);
         }
 
         if (
@@ -148,6 +148,7 @@ class TripAssignmentController extends Controller
         $scheduledTripsForDate = TripSchedule::query()
             ->whereDate('trip_date', $selectedTripDate)
             ->whereIn('status', ['Scheduled', 'Ready'])
+            ->whereRaw("($endExpression) > ?", [$nowTimestamp])
             ->count();
 
         $pendingAssignments = TripSchedule::query()

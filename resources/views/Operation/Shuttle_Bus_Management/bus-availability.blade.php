@@ -1,5 +1,5 @@
 <x-layout.app
-    title="GCT - Bus Availability"
+    title="FROMS - Bus Availability"
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
@@ -55,7 +55,12 @@
                             @forelse($buses as $bus)
                                 @php $readiness = $bus->effective_availability; @endphp
                                 <tr>
-                                    <td><x-ui.id-badge :value="$bus->plate_no ?: 'Plate not recorded'" /></td>
+                                    <td>
+                                        <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <x-ui.id-badge :value="$bus->bus_no" />
+                                            <span style="font-size: 12px; font-weight: 600; color: #475569;">({{ $bus->plate_no ?: 'Plate not recorded' }})</span>
+                                        </div>
+                                    </td>
                                     <td><strong>{{ $bus->bus_model ?: '—' }}</strong></td>
                                     <td><x-ui.status-badge :status="$readiness" class="availability-status" /></td>
                                     <td>
