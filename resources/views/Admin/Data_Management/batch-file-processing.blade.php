@@ -1229,12 +1229,13 @@
                     </p>
 
                     <form
-                        id="batchDeleteForm"
-                        method="POST"
-                        action=""
-                    >
-                        @csrf
-                        @method('DELETE')
+                    id="batchDeleteForm"
+                    method="POST"
+                    action=""
+                    data-index-url="{{ route('batch-file-processing') }}"
+                >
+                    @csrf
+                    @method('DELETE')
 
                         <div class="batch-delete-actions">
                             <button
