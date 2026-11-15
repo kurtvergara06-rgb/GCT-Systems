@@ -1,0 +1,4 @@
+Training samples: 5000
+Epochs trained: 60
+Best validation loss (MSE): 2.9233
+Architecture: SchedulingScorer(trip=5, driver=5, bus=5, hidden=64)
