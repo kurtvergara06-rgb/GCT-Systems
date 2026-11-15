@@ -85,7 +85,7 @@ class SystemBackendFullAuditTest extends TestCase
             'password' => 'SecurePass456!',
             'password_confirmation' => 'SecurePass456!',
         ]);
-        $pwdChangeResponse->assertRedirect(route('onboarding.show', ['step' => 2]));
+        $pwdChangeResponse->assertRedirect(route('onboarding.show', ['step' => 1]));
         $newUser->refresh();
         $this->assertFalse((bool) $newUser->must_change_password);
         $this->assertTrue(Hash::check('SecurePass456!', $newUser->password));
@@ -844,7 +844,7 @@ class SystemBackendFullAuditTest extends TestCase
         $this->assertNull($standaloneIncident->tripSchedule);
 
         $this->actingAs($opHead)
-            ->get(route('incidents.show', $standaloneIncident))
+            ->get(route('incidents.show', ['incident' => $standaloneIncident->incident_no, 'embedded' => 1]))
             ->assertOk();
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models\Admin;
 
 use Database\Factories\UserFactory;
+use App\Notifications\GctResetPasswordNotification;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,11 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new GctResetPasswordNotification($token));
+    }
 
     protected static function newFactory(): UserFactory
     {

@@ -1,5 +1,6 @@
 @props([
     'selectedRolePermission',
+    'assignedAccounts' => collect(),
     'permissionModules',
 ])
 
@@ -134,7 +135,7 @@
 
                 <div class="permission-edit-banner-copy">
                     <strong>EDIT MODE ACTIVE</strong>
-                    <span>Only {{ $selectedRolePermission->department }} permissions can be saved currently. Other modules are shown for review until cross-module authorization is enabled.</span>
+                    <span>Edit supported permissions for this role. Administration remains protected. Cross-department page access requires matching route authorization.</span>
                 </div>
 
                 <span class="permission-edit-unsaved">
@@ -201,7 +202,7 @@
                     <div>
                         <span class="section-kicker">Module Permissions</span>
                         <h2>System-Wide Module Access</h2>
-                        <p>Review all GCT modules. Only the home department is editable in this first UI phase; cross-module access is not enabled yet.</p>
+                        <p>Configure supported module permissions for this role. Administration access remains protected.</p>
                     </div>
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
@@ -210,13 +211,6 @@
                         @php
                             $isHomeModule = $moduleKey === $roleModuleKey;
                             $capabilities = $module['capabilities'];
-                            // Warehouse approval is shown for design consistency, but it has no
-                            // backend capability yet and must not be submitted as a permission.
-                            if ($moduleKey === 'warehouse') {
-                                $capabilities = array_merge($capabilities, [
-                                    'approve' => ['label' => 'Approve', 'icon' => 'fa-check-double'],
-                                ]);
-                            }
                         @endphp
                         <article class="system-admin-module-row">
                             <div class="module-access-info">
@@ -230,20 +224,20 @@
                                 @foreach($capabilities as $capabilityKey => $capability)
                                     @php
                                         $supported = array_key_exists($capabilityKey, $module['capabilities']);
-                                        $editable = $isHomeModule && $supported;
-                                        $isAllowed = $editable && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
+                                        $editable = $supported;
+                                        $isAllowed = $supported && (bool) data_get($selectedPermissions, $moduleKey.'.'.$capabilityKey, false);
                                         $fieldName = "permissions[{$moduleKey}][{$capabilityKey}]";
                                     @endphp
                                     @if($editable)
                                         <label class="protected-capability permission-option matrix-native-toggle {{ $isAllowed ? 'allowed' : 'restricted' }}" data-permission-option>
                                             <input type="hidden" name="{{ $fieldName }}" value="0">
                                             <input type="checkbox" name="{{ $fieldName }}" value="1" @checked($isAllowed) disabled data-permission-input>
-                                            <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-circle-xmark' }} option-state"></i>
+                                            <i class="fa-solid {{ $isAllowed ? 'fa-circle-check' : 'fa-lock' }} option-state"></i>
                                             <span>{{ $capability['label'] }}</span>
-                                            <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Restricted' }}</span>
+                                            <span class="permission-status-text" hidden>{{ $isAllowed ? 'Allowed' : 'Not granted' }}</span>
                                         </label>
                                     @else
-                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'Cross-module permissions will be enabled after backend authorization is implemented.' : 'Warehouse approval permission has not been implemented yet.' }}">
+                                        <span class="protected-capability matrix-native-locked" title="{{ $supported ? 'This permission is not configurable.' : 'This capability is not supported.' }}">
                                             <i class="fa-solid fa-lock"></i> {{ $capability['label'] }}
                                         </span>
                                     @endif
@@ -255,12 +249,35 @@
                 <div class="module-restriction-note">
                     <div class="restriction-note-icon"><i class="fa-solid fa-circle-info"></i></div>
                     <div>
-                        <strong>UI preview — no cross-module access granted</strong>
-                        <p>System Admin can review every module here. Only {{ $selectedRolePermission->department }} permissions are currently saved; cross-module access and Warehouse approval require separate backend implementation.</p>
+                        <strong>Cross-module permissions require route enforcement</strong>
+                        <p>Changes to supported role capabilities are saved here. Effective access to other departments still depends on route and controller authorization. Warehouse approval workflows require separate backend enforcement.</p>
                     </div>
                 </div>
             </section>
         @endif
+
+        <section class="module-access-section assigned-role-accounts">
+            <div class="module-access-heading">
+                <div>
+                    <span class="section-kicker">Registered Accounts</span>
+                    <h2>Assigned Accounts</h2>
+                    <p>These accounts inherit the selected role's permissions.</p>
+                </div>
+                <span class="access-count-badge">{{ $assignedAccounts->count() }} Accounts</span>
+            </div>
+            @forelse($assignedAccounts as $account)
+                <div class="assigned-role-account-row">
+                    <div>
+                        <strong>{{ $account->name }}</strong>
+                        <span>{{ $account->email }}</span>
+                    </div>
+                    <span>{{ $account->status }}</span>
+                </div>
+            @empty
+                <p class="assigned-role-account-empty">No accounts are currently assigned to this role.</p>
+            @endforelse
+            <a class="assigned-role-account-link" href="{{ route('admin.users') }}">Manage accounts</a>
+        </section>
 
         @unless($isProtectedRole)
             <div class="permission-edit-actions">

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\Admin\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\GctResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -24,7 +24,7 @@ class LoginRecoveryTest extends TestCase
             ->assertDontSee('register.submit');
         $this->post(route('password.email'), ['email' => $user->email])
             ->assertSessionHas('status');
-        Notification::assertSentTo($user, ResetPassword::class);
+        Notification::assertSentTo($user, GctResetPasswordNotification::class);
         $this->post(route('password.email'), ['email' => 'unknown@example.test'])
             ->assertSessionHas('status');
     }

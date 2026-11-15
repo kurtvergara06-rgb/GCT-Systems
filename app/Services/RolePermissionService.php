@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Admin\RolePermission;
+use App\Models\Admin\User;
 use Illuminate\Support\Facades\Schema;
 
 class RolePermissionService
@@ -40,12 +41,16 @@ class RolePermissionService
             return $normalized;
         }
 
-        $roleModuleKey = $this->roleModuleKey($rolePermission);
-
-        if ($roleModuleKey === null) {
+        // Only supported capabilities may be saved. Administration stays
+        // restricted to protected system administrators.
+        if ($this->roleModuleKey($rolePermission) === null) {
             return $normalized;
         }
 
+        // Department roles may only be granted capabilities within their own
+        // department. Ignore forged cross-module fields even if submitted by an
+        // administrator; the protected system-admin role is handled above.
+        $roleModuleKey = $this->roleModuleKey($rolePermission);
         foreach (array_keys($this->modules()[$roleModuleKey]['capabilities']) as $capabilityKey) {
             $normalized[$roleModuleKey][$capabilityKey] = (bool) data_get(
                 $submittedPermissions,
@@ -77,8 +82,19 @@ class RolePermissionService
         $selected = $roles->firstWhere('role_key', $selectedRoleKey)
             ?? $roles->first();
 
+        // Actual accounts only: users inherit permissions from their role,
+        // never from an independently invented account-level permission set.
+        $roleAccounts = Schema::hasTable('users')
+            ? User::query()
+                ->select(['id', 'name', 'email', 'department', 'role', 'status'])
+                ->orderBy('name')
+                ->get()
+                ->groupBy(fn (User $user) => $user->permissionRoleKey())
+            : collect();
+
         return [
             'rolePermissions' => $roles,
+            'roleAccounts' => $roleAccounts,
             'selectedRolePermission' => $selected,
             'permissionModules' => $this->modules(),
             'permissionsReady' => true,
@@ -125,6 +141,7 @@ class RolePermissionService
                 'capabilities' => [
                     'view' => ['label' => 'View', 'icon' => 'fa-eye'],
                     'edit' => ['label' => 'Create / Edit', 'icon' => 'fa-pen'],
+                    'approve' => ['label' => 'Approve', 'icon' => 'fa-check-double'],
                 ],
             ],
             'analytics' => [

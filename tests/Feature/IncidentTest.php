@@ -125,6 +125,31 @@ class IncidentTest extends TestCase
         ]);
     }
 
+    public function test_ordinary_road_incident_does_not_place_bus_under_maintenance(): void
+    {
+        $assignment = $this->tripSchedule->assignments()->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->post(route('incidents.store'), [
+                'trip_schedule_id' => $this->tripSchedule->id,
+                'trip_assignment_id' => $assignment->id,
+                'bus_id' => $this->bus->id,
+                'incident_type' => 'Accident/Road Incident',
+                'location' => 'Along Highway, Batangas City',
+                'description' => 'Minor road incident with no mechanical failure.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame('Active', $this->bus->fresh()->status);
+        $this->assertDatabaseHas('incidents', [
+            'trip_schedule_id' => $this->tripSchedule->id,
+            'bus_id' => $this->bus->id,
+            'incident_type' => 'Accident/Road Incident',
+            'active_breakdown_key' => null,
+        ]);
+    }
+
     public function test_required_fields_are_validated(): void
     {
         $this->actingAs($this->user)
@@ -302,9 +327,9 @@ class IncidentTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
-            ->assertSee('Available Reserve Buses')
+            ->assertSee('Select an eligible reserve bus')
             ->assertSee('BUS-REPL-001');
 
         $this->actingAs($this->user)->post(route('incidents.response', $incident), [
@@ -344,7 +369,7 @@ class IncidentTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertDontSee('BUS-REGULAR-002');
 
@@ -491,11 +516,11 @@ class IncidentTest extends TestCase
         $incident = $this->createIncident('Bus Breakdown');
 
         $this->actingAs($this->user)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertSee($incident->incident_no)
             ->assertSee('Bus Breakdown')
-            ->assertSee('Operations Actions');
+            ->assertSee('Incident Workflow');
     }
 
     public function test_embedded_show_renders_the_complete_incident_workflow_workspace(): void

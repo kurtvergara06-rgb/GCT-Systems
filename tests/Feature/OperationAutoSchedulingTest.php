@@ -951,7 +951,9 @@ class OperationAutoSchedulingTest extends TestCase
     public function test_confirm_submits_recommendations_from_both_incoming_and_outgoing(): void
     {
         $user = User::factory()->create();
-        $scheduleDate = '2026-10-21';
+        $scheduleDate = now(config('app.business_timezone', 'Asia/Manila'))
+            ->addDay()
+            ->toDateString();
 
         $route = ShuttleRoute::create([
             'route_code' => 'R-BOTH',

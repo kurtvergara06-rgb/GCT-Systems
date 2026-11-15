@@ -26,8 +26,8 @@ class FirstLoginOnboardingTest extends TestCase
             ->get(route('onboarding.show'))
             ->assertOk()
             ->assertSee('Welcome to GCT')
-            ->assertSee('Secure Account')
-            ->assertSee('Secure your account')
+            ->assertSee('Confirm Profile')
+            ->assertDontSee('Secure Account')
             ->assertDontSee('Skip Tutorial');
     }
 
@@ -48,7 +48,7 @@ class FirstLoginOnboardingTest extends TestCase
                 'password' => 'PrivatePassword456!',
                 'password_confirmation' => 'PrivatePassword456!',
             ])
-            ->assertRedirect(route('onboarding.show', ['step' => 2]));
+            ->assertRedirect(route('onboarding.show', ['step' => 1]));
 
         $user->refresh();
         $this->assertFalse($user->must_change_password);
@@ -90,6 +90,30 @@ class FirstLoginOnboardingTest extends TestCase
             ->assertOk()
             ->assertSee('Welcome to GCT')
             ->assertSee('Maintenance Referrals');
+    }
+
+    public function test_onboarding_profile_cannot_change_verified_email(): void
+    {
+        $user = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'email' => 'verified@gct.example',
+            'email_verified_at' => now(),
+            'onboarding_completed' => false,
+        ]);
+
+        $this->actingAs($user)->get(route('onboarding.show'))
+            ->assertOk()
+            ->assertSee('readonly aria-readonly="true"', false);
+
+        $this->actingAs($user)->put(route('onboarding.profile.update'), [
+            'name' => 'Updated Employee',
+            'email' => 'attacker@example.com',
+        ])->assertRedirect(route('onboarding.show'));
+
+        $this->assertSame('Updated Employee', $user->fresh()->name);
+        $this->assertSame('verified@gct.example', $user->fresh()->email);
     }
 
     public function test_finishing_onboarding_persists_completion_and_redirects_to_department_dashboard(): void

@@ -2158,7 +2158,29 @@
 .assignment-page .assignment-table .assignment-status.partially-assigned { min-width:0; padding:4px 8px; white-space:nowrap; }
 
 /* Incident-linked assignment slots: incident status is separate from the trip's scheduled status. */
-.assignment-incident-indicator { display:inline-flex; align-items:center; gap:5px; width:fit-content; margin-top:4px; padding:3px 7px; border:1px solid #f3c982; background:#fff7e6; color:#9d5b06; border-radius:6px; font-size:10px; font-weight:700; text-decoration:none; }
+.assignment-incident-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    width: max-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 5px;
+    padding: 4px 8px;
+    border: 1px solid #f3c982;
+    background: #fff7e6;
+    color: #9d5b06;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-align: left;
+    text-decoration: none;
+    vertical-align: middle;
+}
+.assignment-incident-indicator > i { flex: 0 0 auto; font-size: 10px; }
 .assignment-incident-indicator:hover { background:#ffecce; color:#7c4200; }
 .assignment-incident-indicator:focus-visible { outline:2px solid #2563eb; outline-offset:2px; }
 
@@ -2225,3 +2247,59 @@
 
 /* Hidden choices must stay hidden even with the combobox flex layout. */
 .assignment-combobox-option[hidden] { display: none !important; }
+
+
+/* Keep long operational status labels readable inside the existing Status column. */
+.assignment-page .assignment-table .assignment-status.ready-replacement-assigned,
+.assignment-page .assignment-table .assignment-status.incident-awaiting-replacement,
+.assignment-page .assignment-table .assignment-status.breakdown-reported-oic-review,
+.assignment-page .assignment-table .assignment-status.in-progress-breakdown-reported,
+.assignment-page .assignment-table .assignment-status.in-progress-awaiting-replacement,
+.assignment-page .assignment-table .assignment-status.in-progress-reserve-deployed {
+    white-space: normal;
+    overflow-wrap: normal;
+    text-align: center;
+    justify-content: center;
+    max-width: 158px;
+    min-height: 32px;
+    padding: 5px 8px;
+    line-height: 1.3;
+}
+.assignment-page .assignment-table .assignment-status.ready-replacement-assigned {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+.assignment-page .assignment-table .assignment-status.incident-awaiting-replacement,
+.assignment-page .assignment-table .assignment-status.breakdown-reported-oic-review,
+.assignment-page .assignment-table .assignment-status.in-progress-breakdown-reported,
+.assignment-page .assignment-table .assignment-status.in-progress-awaiting-replacement {
+    background: #fff4df;
+    border: 1px solid #f3c982;
+    color: #92400e;
+}
+.assignment-page .assignment-table .assignment-status.in-progress-reserve-deployed {
+    background: #e0ecff;
+    border: 1px solid #bfd4ff;
+    color: #1d4ed8;
+}
+
+/* Compact reserve status: keep badge clear of adjacent action buttons. */
+.assignment-page .assignment-table .assignment-status.ready-reserve,
+.assignment-page .assignment-table .assignment-status.in-progress-reserve {
+    white-space: nowrap;
+    max-width: 100%;
+    min-width: 0;
+    padding: 4px 7px;
+    font-size: 10px;
+}
+.assignment-page .assignment-table .assignment-status.ready-reserve {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+.assignment-page .assignment-table .assignment-status.in-progress-reserve {
+    background: #e0ecff;
+    border: 1px solid #bfd4ff;
+    color: #1d4ed8;
+}

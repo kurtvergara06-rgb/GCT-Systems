@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Admin\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class OnboardingController extends Controller
@@ -28,17 +27,11 @@ class OnboardingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        // Email changes must use the separate signed-link verification workflow.
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
         ]);
-
-        $user->update($validated);
+        $user->update(['name' => $validated['name']]);
 
         return redirect()
             ->route('onboarding.show')

@@ -53,6 +53,93 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
   const userNameInput = document.getElementById('userNameInput');
   const userEmailInput = document.getElementById('userEmailInput');
+  const accountCreateEmailField = document.getElementById('accountCreateEmailField');
+  const accountCurrentEmailField = document.getElementById('accountCurrentEmailField');
+  const accountCurrentVerifiedEmail = document.getElementById('accountCurrentVerifiedEmail');
+  const accountNewEmailField = document.getElementById('accountNewEmailField');
+  const accountNewEmailInput = document.getElementById('accountNewEmailInput');
+  const accountPendingEmailPanel = document.getElementById('accountPendingEmailPanel');
+  const accountPendingEmailAddress = document.getElementById('accountPendingEmailAddress');
+  const accountPendingEmailRequested = document.getElementById('accountPendingEmailRequested');
+  const accountPendingEmailExpiry = document.getElementById('accountPendingEmailExpiry');
+  const accountPendingTitle = document.getElementById('accountPendingTitle');
+  const accountPendingDescription = document.getElementById('accountPendingDescription');
+  const accountPendingBadge = document.getElementById('accountPendingBadge');
+  const accountPendingActions = document.getElementById('accountPendingActions');
+  const accountEmailSendButton = document.getElementById('accountEmailSendButton');
+  const accountEmailResendButton = document.getElementById('accountEmailResendButton');
+  const accountEmailCancelButton = document.querySelector('#accountPendingActions .account-cancel-pending-btn');
+  let savedPendingEmail = '';
+  let savedPendingRequested = '';
+  let savedPendingExpiry = '';
+
+  function refreshEmailChangePanel() {
+    if (!accountPendingEmailPanel || !accountNewEmailInput) return;
+    const editing = userFormMethod?.value === 'PUT';
+    const proposed = accountNewEmailInput.value.trim();
+    const current = (accountCurrentVerifiedEmail?.value || '').trim();
+    const isNewValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposed);
+    const isDifferent = proposed.toLowerCase() !== current.toLowerCase();
+    const isPreview = editing && isNewValid && isDifferent;
+    const showSaved = editing && !isPreview && Boolean(savedPendingEmail);
+    accountPendingEmailPanel.hidden = !(isPreview || showSaved);
+    accountPendingEmailPanel.classList.toggle('is-preview', isPreview);
+    if (!isPreview && !showSaved) return;
+    if (accountPendingEmailAddress) accountPendingEmailAddress.textContent = isPreview ? proposed : savedPendingEmail;
+    if (accountPendingTitle) accountPendingTitle.textContent = isPreview ? 'New Email Change Preview' : 'Pending Email Change';
+    if (accountPendingDescription) accountPendingDescription.textContent = isPreview
+      ? 'This change has not been submitted. Save the account to send a verification link.'
+      : 'A new email address is awaiting verification.';
+    if (accountPendingBadge) accountPendingBadge.textContent = isPreview ? 'Not yet submitted' : 'Awaiting Verification';
+    if (accountPendingEmailRequested) accountPendingEmailRequested.textContent = isPreview
+      ? 'Not yet submitted'
+      : (savedPendingRequested || 'Not available');
+    if (accountPendingEmailExpiry) accountPendingEmailExpiry.textContent = isPreview
+      ? 'No verification sent yet'
+      : (savedPendingExpiry || 'Not available');
+    if (accountPendingActions) {
+      accountPendingActions.hidden = false;
+      accountPendingActions.style.display = '';
+    }
+    if (accountEmailSendButton) {
+      accountEmailSendButton.hidden = !isPreview;
+      accountEmailSendButton.disabled = !isPreview;
+    }
+    if (accountEmailResendButton) {
+      accountEmailResendButton.hidden = !showSaved;
+      accountEmailResendButton.disabled = !showSaved;
+    }
+    if (accountEmailCancelButton) {
+      accountEmailCancelButton.hidden = !showSaved;
+      accountEmailCancelButton.disabled = !showSaved;
+    }
+  }
+
+  accountNewEmailInput?.addEventListener('input', refreshEmailChangePanel);
+  accountNewEmailInput?.addEventListener('change', refreshEmailChangePanel);
+  const accountEmailResendForm = document.getElementById('accountEmailResendForm');
+  const accountEmailCancelForm = document.getElementById('accountEmailCancelForm');
+  // Never submit the pending-email actions for an unsaved preview.
+  const canManageSavedEmail = () =>
+    Boolean(savedPendingEmail) &&
+    !accountPendingEmailPanel?.classList.contains('is-preview') &&
+    userFormMethod?.value === 'PUT';
+  accountEmailResendForm?.addEventListener('submit', event => {
+    if (!canManageSavedEmail()) event.preventDefault();
+  });
+  accountEmailCancelForm?.addEventListener('submit', event => {
+    if (!canManageSavedEmail() || !window.confirm('Cancel this pending email change?')) {
+      event.preventDefault();
+    }
+  });
+  const accountEditEmailNote = document.getElementById('accountEditEmailNote');
+  if (accountEditEmailNote && userFormMethod) {
+    const syncNotice = () => {
+      accountEditEmailNote.hidden = userFormMethod.value !== 'PUT';
+    };
+    userFormMethod.addEventListener('change', syncNotice);
+    userFormModal?.addEventListener('click', syncNotice);
+  }
   const userPasswordInput = document.getElementById('userPasswordInput');
   const userPasswordGroup = userPasswordInput?.closest('.form-group');
   const userDepartmentInput = document.getElementById('userDepartmentInput');
@@ -61,12 +148,18 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
   function openModal(modal) {
     if (!modal) return;
+    // Partial navigation may have hidden the overlay with an inline style.
+    // A .show class alone cannot override display:none on the element.
+    modal.style.removeProperty('display');
+    modal.removeAttribute('inert');
+    modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('show');
   }
 
   function closeModal(modal) {
     if (!modal) return;
     modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
   }
 
   function closeAllModals() {
@@ -86,6 +179,11 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
     const element = document.getElementById(id);
     if (!element) return;
     element.textContent = value || '—';
+  }
+
+  function setSaveButtonText(value) {
+    const label = userFormSaveBtn?.querySelector('span');
+    if (label) label.textContent = value;
   }
 
   function setPasswordFieldVisible(visible) {
@@ -209,6 +307,17 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'POST';
     }
 
+    userFormModal?.classList.remove('is-edit-mode');
+    if (accountEditEmailNote) accountEditEmailNote.hidden = true;
+    if (accountCreateEmailField) accountCreateEmailField.hidden = false;
+    if (accountCurrentEmailField) accountCurrentEmailField.hidden = true;
+    if (accountNewEmailField) accountNewEmailField.hidden = true;
+    savedPendingEmail = '';
+    savedPendingRequested = '';
+    savedPendingExpiry = '';
+    if (accountPendingEmailPanel) accountPendingEmailPanel.hidden = true;
+    if (accountNewEmailInput) { accountNewEmailInput.disabled = true; accountNewEmailInput.value = ''; }
+    if (userEmailInput) userEmailInput.disabled = false;
     setInput(userNameInput, '');
     setInput(userEmailInput, '');
     setInput(userDepartmentInput, '');
@@ -237,7 +346,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       }
 
       if (userFormSaveBtn) {
-        userFormSaveBtn.textContent = 'Save Account';
+        setSaveButtonText('Save Account');
       }
 
       if (userPasswordInput) {
@@ -266,8 +375,23 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       userFormMethod.value = 'PUT';
     }
 
+    userFormModal?.classList.add('is-edit-mode');
     setInput(userNameInput, editButton.dataset.name);
+    // Explicitly set the edit-mode state; hidden inputs do not dispatch change events.
+    if (accountEditEmailNote) accountEditEmailNote.hidden = false;
     setInput(userEmailInput, editButton.dataset.email);
+    if (accountCreateEmailField) accountCreateEmailField.hidden = true;
+    if (accountCurrentEmailField) accountCurrentEmailField.hidden = false;
+    if (accountNewEmailField) accountNewEmailField.hidden = false;
+    if (accountCurrentVerifiedEmail) accountCurrentVerifiedEmail.value = editButton.dataset.email || '';
+    if (accountNewEmailInput) { accountNewEmailInput.disabled = false; accountNewEmailInput.value = ''; }
+    if (userEmailInput) userEmailInput.disabled = false;
+    savedPendingEmail = editButton.dataset.pendingEmail || '';
+    savedPendingRequested = editButton.dataset.pendingRequested || '';
+    savedPendingExpiry = editButton.dataset.pendingExpiry || '';
+    refreshEmailChangePanel();
+    if (accountEmailResendForm) accountEmailResendForm.action = editButton.dataset.emailResendUrl || '';
+    if (accountEmailCancelForm) accountEmailCancelForm.action = editButton.dataset.emailCancelUrl || '';
     setInput(userDepartmentInput, editButton.dataset.department);
     setInput(userRoleInput, normalizeRole(editButton.dataset.role));
     setInput(userStatusInput, editButton.dataset.status);
@@ -279,11 +403,11 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
     if (userFormModalSubtitle) {
       userFormModalSubtitle.textContent =
-        'Update account details, department, role, and status.';
+        'Update account details, department, role, and email verification status.';
     }
 
     if (userFormSaveBtn) {
-      userFormSaveBtn.textContent = 'Update Account';
+      setSaveButtonText('Update Account');
     }
 
     openModal(userFormModal);
@@ -378,15 +502,6 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
 
     const feedbackModal = okButton.closest('.feedback-modal-overlay');
     if (feedbackModal) feedbackModal.classList.remove('show');
-  });
-
-  document.addEventListener('click', function (event) {
-    if (
-      event.target.classList.contains('admin-modal-overlay') ||
-      event.target.classList.contains('feedback-modal-overlay')
-    ) {
-      event.target.classList.remove('show');
-    }
   });
 
   document.addEventListener('keydown', function (event) {

@@ -779,6 +779,15 @@ function initIncidentWorkflowModal() {
             window.showSystemToast?.(message, level, level === 'error' ? 'Validation Error' : 'Success');
         }
     });
+    // Direct links and post-action redirects should use the same modal as the table.
+    const requestedIncident = new URLSearchParams(window.location.search).get('view_incident');
+    if (requestedIncident && /^[A-Za-z0-9_-]+$/.test(requestedIncident)) {
+        const matchedButton = Array.from(page.querySelectorAll('[data-incident-workflow-open]'))
+            .find(button => button.dataset.incidentFullUrl?.split('?')[0]?.endsWith('/' + requestedIncident));
+        const workflowUrl = matchedButton?.dataset.workflowUrl
+            || window.location.pathname.replace(/\/$/, '') + '/' + encodeURIComponent(requestedIncident) + '?embedded=1';
+        openWorkflow(workflowUrl, matchedButton || null);
+    }
     modal.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
             event.preventDefault();

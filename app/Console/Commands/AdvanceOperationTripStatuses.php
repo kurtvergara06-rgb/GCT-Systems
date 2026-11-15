@@ -41,9 +41,17 @@ class AdvanceOperationTripStatuses extends Command
 
                         // A delayed scheduler run can transition directly from Ready
                         // to Pending DDR if the entire planned window has elapsed.
-                        $trip->status = $trip->estimatedArrivalDateTime()->lessThanOrEqualTo($now)
+                        $nextStatus = $trip->estimatedArrivalDateTime()->lessThanOrEqualTo($now)
                             ? 'Pending DDR'
                             : 'Dispatched';
+
+                        // Do not re-save or re-broadcast an already-dispatched trip
+                        // on every minute of the scheduler cycle.
+                        if ($nextStatus === $trip->status) {
+                            return;
+                        }
+
+                        $trip->status = $nextStatus;
                         $trip->save();
                         $updated++;
 

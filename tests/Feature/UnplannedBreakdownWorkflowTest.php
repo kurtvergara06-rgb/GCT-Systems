@@ -91,6 +91,10 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             'assigned_by' => $operationHead->id,
         ]);
 
+        $this->assertSame($originalBus->id, $assignment->bus_id);
+        $this->assertSame($driver->driver_id, $assignment->driver_id);
+        $this->assertSame($driver->driver_name, $assignment->driver_name);
+
         $incident = Incident::create([
             'incident_no' => 'INC-BRK-0001',
             'trip_schedule_id' => $trip->id,
@@ -109,9 +113,19 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertTrue($incident->is_unplanned_breakdown);
         $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
 
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Breakdown Reported');
+
         $this->actingAs($operationHead)->post(route('incidents.response', $incident), [
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
+
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Awaiting Replacement');
 
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
@@ -131,6 +145,12 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertSame($driver->driver_name, $assignment->driver_name);
         $this->assertSame($route->id, $trip->shuttle_route_id);
         $this->assertSame('Dispatched', $trip->status);
+        $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
+
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $trip->trip_date->toDateString()]))
+            ->assertOk()
+            ->assertSee('In Progress — Reserve Deployed');
 
         $this->assertDatabaseHas('incident_replacements', [
             'incident_id' => $incident->id,
@@ -324,12 +344,22 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $this->assertSame('Under Maintenance', $originalBus->fresh()->status);
         $this->assertSame('Scheduled', $trip->fresh()->status);
 
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $today]))
+            ->assertOk()
+            ->assertSee('OIC Review');
+
         // 2. Record OIC response and deploy Reserve Bus
         $this->actingAs($operationHead)
             ->post(route('incidents.response', ['incident' => $incident->incident_no]), [
                 'notes' => 'OIC authorized Reserve Bus BUS-SCEN-A-RES.',
             ])
             ->assertSessionHasNoErrors();
+
+        $this->actingAs($operationHead)
+            ->get(route('driver-bus-assignment', ['trip_date' => $today]))
+            ->assertOk()
+            ->assertSee('Awaiting Reserve');
 
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
@@ -353,6 +383,7 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('BUS-SCEN-A-RES')
             ->assertSee('Reserve Deployed')
+            ->assertSee('Ready · Reserve')
             ->assertSee('OIC Approved')
             ->assertDontSee('Approval Not Recorded');
 
@@ -536,20 +567,19 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             'reported_by' => $operationHead->id,
         ]);
 
-        // Active relief drivers are eligible without DDR attendance; busy drivers and unavailable buses remain excluded.
+        // Embedded workflow is the interactive modal; driver choice is intentionally absent.
         $this->actingAs($operationHead)
-            ->get(route('incidents.show', ['incident' => $incident->incident_no]))
+            ->get(route('incidents.show', ['incident' => $incident->incident_no, 'embedded' => 1]))
             ->assertOk()
             ->assertSee('BUS-BD-RES-FREE')
             ->assertDontSee('BUS-BD-RES-BUSY')
             ->assertDontSee('BUS-BD-RES-JO')
-            ->assertSee('Eligible Relief Driver')
-            ->assertDontSee('Busy Overlapping Driver')
-            ->assertSee('Absent Replacement Driver');
+            ->assertDontSee('Driver for trip continuation')
+            ->assertDontSee('replacement_driver_attendance_id');
 
         $this->actingAs($operationHead)
             ->post(route('incidents.response', ['incident' => $incident->incident_no]), [
-                'notes' => 'OIC approved reserve bus deployment and relief driver.',
+                'notes' => 'OIC approved reserve bus deployment with the original driver.',
             ])
             ->assertSessionHasNoErrors();
 
@@ -571,25 +601,27 @@ class UnplannedBreakdownWorkflowTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('error', 'The selected replacement bus has an unresolved Maintenance Job Order.');
 
-        // Historical Absent status does not block an Active driver under
-        // GCT's assumed-available scheduling policy. DDR verifies actual
-        // attendance after the trip, not before replacement dispatch.
-
-        // Reject Overlapping replacement driver
+        // A client cannot override the original driver's assignment.
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $freeReserveBus->id,
                 'replacement_driver_attendance_id' => $busyAttendance->id,
                 'oic_authorized' => '1',
             ])
-            ->assertRedirect()
-            ->assertSessionHas('error', 'The selected replacement driver has an overlapping trip assignment at this time.');
+            ->assertSessionHasErrors('replacement_driver_attendance_id');
 
-        // Case 2: Dispatch with eligible replacement driver
         $this->actingAs($operationHead)
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $freeReserveBus->id,
-                'replacement_driver_attendance_id' => $eligibleReplacementAttendance->id,
+                'replacement_driver_id' => $eligibleReplacementDriver->driver_id,
+                'oic_authorized' => '1',
+            ])
+            ->assertSessionHasErrors('replacement_driver_id');
+
+        // The eligible Reserve Bus takes over without changing the driver.
+        $this->actingAs($operationHead)
+            ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
+                'replacement_bus_id' => $freeReserveBus->id,
                 'oic_authorized' => '1',
             ])
             ->assertRedirect()
@@ -598,11 +630,11 @@ class UnplannedBreakdownWorkflowTest extends TestCase
         $affectedAssignment->refresh();
         $incident->refresh();
 
-        // TripAssignment updated to replacement Reserve Bus and replacement driver
+        // Only the bus changes; the original driver continues.
         $this->assertSame($brokenBus->id, $affectedAssignment->original_bus_id);
         $this->assertSame($freeReserveBus->id, $affectedAssignment->bus_id);
-        $this->assertSame($eligibleReplacementDriver->driver_id, $affectedAssignment->driver_id);
-        $this->assertSame($eligibleReplacementDriver->driver_name, $affectedAssignment->driver_name);
+        $this->assertSame($originalDriver->driver_id, $affectedAssignment->driver_id);
+        $this->assertSame($originalDriver->driver_name, $affectedAssignment->driver_name);
 
         // Incident preserves original driver and original bus history
         $this->assertSame($originalDriver->driver_id, $incident->driver_id);

@@ -4,13 +4,38 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Auth\EmailOtpController;
+use App\Http\Controllers\Auth\AccountEmailChangeController;
 use App\Http\Controllers\TopbarController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'show'])->name('login');
 
-Route::get('/registration/pending', fn () => response()->view('Login.pending-approval')->header('Cache-Control', 'no-store'))
+Route::get('/registration/pending', function (\Illuminate\Http\Request $request) {
+    $userId = $request->session()->get('pending_registration_user_id')
+        ?: $request->session()->get('registration_otp_user_id');
+    $applicant = $userId ? \App\Models\Admin\User::query()->find($userId) : null;
+
+    return response()->view('Login.pending-approval', [
+        'emailVerified' => $applicant ? $applicant->hasVerifiedEmail() : (bool) $request->session()->get('pending_verified', false),
+    ])->header('Cache-Control', 'no-store');
+})
     ->name('registration.pending');
+Route::get('/email/otp', [EmailOtpController::class, 'show'])->name('verification.otp');
+Route::post('/email/otp', [EmailOtpController::class, 'verify'])->middleware('throttle:10,1')->name('verification.otp.submit');
+Route::post('/email/otp/resend', [EmailOtpController::class, 'resend'])->middleware('throttle:3,1')->name('verification.otp.resend');
+
+// Local-only OTP UI preview.
+if (app()->environment('local')) {
+    Route::view('/email/otp-preview', 'Login.email-otp-preview')->name('verification.otp-preview');
+}
+
+Route::get('/account/email-change/result', [AccountEmailChangeController::class, 'result'])
+    ->name('account.email-change.result');
+
+Route::get('/account/email-change/{id}/{token}', [AccountEmailChangeController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])->name('account.email-change.verify');
+
 Route::get('/register', [RegistrationController::class, 'show'])->name('register');
 Route::post('/register', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,1')->name('register.submit');
@@ -19,6 +44,12 @@ Route::get('/email/verify/{id}/{hash}', [RegistrationController::class, 'verify'
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
     ->middleware('throttle:10,1')->name('auth.google');
+Route::get('/auth/google/register', [GoogleAuthController::class, 'registrationForm'])->name('auth.google.register');
+Route::post('/auth/google/register', [GoogleAuthController::class, 'completeRegistration'])
+    ->middleware('throttle:5,1')->name('auth.google.register.submit');
+Route::get('/auth/google/link', [GoogleAuthController::class, 'linkForm'])->name('auth.google.link');
+Route::post('/auth/google/link', [GoogleAuthController::class, 'confirmLink'])
+    ->middleware('throttle:5,1')->name('auth.google.link.confirm');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
     ->middleware('throttle:20,1')->name('auth.google.callback');
 

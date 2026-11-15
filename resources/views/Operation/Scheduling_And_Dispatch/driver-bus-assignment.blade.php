@@ -310,6 +310,39 @@
                                         @php
                                             $driver = $assignment->driverAttendance;
                                             $bus = $assignment->bus;
+                                            // Operational incident status belongs to this bus slot, not the whole trip.
+                                            $slotBreakdown = $trip->incidents
+                                                ->where('incident_type', 'Bus Breakdown')
+                                                ->first(fn ($incident) =>
+                                                    ($incident->trip_assignment_id && (int) $incident->trip_assignment_id === (int) $assignment->id)
+                                                    || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
+                                                    || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
+                                                );
+                                            $slotDisplayStatus = $tripDisplayStatus;
+                                            $slotStatusTooltip = $tripDisplayStatus;
+                                            // A sibling bus breakdown may downgrade the shared trip from Ready
+                                            // to Scheduled; healthy assigned slots must still display Ready.
+                                            if (! $slotBreakdown && $trip->status === 'Scheduled'
+                                                && $trip->assignment_status === 'Assigned'
+                                                && $bus?->status === 'Active'
+                                                && $trip->incidents->contains(fn ($incident) => $incident->incident_type === 'Bus Breakdown'
+                                                    && ! in_array($incident->status, ['Resolved', 'Cancelled'], true))) {
+                                                $slotDisplayStatus = 'Ready';
+                                                $slotStatusTooltip = 'This bus remains ready; another slot has a breakdown.';
+                                            }
+                                            if ($slotBreakdown && ! in_array($slotBreakdown->status, ['Resolved', 'Cancelled'], true)) {
+                                                if ($slotBreakdown->replacement && in_array($trip->status, ['Ready', 'Dispatched'], true)) {
+                                                    $slotDisplayStatus = $trip->status === 'Ready' ? 'Ready · Reserve' : 'In Progress · Reserve';
+                                                    $slotStatusTooltip = $trip->status === 'Ready' ? 'Ready — Replacement Assigned' : 'In Progress — Reserve Deployed';
+                                                } elseif (! $slotBreakdown->replacement && in_array($trip->status, ['Ready', 'Scheduled', 'Dispatched', 'Pending DDR'], true)) {
+                                                    $oicResponseRecorded = $slotBreakdown->status !== 'Reported'
+                                                        || $slotBreakdown->responses()->where('notes', '!=', 'Incident reported by driver.')->exists();
+                                                    $slotDisplayStatus = $oicResponseRecorded ? 'Awaiting Reserve' : (in_array($trip->status, ['Dispatched', 'Pending DDR'], true) ? 'Breakdown' : 'OIC Review');
+                                                    $slotStatusTooltip = $oicResponseRecorded
+                                                        ? ($trip->status === 'Dispatched' ? 'In Progress — Awaiting Replacement' : 'Incident — Awaiting Replacement')
+                                                        : ($trip->status === 'Dispatched' ? 'In Progress — Breakdown Reported' : 'Breakdown Reported — OIC Review');
+                                                }
+                                            }
                                             $asgnHistory = ($assignment->daily_driver_reports_count ?? 0) > 0
                                                 || ($assignment->incidents_count ?? 0) > 0;
                                             $isLocked = $tripLocked || $asgnHistory;
@@ -371,15 +404,6 @@
                                                     <div class="assignment-bus-info">
                                                         <strong>{{ $bus ? trim(($bus->bus_no ?: '') . ($bus->plate_no ? ' · ' . $bus->plate_no : '')) : 'Plate not recorded' }}</strong>
                                                         <span>{{ $bus?->bus_model ?: 'Model not recorded' }}</span>
-                                                        @php
-                                                            $slotBreakdown = $trip->incidents
-                                                                ->where('incident_type', 'Bus Breakdown')
-                                                                ->first(fn ($incident) =>
-                                                                    ($incident->trip_assignment_id && (int) $incident->trip_assignment_id === (int) $assignment->id)
-                                                                    || (! $incident->trip_assignment_id && (int) $incident->bus_id === (int) $assignment->bus_id)
-                                                                    || (! $incident->trip_assignment_id && $assignment->original_bus_id && (int) $incident->bus_id === (int) $assignment->original_bus_id)
-                                                                );
-                                                        @endphp
                                                         @if($slotBreakdown)
                                                             <a href="{{ route('incidents.show', ['incident' => $slotBreakdown->incident_no], false) }}"
                                                                class="assignment-incident-indicator"
@@ -409,10 +433,10 @@
 
                                             <td>
                                                 <x-ui.status-badge
-                                                    :status="$tripDisplayStatus"
-                                                :label="$tripDisplayStatus === 'Partially Assigned' ? 'Partial' : null"
-                                                    class="assignment-status {{ \App\Support\StatusBadge::normalize($tripDisplayStatus) }}"
-                                                    :title="$tripDisplayStatus === 'Missed' ? 'Departure time has already passed.' : null"
+                                                    :status="$slotDisplayStatus"
+                                                :label="$slotBreakdown?->replacement && $trip->status === 'Ready' ? 'Ready · Reserve' : ($slotDisplayStatus === 'Partially Assigned' ? 'Partial' : null)"
+                                                    class="assignment-status {{ \App\Support\StatusBadge::normalize($slotDisplayStatus) }}"
+                                                    :title="$slotStatusTooltip"
                                                 />
                                             </td>
 

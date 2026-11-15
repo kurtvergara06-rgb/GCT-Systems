@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Events\SystemDataUpdated;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
@@ -43,7 +48,15 @@ class AdminUserController extends Controller
 
     public function index(Request $request)
     {
+        $applicationsPage = $request->routeIs('admin.applications');
         $query = User::query();
+
+        // Separate pending registrations from active account administration.
+        if ($applicationsPage) {
+            $query->where('status', $request->query('status') === 'Rejected' ? 'Rejected' : 'Pending');
+        } else {
+            $query->whereNotIn('status', ['Pending', 'Rejected']);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -70,26 +83,35 @@ class AdminUserController extends Controller
             $query->where('role', $request->role);
         }
 
-        if ($request->filled('status') && $request->status !== 'All Status') {
+        if (! $applicationsPage && $request->filled('status') && $request->status !== 'All Status') {
             $query->where('status', $request->status);
         }
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'name' => 'name', 'email' => 'email', 'department' => 'department', 'role' => 'role', 'status' => 'status'], 'created_at', 'desc');
         $users = $query->paginate(10)->withQueryString();
+        $pendingEmailChanges = DB::table('account_email_changes')
+            ->whereIn('user_id', $users->getCollection()->pluck('id'))
+            ->get()->keyBy('user_id');
 
         $totalUsers = User::count();
         $activeUsers = User::where('status', 'Active')->count();
         $inactiveUsers = User::where('status', 'Inactive')->count();
         $pendingUsers = User::where('status', 'Pending')->count();
+        $rejectedUsers = User::where('status', 'Rejected')->count();
+        $verifiedPendingUsers = User::where('status', 'Pending')->whereNotNull('email_verified_at')->count();
+        $unverifiedPendingUsers = $pendingUsers - $verifiedPendingUsers;
 
         $departments = $this->departments;
         $departmentOptions = $this->departments;
         $roles = $this->roles;
         $statuses = $this->statuses;
 
-        return view('Admin.User_Management.users', compact(
+        return view($applicationsPage
+            ? 'Admin.User_Management.applications'
+            : 'Admin.User_Management.users', compact(
             'users', 'totalUsers', 'activeUsers', 'inactiveUsers', 'pendingUsers',
-            'departments', 'departmentOptions', 'roles', 'statuses'
+            'departments', 'departmentOptions', 'roles', 'statuses',
+            'rejectedUsers', 'verifiedPendingUsers', 'unverifiedPendingUsers', 'pendingEmailChanges'
         ));
     }
 
@@ -206,15 +228,137 @@ class AdminUserController extends Controller
             return redirect()->route('admin.users')->with('error', 'Verify the employee email before approving this registration.');
         }
 
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'department' => $validated['department'],
-            'role' => $validated['role'],
-            'status' => $validated['status'],
-        ]);
+        $newEmail = strtolower(trim((string) ($request->input('new_email') ?: $validated['email'])));
+        if (! filter_var($newEmail, FILTER_VALIDATE_EMAIL) || strlen($newEmail) > 255) {
+            return back()->withErrors(['new_email' => 'Enter a valid new email address.']);
+        }
+        if (User::query()->where('email', $newEmail)->whereKeyNot($user->id)->exists()) {
+            return back()->withErrors(['new_email' => 'The new email address is already in use.']);
+        }
+        $emailChanged = strcasecmp($user->email, $newEmail) !== 0;
+        $accessChanged = $user->department !== $validated['department']
+            || $user->role !== $validated['role'];
 
-        return redirect()->route('admin.users')->with('success', 'User account updated successfully.');
+        if ($emailChanged || $accessChanged) {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        }
+
+        // Leave the existing verified email intact until its replacement proves ownership.
+        DB::transaction(function () use ($user, $request, $validated, $newEmail, $emailChanged, $accessChanged) {
+            if ($emailChanged) {
+                $token = Str::random(64);
+                $verifyUrl = URL::temporarySignedRoute(
+                    'account.email-change.verify',
+                    now()->addMinutes(30),
+                    ['id' => $user->id, 'token' => $token]
+                );
+
+                DB::table('account_email_changes')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    [
+                        'new_email' => $newEmail,
+                        'token_hash' => hash('sha256', $token),
+                        'expires_at' => now()->addMinutes(30),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+
+                Mail::send(
+                    'emails.account-email-change',
+                    ['verifyUrl' => $verifyUrl],
+                    static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
+                );
+            }
+
+            $oldDepartment = $user->department;
+            $oldRole = $user->role;
+            $user->update([
+                'name' => $validated['name'],
+                'department' => $validated['department'],
+                'role' => $validated['role'],
+                'status' => $validated['status'],
+            ]);
+
+            if ($accessChanged) {
+                app(ActivityLogService::class)->record(
+                    $request->user(), $request, 'Changed employee department or role', 'Security',
+                    'Admin', (string) $user->id,
+                    sprintf('Account ID %s: department %s to %s; role %s to %s.',
+                        $user->id, $oldDepartment, $user->department, $oldRole, $user->role)
+                );
+            } elseif ($emailChanged) {
+                app(ActivityLogService::class)->record(
+                    $request->user(), $request, 'Requested employee email change', 'Security',
+                    'Admin', (string) $user->id, 'A new email verification message was requested.'
+                );
+            }
+        });
+
+        return redirect()->route('admin.users')->with('success', $emailChanged
+            ? 'Account changes saved. The new email is pending verification; the existing email remains active until verified.'
+            : 'User account updated successfully.');
+    }
+
+    public function resendEmailChange(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_if($this->isProtectedSystemAdmin($user), 403);
+
+        DB::transaction(function () use ($user) {
+            $pending = DB::table('account_email_changes')->where('user_id', $user->id)->lockForUpdate()->first();
+            if (! $pending) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'There is no pending email change for this account.',
+                ]);
+            }
+            if ($pending->updated_at && now()->diffInSeconds($pending->updated_at, false) > -60) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'Wait at least 60 seconds before resending the verification link.',
+                ]);
+            }
+            $this->sendAccountEmailLink($user, $pending->new_email);
+        });
+
+        return redirect()->route('admin.users')->with('success', 'Verification link resent to the pending email address.');
+    }
+
+    public function cancelEmailChange(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_if($this->isProtectedSystemAdmin($user), 403);
+        DB::table('account_email_changes')->where('user_id', $user->id)->delete();
+        app(ActivityLogService::class)->record(
+            $request->user(), $request, 'Cancelled employee email change',
+            'Security', 'Admin', (string) $user->id,
+            'Pending email change cancelled; verified account email unchanged.'
+        );
+        return redirect()->route('admin.users')->with('success', 'Pending email change cancelled.');
+    }
+
+    private function sendAccountEmailLink(User $user, string $newEmail): void
+    {
+        $token = Str::random(64);
+        $verifyUrl = URL::temporarySignedRoute(
+            'account.email-change.verify',
+            now()->addMinutes(30),
+            ['id' => $user->id, 'token' => $token]
+        );
+        Mail::send(
+                    'emails.account-email-change',
+                    ['verifyUrl' => $verifyUrl],
+                    static fn ($mail) => $mail->to($newEmail)->subject('Verify your new GCT-Systems email address')
+                );
+        DB::table('account_email_changes')->updateOrInsert(
+            ['user_id' => $user->id],
+            [
+                'new_email' => $newEmail,
+                'token_hash' => hash('sha256', $token),
+                'expires_at' => now()->addMinutes(30),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 
     public function updateStatus(Request $request, User $user)
@@ -266,6 +410,26 @@ class AdminUserController extends Controller
     }
 
 
+    public function reconsiderApplication(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_unless($user->status === 'Rejected' && ! $this->isProtectedSystemAdmin($user), 404);
+
+        DB::transaction(function () use ($request, $user) {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->status === 'Rejected' && ! $this->isProtectedSystemAdmin($locked), 409);
+            $locked->update(['status' => 'Pending']);
+            app(ActivityLogService::class)->record(
+                $request->user(), $request, 'Reconsidered rejected employee application',
+                'Updated', 'Admin', (string) $locked->id,
+                'Rejected registration moved back to Pending for administrator review; account not activated.'
+            );
+        });
+
+        return redirect()->route('admin.applications', ['status' => 'Pending'])
+            ->with('success', 'Application returned to Pending review. Approval still requires verified email, department, and role.');
+    }
+
     public function reviewApplication(Request $request, User $user)
     {
         abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
@@ -287,13 +451,13 @@ class AdminUserController extends Controller
                 'status' => 'Active',
             ]);
 
-            return redirect()->route('admin.users', ['status' => 'Pending'])
+            return redirect()->route('admin.applications', ['status' => 'Pending'])
                 ->with('success', 'Employee application approved. Department and role have been assigned.');
         }
 
         $user->update(['status' => 'Rejected']);
 
-        return redirect()->route('admin.users', ['status' => 'Pending'])
+        return redirect()->route('admin.applications', ['status' => 'Pending'])
             ->with('success', 'Employee application rejected. Account access remains blocked.');
     }
 

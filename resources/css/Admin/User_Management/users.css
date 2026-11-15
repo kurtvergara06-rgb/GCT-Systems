@@ -503,3 +503,879 @@
 .application-approve-button { color:white; background:#0d61b9; border-color:#0d61b9!important; }
 .application-approve-button:disabled { opacity:.5; cursor:not-allowed; }
 #applicationReviewForm select { width:100%; padding:11px; border:1px solid #d5dfed; border-radius:8px; background:#fff; }
+
+/* Compact Account Management controls, matching Operation master lists. */
+.users-main .users-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.users-main .users-section-header .section-header-actions {
+  margin-left: auto;
+}
+.users-main .users-add-account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 15px;
+  white-space: nowrap;
+  border-radius: 10px;
+}
+.users-main .users-record-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+.users-main .users-record-controls .application-status-tabs {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.users-main .users-record-controls .users-toolbar {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 900px) {
+  .users-main .users-record-controls {
+    align-items: flex-start;
+  }
+  .users-main .users-record-controls .users-toolbar {
+    margin-left: 0;
+  }
+}
+
+/* Account status tabs: a single segmented switch, matching Bus Master List. */
+.users-main .users-record-controls .application-status-tabs {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d8e2f0;
+  border-radius: 12px;
+  background: #f0f4f9;
+}
+.users-main .users-record-controls .application-status-tab {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #344663;
+}
+.users-main .users-record-controls .application-status-tab.is-active {
+  color: #102c53;
+  background: #fff;
+  border-color: #e4ebf5;
+  box-shadow: 0 2px 5px rgba(18, 43, 78, .08);
+}
+@media (max-width: 580px) {
+  .users-main .users-record-controls .application-status-tabs {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+/* Unbox the Search / Filter / Sort toolbar; retain individual button borders. */
+.users-main .users-record-controls .users-toolbar,
+.users-main .users-record-controls .gct-table-toolbar,
+.users-main .users-record-controls .records-toolbar {
+  border: 0 !important;
+  outline: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0;
+}
+
+/* Align Accounts search tools with its title rather than using a tall empty row. */
+@media (min-width: 901px) {
+  .users-main .users-card--accounts .users-section-header {
+    min-height: 44px;
+    padding-right: 270px;
+    margin-bottom: 12px;
+  }
+  .users-main .users-card--accounts .users-record-controls {
+    justify-content: flex-end;
+    min-height: 38px;
+    margin-top: -56px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 3;
+  }
+}
+
+/* Applications table is intentionally distinct from the Accounts directory. */
+.users-main .users-card--applications .users-table th,
+.users-main .users-card--applications .users-table td {
+  width: auto;
+  min-width: 0;
+}
+.users-main .users-card--applications .users-table th:first-child,
+.users-main .users-card--applications .users-table td:first-child { min-width: 220px; width: 30%; }
+.users-main .users-card--applications .users-table th:nth-child(2),
+.users-main .users-card--applications .users-table td:nth-child(2) { min-width: 140px; }
+.users-main .users-card--applications .users-table th:last-child,
+.users-main .users-card--applications .users-table td:last-child { min-width: 130px; text-align: center; }
+.application-verification {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.application-verification.is-verified { color: #137b47; background: #e5f8eb; }
+.application-verification.is-unverified { color: #986514; background: #fff2cf; }
+.application-action-note { color: #64748b; font-size: 12px; }
+
+
+/* Employee application review — scoped styling; no changes to other admin dialogs. */
+#applicationReviewModal .application-review-dialog {
+  width: min(100% - 28px, 650px);
+  max-width: 650px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 72px rgba(5, 25, 55, .2);
+}
+#applicationReviewModal .application-review-header {
+  padding-bottom: 19px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #edf1f6;
+}
+#applicationReviewModal .application-review-header h2 {
+  font-size: 23px;
+  letter-spacing: -.5px;
+  line-height: 1.2;
+  margin: 6px 0;
+}
+#applicationReviewModal .application-review-header p { line-height: 1.5; }
+#applicationReviewModal .application-review-eyebrow,
+#applicationReviewModal .application-review-section-label {
+  color: #6a7d97;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 800;
+}
+#applicationReviewModal .application-review-eyebrow { display: flex; align-items: center; gap: 7px; }
+#applicationReviewModal .application-review-details {
+  display: block;
+  margin: 20px 0 22px;
+  padding: 17px 18px 0;
+  background: #f5f8fc;
+  border: 1px solid #e7edf6;
+  border-radius: 13px;
+}
+#applicationReviewModal .application-review-profile { display: flex; align-items: center; gap: 14px; }
+#applicationReviewModal .application-review-avatar {
+  flex: 0 0 46px; width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 12px; background: #e1ebfb; color: #2459a0; font-size: 20px;
+}
+#applicationReviewModal .application-review-identity { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+#applicationReviewModal #applicationReviewName { font-size: 16px; color: #102b4f; line-height: 1.35; }
+#applicationReviewModal #applicationReviewEmail { color: #63738a; font-size: 13px; overflow-wrap: anywhere; }
+#applicationReviewModal .application-review-metadata {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  margin-top: 18px; padding: 13px 0; border-top: 1px solid #e3eaf4;
+}
+#applicationReviewModal .application-review-date { display: inline-flex; align-items: center; gap: 8px; color: #687992; }
+#applicationReviewModal .application-review-date small { font-size: 12px; }
+#applicationReviewModal .application-review-status {
+  display: inline-flex; gap: 6px; align-items: center;
+  border-radius: 999px; padding: 6px 10px; background: #e8f7ee; color: #187044;
+  font-size: 12px; font-weight: 750;
+}
+#applicationReviewModal #applicationReviewVerified { color: inherit; }
+#applicationReviewModal .application-review-section-heading h3 { margin: 0 0 5px; color: #122f55; font-size: 15px; }
+#applicationReviewModal .application-review-section-heading p { margin: 0; color: #6c7d93; font-size: 12px; }
+#applicationReviewModal .application-review-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 16px; }
+#applicationReviewModal .application-review-fields .form-group { margin: 0; min-width: 0; }
+#applicationReviewModal .application-review-fields label { display: block; margin-bottom: 8px; color: #30445e; font-weight: 700; font-size: 12px; }
+#applicationReviewModal .application-review-fields select {
+  min-height: 46px; padding: 0 34px 0 13px; border-radius: 10px; background-color: #fff;
+  border: 1px solid #d6e0ee; font-size: 13px; font-weight: 600; color: #263e5b;
+}
+#applicationReviewModal .application-review-fields select:focus { outline: 0; border-color: #3074c6; box-shadow: 0 0 0 3px rgba(48,116,198,.12); }
+#applicationReviewModal .application-review-actions {
+  margin-top: 25px; padding-top: 20px; border-top: 1px solid #e9eef6;
+  display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 9px;
+}
+#applicationReviewModal .application-review-actions button {
+  min-height: 43px; display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 0 15px; font-weight: 750; font-size: 13px; border-radius: 9px;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+#applicationReviewModal .application-review-actions button:first-child { background: #f5f7fa; color: #52637c; border-color: #e0e6ed; }
+#applicationReviewModal .application-review-actions .application-reject-button { background: #fff0f1; color: #b42739; border-color: #f4c8ce !important; }
+#applicationReviewModal .application-review-actions .application-approve-button { background: #145cb5; color: #fff; border-color: #145cb5 !important; }
+#applicationReviewModal .application-review-actions button:hover:not(:disabled) { box-shadow: 0 3px 9px rgba(15,36,70,.1); }
+@media(max-width: 620px) {
+  #applicationReviewModal .application-review-dialog { max-height: calc(100dvh - 28px); overflow-y: auto; }
+  #applicationReviewModal .application-review-fields { grid-template-columns: 1fr; }
+  #applicationReviewModal .application-review-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  #applicationReviewModal .application-review-actions .application-approve-button { grid-column: 1 / -1; grid-row: 1; }
+}
+
+
+/* Applications screen refinement — intentionally scoped to Applications only. */
+.users-main:has(.users-card--applications) .users-stats-grid {
+  gap: 14px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+.users-main:has(.users-card--applications) .users-stats-grid > * {
+  min-width: 0;
+  border: 1px solid #e0e8f4;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(21, 47, 83, .035);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.users-main:has(.users-card--applications) .users-stats-grid > *:hover {
+  box-shadow: 0 8px 22px rgba(21, 47, 83, .075);
+  transform: translateY(-1px);
+}
+.users-main .users-card--applications {
+  padding-bottom: 13px;
+  border: 1px solid #dde7f3;
+  border-radius: 15px;
+  box-shadow: 0 6px 24px rgba(26, 53, 90, .045);
+}
+.users-main .users-card--applications .users-section-header {
+  margin-bottom: 13px;
+}
+.users-main .users-card--applications .users-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+.users-main .users-card--applications .application-status-tabs {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 11px;
+  border: 1px solid #dce5f1;
+  background: #f1f5fa;
+}
+.users-main .users-card--applications .application-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  min-height: 37px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 12px;
+  color: #536784;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .application-status-tab:hover {
+  color: #123d79;
+}
+.users-main .users-card--applications .application-status-tab.is-active {
+  border-color: #d8e4f5;
+  background: #fff;
+  color: #164a93;
+  box-shadow: 0 2px 7px rgba(18, 51, 94, .09);
+}
+.users-main .users-card--applications .application-status-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  border-radius: 7px;
+  padding: 0 5px;
+  color: #8d5b07;
+  background: #fff0cc;
+  font-size: 11px;
+  font-weight: 800;
+}
+.users-main .users-card--applications .users-toolbar {
+  margin: 0 0 0 auto;
+  flex: 0 0 auto;
+}
+.users-main .users-card--applications .users-table-wrap {
+  max-height: min(65vh, 620px);
+  overflow: auto;
+  border: 1px solid #e8edf5;
+  border-radius: 11px;
+}
+.users-main .users-card--applications .users-table {
+  width: 100%;
+  min-width: 840px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.users-main .users-card--applications .users-table thead th {
+  background: #f5f8fc;
+  color: #52627a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .65px;
+  text-transform: uppercase;
+  padding: 15px 14px;
+  border-bottom: 1px solid #e6edf5;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .users-table tbody td {
+  vertical-align: middle;
+  padding: 16px 14px;
+  font-size: 13px;
+  color: #243b59;
+  border-bottom: 1px solid #edf1f7;
+  transition: background-color .16s ease;
+}
+.users-main .users-card--applications .users-table tbody tr:hover td {
+  background: #f9fbfe;
+}
+.users-main .users-card--applications .users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.users-main .users-card--applications .application-verification {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  min-height: 26px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.users-main .users-card--applications .application-verification.is-verified {
+  background: #e8f8ef;
+  color: #117044;
+}
+.users-main .users-card--applications .application-verification.is-unverified {
+  background: #fff3dc;
+  color: #946314;
+}
+.users-main .users-card--applications .application-review-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #bfd7f5;
+  border-radius: 9px;
+  background: #f0f6ff;
+  color: #1556a5;
+  font-size: 12px;
+  font-weight: 750;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.users-main .users-card--applications .application-review-button:hover {
+  border-color: #78afea;
+  background: #e4f0ff;
+  box-shadow: 0 3px 9px rgba(23, 90, 171, .12);
+}
+.users-main .users-card--applications .application-review-button:focus-visible,
+.users-main .users-card--applications .application-status-tab:focus-visible {
+  outline: 3px solid rgba(28, 94, 174, .35);
+  outline-offset: 2px;
+}
+@media(max-width: 760px) {
+  .users-main .users-card--applications .users-record-controls { align-items: flex-start; }
+  .users-main .users-card--applications .users-toolbar { margin-left: 0; }
+  .users-main .users-card--applications .application-status-tabs { max-width: 100%; flex-wrap: wrap; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .users-main:has(.users-card--applications) .users-stats-grid > *,
+  .users-main .users-card--applications .application-review-button { transition: none; }
+}
+
+
+/* Muted amber indicates an application awaiting department assignment. */
+.users-main .users-card--applications .application-department-unassigned {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 5px 10px;
+  border: 1px solid #f2dfb3;
+  border-radius: 999px;
+  background: #fff6e4;
+  color: #966310;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* Explain sensitive email edits without changing existing modal behavior. */
+#userFormModal .account-edit-email-note {
+  margin: 15px 0 0;
+  padding: 10px 13px;
+  border-radius: 9px;
+  border: 1px solid #d7e4f7;
+  background: #f0f6ff;
+  color: #355678;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#userFormModal .account-edit-email-note[hidden] { display: none !important; }
+#userFormModal .form-grid .form-group label[for] {
+  display: block;
+  margin-bottom: 7px;
+  color: #2c405c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* Account editing: responsive, scoped email-management workflow. */
+#userFormModal .account-edit-dialog{width:min(960px,calc(100vw - 36px));max-width:960px;max-height:calc(100dvh - 36px);overflow-y:auto;border-radius:17px}
+#userFormModal .account-edit-dialog .admin-modal-header{padding-bottom:18px;border-bottom:1px solid #e9edf4;margin-bottom:20px}
+#userFormModal .account-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 22px}
+#userFormModal .account-edit-grid .form-group{min-width:0;margin:0}
+#userFormModal .account-edit-grid input,#userFormModal .account-edit-grid select{width:100%;min-height:46px;border-radius:9px;font-size:13px}
+#userFormModal .account-edit-grid .form-group[hidden],#userFormModal .account-pending-panel[hidden]{display:none!important}
+#userFormModal .account-current-email{position:relative;display:flex;align-items:center}
+#userFormModal .account-current-email input{padding-right:95px;background:#f3f6fa;color:#425670}
+#userFormModal .account-email-verified{position:absolute;right:10px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#dff5e8;color:#167448;font-size:11px;font-weight:750}
+#userFormModal .account-email-hint{display:block;margin-top:7px;line-height:1.4;color:#687d97;font-size:11px}
+#userFormModal .account-pending-panel{margin:21px 0 0;padding:18px;border:1px solid #f2d48a;background:#fff9ed;border-radius:13px}
+#userFormModal .account-pending-top{display:flex;align-items:start;justify-content:space-between;gap:14px}
+#userFormModal .account-pending-top strong{font-size:15px;color:#1a3558}
+#userFormModal .account-pending-top strong i{margin-right:6px;color:#d18a09}
+#userFormModal .account-pending-top p{margin:7px 0 0;color:#6c7790;font-size:12px}
+#userFormModal .account-pending-badge{white-space:nowrap;padding:6px 10px;border-radius:999px;background:#ffebc2;color:#9a6407;font-size:11px;font-weight:750}
+#userFormModal .account-pending-address{margin-top:15px;padding:11px 13px;border:1px solid #efdba9;border-radius:9px;background:#fff;font-size:13px;color:#264360;overflow-wrap:anywhere;font-weight:700}
+#userFormModal .account-pending-expiry{font-size:12px;color:#867044}
+#userFormModal .account-pending-buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+#userFormModal .account-pending-buttons button{display:inline-flex;align-items:center;gap:7px;justify-content:center;min-height:38px;padding:8px 12px;font-size:12px;font-weight:750;border-radius:8px;cursor:pointer}
+#userFormModal .account-resend-btn{border:1px solid #9ec5f5;background:#eff6ff;color:#1456a6}
+#userFormModal .account-cancel-pending-btn{border:1px solid #f3adb4;background:#fff1f2;color:#b72840}
+#userFormModal .account-edit-email-note{margin:19px 0 0;padding:13px 15px;border-radius:10px;line-height:1.5}
+#userFormModal .account-edit-dialog .admin-modal-footer{margin-top:20px;padding-top:17px;border-top:1px solid #e5ecf5}
+@media(max-width:670px){#userFormModal .account-edit-dialog{width:calc(100vw - 20px)}#userFormModal .account-edit-grid{grid-template-columns:1fr}#userFormModal .account-pending-top{flex-direction:column}}
+
+/* Approved modal fidelity and deterministic visibility. */
+#userFormModal .account-edit-header { display:flex;align-items:center;gap:15px; }
+#userFormModal .account-edit-header > div { flex:1;min-width:0; }
+#userFormModal .account-edit-header-icon { flex:0 0 50px;width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:#e7f0fc;color:#1859a7;font-size:21px; }
+#userFormModal .account-edit-header h2 { margin:0 0 7px;font-size:23px;letter-spacing:-.45px; }
+#userFormModal .account-edit-email-note:not([hidden]) { display:flex;align-items:flex-start;gap:12px;background:#eef5ff;border:1px solid #a8c8fa; }
+#userFormModal .account-edit-note-icon { flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#2d77db;color:#fff; }
+#userFormModal .account-edit-email-note strong { display:block;font-size:13px;color:#143d72;margin-bottom:4px; }
+#userFormModal .account-edit-email-note p { margin:0;font-size:12px;line-height:1.6; }
+#userFormModal .account-edit-grid .form-group[hidden],#userFormModal .account-pending-panel[hidden],#userFormModal .account-edit-email-note[hidden] { display:none!important; }
+#userFormModal .account-edit-dialog .admin-modal-header { position:relative; }
+#userFormModal .account-edit-dialog .admin-modal-header .modal-close-btn { flex:0 0 auto; }
+
+/* Edit System Account — approved account-management composition. */
+#userFormModal {
+  padding: 22px;
+  background: rgba(7, 25, 49, .58);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+#userFormModal .account-edit-dialog {
+  width: min(960px, calc(100vw - 44px));
+  max-width: 960px;
+  padding: 27px 28px 20px;
+  border: 1px solid rgba(226, 232, 240, .94);
+  border-radius: 17px;
+  box-shadow: 0 28px 80px rgba(4, 18, 38, .34);
+}
+#userFormModal .account-edit-dialog .account-edit-header {
+  align-items: center;
+  margin-bottom: 23px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+#userFormModal .account-edit-header-icon {
+  flex-basis: 58px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #e8f2ff;
+  color: #075cc8;
+  font-size: 23px;
+}
+#userFormModal .account-edit-header h2 {
+  margin-bottom: 5px;
+  color: #0a2347;
+  font-size: 25px;
+  line-height: 1.15;
+  letter-spacing: -.55px;
+}
+#userFormModal .account-edit-header p {
+  margin: 0;
+  color: #6b82a7;
+  font-size: 13px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-header .modal-close-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #f0f4f9;
+  color: #0a2347;
+  font-size: 17px;
+}
+#userFormModal .account-edit-grid {
+  column-gap: 25px;
+  row-gap: 20px;
+}
+#userFormModal .account-edit-grid .form-group {
+  gap: 0;
+}
+#userFormModal .account-edit-grid .form-group > label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+  color: #0a2347;
+  font-size: 12px;
+  font-weight: 800;
+}
+#userFormModal .account-edit-grid .form-group > label i {
+  width: 15px;
+  color: #0a2347;
+  text-align: center;
+  font-size: 13px;
+}
+#userFormModal .account-field-control,
+#userFormModal .account-current-email {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+#userFormModal .account-field-control > i,
+#userFormModal .account-current-email > .account-control-icon {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  width: 15px;
+  color: #8499b8;
+  text-align: center;
+  pointer-events: none;
+}
+#userFormModal .account-edit-grid .account-field-control input,
+#userFormModal .account-edit-grid .account-field-control select,
+#userFormModal .account-edit-grid .account-current-email input {
+  height: 47px;
+  min-height: 47px;
+  padding-left: 43px;
+  border: 1px solid #cedaea;
+  border-radius: 8px;
+  color: #142a4b;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(15, 38, 72, .02);
+}
+#userFormModal .account-edit-grid .account-field-control select {
+  padding-right: 38px;
+}
+#userFormModal .account-edit-grid .account-current-email input {
+  padding-right: 96px;
+  background: #f2f5f9;
+}
+#userFormModal .account-edit-grid input:focus,
+#userFormModal .account-edit-grid select:focus {
+  border-color: #2578ef;
+  box-shadow: 0 0 0 2px rgba(37, 120, 239, .17);
+}
+#userFormModal .account-email-verified {
+  right: 9px;
+  padding: 5px 9px;
+  background: #d8f3e2;
+  color: #128043;
+  font-size: 10px;
+}
+#userFormModal .account-email-hint {
+  margin: 6px 0 0;
+  color: #617899;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-pending-panel:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 252px;
+  gap: 28px;
+  margin-top: 20px;
+  padding: 16px 17px 15px;
+  border: 1px solid #f0bd32;
+  border-left: 4px solid #f1b700;
+  border-radius: 10px;
+  background: linear-gradient(105deg, #fffaf0 0%, #fffdf8 100%);
+}
+#userFormModal .account-pending-main {
+  min-width: 0;
+}
+#userFormModal .account-pending-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#userFormModal .account-pending-icon {
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffbd00;
+  color: #fff;
+  font-size: 19px;
+  box-shadow: 0 5px 12px rgba(211, 144, 0, .2);
+}
+#userFormModal .account-pending-heading strong {
+  display: block;
+  color: #102b50;
+  font-size: 15px;
+}
+#userFormModal .account-pending-heading p {
+  margin: 3px 0 0;
+  color: #697d9b;
+  font-size: 12px;
+}
+#userFormModal .account-pending-address-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 1px solid #efd79c;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .75);
+  color: #7e93b0;
+}
+#userFormModal .account-pending-address {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1b3558;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+#userFormModal .account-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: #fff0c9;
+  color: #c77700;
+  font-size: 10px;
+}
+#userFormModal .account-pending-dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 12px;
+}
+#userFormModal .account-pending-dates p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #7d90a9;
+  font-size: 10px;
+}
+#userFormModal .account-pending-dates p + p {
+  padding-left: 18px;
+  border-left: 1px solid #d9e0e8;
+}
+#userFormModal .account-pending-dates i {
+  font-size: 15px;
+}
+#userFormModal .account-pending-dates span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#userFormModal .account-pending-dates strong {
+  color: #5c7392;
+  font-size: 10px;
+  font-weight: 500;
+}
+#userFormModal .account-pending-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+#userFormModal .account-pending-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 39px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#userFormModal .account-resend-btn {
+  border: 1px solid #5598ef;
+  background: #eff6ff;
+  color: #0863d8;
+}
+#userFormModal .account-cancel-pending-btn {
+  border: 1px solid #ff5d68;
+  background: #fff2f3;
+  color: #ed2636;
+}
+#userFormModal .account-pending-actions p {
+  margin: 0 2px;
+  color: #667c9a;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-email-note:not([hidden]) {
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 15px;
+  border-color: #8dbbf8;
+  border-radius: 9px;
+  background: #eff6ff;
+}
+#userFormModal .account-edit-note-icon {
+  flex-basis: 31px;
+  width: 31px;
+  height: 31px;
+  background: #287be5;
+  font-size: 14px;
+}
+#userFormModal .account-edit-email-note strong {
+  font-size: 12.5px;
+}
+#userFormModal .account-edit-email-note p {
+  color: #42658f;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+#userFormModal .account-edit-dialog .admin-modal-footer {
+  margin-top: 22px;
+  padding-top: 14px;
+}
+#userFormModal .admin-modal-footer .btn-cancel,
+#userFormModal .admin-modal-footer .btn-save {
+  min-height: 44px;
+  border: 1px solid #d5deea;
+  border-radius: 9px;
+}
+#userFormModal .admin-modal-footer .btn-cancel {
+  min-width: 132px;
+  background: #f4f7fa;
+}
+#userFormModal .admin-modal-footer .btn-save {
+  min-width: 190px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-color: #f7bd00;
+  background: #ffc400;
+}
+@media (max-width: 760px) {
+  #userFormModal { padding: 10px; }
+  #userFormModal .account-edit-dialog { width: calc(100vw - 20px); padding: 22px 18px 18px; }
+  #userFormModal .account-edit-grid { grid-template-columns: 1fr; }
+  #userFormModal .account-pending-panel:not([hidden]) { grid-template-columns: 1fr; gap: 16px; }
+  #userFormModal .account-pending-dates { grid-template-columns: 1fr; gap: 10px; }
+  #userFormModal .account-pending-dates p + p { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 480px) {
+  #userFormModal .account-edit-header-icon { display: none; }
+  #userFormModal .account-edit-header h2 { font-size: 21px; }
+  #userFormModal .account-pending-address-row { align-items: flex-start; flex-wrap: wrap; }
+  #userFormModal .account-pending-badge { margin-left: 26px; }
+}
+
+/* Instant email-change preview; never imply an unsaved address was verified. */
+#userFormModal .account-pending-panel.is-preview {
+  border-color: #f1ca68;
+  background: linear-gradient(105deg, #fffaf0 0%, #fffdf8 100%);
+}
+#userFormModal .account-pending-panel.is-preview .account-pending-badge {
+  background: #fff0c4;
+  color: #96620b;
+}
+#userFormModal .account-pending-actions[hidden] { display: none !important; }
+#userFormModal .account-pending-panel.is-preview .account-pending-dates strong {
+  color: #846522;
+  font-weight: 600;
+}
+
+/* Hide inactive verification actions even when the button flex rule applies. */
+#userFormModal .account-pending-actions button[hidden] { display: none !important; }
+
+
+/* Employee Applications: mirror Incident Management's Active / History segmented control.
+   Scoped here to avoid changing other Admin or Operation record tabs. */
+.users-main .users-card--applications .application-status-tabs {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 3px;
+  padding: 3px;
+  min-height: 0;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(6,31,61,.04);
+}
+.users-main .users-card--applications .application-status-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 0;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.users-main .users-card--applications .application-status-tab.is-active {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #061f3d;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(6,31,61,.08);
+}
+.users-main .users-card--applications .application-status-tab:hover:not(.is-active) {
+  color: #061f3d;
+  background: #f8fafc;
+}
+.users-main .users-card--applications .application-status-tab:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

@@ -1,5 +1,5 @@
 <x-layout.app
-    title="FROMS - Account Management"
+    title="{{ !empty($applicationsPage) ? 'FROMS - Applications' : 'FROMS - Accounts' }}"
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
@@ -46,12 +46,18 @@
 
         <main class="main users-main records-page">
             <x-layout.topbar
-                title="Account Management"
-                subtitle="Manage system accounts, department assignments, roles, and access"
+                title="{{ !empty($applicationsPage) ? 'Applications' : 'Account Management' }}"
+                subtitle="{{ !empty($applicationsPage) ? 'Review employee registrations, verify details, and approve or reject applications' : 'Manage registered accounts, departments, roles, and access' }}"
                 notification-count="6"
             />
 
             <x-ui.ajax-region name="summary" class="stats-grid users-stats-grid">
+                @if(!empty($applicationsPage))
+                <x-ui.summary-card label="Pending Applications" value="{{ $pendingUsers ?? 0 }}" small="Awaiting review" icon="fa-user-clock" color="yellow" />
+                <x-ui.summary-card label="Rejected Applications" value="{{ $rejectedUsers ?? 0 }}" small="Not approved" icon="fa-circle-xmark" color="red" />
+                <x-ui.summary-card label="Verified Pending" value="{{ $verifiedPendingUsers ?? 0 }}" small="Email verified; awaiting decision" icon="fa-envelope-circle-check" color="green" />
+                <x-ui.summary-card label="Unverified Pending" value="{{ $unverifiedPendingUsers ?? 0 }}" small="Email verification incomplete" icon="fa-envelope" color="gray" />
+                @else
                 <x-ui.summary-card
                     label="Total Accounts"
                     value="{{ $totalUsers ?? 0 }}"
@@ -83,31 +89,32 @@
                     icon="fa-clock"
                     color="yellow"
                 />
+                @endif
             </x-ui.ajax-region>
 
-            <x-ui.ajax-region name="records" class="records-card users-card users-table-card">
+            <x-ui.ajax-region name="records" class="records-card users-card users-table-card {{ empty($applicationsPage) ? 'users-card--accounts' : 'users-card--applications' }}">
                 <x-ui.section-header
-                    title="System Accounts"
-                    subtitle="Create accounts and manage department, role, status, and access assignments."
+                    title="{{ !empty($applicationsPage) ? 'Employee Applications' : 'System Accounts' }}"
+                    subtitle="{{ !empty($applicationsPage) ? 'Review registrations awaiting a decision and view rejected applications.' : 'Manage existing user accounts, roles, and access assignments.' }}"
                     class="users-section-header"
-                />
+                >
+                </x-ui.section-header>
 
-                <nav class="application-status-tabs" aria-label="Filter accounts by status">
-                    @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending', 'Active' => 'Active', 'Inactive' => 'Inactive', 'Rejected' => 'Rejected'] as $label => $statusValue)
-                        <a href="{{ route('admin.users', $statusValue ? ['status' => $statusValue] : []) }}"
-                           class="application-status-tab {{ request('status') === $statusValue || (!request()->filled('status') && $statusValue === null) ? 'is-active' : '' }}"
-                           @if(request('status') === $statusValue || (!request()->filled('status') && $statusValue === null)) aria-current="page" @endif>
+                <div class="users-record-controls">
+                @if(!empty($applicationsPage))
+                <nav class="application-status-tabs" aria-label="Filter employee applications">
+                    @foreach(['Pending Applications' => 'Pending', 'Rejected' => 'Rejected'] as $label => $statusValue)
+                        <a href="{{ route('admin.applications', ['status' => $statusValue]) }}"
+                           class="application-status-tab {{ request('status', 'Pending') === $statusValue ? 'is-active' : '' }}"
+                           @if(request('status', 'Pending') === $statusValue) aria-current="page" @endif>
                             {{ $label }}
                             @if($statusValue === 'Pending') <span class="application-status-count">{{ $pendingUsers }}</span> @endif
                         </a>
                     @endforeach
                 </nav>
-                @if(request('status') === 'Pending')
-                    <p class="application-review-notice">Review employee applications here. Email verification, department and role assignment are required before approval.</p>
                 @endif
-
                 <x-ui.table-toolbar
-                    :action="route('admin.users')"
+                     :action="!empty($applicationsPage) ? route('admin.applications') : route('admin.users')"
                     class="records-toolbar users-toolbar"
                     search-placeholder="Search by name, email, role, or department..."
                     search-label="Search Accounts"
@@ -116,9 +123,7 @@
                     :sort-options="['created_at' => 'Created Date', 'name' => 'Account Name', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status']"
                     default-sort="created_at"
                     default-direction="desc"
-                    button-id="openAddUserModal"
-                    button-label="Add Account"
-                    button-icon="fa-user-plus"
+                    :show-button="false"
                 >
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Department" name="department" default="All Departments"><option value="All Departments">All Departments</option>@foreach($departmentOptions as $department)<option value="{{ $department }}" @selected(request('department') === $department)>{{ $department }}</option>@endforeach</x-ui.table-toolbar-field>
@@ -126,11 +131,20 @@
                         <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
+                </div>
 
                 <div class="records-table-wrap users-table-wrap table-wrap">
                     <table class="records-table users-table">
                         <thead>
                             <tr>
+                                @if(!empty($applicationsPage))
+                                    <th>Applicant</th>
+                                    <th>Date Applied</th>
+                                    <th>Email Verification</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                @else
                                 <th>User ID</th>
                                 <th>Account</th>
                                 <th>Role</th>
@@ -138,6 +152,7 @@
                                 <th>Status</th>
                                 <th>Last Login</th>
                                 <th>Actions</th>
+                                @endif
                             </tr>
                         </thead>
 
@@ -180,6 +195,53 @@
                                     $isOwnAccount = auth()->id() === $user->id;
                                 @endphp
 
+                                @if(!empty($applicationsPage))
+                                <tr>
+                                    <td>
+                                        <x-ui.record-identity :title="$user->name" :subtitle="$user->email" :initials="$initials" :tone="$avatarTone" :image-url="$user->profilePhotoUrl()" />
+                                    </td>
+                                    <td>{{ $user->created_at?->format('M d, Y · g:i A') ?? 'Not recorded' }}</td>
+                                    <td>
+                                        <span class="application-verification {{ $user->hasVerifiedEmail() ? 'is-verified' : 'is-unverified' }}">
+                                            {{ $user->hasVerifiedEmail() ? 'Verified' : 'Not Verified' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if(in_array(strtolower(trim((string) $user->department)), ['unassigned', ''], true))
+                                            <span class="application-department-unassigned"><i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Unassigned</span>
+                                        @else
+                                            {{ $user->department }}
+                                        @endif
+                                    </td>
+                                    <td><x-ui.status-badge :status="$user->status ?? 'Pending'" type="user" /></td>
+                                    <td>
+                                        @if($user->status === 'Pending' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                                            <button type="button" class="application-review-button"
+                                                data-review-application
+                                                data-review-url="{{ route('admin.users.review-application', $user) }}"
+                                                data-name="{{ $user->name }}"
+                                                data-email="{{ $user->email }}"
+                                                data-pending-email="{{ $pendingEmailChanges[$user->id]->new_email ?? '' }}"
+                                                data-pending-expiry="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->expires_at)->format('M d, Y · g:i A') : '' }}"
+                                                data-email-resend-url="{{ route('admin.users.email-change.resend', $user) }}"
+                                                data-email-cancel-url="{{ route('admin.users.email-change.cancel', $user) }}"
+                                                data-applied="{{ $user->created_at?->format('M d, Y · g:i A') }}"
+                                                data-verified="{{ $user->hasVerifiedEmail() ? '1' : '0' }}">
+                                                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
+                                            </button>
+                                        @else
+                                            @if($user->status === 'Rejected' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                                            <form method="POST" action="{{ route('admin.users.reconsider-application', $user) }}" onsubmit="return confirm('Return this rejected application to Pending for administrator review? No account access will be granted.');">
+                                                @csrf
+                                                <button type="submit" class="application-review-button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reconsider</button>
+                                            </form>
+                                        @else
+                                            <span class="application-action-note">{{ $user->status === 'Rejected' ? 'Rejected' : 'Review restricted' }}</span>
+                                        @endif
+                                        @endif
+                                    </td>
+                                </tr>
+                                @else
                                 <tr>
                                     <td>
                                         <x-ui.id-badge :value="'USR-' . str_pad($user->id, 3, '0', STR_PAD_LEFT)" />
@@ -268,6 +330,11 @@
                                                 data-role="{{ $user->role }}"
                                                 data-department="{{ $user->department }}"
                                                 data-status="{{ $user->status }}"
+                                                data-pending-email="{{ $pendingEmailChanges[$user->id]->new_email ?? '' }}"
+                                                data-pending-requested="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->created_at)->format('M d, Y, g:i A') : '' }}"
+                                                data-pending-expiry="{{ isset($pendingEmailChanges[$user->id]) ? \Carbon\Carbon::parse($pendingEmailChanges[$user->id]->expires_at)->format('M d, Y, g:i A') : '' }}"
+                                                data-email-resend-url="{{ route('admin.users.email-change.resend', $user) }}"
+                                                data-email-cancel-url="{{ route('admin.users.email-change.cancel', $user) }}"
                                             />
 
                                             <x-ui.action-button
@@ -351,12 +418,13 @@
                                         </div>
                                     </td>
                                 </tr>
+                                @endif
                             @empty
                                 <x-ui.empty-row
-                                    colspan="7"
+                                    colspan="{{ !empty($applicationsPage) ? 6 : 7 }}"
                                     icon="fa-users"
-                                    message="No User Accounts Found"
-                                    description="No system user accounts match your search or department filter."
+                                    message="{{ !empty($applicationsPage) ? 'No Applications Found' : 'No User Accounts Found' }}"
+                                    description="{{ !empty($applicationsPage) ? 'No applications match the selected status or filters.' : 'No system user accounts match your search or department filter.' }}"
                                 />
                             @endforelse
                         </tbody>
@@ -377,9 +445,10 @@
     {{-- PENDING APPLICATION REVIEW --}}
     @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
         <div class="admin-modal-overlay" id="applicationReviewModal" role="dialog" aria-modal="true" aria-labelledby="applicationReviewTitle">
-            <div class="admin-user-modal">
-                <div class="admin-modal-header">
+            <div class="admin-user-modal application-review-dialog">
+                <div class="admin-modal-header application-review-header">
                     <div>
+                        <div class="application-review-eyebrow"><i class="fa-regular fa-address-card" aria-hidden="true"></i> EMPLOYEE ONBOARDING</div>
                         <h2 id="applicationReviewTitle">Review Employee Application</h2>
                         <p>Confirm the applicant's verified email and assign their department and role.</p>
                     </div>
@@ -387,13 +456,24 @@
                 </div>
                 <form id="applicationReviewForm" class="admin-user-form" method="POST">
                     @csrf
-                    <div class="application-review-details">
-                        <strong id="applicationReviewName"></strong>
-                        <span id="applicationReviewEmail"></span>
-                        <small id="applicationReviewApplied"></small>
-                        <span id="applicationReviewVerified" role="status"></span>
+                    <section class="application-review-details" aria-label="Applicant information">
+                        <div class="application-review-profile">
+                            <span class="application-review-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+                            <div class="application-review-identity">
+                                <span class="application-review-section-label">APPLICANT DETAILS</span>
+                                <strong id="applicationReviewName"></strong>
+                                <span id="applicationReviewEmail"></span>
+                            </div>
+                        </div>
+                        <div class="application-review-metadata">
+                            <div class="application-review-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i><small id="applicationReviewApplied"></small></div>
+                            <span class="application-review-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span id="applicationReviewVerified" role="status"></span></span>
+                        </div>
+                    </section>
+                    <div class="application-review-section-heading">
+                        <div><h3>Access assignment</h3><p>Select the department and role for this employee.</p></div>
                     </div>
-                    <div class="form-group">
+                    <div class="application-review-fields"><div class="form-group">
                         <label for="applicationReviewDepartment">Department <span aria-hidden="true">*</span></label>
                         <select name="department" id="applicationReviewDepartment" required>
                             <option value="">Select department</option>
@@ -411,11 +491,12 @@
                             @endforeach
                         </select>
                     </div>
+                    </div>
                     <div class="application-review-actions">
-                        <button type="button" data-close-application-review>Cancel</button>
+                        <button type="button" data-close-application-review><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancel</button>
                         <button type="submit" name="decision" value="reject" class="application-reject-button" formnovalidate
-                            onclick="return confirm('Reject this employee application?')">Reject</button>
-                        <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove">Approve Application</button>
+                            onclick="return confirm('Reject this employee application?')"><i class="fa-solid fa-ban" aria-hidden="true"></i> Reject</button>
+                        <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve Application</button>
                     </div>
                 </form>
             </div>
@@ -424,8 +505,9 @@
 
     {{-- ADD / EDIT ACCOUNT MODAL --}}
     <div class="admin-modal-overlay" id="userFormModal">
-        <div class="admin-user-modal">
-            <div class="admin-modal-header">
+        <div class="admin-user-modal account-edit-dialog">
+            <div class="admin-modal-header account-edit-header">
+                <span class="account-edit-header-icon" aria-hidden="true"><i class="fa-solid fa-user-gear"></i></span>
                 <div>
                     <h2 id="userFormModalTitle">Add System Account</h2>
                     <p id="userFormModalSubtitle">Create a new account and assign department and role access.</p>
@@ -452,55 +534,97 @@
 
                 <input type="hidden" name="_method" id="userFormMethod" value="POST">
 
-                <div class="form-grid">
+                <div class="form-grid account-edit-grid">
                     <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" name="name" id="userNameInput" placeholder="Enter full name" required>
+                        <label for="userNameInput"><i class="fa-solid fa-user" aria-hidden="true"></i> Full Name</label>
+                        <div class="account-field-control"><i class="fa-solid fa-user" aria-hidden="true"></i><input type="text" name="name" id="userNameInput" placeholder="Enter full name" required></div>
+                    </div>
+
+                    <div class="form-group" id="accountCreateEmailField">
+                        <label for="userEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email Address</label>
+                        <div class="account-field-control"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required></div>
+                    </div>
+                    <div class="form-group" id="accountCurrentEmailField" hidden>
+                        <label for="accountCurrentVerifiedEmail"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Current Verified Email</label>
+                        <div class="account-current-email"><i class="fa-regular fa-envelope account-control-icon" aria-hidden="true"></i><input id="accountCurrentVerifiedEmail" type="email" readonly><span class="account-email-verified"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
+                        <small class="account-email-hint">This is the active sign-in email currently used by the employee.</small>
                     </div>
 
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" id="userEmailInput" placeholder="Enter email address" required>
+                        <label for="userPasswordInput"><i class="fa-solid fa-lock" aria-hidden="true"></i> Password</label>
+                        <div class="account-field-control"><i class="fa-solid fa-lock" aria-hidden="true"></i><input type="password" name="password" id="userPasswordInput" placeholder="Enter password"></div>
                     </div>
 
                     <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" name="password" id="userPasswordInput" placeholder="Enter password">
-                    </div>
-
-                    <div class="form-group">
-                        <select name="department" id="userDepartmentInput" required>
+                        <label for="userDepartmentInput"><i class="fa-solid fa-building" aria-hidden="true"></i> Department</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-building" aria-hidden="true"></i><select name="department" id="userDepartmentInput" required>
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
                                 <option value="{{ $department }}">{{ $department }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
                     </div>
 
                     <div class="form-group">
-                        <select name="role" id="userRoleInput" required>
+                        <label for="userRoleInput"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Role</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="role" id="userRoleInput" required>
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)
                                 <option value="{{ $roleValue }}">{{ $roleLabel }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
                     </div>
 
                     <div class="form-group">
-                        <label>Status</label>
-                        <select name="status" id="userStatusInput" required>
+                        <label for="userStatusInput"><i class="fa-solid fa-power-off" aria-hidden="true"></i> Account Status</label>
+                        <div class="account-field-control account-select-control"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><select name="status" id="userStatusInput" required>
                             @foreach(($statuses ?? []) as $status)
                                 <option value="{{ $status }}">{{ $status }}</option>
                             @endforeach
-                        </select>
+                        </select></div>
+                    </div>
+                    <div class="form-group" id="accountNewEmailField" hidden>
+                        <label for="accountNewEmailInput"><i class="fa-solid fa-envelope" aria-hidden="true"></i> New Email Address</label>
+                        <div class="account-field-control"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" id="accountNewEmailInput" name="new_email" placeholder="Enter a replacement email"></div>
+                        <small class="account-email-hint">Enter a new email address to replace the current one. A verification link will be sent to this address.</small>
                     </div>
                 </div>
+                <section class="account-pending-panel" id="accountPendingEmailPanel" hidden>
+                    <div class="account-pending-main">
+                        <div class="account-pending-heading">
+                            <span class="account-pending-icon" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
+                            <div><strong id="accountPendingTitle">Pending Email Change</strong><p id="accountPendingDescription">A new email address is awaiting verification.</p></div>
+                        </div>
+                        <div class="account-pending-address-row">
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                            <span class="account-pending-address" id="accountPendingEmailAddress"></span>
+                            <span class="account-pending-badge"><i class="fa-regular fa-clock" aria-hidden="true"></i><span id="accountPendingBadge">Awaiting Verification</span></span>
+                        </div>
+                        <div class="account-pending-dates">
+                            <p><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Requested on<strong id="accountPendingEmailRequested"></strong></span></p>
+                            <p><i class="fa-regular fa-hourglass-half" aria-hidden="true"></i><span>Expires on<strong id="accountPendingEmailExpiry"></strong></span></p>
+                        </div>
+                    </div>
+                    <div class="account-pending-actions" id="accountPendingActions">
+                        <button type="submit" form="userForm" id="accountEmailSendButton" class="account-resend-btn" hidden><i class="fa-solid fa-paper-plane"></i> Send Verification Link</button>
+                        <button type="submit" form="accountEmailResendForm" id="accountEmailResendButton" class="account-resend-btn" hidden><i class="fa-solid fa-paper-plane"></i> Resend Verification Link</button>
+                        <button type="submit" form="accountEmailCancelForm" class="account-cancel-pending-btn" hidden><i class="fa-regular fa-circle-xmark"></i> Cancel Pending Change</button>
+                        <p>The current verified email remains active until the new address is confirmed.</p>
+                    </div>
+                </section>
 
+                <div class="account-edit-email-note" id="accountEditEmailNote" hidden role="note">
+                    <span class="account-edit-note-icon" aria-hidden="true"><i class="fa-solid fa-info"></i></span>
+                    <div><strong>Email Change Protection</strong>
+                    <p>Changing the email address sends a verification link to the new address. The current verified email remains active until the new address is confirmed. This helps prevent accidental account lockouts.</p></div>
+                </div>
                 <div class="admin-modal-footer modal-actions">
                     <button type="button" class="secondary-btn btn-cancel" id="cancelUserFormModal">Cancel</button>
-                    <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn">Save Account</button>
+                    <button type="submit" class="primary-btn btn-save" id="userFormSaveBtn"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><span>Save Account</span></button>
                 </div>
             </form>
+            <form id="accountEmailResendForm" method="POST">@csrf</form>
+            <form id="accountEmailCancelForm" method="POST">@csrf @method('DELETE')</form>
         </div>
     </div>
 
