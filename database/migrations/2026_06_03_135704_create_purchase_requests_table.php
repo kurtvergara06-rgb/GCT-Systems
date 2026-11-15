@@ -19,16 +19,17 @@ return new class extends Migration
             $table->text('remarks')->nullable();
 
             $table->enum('status', [
-                'Draft',
                 'Submitted',
                 'Approved',
                 'Rejected',
                 'For Purchase',
-                'Pending Purchase',
-                'Delivering',
+                'Ordered',
+                'For Pick-up',
+                'For Delivery',
                 'Delivered',
+                'Picked Up',
                 'Issued',
-            ])->default('Draft');
+            ])->default('Submitted');
 
             $table->timestamps();
         });

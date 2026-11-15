@@ -112,7 +112,7 @@ class InventoryController extends Controller
         $file = fopen($request->file('import_file')->getRealPath(), 'r');
 
         $header = fgetcsv($file);
-
+    
         while (($row = fgetcsv($file)) !== false) {
             InventoryItem::updateOrCreate(
                 [

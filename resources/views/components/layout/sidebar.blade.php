@@ -9,6 +9,7 @@
 
 <aside class="sidebar">
 
+  {{-- BRAND --}}
   <div class="brand">
     <div class="brand-icon">
       <i class="fa-solid {{ $icon }}"></i>
@@ -20,61 +21,73 @@
     </div>
   </div>
 
+  {{-- MENU --}}
   <nav class="menu">
     @foreach($items as $item)
 
       @php
-        $hasChildren = isset($item['children']) && count($item['children']) > 0;
+        $hasChildren = isset($item['children']) && is_array($item['children']) && count($item['children']) > 0;
+        $itemRoute = $item['route'] ?? null;
 
         $isParentActive = false;
 
         if ($hasChildren) {
           foreach ($item['children'] as $child) {
-            if (request()->routeIs($child['route'])) {
+            if (isset($child['route']) && request()->routeIs($child['route'])) {
               $isParentActive = true;
               break;
             }
           }
+        } else {
+          $isParentActive = $itemRoute ? request()->routeIs($itemRoute) : false;
         }
       @endphp
 
       @if($hasChildren)
 
         <div class="menu-dropdown {{ $isParentActive ? 'open' : '' }}">
-          <button type="button" class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}">
-            <i class="fa-solid {{ $item['icon'] }}"></i>
-            <span>{{ $item['label'] }}</span>
+          <button
+            type="button"
+            class="menu-item dropdown-toggle {{ $isParentActive ? 'active' : '' }}"
+          >
+            <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
+            <span>{{ $item['label'] ?? 'Menu' }}</span>
             <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
           </button>
 
           <div class="submenu">
             @foreach($item['children'] as $child)
-              <a
-                href="{{ route($child['route']) }}"
-                class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
-              >
-                <i class="fa-solid {{ $child['icon'] }}"></i>
-                <span>{{ $child['label'] }}</span>
-              </a>
+              @if(isset($child['route']))
+                <a
+                  href="{{ route($child['route']) }}"
+                  class="submenu-item {{ request()->routeIs($child['route']) ? 'active' : '' }}"
+                >
+                  <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
+                  <span>{{ $child['label'] ?? 'Submenu' }}</span>
+                </a>
+              @endif
             @endforeach
           </div>
         </div>
 
       @else
 
-        <a
-          href="{{ route($item['route']) }}"
-          class="menu-item {{ request()->routeIs($item['route']) ? 'active' : '' }}"
-        >
-          <i class="fa-solid {{ $item['icon'] }}"></i>
-          <span>{{ $item['label'] }}</span>
-        </a>
+        @if($itemRoute)
+          <a
+            href="{{ route($itemRoute) }}"
+            class="menu-item {{ request()->routeIs($itemRoute) ? 'active' : '' }}"
+          >
+            <i class="fa-solid {{ $item['icon'] ?? 'fa-circle' }}"></i>
+            <span>{{ $item['label'] ?? 'Menu' }}</span>
+          </a>
+        @endif
 
       @endif
 
     @endforeach
   </nav>
 
+  {{-- USER BOX --}}
   <div class="user-box">
     <div class="avatar">
       <i class="fa-solid fa-user"></i>

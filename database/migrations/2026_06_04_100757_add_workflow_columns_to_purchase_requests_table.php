@@ -10,16 +10,17 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement("ALTER TABLE purchase_requests MODIFY status ENUM(
-            'Draft',
             'Submitted',
             'Approved',
             'Rejected',
             'For Purchase',
-            'Pending Purchase',
-            'Delivering',
+            'Ordered',
+            'For Pick-up',
+            'For Delivery',
             'Delivered',
+            'Picked Up',
             'Issued'
-        ) DEFAULT 'Draft'");
+        ) DEFAULT 'Submitted'");
 
         Schema::table('purchase_requests', function (Blueprint $table) {
             if (!Schema::hasColumn('purchase_requests', 'approved_at')) {
@@ -53,15 +54,16 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE purchase_requests MODIFY status ENUM(
-            'Draft',
             'Submitted',
             'Approved',
             'Rejected',
             'For Purchase',
-            'Pending Purchase',
-            'Delivering',
+            'Ordered',
+            'For Pick-up',
+            'For Delivery',
             'Delivered',
+            'Picked Up',
             'Issued'
-        ) DEFAULT 'Draft'");
+        ) DEFAULT 'Submitted'");
     }
 };

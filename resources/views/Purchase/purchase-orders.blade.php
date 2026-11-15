@@ -1,9 +1,44 @@
 ﻿<x-layout.app
   title="FROMS - Purchase Order"
   :assets="[
-    'resources/css/Purchase/purchase-orders.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Purchase/purchase-orders.css',
+    'resources/js/Purchase/purchase-orders.js'
   ]"
 >
+
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="success"
+    :message="session('success')"
+  />
+
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="error"
+    :message="session('error')"
+  />
+
+  @php
+    $purchaseRequestOptions = $availablePurchaseRequests->map(function ($pr) {
+      return [
+        'pr_no' => $pr->pr_no,
+        'bus_no' => $pr->bus_no,
+        'employee' => $pr->employee ?? $pr->requested_by ?? $pr->created_by ?? '',
+      ];
+    })->values();
+  @endphp
+
+  <script type="application/json" id="purchaseRequestOptionsJson">
+    @json($purchaseRequestOptions)
+  </script>
+
+  <datalist id="purchaseRequestList">
+    @foreach($availablePurchaseRequests as $pr)
+      <option value="{{ $pr->pr_no }}">
+    @endforeach
+  </datalist>
 
   <div class="app">
 
@@ -20,291 +55,567 @@
       ]"
     />
 
-    <!-- MAIN -->
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Purchase Order</h1>
-          <p>Manage procurement records for vehicle parts, equipment & operational materials</p>
+      <x-layout.topbar
+        title="Purchase Order"
+        subtitle="Manage procurement records for vehicle parts, equipment & operational materials"
+        notification-count="6"
+      />
+
+      @if($errors->any())
+        <div class="alert-error">
+          <ul>
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
         </div>
+      @endif
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
+      <section class="stats-grid">
 
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
+        <x-ui.summary-card
+          label="Total Orders"
+          value="{{ $totalOrders }}"
+          small="Purchase orders"
+          icon="fa-file-invoice"
+          color="gray"
+        />
 
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
+        <x-ui.summary-card
+          label="For Purchase"
+          value="{{ $forPurchase }}"
+          small="Ready to order"
+          icon="fa-cart-shopping"
+          color="blue"
+        />
 
-      <!-- SUMMARY CARDS -->
-    <section class="stats-grid">
+        <x-ui.summary-card
+          label="For Delivery"
+          value="{{ $forDelivery }}"
+          small="Waiting delivery"
+          icon="fa-truck-fast"
+          color="yellow"
+        />
 
-  <x-ui.summary-card
-    label="Total Orders"
-    value="8"
-    small="Purchase orders"
-    icon="fa-file-invoice"
-    color="gray"
-  />
+        <x-ui.summary-card
+          label="Delivered"
+          value="{{ $delivered }}"
+          small="Completed orders"
+          icon="fa-circle-check"
+          color="green"
+        />
 
-  <x-ui.summary-card
-    label="Ordered"
-    value="3"
-    small="Waiting for delivery"
-    icon="fa-cart-shopping"
-    color="blue"
-  />
+      </section>
 
-  <x-ui.summary-card
-    label="Shipped"
-    value="2"
-    small="In transit"
-    icon="fa-truck-fast"
-    color="yellow"  
-  />
-
-  <x-ui.summary-card
-    label="Delivered"
-    value="3"
-    small="Completed orders"
-    icon="fa-circle-check"
-    color="green"
-  />
-
-</section>
-
-      <!-- PURCHASE ORDER TABLE -->
       <section class="table-card po-card">
 
         <div class="section-header">
           <div>
             <h2>Purchase Order Records</h2>
-            <p>Track purchase orders, supplier status, and scheduled delivery dates</p>
+            <p>Track purchase orders, supplier status, and procurement progress</p>
           </div>
         </div>
 
-        <!-- TOOLBAR INSIDE CARD -->
-        <div class="toolbar po-toolbar">
+        <form action="{{ route('purchase-orders') }}" method="GET" class="toolbar po-toolbar">
+
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search by item, order number, or supplier...">
+            <input
+              type="text"
+              name="search"
+              value="{{ request('search') }}"
+              placeholder="Search PO number, supplier, purpose, or status..."
+            >
           </div>
 
-          <select>
-            <option>All Categories</option>
-            <option>Vehicle Parts</option>
-            <option>Equipment</option>
-            <option>Operational Materials</option>
+          <select name="status" onchange="this.form.submit()">
+            <option value="All States" {{ request('status') == 'All States' ? 'selected' : '' }}>
+              All States
+            </option>
+
+            @foreach($statuses as $status)
+              <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+                {{ $status }}
+              </option>
+            @endforeach
           </select>
 
-          <select>
-            <option>All States</option>
-            <option>Pending</option>
-            <option>Ordered</option>
-            <option>Approved</option>
-            <option>Shipped</option>
-            <option>Delivered</option>
-          </select>
-
-          <button class="primary-btn">
+          <button type="button" id="openPoModal" class="primary-btn">
             <i class="fa-solid fa-plus"></i>
             New PO
           </button>
-        </div>
+
+        </form>
 
         <div class="table-wrap">
           <table class="po-table">
             <thead>
               <tr>
-                <th>Order #</th>
-                <th>Item / Category</th>
-                <th>Quantity</th>
+                <th>PO Number</th>
                 <th>Supplier</th>
-                <th>Total Price</th>
+                <th>First Item</th>
+                <th>PR No.</th>
+                <th>Bus No.</th>
+                <th>Employee</th>
+                <th>Qty</th>
+                <th>Net Amount</th>
                 <th>Status</th>
-                <th>Scheduled Date</th>
+                <th>Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr>
-                <td>PO-2026-0001</td>
-                <td>
-                  <strong>Engine Oil Filter</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>50 pcs</td>
-                <td>AutoParts Philippines Corp...</td>
-                <td><strong>₱17,500.00</strong></td>
-                <td><span class="badge delivered">Delivered</span></td>
-                <td>Apr 1, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+              @forelse($purchaseOrders as $purchaseOrder)
+                @php
+                  $poItems = $purchaseOrder->items ?? [];
+                  $firstItem = $poItems[0] ?? null;
+                  $statusClass = strtolower(str_replace(' ', '-', $purchaseOrder->status));
+                @endphp
 
-              <tr>
-                <td>PO-2026-0002</td>
-                <td>
-                  <strong>Brake Pads</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>30 pcs</td>
-                <td>Metro Supplies</td>
-                <td><strong>₱21,300.00</strong></td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 3, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                <tr>
+                  <td>{{ $purchaseOrder->po_no }}</td>
+                  <td>{{ $purchaseOrder->supplier_name }}</td>
 
-              <tr>
-                <td>PO-2026-0003</td>
-                <td>
-                  <strong>Coolant</strong>
-                  <span class="sub-text">Operational Materials</span>
-                </td>
-                <td>40 pcs</td>
-                <td>Fleet Warehouse</td>
-                <td><strong>₱12,000.00</strong></td>
-                <td><span class="badge ordered">Ordered</span></td>
-                <td>Apr 5, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <strong>{{ $firstItem['item_description'] ?? '—' }}</strong>
+                  </td>
 
-              <tr>
-                <td>PO-2026-0004</td>
-                <td>
-                  <strong>Fuel Filter</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>25 pcs</td>
-                <td>AutoParts Philippines Corp...</td>
-                <td><strong>₱9,750.00</strong></td>
-                <td><span class="badge shipped">Shipped</span></td>
-                <td>Apr 8, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $firstItem['pr_no'] ?? '—' }}</td>
+                  <td>{{ $firstItem['bus_no'] ?? '—' }}</td>
+                  <td>{{ $firstItem['employee'] ?? '—' }}</td>
+                  <td>{{ $firstItem['quantity'] ?? '—' }}</td>
 
-              <tr>
-                <td>PO-2026-0005</td>
-                <td>
-                  <strong>Tire Valve</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>100 pcs</td>
-                <td>Metro Supplies</td>
-                <td><strong>₱8,500.00</strong></td>
-                <td><span class="badge pending">Pending</span></td>
-                <td>Apr 10, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <strong>₱{{ number_format($purchaseOrder->net_amount, 2) }}</strong>
+                  </td>
 
-              <tr>
-                <td>PO-2026-0006</td>
-                <td>
-                  <strong>Air Filter</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>45 pcs</td>
-                <td>Fleet Warehouse</td>
-                <td><strong>₱13,950.00</strong></td>
-                <td><span class="badge delivered">Delivered</span></td>
-                <td>Apr 12, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <span class="badge {{ $statusClass }}">
+                      {{ $purchaseOrder->status }}
+                    </span>
+                  </td>
 
-              <tr>
-                <td>PO-2026-0007</td>
-                <td>
-                  <strong>Engine Oil</strong>
-                  <span class="sub-text">Lubricants</span>
-                </td>
-                <td>60 pcs</td>
-                <td>Diesel Masters</td>
-                <td><strong>₱36,000.00</strong></td>
-                <td><span class="badge approved">Approved</span></td>
-                <td>Apr 15, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('m/d/y') : '—' }}</td>
 
-              <tr>
-                <td>PO-2026-0008</td>
-                <td>
-                  <strong>AC Belt</strong>
-                  <span class="sub-text">Vehicle Parts</span>
-                </td>
-                <td>20 pcs</td>
-                <td>AutoParts Philippines Corp...</td>
-                <td><strong>₱18,400.00</strong></td>
-                <td><span class="badge ordered">Ordered</span></td>
-                <td>Apr 18, 2026</td>
-                <td>
-                  <div class="po-actions">
-                    <button type="button"><i class="fa-regular fa-eye"></i></button>
-                    <button type="button"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button"><i class="fa-solid fa-trash-can"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <div class="po-actions">
+
+                      <button
+                        type="button"
+                        class="edit open-edit-po-modal"
+                        title="View / Edit"
+                        data-id="{{ $purchaseOrder->id }}"
+                        data-update-url="{{ route('purchase-orders.update', $purchaseOrder->id) }}"
+                        data-po-no="{{ $purchaseOrder->po_no }}"
+                        data-po-date="{{ $purchaseOrder->po_date ? $purchaseOrder->po_date->format('Y-m-d') : '' }}"
+                        data-supplier-name="{{ $purchaseOrder->supplier_name }}"
+                        data-supplier-address-tel="{{ $purchaseOrder->supplier_address_tel }}"
+                        data-terms="{{ $purchaseOrder->terms }}"
+                        data-terms-of-payment="{{ $purchaseOrder->terms_of_payment }}"
+                        data-purpose="{{ $purchaseOrder->purpose }}"
+                        data-delivery-fee="{{ $purchaseOrder->delivery_fee }}"
+                        data-discount="{{ $purchaseOrder->discount }}"
+                        data-vat="{{ $purchaseOrder->vat }}"
+                        data-status="{{ $purchaseOrder->status }}"
+                        data-items='@json($poItems)'
+                      >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+
+                      <form
+                        id="deletePoForm-{{ $purchaseOrder->id }}"
+                        action="{{ route('purchase-orders.destroy', $purchaseOrder->id) }}"
+                        method="POST"
+                      >
+                        @csrf
+                        @method('DELETE')
+
+                        <button
+                          type="button"
+                          class="delete open-delete-po-modal"
+                          title="Delete"
+                          data-id="{{ $purchaseOrder->id }}"
+                          data-po-no="{{ $purchaseOrder->po_no }}"
+                        >
+                          <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </form>
+
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <x-ui.empty-row
+                  colspan="11"
+                  message="No purchase orders found."
+                />
+              @endforelse
             </tbody>
           </table>
         </div>
+
+        <x-ui.table-footer :items="$purchaseOrders" />
 
       </section>
 
     </main>
 
   </div>
+
+  {{-- NEW PO MODAL --}}
+  <div id="poModal" class="modal-overlay">
+    <div class="modal-box po-document-modal">
+
+      <div class="modal-header">
+        <h2>New Purchase Order</h2>
+
+        <button type="button" id="closePoModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <form action="{{ route('purchase-orders.store') }}" method="POST" class="po-document-form">
+        @csrf
+
+        <div class="po-doc-header">
+          <div>
+            <h3>GCT TRANSPORT SERVICES INC.</h3>
+            <p>PURCHASE ORDER</p>
+          </div>
+        </div>
+
+        <div class="po-doc-grid">
+          <div class="form-group">
+            <label>Supplier / To</label>
+            <input type="text" name="supplier_name" placeholder="Supplier name" required>
+          </div>
+
+          <div class="form-group">
+            <label>PO Number</label>
+            <input type="text" value="{{ $nextPoNo }}" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>Address / Tel No.</label>
+            <input type="text" name="supplier_address_tel" placeholder="Supplier address / contact">
+          </div>
+
+          <div class="form-group">
+            <label>Date</label>
+            <input type="text" value="{{ now()->format('m/d/Y') }}" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>Terms</label>
+            <input type="text" name="terms" placeholder="Example: 15">
+          </div>
+
+          <div class="form-group">
+            <label>Terms of Payment</label>
+            <input type="text" name="terms_of_payment" placeholder="Example: Check">
+          </div>
+        </div>
+
+        <div class="po-items-section">
+          <label>Items</label>
+
+          <div class="po-items-head">
+            <span>PR #</span>
+            <span>Bus No.</span>
+            <span>Employee</span>
+            <span>Item Description</span>
+            <span>Qty</span>
+            <span>Unit</span>
+            <span>Cost</span>
+            <span>PO Amount</span>
+            <span></span>
+          </div>
+
+          <div id="poItemsWrapper" class="po-items-wrapper">
+            <div class="po-item-row">
+              <input
+                type="text"
+                class="po-pr-no"
+                name="items[0][pr_no]"
+                list="purchaseRequestList"
+                placeholder="PR No."
+              >
+
+              <input
+                type="text"
+                class="po-bus-no"
+                name="items[0][bus_no]"
+                placeholder="Bus No."
+                readonly
+              >
+
+              <input
+                type="text"
+                class="po-employee"
+                name="items[0][employee]"
+                placeholder="Employee"
+              >
+
+              <input
+                type="text"
+                class="po-item-description"
+                name="items[0][item_description]"
+                placeholder="Item description"
+                required
+              >
+
+              <input
+                type="number"
+                class="po-item-quantity"
+                name="items[0][quantity]"
+                min="1"
+                step="1"
+                placeholder="Qty"
+                required
+              >
+
+              <input
+                type="text"
+                class="po-item-unit"
+                name="items[0][unit]"
+                placeholder="Unit"
+                value="PC"
+              >
+
+              <input
+                type="text"
+                class="po-item-cost"
+                name="items[0][cost]"
+                placeholder="₱0.00"
+                required
+              >
+
+              <input
+                type="text"
+                class="po-item-amount"
+                value="₱0.00"
+                readonly
+              >
+
+              <button type="button" class="remove-po-item-btn" style="display: none;">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" id="addPoItemBtn" class="add-part-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add Other Item
+          </button>
+        </div>
+
+        <div class="po-bottom-grid">
+          <div class="form-group">
+            <label>Purpose</label>
+            <textarea name="purpose" placeholder="Example: For Warehouse Stock."></textarea>
+          </div>
+
+          <div class="po-totals-box">
+            <div>
+              <label>Gross Amount</label>
+              <input type="text" id="po_gross_display" value="₱0.00" readonly>
+            </div>
+
+            <div>
+              <label>Delivery Fee</label>
+              <input type="text" id="po_delivery_fee" name="delivery_fee" value="₱0.00">
+            </div>
+
+            <div>
+              <label>Discount</label>
+              <input type="text" id="po_discount" name="discount" value="₱0.00">
+            </div>
+
+            <div>
+              <label>VAT</label>
+              <input type="text" id="po_vat" name="vat" value="₱0.00">
+            </div>
+
+            <div>
+              <label>Net Amount</label>
+              <input type="text" id="po_net_display" value="₱0.00" readonly>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" required>
+            @foreach($statuses as $status)
+              <option value="{{ $status }}" {{ $status === 'For Purchase' ? 'selected' : '' }}>
+                {{ $status }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelPoModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Save Purchase Order
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  {{-- EDIT PO MODAL --}}
+  <div id="editPoModal" class="modal-overlay">
+    <div class="modal-box po-document-modal">
+
+      <div class="modal-header">
+        <h2>Purchase Order Details</h2>
+
+        <button type="button" id="closeEditPoModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <form id="editPoForm" method="POST" class="po-document-form">
+        @csrf
+        @method('PUT')
+
+        <div class="po-doc-header">
+          <div>
+            <h3>GCT TRANSPORT SERVICES INC.</h3>
+            <p>PURCHASE ORDER</p>
+          </div>
+        </div>
+
+        <div class="po-doc-grid">
+          <div class="form-group">
+            <label>Supplier / To</label>
+            <input type="text" name="supplier_name" id="edit_supplier_name" required>
+          </div>
+
+          <div class="form-group">
+            <label>PO Number</label>
+            <input type="text" name="po_no" id="edit_po_no" readonly required>
+          </div>
+
+          <div class="form-group">
+            <label>Address / Tel No.</label>
+            <input type="text" name="supplier_address_tel" id="edit_supplier_address_tel">
+          </div>
+
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" name="po_date" id="edit_po_date" required>
+          </div>
+
+          <div class="form-group">
+            <label>Terms</label>
+            <input type="text" name="terms" id="edit_terms">
+          </div>
+
+          <div class="form-group">
+            <label>Terms of Payment</label>
+            <input type="text" name="terms_of_payment" id="edit_terms_of_payment">
+          </div>
+        </div>
+
+        <div class="po-items-section">
+          <label>Items</label>
+
+          <div class="po-items-head">
+            <span>PR #</span>
+            <span>Bus No.</span>
+            <span>Employee</span>
+            <span>Item Description</span>
+            <span>Qty</span>
+            <span>Unit</span>
+            <span>Cost</span>
+            <span>PO Amount</span>
+            <span></span>
+          </div>
+
+          <div id="editPoItemsWrapper" class="po-items-wrapper"></div>
+
+          <button type="button" id="editAddPoItemBtn" class="add-part-btn">
+            <i class="fa-solid fa-plus"></i>
+            Add Other Item
+          </button>
+        </div>
+
+        <div class="po-bottom-grid">
+          <div class="form-group">
+            <label>Purpose</label>
+            <textarea name="purpose" id="edit_purpose"></textarea>
+          </div>
+
+          <div class="po-totals-box">
+            <div>
+              <label>Gross Amount</label>
+              <input type="text" id="edit_po_gross_display" value="₱0.00" readonly>
+            </div>
+
+            <div>
+              <label>Delivery Fee</label>
+              <input type="text" id="edit_po_delivery_fee" name="delivery_fee" value="₱0.00">
+            </div>
+
+            <div>
+              <label>Discount</label>
+              <input type="text" id="edit_po_discount" name="discount" value="₱0.00">
+            </div>
+
+            <div>
+              <label>VAT</label>
+              <input type="text" id="edit_po_vat" name="vat" value="₱0.00">
+            </div>
+
+            <div>
+              <label>Net Amount</label>
+              <input type="text" id="edit_po_net_display" value="₱0.00" readonly>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status" id="edit_status" required>
+            @foreach($statuses as $status)
+              <option value="{{ $status }}">
+                {{ $status }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="modal-actions full-width">
+          <button type="button" id="cancelEditPoModal" class="cancel-btn">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-btn">
+            Update Purchase Order
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <x-ui.action-buttom-modal
+    mode="delete"
+    id="deletePoModal"
+    delete-title="Delete Purchase Order?"
+    delete-message="Are you sure you want to delete"
+    name-id="deletePoNo"
+    cancel-id="cancelDeletePo"
+    confirm-id="confirmDeletePo"
+  />
 
 </x-layout.app>
