@@ -1,4 +1,4 @@
-"""Random Forest training and evaluation for ETA / trip duration."""
+"""Candidate benchmarking and training for ETA / trip duration."""
 
 from __future__ import annotations
 
@@ -7,12 +7,13 @@ import logging
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from ml_runtime_policy import normalize_data_source
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class EtaModelResult:
-    model: Optional[RandomForestRegressor] = None
+    model: Optional[Any] = None
     trained: bool = False
     quality_ready: bool = False
     message: str = ""
@@ -37,6 +38,59 @@ class EtaModelResult:
     n_samples: int = 0
     distinct_routes: int = 0
     target_range: Dict[str, float] = field(default_factory=dict)
+    selected_model_key: str = ""
+    selected_model_name: str = ""
+    selected_model_family: str = ""
+    candidate_models: List[Dict[str, Any]] = field(default_factory=list)
+
+
+ETA_MODEL_IDENTITIES = {
+    "linear_regression": "eta_duration_linear_regression",
+    "random_forest": "eta_duration_random_forest",
+    "hist_gradient_boosting": "eta_duration_hist_gradient_boosting",
+}
+
+
+def _regression_metrics(actual: pd.Series, predicted: Any) -> Dict[str, float]:
+    """Return one comparable metric contract for every ETA candidate."""
+    return {
+        "mae": float(mean_absolute_error(actual, predicted)),
+        "rmse": float(np.sqrt(mean_squared_error(actual, predicted))),
+        "r2": float(r2_score(actual, predicted)) if len(actual) >= 2 else float("nan"),
+    }
+
+
+def _candidate_row(
+    key: str,
+    name: str,
+    family: str,
+    metrics: Optional[Dict[str, float]] = None,
+    status: str = "evaluated",
+    reason: str = "",
+) -> Dict[str, Any]:
+    return {
+        "key": key,
+        "name": name,
+        "family": family,
+        "selected": False,
+        "status": status,
+        "reason": reason,
+        "metrics": metrics or {},
+    }
+
+
+def _json_safe_candidates(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Replace non-finite metric values before strict JSON serialization."""
+    safe_candidates: List[Dict[str, Any]] = []
+    for candidate in candidates:
+        safe_candidate = {**candidate}
+        metrics = candidate.get("metrics") or {}
+        safe_candidate["metrics"] = {
+            key: float(value) if value is not None and np.isfinite(value) else None
+            for key, value in metrics.items()
+        }
+        safe_candidates.append(safe_candidate)
+    return safe_candidates
 
 
 def _training_source(df: pd.DataFrame) -> str:
@@ -54,7 +108,7 @@ def _training_source(df: pd.DataFrame) -> str:
 
 
 def train_eta_model(df: pd.DataFrame) -> EtaModelResult:
-    """Train using a chronological holdout and evaluate against route baseline."""
+    """Benchmark ETA candidates on one chronological holdout and save the winner."""
     thresholds = data_thresholds()
     result = EtaModelResult(
         n_samples=int(len(df)),
@@ -113,35 +167,110 @@ def train_eta_model(df: pd.DataFrame) -> EtaModelResult:
     X_test = test[ETA_FEATURE_COLUMNS]
     y_test = test[ETA_TARGET].astype(float)
 
-    model = RandomForestRegressor(
-        n_estimators=200,
-        max_depth=None,
-        min_samples_leaf=2,
-        max_features="sqrt",
-        random_state=42,
-        n_jobs=-1,
-    )
-    model.fit(X_train, y_train)
-
-    pred_train = model.predict(X_train)
-    pred_test = model.predict(X_test)
-    mae = float(mean_absolute_error(y_test, pred_test))
-    rmse = float(np.sqrt(mean_squared_error(y_test, pred_test)))
-    r2 = float(r2_score(y_test, pred_test)) if len(y_test) >= 2 else float("nan")
-
     baseline_values = pd.to_numeric(
         X_test["route_estimated_time_minutes"], errors="coerce"
     )
     baseline_mask = baseline_values.notna() & (baseline_values > 0)
     baseline_mae = float("nan")
     if bool(baseline_mask.any()):
-        baseline_mae = float(
-            mean_absolute_error(y_test[baseline_mask], baseline_values[baseline_mask])
+        baseline_metrics = _regression_metrics(
+            y_test[baseline_mask], baseline_values[baseline_mask]
+        )
+        baseline_mae = baseline_metrics["mae"]
+        result.candidate_models.append(
+            _candidate_row(
+                "operator_baseline",
+                "Operator Route Baseline",
+                "Published route estimate",
+                baseline_metrics,
+            )
+        )
+    else:
+        result.candidate_models.append(
+            _candidate_row(
+                "operator_baseline",
+                "Operator Route Baseline",
+                "Published route estimate",
+                status="not_evaluated",
+                reason="No positive route estimate exists in the held-out rows.",
+            )
         )
 
+    candidate_estimators = [
+        (
+            "linear_regression",
+            "Linear Regression",
+            "Parametric linear (OLS)",
+            LinearRegression(),
+        ),
+        (
+            "random_forest",
+            "Random Forest",
+            "Nonlinear ensemble (200 trees)",
+            RandomForestRegressor(
+                n_estimators=200,
+                max_depth=None,
+                min_samples_leaf=2,
+                max_features="sqrt",
+                random_state=42,
+                n_jobs=-1,
+            ),
+        ),
+        (
+            "hist_gradient_boosting",
+            "Histogram Gradient Boosting",
+            "Boosted decision trees",
+            HistGradientBoostingRegressor(
+                max_iter=200,
+                learning_rate=0.05,
+                random_state=42,
+            ),
+        ),
+    ]
+
+    evaluated: List[Dict[str, Any]] = []
+    for key, name, family, estimator in candidate_estimators:
+        try:
+            estimator.fit(X_train, y_train)
+            pred_test = estimator.predict(X_test)
+            metrics = _regression_metrics(y_test, pred_test)
+            pred_train = estimator.predict(X_train)
+            metrics["train_mae"] = float(mean_absolute_error(y_train, pred_train))
+            metrics["test_mae"] = metrics["mae"]
+            if bool(baseline_mask.any()):
+                metrics["baseline_comparable_mae"] = float(
+                    mean_absolute_error(y_test[baseline_mask], pred_test[baseline_mask])
+                )
+
+            row = _candidate_row(key, name, family, metrics)
+            row["estimator"] = estimator
+            evaluated.append(row)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("ETA candidate %s failed during evaluation", key)
+            result.candidate_models.append(
+                _candidate_row(key, name, family, status="failed", reason=str(exc))
+            )
+
+    if not evaluated:
+        result.message = "MODEL NOT READY: all ETA candidate algorithms failed evaluation."
+        return result
+
+    selected = min(evaluated, key=lambda row: row["metrics"]["mae"])
+    selected["selected"] = True
+    model = selected.pop("estimator")
+    for row in evaluated:
+        row.pop("estimator", None)
+        result.candidate_models.append(row)
+
+    selected_metrics = selected["metrics"]
+    mae = float(selected_metrics["mae"])
+    rmse = float(selected_metrics["rmse"])
+    r2 = float(selected_metrics["r2"])
+    comparable_mae = float(selected_metrics.get("baseline_comparable_mae", float("nan")))
+
     improvement = float("nan")
-    if np.isfinite(baseline_mae) and baseline_mae > 0:
-        improvement = float(((baseline_mae - mae) / baseline_mae) * 100.0)
+    if np.isfinite(baseline_mae) and baseline_mae > 0 and np.isfinite(comparable_mae):
+        improvement = float(((baseline_mae - comparable_mae) / baseline_mae) * 100.0)
 
     result.model = model
     result.trained = True
@@ -152,14 +281,20 @@ def train_eta_model(df: pd.DataFrame) -> EtaModelResult:
         "mae": mae,
         "rmse": rmse,
         "r2": r2,
-        "train_mae": float(mean_absolute_error(y_train, pred_train)),
+        "train_mae": float(selected_metrics["train_mae"]),
         "test_mae": mae,
+        "baseline_comparable_mae": comparable_mae,
         "operator_baseline_mae": baseline_mae,
         "mae_improvement_percent": improvement,
     }
-    result.feature_importances = {
-        col: float(imp) for col, imp in zip(ETA_FEATURE_COLUMNS, model.feature_importances_)
-    }
+    if hasattr(model, "feature_importances_"):
+        result.feature_importances = {
+            col: float(imp)
+            for col, imp in zip(ETA_FEATURE_COLUMNS, model.feature_importances_)
+        }
+    result.selected_model_key = str(selected["key"])
+    result.selected_model_name = str(selected["name"])
+    result.selected_model_family = str(selected["family"])
     y_all = working[ETA_TARGET].astype(float)
     result.target_range = {
         "min": float(y_all.min()),
@@ -168,7 +303,11 @@ def train_eta_model(df: pd.DataFrame) -> EtaModelResult:
     }
 
     metrics_finite = all(np.isfinite(v) for v in (mae, rmse, r2))
-    baseline_beaten = np.isfinite(baseline_mae) and mae < baseline_mae
+    baseline_beaten = (
+        np.isfinite(baseline_mae)
+        and np.isfinite(comparable_mae)
+        and comparable_mae < baseline_mae
+    )
     result.quality_ready = bool(metrics_finite and baseline_beaten)
     result.message = (
         "ETA_ML_QUALITY_READY"
@@ -212,6 +351,7 @@ def save_eta_model(
         f"Distinct routes:    {result.distinct_routes}",
         f"Training rows:      {result.n_train}",
         f"Test rows:          {result.n_test}",
+        f"Selected candidate: {result.selected_model_name or 'none'}",
     ]
     if result.trained:
         lines += [
@@ -223,7 +363,24 @@ def save_eta_model(
             f"  Operator baseline MAE: {result.metrics['operator_baseline_mae']:.2f} minutes",
             f"  MAE improvement: {result.metrics['mae_improvement_percent']:.2f}%",
             f"Quality ready:     {'yes' if result.quality_ready else 'no'}",
+            "",
+            "Candidate comparison (same chronological holdout):",
         ]
+        for candidate in result.candidate_models:
+            metrics = candidate.get("metrics") or {}
+            if candidate.get("status") != "evaluated":
+                lines.append(
+                    f"  {candidate['name']}: {candidate.get('status')} - {candidate.get('reason', '')}"
+                )
+                continue
+            lines.append(
+                "  "
+                + candidate["name"]
+                + (" [SELECTED]" if candidate.get("selected") else "")
+                + f": MAE={metrics.get('mae', float('nan')):.2f}, "
+                + f"RMSE={metrics.get('rmse', float('nan')):.2f}, "
+                + f"R2={metrics.get('r2', float('nan')):.4f}"
+            )
     else:
         lines += ["", result.message]
     paths["report"].write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -233,9 +390,12 @@ def save_state(result: EtaModelResult, paths: Optional[Dict[str, Path]] = None) 
     paths = paths or model_paths()
     paths["dir"].mkdir(parents=True, exist_ok=True)
     metadata = get_model_metadata(
-        model_name="eta_duration_rf",
+        model_name=ETA_MODEL_IDENTITIES.get(
+            result.selected_model_key,
+            "eta_duration_model_not_selected",
+        ),
         training_source=result.data_source,
-        model_version="1.1.0",
+        model_version="1.2.0",
         feature_schema_version="1.1",
     )
     safe_metrics = {
@@ -249,6 +409,12 @@ def save_state(result: EtaModelResult, paths: Optional[Dict[str, Path]] = None) 
         "sample_count": result.n_samples,
         "distinct_routes": result.distinct_routes,
         "split_strategy": "chronological_80_20",
+        "selected_model": {
+            "key": result.selected_model_key,
+            "name": result.selected_model_name,
+            "family": result.selected_model_family,
+        },
+        "candidate_models": _json_safe_candidates(result.candidate_models),
         "metrics": safe_metrics,
         "target_range": result.target_range,
         "message": (

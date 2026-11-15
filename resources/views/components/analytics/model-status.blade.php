@@ -82,6 +82,82 @@
         @endforeach
     </div>
 
+    @foreach($models as $model)
+        @if(! empty($model->candidate_models))
+            <section class="model-comparison" aria-labelledby="model-comparison-{{ $model->key }}">
+                <div class="model-comparison-heading">
+                    <div>
+                        <span class="panel-kicker">Validated Candidate Benchmark</span>
+                        <h3 id="model-comparison-{{ $model->key }}">{{ $model->name }} Comparison</h3>
+                        <p>
+                            All candidates use the same {{ str_replace('_', ' ', $model->split_strategy ?: 'reported') }} holdout.
+                            Lower MAE and RMSE are better; higher R² is better.
+                        </p>
+                    </div>
+
+                    <div class="model-comparison-meta">
+                        @if($model->selected_model !== '')
+                            <span><strong>Selected:</strong> {{ $model->selected_model }}</span>
+                        @endif
+                        @if($model->model_version !== '')
+                            <span><strong>Version:</strong> {{ $model->model_version }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="model-comparison-table-wrap">
+                    <table class="model-comparison-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Candidate Model</th>
+                                <th scope="col">Model Family</th>
+                                <th scope="col">MAE (minutes)</th>
+                                <th scope="col">RMSE (minutes)</th>
+                                <th scope="col">R² Score</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($model->candidate_models as $candidate)
+                                <tr class="{{ $candidate->selected ? 'is-selected' : '' }}">
+                                    <td>
+                                        <span class="candidate-name">
+                                            <span class="candidate-dot candidate-dot--{{ $candidate->key }}"></span>
+                                            {{ $candidate->name }}
+                                        </span>
+                                        @if($candidate->selected)
+                                            <span class="candidate-selected">Selected</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $candidate->family }}</td>
+                                    <td>{{ $candidate->mae !== null ? number_format($candidate->mae, 2) : '—' }}</td>
+                                    <td>{{ $candidate->rmse !== null ? number_format($candidate->rmse, 2) : '—' }}</td>
+                                    <td class="{{ $candidate->r2 !== null && $candidate->r2 < 0 ? 'metric-negative' : '' }}">
+                                        {{ $candidate->r2 !== null ? number_format($candidate->r2, 3) : '—' }}
+                                    </td>
+                                    <td>
+                                        <span class="candidate-status candidate-status--{{ $candidate->status }}">
+                                            {{ $candidate->selected ? 'SELECTED' : strtoupper(str_replace('_', ' ', $candidate->status)) }}
+                                        </span>
+                                        @if($candidate->reason !== '')
+                                            <small title="{{ $candidate->reason }}">{{ $candidate->reason }}</small>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="model-comparison-source">
+                    <i class="fa-solid fa-database"></i>
+                    Results reported by the Python training artifact · {{ $model->data_source }} ·
+                    {{ number_format($model->sample_count) }} records
+                </p>
+            </section>
+        @endif
+    @endforeach
+
     <div class="ai-model-policy-note">
         <i class="fa-solid fa-circle-info"></i>
         <span>

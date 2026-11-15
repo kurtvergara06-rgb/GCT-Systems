@@ -1,4 +1,4 @@
-"""CLI: train the ETA / trip-duration Random Forest model.
+"""CLI: benchmark ETA regressors and persist the best held-out candidate.
 
 The input CSV must have been produced by ``eta.prepare_training_data`` so each
 row carries explicit data provenance. Genuine production readiness is never
@@ -62,6 +62,7 @@ def main() -> int:
 
     print(f"Train rows:     {result.n_train}")
     print(f"Test rows:      {result.n_test}")
+    print(f"Selected model: {result.selected_model_name}")
     print("Metrics (chronological held-out test):")
     print(f"  MAE  = {result.metrics['mae']:.2f} min")
     print(f"  RMSE = {result.metrics['rmse']:.2f} min")
@@ -69,6 +70,19 @@ def main() -> int:
     print(f"  Operator baseline MAE = {result.metrics['operator_baseline_mae']:.2f} min")
     print(f"  MAE improvement       = {result.metrics['mae_improvement_percent']:.2f}%")
     print(f"Quality ready:  {'YES' if result.quality_ready else 'NO'}")
+    print("Candidate comparison:")
+    for candidate in result.candidate_models:
+        metrics = candidate.get("metrics") or {}
+        marker = " [SELECTED]" if candidate.get("selected") else ""
+        if candidate.get("status") != "evaluated":
+            print(f"  {candidate['name']}: {candidate.get('status')}")
+            continue
+        print(
+            f"  {candidate['name']}{marker}: "
+            f"MAE={metrics.get('mae', float('nan')):.2f}, "
+            f"RMSE={metrics.get('rmse', float('nan')):.2f}, "
+            f"R2={metrics.get('r2', float('nan')):.4f}"
+        )
     print(f"Artifacts:      {paths['dir']}")
 
     # A model may be trained for analysis/development but still fail the

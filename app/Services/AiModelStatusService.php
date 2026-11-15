@@ -200,6 +200,10 @@ class AiModelStatusService
             'sample_count' => $sampleCount,
             'reason' => trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
             'details' => [],
+            'model_version' => trim((string) ($status['model_version'] ?? '')),
+            'split_strategy' => trim((string) ($status['split_strategy'] ?? '')),
+            'selected_model' => trim((string) data_get($status, 'selected_model.name', '')),
+            'candidate_models' => $this->normalizeCandidates($status['candidate_models'] ?? []),
         ];
     }
 
@@ -262,7 +266,49 @@ class AiModelStatusService
                     'sample_count' => (int) ($status['driver_sample_count'] ?? 0),
                 ],
             ],
+            'model_version' => '',
+            'split_strategy' => '',
+            'selected_model' => '',
+            'candidate_models' => [],
         ];
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    private function normalizeCandidates(mixed $candidates): array
+    {
+        if (! is_array($candidates)) {
+            return [];
+        }
+
+        return collect($candidates)
+            ->filter(fn (mixed $candidate): bool => is_array($candidate))
+            ->map(function (array $candidate): object {
+                $metrics = is_array($candidate['metrics'] ?? null)
+                    ? $candidate['metrics']
+                    : [];
+
+                $numericMetric = static function (string $key) use ($metrics): ?float {
+                    $value = $metrics[$key] ?? null;
+
+                    return is_numeric($value) ? (float) $value : null;
+                };
+
+                return (object) [
+                    'key' => trim((string) ($candidate['key'] ?? '')),
+                    'name' => trim((string) ($candidate['name'] ?? 'Unnamed candidate')),
+                    'family' => trim((string) ($candidate['family'] ?? 'Not reported')),
+                    'selected' => ($candidate['selected'] ?? false) === true,
+                    'status' => trim((string) ($candidate['status'] ?? 'not_evaluated')),
+                    'reason' => trim((string) ($candidate['reason'] ?? '')),
+                    'mae' => $numericMetric('mae'),
+                    'rmse' => $numericMetric('rmse'),
+                    'r2' => $numericMetric('r2'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private function schedulingReason(array $status, bool $fullyReady, bool $partiallyReady): string
@@ -321,6 +367,10 @@ class AiModelStatusService
             'sample_count' => 0,
             'reason' => 'The Python engine status endpoint did not respond successfully.',
             'details' => [],
+            'model_version' => '',
+            'split_strategy' => '',
+            'selected_model' => '',
+            'candidate_models' => [],
         ];
     }
 }

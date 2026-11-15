@@ -75,6 +75,32 @@ def main() -> None:
         f"model={result.metrics['mae']:.2f}, baseline={result.metrics['operator_baseline_mae']:.2f}",
     )
     check("quality gate passes only with evidence", result.quality_ready, result.message)
+    check("four candidates are reported", len(result.candidate_models) == 4, str(result.candidate_models))
+    check(
+        "exactly one trained candidate is selected",
+        sum(bool(candidate["selected"]) for candidate in result.candidate_models) == 1,
+    )
+    check(
+        "selected candidate is a trained regressor",
+        result.selected_model_key in {
+            "linear_regression",
+            "random_forest",
+            "hist_gradient_boosting",
+        },
+        result.selected_model_key,
+    )
+    evaluated = [
+        candidate
+        for candidate in result.candidate_models
+        if candidate["status"] == "evaluated"
+    ]
+    check(
+        "every evaluated candidate has comparable metrics",
+        all(
+            {"mae", "rmse", "r2"}.issubset(candidate["metrics"])
+            for candidate in evaluated
+        ),
+    )
 
     route_encodings = build_route_encodings(genuine)
     check("route encodings are persisted deterministically", len(route_encodings) == 3, str(route_encodings))
@@ -101,6 +127,9 @@ def main() -> None:
         check("saved state records genuine source", state["training_source"] == "genuine")
         check("saved state records quality gate", state["quality_ready"] is True)
         check("saved state records chronological split", state["split_strategy"] == "chronological_80_20")
+        check("saved state records selected candidate", state["selected_model"]["key"] == result.selected_model_key)
+        check("saved state records candidate metrics", len(state["candidate_models"]) == 4)
+        check("saved model identity matches selected candidate", state["model_name"].endswith(result.selected_model_key))
         check("saved feature order matches runtime contract", features["features"] == ETA_FEATURE_COLUMNS)
         check("saved route encodings match trainer", features["route_encodings"] == route_encodings)
 
